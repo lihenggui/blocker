@@ -30,12 +30,12 @@ import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
-import com.merxury.blocker.core.ui.rule.MatchedAppItemHeader
-import com.merxury.blocker.core.ui.rule.RuleMatchedApp
+import com.merxury.blocker.core.ui.collapseList.CollapsibleItem
+import com.merxury.blocker.core.ui.rule.MatchedHeaderData
+import com.merxury.blocker.core.ui.rule.MatchedItem
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -49,51 +49,51 @@ import kotlin.test.Test
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
-class RuleMatchedAppItemScreenshotTests {
+class CollapseItemScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun ruleMatchedAppItem_multipleThemes() {
-        composeTestRule.captureMultiTheme("RuleMatchedAppItem") {
+    fun collapseItem_multipleThemes() {
+        composeTestRule.captureMultiTheme("CollapseItem") {
             Surface {
-                RuleMatchedAppItemExample()
+                CollapseItemExample()
             }
         }
     }
 
     @Test
-    fun ruleMatchedAppItem_longName_multipleThemes() {
-        composeTestRule.captureMultiTheme("RuleMatchedAppItem", "RuleMatchedAppItemLongName") {
+    fun collapseItem_longName_multipleThemes() {
+        composeTestRule.captureMultiTheme("CollapseItem", "CollapseItemLongName") {
             Surface {
-                RuleMatchedAppItemExample(isLongName = true)
+                CollapseItemExample(isLongName = true)
             }
         }
     }
 
     @Test
-    fun ruleMatchedAppItem_hugeFont() {
+    fun collapseItem_hugeFont() {
         composeTestRule.setContent {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
                 TestHarness(fontScale = 2f) {
                     BlockerTheme {
-                        RuleMatchedAppItemExample()
+                        CollapseItemExample()
                     }
                 }
             }
         }
         composeTestRule.onRoot()
             .captureRoboImage(
-                "src/test/screenshots/RuleMatchedAppItem" +
-                    "/RuleMatchedAppItem_fontScale2.png",
+                "src/test/screenshots/CollapseItem" +
+                    "/CollapseItem_fontScale2.png",
                 roborazziOptions = DefaultRoborazziOptions,
             )
     }
 
     @Composable
-    private fun RuleMatchedAppItemExample(isLongName: Boolean = false) {
+    private fun CollapseItemExample(isLongName: Boolean = false) {
         val label = if (isLongName) {
             "This is a very long long long long long long name "
         } else {
@@ -117,17 +117,13 @@ class RuleMatchedAppItemScreenshotTests {
                 ),
             )
         }
-        val ruleMatchedApp = RuleMatchedApp(
-            app = AppItem(
-                packageName = "com.merxury.example",
-                label = label,
-                packageInfo = null,
+        val matchedItem = MatchedItem(
+            header = MatchedHeaderData(
+                title = label,
+                uniqueId = "com.merxury.example",
             ),
             componentList = componentList,
         )
-        MatchedAppItemHeader(
-            ruleMatchedApp = ruleMatchedApp,
-            expanded = isLongName,
-        )
+        CollapsibleItem(matchedItem = matchedItem, expanded = isLongName)
     }
 }

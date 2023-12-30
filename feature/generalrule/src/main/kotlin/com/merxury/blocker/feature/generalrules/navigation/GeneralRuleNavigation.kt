@@ -28,7 +28,7 @@ fun NavController.navigateToGeneralRule(navOptions: NavOptions) =
     navigate(GENERAL_RULE_ROUTE, navOptions)
 
 fun NavGraphBuilder.generalRuleScreen(
-    navigateToRuleDetail: (Int) -> Unit,
+    navigateToRuleDetail: (String) -> Unit,
 ) {
     composable(route = GENERAL_RULE_ROUTE) {
         GeneralRulesRoute(

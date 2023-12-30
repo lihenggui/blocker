@@ -20,6 +20,7 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
@@ -30,10 +31,12 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.size.Scale
 import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
@@ -44,16 +47,15 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.rule.MatchedHeaderData
+import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
-import com.merxury.blocker.core.ui.rule.RuleMatchedApp
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
@@ -72,6 +74,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -79,6 +82,8 @@ class RuleDetailViewModel @Inject constructor(
     private val appContext: Application,
     savedStateHandle: SavedStateHandle,
     private val pm: PackageManager,
+    @FilesDir private val filesDir: File,
+    @RuleBaseFolder private val ruleBaseFolder: String,
     private val ruleRepository: GeneralRuleRepository,
     private val appRepository: AppRepository,
     private val userDataRepository: UserDataRepository,
@@ -125,17 +130,18 @@ class RuleDetailViewModel @Inject constructor(
         loadRuleDetailJob = viewModelScope.launch {
             val context: Context = appContext
             val ruleId = ruleIdArgs.ruleId
-            val baseUrl = userDataRepository.userData
-                .first()
-                .ruleServerProvider
-                .baseUrl
             val rule = ruleRepository.getGeneralRule(ruleId)
                 .first()
-            val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
+            val iconFile = withContext(ioDispatcher) {
+                val iconUrl = rule.iconUrl ?: return@withContext null
+                File(filesDir, ruleBaseFolder)
+                    .resolve(iconUrl)
+            }
+            val ruleWithIcon = rule.copy(iconUrl = iconFile?.absolutePath)
             _ruleInfoUiState.update {
                 RuleInfoUiState.Success(
                     ruleInfo = ruleWithIcon,
-                    ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
+                    ruleIcon = getRuleIcon(iconFile, context = context),
                     matchedAppsUiState = RuleMatchedAppListUiState.Loading,
                 )
             }
@@ -196,12 +202,16 @@ class RuleDetailViewModel @Inject constructor(
                     ?: return@mapNotNull null
                 if (!showSystemApps && app.isSystem) return@mapNotNull null
                 val packageInfo = pm.getPackageInfoCompat(packageName, 0)
-                val appItem = app.toAppItem(packageInfo = packageInfo)
+                val headerData = MatchedHeaderData(
+                    title = app.label,
+                    uniqueId = packageName,
+                    icon = packageInfo,
+                )
                 val searchedComponentItem = components
                     .toSet() // Remove duplicate components caused by multiple keywords
                     .map { it.toComponentItem() }
                     .toMutableStateList()
-                RuleMatchedApp(appItem, searchedComponentItem)
+                MatchedItem(headerData, searchedComponentItem)
             }
             .toMutableStateList()
         withContext(mainDispatcher) {
@@ -282,7 +292,7 @@ class RuleDetailViewModel @Inject constructor(
         withContext(cpuDispatcher) {
             val currentController = userDataRepository.userData.first().controllerType
             val matchedApp = matchedAppState.list.firstOrNull { matchedApp ->
-                matchedApp.app.packageName == packageName
+                matchedApp.header.uniqueId == packageName
             }
             if (matchedApp == null) {
                 Timber.e("Cannot find matched app for package name: $packageName")
@@ -330,16 +340,16 @@ class RuleDetailViewModel @Inject constructor(
         _tabState.update { it.copy(selectedItem = screen) }
     }
 
-    private suspend fun getRuleIcon(iconUrl: String?, context: Context) =
+    private suspend fun getRuleIcon(icon: File?, context: Context) =
         withContext(ioDispatcher) {
             val request = ImageRequest.Builder(context)
-                .data(iconUrl)
+                .data(icon)
                 // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
                 .size(128).scale(Scale.FILL)
                 // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
                 .allowHardware(false)
                 // Set a custom memory cache key to avoid overwriting the displayed image in the cache
-                .memoryCacheKey("$iconUrl.palette")
+                .memoryCacheKey("$icon.palette")
                 .build()
 
             val bitmap = when (val result = context.imageLoader.execute(request)) {
@@ -358,4 +368,11 @@ sealed interface RuleInfoUiState {
         val ruleIcon: Bitmap?,
         val matchedAppsUiState: RuleMatchedAppListUiState,
     ) : RuleInfoUiState
+}
+
+sealed interface RuleMatchedAppListUiState {
+    data object Loading : RuleMatchedAppListUiState
+    data class Success(
+        val list: SnapshotStateList<MatchedItem>,
+    ) : RuleMatchedAppListUiState
 }

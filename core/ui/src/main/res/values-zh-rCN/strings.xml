@@ -54,6 +54,7 @@
     <string name="core_ui_block_all_components">禁用所有组件</string>
     <string name="core_ui_enable_all_components">启用所有组件</string>
     <string name="core_ui_open_app_detail">打开应用详情</string>
+    <string name="core_ui_open_rule_detail">打开规则详情</string>
     <string name="core_ui_sort_options">排序选项</string>
     <string name="core_ui_collapse_list">折叠列表</string>
     <string name="core_ui_expand_list">展开列表</string>

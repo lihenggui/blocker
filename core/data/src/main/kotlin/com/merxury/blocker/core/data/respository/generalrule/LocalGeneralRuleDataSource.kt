@@ -75,6 +75,7 @@ class LocalGeneralRuleDataSource @Inject constructor(
         }
         Timber.w("Cannot find general rule in $oldRuleFile")
         val lowercaseFolder = filesDir.resolve(ruleBaseFolder)
+            .resolve(RULES_FOLDER)
             .resolve(language.lowercase())
             .resolve(RULE_NAME)
         if (lowercaseFolder.exists()) {

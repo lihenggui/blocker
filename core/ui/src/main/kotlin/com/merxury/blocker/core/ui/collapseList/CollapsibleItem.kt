@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.rule
+package com.merxury.blocker.core.ui.collapseList
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,9 +33,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
@@ -43,18 +47,18 @@ import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentItem
-import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.plurals
-import com.merxury.blocker.core.ui.applist.AppIcon
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.rule.MatchedHeaderData
+import com.merxury.blocker.core.ui.rule.MatchedItem
 
 @Composable
-fun MatchedAppItemHeader(
+fun CollapsibleItem(
     modifier: Modifier = Modifier,
-    iconModifier: Modifier = Modifier,
-    ruleMatchedApp: RuleMatchedApp,
-    navigateToAppDetail: (String) -> Unit = { _ -> },
+    matchedItem: MatchedItem,
+    @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
+    navigation: () -> Unit = {},
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     expanded: Boolean = false,
@@ -67,53 +71,57 @@ fun MatchedAppItemHeader(
     }
     val items = listOf(
         DropDownMenuItem(
-            R.string.core_ui_open_app_detail,
+            navigationMenuItemDesc,
         ) {
-            navigateToAppDetail(ruleMatchedApp.app.packageName)
+            navigation()
         },
         DropDownMenuItem(
-            R.string.core_ui_block_all_components,
+            string.core_ui_block_all_components,
         ) {
-            onBlockAllClick(ruleMatchedApp.componentList)
+            onBlockAllClick(matchedItem.componentList)
         },
         DropDownMenuItem(
-            R.string.core_ui_enable_all_components,
+            string.core_ui_enable_all_components,
         ) {
-            onEnableAllClick(ruleMatchedApp.componentList)
+            onEnableAllClick(matchedItem.componentList)
         },
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCardArrowClicked(ruleMatchedApp.app.packageName) }
+            .clickable { onCardArrowClicked(matchedItem.header.uniqueId) }
             .padding(vertical = 8.dp),
     ) {
-        IconButton(onClick = { onCardArrowClicked(ruleMatchedApp.app.packageName) }) {
+        IconButton(onClick = { onCardArrowClicked(matchedItem.header.uniqueId) }) {
             Icon(
                 imageVector = expandIcon,
                 contentDescription = if (expanded) {
-                    stringResource(R.string.core_ui_collapse_list)
+                    stringResource(string.core_ui_collapse_list)
                 } else {
-                    stringResource(R.string.core_ui_expand_list)
+                    stringResource(string.core_ui_expand_list)
                 },
             )
         }
-        AppIcon(
-            ruleMatchedApp.app.packageInfo,
-            iconModifier
-                .size(48.dp),
+        AsyncImage(
+            modifier = Modifier.size(48.dp),
+            model = Builder(LocalContext.current)
+                .data(matchedItem.header.icon)
+                .error(BlockerIcons.Android)
+                .placeholder(BlockerIcons.Android)
+                .build(),
+            contentDescription = null,
         )
         Spacer(modifier = Modifier.width(16.dp))
         MatchedAppInfo(
-            label = ruleMatchedApp.app.label,
-            matchedComponentCount = ruleMatchedApp.componentList.size,
+            label = matchedItem.header.title,
+            matchedComponentCount = matchedItem.componentList.size,
             modifier = modifier.fillMaxWidth(0.8f),
         )
         Spacer(modifier = Modifier.weight(1f))
         BlockerAppTopBarMenu(
             menuIcon = BlockerIcons.MoreVert,
-            menuIconDesc = R.string.core_ui_more_menu,
+            menuIconDesc = string.core_ui_more_menu,
             menuList = items,
         )
     }
@@ -142,19 +150,21 @@ private fun MatchedAppInfo(
 
 @Composable
 @ThemePreviews
-fun MatchedAppItemHeaderPreview() {
-    val appList = AppListPreviewParameterProvider().values.first()
+fun CollapseAppItemPreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
         .toMutableStateList()
-    val ruleMatchedApp = RuleMatchedApp(
-        app = appList[0],
+    val matchedItem = MatchedItem(
+        header = MatchedHeaderData(
+            title = "Blocker",
+            uniqueId = "com.merxury.blocker",
+        ),
         componentList = components,
     )
     BlockerTheme {
         Surface {
-            MatchedAppItemHeader(
-                ruleMatchedApp = ruleMatchedApp,
+            CollapsibleItem(
+                matchedItem = matchedItem,
             )
         }
     }
@@ -162,19 +172,44 @@ fun MatchedAppItemHeaderPreview() {
 
 @Composable
 @ThemePreviews
-fun MatchedAppItemHeaderLongNamePreview() {
-    val appList = AppListPreviewParameterProvider().values.first()
+fun CollapseRuleItemPreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
         .toMutableStateList()
-    val ruleMatchedApp = RuleMatchedApp(
-        app = appList[2],
+    val matchedItem = MatchedItem(
+        header = MatchedHeaderData(
+            title = "Blocker",
+            uniqueId = "com.merxury.blocker",
+            icon = null,
+        ),
         componentList = components,
     )
     BlockerTheme {
         Surface {
-            MatchedAppItemHeader(
-                ruleMatchedApp = ruleMatchedApp,
+            CollapsibleItem(
+                matchedItem = matchedItem,
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun CollapseItemLongNamePreview() {
+    val components = ComponentListPreviewParameterProvider().values
+        .first()
+        .toMutableStateList()
+    val matchedItem = MatchedItem(
+        header = MatchedHeaderData(
+            title = "Blocker Test test long long long long name",
+            uniqueId = "com.merxury.blocker",
+        ),
+        componentList = components,
+    )
+    BlockerTheme {
+        Surface {
+            CollapsibleItem(
+                matchedItem = matchedItem,
                 expanded = true,
             )
         }

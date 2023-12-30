@@ -61,7 +61,7 @@ fun SearchResultScreen(
     onSelect: (FilteredComponent) -> Unit,
     onDeselect: (FilteredComponent) -> Unit,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    navigateToRuleDetail: (Int) -> Unit = { },
+    navigateToRuleDetail: (String) -> Unit = { },
     appList: List<AppItem> = emptyList(),
     onClearCacheClick: (String) -> Unit = { },
     onClearDataClick: (String) -> Unit = { },

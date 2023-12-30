@@ -29,6 +29,8 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
 
     object Provider : AppDetailTabs(PROVIDER, title = string.core_ui_provider_with_count)
 
+    object Sdk : AppDetailTabs(SDK, title = string.core_ui_sdk_with_count)
+
     override fun toString(): String {
         return "Screen name = $name"
     }
@@ -39,6 +41,7 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
         const val SERVICE = "service"
         const val ACTIVITY = "activity"
         const val PROVIDER = "provider"
+        const val SDK = "sdks"
 
         fun fromName(name: String?): AppDetailTabs = when (name) {
             INFO -> Info
@@ -46,6 +49,7 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
             SERVICE -> Service
             ACTIVITY -> Activity
             PROVIDER -> Provider
+            SDK -> Sdk
             else -> throw IllegalArgumentException("Invalid screen name in detail page")
         }
 

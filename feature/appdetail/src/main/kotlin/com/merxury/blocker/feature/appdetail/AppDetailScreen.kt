@@ -57,6 +57,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,7 +94,10 @@ import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FINISHED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
@@ -106,6 +110,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
@@ -126,6 +131,7 @@ import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
@@ -138,11 +144,12 @@ import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun AppDetailRoute(
+    modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigatedToComponentSortScreen: () -> Unit,
+    navigateToComponentSortScreen: () -> Unit,
+    navigateToRuleDetail: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState,
-    modifier: Modifier = Modifier,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
@@ -161,6 +168,8 @@ fun AppDetailRoute(
         componentListUiState = componentListUiState,
         tabState = tabState,
         navigateToComponentDetail = navigateToComponentDetail,
+        navigateToRuleDetail = navigateToRuleDetail,
+        navigateToComponentSortScreen = navigateToComponentSortScreen,
         modifier = modifier.fillMaxSize(),
         onLaunchAppClick = { packageName ->
             val result = viewModel.launchApp(context, packageName)
@@ -194,7 +203,6 @@ fun AppDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        navigatedToComponentSortScreen = navigatedToComponentSortScreen,
         updateIconBasedThemingState = updateIconBasedThemingState,
         onSelectAll = viewModel::selectAll,
         onBlockAll = { viewModel.controlAllSelectedComponents(false) },
@@ -382,6 +390,7 @@ fun AppDetailScreen(
     onLaunchAppClick: (String) -> Unit = {},
     switchTab: (AppDetailTabs) -> Unit = {},
     navigateToComponentDetail: (String) -> Unit = {},
+    navigateToRuleDetail: (String) -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
@@ -397,7 +406,7 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigatedToComponentSortScreen: () -> Unit = {},
+    navigateToComponentSortScreen: () -> Unit = {},
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
     onBlockAll: () -> Unit = {},
@@ -423,6 +432,8 @@ fun AppDetailScreen(
                 tabState = tabState,
                 onBackClick = onBackClick,
                 navigateToComponentDetail = navigateToComponentDetail,
+                navigateToRuleDetail = navigateToRuleDetail,
+                navigateToComponentSortScreen = navigateToComponentSortScreen,
                 onLaunchAppClick = onLaunchAppClick,
                 switchTab = switchTab,
                 modifier = modifier,
@@ -441,7 +452,6 @@ fun AppDetailScreen(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
-                navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                 updateIconBasedThemingState = updateIconBasedThemingState,
                 onSelectAll = onSelectAll,
                 onBlockAll = onBlockAll,
@@ -453,6 +463,7 @@ fun AppDetailScreen(
                 shareAllRules = shareAllRules,
                 onRefresh = onRefresh,
                 isLibCheckerInstalled = appInfoUiState.isLibCheckerInstalled,
+                matchedGeneralRuleUiState = appInfoUiState.matchedGeneralRuleUiState,
             )
         }
 
@@ -473,6 +484,8 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     navigateToComponentDetail: (String) -> Unit = {},
+    navigateToRuleDetail: (String) -> Unit = {},
+    navigateToComponentSortScreen: () -> Unit,
     onShowAppInfoClick: () -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
@@ -488,7 +501,6 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigatedToComponentSortScreen: () -> Unit,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     onSelectAll: () -> Unit = {},
     onBlockAll: () -> Unit = {},
@@ -500,6 +512,7 @@ fun AppDetailContent(
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
     isLibCheckerInstalled: Boolean = false,
+    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -549,7 +562,7 @@ fun AppDetailContent(
                 onSearchModeChanged = onSearchModeChanged,
                 blockAllComponents = blockAllComponents,
                 enableAllComponents = enableAllComponents,
-                navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+                navigateToComponentSortScreen = navigateToComponentSortScreen,
                 onLaunchAppClick = onLaunchAppClick,
                 onSelectAll = onSelectAll,
                 onBlockAll = onBlockAll,
@@ -578,6 +591,7 @@ fun AppDetailContent(
                     )
                 },
             navigateToComponentDetail = navigateToComponentDetail,
+            navigateToRuleDetail = navigateToRuleDetail,
             onShowAppInfoClick = onShowAppInfoClick,
             onExportRules = onExportRules,
             onImportRules = onImportRules,
@@ -594,6 +608,7 @@ fun AppDetailContent(
             onRefresh = onRefresh,
             isRefreshing = componentListUiState.isRefreshing,
             isLibCheckerInstalled = isLibCheckerInstalled,
+            matchedGeneralRuleUiState = matchedGeneralRuleUiState,
         )
     }
 }
@@ -605,7 +620,7 @@ fun AppDetailAppBarActions(
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
-    navigatedToComponentSortScreen: () -> Unit = {},
+    navigateToComponentSortScreen: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
@@ -648,7 +663,7 @@ fun AppDetailAppBarActions(
             MoreActionMenu(
                 blockAllComponents = blockAllComponents,
                 enableAllComponents = enableAllComponents,
-                onAdvanceSortClick = navigatedToComponentSortScreen,
+                onAdvanceSortClick = navigateToComponentSortScreen,
                 switchSelectedMode = switchSelectedMode,
             )
         }
@@ -673,7 +688,7 @@ private fun TopAppBar(
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
-    navigatedToComponentSortScreen: () -> Unit = {},
+    navigateToComponentSortScreen: () -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     onSelectAll: () -> Unit = {},
     onBlockAll: () -> Unit = {},
@@ -701,7 +716,7 @@ private fun TopAppBar(
                     onSearchModeChange = onSearchModeChanged,
                     blockAllComponents = blockAllComponents,
                     enableAllComponents = enableAllComponents,
-                    navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+                    navigateToComponentSortScreen = navigateToComponentSortScreen,
                     switchSelectedMode = switchSelectedMode,
                     shareAppRule = shareAppRule,
                     shareAllRules = shareAllRules,
@@ -743,6 +758,7 @@ fun AppDetailTabContent(
     selectedComponentList: List<ComponentInfo> = emptyList(),
     isSelectedMode: Boolean = false,
     navigateToComponentDetail: (String) -> Unit = {},
+    navigateToRuleDetail: (String) -> Unit = {},
     onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
@@ -759,6 +775,7 @@ fun AppDetailTabContent(
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     isLibCheckerInstalled: Boolean = false,
+    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -807,6 +824,11 @@ fun AppDetailTabContent(
                     onExportIfw = onExportIfw,
                     onImportIfw = onImportIfw,
                     onResetIfw = onResetIfw,
+                )
+
+                Sdk -> SdkContent(
+                    data = matchedGeneralRuleUiState,
+                    navigateToRuleDetail = navigateToRuleDetail,
                 )
 
                 else -> {

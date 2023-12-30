@@ -52,11 +52,11 @@ import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProv
 @Composable
 fun RuleCard(
     item: GeneralRule,
-    onCardClick: (Int) -> Unit = { },
+    onCardClick: (String) -> Unit = { },
 ) {
     BlockerOutlinedCard(
         modifier = Modifier,
-        onClick = { onCardClick(item.id) },
+        onClick = { onCardClick(item.id.toString()) },
     ) {
         CardHeader(
             iconUrl = item.iconUrl,

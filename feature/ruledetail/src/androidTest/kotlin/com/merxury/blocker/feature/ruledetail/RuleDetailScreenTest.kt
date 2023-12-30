@@ -31,7 +31,6 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import org.junit.Before
@@ -131,7 +130,7 @@ class RuleDetailScreenTest {
         // Check showing rules matched app list
         composeTestRule.onNodeWithTag("rule:matchedAppList")
             .assertExists()
-        composeTestRule.onNodeWithText(ruleMatchedAppListTestData.first().app.label)
+        composeTestRule.onNodeWithText(ruleMatchedAppListTestData.first().header.title)
             .assertExists()
         composeTestRule.onNodeWithContentDescription(expandMore).assertExists()
     }

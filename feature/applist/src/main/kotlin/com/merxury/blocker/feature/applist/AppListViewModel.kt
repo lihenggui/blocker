@@ -262,7 +262,7 @@ class AppListViewModel @Inject constructor(
         updateAppListJob = viewModelScope.launch {
             appRepository.updateApplicationList().collect {
                 if (it is Result.Error) {
-                    _errorState.emit(it.exception?.toErrorMessage())
+                    _errorState.emit(it.exception.toErrorMessage())
                 }
             }
         }
@@ -439,7 +439,7 @@ class AppListViewModel @Inject constructor(
             .takeWhile { it !is Result.Success }
             .collect {
                 if (it is Result.Error) {
-                    _errorState.emit(it.exception?.toErrorMessage())
+                    _errorState.emit(it.exception.toErrorMessage())
                 }
             }
         Timber.v("App updated: $packageName")

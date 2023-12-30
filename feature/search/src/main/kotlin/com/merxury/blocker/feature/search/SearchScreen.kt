@@ -99,7 +99,7 @@ import com.merxury.blocker.core.ui.R.string as uistring
 fun SearchRoute(
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    navigateToRuleDetail: (Int) -> Unit,
+    navigateToRuleDetail: (String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
     appListViewModel: AppListViewModel = hiltViewModel(),
 ) {
@@ -229,7 +229,7 @@ fun SearchScreen(
     onSelect: (FilteredComponent) -> Unit = {},
     onDeselect: (FilteredComponent) -> Unit = {},
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    navigateToRuleDetail: (Int) -> Unit = { },
+    navigateToRuleDetail: (String) -> Unit = { },
     appList: List<AppItem> = emptyList(),
     onClearCacheClick: (String) -> Unit = { },
     onClearDataClick: (String) -> Unit = { },
@@ -431,7 +431,7 @@ fun AppSearchResultContent(
 fun RuleSearchResultContent(
     modifier: Modifier = Modifier,
     list: List<GeneralRule>,
-    onClick: (Int) -> Unit,
+    onClick: (String) -> Unit,
 ) {
     if (list.isEmpty()) {
         EmptyScreen(textRes = string.feature_search_no_search_result)

@@ -92,6 +92,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -103,6 +104,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -159,6 +161,7 @@ class AppDetailViewModel @Inject constructor(
                 Service,
                 Activity,
                 Provider,
+                Sdk,
             ),
             selectedItem = Info,
         ),
@@ -201,17 +204,29 @@ class AppDetailViewModel @Inject constructor(
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             Timber.i("Filtering component list with keyword: $keyword")
             filterAndUpdateComponentList(keyword)
-            updateTabState(_componentListUiState.value)
+            updateTabState(_componentListUiState.value, _appInfoUiState.value)
         }
     }
 
-    private suspend fun updateTabState(listUiState: ComponentListUiState) {
+    private suspend fun updateTabState(
+        listUiState: ComponentListUiState,
+        appInfoUiState: AppInfoUiState,
+    ) {
+        val ruleUiState = when (appInfoUiState) {
+            is Success -> appInfoUiState.matchedGeneralRuleUiState
+            else -> null
+        }
+        val matchedRuleCount = when (ruleUiState) {
+            is Result.Success -> ruleUiState.data.size
+            else -> 0
+        }
         val itemCountMap = mapOf(
             Info to 1,
             Receiver to listUiState.receiver.size,
             Service to listUiState.service.size,
             Activity to listUiState.activity.size,
             Provider to listUiState.provider.size,
+            Sdk to matchedRuleCount,
         ).filter { it.value > 0 }
         val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
         if (_tabState.value.selectedItem !in nonEmptyItems) {
@@ -314,8 +329,44 @@ class AppDetailViewModel @Inject constructor(
         searchMatchedRuleJob?.cancel()
         searchMatchedRuleJob = viewModelScope.launch(exceptionHandler) {
             val packageName = appDetailArgs.packageName
-            searchMatchedRuleInAppUseCase(packageName).collect {
-                Timber.v("Received result from searchMatchedRuleInAppUseCase: $it")
+            searchMatchedRuleInAppUseCase(packageName).collect { result ->
+                val matchedRuleUiState = when (result) {
+                    is Result.Loading -> {
+                        Timber.v("Searching matched rule in app $packageName")
+                        Result.Loading
+                    }
+
+                    is Result.Error -> {
+                        Timber.e(
+                            result.exception,
+                            "Fail to find matched rule in app $packageName",
+                        )
+                        Result.Error(result.exception)
+                    }
+
+                    is Result.Success -> {
+                        Timber.v("Found ${result.data.size} rule in app $packageName")
+                        val map = result.data.mapValues { (_, value) ->
+                            value.map {
+                                it.toComponentItem()
+                            }.toMutableStateList()
+                        }
+                        Result.Success(map)
+                    }
+                }
+                val currentAppInfoUiState = _appInfoUiState.value
+                if (currentAppInfoUiState !is Success) {
+                    Timber.w("Current app info ui state is not success, skip updating")
+                    return@collect
+                }
+                // Map result with data to StateList
+                // TODO Use a better way to update the UI
+                _appInfoUiState.update {
+                    currentAppInfoUiState.copy(
+                        matchedGeneralRuleUiState = matchedRuleUiState,
+                    )
+                }
+                updateTabState(_componentListUiState.value, _appInfoUiState.value)
             }
         }
     }
@@ -328,7 +379,7 @@ class AppDetailViewModel @Inject constructor(
         val provider = list.filter { it.type == PROVIDER }
         unfilteredList = getComponentListUiState(receiver, service, activity, provider)
         filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
-        updateTabState(_componentListUiState.value)
+        updateTabState(_componentListUiState.value, _appInfoUiState.value)
     }
 
     private fun listenSortStateChange() = viewModelScope.launch {
@@ -903,7 +954,7 @@ class AppDetailViewModel @Inject constructor(
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
             val userData = userDataRepository.userData.first()
             _appInfoUiState.emit(
-                AppInfoUiState.Success(
+                Success(
                     appInfo = app.toAppItem(packageInfo = packageInfo),
                     iconBasedTheming = if (userData.useDynamicColor) {
                         getAppIcon(packageInfo)
@@ -1030,7 +1081,7 @@ sealed interface AppInfoUiState {
     data class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
-        val matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
+        val matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
         val iconBasedTheming: Bitmap? = null,
         val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
