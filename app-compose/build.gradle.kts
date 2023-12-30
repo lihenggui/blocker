@@ -33,11 +33,8 @@ android {
     namespace = "com.merxury.blocker"
     defaultConfig {
         applicationId = "com.merxury.blocker"
-        val gitCommitCount = providers.exec {
-            commandLine("git", "rev-list", "--count", "HEAD")
-        }.standardOutput.asText.get().trim()
-        versionCode = gitCommitCount.toIntOrNull() ?: 1
-        versionName = "2.0.$gitCommitCount" // X.Y.Z; X = Major, Y = minor, Z = version code
+        versionCode = 3511
+        versionName = "2.0.3511" // X.Y.Z; X = Major, Y = minor, Z = version code
 
         // Custom test runner to set up Hilt dependency graph
         testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
