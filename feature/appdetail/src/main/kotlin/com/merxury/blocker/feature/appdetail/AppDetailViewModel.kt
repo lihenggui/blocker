@@ -255,12 +255,22 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private suspend fun filterAndUpdateComponentList(keyword: String) {
+        val currentAppInfoUiState = _appInfoUiState.value
+        if (currentAppInfoUiState !is Success) {
+            Timber.w("Current app info ui state is not success, skip updating")
+            return
+        }
         // Start filtering in the component list
         currentFilterKeyword = keyword.split(",")
             .map { it.trim() }
             .filterNot { it.isEmpty() }
         if (currentFilterKeyword.isEmpty()) {
             _componentListUiState.emit(unfilteredList)
+            _appInfoUiState.update {
+                currentAppInfoUiState.copy(
+                    matchedGeneralRuleUiState = unfilteredRuleList,
+                )
+            }
             return
         }
         val receiver = mutableStateListOf<ComponentItem>()
@@ -294,11 +304,6 @@ class AppDetailViewModel @Inject constructor(
                 provider = provider,
             ),
         )
-        val currentAppInfoUiState = _appInfoUiState.value
-        if (currentAppInfoUiState !is Success) {
-            Timber.w("Current app info ui state is not success, skip updating")
-            return
-        }
         _appInfoUiState.update {
             currentAppInfoUiState.copy(
                 matchedGeneralRuleUiState = Result.Success(rule),
