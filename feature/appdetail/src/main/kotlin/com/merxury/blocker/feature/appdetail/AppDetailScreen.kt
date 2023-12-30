@@ -130,6 +130,9 @@ import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.ComponentListType.MATCHED
+import com.merxury.blocker.feature.appdetail.ComponentListType.PAGE
+import com.merxury.blocker.feature.appdetail.ComponentListType.SELECTED
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
@@ -141,9 +144,6 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as rulestring
 import com.merxury.blocker.core.ui.R.string as uistring
-import com.merxury.blocker.feature.appdetail.ComponentListType.MATCHED
-import com.merxury.blocker.feature.appdetail.ComponentListType.PAGE
-import com.merxury.blocker.feature.appdetail.ComponentListType.SELECTED
 
 @Composable
 fun AppDetailRoute(
