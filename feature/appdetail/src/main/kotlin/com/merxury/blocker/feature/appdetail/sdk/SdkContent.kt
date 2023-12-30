@@ -44,6 +44,8 @@ fun SdkContent(
     modifier: Modifier = Modifier,
     data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
     navigateToRuleDetail: (String) -> Unit = {},
+    onBlockMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
 ) {
     when (data) {
         is Result.Success -> {
@@ -70,6 +72,8 @@ fun SdkContent(
                 list = matchedList.toMutableStateList(),
                 navigateDetail = navigateToRuleDetail,
                 navigationMenuItemDesc = uiR.string.core_ui_open_rule_detail,
+                onBlockAllClick = onBlockMatchedComponentsClick,
+                onEnableAllClick = onEnableMatchedComponentsClick,
             )
         }
 

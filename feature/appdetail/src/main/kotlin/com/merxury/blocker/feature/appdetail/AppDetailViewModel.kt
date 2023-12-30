@@ -171,6 +171,8 @@ class AppDetailViewModel @Inject constructor(
         .map { it.trim() }
         .filterNot { it.isEmpty() }
     private var unfilteredList = ComponentListUiState()
+    private var unfilteredRuleList: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> =
+        Result.Loading
     private val _componentListUiState = MutableStateFlow(ComponentListUiState())
     val componentListUiState = _componentListUiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -265,6 +267,7 @@ class AppDetailViewModel @Inject constructor(
         val service = mutableStateListOf<ComponentItem>()
         val activity = mutableStateListOf<ComponentItem>()
         val provider = mutableStateListOf<ComponentItem>()
+        val rule = mutableMapOf<GeneralRule, SnapshotStateList<ComponentItem>>()
         currentFilterKeyword.forEach { subKeyword ->
             val filteredReceiver = unfilteredList.receiver
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
@@ -274,10 +277,14 @@ class AppDetailViewModel @Inject constructor(
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
             val filteredProvider = unfilteredList.provider
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
+            val filterRule = (unfilteredRuleList as? Result.Success)?.data?.filter { (rule, _) ->
+                rule.name.contains(subKeyword, ignoreCase = true)
+            }
             receiver.addAll(filteredReceiver)
             service.addAll(filteredService)
             activity.addAll(filteredActivity)
             provider.addAll(filteredProvider)
+            rule.putAll(filterRule ?: emptyMap())
         }
         _componentListUiState.emit(
             ComponentListUiState(
@@ -287,6 +294,16 @@ class AppDetailViewModel @Inject constructor(
                 provider = provider,
             ),
         )
+        val currentAppInfoUiState = _appInfoUiState.value
+        if (currentAppInfoUiState !is Success) {
+            Timber.w("Current app info ui state is not success, skip updating")
+            return
+        }
+        _appInfoUiState.update {
+            currentAppInfoUiState.copy(
+                matchedGeneralRuleUiState = Result.Success(rule),
+            )
+        }
     }
 
     private var loadComponentListJob: Job? = null
@@ -366,6 +383,7 @@ class AppDetailViewModel @Inject constructor(
                         matchedGeneralRuleUiState = matchedRuleUiState,
                     )
                 }
+                unfilteredRuleList = matchedRuleUiState
                 updateTabState(_componentListUiState.value, _appInfoUiState.value)
             }
         }
@@ -550,18 +568,41 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun controlAllComponents(enable: Boolean, block: suspend (Int, Int) -> Unit) {
+    fun controlBatchComponents(
+        enable: Boolean,
+        componentListType: ComponentListType,
+        componentList: List<ComponentItem>? = null,
+        block: suspend (Int, Int) -> Unit,
+    ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val list = when (tabState.value.selectedItem) {
-                Receiver -> _componentListUiState.value.receiver
-                Service -> _componentListUiState.value.service
-                Activity -> _componentListUiState.value.activity
-                Provider -> _componentListUiState.value.provider
-                else -> return@launch
-            }.map {
-                it.toComponentInfo()
+            val list = when (componentListType) {
+                ComponentListType.PAGE -> {
+                    analyticsHelper.logBatchOperationPerformed(enable)
+                    when (tabState.value.selectedItem) {
+                        Receiver -> _componentListUiState.value.receiver
+                        Service -> _componentListUiState.value.service
+                        Activity -> _componentListUiState.value.activity
+                        Provider -> _componentListUiState.value.provider
+                        else -> return@launch
+                    }.map {
+                        it.toComponentInfo()
+                    }
+                }
+
+                ComponentListType.MATCHED -> {
+                    analyticsHelper.logControlRuleMatchedComponentsClicked(enable)
+                    componentList?.map {
+                        it.toComponentInfo()
+                    } ?: return@launch
+                }
+
+                ComponentListType.SELECTED -> {
+                    analyticsHelper.logBatchOperationPerformed(enable)
+                    _appBarUiState.value.selectedComponentList
+                }
             }
+
             var successCount = 0
             componentRepository.batchControlComponent(
                 components = list,
@@ -576,7 +617,6 @@ class AppDetailViewModel @Inject constructor(
                     successCount++
                     block(successCount, list.size)
                 }
-            analyticsHelper.logBatchOperationPerformed(enable)
         }
     }
 
@@ -643,28 +683,6 @@ class AppDetailViewModel @Inject constructor(
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             controlComponentInternal(packageName, componentName, enabled)
             analyticsHelper.logSwitchComponentClicked(newState = enabled)
-        }
-    }
-
-    fun controlAllSelectedComponents(enable: Boolean) {
-        controlComponentJob?.cancel()
-        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            componentRepository.batchControlComponent(
-                components = _appBarUiState.value.selectedComponentList,
-                newState = enable,
-            )
-                .catch { exception ->
-                    _errorState.emit(exception.toErrorMessage())
-                }
-                .collect { component ->
-                    val type = findComponentType(component.name)
-                    changeComponentUiStatus(component.name, type, enable)
-                }
-            withContext(mainDispatcher) {
-                _appBarUiState.update {
-                    it.copy(selectedComponentList = listOf())
-                }
-            }
         }
     }
 
@@ -1094,3 +1112,9 @@ data class ComponentListUiState(
     val provider: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val isRefreshing: Boolean = false,
 )
+
+enum class ComponentListType {
+    PAGE,
+    SELECTED,
+    MATCHED,
+}

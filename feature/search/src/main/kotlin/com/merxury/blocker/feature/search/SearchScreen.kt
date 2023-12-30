@@ -322,8 +322,8 @@ fun TopBar(
                 selectedComponentCount = searchUiState.selectedComponentList.size,
                 onNavigationClick = onNavigationClick,
                 onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
+                onBlockAllSelected = onBlockAll,
+                onEnableAllSelected = onEnableAll,
             )
         } else {
             SearchBar(

@@ -41,8 +41,8 @@ fun SelectedAppTopBar(
     selectedComponentCount: Int,
     onNavigationClick: () -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    onBlockAllSelected: () -> Unit = {},
+    onEnableAllSelected: () -> Unit = {},
 ) {
     var showBlockAllDialog by remember {
         mutableStateOf(false)
@@ -93,7 +93,7 @@ fun SelectedAppTopBar(
                 selectedComponentCount,
             ),
             onDismissRequest = { showBlockAllDialog = false },
-            onConfirmRequest = { onBlockAll() },
+            onConfirmRequest = { onBlockAllSelected() },
         )
     }
     if (showEnableAllDialog) {
@@ -104,7 +104,7 @@ fun SelectedAppTopBar(
                 selectedComponentCount,
             ),
             onDismissRequest = { showEnableAllDialog = false },
-            onConfirmRequest = { onEnableAll() },
+            onConfirmRequest = { onEnableAllSelected() },
         )
     }
 }
