@@ -82,7 +82,7 @@ fun SupportAndFeedbackRoute(
         },
         onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
         onDesignLinkClick = { viewModel.openDesignLink(context) },
-        onOpenSourceLicenseClick = { viewModel.openOpenSourceLicence(context) },
+        onOpenSourceLicenseClick = { viewModel.openOpenSourceLicence() },
     )
 }
 
