@@ -589,6 +589,22 @@ class AppDetailViewModel @Inject constructor(
                         Service -> _componentListUiState.value.service
                         Activity -> _componentListUiState.value.activity
                         Provider -> _componentListUiState.value.provider
+                        Sdk -> {
+                            val currentAppInfoUiState = _appInfoUiState.value
+                            if (currentAppInfoUiState !is Success) {
+                                Timber.w("Current app info ui state is not success, skip updating")
+                                return@launch
+                            }
+                            val ruleUiState = currentAppInfoUiState.matchedGeneralRuleUiState
+                            if (ruleUiState !is Result.Success) {
+                                Timber.w("Current rule ui state is not success, skip updating")
+                                return@launch
+                            }
+                            ruleUiState.data.flatMap { (_, value) ->
+                                value
+                            }
+                        }
+
                         else -> return@launch
                     }.map {
                         it.toComponentInfo()
