@@ -62,14 +62,13 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ComponentListItem(
-    item: ComponentItem,
+    item: ComponentInfo,
     enabled: Boolean,
     type: ComponentType,
     isServiceRunning: Boolean,
@@ -103,9 +102,9 @@ fun ComponentListItem(
                         navigateToComponentDetail(item.name)
                     } else {
                         if (isSelected) {
-                            onDeselect(item.toComponentInfo())
+                            onDeselect(item)
                         } else {
-                            onSelect(item.toComponentInfo())
+                            onSelect(item)
                         }
                     }
                 },
@@ -187,7 +186,7 @@ fun ComponentListItem(
 fun ComponentItemPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentItem>,
+    ) components: List<ComponentInfo>,
 ) {
     BlockerTheme {
         Surface {
@@ -206,7 +205,7 @@ fun ComponentItemPreview(
 fun ComponentItemSelectedPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentItem>,
+    ) components: List<ComponentInfo>,
 ) {
     BlockerTheme {
         Surface {

@@ -560,8 +560,8 @@ fun SearchScreenSelectedModePreview() {
                     keyword = keyword,
                     isSelectedMode = true,
                     selectedComponentList = listOf(
-                        components[0].toComponentInfo(),
-                        components[1].toComponentInfo(),
+                        components[0],
+                        components[1],
                     ),
                     selectedAppList = listOf(
                         FilteredComponent(

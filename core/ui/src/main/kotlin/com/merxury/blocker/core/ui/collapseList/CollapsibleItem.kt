@@ -46,7 +46,7 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
@@ -59,8 +59,8 @@ fun CollapsibleItem(
     matchedItem: MatchedItem,
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
     navigation: () -> Unit = {},
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableAllClick: (List<ComponentInfo>) -> Unit = { _ -> },
     expanded: Boolean = false,
     onCardArrowClicked: (String) -> Unit = {},
 ) {

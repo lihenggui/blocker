@@ -32,7 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
 import com.merxury.blocker.core.ui.rule.MatchedHeaderData
@@ -51,8 +51,8 @@ fun RuleMatchedAppList(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableAllClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (ruleMatchedAppListUiState) {
@@ -96,7 +96,7 @@ fun NoApplicableAppScreen() {
 @Composable
 @Preview
 fun RuleMatchedAppListPreview() {
-    val componentInfo = ComponentItem(
+    val componentInfo = ComponentInfo(
         name = ".ui.component.ComponentListActivity",
         simpleName = "ComponentListItem",
         packageName = "com.merxury.blocker.test1",

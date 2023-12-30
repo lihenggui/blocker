@@ -41,13 +41,12 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggab
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
 @Composable
 fun ComponentList(
-    components: List<ComponentItem>,
+    components: List<ComponentInfo>,
     modifier: Modifier = Modifier,
     selectedComponentList: List<ComponentInfo> = emptyList(),
     navigateToComponentDetail: (String) -> Unit = { _ -> },
@@ -89,7 +88,7 @@ fun ComponentList(
                     onCopyNameClick = { onCopyNameClick(item.simpleName) },
                     onCopyFullNameClick = { onCopyFullNameClick(item.name) },
                     onSwitchClick = onSwitchClick,
-                    isSelected = selectedComponentList.contains(item.toComponentInfo()),
+                    isSelected = selectedComponentList.contains(item),
                     isSelectedMode = isSelectedMode,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
@@ -118,7 +117,7 @@ fun ComponentList(
 fun ComponentListPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentItem>,
+    ) components: List<ComponentInfo>,
 ) {
     BlockerTheme {
         Surface {
@@ -134,14 +133,14 @@ fun ComponentListPreview(
 fun ComponentListSelectedModePreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentItem>,
+    ) components: List<ComponentInfo>,
 ) {
     BlockerTheme {
         Surface {
             ComponentList(
                 components = components,
                 selectedComponentList = listOf(
-                    components[1].toComponentInfo(),
+                    components[1],
                 ),
                 isSelectedMode = true,
             )

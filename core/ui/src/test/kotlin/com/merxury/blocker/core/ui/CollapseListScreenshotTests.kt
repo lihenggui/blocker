@@ -29,7 +29,7 @@ import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
@@ -89,7 +89,7 @@ class CollapseListScreenshotTests {
             .first()
             .toMutableStateList()
         val emptyList = remember {
-            mutableStateListOf<ComponentItem>()
+            mutableStateListOf<ComponentInfo>()
         }
         val matchedItem = MatchedItem(
             header = MatchedHeaderData(
