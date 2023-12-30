@@ -329,7 +329,7 @@ class AppDetailScreenScreenshotTests {
                                 isSearchMode = true,
                                 isSelectedMode = true,
                                 selectedComponentList = listOf(
-                                    activityComponents[0].toComponentInfo(),
+                                    activityComponents[0],
                                 ),
                             ),
                             tabState = tabState[1],
