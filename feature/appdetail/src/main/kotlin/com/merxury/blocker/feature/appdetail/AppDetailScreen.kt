@@ -130,6 +130,9 @@ import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.ComponentListType.MATCHED
+import com.merxury.blocker.feature.appdetail.ComponentListType.PAGE
+import com.merxury.blocker.feature.appdetail.ComponentListType.SELECTED
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
@@ -188,10 +191,22 @@ fun AppDetailRoute(
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
         blockAllComponents = {
-            handleBlockAllComponents(context, viewModel, scope, snackbarHostState)
+            handleBlockBatchComponents(
+                context = context,
+                viewModel = viewModel,
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                componentListType = PAGE,
+            )
         },
         enableAllComponents = {
-            handleEnableAllComponents(context, viewModel, scope, snackbarHostState)
+            handleEnableBtachComponents(
+                context = context,
+                viewModel = viewModel,
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                componentListType = PAGE,
+            )
         },
         onExportRules = viewModel::exportBlockerRule,
         onImportRules = viewModel::importBlockerRule,
@@ -205,8 +220,24 @@ fun AppDetailRoute(
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         updateIconBasedThemingState = updateIconBasedThemingState,
         onSelectAll = viewModel::selectAll,
-        onBlockAll = { viewModel.controlAllSelectedComponents(false) },
-        onEnableAll = { viewModel.controlAllSelectedComponents(true) },
+        onBlockAllSelected = {
+            handleBlockBatchComponents(
+                context = context,
+                viewModel = viewModel,
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                componentListType = SELECTED,
+            )
+        },
+        onEnableAllSelected = {
+            handleEnableBtachComponents(
+                context = context,
+                viewModel = viewModel,
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                componentListType = SELECTED,
+            )
+        },
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         onDeselect = viewModel::deselectItem,
@@ -228,6 +259,26 @@ fun AppDetailRoute(
         onRefresh = {
             viewModel.loadComponentList()
             viewModel.updateComponentList()
+        },
+        onBlockMatchedComponentsClick = {
+            handleBlockBatchComponents(
+                context = context,
+                viewModel = viewModel,
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                matchedComponentList = it,
+                componentListType = MATCHED,
+            )
+        },
+        onEnableMatchedComponentsClick = {
+            handleEnableBtachComponents(
+                context = context,
+                viewModel = viewModel,
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                matchedComponentList = it,
+                componentListType = MATCHED,
+            )
         },
     )
     if (errorState != null) {
@@ -269,14 +320,20 @@ fun AppDetailRoute(
     }
 }
 
-private fun handleEnableAllComponents(
+private fun handleEnableBtachComponents(
     context: Context,
     viewModel: AppDetailViewModel,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    matchedComponentList: List<ComponentItem>? = null,
+    componentListType: ComponentListType,
 ) {
     val doneMessage = context.getString(uistring.core_ui_operation_completed)
-    viewModel.controlAllComponents(true) { current, total ->
+    viewModel.controlBatchComponents(
+        enable = true,
+        componentListType = componentListType,
+        componentList = matchedComponentList,
+    ) { current, total ->
         scope.launch {
             if (current == total) {
                 snackbarHostState.showSnackbarWithoutQueue(
@@ -299,14 +356,20 @@ private fun handleEnableAllComponents(
     }
 }
 
-private fun handleBlockAllComponents(
+private fun handleBlockBatchComponents(
     context: Context,
     viewModel: AppDetailViewModel,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    matchedComponentList: List<ComponentItem>? = null,
+    componentListType: ComponentListType,
 ) {
     val doneMessage = context.getString(uistring.core_ui_operation_completed)
-    viewModel.controlAllComponents(false) { current, total ->
+    viewModel.controlBatchComponents(
+        enable = false,
+        componentListType = componentListType,
+        componentList = matchedComponentList,
+    ) { current, total ->
         scope.launch {
             if (current == total) {
                 snackbarHostState.showSnackbarWithoutQueue(
@@ -409,14 +472,16 @@ fun AppDetailScreen(
     navigateToComponentSortScreen: () -> Unit = {},
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    onBlockAllSelected: () -> Unit = {},
+    onEnableAllSelected: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    onBlockMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
 ) {
     when (appInfoUiState) {
         is Loading -> {
@@ -454,8 +519,8 @@ fun AppDetailScreen(
                 onCopyFullNameClick = onCopyFullNameClick,
                 updateIconBasedThemingState = updateIconBasedThemingState,
                 onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
+                onBlockAllSelected = onBlockAllSelected,
+                onEnableAllSelected = onEnableAllSelected,
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
                 onDeselect = onDeselect,
@@ -464,6 +529,8 @@ fun AppDetailScreen(
                 onRefresh = onRefresh,
                 isLibCheckerInstalled = appInfoUiState.isLibCheckerInstalled,
                 matchedGeneralRuleUiState = appInfoUiState.matchedGeneralRuleUiState,
+                onBlockMatchedComponentsClick = onBlockMatchedComponentsClick,
+                onEnableMatchedComponentsClick = onEnableMatchedComponentsClick,
             )
         }
 
@@ -503,8 +570,8 @@ fun AppDetailContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    onBlockAllSelected: () -> Unit = {},
+    onEnableAllSelected: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
@@ -513,6 +580,8 @@ fun AppDetailContent(
     onRefresh: () -> Unit = {},
     isLibCheckerInstalled: Boolean = false,
     matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    onBlockMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -565,8 +634,8 @@ fun AppDetailContent(
                 navigateToComponentSortScreen = navigateToComponentSortScreen,
                 onLaunchAppClick = onLaunchAppClick,
                 onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
+                onBlockAllSelected = onBlockAllSelected,
+                onEnableAllSelected = onEnableAllSelected,
                 switchSelectedMode = switchSelectedMode,
                 onBackClick = onBackClick,
                 shareAppRule = shareAppRule,
@@ -609,6 +678,8 @@ fun AppDetailContent(
             isRefreshing = componentListUiState.isRefreshing,
             isLibCheckerInstalled = isLibCheckerInstalled,
             matchedGeneralRuleUiState = matchedGeneralRuleUiState,
+            onBlockMatchedComponentsClick = onBlockMatchedComponentsClick,
+            onEnableMatchedComponentsClick = onEnableMatchedComponentsClick,
         )
     }
 }
@@ -691,8 +762,8 @@ private fun TopAppBar(
     navigateToComponentSortScreen: () -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    onBlockAllSelected: () -> Unit = {},
+    onEnableAllSelected: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onBackClick: () -> Unit,
     shareAppRule: () -> Unit = {},
@@ -741,8 +812,8 @@ private fun TopAppBar(
             selectedComponentCount = topAppBarUiState.selectedComponentList.size,
             onNavigationClick = { switchSelectedMode(false) },
             onSelectAll = onSelectAll,
-            onBlockAll = onBlockAll,
-            onEnableAll = onEnableAll,
+            onBlockAllSelected = onBlockAllSelected,
+            onEnableAllSelected = onEnableAllSelected,
         )
     }
 }
@@ -776,6 +847,8 @@ fun AppDetailTabContent(
     isRefreshing: Boolean = false,
     isLibCheckerInstalled: Boolean = false,
     matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    onBlockMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -829,6 +902,8 @@ fun AppDetailTabContent(
                 Sdk -> SdkContent(
                     data = matchedGeneralRuleUiState,
                     navigateToRuleDetail = navigateToRuleDetail,
+                    onBlockMatchedComponentsClick = onBlockMatchedComponentsClick,
+                    onEnableMatchedComponentsClick = onEnableMatchedComponentsClick,
                 )
 
                 else -> {
