@@ -210,6 +210,16 @@ fun AppDetailRoute(
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         onDeselect = viewModel::deselectItem,
+        blockAllInItem = {
+            viewModel.controlAllComponents(it, false) { current, total ->
+                showDisableProgress(context, snackbarHostState, scope, current, total)
+            }
+        },
+        enableAllInItem = {
+            viewModel.controlAllComponents(it, true) { current, total ->
+                showEnableProgress(context, snackbarHostState, scope, current, total)
+            }
+        },
         shareAppRule = {
             scope.launch {
                 viewModel.zipAppRule().collect { rule ->
@@ -275,27 +285,8 @@ private fun handleEnableAllComponents(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 ) {
-    val doneMessage = context.getString(uistring.core_ui_operation_completed)
     viewModel.controlAllComponentsInPage(true) { current, total ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = doneMessage,
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(
-                        uistring.core_ui_enabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
-        }
+        showEnableProgress(context, snackbarHostState, scope, current, total)
     }
 }
 
@@ -305,26 +296,63 @@ private fun handleBlockAllComponents(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 ) {
-    val doneMessage = context.getString(uistring.core_ui_operation_completed)
     viewModel.controlAllComponentsInPage(false) { current, total ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = doneMessage,
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(
-                        uistring.core_ui_disabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
+        showDisableProgress(context, snackbarHostState, scope, current, total)
+    }
+}
+
+private fun showEnableProgress(
+    context: Context,
+    snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope,
+    current: Int,
+    total: Int,
+) {
+    scope.launch {
+        if (current == total) {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(uistring.core_ui_operation_completed),
+                duration = Short,
+                withDismissAction = true,
+            )
+        } else {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(
+                    uistring.core_ui_enabling_component_hint,
+                    current,
+                    total,
+                ),
+                duration = Short,
+                withDismissAction = false,
+            )
+        }
+    }
+}
+
+private fun showDisableProgress(
+    context: Context,
+    snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope,
+    current: Int,
+    total: Int,
+) {
+    scope.launch {
+        if (current == total) {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(uistring.core_ui_operation_completed),
+                duration = Short,
+                withDismissAction = true,
+            )
+        } else {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(
+                    uistring.core_ui_disabling_component_hint,
+                    current,
+                    total,
+                ),
+                duration = Short,
+                withDismissAction = false,
+            )
         }
     }
 }
@@ -414,6 +442,8 @@ fun AppDetailScreen(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    blockAllInItem: (List<ComponentItem>) -> Unit = {},
+    enableAllInItem: (List<ComponentItem>) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -459,6 +489,8 @@ fun AppDetailScreen(
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
                 onDeselect = onDeselect,
+                blockAllInItem = blockAllInItem,
+                enableAllInItem = enableAllInItem,
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
                 onRefresh = onRefresh,
@@ -508,6 +540,8 @@ fun AppDetailContent(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    blockAllInItem: (List<ComponentItem>) -> Unit = {},
+    enableAllInItem: (List<ComponentItem>) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -603,7 +637,8 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
-            // TODO Add block all actions
+            onBlockAllInItemClick = blockAllInItem,
+            onEnableAllInItemClick = enableAllInItem,
             onSelect = onSelect,
             onDeselect = onDeselect,
             onRefresh = onRefresh,
@@ -773,8 +808,8 @@ fun AppDetailTabContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     isLibCheckerInstalled: Boolean = false,
@@ -836,8 +871,8 @@ fun AppDetailTabContent(
                     onLaunchActivityClick = onLaunchActivityClick,
                     onCopyNameClick = onCopyNameClick,
                     onCopyFullNameClick = onCopyFullNameClick,
-                    onEnableAllClick = onEnableAllClick,
-                    onBlockAllClick = onBlockAllClick,
+                    onEnableAllInItemClick = onEnableAllInItemClick,
+                    onBlockAllInItemClick = onBlockAllInItemClick,
                     onSwitch = onSwitchClick,
                 )
 

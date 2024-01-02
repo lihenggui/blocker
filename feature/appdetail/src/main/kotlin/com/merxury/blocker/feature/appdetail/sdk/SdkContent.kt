@@ -48,8 +48,8 @@ fun SdkContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (data) {
@@ -80,8 +80,8 @@ fun SdkContent(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
-                onBlockAllInItemClick = onBlockAllClick,
-                onEnableAllInItemClick = onEnableAllClick,
+                onBlockAllInItemClick = onBlockAllInItemClick,
+                onEnableAllInItemClick = onEnableAllInItemClick,
                 onSwitch = onSwitch,
             )
         }
