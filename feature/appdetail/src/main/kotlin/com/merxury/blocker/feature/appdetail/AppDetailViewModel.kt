@@ -204,29 +204,20 @@ class AppDetailViewModel @Inject constructor(
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             Timber.i("Filtering component list with keyword: $keyword")
             filterAndUpdateComponentList(keyword)
-            updateTabState(_componentListUiState.value, _appInfoUiState.value)
+            updateTabState(_componentListUiState.value)
         }
     }
 
     private suspend fun updateTabState(
         listUiState: ComponentListUiState,
-        appInfoUiState: AppInfoUiState,
     ) {
-        val ruleUiState = when (appInfoUiState) {
-            is Success -> appInfoUiState.matchedGeneralRuleUiState
-            else -> null
-        }
-        val matchedRuleCount = when (ruleUiState) {
-            is Result.Success -> ruleUiState.data.size
-            else -> 0
-        }
         val itemCountMap = mapOf(
             Info to 1,
             Receiver to listUiState.receiver.size,
             Service to listUiState.service.size,
             Activity to listUiState.activity.size,
             Provider to listUiState.provider.size,
-            Sdk to matchedRuleCount,
+            Sdk to 1,
         ).filter { it.value > 0 }
         val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
         if (_tabState.value.selectedItem !in nonEmptyItems) {
@@ -366,7 +357,7 @@ class AppDetailViewModel @Inject constructor(
                         matchedGeneralRuleUiState = matchedRuleUiState,
                     )
                 }
-                updateTabState(_componentListUiState.value, _appInfoUiState.value)
+                updateTabState(_componentListUiState.value)
             }
         }
     }
@@ -379,7 +370,7 @@ class AppDetailViewModel @Inject constructor(
         val provider = list.filter { it.type == PROVIDER }
         unfilteredList = getComponentListUiState(receiver, service, activity, provider)
         filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
-        updateTabState(_componentListUiState.value, _appInfoUiState.value)
+        updateTabState(_componentListUiState.value)
     }
 
     private fun listenSortStateChange() = viewModelScope.launch {
