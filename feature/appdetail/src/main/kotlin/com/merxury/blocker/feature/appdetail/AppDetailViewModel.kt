@@ -549,6 +549,11 @@ class AppDetailViewModel @Inject constructor(
                 Service -> _componentListUiState.value.service
                 Activity -> _componentListUiState.value.activity
                 Provider -> _componentListUiState.value.provider
+                Sdk -> ((_appInfoUiState.value as? Success)?.matchedGeneralRuleUiState as? Result.Success)
+                    ?.data
+                    ?.values
+                    ?.flatten()
+                    ?: listOf()
                 else -> return@launch
             }.map {
                 it.toComponentInfo()
