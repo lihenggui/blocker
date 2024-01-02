@@ -188,10 +188,14 @@ fun AppDetailRoute(
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
         blockAllComponentsInPage = {
-            handleBlockAllComponents(context, viewModel, scope, snackbarHostState)
+            viewModel.controlAllComponentsInPage(false) { current, total ->
+                showDisableProgress(context, snackbarHostState, scope, current, total)
+            }
         },
         enableAllComponentsInPage = {
-            handleEnableAllComponents(context, viewModel, scope, snackbarHostState)
+            viewModel.controlAllComponentsInPage(true) { current, total ->
+                showEnableProgress(context, snackbarHostState, scope, current, total)
+            }
         },
         onExportRules = viewModel::exportBlockerRule,
         onImportRules = viewModel::importBlockerRule,
@@ -276,28 +280,6 @@ fun AppDetailRoute(
                 )
             }
         }
-    }
-}
-
-private fun handleEnableAllComponents(
-    context: Context,
-    viewModel: AppDetailViewModel,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-) {
-    viewModel.controlAllComponentsInPage(true) { current, total ->
-        showEnableProgress(context, snackbarHostState, scope, current, total)
-    }
-}
-
-private fun handleBlockAllComponents(
-    context: Context,
-    viewModel: AppDetailViewModel,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-) {
-    viewModel.controlAllComponentsInPage(false) { current, total ->
-        showDisableProgress(context, snackbarHostState, scope, current, total)
     }
 }
 
@@ -469,8 +451,8 @@ fun AppDetailScreen(
                 modifier = modifier,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                enableAllComponents = enableAllComponentsInPage,
-                blockAllComponents = blockAllComponentsInPage,
+                enableAllComponentsInPage = enableAllComponentsInPage,
+                blockAllComponentsInPage = blockAllComponentsInPage,
                 onShowAppInfoClick = onShowAppInfoClick,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
@@ -521,8 +503,8 @@ fun AppDetailContent(
     onShowAppInfoClick: () -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
+    blockAllComponentsInPage: () -> Unit = {},
+    enableAllComponentsInPage: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -594,8 +576,8 @@ fun AppDetailContent(
                 toolbarState = toolbarState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                blockAllComponentsInPage = blockAllComponents,
-                enableAllComponentsInPage = enableAllComponents,
+                blockAllComponentsInPage = blockAllComponentsInPage,
+                enableAllComponentsInPage = enableAllComponentsInPage,
                 navigateToComponentSortScreen = navigateToComponentSortScreen,
                 onLaunchAppClick = onLaunchAppClick,
                 onSelectAll = onSelectAll,
