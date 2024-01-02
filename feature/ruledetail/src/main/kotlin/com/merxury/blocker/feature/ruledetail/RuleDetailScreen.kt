@@ -127,11 +127,11 @@ fun RuleDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        onBlockAllClick = {
-            handleBlockAllClick(context, viewModel, it, scope, snackbarHostState)
+        onBlockAllInItemClick = {
+            handleBlockAllInItemClick(context, viewModel, it, scope, snackbarHostState)
         },
-        onEnableAllClick = {
-            handleEnableAllClick(viewModel, it, scope, snackbarHostState, context)
+        onEnableAllInItemClick = {
+            handleEnableAllInItemClick(viewModel, it, scope, snackbarHostState, context)
         },
         onBlockAllInPageClick = {
             handleBlockAllInPageClick(viewModel, scope, snackbarHostState, context)
@@ -215,7 +215,7 @@ private fun handleBlockAllInPageClick(
     }
 }
 
-private fun handleEnableAllClick(
+private fun handleEnableAllInItemClick(
     viewModel: RuleDetailViewModel,
     it: List<ComponentItem>,
     scope: CoroutineScope,
@@ -245,7 +245,7 @@ private fun handleEnableAllClick(
     }
 }
 
-private fun handleBlockAllClick(
+private fun handleBlockAllInItemClick(
     context: Context,
     viewModel: RuleDetailViewModel,
     it: List<ComponentItem>,
@@ -288,8 +288,8 @@ fun RuleDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -314,8 +314,8 @@ fun RuleDetailScreen(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
-                onBlockAllClick = onBlockAllClick,
-                onEnableAllClick = onEnableAllClick,
+                onBlockAllInItemClick = onBlockAllInItemClick,
+                onEnableAllInItemClick = onEnableAllInItemClick,
                 onBlockAllInPageClick = onBlockAllInPageClick,
                 onEnableAllInPageClick = onEnableAllInPageClick,
                 onSwitch = onSwitch,
@@ -344,8 +344,8 @@ fun RuleDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -429,8 +429,8 @@ fun RuleDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
-            onBlockAllClick = onBlockAllClick,
-            onEnableAllClick = onEnableAllClick,
+            onBlockAllInItemClick = onBlockAllInItemClick,
+            onEnableAllInItemClick = onEnableAllInItemClick,
             onSwitch = onSwitch,
             navigateToAppDetail = navigateToAppDetail,
         )
@@ -503,8 +503,8 @@ fun RuleDetailTabContent(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -546,8 +546,8 @@ fun RuleDetailTabContent(
                     onCopyNameClick = onCopyNameClick,
                     onCopyFullNameClick = onCopyFullNameClick,
                     navigateToAppDetail = navigateToAppDetail,
-                    onBlockAllClick = onBlockAllClick,
-                    onEnableAllClick = onEnableAllClick,
+                    onBlockAllInItemClick = onBlockAllInItemClick,
+                    onEnableAllInItemClick = onEnableAllInItemClick,
                     onSwitch = onSwitch,
                 )
 

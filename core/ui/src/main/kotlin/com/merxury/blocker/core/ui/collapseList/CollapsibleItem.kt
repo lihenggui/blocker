@@ -59,8 +59,8 @@ fun CollapsibleItem(
     matchedItem: MatchedItem,
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
     navigation: () -> Unit = {},
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     expanded: Boolean = false,
     onCardArrowClicked: (String) -> Unit = {},
 ) {
@@ -78,12 +78,12 @@ fun CollapsibleItem(
         DropDownMenuItem(
             string.core_ui_block_all_components,
         ) {
-            onBlockAllClick(matchedItem.componentList)
+            onBlockAllInItemClick(matchedItem.componentList)
         },
         DropDownMenuItem(
             string.core_ui_enable_all_components,
         ) {
-            onEnableAllClick(matchedItem.componentList)
+            onEnableAllInItemClick(matchedItem.componentList)
         },
     )
     Row(

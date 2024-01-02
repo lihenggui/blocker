@@ -80,8 +80,8 @@ fun SdkContent(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
-                onBlockAllClick = onBlockAllClick,
-                onEnableAllClick = onEnableAllClick,
+                onBlockAllInItemClick = onBlockAllClick,
+                onEnableAllInItemClick = onEnableAllClick,
                 onSwitch = onSwitch,
             )
         }

@@ -69,8 +69,8 @@ fun CollapsibleList(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
     navigateToDetail: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val listState = rememberLazyListState()
@@ -97,8 +97,8 @@ fun CollapsibleList(
                         navigation = {
                             navigateToDetail(ruleMatchedApp.header.uniqueId)
                         },
-                        onBlockAllClick = onBlockAllClick,
-                        onEnableAllClick = onEnableAllClick,
+                        onBlockAllInItemClick = onBlockAllInItemClick,
+                        onEnableAllInItemClick = onEnableAllInItemClick,
                         expanded = expanded,
                         onCardArrowClicked = {
                             isExpandedMap[index] = !(isExpandedMap[index] ?: false)
