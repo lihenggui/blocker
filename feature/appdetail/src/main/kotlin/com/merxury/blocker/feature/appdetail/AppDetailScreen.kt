@@ -187,10 +187,10 @@ fun AppDetailRoute(
         onBackClick = onBackClick,
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
-        blockAllComponents = {
+        blockAllComponentsInPage = {
             handleBlockAllComponents(context, viewModel, scope, snackbarHostState)
         },
-        enableAllComponents = {
+        enableAllComponentsInPage = {
             handleEnableAllComponents(context, viewModel, scope, snackbarHostState)
         },
         onExportRules = viewModel::exportBlockerRule,
@@ -205,8 +205,8 @@ fun AppDetailRoute(
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         updateIconBasedThemingState = updateIconBasedThemingState,
         onSelectAll = viewModel::selectAll,
-        onBlockAll = { viewModel.controlAllSelectedComponents(false) },
-        onEnableAll = { viewModel.controlAllSelectedComponents(true) },
+        blockAllSelectedComponents = { viewModel.controlAllSelectedComponents(false) },
+        enableAllSelectedComponents = { viewModel.controlAllSelectedComponents(true) },
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         onDeselect = viewModel::deselectItem,
@@ -276,7 +276,7 @@ private fun handleEnableAllComponents(
     snackbarHostState: SnackbarHostState,
 ) {
     val doneMessage = context.getString(uistring.core_ui_operation_completed)
-    viewModel.controlAllComponents(true) { current, total ->
+    viewModel.controlAllComponentsInPage(true) { current, total ->
         scope.launch {
             if (current == total) {
                 snackbarHostState.showSnackbarWithoutQueue(
@@ -306,7 +306,7 @@ private fun handleBlockAllComponents(
     snackbarHostState: SnackbarHostState,
 ) {
     val doneMessage = context.getString(uistring.core_ui_operation_completed)
-    viewModel.controlAllComponents(false) { current, total ->
+    viewModel.controlAllComponentsInPage(false) { current, total ->
         scope.launch {
             if (current == total) {
                 snackbarHostState.showSnackbarWithoutQueue(
@@ -393,8 +393,8 @@ fun AppDetailScreen(
     navigateToRuleDetail: (String) -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
+    blockAllComponentsInPage: () -> Unit = {},
+    enableAllComponentsInPage: () -> Unit = {},
     onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
@@ -409,8 +409,8 @@ fun AppDetailScreen(
     navigateToComponentSortScreen: () -> Unit = {},
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    blockAllSelectedComponents: () -> Unit = {},
+    enableAllSelectedComponents: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
@@ -439,8 +439,8 @@ fun AppDetailScreen(
                 modifier = modifier,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                enableAllComponents = enableAllComponents,
-                blockAllComponents = blockAllComponents,
+                enableAllComponents = enableAllComponentsInPage,
+                blockAllComponents = blockAllComponentsInPage,
                 onShowAppInfoClick = onShowAppInfoClick,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
@@ -454,8 +454,8 @@ fun AppDetailScreen(
                 onCopyFullNameClick = onCopyFullNameClick,
                 updateIconBasedThemingState = updateIconBasedThemingState,
                 onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
+                blockAllSelectedComponents = blockAllSelectedComponents,
+                enableAllSelectedComponents = enableAllSelectedComponents,
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
                 onDeselect = onDeselect,
@@ -503,8 +503,8 @@ fun AppDetailContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    blockAllSelectedComponents: () -> Unit = {},
+    enableAllSelectedComponents: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
@@ -560,13 +560,13 @@ fun AppDetailContent(
                 toolbarState = toolbarState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                blockAllComponents = blockAllComponents,
-                enableAllComponents = enableAllComponents,
+                blockAllComponentsInPage = blockAllComponents,
+                enableAllComponentsInPage = enableAllComponents,
                 navigateToComponentSortScreen = navigateToComponentSortScreen,
                 onLaunchAppClick = onLaunchAppClick,
                 onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
+                blockAllSelectedComponents = blockAllSelectedComponents,
+                enableAllSelectedComponents = enableAllSelectedComponents,
                 switchSelectedMode = switchSelectedMode,
                 onBackClick = onBackClick,
                 shareAppRule = shareAppRule,
@@ -619,8 +619,8 @@ fun AppDetailAppBarActions(
     appBarUiState: AppBarUiState,
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
+    blockAllComponentsInPage: () -> Unit = {},
+    enableAllComponentsInPage: () -> Unit = {},
     navigateToComponentSortScreen: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     shareAppRule: () -> Unit = {},
@@ -662,8 +662,8 @@ fun AppDetailAppBarActions(
         }
         if (actions.contains(MORE)) {
             MoreActionMenu(
-                blockAllComponents = blockAllComponents,
-                enableAllComponents = enableAllComponents,
+                blockAllComponents = blockAllComponentsInPage,
+                enableAllComponents = enableAllComponentsInPage,
                 onAdvanceSortClick = navigateToComponentSortScreen,
                 switchSelectedMode = switchSelectedMode,
             )
@@ -687,13 +687,13 @@ private fun TopAppBar(
     toolbarState: ToolbarState,
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
+    blockAllComponentsInPage: () -> Unit = {},
+    enableAllComponentsInPage: () -> Unit = {},
     navigateToComponentSortScreen: () -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    blockAllSelectedComponents: () -> Unit = {},
+    enableAllSelectedComponents: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onBackClick: () -> Unit,
     shareAppRule: () -> Unit = {},
@@ -715,8 +715,8 @@ private fun TopAppBar(
                     appBarUiState = topAppBarUiState,
                     onSearchTextChanged = onSearchTextChanged,
                     onSearchModeChange = onSearchModeChanged,
-                    blockAllComponents = blockAllComponents,
-                    enableAllComponents = enableAllComponents,
+                    blockAllComponentsInPage = blockAllComponentsInPage,
+                    enableAllComponentsInPage = enableAllComponentsInPage,
                     navigateToComponentSortScreen = navigateToComponentSortScreen,
                     switchSelectedMode = switchSelectedMode,
                     shareAppRule = shareAppRule,
@@ -742,8 +742,8 @@ private fun TopAppBar(
             selectedComponentCount = topAppBarUiState.selectedComponentList.size,
             onNavigationClick = { switchSelectedMode(false) },
             onSelectAll = onSelectAll,
-            onBlockAll = onBlockAll,
-            onEnableAll = onEnableAll,
+            onBlockAllSelectedComponents = blockAllSelectedComponents,
+            onEnableAllSelectedComponents = enableAllSelectedComponents,
         )
     }
 }

@@ -550,7 +550,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun controlAllComponents(enable: Boolean, block: suspend (Int, Int) -> Unit) {
+    fun controlAllComponentsInPage(enable: Boolean, block: suspend (Int, Int) -> Unit) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val list = when (tabState.value.selectedItem) {
@@ -577,6 +577,23 @@ class AppDetailViewModel @Inject constructor(
                     block(successCount, list.size)
                 }
             analyticsHelper.logBatchOperationPerformed(enable)
+        }
+    }
+
+    fun controlAllComponents(
+        list: List<ComponentItem>,
+        enable: Boolean,
+        action: (Int, Int) -> Unit,
+    ) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch {
+            analyticsHelper
+            var current = 0
+            val listSize = list.size
+            list.toMutableList().forEach {
+                action(++current, listSize)
+                controlComponentInternal(it.packageName, it.name, enable)
+            }
         }
     }
 
