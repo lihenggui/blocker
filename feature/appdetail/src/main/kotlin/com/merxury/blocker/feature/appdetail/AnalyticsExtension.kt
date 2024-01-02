@@ -95,3 +95,13 @@ internal fun AnalyticsHelper.logSwitchComponentClicked(newState: Boolean) =
             ),
         ),
     )
+
+internal fun AnalyticsHelper.logControlAllComponentsInSdkClicked(newState: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_control_all_components_in_sdk_clicked",
+            extras = listOf(
+                Param(key = "new_state", value = newState.toString()),
+            ),
+        ),
+    )

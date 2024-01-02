@@ -583,7 +583,7 @@ class AppDetailViewModel @Inject constructor(
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
-            analyticsHelper
+            analyticsHelper.logControlAllComponentsInSdkClicked(enable)
             var current = 0
             val listSize = list.size
             list.toMutableList().forEach {
