@@ -54,6 +54,7 @@ object AndroidCodeName {
         array.put(31, "Android 12")
         array.put(32, "Android 12L")
         array.put(33, "Android 13")
+        array.put(34, "Android 14")
         // Reference : https://source.android.com/setup/start/build-numbers
     }
 
