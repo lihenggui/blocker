@@ -65,7 +65,7 @@ fun RuleMatchedAppList(
             CollapsibleList(
                 modifier = modifier.testTag("rule:matchedAppList"),
                 list = ruleMatchedAppListUiState.list,
-                navigateDetail = navigateToAppDetail,
+                navigateToDetail = navigateToAppDetail,
                 navigationMenuItemDesc = string.core_ui_open_app_detail,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,

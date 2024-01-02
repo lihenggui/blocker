@@ -603,6 +603,7 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+            // TODO Add block all actions
             onSelect = onSelect,
             onDeselect = onDeselect,
             onRefresh = onRefresh,
@@ -772,6 +773,8 @@ fun AppDetailTabContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     isLibCheckerInstalled: Boolean = false,
@@ -829,6 +832,13 @@ fun AppDetailTabContent(
                 Sdk -> SdkContent(
                     data = matchedGeneralRuleUiState,
                     navigateToRuleDetail = navigateToRuleDetail,
+                    onStopServiceClick = onStopServiceClick,
+                    onLaunchActivityClick = onLaunchActivityClick,
+                    onCopyNameClick = onCopyNameClick,
+                    onCopyFullNameClick = onCopyFullNameClick,
+                    onEnableAllClick = onEnableAllClick,
+                    onBlockAllClick = onBlockAllClick,
+                    onSwitch = onSwitchClick,
                 )
 
                 else -> {

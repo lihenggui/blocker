@@ -68,7 +68,7 @@ fun CollapsibleList(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
-    navigateDetail: (String) -> Unit = { _ -> },
+    navigateToDetail: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -95,7 +95,7 @@ fun CollapsibleList(
                         matchedItem = ruleMatchedApp,
                         navigationMenuItemDesc = navigationMenuItemDesc,
                         navigation = {
-                            navigateDetail(ruleMatchedApp.header.uniqueId)
+                            navigateToDetail(ruleMatchedApp.header.uniqueId)
                         },
                         onBlockAllClick = onBlockAllClick,
                         onEnableAllClick = onEnableAllClick,
