@@ -164,25 +164,7 @@ private fun handleEnableAllInPageClick(
     context: Context,
 ) {
     viewModel.controlAllComponentsInPage(true) { current, total ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(uistring.core_ui_operation_completed),
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(
-                        uistring.core_ui_enabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
-        }
+        showEnableProgress(context, snackbarHostState, scope, current, total)
     }
 }
 
@@ -193,25 +175,13 @@ private fun handleBlockAllInPageClick(
     context: Context,
 ) {
     viewModel.controlAllComponentsInPage(false) { current, total ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(uistring.core_ui_operation_completed),
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(
-                        uistring.core_ui_disabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
-        }
+        showDisableProgress(
+            context,
+            snackbarHostState,
+            scope,
+            current,
+            total,
+        )
     }
 }
 
@@ -223,25 +193,7 @@ private fun handleEnableAllInItemClick(
     context: Context,
 ) {
     viewModel.controlAllComponents(it, true) { current, total ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(uistring.core_ui_operation_completed),
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(
-                        uistring.core_ui_enabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
-        }
+        showEnableProgress(context, snackbarHostState, scope, current, total)
     }
 }
 
@@ -252,26 +204,63 @@ private fun handleBlockAllInItemClick(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 ) {
-    val doneMessage = context.getString(uistring.core_ui_operation_completed)
     viewModel.controlAllComponents(it, false) { current, total ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = doneMessage,
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(
-                        uistring.core_ui_disabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
+        showDisableProgress(context, snackbarHostState, scope, current, total)
+    }
+}
+
+private fun showEnableProgress(
+    context: Context,
+    snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope,
+    current: Int,
+    total: Int,
+) {
+    scope.launch {
+        if (current == total) {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(uistring.core_ui_operation_completed),
+                duration = Short,
+                withDismissAction = true,
+            )
+        } else {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(
+                    uistring.core_ui_enabling_component_hint,
+                    current,
+                    total,
+                ),
+                duration = Short,
+                withDismissAction = false,
+            )
+        }
+    }
+}
+
+private fun showDisableProgress(
+    context: Context,
+    snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope,
+    current: Int,
+    total: Int,
+) {
+    scope.launch {
+        if (current == total) {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(uistring.core_ui_operation_completed),
+                duration = Short,
+                withDismissAction = true,
+            )
+        } else {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(
+                    uistring.core_ui_disabling_component_hint,
+                    current,
+                    total,
+                ),
+                duration = Short,
+                withDismissAction = false,
+            )
         }
     }
 }
