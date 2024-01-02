@@ -18,6 +18,7 @@ package com.merxury.blocker.core.domain.detail
 
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -29,6 +30,7 @@ import com.merxury.blocker.core.result.asResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
@@ -38,6 +40,7 @@ import javax.inject.Inject
  */
 class SearchMatchedRuleInAppUseCase @Inject constructor(
     private val componentRepository: ComponentRepository,
+    private val componentDetailRepository: IComponentDetailRepository,
     private val ruleRepository: GeneralRuleRepository,
     @FilesDir private val filesDir: File,
     @RuleBaseFolder private val ruleBaseFolder: String,
@@ -63,6 +66,20 @@ class SearchMatchedRuleInAppUseCase @Inject constructor(
                         .resolve(ruleBaseFolder)
                         .resolve(icon)
                     return@mapKeys rule.copy(iconUrl = iconFile.absolutePath)
+                }
+                .mapValues { entry ->
+                    val list = entry.value
+                    list.map { component ->
+                        val componentDetail = componentDetailRepository
+                            .getLocalComponentDetail(component.name)
+                            .first()
+                        if (componentDetail == null) {
+                            return@map component
+                        }
+                        return@map component.copy(
+                            description = componentDetail.description,
+                        )
+                    }
                 }
         }.asResult()
     }
