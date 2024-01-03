@@ -65,23 +65,22 @@ class LocalGeneralRuleDataSource @Inject constructor(
         if (ruleFile.exists()) {
             return@withContext ruleFile
         }
-        Timber.i("Fallback to old version of rules")
         // TODO should be removed in future
-        val oldRuleFile = filesDir.resolve(ruleBaseFolder)
-            .resolve(language)
-            .resolve(RULE_NAME)
-        if (oldRuleFile.exists()) {
-            return@withContext oldRuleFile
-        }
-        Timber.w("Cannot find general rule in $oldRuleFile")
         val lowercaseFolder = filesDir.resolve(ruleBaseFolder)
             .resolve(RULES_FOLDER)
             .resolve(language.lowercase())
             .resolve(RULE_NAME)
         if (lowercaseFolder.exists()) {
+            Timber.i("Fallback to lowercase-language folder")
             return@withContext lowercaseFolder
         }
-        Timber.e("Cannot find general rule in $lowercaseFolder")
+        val oldRuleFile = filesDir.resolve(ruleBaseFolder)
+            .resolve("zh-cn")
+            .resolve(RULE_NAME)
+        if (oldRuleFile.exists()) {
+            Timber.i("Fallback to old version of rules without RULES_FOLDER")
+            return@withContext oldRuleFile
+        }
         throw IllegalStateException("Cannot find general rule in files folder. language: $language")
     }
 }
