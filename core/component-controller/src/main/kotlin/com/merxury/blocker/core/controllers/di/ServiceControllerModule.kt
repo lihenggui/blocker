@@ -27,7 +27,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface ServiceControllerModule {
+internal interface ServiceControllerModule {
     @Binds
     @RootCommandServiceControl
     fun bindsRootServiceController(rootServiceController: RootServiceController): IServiceController

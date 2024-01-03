@@ -23,7 +23,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.ifw.IfwController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.IFW_EXTENSION
@@ -49,7 +50,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     private val xmlParser: XML,
-    private val ifwController: IfwController,
+    @IfwControl private val ifwController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 

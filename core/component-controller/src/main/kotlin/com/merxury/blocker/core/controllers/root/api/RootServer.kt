@@ -37,7 +37,7 @@ import timber.log.Timber
 
 private const val MAX_SERVICE_COUNT = 10000
 
-class RootServer : RootService() {
+internal class RootServer : RootService() {
     override fun onCreate() {
         super.onCreate()
         Timber.d("RootService onCreate")

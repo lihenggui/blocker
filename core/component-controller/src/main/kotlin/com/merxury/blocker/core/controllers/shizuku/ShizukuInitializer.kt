@@ -28,7 +28,7 @@ import javax.inject.Singleton
 private const val REQUEST_CODE_PERMISSION = 101
 
 @Singleton
-class ShizukuInitializer @Inject constructor(
+internal class ShizukuInitializer @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IShizukuInitializer {
     private var binderReceivedListener = Shizuku.OnBinderReceivedListener {

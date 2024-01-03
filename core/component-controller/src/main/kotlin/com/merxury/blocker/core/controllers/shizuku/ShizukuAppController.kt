@@ -47,7 +47,7 @@ import kotlin.coroutines.suspendCoroutine
 private const val SHELL_UID = 2000
 
 @Singleton
-class ShizukuAppController @Inject constructor(
+internal class ShizukuAppController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IAppController {
 

@@ -27,7 +27,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface AppControllerModule {
+internal interface AppControllerModule {
     @Binds
     @RootCommandAppControl
     fun bindsRootAppController(rootAppController: RootAppController): IAppController

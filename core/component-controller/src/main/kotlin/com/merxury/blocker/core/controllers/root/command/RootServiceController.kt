@@ -31,7 +31,7 @@ import javax.inject.Singleton
 private const val SERVICE_REGEX = """ServiceRecord\{(.*?) %s\/%s\}"""
 
 @Singleton
-class RootServiceController @Inject constructor(
+internal class RootServiceController @Inject constructor(
     @Dispatcher(DEFAULT) private val defaultDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IServiceController {

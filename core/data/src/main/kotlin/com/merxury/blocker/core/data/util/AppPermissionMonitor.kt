@@ -22,7 +22,7 @@ import com.merxury.blocker.core.controllers.IServiceController
 import com.merxury.blocker.core.controllers.di.RootApiAppControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.RootApiServiceControl
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.ROOT_USER
@@ -46,7 +46,7 @@ private const val ROOT_UID = 0
 @Singleton
 class AppPermissionMonitor @Inject constructor(
     userDataRepository: UserDataRepository,
-    private val shizukuInitializer: ShizukuInitializer,
+    private val shizukuInitializer: IShizukuInitializer,
     @RootApiControl private val rootApiController: IController,
     @RootApiAppControl private val rootApiAppController: IAppController,
     @RootApiServiceControl private val rootApiServiceController: IServiceController,

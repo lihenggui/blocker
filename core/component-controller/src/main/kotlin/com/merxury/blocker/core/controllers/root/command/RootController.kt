@@ -35,7 +35,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
-class RootController @Inject constructor(
+internal class RootController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IController {
 

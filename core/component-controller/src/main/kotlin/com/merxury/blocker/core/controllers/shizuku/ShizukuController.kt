@@ -32,7 +32,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ShizukuController @Inject constructor(
+internal class ShizukuController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IController {
     private val pm: IPackageManager by lazy {
