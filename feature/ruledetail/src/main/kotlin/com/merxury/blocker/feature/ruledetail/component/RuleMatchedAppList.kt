@@ -51,8 +51,8 @@ fun RuleMatchedAppList(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (ruleMatchedAppListUiState) {
@@ -65,14 +65,14 @@ fun RuleMatchedAppList(
             CollapsibleList(
                 modifier = modifier.testTag("rule:matchedAppList"),
                 list = ruleMatchedAppListUiState.list,
-                navigateDetail = navigateToAppDetail,
+                navigateToDetail = navigateToAppDetail,
                 navigationMenuItemDesc = string.core_ui_open_app_detail,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
-                onBlockAllClick = onBlockAllClick,
-                onEnableAllClick = onEnableAllClick,
+                onBlockAllInItemClick = onBlockAllInItemClick,
+                onEnableAllInItemClick = onEnableAllInItemClick,
                 onSwitch = onSwitch,
             )
         }

@@ -187,11 +187,15 @@ fun AppDetailRoute(
         onBackClick = onBackClick,
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
-        blockAllComponents = {
-            handleBlockAllComponents(context, viewModel, scope, snackbarHostState)
+        blockAllComponentsInPage = {
+            viewModel.controlAllComponentsInPage(false) { current, total ->
+                showDisableProgress(context, snackbarHostState, scope, current, total)
+            }
         },
-        enableAllComponents = {
-            handleEnableAllComponents(context, viewModel, scope, snackbarHostState)
+        enableAllComponentsInPage = {
+            viewModel.controlAllComponentsInPage(true) { current, total ->
+                showEnableProgress(context, snackbarHostState, scope, current, total)
+            }
         },
         onExportRules = viewModel::exportBlockerRule,
         onImportRules = viewModel::importBlockerRule,
@@ -205,11 +209,21 @@ fun AppDetailRoute(
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         updateIconBasedThemingState = updateIconBasedThemingState,
         onSelectAll = viewModel::selectAll,
-        onBlockAll = { viewModel.controlAllSelectedComponents(false) },
-        onEnableAll = { viewModel.controlAllSelectedComponents(true) },
+        blockAllSelectedComponents = { viewModel.controlAllSelectedComponents(false) },
+        enableAllSelectedComponents = { viewModel.controlAllSelectedComponents(true) },
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         onDeselect = viewModel::deselectItem,
+        blockAllInItem = {
+            viewModel.controlAllComponents(it, false) { current, total ->
+                showDisableProgress(context, snackbarHostState, scope, current, total)
+            }
+        },
+        enableAllInItem = {
+            viewModel.controlAllComponents(it, true) { current, total ->
+                showEnableProgress(context, snackbarHostState, scope, current, total)
+            }
+        },
         shareAppRule = {
             scope.launch {
                 viewModel.zipAppRule().collect { rule ->
@@ -269,62 +283,58 @@ fun AppDetailRoute(
     }
 }
 
-private fun handleEnableAllComponents(
+private fun showEnableProgress(
     context: Context,
-    viewModel: AppDetailViewModel,
-    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope,
+    current: Int,
+    total: Int,
 ) {
-    val doneMessage = context.getString(uistring.core_ui_operation_completed)
-    viewModel.controlAllComponents(true) { current, total ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = doneMessage,
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(
-                        uistring.core_ui_enabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
+    scope.launch {
+        if (current == total) {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(uistring.core_ui_operation_completed),
+                duration = Short,
+                withDismissAction = true,
+            )
+        } else {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(
+                    uistring.core_ui_enabling_component_hint,
+                    current,
+                    total,
+                ),
+                duration = Short,
+                withDismissAction = false,
+            )
         }
     }
 }
 
-private fun handleBlockAllComponents(
+private fun showDisableProgress(
     context: Context,
-    viewModel: AppDetailViewModel,
-    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope,
+    current: Int,
+    total: Int,
 ) {
-    val doneMessage = context.getString(uistring.core_ui_operation_completed)
-    viewModel.controlAllComponents(false) { current, total ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = doneMessage,
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbarWithoutQueue(
-                    message = context.getString(
-                        uistring.core_ui_disabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
+    scope.launch {
+        if (current == total) {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(uistring.core_ui_operation_completed),
+                duration = Short,
+                withDismissAction = true,
+            )
+        } else {
+            snackbarHostState.showSnackbarWithoutQueue(
+                message = context.getString(
+                    uistring.core_ui_disabling_component_hint,
+                    current,
+                    total,
+                ),
+                duration = Short,
+                withDismissAction = false,
+            )
         }
     }
 }
@@ -393,8 +403,8 @@ fun AppDetailScreen(
     navigateToRuleDetail: (String) -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
+    blockAllComponentsInPage: () -> Unit = {},
+    enableAllComponentsInPage: () -> Unit = {},
     onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
@@ -409,11 +419,13 @@ fun AppDetailScreen(
     navigateToComponentSortScreen: () -> Unit = {},
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    blockAllSelectedComponents: () -> Unit = {},
+    enableAllSelectedComponents: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    blockAllInItem: (List<ComponentItem>) -> Unit = {},
+    enableAllInItem: (List<ComponentItem>) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -439,8 +451,8 @@ fun AppDetailScreen(
                 modifier = modifier,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                enableAllComponents = enableAllComponents,
-                blockAllComponents = blockAllComponents,
+                enableAllComponentsInPage = enableAllComponentsInPage,
+                blockAllComponentsInPage = blockAllComponentsInPage,
                 onShowAppInfoClick = onShowAppInfoClick,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
@@ -454,11 +466,13 @@ fun AppDetailScreen(
                 onCopyFullNameClick = onCopyFullNameClick,
                 updateIconBasedThemingState = updateIconBasedThemingState,
                 onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
+                blockAllSelectedComponents = blockAllSelectedComponents,
+                enableAllSelectedComponents = enableAllSelectedComponents,
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
                 onDeselect = onDeselect,
+                blockAllInItem = blockAllInItem,
+                enableAllInItem = enableAllInItem,
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
                 onRefresh = onRefresh,
@@ -489,8 +503,8 @@ fun AppDetailContent(
     onShowAppInfoClick: () -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
+    blockAllComponentsInPage: () -> Unit = {},
+    enableAllComponentsInPage: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -503,11 +517,13 @@ fun AppDetailContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    blockAllSelectedComponents: () -> Unit = {},
+    enableAllSelectedComponents: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    blockAllInItem: (List<ComponentItem>) -> Unit = {},
+    enableAllInItem: (List<ComponentItem>) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -560,13 +576,13 @@ fun AppDetailContent(
                 toolbarState = toolbarState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                blockAllComponents = blockAllComponents,
-                enableAllComponents = enableAllComponents,
+                blockAllComponentsInPage = blockAllComponentsInPage,
+                enableAllComponentsInPage = enableAllComponentsInPage,
                 navigateToComponentSortScreen = navigateToComponentSortScreen,
                 onLaunchAppClick = onLaunchAppClick,
                 onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
+                blockAllSelectedComponents = blockAllSelectedComponents,
+                enableAllSelectedComponents = enableAllSelectedComponents,
                 switchSelectedMode = switchSelectedMode,
                 onBackClick = onBackClick,
                 shareAppRule = shareAppRule,
@@ -603,6 +619,8 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+            onBlockAllInItemClick = blockAllInItem,
+            onEnableAllInItemClick = enableAllInItem,
             onSelect = onSelect,
             onDeselect = onDeselect,
             onRefresh = onRefresh,
@@ -618,8 +636,8 @@ fun AppDetailAppBarActions(
     appBarUiState: AppBarUiState,
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
+    blockAllComponentsInPage: () -> Unit = {},
+    enableAllComponentsInPage: () -> Unit = {},
     navigateToComponentSortScreen: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     shareAppRule: () -> Unit = {},
@@ -661,8 +679,8 @@ fun AppDetailAppBarActions(
         }
         if (actions.contains(MORE)) {
             MoreActionMenu(
-                blockAllComponents = blockAllComponents,
-                enableAllComponents = enableAllComponents,
+                blockAllComponents = blockAllComponentsInPage,
+                enableAllComponents = enableAllComponentsInPage,
                 onAdvanceSortClick = navigateToComponentSortScreen,
                 switchSelectedMode = switchSelectedMode,
             )
@@ -686,13 +704,13 @@ private fun TopAppBar(
     toolbarState: ToolbarState,
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
+    blockAllComponentsInPage: () -> Unit = {},
+    enableAllComponentsInPage: () -> Unit = {},
     navigateToComponentSortScreen: () -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    blockAllSelectedComponents: () -> Unit = {},
+    enableAllSelectedComponents: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onBackClick: () -> Unit,
     shareAppRule: () -> Unit = {},
@@ -714,8 +732,8 @@ private fun TopAppBar(
                     appBarUiState = topAppBarUiState,
                     onSearchTextChanged = onSearchTextChanged,
                     onSearchModeChange = onSearchModeChanged,
-                    blockAllComponents = blockAllComponents,
-                    enableAllComponents = enableAllComponents,
+                    blockAllComponentsInPage = blockAllComponentsInPage,
+                    enableAllComponentsInPage = enableAllComponentsInPage,
                     navigateToComponentSortScreen = navigateToComponentSortScreen,
                     switchSelectedMode = switchSelectedMode,
                     shareAppRule = shareAppRule,
@@ -741,8 +759,8 @@ private fun TopAppBar(
             selectedComponentCount = topAppBarUiState.selectedComponentList.size,
             onNavigationClick = { switchSelectedMode(false) },
             onSelectAll = onSelectAll,
-            onBlockAll = onBlockAll,
-            onEnableAll = onEnableAll,
+            onBlockAllSelectedComponents = blockAllSelectedComponents,
+            onEnableAllSelectedComponents = enableAllSelectedComponents,
         )
     }
 }
@@ -772,6 +790,8 @@ fun AppDetailTabContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     isLibCheckerInstalled: Boolean = false,
@@ -829,6 +849,13 @@ fun AppDetailTabContent(
                 Sdk -> SdkContent(
                     data = matchedGeneralRuleUiState,
                     navigateToRuleDetail = navigateToRuleDetail,
+                    onStopServiceClick = onStopServiceClick,
+                    onLaunchActivityClick = onLaunchActivityClick,
+                    onCopyNameClick = onCopyNameClick,
+                    onCopyFullNameClick = onCopyFullNameClick,
+                    onEnableAllInItemClick = onEnableAllInItemClick,
+                    onBlockAllInItemClick = onBlockAllInItemClick,
+                    onSwitch = onSwitchClick,
                 )
 
                 else -> {
