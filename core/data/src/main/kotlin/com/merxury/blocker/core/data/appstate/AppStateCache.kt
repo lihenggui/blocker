@@ -28,7 +28,7 @@ import com.merxury.blocker.core.utils.PermissionUtils
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-class AppStateCache @Inject constructor(
+internal class AppStateCache @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val packageManager: PackageManager,
     private val ifwController: IfwController,
