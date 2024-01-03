@@ -114,6 +114,7 @@ class AppDetailViewModelTest {
         )
         val searchMatchedRuleInAppUseCase = SearchMatchedRuleInAppUseCase(
             componentRepository = componentRepository,
+            componentDetailRepository = componentDetailRepository,
             ruleRepository = generalRuleRepository,
             dispatcher = mainDispatcherRule.testDispatcher,
             filesDir = tempFolder.newFolder(),
