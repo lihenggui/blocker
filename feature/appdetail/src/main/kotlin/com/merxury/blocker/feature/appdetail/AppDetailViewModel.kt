@@ -582,7 +582,7 @@ class AppDetailViewModel @Inject constructor(
         action: (Int, Int) -> Unit,
     ) {
         controlComponentJob?.cancel()
-        controlComponentJob = viewModelScope.launch {
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             analyticsHelper.logControlAllComponentsInSdkClicked(enable)
             var current = 0
             val listSize = list.size
