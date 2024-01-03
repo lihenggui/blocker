@@ -38,7 +38,7 @@ import javax.inject.Inject
 private const val RULES_FOLDER = "rules"
 private const val RULE_NAME = "general.json"
 
-class LocalGeneralRuleDataSource @Inject constructor(
+internal class LocalGeneralRuleDataSource @Inject constructor(
     private val json: Json,
     private val userDataRepository: UserDataRepository,
     @FilesDir private val filesDir: File,
