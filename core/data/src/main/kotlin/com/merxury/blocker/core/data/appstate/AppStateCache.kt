@@ -17,10 +17,12 @@
 package com.merxury.blocker.core.data.appstate
 
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.command.RootController
-import com.merxury.blocker.core.controllers.root.command.RootServiceController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuServiceController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.IServiceController
+import com.merxury.blocker.core.controllers.di.IfwControl
+import com.merxury.blocker.core.controllers.di.RootApiControl
+import com.merxury.blocker.core.controllers.di.RootApiServiceControl
+import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -29,12 +31,12 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 internal class AppStateCache @Inject constructor(
-    private val userDataRepository: UserDataRepository,
     private val packageManager: PackageManager,
-    private val ifwController: IfwController,
-    private val rootController: RootController,
-    private val rootServiceController: RootServiceController,
-    private val shizukuServiceController: ShizukuServiceController,
+    private val userDataRepository: UserDataRepository,
+    @IfwControl private val ifwController: IController,
+    @RootApiControl private val rootController: IController,
+    @RootApiServiceControl private val rootServiceController: IServiceController,
+    @ShizukuServiceControl private val shizukuServiceController: IServiceController,
 ) : IAppStateCache {
     private val cache = mutableMapOf<String, AppState>()
 
