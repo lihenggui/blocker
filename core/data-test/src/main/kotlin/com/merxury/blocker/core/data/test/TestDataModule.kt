@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.test
 
+import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.di.DataModule
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -41,7 +42,7 @@ import dagger.hilt.testing.TestInstallIn
     components = [SingletonComponent::class],
     replaces = [DataModule::class],
 )
-interface TestDataModule {
+internal interface TestDataModule {
     @Binds
     fun bindUserDataRepository(
         userDataRepository: FakeUserDataRepository,
@@ -81,4 +82,9 @@ interface TestDataModule {
     fun bindsAppRepository(
         appRepository: FakeAppRepository,
     ): AppRepository
+
+    @Binds
+    fun bindsAppStateCache(
+        appStateCache: TestAppStateCache,
+    ): IAppStateCache
 }

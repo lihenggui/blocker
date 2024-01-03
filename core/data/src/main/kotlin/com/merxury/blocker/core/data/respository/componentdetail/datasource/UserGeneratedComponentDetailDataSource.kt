@@ -44,7 +44,7 @@ import javax.inject.Singleton
 private const val EXTENSION = "json"
 
 @Singleton
-class UserGeneratedComponentDetailDataSource @Inject constructor(
+internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentDataSource: CacheComponentDataSource,
     @FilesDir private val filesDir: File,

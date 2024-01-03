@@ -35,7 +35,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-class LocalComponentDataSource @Inject constructor(
+internal class LocalComponentDataSource @Inject constructor(
     private val pm: PackageManager,
     private val ifwController: IfwController,
     private val pmController: RootController,

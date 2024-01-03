@@ -37,7 +37,7 @@ import javax.inject.Inject
 private const val EXTENSION = "json"
 private const val COMPONENT_FOLDER = "components"
 
-class LocalComponentDetailDataSource @Inject constructor(
+internal class LocalComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val json: Json,
     @FilesDir private val filesDir: File,

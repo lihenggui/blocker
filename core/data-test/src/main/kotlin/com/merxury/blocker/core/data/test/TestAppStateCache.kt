@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.testing.controller
+package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.appstate.AppState
 import com.merxury.blocker.core.data.appstate.IAppStateCache
+import javax.inject.Inject
 
-class TestAppStateCache : IAppStateCache {
+internal class TestAppStateCache @Inject constructor() : IAppStateCache {
     override fun getOrNull(packageName: String): AppState? {
         return null
     }

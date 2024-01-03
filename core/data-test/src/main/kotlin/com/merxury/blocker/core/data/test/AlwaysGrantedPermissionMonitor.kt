@@ -23,6 +23,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class AlwaysGrantedPermissionMonitor @Inject constructor() : PermissionMonitor {
+internal class AlwaysGrantedPermissionMonitor @Inject constructor() : PermissionMonitor {
     override val permissionStatus: Flow<PermissionStatus> = flowOf(ROOT_USER)
 }

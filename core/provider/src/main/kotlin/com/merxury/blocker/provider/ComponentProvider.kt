@@ -24,7 +24,6 @@ import android.os.Bundle
 import androidx.core.os.bundleOf
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.component.LocalComponentDataSource
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -40,8 +39,6 @@ class ComponentProvider : ContentProvider() {
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface ComponentRepositoryEntryPoint {
-        fun componentDataSource(): LocalComponentDataSource
-
         fun componentRepository(): ComponentRepository
 
         fun analyticsHelper(): AnalyticsHelper
@@ -63,8 +60,8 @@ class ComponentProvider : ContentProvider() {
             ComponentRepositoryEntryPoint::class.java,
         )
         // Do not get data from the DB directly, because the data may be uninitialized
-        val componentDataSource = hintEntryPoint.componentDataSource()
-        val blockedComponents = componentDataSource.getComponentList(packageName).first()
+        val repository = hintEntryPoint.componentRepository()
+        val blockedComponents = repository.getComponentList(packageName).first()
             .filter { it.ifwBlocked || it.pmBlocked }
             .map {
                 ShareCmpInfo.Component(
