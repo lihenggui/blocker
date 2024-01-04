@@ -27,7 +27,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
-object ApkParser {
+internal object ApkParser {
 
     /**
      * Get [AssetManager] using reflection
