@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,13 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
 
     override fun getGeneralRules(): Flow<List<GeneralRule>> {
         return generalRuleDao.getGeneralRuleEntities()
-            .map { it.map(GeneralRuleEntity::asExternalModel) }
+            .mapNotNull { it.map(GeneralRuleEntity::asExternalModel) }
+            .map {
+                // Fallback to rules in the data folder if the database is empty
+                it.ifEmpty {
+                    dataSource.getGeneralRules().first()
+                }
+            }
     }
 
     override fun getGeneralRule(id: Int): Flow<GeneralRule> {

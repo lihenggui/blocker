@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,16 @@ internal fun AnalyticsHelper.logSwitchComponentClicked(newState: Boolean) =
     logEvent(
         AnalyticsEvent(
             type = "app_detail_switch_component_clicked",
+            extras = listOf(
+                Param(key = "new_state", value = newState.toString()),
+            ),
+        ),
+    )
+
+internal fun AnalyticsHelper.logControlAllComponentsInSdkClicked(newState: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_control_all_components_in_sdk_clicked",
             extras = listOf(
                 Param(key = "new_state", value = newState.toString()),
             ),

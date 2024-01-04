@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.data.di
 
+import com.merxury.blocker.core.data.appstate.AppStateCache
+import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -86,4 +88,9 @@ abstract class DataModule {
     internal abstract fun bindPermissionMonitor(
         permissionMonitor: AppPermissionMonitor,
     ): PermissionMonitor
+
+    @Binds
+    internal abstract fun bindAppStateCache(
+        appStateCache: AppStateCache,
+    ): IAppStateCache
 }

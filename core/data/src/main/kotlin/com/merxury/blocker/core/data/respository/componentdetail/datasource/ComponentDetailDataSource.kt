@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.merxury.blocker.core.data.respository.componentdetail.datasource
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
 
-interface ComponentDetailDataSource {
+internal interface ComponentDetailDataSource {
 
     fun getByPackageName(packageName: String): Flow<List<ComponentDetail>>
 

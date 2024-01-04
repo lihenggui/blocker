@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface ServiceControllerModule {
+internal interface ServiceControllerModule {
     @Binds
     @RootCommandServiceControl
     fun bindsRootServiceController(rootServiceController: RootServiceController): IServiceController

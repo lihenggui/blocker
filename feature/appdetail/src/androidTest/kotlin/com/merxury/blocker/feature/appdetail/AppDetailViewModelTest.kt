@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,6 +114,7 @@ class AppDetailViewModelTest {
         )
         val searchMatchedRuleInAppUseCase = SearchMatchedRuleInAppUseCase(
             componentRepository = componentRepository,
+            componentDetailRepository = componentDetailRepository,
             ruleRepository = generalRuleRepository,
             dispatcher = mainDispatcherRule.testDispatcher,
             filesDir = tempFolder.newFolder(),

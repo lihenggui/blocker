@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import kotlin.coroutines.suspendCoroutine
 private const val SHELL_UID = 2000
 
 @Singleton
-class ShizukuAppController @Inject constructor(
+internal class ShizukuAppController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IAppController {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class AlwaysGrantedPermissionMonitor @Inject constructor() : PermissionMonitor {
+internal class AlwaysGrantedPermissionMonitor @Inject constructor() : PermissionMonitor {
     override val permissionStatus: Flow<PermissionStatus> = flowOf(ROOT_USER)
 }

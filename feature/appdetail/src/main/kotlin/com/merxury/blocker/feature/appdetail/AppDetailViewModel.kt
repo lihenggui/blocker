@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,29 +204,20 @@ class AppDetailViewModel @Inject constructor(
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             Timber.i("Filtering component list with keyword: $keyword")
             filterAndUpdateComponentList(keyword)
-            updateTabState(_componentListUiState.value, _appInfoUiState.value)
+            updateTabState(_componentListUiState.value)
         }
     }
 
     private suspend fun updateTabState(
         listUiState: ComponentListUiState,
-        appInfoUiState: AppInfoUiState,
     ) {
-        val ruleUiState = when (appInfoUiState) {
-            is Success -> appInfoUiState.matchedGeneralRuleUiState
-            else -> null
-        }
-        val matchedRuleCount = when (ruleUiState) {
-            is Result.Success -> ruleUiState.data.size
-            else -> 0
-        }
         val itemCountMap = mapOf(
             Info to 1,
             Receiver to listUiState.receiver.size,
             Service to listUiState.service.size,
             Activity to listUiState.activity.size,
             Provider to listUiState.provider.size,
-            Sdk to matchedRuleCount,
+            Sdk to 1,
         ).filter { it.value > 0 }
         val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
         if (_tabState.value.selectedItem !in nonEmptyItems) {
@@ -366,7 +357,7 @@ class AppDetailViewModel @Inject constructor(
                         matchedGeneralRuleUiState = matchedRuleUiState,
                     )
                 }
-                updateTabState(_componentListUiState.value, _appInfoUiState.value)
+                updateTabState(_componentListUiState.value)
             }
         }
     }
@@ -379,7 +370,7 @@ class AppDetailViewModel @Inject constructor(
         val provider = list.filter { it.type == PROVIDER }
         unfilteredList = getComponentListUiState(receiver, service, activity, provider)
         filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
-        updateTabState(_componentListUiState.value, _appInfoUiState.value)
+        updateTabState(_componentListUiState.value)
     }
 
     private fun listenSortStateChange() = viewModelScope.launch {
@@ -550,7 +541,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun controlAllComponents(enable: Boolean, block: suspend (Int, Int) -> Unit) {
+    fun controlAllComponentsInPage(enable: Boolean, block: suspend (Int, Int) -> Unit) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val list = when (tabState.value.selectedItem) {
@@ -558,6 +549,11 @@ class AppDetailViewModel @Inject constructor(
                 Service -> _componentListUiState.value.service
                 Activity -> _componentListUiState.value.activity
                 Provider -> _componentListUiState.value.provider
+                Sdk -> ((_appInfoUiState.value as? Success)?.matchedGeneralRuleUiState as? Result.Success)
+                    ?.data
+                    ?.values
+                    ?.flatten()
+                    ?: listOf()
                 else -> return@launch
             }.map {
                 it.toComponentInfo()
@@ -577,6 +573,23 @@ class AppDetailViewModel @Inject constructor(
                     block(successCount, list.size)
                 }
             analyticsHelper.logBatchOperationPerformed(enable)
+        }
+    }
+
+    fun controlAllComponents(
+        list: List<ComponentItem>,
+        enable: Boolean,
+        action: (Int, Int) -> Unit,
+    ) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            analyticsHelper.logControlAllComponentsInSdkClicked(enable)
+            var current = 0
+            val listSize = list.size
+            list.toMutableList().forEach {
+                action(++current, listSize)
+                controlComponentInternal(it.packageName, it.name, enable)
+            }
         }
     }
 
@@ -790,7 +803,7 @@ class AppDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         val type = findComponentType(componentName)
-        val result = componentRepository.controlComponent(packageName, componentName, enabled)
+        componentRepository.controlComponent(packageName, componentName, enabled)
             .onStart {
                 changeComponentUiStatus(componentName, type, enabled)
             }
@@ -798,10 +811,11 @@ class AppDetailViewModel @Inject constructor(
                 changeComponentUiStatus(componentName, type, !enabled)
                 _errorState.emit(exception.toErrorMessage())
             }
-            .first()
-        if (!result) {
-            changeComponentUiStatus(componentName, type, !enabled)
-        }
+            .collect { result ->
+                if (!result) {
+                    changeComponentUiStatus(componentName, type, !enabled)
+                }
+            }
     }
 
     fun exportBlockerRule(packageName: String) = viewModelScope.launch {

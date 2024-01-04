@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import javax.inject.Singleton
 private const val EXTENSION = "json"
 
 @Singleton
-class UserGeneratedComponentDetailDataSource @Inject constructor(
+internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentDataSource: CacheComponentDataSource,
     @FilesDir private val filesDir: File,

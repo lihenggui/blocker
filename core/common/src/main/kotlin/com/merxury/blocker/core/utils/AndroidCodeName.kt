@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,12 +48,13 @@ object AndroidCodeName {
         array.put(25, "Android 7.1")
         array.put(26, "Android 8.0")
         array.put(27, "Android 8.1")
-        array.put(28, "Android P")
+        array.put(28, "Android 9")
         array.put(29, "Android 10")
         array.put(30, "Android 11")
         array.put(31, "Android 12")
         array.put(32, "Android 12L")
         array.put(33, "Android 13")
+        array.put(34, "Android 14")
         // Reference : https://source.android.com/setup/start/build-numbers
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.di.ShizukuAppControl
 import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.appstate.AppState
-import com.merxury.blocker.core.data.appstate.AppStateCache
+import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -87,7 +87,7 @@ class AppListViewModel @Inject constructor(
     @ShizukuAppControl private val shizukuAppController: IAppController,
     @RootApiServiceControl private val rootApiServiceController: IServiceController,
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
-    private val appStateCache: AppStateCache,
+    private val appStateCache: IAppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
     private val permissionMonitor: PermissionMonitor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import javax.inject.Inject
 private const val EXTENSION = "json"
 private const val COMPONENT_FOLDER = "components"
 
-class LocalComponentDetailDataSource @Inject constructor(
+internal class LocalComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val json: Json,
     @FilesDir private val filesDir: File,

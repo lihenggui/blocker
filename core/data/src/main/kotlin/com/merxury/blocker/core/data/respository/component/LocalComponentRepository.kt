@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.zip
 import timber.log.Timber
 import javax.inject.Inject
@@ -61,15 +62,29 @@ internal class LocalComponentRepository @Inject constructor(
 
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =
         appComponentDao.getByPackageName(packageName)
-            .map { list ->
+            .mapNotNull { list ->
                 list.map { it.toComponentInfo() }
+            }
+            .map { list ->
+                // If the list is empty in the db, try to get the list from local data source
+                list.ifEmpty {
+                    localDataSource.getComponentList(packageName)
+                        .first()
+                }
             }
             .flowOn(ioDispatcher)
 
     override fun getComponentList(packageName: String, type: ComponentType) =
         appComponentDao.getByPackageNameAndType(packageName, type)
-            .map { list ->
+            .mapNotNull { list ->
                 list.map { it.toComponentInfo() }
+            }
+            .map { list ->
+                // If the list is empty in the db, try to get the list from local data source
+                list.ifEmpty {
+                    localDataSource.getComponentList(packageName, type)
+                        .first()
+                }
             }
             .flowOn(ioDispatcher)
 

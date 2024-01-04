@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LocalAppDataSource @Inject constructor(
+internal class LocalAppDataSource @Inject constructor(
     @AppPackageName private val appPackageName: String,
     private val pm: PackageManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

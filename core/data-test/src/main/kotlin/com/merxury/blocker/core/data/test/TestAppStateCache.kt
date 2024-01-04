@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.testing.controller
+package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.appstate.AppState
 import com.merxury.blocker.core.data.appstate.IAppStateCache
+import javax.inject.Inject
 
-class TestAppStateCache : IAppStateCache {
+internal class TestAppStateCache @Inject constructor() : IAppStateCache {
     override fun getOrNull(packageName: String): AppState? {
         return null
     }

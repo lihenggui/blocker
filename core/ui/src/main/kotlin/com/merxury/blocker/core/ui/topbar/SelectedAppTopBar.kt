@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ fun SelectedAppTopBar(
     selectedComponentCount: Int,
     onNavigationClick: () -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
+    onBlockAllSelectedComponents: () -> Unit = {},
+    onEnableAllSelectedComponents: () -> Unit = {},
 ) {
     var showBlockAllDialog by remember {
         mutableStateOf(false)
@@ -93,7 +93,7 @@ fun SelectedAppTopBar(
                 selectedComponentCount,
             ),
             onDismissRequest = { showBlockAllDialog = false },
-            onConfirmRequest = { onBlockAll() },
+            onConfirmRequest = { onBlockAllSelectedComponents() },
         )
     }
     if (showEnableAllDialog) {
@@ -104,7 +104,7 @@ fun SelectedAppTopBar(
                 selectedComponentCount,
             ),
             onDismissRequest = { showEnableAllDialog = false },
-            onConfirmRequest = { onEnableAll() },
+            onConfirmRequest = { onEnableAllSelectedComponents() },
         )
     }
 }

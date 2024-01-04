@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -322,8 +322,8 @@ fun TopBar(
                 selectedComponentCount = searchUiState.selectedComponentList.size,
                 onNavigationClick = onNavigationClick,
                 onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
+                onBlockAllSelectedComponents = onBlockAll,
+                onEnableAllSelectedComponents = onEnableAll,
             )
         } else {
             SearchBar(

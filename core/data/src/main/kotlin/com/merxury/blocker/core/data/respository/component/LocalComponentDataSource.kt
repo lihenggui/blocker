@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 package com.merxury.blocker.core.data.respository.component
 
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.command.RootController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.IfwControl
+import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getSimpleName
@@ -35,10 +36,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-class LocalComponentDataSource @Inject constructor(
+internal class LocalComponentDataSource @Inject constructor(
     private val pm: PackageManager,
-    private val ifwController: IfwController,
-    private val pmController: RootController,
+    @IfwControl private val ifwController: IController,
+    @RootApiControl private val pmController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDataSource {
 

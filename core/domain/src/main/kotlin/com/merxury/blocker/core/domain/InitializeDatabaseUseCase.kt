@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.merxury.blocker.core.domain
 
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.component.LocalComponentDataSource
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
@@ -34,7 +33,6 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class InitializeDatabaseUseCase @Inject constructor(
-    private val localDataSource: LocalComponentDataSource,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val appPropertiesRepository: AppPropertiesRepository,
@@ -60,10 +58,10 @@ class InitializeDatabaseUseCase @Inject constructor(
                 val packageName = it.packageName
                 emit(InitializeState.Initializing(it.label))
                 combine(
-                    localDataSource.getComponentList(packageName, ACTIVITY),
-                    localDataSource.getComponentList(packageName, SERVICE),
-                    localDataSource.getComponentList(packageName, RECEIVER),
-                    localDataSource.getComponentList(packageName, PROVIDER),
+                    componentRepository.getComponentList(packageName, ACTIVITY),
+                    componentRepository.getComponentList(packageName, SERVICE),
+                    componentRepository.getComponentList(packageName, RECEIVER),
+                    componentRepository.getComponentList(packageName, PROVIDER),
                 ) { activities, services, receivers, providers ->
                     val components = activities + services + receivers + providers
                     componentRepository.saveComponents(components)

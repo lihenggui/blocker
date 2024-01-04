@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,14 @@
 package com.merxury.blocker.core.data.respository.fake
 
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class FakeComponentDetailRepository @Inject constructor(
-    private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
-) : IComponentDetailRepository {
+class FakeComponentDetailRepository @Inject constructor() : IComponentDetailRepository {
     override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flowOf(false)
-    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
-        userGeneratedDataSource.getByComponentName(name)
+    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
     override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 

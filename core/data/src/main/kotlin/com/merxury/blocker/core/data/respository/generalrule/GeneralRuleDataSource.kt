@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.merxury.blocker.core.data.respository.generalrule
 import com.merxury.blocker.core.model.data.GeneralRule
 import kotlinx.coroutines.flow.Flow
 
-interface GeneralRuleDataSource {
+internal interface GeneralRuleDataSource {
 
     fun getGeneralRules(): Flow<List<GeneralRule>>
 }

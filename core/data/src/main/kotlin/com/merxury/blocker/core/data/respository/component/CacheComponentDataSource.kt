@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class CacheComponentDataSource @Inject constructor(
+internal class CacheComponentDataSource @Inject constructor(
     private val componentDao: AppComponentDao,
 ) : ComponentDataSource {
     override fun getComponent(packageName: String, componentName: String): Flow<ComponentInfo?> {

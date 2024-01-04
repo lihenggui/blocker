@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,10 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class RootAppController @Inject constructor(
+@Singleton
+internal class RootAppController @Inject constructor(
     @ApplicationContext private val context: Context,
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

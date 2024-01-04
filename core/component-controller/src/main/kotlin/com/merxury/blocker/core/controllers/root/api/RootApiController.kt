@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 @Singleton
-class RootApiController @Inject constructor(
+internal class RootApiController @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

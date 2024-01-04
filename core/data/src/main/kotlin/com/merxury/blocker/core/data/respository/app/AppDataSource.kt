@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.merxury.blocker.core.data.respository.app
 import com.merxury.blocker.core.model.data.InstalledApp
 import kotlinx.coroutines.flow.Flow
 
-interface AppDataSource {
+internal interface AppDataSource {
     fun getApplicationList(): Flow<List<InstalledApp>>
 
     fun getApplication(packageName: String): Flow<InstalledApp?>

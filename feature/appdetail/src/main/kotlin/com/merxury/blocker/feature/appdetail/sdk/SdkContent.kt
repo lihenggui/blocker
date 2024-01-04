@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,13 @@ fun SdkContent(
     modifier: Modifier = Modifier,
     data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
     navigateToRuleDetail: (String) -> Unit = {},
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (data) {
         is Result.Success -> {
@@ -52,7 +59,6 @@ fun SdkContent(
                 NoComponentScreen()
                 return
             }
-            // Transfer Map<GeneralRule, SnapshotStateList<ComponentItem>> to SnapshotStateList<MatchedItem>
             val matchedList: MutableList<MatchedItem> = mutableListOf()
             sdks.forEach { (rule, components) ->
                 val matchedItem = MatchedItem(
@@ -68,8 +74,15 @@ fun SdkContent(
             CollapsibleList(
                 modifier = modifier.testTag("app:sdkList"),
                 list = matchedList.toMutableStateList(),
-                navigateDetail = navigateToRuleDetail,
+                navigateToDetail = navigateToRuleDetail,
                 navigationMenuItemDesc = uiR.string.core_ui_open_rule_detail,
+                onStopServiceClick = onStopServiceClick,
+                onLaunchActivityClick = onLaunchActivityClick,
+                onCopyNameClick = onCopyNameClick,
+                onCopyFullNameClick = onCopyFullNameClick,
+                onBlockAllInItemClick = onBlockAllInItemClick,
+                onEnableAllInItemClick = onEnableAllInItemClick,
+                onSwitch = onSwitch,
             )
         }
 

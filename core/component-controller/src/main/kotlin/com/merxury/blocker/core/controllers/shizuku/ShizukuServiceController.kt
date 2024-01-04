@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Blocker
+ * Copyright 2024 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ private const val MAX_SERVICE_COUNT = 10000
 private const val SHELL_PACKAGE_NAME = "com.android.shell"
 
 @Singleton
-class ShizukuServiceController @Inject constructor(
+internal class ShizukuServiceController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IServiceController {
 
