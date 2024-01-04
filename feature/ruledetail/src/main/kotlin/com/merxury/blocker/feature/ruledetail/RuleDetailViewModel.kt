@@ -151,6 +151,7 @@ class RuleDetailViewModel @Inject constructor(
     fun controlAllComponentsInPage(enable: Boolean, action: (Int, Int) -> Unit) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
+            analyticsHelper.logControlAllInPageClicked(newState = enable)
             // Make sure that the user is in the correct state
             val ruleUiList = _ruleInfoUiState.value
             if (ruleUiList !is RuleInfoUiState.Success) {
@@ -164,8 +165,7 @@ class RuleDetailViewModel @Inject constructor(
             }
             val list = matchedAppState.list
                 .flatMap { it.componentList }
-            controlAllComponents(list, enable, action)
-            analyticsHelper.logControlAllInPageClicked(newState = enable)
+            controlAllComponentsInternal(list, enable, action)
         }
     }
 
@@ -177,13 +177,28 @@ class RuleDetailViewModel @Inject constructor(
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
             analyticsHelper.logControlAllComponentsClicked(newState = enable)
-            var current = 0
-            val listSize = list.size
-            list.toMutableList().forEach {
-                action(++current, listSize)
-                controlComponentInternal(it.packageName, it.name, enable)
-            }
+            controlAllComponentsInternal(list, enable, action)
         }
+    }
+
+    private suspend fun controlAllComponentsInternal(
+        list: List<ComponentInfo>,
+        enable: Boolean,
+        action: suspend (Int, Int) -> Unit,
+    ) {
+        var successCount = 0
+        componentRepository.batchControlComponent(
+            components = list,
+            newState = enable,
+        )
+            .catch { exception ->
+                _errorState.emit(exception.toErrorMessage())
+            }
+            .collect { component ->
+                changeComponentUiStatus(component.packageName, component.name, enable)
+                successCount++
+                action(successCount, list.size)
+            }
     }
 
     private suspend fun loadMatchedApps(keywords: List<String>) {
