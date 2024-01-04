@@ -540,23 +540,8 @@ class AppDetailViewModel @Inject constructor(
                     ?.flatten()
                     ?: listOf()
                 else -> return@launch
-            }.map {
-                it
             }
-            var successCount = 0
-            componentRepository.batchControlComponent(
-                components = list,
-                newState = enable,
-            )
-                .catch { exception ->
-                    _errorState.emit(exception.toErrorMessage())
-                }
-                .collect { component ->
-                    val type = findComponentType(component.name)
-                    changeComponentUiStatus(component.name, type, enable)
-                    successCount++
-                    block(successCount, list.size)
-                }
+            controlAllComponentsInternal(list, enable, block)
             analyticsHelper.logBatchOperationPerformed(enable)
         }
     }
@@ -564,18 +549,34 @@ class AppDetailViewModel @Inject constructor(
     fun controlAllComponents(
         list: List<ComponentInfo>,
         enable: Boolean,
-        action: (Int, Int) -> Unit,
+        action: suspend (Int, Int) -> Unit,
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            controlAllComponentsInternal(list, enable, action)
             analyticsHelper.logControlAllComponentsInSdkClicked(enable)
-            var current = 0
-            val listSize = list.size
-            list.toMutableList().forEach {
-                action(++current, listSize)
-                controlComponentInternal(it.packageName, it.name, enable)
-            }
         }
+    }
+
+    private suspend fun controlAllComponentsInternal(
+        list: List<ComponentInfo>,
+        enable: Boolean,
+        action: suspend (Int, Int) -> Unit,
+    ) {
+        var successCount = 0
+        componentRepository.batchControlComponent(
+            components = list,
+            newState = enable,
+        )
+            .catch { exception ->
+                _errorState.emit(exception.toErrorMessage())
+            }
+            .collect { component ->
+                val type = findComponentType(component.name)
+                changeComponentUiStatus(component.name, type, enable)
+                successCount++
+                action(successCount, list.size)
+            }
     }
 
     fun dismissAlert() = viewModelScope.launch {
