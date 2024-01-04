@@ -648,20 +648,13 @@ class AppDetailViewModel @Inject constructor(
     fun controlAllSelectedComponents(enable: Boolean) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            componentRepository.batchControlComponent(
-                components = _appBarUiState.value.selectedComponentList,
-                newState = enable,
-            )
-                .catch { exception ->
-                    _errorState.emit(exception.toErrorMessage())
-                }
-                .collect { component ->
-                    val type = findComponentType(component.name)
-                    changeComponentUiStatus(component.name, type, enable)
-                }
-            withContext(mainDispatcher) {
-                _appBarUiState.update {
-                    it.copy(selectedComponentList = listOf())
+            controlAllComponentsInternal(
+                list = _appBarUiState.value.selectedComponentList,
+                enable = enable,
+            ) { successCount, totalCount ->
+                if (successCount == totalCount) {
+                    Timber.i("All components are switch to $enable, updating ui")
+                    switchSelectedMode(false)
                 }
             }
         }
