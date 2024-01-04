@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
@@ -42,14 +42,14 @@ import com.merxury.blocker.core.ui.R as uiR
 @Composable
 fun SdkContent(
     modifier: Modifier = Modifier,
-    data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    data: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
     navigateToRuleDetail: (String) -> Unit = {},
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (data) {
@@ -97,10 +97,10 @@ fun SdkContent(
 fun SdkContentPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentItem>,
+    ) components: List<ComponentInfo>,
 ) {
     val rule = RuleListPreviewParameterProvider().values.first()[0]
-    val data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Success(
+    val data: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Success(
         data = mapOf(
             rule to components.toMutableStateList(),
         ),

@@ -94,7 +94,6 @@ import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.result.Result
@@ -424,8 +423,8 @@ fun AppDetailScreen(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    blockAllInItem: (List<ComponentItem>) -> Unit = {},
-    enableAllInItem: (List<ComponentItem>) -> Unit = {},
+    blockAllInItem: (List<ComponentInfo>) -> Unit = {},
+    enableAllInItem: (List<ComponentInfo>) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -522,13 +521,13 @@ fun AppDetailContent(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    blockAllInItem: (List<ComponentItem>) -> Unit = {},
-    enableAllInItem: (List<ComponentItem>) -> Unit = {},
+    blockAllInItem: (List<ComponentInfo>) -> Unit = {},
+    enableAllInItem: (List<ComponentInfo>) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
     isLibCheckerInstalled: Boolean = false,
-    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -790,12 +789,12 @@ fun AppDetailTabContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     isLibCheckerInstalled: Boolean = false,
-    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -1027,7 +1026,7 @@ fun AppDetailScreenSelectedModePreview(
                     isSearchMode = true,
                     isSelectedMode = true,
                     selectedComponentList = listOf(
-                        activityComponents[0].toComponentInfo(),
+                        activityComponents[0],
                     ),
                 ),
                 tabState = tabState[1],
