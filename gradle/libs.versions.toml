@@ -2,8 +2,8 @@
 accompanist = "0.32.0"
 androidDesugarJdkLibs = "2.0.4"
 # AGP and tools should be updated together
-androidGradlePlugin = "8.2.0"
-androidTools = "31.2.0"
+androidGradlePlugin = "8.2.1"
+androidTools = "31.2.1"
 androidxActivity = "1.8.2"
 androidxAppCompat = "1.6.1"
 androidxBrowser = "1.7.0"
