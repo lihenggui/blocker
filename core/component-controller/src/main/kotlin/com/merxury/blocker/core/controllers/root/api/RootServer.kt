@@ -31,7 +31,7 @@ import android.os.Build
 import android.os.IBinder
 import com.merxury.blocker.core.controller.root.service.IRootService
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.utils.ContextUtils.userId
+import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.topjohnwu.superuser.ipc.RootService
 import timber.log.Timber
 

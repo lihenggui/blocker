@@ -24,7 +24,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.utils.ContextUtils.userId
+import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper

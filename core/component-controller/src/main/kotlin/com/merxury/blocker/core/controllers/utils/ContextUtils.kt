@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.utils
+package com.merxury.blocker.core.controllers.utils
 
 import android.annotation.SuppressLint
 import android.content.Context
