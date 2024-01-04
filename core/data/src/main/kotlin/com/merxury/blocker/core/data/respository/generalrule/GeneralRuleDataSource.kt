@@ -19,7 +19,7 @@ package com.merxury.blocker.core.data.respository.generalrule
 import com.merxury.blocker.core.model.data.GeneralRule
 import kotlinx.coroutines.flow.Flow
 
-interface GeneralRuleDataSource {
+internal interface GeneralRuleDataSource {
 
     fun getGeneralRules(): Flow<List<GeneralRule>>
 }

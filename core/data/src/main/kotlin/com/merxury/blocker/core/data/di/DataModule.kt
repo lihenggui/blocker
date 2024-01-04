@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.data.di
 
+import com.merxury.blocker.core.data.appstate.AppStateCache
+import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -86,4 +88,9 @@ abstract class DataModule {
     internal abstract fun bindPermissionMonitor(
         permissionMonitor: AppPermissionMonitor,
     ): PermissionMonitor
+
+    @Binds
+    internal abstract fun bindAppStateCache(
+        appStateCache: AppStateCache,
+    ): IAppStateCache
 }

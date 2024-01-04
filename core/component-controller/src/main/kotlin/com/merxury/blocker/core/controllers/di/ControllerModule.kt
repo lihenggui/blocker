@@ -30,7 +30,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface ControllerModule {
+internal interface ControllerModule {
     @Binds
     @RootCommandControl
     fun bindsRootController(rootController: RootController): IController

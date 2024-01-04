@@ -19,7 +19,7 @@ package com.merxury.blocker.core.data.respository.componentdetail.datasource
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
 
-interface ComponentDetailDataSource {
+internal interface ComponentDetailDataSource {
 
     fun getByPackageName(packageName: String): Flow<List<ComponentDetail>>
 

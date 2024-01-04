@@ -19,7 +19,7 @@ package com.merxury.blocker.core.data.respository.app
 import com.merxury.blocker.core.model.data.InstalledApp
 import kotlinx.coroutines.flow.Flow
 
-interface AppDataSource {
+internal interface AppDataSource {
     fun getApplicationList(): Flow<List<InstalledApp>>
 
     fun getApplication(packageName: String): Flow<InstalledApp?>

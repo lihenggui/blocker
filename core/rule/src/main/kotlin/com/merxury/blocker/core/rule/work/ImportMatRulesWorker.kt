@@ -24,9 +24,10 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.command.RootController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.IfwControl
+import com.merxury.blocker.core.controllers.di.RootApiControl
+import com.merxury.blocker.core.controllers.di.ShizukuControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
@@ -50,9 +51,9 @@ import java.io.IOException
 class ImportMatRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val ifwController: IfwController,
-    private val rootController: RootController,
-    private val shizukuController: ShizukuController,
+    @IfwControl private val ifwController: IController,
+    @RootApiControl private val rootController: IController,
+    @ShizukuControl private val shizukuController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 

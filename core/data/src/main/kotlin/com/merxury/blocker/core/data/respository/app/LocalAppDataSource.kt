@@ -36,7 +36,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LocalAppDataSource @Inject constructor(
+internal class LocalAppDataSource @Inject constructor(
     @AppPackageName private val appPackageName: String,
     private val pm: PackageManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

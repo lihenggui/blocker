@@ -27,7 +27,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class IfwController @Inject constructor(
+internal class IfwController @Inject constructor(
     private val intentFirewall: IIntentFirewall,
 ) : IController {
 

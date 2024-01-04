@@ -30,8 +30,10 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class RootAppController @Inject constructor(
+@Singleton
+internal class RootAppController @Inject constructor(
     @ApplicationContext private val context: Context,
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

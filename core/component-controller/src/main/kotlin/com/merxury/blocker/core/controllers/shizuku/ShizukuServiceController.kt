@@ -36,7 +36,7 @@ private const val MAX_SERVICE_COUNT = 10000
 private const val SHELL_PACKAGE_NAME = "com.android.shell"
 
 @Singleton
-class ShizukuServiceController @Inject constructor(
+internal class ShizukuServiceController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IServiceController {
 

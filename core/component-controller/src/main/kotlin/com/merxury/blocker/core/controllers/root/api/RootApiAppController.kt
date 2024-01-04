@@ -39,7 +39,7 @@ import javax.inject.Singleton
 import kotlin.coroutines.suspendCoroutine
 
 @Singleton
-class RootApiAppController @Inject constructor(
+internal class RootApiAppController @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

@@ -20,7 +20,7 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.flow.Flow
 
-interface ComponentDataSource {
+internal interface ComponentDataSource {
 
     fun getComponent(
         packageName: String,
