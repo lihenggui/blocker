@@ -38,7 +38,6 @@ import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
-import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
@@ -181,17 +180,13 @@ class SearchViewModel @Inject constructor(
                                     packageInfo = pm.getPackageInfoCompat(packageName, 0),
                                 ),
                                 activity = componentList
-                                    .filter { it.type == ACTIVITY }
-                                    .map { it.toComponentItem() },
+                                    .filter { it.type == ACTIVITY },
                                 service = componentList
-                                    .filter { it.type == SERVICE }
-                                    .map { it.toComponentItem() },
+                                    .filter { it.type == SERVICE },
                                 receiver = componentList
-                                    .filter { it.type == RECEIVER }
-                                    .map { it.toComponentItem() },
+                                    .filter { it.type == RECEIVER },
                                 provider = componentList
-                                    .filter { it.type == PROVIDER }
-                                    .map { it.toComponentItem() },
+                                    .filter { it.type == PROVIDER },
                             )
                         }
                         .filterNotNull()
@@ -331,10 +326,10 @@ class SearchViewModel @Inject constructor(
         val list = mutableListOf<ComponentInfo>()
         if (_searchUiState.value.selectedAppList.isNotEmpty()) {
             _searchUiState.value.selectedAppList.forEach { filteredComponent ->
-                list.addAll(filteredComponent.activity.map { it.toComponentInfo() })
-                list.addAll(filteredComponent.service.map { it.toComponentInfo() })
-                list.addAll(filteredComponent.receiver.map { it.toComponentInfo() })
-                list.addAll(filteredComponent.provider.map { it.toComponentInfo() })
+                list.addAll(filteredComponent.activity)
+                list.addAll(filteredComponent.service)
+                list.addAll(filteredComponent.receiver)
+                list.addAll(filteredComponent.provider)
             }
         }
         _searchUiState.update {

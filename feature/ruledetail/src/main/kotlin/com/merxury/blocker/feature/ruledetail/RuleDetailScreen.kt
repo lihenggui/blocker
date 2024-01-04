@@ -75,7 +75,7 @@ import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.TabState
@@ -187,7 +187,7 @@ private fun handleBlockAllInPageClick(
 
 private fun handleEnableAllInItemClick(
     viewModel: RuleDetailViewModel,
-    it: List<ComponentItem>,
+    it: List<ComponentInfo>,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     context: Context,
@@ -200,7 +200,7 @@ private fun handleEnableAllInItemClick(
 private fun handleBlockAllInItemClick(
     context: Context,
     viewModel: RuleDetailViewModel,
-    it: List<ComponentItem>,
+    it: List<ComponentInfo>,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 ) {
@@ -277,8 +277,8 @@ fun RuleDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -333,8 +333,8 @@ fun RuleDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -492,8 +492,8 @@ fun RuleDetailTabContent(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }

@@ -52,7 +52,7 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggab
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.component.ComponentListItem
 import com.merxury.blocker.core.ui.rule.MatchedHeaderData
@@ -69,8 +69,8 @@ fun CollapsibleList(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
     navigateToDetail: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val listState = rememberLazyListState()
@@ -174,7 +174,7 @@ fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): 
 @Composable
 @Preview
 fun RuleMatchedAppListPreview() {
-    val componentInfo = ComponentItem(
+    val componentInfo = ComponentInfo(
         name = ".ui.component.ComponentListActivity",
         simpleName = "ComponentListItem",
         packageName = "com.merxury.blocker.test1",
