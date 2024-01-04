@@ -55,7 +55,6 @@ retrofitKotlinxSerializationJson = "1.0.0"
 robolectric = "4.11.1"
 roborazzi = "1.7.0"
 room = "2.6.1"
-secrets = "2.0.1"
 shizuku = "13.1.5"
 xmlutil = "0.86.3"
 turbine = "1.0.0"
@@ -187,7 +186,6 @@ kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref =
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 room = { id = "androidx.room", version.ref = "room" }
-secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
 
 # Plugins defined by this project
 blocker-android-application = { id = "blocker.android.application", version = "unspecified" }
