@@ -16,13 +16,7 @@
 
 package com.merxury.blocker.core.controllers.shizuku
 
-interface IShizukuInitializer {
-
-    suspend fun registerShizuku(): RegisterShizukuResult
-
-    fun unregisterShizuku()
-
-    fun hasPermission(): Boolean
-
-    fun getUid(): Int
-}
+data class RegisterShizukuResult(
+    val success: Boolean,
+    val uid: Int
+)

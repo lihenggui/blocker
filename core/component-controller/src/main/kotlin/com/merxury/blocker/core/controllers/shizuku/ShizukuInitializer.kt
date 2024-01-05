@@ -24,6 +24,8 @@ import rikka.sui.Sui
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 private const val REQUEST_CODE_PERMISSION = 101
 
@@ -53,11 +55,11 @@ internal class ShizukuInitializer @Inject constructor(
             }
         }
 
-    override fun registerShizuku(action: (Boolean, Int) -> Unit) {
+    override suspend fun registerShizuku(): RegisterShizukuResult = suspendCoroutine { cont ->
         binderReceivedListener = Shizuku.OnBinderReceivedListener {
             Timber.d("Shizuku binder received")
             if (hasPermission()) {
-                action(true, Shizuku.getUid())
+                cont.resume(RegisterShizukuResult(true, Shizuku.getUid()))
             } else {
                 checkAndAskForPermission()
             }
@@ -66,20 +68,17 @@ internal class ShizukuInitializer @Inject constructor(
             Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
                 if (requestCode == REQUEST_CODE_PERMISSION) {
                     if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                        action(true, Shizuku.getUid())
+                        cont.resume(RegisterShizukuResult(true, Shizuku.getUid()))
                     } else {
                         Timber.e("Shizuku permission denied")
-                        action(false, -1)
+                        cont.resume(RegisterShizukuResult(false, -1))
                     }
                 }
             }
-        registerShizuku()
-    }
-
-    override fun registerShizuku() {
         Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
         Shizuku.addBinderDeadListener(binderDeadListener)
         Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
+        Timber.d("Register Shizuku finished")
     }
 
     override fun unregisterShizuku() {

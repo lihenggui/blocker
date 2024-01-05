@@ -72,16 +72,12 @@ class AppPermissionMonitor @Inject constructor(
                 return
             }
             if (!shizukuInitializer.hasPermission()) {
-                suspendCoroutine { cont ->
-                    shizukuInitializer.registerShizuku { granted, uid ->
-                        Timber.d("Shizuku permission granted: $granted, uid: $uid")
-                        if (granted) {
-                            updatePermissionStatusFromUid(uid)
-                        } else {
-                            controllerStatus[SHIZUKU] = NO_PERMISSION
-                        }
-                        cont.resume(Unit)
-                    }
+                val result = shizukuInitializer.registerShizuku()
+                Timber.i("Shizuku register result: $result")
+                if (!result.success) {
+                    updatePermissionStatusFromUid(result.uid)
+                } else {
+                    controllerStatus[SHIZUKU] = NO_PERMISSION
                 }
             } else {
                 val uid = shizukuInitializer.getUid()
