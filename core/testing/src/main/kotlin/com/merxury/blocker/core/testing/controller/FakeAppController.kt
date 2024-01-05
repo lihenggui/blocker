@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.fake
+package com.merxury.blocker.core.testing.controller
 
 import com.merxury.blocker.core.controllers.IAppController
 
