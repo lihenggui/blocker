@@ -18,5 +18,5 @@ package com.merxury.blocker.core.controllers.shizuku
 
 data class RegisterShizukuResult(
     val success: Boolean,
-    val uid: Int
+    val uid: Int,
 )

@@ -26,9 +26,9 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

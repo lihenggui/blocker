@@ -21,7 +21,7 @@ import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.exception.RootUnavailableException
 
-class FakeController(private val rootGranted: Boolean = false): IController {
+class FakeController(private val rootGranted: Boolean = false) : IController {
     override suspend fun switchComponent(
         packageName: String,
         componentName: String,

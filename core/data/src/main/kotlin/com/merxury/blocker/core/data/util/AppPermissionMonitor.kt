@@ -37,8 +37,6 @@ import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private const val SHELL_UID = 2000
 private const val ROOT_UID = 0
