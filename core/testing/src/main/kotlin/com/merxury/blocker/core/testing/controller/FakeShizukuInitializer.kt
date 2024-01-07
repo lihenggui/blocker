@@ -17,15 +17,12 @@
 package com.merxury.blocker.core.testing.controller
 
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
+import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
 
 class FakeShizukuInitializer : IShizukuInitializer {
 
-    override fun registerShizuku(action: (Boolean, Int) -> Unit) {
-        // Do nothing
-    }
-
-    override fun registerShizuku() {
-        // Do nothing
+    override suspend fun registerShizuku(): RegisterShizukuResult {
+        return RegisterShizukuResult(true, 0)
     }
 
     override fun unregisterShizuku() {

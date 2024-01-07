@@ -23,14 +23,14 @@ import kotlinx.serialization.encodeToString
 import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.Test
 
-class IntentFirewallUnitTest {
+class TestXmlSerializer {
 
     private val xml = XML {
         indentString = "   "
     }
 
     @Test
-    fun verifyXmlDeserializer() {
+    fun givenXmlFileContent_whenXmlDeserialized_thenDeserializedContentMatchesExpectedRules() {
         val fileContent = """
             <rules>
                <activity block="true" log="false">
@@ -76,7 +76,7 @@ class IntentFirewallUnitTest {
     }
 
     @Test
-    fun verifyXmlSerializer() {
+    fun givenRuleObject_whenSerializedToXml_thenXmlContentMatchesExpectedStructure() {
         val targetRule = Rules(
             activity = Activity(
                 componentFilter = mutableSetOf(

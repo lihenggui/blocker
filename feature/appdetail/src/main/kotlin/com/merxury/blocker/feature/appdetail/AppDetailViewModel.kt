@@ -491,7 +491,11 @@ class AppDetailViewModel @Inject constructor(
             emptyList()
         }
 
-        else -> listOf(SEARCH, MORE)
+        else -> if (hasCustomizedRule()) {
+            listOf(SEARCH, MORE, SHARE_RULE)
+        } else {
+            listOf(SEARCH, MORE)
+        }
     }
 
     private suspend fun hasCustomizedRule(): Boolean {
