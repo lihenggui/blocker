@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="core_rule_backing_up_apps_please_wait">Sauvegarde des règles de l\'application, veuillez patienter…</string>
+    <string name="core_rule_update_rules_notification">Notification des règles de mise à jour</string>
+    <string name="core_rule_import_ifw_please_wait">Importation des règles IFW, veuillez patienter…</string>
+    <string name="core_rule_backing_up_ifw_please_wait">Sauvegarde des règles IFW, veuillez patienter…</string>
+    <string name="core_rule_processing_progress_indicator">Indicateur de progression du traitement</string>
+    <string name="core_rule_reset_ifw_please_wait">Réinitialisation d\'IFW, veuillez patienter…</string>
+</resources>
