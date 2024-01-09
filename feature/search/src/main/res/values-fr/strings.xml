@@ -6,4 +6,14 @@
         <item quantity="many">%1$d Activités</item>
         <item quantity="other">%1$d Activités</item>
     </plurals>
+    <plurals name="feature_search_content_provider_count">
+        <item quantity="one">%1$d Fournisseur de contenu</item>
+        <item quantity="many">%1$d Fournisseurs de contenu</item>
+        <item quantity="other">%1$d Fournisseurs de contenu</item>
+    </plurals>
+    <plurals name="feature_search_receiver_count">
+        <item quantity="one">%1$d Récepteur</item>
+        <item quantity="many">%1$d Récepteurs</item>
+        <item quantity="other">%1$d Récepteurs</item>
+    </plurals>
 </resources>
