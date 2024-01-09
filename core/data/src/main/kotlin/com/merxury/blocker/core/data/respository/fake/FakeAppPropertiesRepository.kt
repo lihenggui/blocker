@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.testing.repository.fake
+package com.merxury.blocker.core.data.respository.fake
 
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
@@ -22,7 +22,7 @@ import com.merxury.blocker.core.model.preference.AppPropertiesData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-internal class FakeAppPropertiesRepository @Inject constructor(
+class FakeAppPropertiesRepository @Inject constructor(
     private val appPropertiesDataSource: BlockerAppPropertiesDataStore,
 ) : AppPropertiesRepository {
     override val appProperties: Flow<AppPropertiesData>
