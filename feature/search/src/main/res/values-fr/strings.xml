@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_search_searching">Rechercher</string>
+    <plurals name="feature_search_activity_count">
+        <item quantity="one">%1$d Activité</item>
+        <item quantity="many">%1$d Activités</item>
+        <item quantity="other">%1$d Activités</item>
+    </plurals>
+</resources>
