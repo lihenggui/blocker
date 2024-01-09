@@ -18,18 +18,6 @@ package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.di.DataModule
-import com.merxury.blocker.core.data.respository.app.AppRepository
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
-import com.merxury.blocker.core.data.respository.fake.FakeAppPropertiesRepository
-import com.merxury.blocker.core.data.respository.fake.FakeAppRepository
-import com.merxury.blocker.core.data.respository.fake.FakeComponentDetailRepository
-import com.merxury.blocker.core.data.respository.fake.FakeComponentRepository
-import com.merxury.blocker.core.data.respository.fake.FakeGeneralRuleRepository
-import com.merxury.blocker.core.data.respository.fake.FakeUserDataRepository
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import dagger.Binds
@@ -44,31 +32,6 @@ import dagger.hilt.testing.TestInstallIn
 )
 internal interface TestDataModule {
     @Binds
-    fun bindUserDataRepository(
-        userDataRepository: FakeUserDataRepository,
-    ): UserDataRepository
-
-    @Binds
-    fun bindAppPropertiesRepository(
-        appPropertiesRepository: FakeAppPropertiesRepository,
-    ): AppPropertiesRepository
-
-    @Binds
-    fun bindsTestGeneralRuleRepository(
-        testGeneralRuleRepository: FakeGeneralRuleRepository,
-    ): GeneralRuleRepository
-
-    @Binds
-    fun bindsComponentDetailRepository(
-        componentDetailRepository: FakeComponentDetailRepository,
-    ): IComponentDetailRepository
-
-    @Binds
-    fun bindsComponentRepository(
-        componentRepository: FakeComponentRepository,
-    ): ComponentRepository
-
-    @Binds
     fun bindsNetworkMonitor(
         networkMonitor: AlwaysOnlineNetworkMonitor,
     ): NetworkMonitor
@@ -77,11 +40,6 @@ internal interface TestDataModule {
     fun bindsPermissionMonitor(
         permissionMonitor: AlwaysGrantedPermissionMonitor,
     ): PermissionMonitor
-
-    @Binds
-    fun bindsAppRepository(
-        appRepository: FakeAppRepository,
-    ): AppRepository
 
     @Binds
     fun bindsAppStateCache(

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.fake
+package com.merxury.blocker.core.testing.repository.fake
 
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.model.data.InstalledApp
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class FakeAppRepository @Inject constructor() : AppRepository {
+internal class FakeAppRepository @Inject constructor() : AppRepository {
     override fun getApplicationList(): Flow<List<InstalledApp>> = flowOf(emptyList())
 
     override fun updateApplication(packageName: String): Flow<Result<Unit>> =

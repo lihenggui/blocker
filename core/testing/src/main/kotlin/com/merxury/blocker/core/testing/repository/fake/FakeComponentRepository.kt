@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.fake
+package com.merxury.blocker.core.testing.repository.fake
 
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.model.ComponentType
@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class FakeComponentRepository @Inject constructor() : ComponentRepository {
+internal class FakeComponentRepository @Inject constructor() : ComponentRepository {
     override fun getComponent(name: String): Flow<ComponentInfo?> = flowOf()
 
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =

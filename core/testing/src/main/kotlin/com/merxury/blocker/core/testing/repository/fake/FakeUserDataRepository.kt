@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.fake
+package com.merxury.blocker.core.testing.repository.fake
 
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
@@ -29,7 +29,7 @@ import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class FakeUserDataRepository @Inject constructor(
+internal class FakeUserDataRepository @Inject constructor(
     private val blockerPreferenceDataSource: BlockerPreferencesDataSource,
 ) : UserDataRepository {
     override val userData: Flow<UserPreferenceData> =

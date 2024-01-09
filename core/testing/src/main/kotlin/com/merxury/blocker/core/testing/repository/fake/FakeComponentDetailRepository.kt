@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.fake
+package com.merxury.blocker.core.testing.repository.fake
 
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class FakeComponentDetailRepository @Inject constructor() : IComponentDetailRepository {
+internal class FakeComponentDetailRepository @Inject constructor() : IComponentDetailRepository {
     override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flowOf(false)
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
