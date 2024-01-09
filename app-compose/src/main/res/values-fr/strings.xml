@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="close">Fermer</string>
+    <string name="apps">Apps</string>
+    <string name="rules">Règles</string>
+    <string name="no_permission_hint">Impossible d\'obtenir l\'autorisation, l\'application peut ne pas fonctionner correctement.</string>
+    <string name="shell_permission_hint">Autorisation shell accordée. Les composants de contrôle peuvent ne pas fonctionner correctement.</string>
+    <string name="search">Recherche</string>
+</resources>
