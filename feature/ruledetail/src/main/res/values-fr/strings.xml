@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_ruledetail_contributors">Contributeurs</string>
+    <string name="feature_ruledetail_block_all_of_this_page">Bloquer toute cette page</string>
+    <string name="feature_ruledetail_yes">Oui</string>
+    <string name="feature_ruledetail_safe_to_block">Blocage sûr</string>
+    <string name="feature_ruledetail_unknown">Inconnu</string>
+    <string name="feature_ruledetail_no">Non</string>
+    <string name="feature_ruledetail_side_effect">Effet secondaire</string>
+    <string name="feature_ruledetail_no_description">Pas de description</string>
+    <string name="feature_ruledetail_enable_all_of_this_page">Activer toute cette page</string>
+</resources>
