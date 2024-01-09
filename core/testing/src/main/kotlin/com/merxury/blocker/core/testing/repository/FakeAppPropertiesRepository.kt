@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.testing.repository.fake
+package com.merxury.blocker.core.testing.repository
 
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
