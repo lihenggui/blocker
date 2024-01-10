@@ -125,13 +125,6 @@ jobs:
           -x collectMarketNonMinifiedReleaseBaselineProfile
           -x collectMarketNonMinifiedBenchmarkBaselineProfile
 
-      - name: Upload Foss apk
-        if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
-        uses: actions/upload-artifact@v4
-        with:
-          name: Foss-APK
-          path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/release
-
       - name: Upload Market apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
         uses: actions/upload-artifact@v4
