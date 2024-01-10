@@ -78,6 +78,7 @@ fun BlockerSettings(
                 Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_traditional_chinese,
                 Locale("ru").toLanguageTag() to string.feature_settings_russian,
                 Locale("es").toLanguageTag() to string.feature_settings_spanish,
+                Locale("fr").toLanguageTag() to string.feature_settings_french,
             ),
             onValueChange = onChangeAppDisplayLanguage,
         )

@@ -64,6 +64,7 @@
     <string name="feature_settings_traditional_chinese">Traditional Chinese</string>
     <string name="feature_settings_russian">Russian</string>
     <string name="feature_settings_spanish">Spanish</string>
+    <string name="feature_settings_french">French</string>
     <string name="feature_settings_failed_to_export_logs">Failed to export logs, please report an issue.</string>
     <string name="feature_settings_export_log_title">Blocker log sharing</string>
     <string name="feature_settings_provide_additional_details">Please provide additional details for the issue you encountered: \n</string>
