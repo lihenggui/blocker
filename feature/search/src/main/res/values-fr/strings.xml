@@ -16,4 +16,27 @@
         <item quantity="many">%1$d Récepteurs</item>
         <item quantity="other">%1$d Récepteurs</item>
     </plurals>
+    <plurals name="feature_search_service_count">
+        <item quantity="one">%1$d Service</item>
+        <item quantity="many">%1$d Services</item>
+        <item quantity="other">%1$d Services</item>
+    </plurals>
+    <string name="feature_search_search_hint">Applications, composants et règles</string>
+    <plurals name="feature_search_selected_app_count">
+        <item quantity="one">%1$d app sélectionnée</item>
+        <item quantity="many">%1$d apps sélectionnées</item>
+        <item quantity="other">%1$d apps sélectionnées</item>
+    </plurals>
+    <plurals name="feature_search_enable_all">
+        <item quantity="one">Cette opération activera le composant %1$d, voulez-vous continuer ?</item>
+        <item quantity="many">Cette opération activera %1$d composants, voulez-vous continuer ?</item>
+        <item quantity="other">Cette opération activera %1$d composants, voulez-vous continuer ?</item>
+    </plurals>
+    <string name="feature_search_no_search_result">Aucun résultat de recherche pour l\'instant</string>
+    <plurals name="feature_search_block_all">
+        <item quantity="one">Cette opération va désactiver le composant %1$d, voulez-vous continuer ?</item>
+        <item quantity="many">Cette opération va désactiver %1$d composants, voulez-vous continuer ?</item>
+        <item quantity="other">Cette opération va désactiver %1$d composants, voulez-vous continuer ?</item>
+    </plurals>
+    <string name="feature_search_check_icon">Vérifier</string>
 </resources>
