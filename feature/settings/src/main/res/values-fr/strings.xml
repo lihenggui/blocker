@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_settings_show_system_apps">Afficher les applications système</string>
+    <string name="feature_settings_export_ifw_rules">Exporter les règles IFW</string>
+    <string name="feature_settings_show_service_info">Afficher les informations sur le service</string>
+    <string name="feature_settings_backup">Sauvegarde</string>
+    <string name="feature_settings_reset_ifw">Réinitialiser IFW</string>
+    <string name="feature_settings_online_rule_source">Source de règles en ligne</string>
+    <string name="feature_settings_settings">Paramètres</string>
+    <string name="feature_settings_folder_to_save">Dossier à sauvegarder</string>
+    <string name="feature_settings_file_manager_required">Vous devez d\'abord installer un gestionnaire de fichiers depuis le magasin.</string>
+    <string name="feature_settings_directory_invalid_or_not_set">Le répertoire n\'est pas valide ou n\'est pas défini</string>
+    <string name="feature_settings_import_ifw_rules">Importer des règles IFW</string>
+    <string name="feature_settings_import_rules">Règles d\'importation</string>
+    <string name="feature_settings_controller_type">Type de contrôleur</string>
+    <string name="feature_settings_import_mat_rules">Importer les règles MyAndroidTools</string>
+    <string name="feature_settings_application_list">Liste d\'application</string>
+    <string name="feature_settings_export_rules">Règles d\'exportation</string>
+</resources>
