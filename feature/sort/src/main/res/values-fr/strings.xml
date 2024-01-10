@@ -1,2 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_sort_on">On</string>
+    <string name="feature_sort_show_running_apps_on_top">Afficher les applications en cours d\'exécution en haut</string>
+    <string name="feature_sort_last_updated">Dernière mise à jour</string>
+    <string name="feature_sort_ascending">Ascendant</string>
+    <string name="feature_sort_order">Ordre</string>
+    <string name="feature_sort_sort_options">Options de tri</string>
+    <string name="feature_sort_component_name">Nom du composant</string>
+    <string name="feature_sort_none">Aucun</string>
+    <string name="feature_sort_package_name">Nom du paquet</string>
+    <string name="feature_sort_disabled_first">Désactivé d\'abord</string>
+    <string name="feature_sort_off">Off</string>
+    <string name="feature_sort_sort_by">Trier par</string>
+    <string name="feature_sort_name">Nom</string>
+    <string name="feature_sort_priority">Priorité</string>
+    <string name="feature_sort_install_date">Date d\'installation</string>
+    <string name="feature_sort_descending">Descendant</string>
+    <string name="feature_sort_enabled_first">Activé en premier</string>
+</resources>
