@@ -45,18 +45,6 @@
         <item quantity="many">%1$d приложений выбрано</item>
         <item quantity="other">%1$d приложений выбрано</item>
     </plurals>
-    <plurals name="feature_search_block_all">
-        <item quantity="one">Эта операция отключит %1$d компонент. Продолжить\?</item>
-        <item quantity="few">Эта операция отключит %1$d компонента. Продолжить\?</item>
-        <item quantity="many">Эта операция отключит %1$d компонентов. Продолжить\?</item>
-        <item quantity="other">Эта операция отключит %1$d компонентов. Продолжить\?</item>
-    </plurals>
-    <plurals name="feature_search_enable_all">
-        <item quantity="one">Эта операция включит %1$d компонент. Продолжить\?</item>
-        <item quantity="few">Эта операция включит %1$d компонента. Продолжить\?</item>
-        <item quantity="many">Эта операция включит %1$d компонентов. Продолжить\?</item>
-        <item quantity="other">Эта операция включит %1$d компонентов. Продолжить\?</item>
-    </plurals>
     <string name="feature_search_search_hint">Приложения, компоненты и правила</string>
     <string name="feature_search_no_search_result">Ничего не найдено</string>
     <string name="feature_search_check_icon">Проверка</string>

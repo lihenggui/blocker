@@ -379,7 +379,7 @@ private fun shareFile(
     if (activityInfo == null) {
         scope.launch {
             snackbarHostState.showSnackbar(
-                message = context.getString(string.feature_appdetail_cannot_share_rule_report_issue),
+                message = context.getString(string.feature_appdetail_cannot_share_rule_no_apps_found),
             )
         }
         return
