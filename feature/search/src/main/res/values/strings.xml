@@ -35,14 +35,6 @@
         <item quantity="one">%1$d app selected</item>
         <item quantity="other">%1$d apps selected</item>
     </plurals>
-    <plurals name="feature_search_block_all">
-        <item quantity="one">This operation will disable %1$d component, do you want to continue?</item>
-        <item quantity="other">This operation will disable %1$d components, do you want to continue?</item>
-    </plurals>
-    <plurals name="feature_search_enable_all">
-        <item quantity="one">This operation will enable %1$d component, do you want to continue?</item>
-        <item quantity="other">This operation will enable %1$d components, do you want to continue?</item>
-    </plurals>
     <string name="feature_search_delimiter" translatable="false">&#160;/&#160;</string>
     <string name="feature_search_search_hint">Apps, components and rules</string>
     <string name="feature_search_no_search_result">No search result yet</string>

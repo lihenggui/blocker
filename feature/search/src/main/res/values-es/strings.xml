@@ -40,16 +40,6 @@
         <item quantity="many">%1$d apps seleccionadas</item>
         <item quantity="other">%1$d apps seleccionadas</item>
     </plurals>
-    <plurals name="feature_search_block_all">
-        <item quantity="one">Esta operación deshabilitará %1$d componente, ¿desea continuar?</item>
-        <item quantity="many">Esta operación deshabilitará %1$d componentes, ¿desea continuar?</item>
-        <item quantity="other">Esta operación deshabilitará %1$d componentes, ¿desea continuar?</item>
-    </plurals>
-    <plurals name="feature_search_enable_all">
-        <item quantity="one">Esta operación habilitará %1$d componente, ¿desea continuar?</item>
-        <item quantity="many">Esta operación habilitará %1$d componentes, ¿desea continuar?</item>
-        <item quantity="other">Esta operación habilitará %1$d componentes, ¿desea continuar?</item>
-    </plurals>
     <string name="feature_search_search_hint">Aplicaciones, características y reglas</string>
     <string name="feature_search_no_search_result">Todavía no hay resultados de búsqueda</string>
     <string name="feature_search_check_icon">Comprobar</string>
