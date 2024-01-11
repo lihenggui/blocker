@@ -37,7 +37,7 @@ enum class TopLevelDestination(
         selectedIcon = ImageVectorIcon(BlockerIcons.Apps),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Apps),
         iconTextId = R.string.apps,
-        titleTextId = R.string.feature_applist_app_name,
+        titleTextId = R.string.app_name,
     ),
     RULE(
         selectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
