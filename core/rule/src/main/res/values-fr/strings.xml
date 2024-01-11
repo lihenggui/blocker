@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_rule_backing_up_apps_please_wait">Sauvegarde des règles de l\'application, veuillez patienter…</string>
+    <string name="core_rule_update_rules_notification">Notification des règles de mise à jour</string>
+    <string name="core_rule_import_ifw_please_wait">Importation des règles IFW, veuillez patienter…</string>
+    <string name="core_rule_backing_up_ifw_please_wait">Sauvegarde des règles IFW, veuillez patienter…</string>
+    <string name="core_rule_processing_progress_indicator">Indicateur de progression du traitement</string>
+    <string name="core_rule_reset_ifw_please_wait">Réinitialisation d\'IFW, veuillez patienter…</string>
+    <string name="core_rule_error_msg_missing_root_permission">Autorisation root manquante, veuillez accorder l\'autorisation à Blocker.</string>
+    <string name="core_rule_done">Fait</string>
+    <string name="core_rule_processing_please_wait">Traitement en cours, veuillez patienter…</string>
+    <string name="core_rule_task_cancelled">Tâche annulée</string>
+    <string name="core_rule_import_app_rules_please_wait">Importation des règles de l\'application, veuillez patienter…</string>
+    <string name="core_rule_cancel">Annuler</string>
+    <string name="core_rule_copying_rules_to_internal_storage">Copie des règles vers le stockage interne…</string>
+    <string name="core_rule_error_msg_unexpected_exception">Exception inattendue, veuillez la signaler au développeur.</string>
+    <string name="core_rule_error_msg_folder_not_defined">Le dossier de sauvegarde n\'est pas défini, veuillez accéder aux paramètres pour en attribuer un.</string>
+    <string name="core_rule_import_mat_rule_please_wait">Importation des règles MAT, veuillez patienter…</string>
+</resources>
