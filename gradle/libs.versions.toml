@@ -30,6 +30,7 @@ androidxUiAutomator = "2.2.0"
 androidxWork = "2.9.0"
 appiconloader = "1.5.0"
 coil = "2.5.0"
+composeMarkdown = "0.4.0"
 dependencyGuard = "0.4.3"
 firebaseBom = "32.7.0"
 firebaseCrashlyticsPlugin = "2.9.9"
@@ -112,6 +113,7 @@ appiconloader-coil = { group = "me.zhanghai.android.appiconloader", name = "appi
 coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
+compose-markdown = { group = "com.github.jeziellago", name = "compose-markdown", version.ref = "composeMarkdown" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref="firebaseBom"}
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
