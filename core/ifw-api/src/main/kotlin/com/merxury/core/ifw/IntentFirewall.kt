@@ -44,7 +44,7 @@ import javax.inject.Inject
 
 private const val EXTENSION = ".xml"
 
-class IntentFirewall @Inject constructor(
+internal class IntentFirewall @Inject constructor(
     private val pm: PackageManager,
     private val xmlParser: XML,
     @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,

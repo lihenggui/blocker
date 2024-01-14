@@ -54,7 +54,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.feature.search.R
 import com.merxury.blocker.feature.search.R.string
@@ -219,7 +219,7 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppListItemPreview() {
-    val componentInfo = ComponentItem(
+    val componentInfo = ComponentInfo(
         name = "component",
         simpleName = "com",
         packageName = "blocker",
@@ -255,7 +255,7 @@ fun AppListItemPreview() {
 @Composable
 @Preview
 fun AppListItemWithoutServicePreview() {
-    val componentItem = ComponentItem(
+    val componentInfo = ComponentInfo(
         name = "component",
         simpleName = "com",
         packageName = "blocker",
@@ -268,10 +268,10 @@ fun AppListItemWithoutServicePreview() {
             label = "Blocker",
             isSystem = false,
         ),
-        activity = listOf(componentItem),
-        service = listOf(componentItem),
-        receiver = listOf(componentItem),
-        provider = listOf(componentItem),
+        activity = listOf(componentInfo),
+        service = listOf(componentInfo),
+        receiver = listOf(componentInfo),
+        provider = listOf(componentInfo),
     )
     BlockerTheme {
         FilteredComponentItem(

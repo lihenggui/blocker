@@ -18,11 +18,11 @@ package com.merxury.blocker.core.controllers.root.command
 
 import android.content.Context
 import com.merxury.blocker.core.controllers.IAppController
+import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
-import com.merxury.blocker.core.utils.ContextUtils.userId
 import com.merxury.blocker.core.utils.FileUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher

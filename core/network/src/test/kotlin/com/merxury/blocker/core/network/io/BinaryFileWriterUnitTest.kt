@@ -17,16 +17,28 @@
 package com.merxury.blocker.core.network.io
 
 import org.junit.Test
+import java.io.PipedInputStream
 import java.io.PipedOutputStream
 
 class BinaryFileWriterUnitTest {
-    private val outputStream = PipedOutputStream()
+    private val inputStream = PipedInputStream()
+    private val outputStream = PipedOutputStream(inputStream)
 
     @Test
     fun givenInputStream_whenWrite_thenExpectWritten() {
+        val content = "Hello"
+        BinaryFileWriter(outputStream).use {
+            it.write(content.byteInputStream(), content.length.toLong())
+        }
+        assert(inputStream.readBytes().contentEquals(content.toByteArray()))
     }
 
     @Test
     fun givenInputStreamEmpty_whenWrite_thenExpectNotWritten() {
+        val content = ""
+        BinaryFileWriter(outputStream).use {
+            it.write(content.byteInputStream(), content.length.toLong())
+        }
+        assert(inputStream.readBytes().contentEquals(content.toByteArray()))
     }
 }

@@ -81,7 +81,7 @@ class NavigationTest {
         ReadOnlyProperty<Any, String> { _, _ -> activity.getString(resId) }
 
     // The strings used for matching in these tests
-    private val appName by composeTestRule.stringResource(R.string.feature_applist_app_name)
+    private val appName by composeTestRule.stringResource(R.string.app_name)
     private val apps by composeTestRule.stringResource(R.string.apps)
     private val rules by composeTestRule.stringResource(R.string.rules)
     private val search by composeTestRule.stringResource(R.string.search)

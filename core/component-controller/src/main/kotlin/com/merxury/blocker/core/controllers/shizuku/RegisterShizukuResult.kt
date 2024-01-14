@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.utils
+package com.merxury.blocker.core.controllers.shizuku
 
-import android.annotation.SuppressLint
-import android.content.Context
-
-object ContextUtils {
-    /**
-     * If SDK >= 28, bypassing non-SDK interface restrictions by HiddenApiBypass
-     */
-    @SuppressLint("DiscouragedPrivateApi", "PrivateApi")
-    fun getUserIdHidden(context: Context): Int {
-        return Context::class.java
-            .getDeclaredMethod("getUserId")
-            .invoke(context) as Int
-    }
-
-    val Context.userId get() = getUserIdHidden(this)
-}
+data class RegisterShizukuResult(
+    val success: Boolean,
+    val uid: Int,
+)

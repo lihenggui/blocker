@@ -19,17 +19,17 @@ package com.merxury.blocker.core.ui.previewparameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterData.componentList
 
-class ComponentListPreviewParameterProvider : PreviewParameterProvider<List<ComponentItem>> {
-    override val values: Sequence<List<ComponentItem>> = sequenceOf(componentList)
+class ComponentListPreviewParameterProvider : PreviewParameterProvider<List<ComponentInfo>> {
+    override val values: Sequence<List<ComponentInfo>> = sequenceOf(componentList)
 }
 
 object ComponentListPreviewParameterData {
 
     val componentList = listOf(
-        ComponentItem(
+        ComponentInfo(
             simpleName = "ExampleActivity",
             name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
             packageName = "com.merxury.blocker",
@@ -39,7 +39,7 @@ object ComponentListPreviewParameterData {
             ifwBlocked = true,
             isRunning = true,
         ),
-        ComponentItem(
+        ComponentInfo(
             name = "ComponentActivity",
             simpleName = "ComponentActivity",
             packageName = "com.merxury.blocker",
@@ -48,7 +48,7 @@ object ComponentListPreviewParameterData {
             isRunning = false,
             type = ACTIVITY,
         ),
-        ComponentItem(
+        ComponentInfo(
             name = "AlarmManagerSchedulerBroadcast",
             simpleName = "AlarmManagerSchedulerBroadcast",
             packageName = "com.merxury.blocker",

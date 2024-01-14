@@ -18,9 +18,7 @@ package com.merxury.blocker.core.controllers.shizuku
 
 interface IShizukuInitializer {
 
-    fun registerShizuku(action: (Boolean, Int) -> Unit)
-
-    fun registerShizuku()
+    suspend fun registerShizuku(): RegisterShizukuResult
 
     fun unregisterShizuku()
 

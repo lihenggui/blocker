@@ -37,8 +37,6 @@ import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private const val SHELL_UID = 2000
 private const val ROOT_UID = 0
@@ -72,16 +70,12 @@ class AppPermissionMonitor @Inject constructor(
                 return
             }
             if (!shizukuInitializer.hasPermission()) {
-                suspendCoroutine { cont ->
-                    shizukuInitializer.registerShizuku { granted, uid ->
-                        Timber.d("Shizuku permission granted: $granted, uid: $uid")
-                        if (granted) {
-                            updatePermissionStatusFromUid(uid)
-                        } else {
-                            controllerStatus[SHIZUKU] = NO_PERMISSION
-                        }
-                        cont.resume(Unit)
-                    }
+                val result = shizukuInitializer.registerShizuku()
+                Timber.i("Shizuku register result: $result")
+                if (!result.success) {
+                    updatePermissionStatusFromUid(result.uid)
+                } else {
+                    controllerStatus[SHIZUKU] = NO_PERMISSION
                 }
             } else {
                 val uid = shizukuInitializer.getUid()

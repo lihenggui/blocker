@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.model
+package com.merxury.blocker.core.controllers.utils
 
-import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
-import com.merxury.blocker.core.network.model.NetworkGeneralRule
+import android.annotation.SuppressLint
+import android.content.Context
 
-fun NetworkGeneralRule.asEntity() = GeneralRuleEntity(
-    id = id,
-    name = name,
-    iconUrl = iconUrl,
-    company = company,
-    searchKeyword = searchKeyword,
-    useRegexSearch = useRegexSearch,
-    description = description,
-    safeToBlock = safeToBlock,
-    sideEffect = sideEffect,
-    contributors = contributors,
-)
+object ContextUtils {
+    /**
+     * If SDK >= 28, bypassing non-SDK interface restrictions by HiddenApiBypass
+     */
+    @SuppressLint("DiscouragedPrivateApi", "PrivateApi")
+    fun getUserIdHidden(context: Context): Int {
+        return Context::class.java
+            .getDeclaredMethod("getUserId")
+            .invoke(context) as Int
+    }
+
+    val Context.userId get() = getUserIdHidden(this)
+}
