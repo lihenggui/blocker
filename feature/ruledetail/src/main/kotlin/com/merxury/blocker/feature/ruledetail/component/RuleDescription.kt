@@ -58,6 +58,7 @@ fun RuleDescription(
                     rule.description.orEmpty()
                 },
                 style = MaterialTheme.typography.bodyLarge,
+                isTextSelectable = true,
             )
             InfoItemHeading(
                 heading = stringResource(id = string.feature_ruledetail_safe_to_block),
