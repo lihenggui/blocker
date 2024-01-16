@@ -18,7 +18,7 @@ package com.merxury.blocker.core.testing.controller
 
 import com.merxury.blocker.core.controllers.IAppController
 
-class FakeAppController(private val rootGranted: Boolean) : IAppController {
+class FakeAppController(private val rootGranted: Boolean = false) : IAppController {
     override suspend fun disable(packageName: String): Boolean {
         return rootGranted
     }
