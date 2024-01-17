@@ -57,7 +57,7 @@ class GetAppControllerUseCaseTest {
     }
 
     @Test
-    fun whenSetIfwmType_getRootAppController() = runTest {
+    fun whenSetIfwType_getRootAppController() = runTest {
         userDataRepository.setControllerType(IFW)
         val controller = useCase().first()
         assert(controller === rootAppController)

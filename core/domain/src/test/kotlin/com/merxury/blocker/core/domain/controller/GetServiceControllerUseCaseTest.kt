@@ -39,7 +39,7 @@ class GetServiceControllerUseCaseTest {
     private val getServiceControllerUseCase = GetServiceControllerUseCase(
         userDataRepository,
         rootServiceController,
-        shizukuServiceController
+        shizukuServiceController,
     )
 
     @Test

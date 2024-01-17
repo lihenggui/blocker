@@ -42,7 +42,7 @@ class GetControllerUseCaseTest {
         userDataRepository,
         rootController,
         ifwController,
-        shizukuController
+        shizukuController,
     )
 
     @Test
