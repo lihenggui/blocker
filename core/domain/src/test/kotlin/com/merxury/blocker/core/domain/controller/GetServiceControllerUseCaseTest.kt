@@ -50,7 +50,7 @@ class GetServiceControllerUseCaseTest {
     }
 
     @Test
-    fun whenSetPMType_getRootServiceController() = runTest {
+    fun whenSetPmType_getRootServiceController() = runTest {
         userDataRepository.setControllerType(PM)
         val controller = getServiceControllerUseCase().first()
         assert(controller === rootServiceController)

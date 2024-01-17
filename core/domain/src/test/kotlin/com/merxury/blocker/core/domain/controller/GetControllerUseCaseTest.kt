@@ -53,7 +53,7 @@ class GetControllerUseCaseTest {
     }
 
     @Test
-    fun whenSetRootType_getRootController() = runTest {
+    fun whenSetPmType_getRootController() = runTest {
         userDataRepository.setControllerType(PM)
         val controller = getControllerUseCase().first()
         assert(controller === rootController)
