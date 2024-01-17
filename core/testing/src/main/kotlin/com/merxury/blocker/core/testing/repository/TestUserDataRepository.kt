@@ -21,7 +21,6 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
@@ -42,9 +41,9 @@ val emptyUserData = UserPreferenceData(
     showServiceInfo = false,
     appSorting = AppSorting.NAME,
     appSortingOrder = SortingOrder.ASCENDING,
-    componentShowPriority = ComponentShowPriority.ENABLED_COMPONENTS_FIRST,
+    componentShowPriority = ComponentShowPriority.NONE,
     componentSortingOrder = SortingOrder.ASCENDING,
-    componentSorting = COMPONENT_NAME,
+    componentSorting = ComponentSorting.COMPONENT_NAME,
     isFirstTimeInitializationCompleted = false,
     showRunningAppsOnTop = false,
     appDisplayLanguage = "en-US",
