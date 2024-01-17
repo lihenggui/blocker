@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search
 
+import com.merxury.blocker.core.ui.R.string as uistring
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
@@ -93,7 +94,6 @@ import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun SearchRoute(
@@ -116,11 +116,11 @@ fun SearchRoute(
         switchTab = viewModel::switchTab,
         onSearchTriggered = { keyword ->
             viewModel.search(keyword)
-            appListViewModel.filter(keyword)
+            appListViewModel.loadData(keyword)
         },
         onSearchQueryChanged = { keyword ->
             viewModel.search(keyword)
-            appListViewModel.filter(keyword)
+            appListViewModel.loadData(keyword)
         },
         onSelectAll = viewModel::selectAll,
         onDeselect = viewModel::deselectItem,

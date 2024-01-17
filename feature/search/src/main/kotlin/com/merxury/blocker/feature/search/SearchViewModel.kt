@@ -26,6 +26,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
+import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
@@ -36,13 +37,7 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
-import com.merxury.blocker.core.model.preference.AppSorting
-import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
-import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
-import com.merxury.blocker.core.model.preference.AppSorting.NAME
-import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -61,7 +56,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -77,6 +71,7 @@ class SearchViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val initializeDatabase: InitializeDatabaseUseCase,
+    private val searchAppList: SearchAppListUseCase,
     private val searchRule: SearchGeneralRuleUseCase,
     private val userDataRepository: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -139,26 +134,7 @@ class SearchViewModel @Inject constructor(
             return
         }
         _searchUiState.update { it.copy(keyword = keyword) }
-        val searchAppFlow = appRepository.searchInstalledApplications(keyword)
-            .combineTransform(userDataRepository.userData) { list, userSetting ->
-                val showSystemApps = userSetting.showSystemApps
-                val sorting = userSetting.appSorting
-                val order = userSetting.appSortingOrder
-                val filteredList = list.filter { app ->
-                    if (showSystemApps) {
-                        true
-                    } else {
-                        !app.isSystem
-                    }
-                }.sortedWith(
-                    appComparator(sorting, order),
-                ).map { app ->
-                    val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
-                    app.toAppItem(packageInfo)
-                }
-                emit(filteredList)
-            }
-
+        val searchAppFlow = searchAppList(keyword)
         val searchComponentFlow: Flow<List<FilteredComponent>> =
             componentRepository.searchComponent(keyword)
                 .map { list ->
@@ -234,24 +210,6 @@ class SearchViewModel @Inject constructor(
                 }
         }
     }
-
-    private fun appComparator(
-        sortType: AppSorting,
-        sortOrder: SortingOrder,
-    ): Comparator<InstalledApp> =
-        if (sortOrder == SortingOrder.ASCENDING) {
-            when (sortType) {
-                NAME -> compareBy { it.label.lowercase() }
-                FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
-                LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
-            }
-        } else {
-            when (sortType) {
-                NAME -> compareByDescending { it.label.lowercase() }
-                FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
-                LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
-            }
-        }
 
     fun controlAllSelectedComponents(enable: Boolean, action: (Int, Int) -> Unit) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {

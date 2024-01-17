@@ -33,10 +33,9 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
+import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
-import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
-import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.AppServiceStatus
@@ -80,8 +79,8 @@ class AppListViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val appStateCache: IAppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
+    private val searchAppList: SearchAppListUseCase,
     private val getAppController: GetAppControllerUseCase,
-    private val getServiceController: GetServiceControllerUseCase,
     private val permissionMonitor: PermissionMonitor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
@@ -106,7 +105,6 @@ class AppListViewModel @Inject constructor(
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
 
-    private var currentSearchKeyword = ""
     private val refreshServiceJobs = SupervisorJob()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
@@ -124,7 +122,7 @@ class AppListViewModel @Inject constructor(
 
     private var loadAppListJob: Job? = null
 
-    fun loadData() {
+    fun loadData(query: String = "") {
         loadAppListJob?.cancel()
         loadAppListJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             // Init DB first to get correct data
@@ -135,7 +133,7 @@ class AppListViewModel @Inject constructor(
                         _uiState.emit(Initializing(it.processingName))
                     }
                 }
-            appRepository.getApplicationList()
+            searchAppList(query)
                 .onStart {
                     Timber.v("Start loading app list")
                     _uiState.update {
@@ -150,49 +148,8 @@ class AppListViewModel @Inject constructor(
                 .collect { list ->
                     Timber.v("App list changed, size ${list.size}")
                     refreshServiceJobs.cancelChildren()
-                    val preference = userDataRepository.userData.first()
-                    val sortType = preference.appSorting
-                    val sortOrder = preference.appSortingOrder
-                    val appController = getAppController().first()
-                    appController.refreshRunningAppList()
-                    if (preference.showServiceInfo) {
-                        val serviceController = getServiceController().first()
-                        serviceController.load()
-                    }
-                    appStateList = if (preference.showSystemApps) {
-                        list
-                    } else {
-                        list.filterNot { it.isSystem }
-                    }.filter {
-                        it.label.contains(currentSearchKeyword, true) ||
-                            it.packageName.contains(currentSearchKeyword, true)
-                    }.map { installedApp ->
-                        val packageName = installedApp.packageName
-                        AppItem(
-                            label = installedApp.label,
-                            packageName = packageName,
-                            versionName = installedApp.versionName,
-                            versionCode = installedApp.versionCode,
-                            isSystem = ApplicationUtil.isSystemApp(pm, packageName),
-                            isRunning = appController.isAppRunning(packageName),
-                            isEnabled = installedApp.isEnabled,
-                            firstInstallTime = installedApp.firstInstallTime,
-                            lastUpdateTime = installedApp.lastUpdateTime,
-                            appServiceStatus = appStateCache.getOrNull(packageName)
-                                ?.toAppServiceStatus(),
-                            packageInfo = pm.getPackageInfoCompat(packageName, 0),
-                        )
-                    }.sortedWith(
-                        appComparator(sortType, sortOrder),
-                    ).let { sortedList ->
-                        if (preference.showRunningAppsOnTop) {
-                            sortedList.sortedByDescending { it.isRunning }
-                        } else {
-                            sortedList
-                        }
-                    }
-                        .also { appList = it }
-                        .toMutableStateList()
+                    appList = list
+                    appStateList = list.toMutableStateList()
                     withContext(mainDispatcher) {
                         _appListFlow.value = appStateList
                         _uiState.emit(Success(isRefreshing = false))
@@ -209,11 +166,6 @@ class AppListViewModel @Inject constructor(
                     loadData()
                 }
             }
-    }
-
-    fun filter(keyword: String) {
-        currentSearchKeyword = keyword
-        loadData()
     }
 
     private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =
