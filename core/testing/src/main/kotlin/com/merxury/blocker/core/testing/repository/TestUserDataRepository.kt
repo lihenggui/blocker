@@ -29,7 +29,7 @@ import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
-val emptyUserData = UserPreferenceData(
+val defaultUserData = UserPreferenceData(
     darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
     useDynamicColor = false,
     controllerType = ControllerType.IFW,
@@ -49,13 +49,14 @@ val emptyUserData = UserPreferenceData(
     appDisplayLanguage = "en-US",
     libDisplayLanguage = "en-US",
 )
+
 class TestUserDataRepository : UserDataRepository {
 
     /**
      * The backing hot flow for the list of UserPreferenceData for testing.
      */
     private val _userData = MutableSharedFlow<UserPreferenceData>(replay = 1, onBufferOverflow = DROP_OLDEST)
-    private val currentUserData get() = _userData.replayCache.firstOrNull() ?: emptyUserData
+    private val currentUserData get() = _userData.replayCache.firstOrNull() ?: defaultUserData
 
     override val userData: Flow<UserPreferenceData> = _userData
 
