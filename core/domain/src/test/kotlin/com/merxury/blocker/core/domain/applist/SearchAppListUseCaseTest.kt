@@ -355,4 +355,33 @@ class SearchAppListUseCaseTest {
             assertEquals(expectedList, awaitItem())
         }
     }
+
+    @Test
+    fun givenAppList_whenSetShowRunningAppsOnTop_thenShowCorrectList() = runTest {
+        val app1 = InstalledApp(packageName = "1")
+        val app2 = InstalledApp(packageName = "2")
+        val app3 = InstalledApp(packageName = "3")
+        val app4 = InstalledApp(packageName = "4")
+        val appList = listOf(app1, app2, app3, app4)
+        userDataRepository.sendUserData(
+            defaultUserData.copy(
+                appSorting = AppSorting.NAME,
+                appSortingOrder = SortingOrder.ASCENDING,
+                showRunningAppsOnTop = true,
+            ),
+        )
+        // Default setting is sort by name, ascending
+        appRepository.sendAppList(appList)
+        appController.setRunningApps("3", "4")
+        val expectedList = mutableListOf(app3, app4, app1, app2)
+            .map {
+                it.toAppItem(packageInfo = packageInfo)
+            }
+            .toMutableList()
+        expectedList[0] = expectedList[0].copy(isRunning = true)
+        expectedList[1] = expectedList[1].copy(isRunning = true)
+        searchAppListUseCase("").test {
+            assertEquals(expectedList.toList(), awaitItem())
+        }
+    }
 }
