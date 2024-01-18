@@ -410,6 +410,5 @@ class SearchAppListUseCaseTest {
             }
             .toMutableList()
         // TODO Verify the correctness of the app service status
-
     }
 }
