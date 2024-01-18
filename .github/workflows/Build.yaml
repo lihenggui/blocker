@@ -188,7 +188,7 @@ jobs:
         run: ./gradlew :app-compose:checkMarketReleaseBadging
 
   androidTest:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
       matrix:
