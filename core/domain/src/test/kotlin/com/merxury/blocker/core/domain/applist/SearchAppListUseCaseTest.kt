@@ -261,4 +261,98 @@ class SearchAppListUseCaseTest {
             assertEquals(expectedList.size, awaitItem().size)
         }
     }
+
+    @Test
+    fun givenAppList_whenTypeSearchLabel_thenShowFilteredList() = runTest {
+        val app1 = InstalledApp(label = "App 1")
+        val app2 = InstalledApp(label = "App 2")
+        val app3 = InstalledApp(label = "App 3")
+        val appList = listOf(app1, app2, app3)
+        userDataRepository.sendUserData(
+            defaultUserData.copy(
+                appSorting = AppSorting.NAME,
+                appSortingOrder = SortingOrder.ASCENDING,
+            ),
+        )
+        // Default setting is sort by name, ascending
+        appRepository.sendAppList(appList)
+        val expectedList = listOf(app3)
+            .map {
+                it.toAppItem(packageInfo = packageInfo)
+            }
+        searchAppListUseCase("App 3").test {
+            assertEquals(expectedList, awaitItem())
+        }
+    }
+
+    @Test
+    fun givenAppList_whenSearchPackageName_thenShowFilteredList() = runTest {
+        val app1 = InstalledApp(packageName = "com.merxury.blocker.app")
+        val app2 = InstalledApp(packageName = "com.merxury.blocker.core")
+        val app3 = InstalledApp(packageName = "com.merxury.blocker.feature")
+        val appList = listOf(app1, app2, app3)
+        userDataRepository.sendUserData(
+            defaultUserData.copy(
+                appSorting = AppSorting.NAME,
+                appSortingOrder = SortingOrder.ASCENDING,
+            ),
+        )
+        // Default setting is sort by name, ascending
+        appRepository.sendAppList(appList)
+        val expectedList = listOf(app2)
+            .map {
+                it.toAppItem(packageInfo = packageInfo)
+            }
+        searchAppListUseCase("com.merxury.blocker.core").test {
+            assertEquals(expectedList, awaitItem())
+        }
+    }
+
+    @Test
+    fun givenAppList_whenDoingFuzzyQueryOnLabel_showFilteredList() = runTest {
+        val app1 = InstalledApp(label = "App 1")
+        val app2 = InstalledApp(label = "App 2")
+        val app3 = InstalledApp(label = "App 3 search")
+        val app4 = InstalledApp(label = "App 4 search")
+        val appList = listOf(app1, app2, app3, app4)
+        userDataRepository.sendUserData(
+            defaultUserData.copy(
+                appSorting = AppSorting.NAME,
+                appSortingOrder = SortingOrder.ASCENDING,
+            ),
+        )
+        // Default setting is sort by name, ascending
+        appRepository.sendAppList(appList)
+        val expectedList = listOf(app3, app4)
+            .map {
+                it.toAppItem(packageInfo = packageInfo)
+            }
+        searchAppListUseCase("search").test {
+            assertEquals(expectedList, awaitItem())
+        }
+    }
+
+    @Test
+    fun givenAppList_whenFuzzyQueryPackageName_thenShowFilteredResult() = runTest {
+        val app1 = InstalledApp(packageName = "com.merxury.blocker.app")
+        val app2 = InstalledApp(packageName = "com.merxury.blocker.core")
+        val app3 = InstalledApp(packageName = "com.merxury.blocker.feature1.search")
+        val app4 = InstalledApp(packageName = "com.merxury.blocker.feature.search")
+        val appList = listOf(app1, app2, app3, app4)
+        userDataRepository.sendUserData(
+            defaultUserData.copy(
+                appSorting = AppSorting.NAME,
+                appSortingOrder = SortingOrder.ASCENDING,
+            ),
+        )
+        // Default setting is sort by name, ascending
+        appRepository.sendAppList(appList)
+        val expectedList = listOf(app3, app4)
+            .map {
+                it.toAppItem(packageInfo = packageInfo)
+            }
+        searchAppListUseCase("search").test {
+            assertEquals(expectedList, awaitItem())
+        }
+    }
 }
