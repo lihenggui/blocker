@@ -22,8 +22,8 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.appstate.AppState
 import com.merxury.blocker.core.data.appstate.IAppStateCache
+import com.merxury.blocker.core.data.appstate.toAppServiceStatus
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -38,7 +38,6 @@ import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
@@ -372,13 +371,6 @@ class AppListViewModel @Inject constructor(
         Timber.v("App updated: $packageName")
     }
 }
-
-private fun AppState.toAppServiceStatus() = AppServiceStatus(
-    packageName = packageName,
-    running = running,
-    blocked = blocked,
-    total = total,
-)
 
 sealed interface AppListUiState {
     class Initializing(val processingName: String = "") : AppListUiState

@@ -17,8 +17,8 @@
 package com.merxury.blocker.core.domain.applist
 
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.data.appstate.AppState
 import com.merxury.blocker.core.data.appstate.IAppStateCache
+import com.merxury.blocker.core.data.appstate.toAppServiceStatus
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -27,7 +27,6 @@ import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
@@ -106,13 +105,6 @@ class SearchAppListUseCase @Inject constructor(
         }
             .flowOn(cpuDispatcher)
     }
-
-    private fun AppState.toAppServiceStatus() = AppServiceStatus(
-        packageName = packageName,
-        running = running,
-        blocked = blocked,
-        total = total,
-    )
 
     private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =
         if (sortOrder == SortingOrder.ASCENDING) {

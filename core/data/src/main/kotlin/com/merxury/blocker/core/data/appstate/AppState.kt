@@ -16,9 +16,18 @@
 
 package com.merxury.blocker.core.data.appstate
 
+import com.merxury.blocker.core.model.data.AppServiceStatus
+
 data class AppState(
     var running: Int = 0,
     var blocked: Int = 0,
     var total: Int = 0,
     var packageName: String,
+)
+
+fun AppState.toAppServiceStatus() = AppServiceStatus(
+    packageName = packageName,
+    running = running,
+    blocked = blocked,
+    total = total,
 )

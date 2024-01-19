@@ -20,6 +20,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import app.cash.turbine.test
 import com.merxury.blocker.core.data.appstate.AppState
+import com.merxury.blocker.core.data.appstate.toAppServiceStatus
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.model.data.InstalledApp
@@ -387,7 +388,7 @@ class SearchAppListUseCaseTest {
     }
 
     @Test
-    fun givenAppList_whenSetShowServiceInfo_thenShowCorrectList() = runTest {
+    fun givenAppList_whenSetShowServiceInfoToTrue_thenShowListWithServiceInfo() = runTest {
         val app1 = InstalledApp(label = "App 1", packageName = "1")
         val app2 = InstalledApp(label = "App 2", packageName = "2")
         val app3 = InstalledApp(label = "App 3", packageName = "3")
@@ -404,11 +405,22 @@ class SearchAppListUseCaseTest {
         )
         appStateCache.putAppState(appState1, appState2, appState3)
         appRepository.sendAppList(appList)
-        val expectedList = listOf(app1, app2, app3)
-            .map {
-                it.toAppItem(packageInfo = packageInfo)
-            }
-            .toMutableList()
-        // TODO Verify the correctness of the app service status
+        val expectedList = listOf(
+            app1.toAppItem(
+                packageInfo = packageInfo,
+                appServiceStatus = appState1.toAppServiceStatus(),
+            ),
+            app2.toAppItem(
+                packageInfo = packageInfo,
+                appServiceStatus = appState2.toAppServiceStatus(),
+            ),
+            app3.toAppItem(
+                packageInfo = packageInfo,
+                appServiceStatus = appState3.toAppServiceStatus(),
+            ),
+        )
+        searchAppListUseCase("").test {
+            assertEquals(expectedList, awaitItem())
+        }
     }
 }
