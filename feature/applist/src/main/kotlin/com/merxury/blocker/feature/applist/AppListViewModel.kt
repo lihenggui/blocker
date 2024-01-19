@@ -123,7 +123,7 @@ class AppListViewModel @Inject constructor(
 
     fun loadData(query: String = "") {
         loadAppListJob?.cancel()
-        loadAppListJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+        loadAppListJob = viewModelScope.launch(exceptionHandler) {
             // Init DB first to get correct data
             initializeDatabase()
                 .takeWhile { it is InitializeState.Initializing }
@@ -149,10 +149,8 @@ class AppListViewModel @Inject constructor(
                     refreshServiceJobs.cancelChildren()
                     appList = list
                     appStateList = list.toMutableStateList()
-                    withContext(mainDispatcher) {
-                        _appListFlow.value = appStateList
-                        _uiState.emit(Success(isRefreshing = false))
-                    }
+                    _appListFlow.value = appStateList
+                    _uiState.emit(Success(isRefreshing = false))
                 }
         }
     }
