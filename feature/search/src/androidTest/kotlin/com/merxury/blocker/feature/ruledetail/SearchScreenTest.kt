@@ -153,7 +153,6 @@ class SearchScreenTest {
                 searchUiState = SearchUiState(
                     keyword = searchKeyword,
                 ),
-                appList = listOf(appInfoTestData),
             )
         }
 
@@ -189,7 +188,6 @@ class SearchScreenTest {
                 searchUiState = SearchUiState(
                     keyword = searchKeyword,
                 ),
-                appList = listOf(appInfoTestData),
             )
         }
 
@@ -225,7 +223,6 @@ class SearchScreenTest {
                 searchUiState = SearchUiState(
                     keyword = searchKeyword,
                 ),
-                appList = listOf(appInfoTestData),
             )
         }
 
@@ -262,7 +259,6 @@ class SearchScreenTest {
                     isSelectedMode = true,
                     selectedAppList = filteredComponentTestData,
                 ),
-                appList = listOf(appInfoTestData),
             )
         }
 
