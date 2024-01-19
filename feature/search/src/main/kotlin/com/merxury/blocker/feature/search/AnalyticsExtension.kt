@@ -43,3 +43,39 @@ internal fun AnalyticsHelper.logRuleSearchResultClicked(id: String) =
             ),
         ),
     )
+
+internal fun AnalyticsHelper.logUninstallAppClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_uninstall_app_clicked",
+    ),
+)
+
+internal fun AnalyticsHelper.logDisableAppClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_disable_app_clicked",
+    ),
+)
+
+internal fun AnalyticsHelper.logEnableAppClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_enable_app_clicked",
+    ),
+)
+
+internal fun AnalyticsHelper.logClearCacheClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_clear_cache_clicked",
+    ),
+)
+
+internal fun AnalyticsHelper.logClearDataClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_clear_data_clicked",
+    ),
+)
+
+internal fun AnalyticsHelper.logForceStopClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_force_stop_clicked",
+    ),
+)

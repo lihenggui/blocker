@@ -45,6 +45,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.data.WarningDialogData
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
@@ -70,6 +71,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
@@ -295,7 +297,7 @@ class AppListViewModel @Inject constructor(
             ?: packageName
         val data = WarningDialogData(
             title = label,
-            message = R.string.feature_applist_do_you_want_to_clear_data_of_this_app,
+            message = uiString.core_ui_do_you_want_to_clear_data_of_this_app,
             onPositiveButtonClicked = action,
         )
         _warningState.emit(data)
@@ -323,7 +325,7 @@ class AppListViewModel @Inject constructor(
             ?: packageName
         val data = WarningDialogData(
             title = label,
-            message = R.string.feature_applist_do_you_want_to_uninstall_this_app,
+            message = uiString.core_ui_do_you_want_to_uninstall_this_app,
             onPositiveButtonClicked = action,
         )
         _warningState.emit(data)
@@ -375,9 +377,3 @@ sealed interface AppListUiState {
     class Error(val error: UiMessage) : AppListUiState
     data class Success(val isRefreshing: Boolean = false) : AppListUiState
 }
-
-data class WarningDialogData(
-    val title: String,
-    val message: Int,
-    val onPositiveButtonClicked: () -> Unit,
-)

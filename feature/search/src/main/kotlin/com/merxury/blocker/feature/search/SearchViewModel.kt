@@ -17,18 +17,25 @@
 package com.merxury.blocker.feature.search
 
 import android.content.pm.PackageManager
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.data.appstate.IAppStateCache
+import com.merxury.blocker.core.data.appstate.toAppServiceStatus
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
+import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
@@ -38,10 +45,13 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.data.WarningDialogData
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
 import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
 import com.merxury.blocker.feature.search.LocalSearchUiState.Loading
@@ -50,6 +60,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,10 +71,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -73,7 +87,11 @@ class SearchViewModel @Inject constructor(
     private val initializeDatabase: InitializeDatabaseUseCase,
     private val searchAppList: SearchAppListUseCase,
     private val searchRule: SearchGeneralRuleUseCase,
+    private val getAppController: GetAppControllerUseCase,
     private val userDataRepository: UserDataRepository,
+    private val appStateCache: IAppStateCache,
+    private val analyticsHelper: AnalyticsHelper,
+    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _searchUiState = MutableStateFlow(SearchUiState())
@@ -84,12 +102,18 @@ class SearchViewModel @Inject constructor(
     private var filterComponentList: MutableList<FilteredComponent> = mutableListOf()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
+    private val _warningState = MutableStateFlow<WarningDialogData?>(null)
+    val warningState = _warningState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
     }
     private var searchJob: Job? = null
     private var loadAppJob: Job? = null
+    private val refreshServiceJobs = SupervisorJob()
+
+    // Internal list for storing the displayed app list with state (for UI display)
+    private var appStateList = mutableStateListOf<AppItem>()
 
     private val _tabState = MutableStateFlow(
         TabState(
@@ -294,6 +318,109 @@ class SearchViewModel @Inject constructor(
             it.copy(selectedComponentList = list)
         }
         return list
+    }
+    fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        getAppController().first()
+            .clearCache(packageName)
+        analyticsHelper.logClearCacheClicked()
+    }
+
+    fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        val action: () -> Unit = {
+            viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                getAppController().first().clearData(packageName)
+                analyticsHelper.logClearDataClicked()
+            }
+        }
+        val label = appRepository.getApplication(packageName)
+            .flowOn(ioDispatcher)
+            .first()
+            ?.label
+            ?: packageName
+        val data = WarningDialogData(
+            title = label,
+            message = uiString.core_ui_do_you_want_to_clear_data_of_this_app,
+            onPositiveButtonClicked = action,
+        )
+        _warningState.emit(data)
+    }
+
+    fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        getAppController().first()
+            .forceStop(packageName)
+        analyticsHelper.logForceStopClicked()
+    }
+
+    fun uninstall(packageName: String) = viewModelScope.launch {
+        val action: () -> Unit = {
+            viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                val app = ApplicationUtil.getApplicationComponents(pm, packageName)
+                val versionCode = app.getVersionCode()
+                getAppController().first().uninstallApp(packageName, versionCode)
+                notifyAppUpdated(packageName)
+                analyticsHelper.logUninstallAppClicked()
+            }
+        }
+        val label = appRepository.getApplication(packageName)
+            .flowOn(ioDispatcher)
+            .first()
+            ?.label
+            ?: packageName
+        val data = WarningDialogData(
+            title = label,
+            message = uiString.core_ui_do_you_want_to_uninstall_this_app,
+            onPositiveButtonClicked = action,
+        )
+        _warningState.emit(data)
+    }
+
+    fun enable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        getAppController().first()
+            .enable(packageName)
+        notifyAppUpdated(packageName)
+        analyticsHelper.logEnableAppClicked()
+    }
+
+    fun disable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        getAppController().first()
+            .disable(packageName)
+        notifyAppUpdated(packageName)
+        analyticsHelper.logDisableAppClicked()
+    }
+
+    private suspend fun notifyAppUpdated(packageName: String) {
+        appRepository.updateApplication(packageName)
+            .takeWhile { it !is Result.Success }
+            .collect {
+                if (it is Result.Error) {
+                    _errorState.emit(it.exception.toErrorMessage())
+                }
+            }
+        Timber.v("App updated: $packageName")
+    }
+
+    fun dismissWarningDialog() = viewModelScope.launch {
+        _warningState.emit(null)
+    }
+
+    fun updateServiceStatus(packageName: String, index: Int) {
+        viewModelScope.launch(context = refreshServiceJobs + ioDispatcher + exceptionHandler) {
+            val userData = userDataRepository.userData.first()
+            if (!userData.showServiceInfo) {
+                return@launch
+            }
+            val oldItem = appStateList.getOrNull(index) ?: return@launch
+            if (oldItem.appServiceStatus != null) {
+                // Don't get service info again
+                return@launch
+            }
+            Timber.v("Get service status for $packageName")
+            val status = appStateCache.get(packageName)
+            val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
+            withContext(mainDispatcher) {
+                appStateList[index] = newItem
+            }
+        }
     }
 }
 
