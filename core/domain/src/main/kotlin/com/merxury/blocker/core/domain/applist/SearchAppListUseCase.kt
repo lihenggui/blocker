@@ -34,7 +34,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
 import javax.inject.Inject
@@ -54,7 +54,7 @@ class SearchAppListUseCase @Inject constructor(
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) {
     operator fun invoke(query: String): Flow<List<AppItem>> {
-        return combine(
+        return combineTransform(
             userDataRepository.userData,
             appRepository.getApplicationList(),
             getAppController(),
@@ -78,6 +78,11 @@ class SearchAppListUseCase @Inject constructor(
                     it.packageName.contains(query, true)
             }.map { installedApp ->
                 val packageName = installedApp.packageName
+                val cachedServiceStatus = if (userData.showServiceInfo) {
+                    appStateCache.getOrNull(packageName)?.toAppServiceStatus()
+                } else {
+                    null
+                }
                 AppItem(
                     label = installedApp.label,
                     packageName = packageName,
@@ -88,8 +93,7 @@ class SearchAppListUseCase @Inject constructor(
                     isEnabled = installedApp.isEnabled,
                     firstInstallTime = installedApp.firstInstallTime,
                     lastUpdateTime = installedApp.lastUpdateTime,
-                    appServiceStatus = appStateCache.getOrNull(packageName)
-                        ?.toAppServiceStatus(),
+                    appServiceStatus = cachedServiceStatus,
                     packageInfo = pm.getPackageInfoCompat(packageName, 0),
                 )
             }.sortedWith(
@@ -101,7 +105,18 @@ class SearchAppListUseCase @Inject constructor(
                     sortedList
                 }
             }
-            finalList
+            emit(finalList)
+            // Load service status is not a cheap operation,
+            // so we only load it when user wants to see it
+            if (userData.showServiceInfo) {
+                val startTime = System.currentTimeMillis()
+                val listWithServiceInfo = finalList.map {
+                    val serviceStatus = appStateCache.get(it.packageName)
+                    it.copy(appServiceStatus = serviceStatus.toAppServiceStatus())
+                }
+                Timber.e("getServiceStatus took ${System.currentTimeMillis() - startTime} ms")
+                emit(listWithServiceInfo)
+            }
         }
             .flowOn(cpuDispatcher)
     }

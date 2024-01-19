@@ -22,8 +22,6 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.appstate.IAppStateCache
-import com.merxury.blocker.core.data.appstate.toAppServiceStatus
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -78,7 +76,6 @@ class AppListViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
-    private val appStateCache: IAppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
     private val searchAppList: SearchAppListUseCase,
     private val getAppController: GetAppControllerUseCase,
@@ -256,26 +253,6 @@ class AppListViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .drop(1)
                 .collect { loadData() }
-        }
-    }
-
-    fun updateServiceStatus(packageName: String, index: Int) {
-        viewModelScope.launch(context = refreshServiceJobs + ioDispatcher + exceptionHandler) {
-            val userData = userDataRepository.userData.first()
-            if (!userData.showServiceInfo) {
-                return@launch
-            }
-            val oldItem = appStateList.getOrNull(index) ?: return@launch
-            if (oldItem.appServiceStatus != null) {
-                // Don't get service info again
-                return@launch
-            }
-            Timber.v("Get service status for $packageName")
-            val status = appStateCache.get(packageName)
-            val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
-            withContext(mainDispatcher) {
-                appStateList[index] = newItem
-            }
         }
     }
 

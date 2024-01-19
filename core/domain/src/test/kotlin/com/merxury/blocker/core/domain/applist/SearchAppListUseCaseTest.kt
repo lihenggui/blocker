@@ -420,6 +420,9 @@ class SearchAppListUseCaseTest {
             ),
         )
         searchAppListUseCase("").test {
+            // Cached result
+            assertEquals(expectedList, awaitItem())
+            // When turning on show service info option, the list will be reloaded
             assertEquals(expectedList, awaitItem())
         }
     }

@@ -17,17 +17,13 @@
 package com.merxury.blocker.feature.search
 
 import android.content.pm.PackageManager
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.appstate.IAppStateCache
-import com.merxury.blocker.core.data.appstate.toAppServiceStatus
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
@@ -60,7 +56,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,7 +69,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import com.merxury.blocker.core.ui.R.string as uiString
@@ -89,9 +83,7 @@ class SearchViewModel @Inject constructor(
     private val searchRule: SearchGeneralRuleUseCase,
     private val getAppController: GetAppControllerUseCase,
     private val userDataRepository: UserDataRepository,
-    private val appStateCache: IAppStateCache,
     private val analyticsHelper: AnalyticsHelper,
-    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _searchUiState = MutableStateFlow(SearchUiState())
@@ -110,10 +102,6 @@ class SearchViewModel @Inject constructor(
     }
     private var searchJob: Job? = null
     private var loadAppJob: Job? = null
-    private val refreshServiceJobs = SupervisorJob()
-
-    // Internal list for storing the displayed app list with state (for UI display)
-    private var appStateList = mutableStateListOf<AppItem>()
 
     private val _tabState = MutableStateFlow(
         TabState(
@@ -401,26 +389,6 @@ class SearchViewModel @Inject constructor(
 
     fun dismissWarningDialog() = viewModelScope.launch {
         _warningState.emit(null)
-    }
-
-    fun updateServiceStatus(packageName: String, index: Int) {
-        viewModelScope.launch(context = refreshServiceJobs + ioDispatcher + exceptionHandler) {
-            val userData = userDataRepository.userData.first()
-            if (!userData.showServiceInfo) {
-                return@launch
-            }
-            val oldItem = appStateList.getOrNull(index) ?: return@launch
-            if (oldItem.appServiceStatus != null) {
-                // Don't get service info again
-                return@launch
-            }
-            Timber.v("Get service status for $packageName")
-            val status = appStateCache.get(packageName)
-            val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
-            withContext(mainDispatcher) {
-                appStateList[index] = newItem
-            }
-        }
     }
 }
 

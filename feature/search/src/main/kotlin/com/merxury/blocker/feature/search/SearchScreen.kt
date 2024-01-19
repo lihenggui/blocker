@@ -138,7 +138,6 @@ fun SearchRoute(
         onUninstallClick = viewModel::uninstall,
         onEnableClick = viewModel::enable,
         onDisableClick = viewModel::disable,
-        onServiceStateUpdate = viewModel::updateServiceStatus,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -240,7 +239,6 @@ fun SearchScreen(
     onUninstallClick: (String) -> Unit = { },
     onEnableClick: (String) -> Unit = { },
     onDisableClick: (String) -> Unit = { },
-    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     Scaffold(
         topBar = {
@@ -291,7 +289,6 @@ fun SearchScreen(
                     onUninstallClick = onUninstallClick,
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
-                    onServiceStateUpdate = onServiceStateUpdate,
                 )
             }
         }
@@ -406,7 +403,6 @@ fun AppSearchResultContent(
     onUninstallClick: (String) -> Unit = { },
     onEnableClick: (String) -> Unit = { },
     onDisableClick: (String) -> Unit = { },
-    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     if (appList.isEmpty()) {
         EmptyScreen(textRes = string.feature_search_no_search_result)
@@ -425,7 +421,6 @@ fun AppSearchResultContent(
         onUninstallClick = onUninstallClick,
         onEnableClick = onEnableClick,
         onDisableClick = onDisableClick,
-        onServiceStateUpdate = onServiceStateUpdate,
         modifier = modifier,
     )
 }
