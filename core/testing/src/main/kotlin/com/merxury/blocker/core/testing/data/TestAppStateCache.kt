@@ -16,22 +16,22 @@
 
 package com.merxury.blocker.core.testing.data
 
-import com.merxury.blocker.core.data.appstate.AppState
 import com.merxury.blocker.core.data.appstate.IAppStateCache
+import com.merxury.blocker.core.model.data.AppServiceStatus
 import javax.inject.Inject
 
 class TestAppStateCache @Inject constructor() : IAppStateCache {
-    private val cache = mutableMapOf<String, AppState>()
-    override fun getOrNull(packageName: String): AppState? {
+    private val cache = mutableMapOf<String, AppServiceStatus>()
+    override fun getOrNull(packageName: String): AppServiceStatus? {
         return cache[packageName]
     }
 
-    override suspend fun get(packageName: String): AppState {
-        return cache[packageName] ?: AppState(packageName = packageName)
+    override suspend fun get(packageName: String): AppServiceStatus {
+        return cache[packageName] ?: AppServiceStatus(packageName = packageName)
     }
 
-    fun putAppState(vararg appState: AppState) {
-        appState.forEach {
+    fun putAppState(vararg appServiceStatus: AppServiceStatus) {
+        appServiceStatus.forEach {
             cache[it.packageName] = it
         }
     }

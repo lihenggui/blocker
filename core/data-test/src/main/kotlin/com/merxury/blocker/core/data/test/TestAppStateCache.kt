@@ -16,16 +16,16 @@
 
 package com.merxury.blocker.core.data.test
 
-import com.merxury.blocker.core.data.appstate.AppState
 import com.merxury.blocker.core.data.appstate.IAppStateCache
+import com.merxury.blocker.core.model.data.AppServiceStatus
 import javax.inject.Inject
 
 internal class TestAppStateCache @Inject constructor() : IAppStateCache {
-    override fun getOrNull(packageName: String): AppState? {
+    override fun getOrNull(packageName: String): AppServiceStatus? {
         return null
     }
 
-    override suspend fun get(packageName: String): AppState {
-        return AppState(packageName = packageName)
+    override suspend fun get(packageName: String): AppServiceStatus {
+        return AppServiceStatus(packageName = packageName)
     }
 }

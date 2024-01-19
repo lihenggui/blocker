@@ -19,10 +19,9 @@ package com.merxury.blocker.core.domain.applist
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import app.cash.turbine.test
-import com.merxury.blocker.core.data.appstate.AppState
-import com.merxury.blocker.core.data.appstate.toAppServiceStatus
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
+import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -392,9 +391,9 @@ class SearchAppListUseCaseTest {
         val app1 = InstalledApp(label = "App 1", packageName = "1")
         val app2 = InstalledApp(label = "App 2", packageName = "2")
         val app3 = InstalledApp(label = "App 3", packageName = "3")
-        val appState1 = AppState(packageName = "1", running = 1, blocked = 1, total = 1)
-        val appState2 = AppState(packageName = "2", running = 2, blocked = 2, total = 2)
-        val appState3 = AppState(packageName = "3", running = 3, blocked = 3, total = 3)
+        val appServiceStatus1 = AppServiceStatus(packageName = "1", running = 1, blocked = 1, total = 1)
+        val appServiceStatus2 = AppServiceStatus(packageName = "2", running = 2, blocked = 2, total = 2)
+        val appServiceStatus3 = AppServiceStatus(packageName = "3", running = 3, blocked = 3, total = 3)
         val appList = listOf(app1, app2, app3)
         userDataRepository.sendUserData(
             defaultUserData.copy(
@@ -403,20 +402,20 @@ class SearchAppListUseCaseTest {
                 showServiceInfo = true,
             ),
         )
-        appStateCache.putAppState(appState1, appState2, appState3)
+        appStateCache.putAppState(appServiceStatus1, appServiceStatus2, appServiceStatus3)
         appRepository.sendAppList(appList)
         val expectedList = listOf(
             app1.toAppItem(
                 packageInfo = packageInfo,
-                appServiceStatus = appState1.toAppServiceStatus(),
+                appServiceStatus = appServiceStatus1,
             ),
             app2.toAppItem(
                 packageInfo = packageInfo,
-                appServiceStatus = appState2.toAppServiceStatus(),
+                appServiceStatus = appServiceStatus2,
             ),
             app3.toAppItem(
                 packageInfo = packageInfo,
-                appServiceStatus = appState3.toAppServiceStatus(),
+                appServiceStatus = appServiceStatus3,
             ),
         )
         searchAppListUseCase("").test {

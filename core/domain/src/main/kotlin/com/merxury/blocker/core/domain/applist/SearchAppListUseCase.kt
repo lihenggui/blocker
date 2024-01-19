@@ -18,7 +18,6 @@ package com.merxury.blocker.core.domain.applist
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.data.appstate.IAppStateCache
-import com.merxury.blocker.core.data.appstate.toAppServiceStatus
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -79,7 +78,7 @@ class SearchAppListUseCase @Inject constructor(
             }.map { installedApp ->
                 val packageName = installedApp.packageName
                 val cachedServiceStatus = if (userData.showServiceInfo) {
-                    appStateCache.getOrNull(packageName)?.toAppServiceStatus()
+                    appStateCache.getOrNull(packageName)
                 } else {
                     null
                 }
@@ -112,7 +111,7 @@ class SearchAppListUseCase @Inject constructor(
                 val startTime = System.currentTimeMillis()
                 val listWithServiceInfo = finalList.map {
                     val serviceStatus = appStateCache.get(it.packageName)
-                    it.copy(appServiceStatus = serviceStatus.toAppServiceStatus())
+                    it.copy(appServiceStatus = serviceStatus)
                 }
                 Timber.e("getServiceStatus took ${System.currentTimeMillis() - startTime} ms")
                 emit(listWithServiceInfo)

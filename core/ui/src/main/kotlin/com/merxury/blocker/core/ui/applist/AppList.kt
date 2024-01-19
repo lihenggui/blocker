@@ -66,7 +66,7 @@ fun AppList(
             modifier = modifier,
             state = listState,
         ) {
-            itemsIndexed(appList, key = { _, item -> item.packageName }) { index, item ->
+            itemsIndexed(appList, key = { _, item -> item.packageName }) { _, item ->
                 AppListItem(
                     label = item.label,
                     packageName = item.packageName,

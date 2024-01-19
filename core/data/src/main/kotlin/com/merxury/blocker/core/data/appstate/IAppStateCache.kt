@@ -16,8 +16,10 @@
 
 package com.merxury.blocker.core.data.appstate
 
-interface IAppStateCache {
-    fun getOrNull(packageName: String): AppState?
+import com.merxury.blocker.core.model.data.AppServiceStatus
 
-    suspend fun get(packageName: String): AppState
+interface IAppStateCache {
+    fun getOrNull(packageName: String): AppServiceStatus?
+
+    suspend fun get(packageName: String): AppServiceStatus
 }
