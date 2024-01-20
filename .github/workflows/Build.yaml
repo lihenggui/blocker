@@ -202,12 +202,6 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls /dev/kvm
 
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 512
-          swap-size-mb: 1024
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
