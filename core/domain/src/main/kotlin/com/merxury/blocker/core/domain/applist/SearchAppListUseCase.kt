@@ -108,12 +108,10 @@ class SearchAppListUseCase @Inject constructor(
             // Load service status is not a cheap operation,
             // so we only load it when user wants to see it
             if (userData.showServiceInfo) {
-                val startTime = System.currentTimeMillis()
                 val listWithServiceInfo = finalList.map {
                     val serviceStatus = appStateCache.get(it.packageName)
                     it.copy(appServiceStatus = serviceStatus)
                 }
-                Timber.e("getServiceStatus took ${System.currentTimeMillis() - startTime} ms")
                 emit(listWithServiceInfo)
             }
         }
