@@ -36,7 +36,7 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import com.merxury.blocker.core.testing.controller.TestServiceController
+import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
@@ -80,7 +80,7 @@ class AppDetailViewModelTest {
     private val componentRepository = TestComponentRepository()
     private val generalRuleRepository = TestGeneralRuleRepository()
     private val componentDetailRepository = TestComponentDetailRepository()
-    private val serviceController = TestServiceController()
+    private val serviceController = FakeServiceController()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val savedStateHandle = SavedStateHandle(
         mapOf(

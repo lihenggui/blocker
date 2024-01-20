@@ -69,7 +69,6 @@ fun SearchResultScreen(
     onUninstallClick: (String) -> Unit = { },
     onEnableClick: (String) -> Unit = { },
     onDisableClick: (String) -> Unit = { },
-    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -116,7 +115,6 @@ fun SearchResultScreen(
                     onUninstallClick = onUninstallClick,
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
-                    onServiceStateUpdate = onServiceStateUpdate,
                 )
 
                 1 -> ComponentSearchResultContent(

@@ -22,14 +22,6 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.controllers.IAppController
-import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.di.RootApiAppControl
-import com.merxury.blocker.core.controllers.di.RootApiServiceControl
-import com.merxury.blocker.core.controllers.di.ShizukuAppControl
-import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
-import com.merxury.blocker.core.data.appstate.AppState
-import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -39,12 +31,11 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
+import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
+import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
-import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.AppServiceStatus
-import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
@@ -52,6 +43,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.data.WarningDialogData
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
@@ -77,18 +69,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
-    @RootApiAppControl private val rootApiAppController: IAppController,
-    @ShizukuAppControl private val shizukuAppController: IAppController,
-    @RootApiServiceControl private val rootApiServiceController: IServiceController,
-    @ShizukuServiceControl private val shizukuServiceController: IServiceController,
-    private val appStateCache: IAppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
+    private val searchAppList: SearchAppListUseCase,
+    private val getAppController: GetAppControllerUseCase,
     private val permissionMonitor: PermissionMonitor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
@@ -113,7 +103,6 @@ class AppListViewModel @Inject constructor(
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
 
-    private var currentSearchKeyword = ""
     private val refreshServiceJobs = SupervisorJob()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
@@ -131,9 +120,9 @@ class AppListViewModel @Inject constructor(
 
     private var loadAppListJob: Job? = null
 
-    fun loadData() {
+    fun loadData(query: String = "") {
         loadAppListJob?.cancel()
-        loadAppListJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+        loadAppListJob = viewModelScope.launch(exceptionHandler) {
             // Init DB first to get correct data
             initializeDatabase()
                 .takeWhile { it is InitializeState.Initializing }
@@ -142,7 +131,7 @@ class AppListViewModel @Inject constructor(
                         _uiState.emit(Initializing(it.processingName))
                     }
                 }
-            appRepository.getApplicationList()
+            searchAppList(query)
                 .onStart {
                     Timber.v("Start loading app list")
                     _uiState.update {
@@ -157,72 +146,11 @@ class AppListViewModel @Inject constructor(
                 .collect { list ->
                     Timber.v("App list changed, size ${list.size}")
                     refreshServiceJobs.cancelChildren()
-                    val preference = userDataRepository.userData.first()
-                    val sortType = preference.appSorting
-                    val sortOrder = preference.appSortingOrder
-                    val appController = getCurrentAppController()
-                    appController.refreshRunningAppList()
-                    if (preference.showServiceInfo) {
-                        val serviceController = getCurrentServiceController()
-                        serviceController.load()
-                    }
-                    appStateList = if (preference.showSystemApps) {
-                        list
-                    } else {
-                        list.filterNot { it.isSystem }
-                    }.filter {
-                        it.label.contains(currentSearchKeyword, true) ||
-                            it.packageName.contains(currentSearchKeyword, true)
-                    }.map { installedApp ->
-                        val packageName = installedApp.packageName
-                        AppItem(
-                            label = installedApp.label,
-                            packageName = packageName,
-                            versionName = installedApp.versionName,
-                            versionCode = installedApp.versionCode,
-                            isSystem = ApplicationUtil.isSystemApp(pm, packageName),
-                            isRunning = appController.isAppRunning(packageName),
-                            isEnabled = installedApp.isEnabled,
-                            firstInstallTime = installedApp.firstInstallTime,
-                            lastUpdateTime = installedApp.lastUpdateTime,
-                            appServiceStatus = appStateCache.getOrNull(packageName)
-                                ?.toAppServiceStatus(),
-                            packageInfo = pm.getPackageInfoCompat(packageName, 0),
-                        )
-                    }.sortedWith(
-                        appComparator(sortType, sortOrder),
-                    ).let { sortedList ->
-                        if (preference.showRunningAppsOnTop) {
-                            sortedList.sortedByDescending { it.isRunning }
-                        } else {
-                            sortedList
-                        }
-                    }
-                        .also { appList = it }
-                        .toMutableStateList()
-                    withContext(mainDispatcher) {
-                        _appListFlow.value = appStateList
-                        _uiState.emit(Success(isRefreshing = false))
-                    }
+                    appList = list
+                    appStateList = list.toMutableStateList()
+                    _appListFlow.value = appStateList
+                    _uiState.emit(Success(isRefreshing = false))
                 }
-        }
-    }
-
-    private suspend fun getCurrentAppController(): IAppController {
-        val controllerType = userDataRepository.userData.first().controllerType
-        return if (controllerType == SHIZUKU) {
-            shizukuAppController
-        } else {
-            rootApiAppController
-        }
-    }
-
-    private suspend fun getCurrentServiceController(): IServiceController {
-        val controllerType = userDataRepository.userData.first().controllerType
-        return if (controllerType == SHIZUKU) {
-            shizukuServiceController
-        } else {
-            rootApiServiceController
         }
     }
 
@@ -234,11 +162,6 @@ class AppListViewModel @Inject constructor(
                     loadData()
                 }
             }
-    }
-
-    fun filter(keyword: String) {
-        currentSearchKeyword = keyword
-        loadData()
     }
 
     private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =
@@ -333,26 +256,6 @@ class AppListViewModel @Inject constructor(
         }
     }
 
-    fun updateServiceStatus(packageName: String, index: Int) {
-        viewModelScope.launch(context = refreshServiceJobs + ioDispatcher + exceptionHandler) {
-            val userData = userDataRepository.userData.first()
-            if (!userData.showServiceInfo) {
-                return@launch
-            }
-            val oldItem = appStateList.getOrNull(index) ?: return@launch
-            if (oldItem.appServiceStatus != null) {
-                // Don't get service info again
-                return@launch
-            }
-            Timber.v("Get service status for $packageName")
-            val status = appStateCache.get(packageName)
-            val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
-            withContext(mainDispatcher) {
-                appStateList[index] = newItem
-            }
-        }
-    }
-
     fun dismissErrorDialog() = viewModelScope.launch {
         _errorState.emit(null)
     }
@@ -360,7 +263,7 @@ class AppListViewModel @Inject constructor(
     fun clearData(packageName: String) = viewModelScope.launch {
         val action: () -> Unit = {
             viewModelScope.launch(ioDispatcher + exceptionHandler) {
-                getCurrentAppController().clearData(packageName)
+                getAppController().first().clearData(packageName)
                 analyticsHelper.logClearDataClicked()
             }
         }
@@ -371,14 +274,14 @@ class AppListViewModel @Inject constructor(
             ?: packageName
         val data = WarningDialogData(
             title = label,
-            message = R.string.feature_applist_do_you_want_to_clear_data_of_this_app,
+            message = uiString.core_ui_do_you_want_to_clear_data_of_this_app,
             onPositiveButtonClicked = action,
         )
         _warningState.emit(data)
     }
 
     fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        getCurrentAppController().clearCache(packageName)
+        getAppController().first().clearCache(packageName)
         analyticsHelper.logClearCacheClicked()
     }
 
@@ -387,7 +290,7 @@ class AppListViewModel @Inject constructor(
             viewModelScope.launch(ioDispatcher + exceptionHandler) {
                 val app = ApplicationUtil.getApplicationComponents(pm, packageName)
                 val versionCode = app.getVersionCode()
-                getCurrentAppController().uninstallApp(packageName, versionCode)
+                getAppController().first().uninstallApp(packageName, versionCode)
                 notifyAppUpdated(packageName)
                 analyticsHelper.logUninstallAppClicked()
             }
@@ -399,14 +302,14 @@ class AppListViewModel @Inject constructor(
             ?: packageName
         val data = WarningDialogData(
             title = label,
-            message = R.string.feature_applist_do_you_want_to_uninstall_this_app,
+            message = uiString.core_ui_do_you_want_to_uninstall_this_app,
             onPositiveButtonClicked = action,
         )
         _warningState.emit(data)
     }
 
     fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        val appController = getCurrentAppController()
+        val appController = getAppController().first()
         appController.forceStop(packageName)
         appController.refreshRunningAppList()
         val item = appList.find { it.packageName == packageName }
@@ -423,13 +326,13 @@ class AppListViewModel @Inject constructor(
     }
 
     fun enable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        getCurrentAppController().enable(packageName)
+        getAppController().first().enable(packageName)
         notifyAppUpdated(packageName)
         analyticsHelper.logEnableAppClicked()
     }
 
     fun disable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        getCurrentAppController().disable(packageName)
+        getAppController().first().disable(packageName)
         notifyAppUpdated(packageName)
         analyticsHelper.logDisableAppClicked()
     }
@@ -446,21 +349,8 @@ class AppListViewModel @Inject constructor(
     }
 }
 
-private fun AppState.toAppServiceStatus() = AppServiceStatus(
-    packageName = packageName,
-    running = running,
-    blocked = blocked,
-    total = total,
-)
-
 sealed interface AppListUiState {
     class Initializing(val processingName: String = "") : AppListUiState
     class Error(val error: UiMessage) : AppListUiState
     data class Success(val isRefreshing: Boolean = false) : AppListUiState
 }
-
-data class WarningDialogData(
-    val title: String,
-    val message: Int,
-    val onPositiveButtonClicked: () -> Unit,
-)

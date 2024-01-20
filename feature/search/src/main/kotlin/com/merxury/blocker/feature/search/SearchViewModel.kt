@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.search
 import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -26,8 +27,11 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
+import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
+import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
@@ -36,17 +40,14 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
-import com.merxury.blocker.core.model.preference.AppSorting
-import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
-import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
-import com.merxury.blocker.core.model.preference.AppSorting.NAME
-import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.data.WarningDialogData
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
 import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
 import com.merxury.blocker.feature.search.LocalSearchUiState.Loading
@@ -61,15 +62,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -77,8 +79,11 @@ class SearchViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val initializeDatabase: InitializeDatabaseUseCase,
+    private val searchAppList: SearchAppListUseCase,
     private val searchRule: SearchGeneralRuleUseCase,
+    private val getAppController: GetAppControllerUseCase,
     private val userDataRepository: UserDataRepository,
+    private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _searchUiState = MutableStateFlow(SearchUiState())
@@ -89,6 +94,8 @@ class SearchViewModel @Inject constructor(
     private var filterComponentList: MutableList<FilteredComponent> = mutableListOf()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
+    private val _warningState = MutableStateFlow<WarningDialogData?>(null)
+    val warningState = _warningState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
@@ -139,26 +146,7 @@ class SearchViewModel @Inject constructor(
             return
         }
         _searchUiState.update { it.copy(keyword = keyword) }
-        val searchAppFlow = appRepository.searchInstalledApplications(keyword)
-            .combineTransform(userDataRepository.userData) { list, userSetting ->
-                val showSystemApps = userSetting.showSystemApps
-                val sorting = userSetting.appSorting
-                val order = userSetting.appSortingOrder
-                val filteredList = list.filter { app ->
-                    if (showSystemApps) {
-                        true
-                    } else {
-                        !app.isSystem
-                    }
-                }.sortedWith(
-                    appComparator(sorting, order),
-                ).map { app ->
-                    val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
-                    app.toAppItem(packageInfo)
-                }
-                emit(filteredList)
-            }
-
+        val searchAppFlow = searchAppList(keyword)
         val searchComponentFlow: Flow<List<FilteredComponent>> =
             componentRepository.searchComponent(keyword)
                 .map { list ->
@@ -234,24 +222,6 @@ class SearchViewModel @Inject constructor(
                 }
         }
     }
-
-    private fun appComparator(
-        sortType: AppSorting,
-        sortOrder: SortingOrder,
-    ): Comparator<InstalledApp> =
-        if (sortOrder == SortingOrder.ASCENDING) {
-            when (sortType) {
-                NAME -> compareBy { it.label.lowercase() }
-                FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
-                LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
-            }
-        } else {
-            when (sortType) {
-                NAME -> compareByDescending { it.label.lowercase() }
-                FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
-                LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
-            }
-        }
 
     fun controlAllSelectedComponents(enable: Boolean, action: (Int, Int) -> Unit) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -336,6 +306,89 @@ class SearchViewModel @Inject constructor(
             it.copy(selectedComponentList = list)
         }
         return list
+    }
+    fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        getAppController().first()
+            .clearCache(packageName)
+        analyticsHelper.logClearCacheClicked()
+    }
+
+    fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        val action: () -> Unit = {
+            viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                getAppController().first().clearData(packageName)
+                analyticsHelper.logClearDataClicked()
+            }
+        }
+        val label = appRepository.getApplication(packageName)
+            .flowOn(ioDispatcher)
+            .first()
+            ?.label
+            ?: packageName
+        val data = WarningDialogData(
+            title = label,
+            message = uiString.core_ui_do_you_want_to_clear_data_of_this_app,
+            onPositiveButtonClicked = action,
+        )
+        _warningState.emit(data)
+    }
+
+    fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        getAppController().first()
+            .forceStop(packageName)
+        analyticsHelper.logForceStopClicked()
+    }
+
+    fun uninstall(packageName: String) = viewModelScope.launch {
+        val action: () -> Unit = {
+            viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                val app = ApplicationUtil.getApplicationComponents(pm, packageName)
+                val versionCode = app.getVersionCode()
+                getAppController().first().uninstallApp(packageName, versionCode)
+                notifyAppUpdated(packageName)
+                analyticsHelper.logUninstallAppClicked()
+            }
+        }
+        val label = appRepository.getApplication(packageName)
+            .flowOn(ioDispatcher)
+            .first()
+            ?.label
+            ?: packageName
+        val data = WarningDialogData(
+            title = label,
+            message = uiString.core_ui_do_you_want_to_uninstall_this_app,
+            onPositiveButtonClicked = action,
+        )
+        _warningState.emit(data)
+    }
+
+    fun enable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        getAppController().first()
+            .enable(packageName)
+        notifyAppUpdated(packageName)
+        analyticsHelper.logEnableAppClicked()
+    }
+
+    fun disable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        getAppController().first()
+            .disable(packageName)
+        notifyAppUpdated(packageName)
+        analyticsHelper.logDisableAppClicked()
+    }
+
+    private suspend fun notifyAppUpdated(packageName: String) {
+        appRepository.updateApplication(packageName)
+            .takeWhile { it !is Result.Success }
+            .collect {
+                if (it is Result.Error) {
+                    _errorState.emit(it.exception.toErrorMessage())
+                }
+            }
+        Timber.v("App updated: $packageName")
+    }
+
+    fun dismissWarningDialog() = viewModelScope.launch {
+        _warningState.emit(null)
     }
 }
 
