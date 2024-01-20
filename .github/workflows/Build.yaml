@@ -202,6 +202,11 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls /dev/kvm
 
+      - name: Check available space
+        run: |
+          echo "Free space:"
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
