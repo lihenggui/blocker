@@ -113,7 +113,6 @@ class SearchAppListUseCase @Inject constructor(
                     val serviceStatus = appStateCache.get(it.packageName)
                     it.copy(appServiceStatus = serviceStatus)
                 }
-                Timber.e("getServiceStatus took ${System.currentTimeMillis() - startTime} ms")
                 emit(listWithServiceInfo)
             }
         }
