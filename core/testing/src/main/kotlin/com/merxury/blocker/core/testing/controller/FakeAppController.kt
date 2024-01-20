@@ -18,7 +18,9 @@ package com.merxury.blocker.core.testing.controller
 
 import com.merxury.blocker.core.controllers.IAppController
 
-class FakeAppController(private val rootGranted: Boolean) : IAppController {
+class FakeAppController(private val rootGranted: Boolean = false) : IAppController {
+
+    private val runningApps = mutableSetOf<String>()
     override suspend fun disable(packageName: String): Boolean {
         return rootGranted
     }
@@ -44,7 +46,11 @@ class FakeAppController(private val rootGranted: Boolean) : IAppController {
     }
 
     override fun isAppRunning(packageName: String): Boolean {
-        return rootGranted
+        return runningApps.contains(packageName)
+    }
+
+    fun setRunningApps(vararg packageName: String) {
+        runningApps.addAll(packageName)
     }
 
     override suspend fun refreshRunningAppList() = Unit

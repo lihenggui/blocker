@@ -88,7 +88,6 @@ fun AppListRoute(
         onUninstallClick = viewModel::uninstall,
         onEnableClick = viewModel::enable,
         onDisableClick = viewModel::disable,
-        onServiceStateUpdate = viewModel::updateServiceStatus,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         navigateTooAppSortScreen = navigateTooAppSortScreen,
@@ -128,7 +127,6 @@ fun AppListScreen(
     onUninstallClick: (String) -> Unit = {},
     onEnableClick: (String) -> Unit = {},
     onDisableClick: (String) -> Unit = {},
-    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
     navigateTooAppSortScreen: () -> Unit = {},
     navigateToSettings: () -> Unit = {},
     navigateToSupportAndFeedback: () -> Unit = {},
@@ -189,7 +187,6 @@ fun AppListScreen(
                                 onUninstallClick = onUninstallClick,
                                 onEnableClick = onEnableClick,
                                 onDisableClick = onDisableClick,
-                                onServiceStateUpdate = onServiceStateUpdate,
                                 modifier = modifier.testTag(appListTestTag),
                             )
                         }

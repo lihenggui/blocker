@@ -53,7 +53,7 @@ import kotlin.test.assertTrue
  * is faked.
  */
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterialNavigationApi::class)
-class BlockerAppStateTest {
+class BlockerAppServiceStatusTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()

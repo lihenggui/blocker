@@ -90,4 +90,6 @@
     <string name="core_ui_disabling_component_hint">Отключение компонентов, пожалуйста, подождите… (%1$d/%2$d)</string>
     <string name="core_ui_enabling_component_hint">Включение компонентов, пожалуйста, подождите… (%1$d/%2$d)</string>
     <string name="core_ui_operation_completed">Операция завершена</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
+    <string name="core_ui_do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
 </resources>

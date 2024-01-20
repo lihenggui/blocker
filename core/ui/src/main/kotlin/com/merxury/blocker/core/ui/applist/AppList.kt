@@ -30,7 +30,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -56,7 +55,6 @@ fun AppList(
     onUninstallClick: (String) -> Unit = {},
     onEnableClick: (String) -> Unit = {},
     onDisableClick: (String) -> Unit = {},
-    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
@@ -68,7 +66,7 @@ fun AppList(
             modifier = modifier,
             state = listState,
         ) {
-            itemsIndexed(appList, key = { _, item -> item.packageName }) { index, item ->
+            itemsIndexed(appList, key = { _, item -> item.packageName }) { _, item ->
                 AppListItem(
                     label = item.label,
                     packageName = item.packageName,
@@ -86,9 +84,6 @@ fun AppList(
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
                 )
-                LaunchedEffect(true) {
-                    onServiceStateUpdate(item.packageName, index)
-                }
             }
             item {
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))

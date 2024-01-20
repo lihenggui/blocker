@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.test
+package com.merxury.blocker.core.testing.data
 
 import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.model.data.AppServiceStatus
 import javax.inject.Inject
 
-internal class TestAppStateCache @Inject constructor() : IAppStateCache {
+class TestAppStateCache @Inject constructor() : IAppStateCache {
+    private val cache = mutableMapOf<String, AppServiceStatus>()
     override fun getOrNull(packageName: String): AppServiceStatus? {
-        return null
+        return cache[packageName]
     }
 
     override suspend fun get(packageName: String): AppServiceStatus {
-        return AppServiceStatus(packageName = packageName)
+        return cache[packageName] ?: AppServiceStatus(packageName = packageName)
+    }
+
+    fun putAppState(vararg appServiceStatus: AppServiceStatus) {
+        appServiceStatus.forEach {
+            cache[it.packageName] = it
+        }
     }
 }
