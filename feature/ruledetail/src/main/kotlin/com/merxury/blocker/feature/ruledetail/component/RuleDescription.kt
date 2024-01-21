@@ -63,10 +63,10 @@ fun RuleDescription(
             InfoItemHeading(
                 heading = stringResource(id = string.feature_ruledetail_safe_to_block),
                 description = listOf(
-                    if (rule.safeToBlock == true) {
-                        stringResource(id = string.feature_ruledetail_yes)
-                    } else {
-                        stringResource(id = string.feature_ruledetail_no)
+                    when (rule.safeToBlock) {
+                        null -> stringResource(id = string.feature_ruledetail_unknown)
+                        true -> stringResource(id = string.feature_ruledetail_yes)
+                        false -> stringResource(id = string.feature_ruledetail_no)
                     },
                 ),
             )
