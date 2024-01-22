@@ -28,6 +28,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(libs.coil.kt.compose)
+    implementation(libs.compose.markdown)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)

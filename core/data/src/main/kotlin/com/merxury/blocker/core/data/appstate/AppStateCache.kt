@@ -24,6 +24,7 @@ import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.PermissionUtils
@@ -38,15 +39,15 @@ internal class AppStateCache @Inject constructor(
     @RootApiServiceControl private val rootServiceController: IServiceController,
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
 ) : IAppStateCache {
-    private val cache = mutableMapOf<String, AppState>()
+    private val cache = mutableMapOf<String, AppServiceStatus>()
 
-    override fun getOrNull(packageName: String): AppState? {
+    override fun getOrNull(packageName: String): AppServiceStatus? {
         return cache[packageName]
     }
 
-    override suspend fun get(packageName: String): AppState {
+    override suspend fun get(packageName: String): AppServiceStatus {
         val cachedResult = cache[packageName]
-        val result: AppState
+        val result: AppServiceStatus
         if (cachedResult == null) {
             result = getServiceStatus(packageName)
             cache[packageName] = result
@@ -56,7 +57,7 @@ internal class AppStateCache @Inject constructor(
         return result
     }
 
-    private suspend fun getServiceStatus(packageName: String): AppState {
+    private suspend fun getServiceStatus(packageName: String): AppServiceStatus {
         val controllerType = userDataRepository.userData.first().controllerType
         val services = ApplicationUtil.getServiceList(packageManager, packageName)
         var running = 0
@@ -80,11 +81,11 @@ internal class AppStateCache @Inject constructor(
                 running++
             }
         }
-        return AppState(
-            running,
-            blocked,
-            services.count(),
-            packageName,
+        return AppServiceStatus(
+            packageName = packageName,
+            running = running,
+            blocked = blocked,
+            total = services.count(),
         )
     }
 }

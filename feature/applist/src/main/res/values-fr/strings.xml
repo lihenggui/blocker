@@ -2,8 +2,6 @@
 <resources>
     <string name="feature_applist_sort_menu">Menu Trier</string>
     <string name="feature_applist_settings">Paramètres</string>
-    <string name="feature_applist_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
-    <string name="feature_applist_do_you_want_to_uninstall_this_app">Voulez-vous désinstaller cette application ?</string>
     <string name="feature_applist_support_and_feedback">Assistance et commentaires</string>
     <string name="feature_applist_no_applications_to_display">Aucune application à afficher</string>
 </resources>

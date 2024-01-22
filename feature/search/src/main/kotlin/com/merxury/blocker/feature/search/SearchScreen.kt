@@ -40,19 +40,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
+import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
@@ -80,7 +81,6 @@ import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
-import com.merxury.blocker.feature.applist.AppListViewModel
 import com.merxury.blocker.feature.search.LocalSearchUiState.Error
 import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
 import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
@@ -101,13 +101,12 @@ fun SearchRoute(
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
-    appListViewModel: AppListViewModel = hiltViewModel(),
 ) {
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val appList = appListViewModel.appListFlow.collectAsState()
     val selectUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val warningState by viewModel.warningState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     SearchScreen(
@@ -116,11 +115,9 @@ fun SearchRoute(
         switchTab = viewModel::switchTab,
         onSearchTriggered = { keyword ->
             viewModel.search(keyword)
-            appListViewModel.filter(keyword)
         },
         onSearchQueryChanged = { keyword ->
             viewModel.search(keyword)
-            appListViewModel.filter(keyword)
         },
         onSelectAll = viewModel::selectAll,
         onDeselect = viewModel::deselectItem,
@@ -135,20 +132,26 @@ fun SearchRoute(
         onSelect = viewModel::selectItem,
         navigateToAppDetail = navigateToAppDetail,
         navigateToRuleDetail = navigateToRuleDetail,
-        appList = appList.value,
-        onClearCacheClick = appListViewModel::clearCache,
-        onClearDataClick = appListViewModel::clearData,
-        onForceStopClick = appListViewModel::forceStop,
-        onUninstallClick = appListViewModel::uninstall,
-        onEnableClick = appListViewModel::enable,
-        onDisableClick = appListViewModel::disable,
-        onServiceStateUpdate = appListViewModel::updateServiceStatus,
+        onClearCacheClick = viewModel::clearCache,
+        onClearDataClick = viewModel::clearData,
+        onForceStopClick = viewModel::forceStop,
+        onUninstallClick = viewModel::uninstall,
+        onEnableClick = viewModel::enable,
+        onDisableClick = viewModel::disable,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
             title = errorState?.title.orEmpty(),
             text = errorState?.content.orEmpty(),
             onDismissRequest = viewModel::dismissAlert,
+        )
+    }
+    warningState?.let {
+        BlockerWarningAlertDialog(
+            title = it.title,
+            text = stringResource(id = it.message),
+            onDismissRequest = viewModel::dismissWarningDialog,
+            onConfirmRequest = it.onPositiveButtonClicked,
         )
     }
 }
@@ -230,14 +233,12 @@ fun SearchScreen(
     onDeselect: (FilteredComponent) -> Unit = {},
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit = { },
-    appList: List<AppItem> = emptyList(),
     onClearCacheClick: (String) -> Unit = { },
     onClearDataClick: (String) -> Unit = { },
     onForceStopClick: (String) -> Unit = { },
     onUninstallClick: (String) -> Unit = { },
     onEnableClick: (String) -> Unit = { },
     onDisableClick: (String) -> Unit = { },
-    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     Scaffold(
         topBar = {
@@ -281,14 +282,13 @@ fun SearchScreen(
                     onDeselect = onDeselect,
                     navigateToAppDetail = navigateToAppDetail,
                     navigateToRuleDetail = navigateToRuleDetail,
-                    appList = appList,
+                    appList = localSearchUiState.appTabUiState.list,
                     onClearCacheClick = onClearCacheClick,
                     onClearDataClick = onClearDataClick,
                     onForceStopClick = onForceStopClick,
                     onUninstallClick = onUninstallClick,
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
-                    onServiceStateUpdate = onServiceStateUpdate,
                 )
             }
         }
@@ -403,7 +403,6 @@ fun AppSearchResultContent(
     onUninstallClick: (String) -> Unit = { },
     onEnableClick: (String) -> Unit = { },
     onDisableClick: (String) -> Unit = { },
-    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     if (appList.isEmpty()) {
         EmptyScreen(textRes = string.feature_search_no_search_result)
@@ -422,7 +421,6 @@ fun AppSearchResultContent(
         onUninstallClick = onUninstallClick,
         onEnableClick = onEnableClick,
         onDisableClick = onDisableClick,
-        onServiceStateUpdate = onServiceStateUpdate,
         modifier = modifier,
     )
 }
@@ -464,7 +462,6 @@ fun SearchScreenSelectedAppPreview() {
                         list = appList,
                     ),
                 ),
-                appList = appList,
                 tabState = tabState[0],
                 searchUiState = SearchUiState(
                     keyword = keyword,

@@ -31,6 +31,8 @@ dependencies {
     api(projects.core.data)
     api(projects.core.model)
 
+    compileOnly(libs.robolectric.shadows)
+
     debugApi(libs.androidx.compose.ui.testManifest)
 
     implementation(libs.accompanist.testharness)
@@ -39,7 +41,6 @@ dependencies {
     implementation(libs.hilt.android.testing)
     implementation(libs.kotlinx.coroutines.test)
     implementation(libs.kotlinx.datetime)
-    implementation(libs.robolectric.shadows)
     implementation(projects.core.common)
     implementation(projects.core.componentController)
     implementation(projects.core.designsystem)

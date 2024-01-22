@@ -36,6 +36,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.feature.ruledetail.R
 import com.merxury.blocker.feature.ruledetail.R.string
+import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
 fun RuleDescription(
@@ -49,14 +50,23 @@ fun RuleDescription(
                 .padding(16.dp)
                 .testTag("ruleDetail:description"),
         ) {
-            InfoItemHeading(description = listOf(rule.description))
+            MarkdownText(
+                modifier = Modifier.padding(vertical = 6.dp),
+                markdown = if (rule.description.isNullOrBlank()) {
+                    stringResource(id = string.feature_ruledetail_no_description)
+                } else {
+                    rule.description.orEmpty()
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                isTextSelectable = true,
+            )
             InfoItemHeading(
                 heading = stringResource(id = string.feature_ruledetail_safe_to_block),
                 description = listOf(
-                    if (rule.safeToBlock == true) {
-                        stringResource(id = string.feature_ruledetail_yes)
-                    } else {
-                        stringResource(id = string.feature_ruledetail_no)
+                    when (rule.safeToBlock) {
+                        null -> stringResource(id = string.feature_ruledetail_unknown)
+                        true -> stringResource(id = string.feature_ruledetail_yes)
+                        false -> stringResource(id = string.feature_ruledetail_no)
                     },
                 ),
             )

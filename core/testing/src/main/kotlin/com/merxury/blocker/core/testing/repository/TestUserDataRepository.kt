@@ -21,7 +21,6 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
@@ -30,7 +29,7 @@ import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
-val emptyUserData = UserPreferenceData(
+val defaultUserData = UserPreferenceData(
     darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
     useDynamicColor = false,
     controllerType = ControllerType.IFW,
@@ -42,21 +41,22 @@ val emptyUserData = UserPreferenceData(
     showServiceInfo = false,
     appSorting = AppSorting.NAME,
     appSortingOrder = SortingOrder.ASCENDING,
-    componentShowPriority = ComponentShowPriority.ENABLED_COMPONENTS_FIRST,
+    componentShowPriority = ComponentShowPriority.NONE,
     componentSortingOrder = SortingOrder.ASCENDING,
-    componentSorting = COMPONENT_NAME,
+    componentSorting = ComponentSorting.COMPONENT_NAME,
     isFirstTimeInitializationCompleted = false,
     showRunningAppsOnTop = false,
     appDisplayLanguage = "en-US",
     libDisplayLanguage = "en-US",
 )
+
 class TestUserDataRepository : UserDataRepository {
 
     /**
      * The backing hot flow for the list of UserPreferenceData for testing.
      */
     private val _userData = MutableSharedFlow<UserPreferenceData>(replay = 1, onBufferOverflow = DROP_OLDEST)
-    private val currentUserData get() = _userData.replayCache.firstOrNull() ?: emptyUserData
+    private val currentUserData get() = _userData.replayCache.firstOrNull() ?: defaultUserData
 
     override val userData: Flow<UserPreferenceData> = _userData
 

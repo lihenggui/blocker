@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.appstate
+package com.merxury.blocker.core.ui.data
 
-data class AppState(
-    var running: Int = 0,
-    var blocked: Int = 0,
-    var total: Int = 0,
-    var packageName: String,
+data class WarningDialogData(
+    val title: String,
+    val message: Int,
+    val onPositiveButtonClicked: () -> Unit,
 )

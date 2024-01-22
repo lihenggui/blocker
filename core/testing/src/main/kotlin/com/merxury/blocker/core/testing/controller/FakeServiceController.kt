@@ -18,7 +18,7 @@ package com.merxury.blocker.core.testing.controller
 
 import com.merxury.blocker.core.controllers.IServiceController
 
-class TestServiceController : IServiceController {
+class FakeServiceController : IServiceController {
     override suspend fun load(): Boolean {
         return true
     }

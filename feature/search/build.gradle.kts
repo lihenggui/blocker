@@ -27,7 +27,6 @@ dependencies {
     implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
-    implementation(projects.feature.applist)
     implementation(libs.coil.kt.compose)
 
     testImplementation(libs.hilt.android.testing)
