@@ -218,7 +218,9 @@ internal class RootServer : RootService() {
 
         override fun isServiceRunning(packageName: String?, serviceName: String?): Boolean {
             return serviceList.any {
-                it.service.packageName == packageName && it.service.className == serviceName
+                it.service.packageName == packageName &&
+                    it.service.className == serviceName &&
+                    it.started
             }
         }
 
