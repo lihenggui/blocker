@@ -23,6 +23,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
+import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
@@ -112,6 +113,11 @@ class AppDetailViewModelTest {
             ruleBaseFolder = "user-generated-rule",
             ioDispatcher = dispatcher,
         )
+        val getServiceControllerUseCase = GetServiceControllerUseCase(
+            userDataRepository = userDataRepository,
+            rootServiceController = serviceController,
+            shizukuServiceController = serviceController,
+        )
         val searchMatchedRuleInAppUseCase = SearchMatchedRuleInAppUseCase(
             componentRepository = componentRepository,
             componentDetailRepository = componentDetailRepository,
@@ -127,8 +133,7 @@ class AppDetailViewModelTest {
             appRepository = appRepository,
             componentRepository = componentRepository,
             componentDetailRepository = componentDetailRepository,
-            shizukuServiceController = serviceController,
-            rootApiServiceController = serviceController,
+            getServiceController = getServiceControllerUseCase,
             analyticsHelper = analyticsHelper,
             workerManager = WorkManager.getInstance(context),
             searchMatchedRuleInAppUseCase = searchMatchedRuleInAppUseCase,
