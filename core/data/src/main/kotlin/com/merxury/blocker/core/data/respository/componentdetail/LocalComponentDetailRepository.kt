@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-internal class ComponentDetailRepository @Inject constructor(
+internal class LocalComponentDetailRepository @Inject constructor(
     private val localComponentDetailRepository: LocalComponentDetailDataSource,
     private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
