@@ -24,6 +24,7 @@ import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
+import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -42,17 +43,19 @@ class SearchComponentsUseCaseTest {
     private val getServiceControllerUseCase =
         GetServiceControllerUseCase(userDataRepository, serviceController, serviceController)
     private val searchComponentsUseCase = SearchComponentsUseCase(
+        userDataRepository,
         appRepository,
         componentRepository,
         componentDetailRepository,
         getServiceControllerUseCase,
-        mainDispatcherRule.testDispatcher
+        mainDispatcherRule.testDispatcher,
     )
 
     @Test
     fun givenEmptyList_whenSearchComponents_thenEmptyResult() = runTest {
-        appRepository.sendAppList(listOf())
-        componentRepository.sendComponentList(listOf())
+        userDataRepository.sendUserData(defaultUserData)
+        appRepository.sendAppList(emptyList())
+        componentRepository.sendComponentList(emptyList())
         searchComponentsUseCase("com.merxury.blocker", "test").test {
             assertEquals(ComponentSearchResult(app = null), awaitItem())
         }
