@@ -73,7 +73,12 @@ AOSP中关于此限制的实现：[frameworks/base/services/core/java/com/androi
 要运行这些测试，请运行“verifyRoborazziFossDebug”或`recordRoborazziFossDebug`任务。
 请注意，屏幕截图是在CI上记录的，使用Linux等平台可能会生成略有不同的图像，从而导致测试失败。
 
-## UI
+
+## 架构
+Blocker应用架构参照了[Now in Android的软件架构](https://github.com/android/nowinandroid/blob/main/docs/ArchitectureLearningJourney.md)， 它也同时遵循了[官方架构指南](https://developer.android.com/topic/architecture)。   
+关于模块化设计，请参照这篇文章： [Modularization Learning Journey](https://github.com/android/nowinandroid/blob/main/docs/ModularizationLearningJourney.md)。  
+
+## 用户界面
 
 本应用遵循[Material 3 界面规范](https://m3.material.io/)开发，并完全使用Jetpack
 Compose构建UI元素。你可以从 [Figma](https://www.figma.com/file/T903MNmXtahDVf1yoOgXoI/Blocker)
