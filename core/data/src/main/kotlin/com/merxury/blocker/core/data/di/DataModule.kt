@@ -22,8 +22,8 @@ import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.LocalComponentDetailRepository
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSource
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.LocalGeneralRuleDataSource
@@ -62,7 +62,7 @@ abstract class DataModule {
     @Binds
     internal abstract fun bindsComponentDetailRepository(
         componentDetailRepository: LocalComponentDetailRepository,
-    ): IComponentDetailRepository
+    ): ComponentDetailRepository
 
     @Binds
     internal abstract fun bindsNetworkMonitor(

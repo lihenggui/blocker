@@ -33,7 +33,7 @@ internal class LocalComponentDetailRepository @Inject constructor(
     private val localComponentDetailRepository: LocalComponentDetailDataSource,
     private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) : IComponentDetailRepository {
+) : ComponentDetailRepository {
 
     override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> =
         userGeneratedDataSource.getByPackageName(packageName)

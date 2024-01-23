@@ -40,7 +40,7 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IServiceController
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -134,7 +134,7 @@ class AppDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
-    private val componentDetailRepository: IComponentDetailRepository,
+    private val componentDetailRepository: ComponentDetailRepository,
     private val getServiceController: GetServiceControllerUseCase,
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
     private val zipAppRuleUseCase: ZipAppRuleUseCase,

@@ -19,7 +19,7 @@ package com.merxury.blocker.core.domain.components
 import com.merxury.blocker.core.controllers.IServiceController
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
@@ -41,7 +41,7 @@ import javax.inject.Inject
 class SearchComponentsUseCase @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
-    private val componentDetailRepository: IComponentDetailRepository,
+    private val componentDetailRepository: ComponentDetailRepository,
     private val getServiceController: GetServiceControllerUseCase,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) {
