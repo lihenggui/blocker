@@ -114,7 +114,7 @@ class SearchComponentsUseCase @Inject constructor(
         }
     }
 
-    private suspend fun List<ComponentInfo>.getServiceStatus(serviceController: IServiceController): List<ComponentInfo> {
+    private fun List<ComponentInfo>.getServiceStatus(serviceController: IServiceController): List<ComponentInfo> {
         return map {
             it.copy(isRunning = serviceController.isServiceRunning(it.packageName, it.name))
         }
