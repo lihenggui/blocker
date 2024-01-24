@@ -25,20 +25,20 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class TestComponentDetailRepository : ComponentDetailRepository {
-    private val componentDetail: MutableSharedFlow<ComponentDetail> =
+    private val componentDetail: MutableSharedFlow<List<ComponentDetail>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
     override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flowOf(false)
 
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
-            it.takeIf { componentDetail -> componentDetail.name == name }
+            it.find { componentDetail -> componentDetail.name == name }
         }
     }
 
     override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
-            it.takeIf { componentDetail -> componentDetail.name == name }
+            it.find { componentDetail -> componentDetail.name == name }
         }
     }
 
@@ -47,7 +47,7 @@ class TestComponentDetailRepository : ComponentDetailRepository {
     override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
         flowOf(ComponentDetail(""))
 
-    fun sendComponentDetail(componentDetail: ComponentDetail) {
+    fun sendComponentDetail(componentDetail: List<ComponentDetail>) {
         this.componentDetail.tryEmit(componentDetail)
     }
 }

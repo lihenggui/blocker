@@ -59,7 +59,7 @@ class SearchComponentsUseCase @Inject constructor(
     private val getServiceController: GetServiceControllerUseCase,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(packageName: String, keyword: String): Flow<ComponentSearchResult> {
+    operator fun invoke(packageName: String, keyword: String = ""): Flow<ComponentSearchResult> {
         Timber.v("Search components for package $packageName with keyword $keyword")
         return combineTransform(
             userDataRepository.userData,
