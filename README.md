@@ -83,6 +83,10 @@ of certain screens and components. To run these tests, run the `verifyRoborazziF
 `recordRoborazziFossDebug` tasks. Note that screenshots are recorded on CI, using Linux, and other
 platforms might generate slightly different images, making the tests fail.
 
+## Architecture
+The architecture of the Blocker app is based on the architecture described in [Now in Android](https://github.com/android/nowinandroid/blob/main/docs/ArchitectureLearningJourney.md), and it also adheres to the [official architecture guidance](https://developer.android.com/topic/architecture).  
+For information on modularization, please refer to this article: [Modularization Learning Journey](https://github.com/android/nowinandroid/blob/main/docs/ModularizationLearningJourney.md).
+
 ## UI
 The app was designed using [Material 3 guidelines](https://m3.material.io/). Learn more about the design process and obtain the [design files in Figma](https://www.figma.com/file/T903MNmXtahDVf1yoOgXoI/Blocker).
 Huge thanks to our UI designer: [@COPtimer](https://github.com/COPtimer)  

@@ -38,8 +38,6 @@ import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.di.RootApiServiceControl
-import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
@@ -50,6 +48,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
+import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
@@ -62,7 +61,6 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
@@ -137,8 +135,7 @@ class AppDetailViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val componentDetailRepository: IComponentDetailRepository,
-    @RootApiServiceControl private val rootApiServiceController: IServiceController,
-    @ShizukuServiceControl private val shizukuServiceController: IServiceController,
+    private val getServiceController: GetServiceControllerUseCase,
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
     private val zipAppRuleUseCase: ZipAppRuleUseCase,
     private val searchMatchedRuleInAppUseCase: SearchMatchedRuleInAppUseCase,
@@ -405,11 +402,7 @@ class AppDetailViewModel @Inject constructor(
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
         val order = userData.componentSortingOrder
-        val serviceController = if (userData.controllerType == SHIZUKU) {
-            shizukuServiceController
-        } else {
-            rootApiServiceController
-        }
+        val serviceController = getServiceController().first()
         serviceController.load()
         return list.filter { it.name.contains(filterKeyword, ignoreCase = true) }
             .map {
@@ -596,12 +589,7 @@ class AppDetailViewModel @Inject constructor(
 
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val controllerType = userDataRepository.userData.first().controllerType
-            val serviceController = if (controllerType == SHIZUKU) {
-                shizukuServiceController
-            } else {
-                rootApiServiceController
-            }
+            val serviceController = getServiceController().first()
             serviceController.stopService(packageName, componentName)
             analyticsHelper.logStopServiceClicked()
             updateServiceStatus(serviceController, packageName, componentName)
