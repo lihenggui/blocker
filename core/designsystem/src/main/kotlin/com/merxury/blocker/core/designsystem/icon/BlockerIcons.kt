@@ -21,11 +21,15 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.automirrored.outlined.Rule
+import androidx.compose.material.icons.automirrored.outlined.Sort
+import androidx.compose.material.icons.automirrored.rounded.ShortText
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
@@ -45,16 +49,12 @@ import androidx.compose.material.icons.outlined.FilePresent
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.IosShare
-import androidx.compose.material.icons.outlined.List
-import androidx.compose.material.icons.outlined.Rule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
-import androidx.compose.material.icons.outlined.Sort
 import androidx.compose.material.icons.outlined.SubdirectoryArrowRight
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.ShortText
 import androidx.compose.material.icons.rounded.ViewDay
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -71,7 +71,7 @@ import com.merxury.blocker.core.designsystem.R
 object BlockerIcons {
     val Apps = Icons.Outlined.Apps
     val GeneralRule = Icons.Outlined.CollectionsBookmark
-    val Sort = Icons.Outlined.Sort
+    val Sort = Icons.AutoMirrored.Outlined.Sort
     val Clear = Icons.Outlined.Clear
     val SelectAll = Icons.Outlined.SelectAll
     val Inbox = Icons.Outlined.Inbox
@@ -83,11 +83,11 @@ object BlockerIcons {
     val Search = Icons.Outlined.Search
     val BugReport = Icons.Outlined.BugReport
     val Log = Icons.Outlined.FilePresent
-    val List = Icons.Outlined.List
+    val List = Icons.AutoMirrored.Outlined.List
     val AutoFix = Icons.Outlined.AutoFixHigh
-    val Back = Icons.Outlined.ArrowBack
+    val Back = Icons.AutoMirrored.Outlined.ArrowBack
     val Close = Icons.Outlined.Close
-    val Rule = Icons.Outlined.Rule
+    val Rule = Icons.AutoMirrored.Outlined.Rule
     val Deselect = Icons.Outlined.Deselect
     val SubdirectoryArrowRight = Icons.Outlined.SubdirectoryArrowRight
     val Error = Icons.Outlined.Error
@@ -108,7 +108,7 @@ object BlockerIcons {
     val ArrowDropUp = Icons.Rounded.ArrowDropUp
     val Check = Icons.Rounded.Check
     val MoreVert = Icons.Default.MoreVert
-    val ShortText = Icons.Rounded.ShortText
+    val ShortText = Icons.AutoMirrored.Rounded.ShortText
     val ViewDay = Icons.Rounded.ViewDay
 }
 

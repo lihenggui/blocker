@@ -34,6 +34,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                     testInstrumentationRunner =
                         "com.merxury.blocker.core.testing.BlockerTestRunner"
                 }
+                testOptions.animationsDisabled = true
                 configureGradleManagedDevices(this)
             }
             dependencies {

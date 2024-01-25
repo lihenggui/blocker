@@ -69,7 +69,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2.11.1
+        uses: gradle/gradle-build-action@v2.12.0
 
       - name: Accept Android licenses
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
@@ -125,6 +125,13 @@ jobs:
           -x collectFossNonMinifiedBenchmarkBaselineProfile
           -x collectMarketNonMinifiedReleaseBaselineProfile
           -x collectMarketNonMinifiedBenchmarkBaselineProfile
+
+      - name: Upload Foss apk
+        if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Foss-APK
+          path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/release
 
       - name: Upload Market apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
@@ -192,7 +199,7 @@ jobs:
     timeout-minutes: 90
     strategy:
       matrix:
-        api-level: [ 26, 30 ]
+        api-level: [ 26, 34 ]
 
     steps:
       - name: Enable KVM group perms
@@ -218,7 +225,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2.11.1
+        uses: gradle/gradle-build-action@v2.12.0
 
       - name: Build projects before running emulator
         run: ./gradlew packageFossDebug packageFossDebugAndroidTest
