@@ -18,7 +18,7 @@ package com.merxury.blocker.core.domain.detail
 
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -40,7 +40,7 @@ import javax.inject.Inject
  */
 class SearchMatchedRuleInAppUseCase @Inject constructor(
     private val componentRepository: ComponentRepository,
-    private val componentDetailRepository: IComponentDetailRepository,
+    private val componentDetailRepository: ComponentDetailRepository,
     private val ruleRepository: GeneralRuleRepository,
     @FilesDir private val filesDir: File,
     @RuleBaseFolder private val ruleBaseFolder: String,

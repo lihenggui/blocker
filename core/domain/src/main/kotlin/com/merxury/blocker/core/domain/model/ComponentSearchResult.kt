@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.componentdetail
+package com.merxury.blocker.core.domain.model
 
-import com.merxury.blocker.core.model.data.ComponentDetail
-import kotlinx.coroutines.flow.Flow
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 
-interface IComponentDetailRepository {
-
-    fun hasUserGeneratedDetail(packageName: String): Flow<Boolean>
-
-    fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
-
-    fun getLocalComponentDetail(name: String): Flow<ComponentDetail?>
-
-    fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
-
-    fun listenToComponentDetailChanges(): Flow<ComponentDetail>
-}
+data class ComponentSearchResult(
+    val app: AppItem?,
+    val activity: List<ComponentInfo> = listOf(),
+    val service: List<ComponentInfo> = listOf(),
+    val receiver: List<ComponentInfo> = listOf(),
+    val provider: List<ComponentInfo> = listOf(),
+)

@@ -16,53 +16,18 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail
 
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
-internal class ComponentDetailRepository @Inject constructor(
-    private val localComponentDetailRepository: LocalComponentDetailDataSource,
-    private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) : IComponentDetailRepository {
+interface ComponentDetailRepository {
 
-    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> =
-        userGeneratedDataSource.getByPackageName(packageName)
-            .map { it.isNotEmpty() }
+    fun hasUserGeneratedDetail(packageName: String): Flow<Boolean>
 
-    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
-        userGeneratedDataSource.getByComponentName(name)
+    fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
 
-    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        // Priority: user generated > db
-        val userGeneratedData = userGeneratedDataSource.getByComponentName(name)
-            .first()
-        if (userGeneratedData != null) {
-            emit(userGeneratedData)
-            return@flow
-        }
-        val localData = localComponentDetailRepository.getByComponentName(name)
-            .first()
-        if (localData != null) {
-            emit(localData)
-            return@flow
-        }
-        emit(null)
-    }
-        .flowOn(ioDispatcher)
+    fun getLocalComponentDetail(name: String): Flow<ComponentDetail?>
 
-    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> =
-        userGeneratedDataSource.saveComponentData(componentDetail)
+    fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
 
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
-        userGeneratedDataSource.eventFlow
+    fun listenToComponentDetailChanges(): Flow<ComponentDetail>
 }
