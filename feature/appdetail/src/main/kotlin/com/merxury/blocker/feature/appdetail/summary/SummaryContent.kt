@@ -118,7 +118,7 @@ fun AppSummary(
             summary = DateTimeFormatter.ofLocalizedDateTime(LONG)
                 .withLocale(Locale.getDefault())
                 .withZone(ZoneId.systemDefault())
-                .format(lastUpdateTime?.toJavaInstant()),
+                .format((lastUpdateTime ?: Instant.DISTANT_PAST).toJavaInstant()),
         )
         if (dataDir != null) {
             BlockerSettingItem(

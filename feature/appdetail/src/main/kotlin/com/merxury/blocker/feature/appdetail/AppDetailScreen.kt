@@ -90,6 +90,7 @@ import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.ComponentSearchResult
 import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
@@ -115,9 +116,11 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.previewparameter.AppDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.PreviewParameterData.appList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -127,8 +130,6 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
-import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
-import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
@@ -154,9 +155,7 @@ fun AppDetailRoute(
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val appInfoUiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
-    val componentListUiState by viewModel.componentListUiState.collectAsStateWithLifecycle()
     val event by viewModel.eventFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
@@ -164,7 +163,7 @@ fun AppDetailRoute(
     AppDetailScreen(
         appInfoUiState = appInfoUiState,
         topAppBarUiState = topAppBarUiState,
-        componentListUiState = componentListUiState,
+        componentListUiState = appInfoUiState.componentSearchUiState,
         tabState = tabState,
         navigateToComponentDetail = navigateToComponentDetail,
         navigateToRuleDetail = navigateToRuleDetail,
@@ -243,10 +242,10 @@ fun AppDetailRoute(
             viewModel.updateComponentList()
         },
     )
-    if (errorState != null) {
+    if (appInfoUiState.error != null) {
         BlockerErrorAlertDialog(
-            title = errorState?.title.orEmpty(),
-            text = errorState?.content.orEmpty(),
+            title = appInfoUiState.error?.title.orEmpty(),
+            text = appInfoUiState.error?.content.orEmpty(),
             onDismissRequest = viewModel::dismissAlert,
         )
     }
@@ -392,7 +391,7 @@ private fun shareFile(
 fun AppDetailScreen(
     appInfoUiState: AppInfoUiState,
     topAppBarUiState: AppBarUiState,
-    componentListUiState: ComponentListUiState,
+    componentListUiState: Result<ComponentSearchResult>,
     tabState: TabState<AppDetailTabs>,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
@@ -429,59 +428,50 @@ fun AppDetailScreen(
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
 ) {
-    when (appInfoUiState) {
-        is Loading -> {
-            LoadingScreen()
-        }
-
-        is Success -> {
-            AppDetailContent(
-                app = appInfoUiState.appInfo,
-                iconBasedTheming = appInfoUiState.iconBasedTheming,
-                topAppBarUiState = topAppBarUiState,
-                componentListUiState = componentListUiState,
-                tabState = tabState,
-                onBackClick = onBackClick,
-                navigateToComponentDetail = navigateToComponentDetail,
-                navigateToRuleDetail = navigateToRuleDetail,
-                navigateToComponentSortScreen = navigateToComponentSortScreen,
-                onLaunchAppClick = onLaunchAppClick,
-                switchTab = switchTab,
-                modifier = modifier,
-                onSearchTextChanged = onSearchTextChanged,
-                onSearchModeChanged = onSearchModeChanged,
-                enableAllComponentsInPage = enableAllComponentsInPage,
-                blockAllComponentsInPage = blockAllComponentsInPage,
-                onShowAppInfoClick = onShowAppInfoClick,
-                onExportRules = onExportRules,
-                onImportRules = onImportRules,
-                onExportIfw = onExportIfw,
-                onImportIfw = onImportIfw,
-                onResetIfw = onResetIfw,
-                onSwitchClick = onSwitchClick,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-                updateIconBasedThemingState = updateIconBasedThemingState,
-                onSelectAll = onSelectAll,
-                blockAllSelectedComponents = blockAllSelectedComponents,
-                enableAllSelectedComponents = enableAllSelectedComponents,
-                switchSelectedMode = switchSelectedMode,
-                onSelect = onSelect,
-                onDeselect = onDeselect,
-                blockAllInItem = blockAllInItem,
-                enableAllInItem = enableAllInItem,
-                shareAppRule = shareAppRule,
-                shareAllRules = shareAllRules,
-                onRefresh = onRefresh,
-                isLibCheckerInstalled = appInfoUiState.isLibCheckerInstalled,
-                matchedGeneralRuleUiState = appInfoUiState.matchedGeneralRuleUiState,
-            )
-        }
-
-        is AppInfoUiState.Error -> ErrorScreen(appInfoUiState.error)
-    }
+    AppDetailContent(
+        app = appInfoUiState.appInfo,
+        isRefreshing = appInfoUiState.isRefreshing,
+        iconBasedTheming = appInfoUiState.iconBasedTheming,
+        topAppBarUiState = topAppBarUiState,
+        componentListUiState = componentListUiState,
+        tabState = tabState,
+        onBackClick = onBackClick,
+        navigateToComponentDetail = navigateToComponentDetail,
+        navigateToRuleDetail = navigateToRuleDetail,
+        navigateToComponentSortScreen = navigateToComponentSortScreen,
+        onLaunchAppClick = onLaunchAppClick,
+        switchTab = switchTab,
+        modifier = modifier,
+        onSearchTextChanged = onSearchTextChanged,
+        onSearchModeChanged = onSearchModeChanged,
+        enableAllComponentsInPage = enableAllComponentsInPage,
+        blockAllComponentsInPage = blockAllComponentsInPage,
+        onShowAppInfoClick = onShowAppInfoClick,
+        onExportRules = onExportRules,
+        onImportRules = onImportRules,
+        onExportIfw = onExportIfw,
+        onImportIfw = onImportIfw,
+        onResetIfw = onResetIfw,
+        onSwitchClick = onSwitchClick,
+        onStopServiceClick = onStopServiceClick,
+        onLaunchActivityClick = onLaunchActivityClick,
+        onCopyNameClick = onCopyNameClick,
+        onCopyFullNameClick = onCopyFullNameClick,
+        updateIconBasedThemingState = updateIconBasedThemingState,
+        onSelectAll = onSelectAll,
+        blockAllSelectedComponents = blockAllSelectedComponents,
+        enableAllSelectedComponents = enableAllSelectedComponents,
+        switchSelectedMode = switchSelectedMode,
+        onSelect = onSelect,
+        onDeselect = onDeselect,
+        blockAllInItem = blockAllInItem,
+        enableAllInItem = enableAllInItem,
+        shareAppRule = shareAppRule,
+        shareAllRules = shareAllRules,
+        onRefresh = onRefresh,
+        showOpenInLibChecker = appInfoUiState.showOpenInLibChecker,
+        matchedGeneralRuleUiState = appInfoUiState.matchedGeneralRuleUiState,
+    )
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
 
@@ -490,12 +480,13 @@ fun AppDetailContent(
     app: AppItem,
     iconBasedTheming: Bitmap?,
     tabState: TabState<AppDetailTabs>,
-    componentListUiState: ComponentListUiState,
+    componentListUiState: Result<ComponentSearchResult>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
+    isRefreshing: Boolean = false,
     navigateToComponentDetail: (String) -> Unit = {},
     navigateToRuleDetail: (String) -> Unit = {},
     navigateToComponentSortScreen: () -> Unit,
@@ -526,7 +517,7 @@ fun AppDetailContent(
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
-    isLibCheckerInstalled: Boolean = false,
+    showOpenInLibChecker: Boolean = false,
     matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
 ) {
     val listState = rememberLazyListState()
@@ -623,8 +614,8 @@ fun AppDetailContent(
             onSelect = onSelect,
             onDeselect = onDeselect,
             onRefresh = onRefresh,
-            isRefreshing = componentListUiState.isRefreshing,
-            isLibCheckerInstalled = isLibCheckerInstalled,
+            isRefreshing = isRefreshing,
+            showOpenInLibChecker = showOpenInLibChecker,
             matchedGeneralRuleUiState = matchedGeneralRuleUiState,
         )
     }
@@ -769,7 +760,7 @@ private fun TopAppBar(
 fun AppDetailTabContent(
     modifier: Modifier = Modifier,
     app: AppItem,
-    componentListUiState: ComponentListUiState,
+    componentListUiState: Result<ComponentSearchResult>,
     tabState: TabState<AppDetailTabs>,
     switchTab: (AppDetailTabs) -> Unit,
     selectedComponentList: List<ComponentInfo> = emptyList(),
@@ -793,7 +784,7 @@ fun AppDetailTabContent(
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
-    isLibCheckerInstalled: Boolean = false,
+    showOpenInLibChecker: Boolean = false,
     matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -836,7 +827,7 @@ fun AppDetailTabContent(
             when (tabState.items[it]) {
                 Info -> SummaryContent(
                     app = app,
-                    isLibCheckerInstalled = isLibCheckerInstalled,
+                    isLibCheckerInstalled = showOpenInLibChecker,
                     onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
@@ -858,40 +849,50 @@ fun AppDetailTabContent(
                 )
 
                 else -> {
-                    val components = when (tabState.items[it]) {
-                        Receiver -> componentListUiState.receiver
-                        Service -> componentListUiState.service
-                        Activity -> componentListUiState.activity
-                        Provider -> componentListUiState.provider
-                        else -> emptyList()
-                    }
-                    val refreshingState = rememberPullRefreshState(
-                        refreshing = isRefreshing,
-                        onRefresh = onRefresh,
-                    )
-                    Box(
-                        modifier = Modifier
-                            .pullRefresh(refreshingState),
-                    ) {
-                        ComponentList(
-                            components = components,
-                            selectedComponentList = selectedComponentList,
-                            isSelectedMode = isSelectedMode,
-                            navigateToComponentDetail = navigateToComponentDetail,
-                            onSwitchClick = onSwitchClick,
-                            onStopServiceClick = onStopServiceClick,
-                            onLaunchActivityClick = onLaunchActivityClick,
-                            onCopyNameClick = onCopyNameClick,
-                            onCopyFullNameClick = onCopyFullNameClick,
-                            onSelect = onSelect,
-                            onDeselect = onDeselect,
+                    when (componentListUiState) {
+                        is Result.Loading -> LoadingScreen()
+                        is Result.Error -> ErrorScreen(
+                            error = componentListUiState.exception.toErrorMessage(),
                         )
-                        PullRefreshIndicator(
-                            refreshing = isRefreshing,
-                            state = refreshingState,
-                            modifier = Modifier.align(Alignment.TopCenter),
-                            scale = true,
-                        )
+
+                        is Result.Success -> {
+                            val componentList = componentListUiState.data
+                            val components = when (tabState.items[it]) {
+                                Receiver -> componentList.receiver
+                                Service -> componentList.service
+                                Activity -> componentList.activity
+                                Provider -> componentList.provider
+                                else -> emptyList()
+                            }
+                            val refreshingState = rememberPullRefreshState(
+                                refreshing = isRefreshing,
+                                onRefresh = onRefresh,
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .pullRefresh(refreshingState),
+                            ) {
+                                ComponentList(
+                                    components = components,
+                                    selectedComponentList = selectedComponentList,
+                                    isSelectedMode = isSelectedMode,
+                                    navigateToComponentDetail = navigateToComponentDetail,
+                                    onSwitchClick = onSwitchClick,
+                                    onStopServiceClick = onStopServiceClick,
+                                    onLaunchActivityClick = onLaunchActivityClick,
+                                    onCopyNameClick = onCopyNameClick,
+                                    onCopyFullNameClick = onCopyFullNameClick,
+                                    onSelect = onSelect,
+                                    onDeselect = onDeselect,
+                                )
+                                PullRefreshIndicator(
+                                    refreshing = isRefreshing,
+                                    state = refreshingState,
+                                    modifier = Modifier.align(Alignment.TopCenter),
+                                    scale = true,
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -909,10 +910,12 @@ fun AppDetailScreenPreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(
+                appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
                 ),
-                componentListUiState = ComponentListUiState(),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(appList[0]),
+                ),
                 tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
             )
@@ -930,11 +933,13 @@ fun AppDetailScreenWithLibCheckerPreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(
+                appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
-                    isLibCheckerInstalled = true,
+                    showOpenInLibChecker = true,
                 ),
-                componentListUiState = ComponentListUiState(),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(appList[0]),
+                ),
                 tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
             )
@@ -949,8 +954,13 @@ fun AppDetailScreenLoadingPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Loading,
-                componentListUiState = ComponentListUiState(),
+                appInfoUiState = AppInfoUiState(
+                    appInfo = appList[0],
+                    isRefreshing = true,
+                ),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(appList[0]),
+                ),
                 tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
             )
@@ -965,8 +975,13 @@ fun AppDetailScreenErrorPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = AppInfoUiState.Error(error = UiMessage("Error")),
-                componentListUiState = ComponentListUiState(),
+                appInfoUiState = AppInfoUiState(
+                    appInfo = appList[0],
+                    error = UiMessage("Error"),
+                ),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(appList[0]),
+                ),
                 tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
             )
@@ -985,9 +1000,12 @@ fun AppDetailScreenSearchModePreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
-                componentListUiState = ComponentListUiState(
-                    activity = components.filter { it.type == ACTIVITY }.toMutableStateList(),
+                appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(
+                        app = appList[0],
+                        activity = components.filter { it.type == ACTIVITY },
+                    ),
                 ),
                 topAppBarUiState = AppBarUiState(
                     actions = listOf(
@@ -1014,9 +1032,12 @@ fun AppDetailScreenSelectedModePreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
-                componentListUiState = ComponentListUiState(
-                    activity = activityComponents,
+                appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(
+                        app = appList[0],
+                        activity = activityComponents,
+                    ),
                 ),
                 topAppBarUiState = AppBarUiState(
                     actions = listOf(
