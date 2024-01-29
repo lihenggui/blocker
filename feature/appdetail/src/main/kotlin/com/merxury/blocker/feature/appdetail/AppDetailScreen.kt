@@ -142,7 +142,7 @@ import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as rulestring
 import com.merxury.blocker.core.ui.R.string as uistring
 import com.merxury.blocker.core.ui.DevicePreviews
-import com.merxury.blocker.core.ui.previewparameter.MatchedRuleListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 
 @Composable
 fun AppDetailRoute(
@@ -1056,7 +1056,8 @@ fun AppDetailScreenSdkPreview(
     appList: List<AppItem>,
 ) {
     val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
-    val matchedRuleList = MatchedRuleListPreviewParameterProvider().values.first()
+    val rule = RuleListPreviewParameterProvider().values.first().first()
+    val components = ComponentListPreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
             AppDetailScreen(
@@ -1064,8 +1065,10 @@ fun AppDetailScreenSdkPreview(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
                     matchedGeneralRuleUiState = Result.Success(
-                        matchedRuleList,
-                    ),
+                        data = mapOf(
+                            rule to components.toMutableStateList(),
+                        ),
+                    )
                 ),
                 componentListUiState = Result.Success(
                     ComponentSearchResult(appList[0]),
