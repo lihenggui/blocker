@@ -73,7 +73,7 @@ class AppDetailTabStatePreviewParameterProvider :
                 items = listOf(
                     Info,
                     Activity,
-                    Sdk
+                    Sdk,
                 ),
                 selectedItem = Sdk,
                 itemCount = mapOf(

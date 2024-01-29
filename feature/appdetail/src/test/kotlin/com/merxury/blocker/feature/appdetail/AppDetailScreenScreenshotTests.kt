@@ -390,7 +390,7 @@ class AppDetailScreenScreenshotTests {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState(
                         appInfo = PreviewParameterData.appList[0],
-                        isRefreshing = true
+                        isRefreshing = true,
                     ),
                     componentListUiState = Result.Success(
                         ComponentSearchResult(

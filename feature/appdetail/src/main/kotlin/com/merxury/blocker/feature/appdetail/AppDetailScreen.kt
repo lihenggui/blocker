@@ -112,6 +112,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
+import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.component.ComponentList
@@ -121,6 +122,7 @@ import com.merxury.blocker.core.ui.previewparameter.AppDetailTabStatePreviewPara
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.PreviewParameterData.appList
+import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -141,8 +143,6 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as rulestring
 import com.merxury.blocker.core.ui.R.string as uistring
-import com.merxury.blocker.core.ui.DevicePreviews
-import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 
 @Composable
 fun AppDetailRoute(
@@ -979,7 +979,6 @@ fun AppDetailScreenComponentEmptyPreview(
     }
 }
 
-
 @Composable
 @Preview
 fun AppDetailScreenComponentLoadingPreview() {
@@ -1009,7 +1008,7 @@ fun AppDetailScreenComponentRefreshingPreview() {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
-                    isRefreshing = true
+                    isRefreshing = true,
                 ),
                 componentListUiState = Result.Success(
                     ComponentSearchResult(
@@ -1023,7 +1022,6 @@ fun AppDetailScreenComponentRefreshingPreview() {
         }
     }
 }
-
 
 @Composable
 @Preview
@@ -1068,7 +1066,7 @@ fun AppDetailScreenSdkPreview(
                         data = mapOf(
                             rule to components.toMutableStateList(),
                         ),
-                    )
+                    ),
                 ),
                 componentListUiState = Result.Success(
                     ComponentSearchResult(appList[0]),
