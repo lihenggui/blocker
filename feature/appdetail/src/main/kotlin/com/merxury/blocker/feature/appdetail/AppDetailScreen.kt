@@ -141,6 +141,8 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as rulestring
 import com.merxury.blocker.core.ui.R.string as uistring
+import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.previewparameter.MatchedRuleListPreviewParameterProvider
 
 @Composable
 fun AppDetailRoute(
@@ -901,8 +903,8 @@ fun AppDetailTabContent(
 }
 
 @Composable
-@ThemePreviews
-fun AppDetailScreenPreview(
+@DevicePreviews
+fun AppDetailScreenAppInfoPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {
@@ -924,8 +926,38 @@ fun AppDetailScreenPreview(
 }
 
 @Composable
+@DevicePreviews
+fun AppDetailScreenComponentPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(
+                        app = appList[0],
+                        activity = components.filter { it.type == ACTIVITY },
+                    ),
+                ),
+                topAppBarUiState = AppBarUiState(
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
+                    ),
+                ),
+                tabState = tabState[1],
+            )
+        }
+    }
+}
+
+@Composable
 @Preview
-fun AppDetailScreenWithLibCheckerPreview(
+fun AppDetailScreenComponentEmptyPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {
@@ -940,37 +972,17 @@ fun AppDetailScreenWithLibCheckerPreview(
                 componentListUiState = Result.Success(
                     ComponentSearchResult(appList[0]),
                 ),
-                tabState = tabState[0],
+                tabState = tabState[2],
                 topAppBarUiState = AppBarUiState(),
             )
         }
     }
 }
 
-@Composable
-@ThemePreviews
-fun AppDetailScreenLoadingPreview() {
-    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
-    BlockerTheme {
-        Surface {
-            AppDetailScreen(
-                appInfoUiState = AppInfoUiState(
-                    appInfo = appList[0],
-                    isRefreshing = true,
-                ),
-                componentListUiState = Result.Success(
-                    ComponentSearchResult(appList[0]),
-                ),
-                tabState = tabState[0],
-                topAppBarUiState = AppBarUiState(),
-            )
-        }
-    }
-}
 
 @Composable
-@ThemePreviews
-fun AppDetailScreenErrorPreview() {
+@Preview
+fun AppDetailScreenComponentLoadingPreview() {
     val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
@@ -979,10 +991,138 @@ fun AppDetailScreenErrorPreview() {
                     appInfo = appList[0],
                     error = UiMessage("Error"),
                 ),
+                componentListUiState = Result.Loading,
+                tabState = tabState[1],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppDetailScreenComponentRefreshingPreview() {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState(
+                    appInfo = appList[0],
+                    isRefreshing = true
+                ),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(
+                        app = appList[0],
+                        activity = components.filter { it.type == ACTIVITY },
+                    ),
+                ),
+                tabState = tabState[1],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+
+@Composable
+@Preview
+fun AppDetailScreenComponentErrorPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState(
+                    appInfo = appList[0],
+                    showOpenInLibChecker = true,
+                ),
+                componentListUiState = Result.Error(
+                    Exception("Error"),
+                ),
+                tabState = tabState[1],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppDetailScreenSdkPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    val matchedRuleList = MatchedRuleListPreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState(
+                    appInfo = appList[0],
+                    showOpenInLibChecker = true,
+                    matchedGeneralRuleUiState = Result.Success(
+                        matchedRuleList,
+                    ),
+                ),
                 componentListUiState = Result.Success(
                     ComponentSearchResult(appList[0]),
                 ),
-                tabState = tabState[0],
+                tabState = tabState[3],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppDetailScreenSdkLoadingPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState(
+                    appInfo = appList[0],
+                    showOpenInLibChecker = true,
+                    matchedGeneralRuleUiState = Result.Loading,
+                ),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(appList[0]),
+                ),
+                tabState = tabState[3],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppDetailScreenSdkErrorPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState(
+                    appInfo = appList[0],
+                    showOpenInLibChecker = true,
+                    matchedGeneralRuleUiState = Result.Error(
+                        Exception("Error"),
+                    ),
+                ),
+                componentListUiState = Result.Success(
+                    ComponentSearchResult(appList[0]),
+                ),
+                tabState = tabState[3],
                 topAppBarUiState = AppBarUiState(),
             )
         }
