@@ -51,13 +51,9 @@ import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.result.Result
@@ -83,6 +79,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.extension.updateComponentInfoSwitchState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
@@ -103,6 +100,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -506,7 +504,7 @@ class AppDetailViewModel @Inject constructor(
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            controlComponentInternal(component.packageName, component.name, enabled)
+            controlComponentInternal(component, enabled)
             analyticsHelper.logSwitchComponentClicked(newState = enabled)
         }
     }
@@ -596,84 +594,57 @@ class AppDetailViewModel @Inject constructor(
         }.toMutableList()
     }
 
-    private suspend fun findComponentType(componentName: String): ComponentType {
-        return withContext(cpuDispatcher) {
-            val componentsUiState = _appInfoUiState.value.componentSearchUiState
-            if (componentsUiState !is Result.Success) {
-                throw IllegalStateException("Current component list is not ready")
-            }
-            val currentList = componentsUiState.data
-            val receiver = currentList.receiver.find { it.name == componentName }
-            if (receiver != null) {
-                return@withContext RECEIVER
-            }
-            val service = currentList.service.find { it.name == componentName }
-            if (service != null) {
-                return@withContext SERVICE
-            }
-            val activity = currentList.activity.find { it.name == componentName }
-            if (activity != null) {
-                return@withContext ACTIVITY
-            }
-            val provider = currentList.provider.find { it.name == componentName }
-            if (provider != null) {
-                return@withContext PROVIDER
-            }
-            // Should be unreachable code
-            throw IllegalStateException("Cannot find component type for $componentName")
-        }
-    }
-
-//    private suspend fun changeComponentUiStatus(
-//        componentName: String,
-//        type: ComponentType,
-//        enable: Boolean,
-//    ) {
-//        withContext(cpuDispatcher) {
-//            val currentController = userDataRepository.userData.first().controllerType
-//            val list = when (type) {
-//                RECEIVER -> _componentListUiState.value.receiver
-//                SERVICE -> _componentListUiState.value.service
-//                ACTIVITY -> _componentListUiState.value.activity
-//                PROVIDER -> _componentListUiState.value.provider
-//            }
-//            val position = list.indexOfFirst { it.name == componentName }
-//            if (position == -1) {
-//                Timber.w("Cannot find component $componentName in the list")
-//                return@withContext
-//            }
-//            withContext(mainDispatcher) {
-//                list[position] = if (currentController == IFW && type != PROVIDER) {
-//                    list[position].copy(ifwBlocked = !enable)
-//                } else {
-//                    list[position].copy(pmBlocked = !enable)
-//                }
-//            }
-//        }
-//    }
-
     private suspend fun controlComponentInternal(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         enabled: Boolean,
     ) {
-//        val type = findComponentType(componentName)
-        componentRepository.controlComponent(packageName, componentName, enabled)
-            .collect()
-//            .onStart {
-//                changeComponentUiStatus(componentName, type, enabled)
-//            }
-//            .catch { exception ->
-//                changeComponentUiStatus(componentName, type, !enabled)
-//                _appInfoUiState.update {
-//                    it.copy(error = exception.toErrorMessage())
-//                }
-//            }
-//            .collect { result ->
-//                if (!result) {
-//                    changeComponentUiStatus(componentName, type, !enabled)
-//                }
-//            }
+        val controllerType = userDataRepository.userData.first().controllerType
+        componentRepository.controlComponent(component.packageName, component.name, enabled)
+            .onStart {
+                changeComponentsUiStatus(
+                    changed = listOf(component),
+                    controllerType = controllerType,
+                    enabled = enabled,
+                )
+            }
+            .catch { error ->
+                Timber.e(error, "Cannot change component ${component.name} to $enabled")
+                changeComponentsUiStatus(
+                    changed = listOf(component),
+                    controllerType = controllerType,
+                    enabled = !enabled,
+                )
+                _appInfoUiState.update {
+                    it.copy(error = error.toErrorMessage())
+                }
+            }
+            .collect { result ->
+                if (!result) {
+                    Timber.w("Fail to change component ${component.name} to $enabled")
+                    changeComponentsUiStatus(
+                        changed = listOf(component),
+                        controllerType = controllerType,
+                        enabled = !enabled,
+                    )
+                }
+            }
+    }
+
+    private fun changeComponentsUiStatus(
+        changed: List<ComponentInfo>,
+        controllerType: ControllerType,
+        enabled: Boolean,
+    ) {
+        _appInfoUiState.update {
+            val listUiState = it.componentSearchUiState
+            it.copy(
+                componentSearchUiState = listUiState.updateComponentInfoSwitchState(
+                    changed = changed,
+                    controllerType = controllerType,
+                    enabled = enabled,
+                ),
+            )
+        }
     }
 
     fun exportBlockerRule(packageName: String) = viewModelScope.launch {
