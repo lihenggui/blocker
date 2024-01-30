@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0
 
       - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/wrapper-validation-action@v2
 
       - name: Write sign info
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'lihenggui/Blocker'
