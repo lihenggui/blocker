@@ -33,6 +33,7 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
@@ -211,6 +212,7 @@ class AppDetailViewModelTest {
         val packageInfo = pm.getPackageInfoCompat(packageName, 0)
         viewModel.loadAppInfo()
         componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
         viewModel.loadComponentList()
         viewModel.updateComponentList()
 
@@ -224,9 +226,9 @@ class AppDetailViewModelTest {
                 ComponentSearchResult(
                     app = sampleAppList.first().toAppItem(packageInfo),
                     activity = sampleComponentList.filter { it.type == ACTIVITY },
-                    service = sampleComponentList.filter { it.type != SERVICE },
+                    service = sampleComponentList.filter { it.type == SERVICE },
                     receiver = sampleComponentList.filter { it.type == RECEIVER },
-                    provider = sampleComponentList.filter { it.type != PROVIDER },
+                    provider = sampleComponentList.filter { it.type == PROVIDER },
                 ),
             ),
             viewModel.appInfoUiState.value.componentSearchUiState,
@@ -334,6 +336,7 @@ private val sampleComponentList = listOf(
         name = "ComponentActivity",
         simpleName = "ComponentActivity",
         packageName = "com.merxury.blocker",
+        description = "An example activity",
         pmBlocked = false,
         ifwBlocked = true,
         isRunning = false,
@@ -343,7 +346,44 @@ private val sampleComponentList = listOf(
         name = "AlarmManagerSchedulerBroadcast",
         simpleName = "AlarmManagerSchedulerBroadcast",
         packageName = "com.merxury.blocker",
+        description = "An example activity",
         pmBlocked = false,
         type = RECEIVER,
+    ),
+)
+
+private val sampleComponentDetailList = listOf(
+    ComponentDetail(
+        name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
+        sdkName = "ExampleActivity",
+        description = "An example activity",
+        disableEffect = "Disable effect",
+        contributor = "Contributor",
+        addedVersion = "1.0.0",
+        removedVersion = "2.0.0",
+        recommendToBlock = true,
+        lastUpdateTime = System.now(),
+    ),
+    ComponentDetail(
+        name = "ComponentActivity",
+        sdkName = "ComponentActivity",
+        description = "An example activity",
+        disableEffect = "Disable effect",
+        contributor = "Contributor",
+        addedVersion = "1.0.0",
+        removedVersion = "2.0.0",
+        recommendToBlock = true,
+        lastUpdateTime = System.now(),
+    ),
+    ComponentDetail(
+        name = "AlarmManagerSchedulerBroadcast",
+        sdkName = "AlarmManagerSchedulerBroadcast",
+        description = "An example activity",
+        disableEffect = "Disable effect",
+        contributor = "Contributor",
+        addedVersion = "1.0.0",
+        removedVersion = "2.0.0",
+        recommendToBlock = true,
+        lastUpdateTime = System.now(),
     ),
 )
