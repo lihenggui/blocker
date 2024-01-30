@@ -35,7 +35,18 @@ fun Result<ComponentSearchResult>.updateComponentInfoSwitchState(
     // If the result is not success, return the result as it is
     if (this !is Result.Success) return this
     // Find the matching components in the list and change the ifwBlocked to the new value
-    val activities = this.data.activity.
+    val activity = updateComponentInfoListState(list, this.data.activity, controllerType, enabled)
+    val service = updateComponentInfoListState(list, this.data.service, controllerType, enabled)
+    val receiver = updateComponentInfoListState(list, this.data.receiver, controllerType, enabled)
+    val provider = updateComponentInfoListState(list, this.data.provider, controllerType, enabled)
+    return Result.Success(
+        data.copy(
+            activity = activity,
+            service = service,
+            receiver = receiver,
+            provider = provider,
+        ),
+    )
 }
 
 private fun updateComponentInfoListState(
