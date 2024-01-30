@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.appdetail
 
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
@@ -36,6 +37,7 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -197,6 +199,10 @@ class AppDetailViewModelTest {
             Result.Loading,
             viewModel.appInfoUiState.value.componentSearchUiState,
         )
+        assertEquals(
+            Result.Loading,
+            viewModel.appInfoUiState.value.matchedGeneralRuleUiState,
+        )
         collectJob.cancel()
     }
 
@@ -215,12 +221,13 @@ class AppDetailViewModelTest {
         componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
         viewModel.loadComponentList()
         viewModel.updateComponentList()
+        generalRuleRepository.sendRuleList(sampleRuleList)
+        viewModel.loadMatchedRule()
 
         assertEquals(
             sampleAppList.first().toAppItem(packageInfo),
             viewModel.appInfoUiState.value.appInfo,
         )
-
         assertEquals(
             Result.Success(
                 ComponentSearchResult(
@@ -232,6 +239,10 @@ class AppDetailViewModelTest {
                 ),
             ),
             viewModel.appInfoUiState.value.componentSearchUiState,
+        )
+        assertEquals(
+            Result.Success(mapOf(sampleRuleList[0] to sampleComponentList.toMutableStateList())),
+            viewModel.appInfoUiState.value.matchedGeneralRuleUiState,
         )
 
         collectJob.cancel()
@@ -385,5 +396,46 @@ private val sampleComponentDetailList = listOf(
         removedVersion = "2.0.0",
         recommendToBlock = true,
         lastUpdateTime = System.now(),
+    ),
+)
+
+private val sampleRuleList = listOf(
+    GeneralRule(
+        id = 1,
+        name = "AWS SDK for Kotlin (Developer Preview)",
+        iconUrl = null,
+        company = "Amazon",
+        description = "The AWS SDK for Kotlin simplifies the use of AWS services by " +
+            "providing a set of libraries that are consistent and familiar for " +
+            "Kotlin developers. All AWS SDKs support API lifecycle considerations " +
+            "such as credential management, retries, data marshaling, and serialization.",
+        sideEffect = "Unknown",
+        safeToBlock = true,
+        contributors = listOf("Online contributor"),
+        searchKeyword = listOf("androidx.google.example1"),
+    ),
+    GeneralRule(
+        id = 2,
+        name = "Android WorkerManager",
+        iconUrl = null,
+        company = "Google",
+        description = "WorkManager is the recommended solution for persistent work. " +
+            "Work is persistent when it remains scheduled through app restarts and " +
+            "system reboots. Because most background processing is best accomplished " +
+            "through persistent work, WorkManager is the primary recommended API for " +
+            "background processing.",
+        sideEffect = "Background works won't be able to execute",
+        safeToBlock = false,
+        contributors = listOf("Google"),
+        searchKeyword = listOf(
+            "androidx.google.example1",
+            "androidx.google.example2",
+            "androidx.google.example3",
+            "androidx.google.example4",
+        ),
+    ),
+    GeneralRule(
+        id = 3,
+        name = "Android WorkerManager Test",
     ),
 )
