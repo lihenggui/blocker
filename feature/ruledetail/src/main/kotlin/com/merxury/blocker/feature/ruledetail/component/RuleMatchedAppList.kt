@@ -53,7 +53,7 @@ fun RuleMatchedAppList(
     navigateToAppDetail: (String) -> Unit = { _ -> },
     onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
 ) {
     when (ruleMatchedAppListUiState) {
         Loading -> LoadingScreen()

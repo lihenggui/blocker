@@ -44,7 +44,6 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -275,13 +274,12 @@ class RuleDetailViewModel @Inject constructor(
     }
 
     fun controlComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         enabled: Boolean,
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            controlComponentInternal(packageName, componentName, enabled)
+            controlComponentInternal(component.packageName, component.name, enabled)
             analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
         }
     }
@@ -316,13 +314,13 @@ class RuleDetailViewModel @Inject constructor(
                 Timber.w("Cannot find component $componentName in the matched list")
                 return@withContext
             }
-            withContext(mainDispatcher) {
-                list[position] = if (currentController == IFW) {
-                    list[position].copy(ifwBlocked = !enable)
-                } else {
-                    list[position].copy(pmBlocked = !enable)
-                }
-            }
+//            withContext(mainDispatcher) {
+//                list[position] = if (currentController == IFW) {
+//                    list[position].copy(ifwBlocked = !enable)
+//                } else {
+//                    list[position].copy(pmBlocked = !enable)
+//                }
+//            }
         }
     }
 

@@ -42,7 +42,7 @@ import com.merxury.blocker.core.ui.R as uiR
 @Composable
 fun SdkContent(
     modifier: Modifier = Modifier,
-    data: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
+    data: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
     navigateToRuleDetail: (String) -> Unit = {},
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
@@ -50,7 +50,7 @@ fun SdkContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
 ) {
     when (data) {
         is Result.Success -> {

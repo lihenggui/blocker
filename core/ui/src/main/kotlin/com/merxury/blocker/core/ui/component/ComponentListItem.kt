@@ -78,7 +78,7 @@ fun ComponentListItem(
     onLaunchActivityClick: () -> Unit = { },
     onCopyNameClick: () -> Unit = { },
     onCopyFullNameClick: () -> Unit = { },
-    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitchClick: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     isSelected: Boolean = false,
     isSelectedMode: Boolean = false,
     onSelect: (ComponentInfo) -> Unit = {},
@@ -161,7 +161,7 @@ fun ComponentListItem(
         Switch(
             checked = enabled,
             onCheckedChange = {
-                onSwitchClick(item.packageName, item.name, !enabled)
+                onSwitchClick(item, !enabled)
             },
         )
         val offset = with(density) {

@@ -24,8 +24,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -152,9 +150,6 @@ class AppDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
-    private var currentFilterKeyword = appDetailArgs.searchKeyword
-        .map { it.trim() }
-        .filterNot { it.isEmpty() }
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
@@ -270,7 +265,7 @@ class AppDetailViewModel @Inject constructor(
                         val map = result.data.mapValues { (_, value) ->
                             value.map {
                                 it
-                            }.toMutableStateList()
+                            }
                         }
                         Result.Success(map)
                     }
@@ -506,13 +501,12 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun controlComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         enabled: Boolean,
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            controlComponentInternal(packageName, componentName, enabled)
+            controlComponentInternal(component.packageName, component.name, enabled)
             analyticsHelper.logSwitchComponentClicked(newState = enabled)
         }
     }
@@ -961,7 +955,7 @@ data class AppInfoUiState(
     val isRefreshing: Boolean = false,
     val error: UiMessage? = null,
     val componentSearchUiState: Result<ComponentSearchResult> = Result.Loading,
-    val matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
+    val matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
     val iconBasedTheming: Bitmap? = null,
     val showOpenInLibChecker: Boolean = false,
 )

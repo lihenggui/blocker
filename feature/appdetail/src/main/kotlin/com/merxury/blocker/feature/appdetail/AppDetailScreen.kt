@@ -57,7 +57,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -411,7 +410,7 @@ fun AppDetailScreen(
     onExportIfw: (String) -> Unit = {},
     onImportIfw: (String) -> Unit = {},
     onResetIfw: (String) -> Unit = {},
-    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitchClick: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -502,7 +501,7 @@ fun AppDetailContent(
     onExportIfw: (String) -> Unit = {},
     onImportIfw: (String) -> Unit = {},
     onResetIfw: (String) -> Unit = {},
-    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitchClick: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -520,7 +519,7 @@ fun AppDetailContent(
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
     showOpenInLibChecker: Boolean = false,
-    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
+    matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -775,7 +774,7 @@ fun AppDetailTabContent(
     onExportIfw: (String) -> Unit = {},
     onImportIfw: (String) -> Unit = {},
     onResetIfw: (String) -> Unit = {},
-    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitchClick: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -787,7 +786,7 @@ fun AppDetailTabContent(
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     showOpenInLibChecker: Boolean = false,
-    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
+    matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }

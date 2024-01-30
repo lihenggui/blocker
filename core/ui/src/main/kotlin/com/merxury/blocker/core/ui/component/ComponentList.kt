@@ -54,7 +54,7 @@ fun ComponentList(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitchClick: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     isSelectedMode: Boolean = false,
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
