@@ -51,8 +51,14 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> {
         return rulesFlow.map { rules ->
             rules.filter { rule ->
-                rule.name.contains(keyword, ignoreCase = true) || rule.searchKeyword.contains(keyword)
+                rule.name.contains(keyword, ignoreCase = true) || rule.searchKeyword.contains(
+                    keyword,
+                )
             }
         }
+    }
+
+    fun sendRuleList(ruleList: List<GeneralRule>) {
+        this.rulesFlow.tryEmit(ruleList)
     }
 }
