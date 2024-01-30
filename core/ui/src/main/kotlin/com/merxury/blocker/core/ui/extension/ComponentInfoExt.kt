@@ -28,17 +28,17 @@ import com.merxury.blocker.core.result.Result
  * before the actual operation is completed
  */
 fun Result<ComponentSearchResult>.updateComponentInfoSwitchState(
-    list: List<ComponentInfo>,
+    changed: List<ComponentInfo>,
     controllerType: ControllerType,
     enabled: Boolean,
 ): Result<ComponentSearchResult> {
     // If the result is not success, return the result as it is
     if (this !is Result.Success) return this
     // Find the matching components in the list and change the ifwBlocked to the new value
-    val activity = updateComponentInfoListState(list, this.data.activity, controllerType, enabled)
-    val service = updateComponentInfoListState(list, this.data.service, controllerType, enabled)
-    val receiver = updateComponentInfoListState(list, this.data.receiver, controllerType, enabled)
-    val provider = updateComponentInfoListState(list, this.data.provider, controllerType, enabled)
+    val activity = getUpdatedListState(this.data.activity, changed, controllerType, enabled)
+    val service = getUpdatedListState(this.data.service, changed, controllerType, enabled)
+    val receiver = getUpdatedListState(this.data.receiver, changed, controllerType, enabled)
+    val provider = getUpdatedListState(this.data.provider, changed, controllerType, enabled)
     return Result.Success(
         data.copy(
             activity = activity,
@@ -49,7 +49,11 @@ fun Result<ComponentSearchResult>.updateComponentInfoSwitchState(
     )
 }
 
-private fun updateComponentInfoListState(
+/**
+ * Updated changed items in he current list with the new value
+ * In order to update UI asynchronously
+ */
+private fun getUpdatedListState(
     current: List<ComponentInfo>,
     change: List<ComponentInfo>,
     controllerType: ControllerType,
