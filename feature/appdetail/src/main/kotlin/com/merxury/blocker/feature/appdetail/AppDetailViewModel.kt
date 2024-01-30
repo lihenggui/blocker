@@ -426,19 +426,31 @@ class AppDetailViewModel @Inject constructor(
         enable: Boolean,
         action: suspend (Int, Int) -> Unit,
     ) {
+        val controllerType = userDataRepository.userData.first().controllerType
         var successCount = 0
         componentRepository.batchControlComponent(
             components = list,
             newState = enable,
         )
+            .onStart {
+                changeComponentsUiStatus(
+                    changed = list,
+                    controllerType = controllerType,
+                    enabled = enable,
+                )
+            }
             .catch { exception ->
+                Timber.e(exception, "Fail to change components to $enable")
+                changeComponentsUiStatus(
+                    changed = list,
+                    controllerType = controllerType,
+                    enabled = !enable,
+                )
                 _appInfoUiState.update {
                     it.copy(error = exception.toErrorMessage())
                 }
             }
-            .collect { component ->
-//                val type = findComponentType(component.name)
-//                changeComponentUiStatus(component.name, type, enable)
+            .collect { _ ->
                 successCount++
                 action(successCount, list.size)
             }
