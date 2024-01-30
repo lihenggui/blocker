@@ -246,7 +246,7 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private var searchMatchedRuleJob: Job? = null
-    private fun loadMatchedRule() {
+    fun loadMatchedRule() {
         searchMatchedRuleJob?.cancel()
         searchMatchedRuleJob = viewModelScope.launch(exceptionHandler) {
             val packageName = appDetailArgs.packageName
