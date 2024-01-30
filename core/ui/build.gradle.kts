@@ -32,6 +32,7 @@ dependencies {
     api(libs.appiconloader)
     api(libs.appiconloader.coil)
 
+    implementation(projects.core.domain)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
     implementation(libs.kotlinx.datetime)
