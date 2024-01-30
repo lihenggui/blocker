@@ -23,9 +23,17 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
+import com.merxury.blocker.core.domain.components.SearchComponentsUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
+import com.merxury.blocker.core.domain.model.ComponentSearchResult
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
@@ -37,6 +45,7 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.UserPreferenceData
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
@@ -49,8 +58,6 @@ import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
-import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.appdetail.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.appdetail.navigation.TAB_ARG
@@ -126,6 +133,15 @@ class AppDetailViewModelTest {
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = "blocker-general-rule",
         )
+        val searchComponents = SearchComponentsUseCase(
+            userDataRepository = userDataRepository,
+            appRepository = appRepository,
+            componentRepository = componentRepository,
+            componentDetailRepository = componentDetailRepository,
+            getServiceController = getServiceControllerUseCase,
+            cpuDispatcher = dispatcher,
+        )
+
         viewModel = AppDetailViewModel(
             savedStateHandle = savedStateHandle,
             pm = pm,
@@ -142,49 +158,45 @@ class AppDetailViewModelTest {
             ioDispatcher = dispatcher,
             cpuDispatcher = dispatcher,
             mainDispatcher = dispatcher,
+            searchComponents = searchComponents,
         )
     }
 
     @Test
-    fun stateIsInitiallyLoading() = runTest {
+    fun stateIsInitiallyEmpty() = runTest {
         assertEquals(
-            Loading,
+            AppInfoUiState(AppItem("")),
             viewModel.appInfoUiState.value,
         )
-    }
-
-    @Test
-    fun stateIsLoadingWhenDataAreLoading() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.appInfoUiState.collect()
-        }
-
-        assertEquals(
-            Loading,
-            viewModel.appInfoUiState.value,
-        )
-
-        collectJob.cancel()
     }
 
     @Test
     fun stateIsDefaultWhenNotUpdate() = runTest {
         val collectJob1 = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentListUiState.collect()
+            viewModel.appInfoUiState.collect()
         }
         val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
         val collectJob3 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
 
-        assertEquals(0, viewModel.componentListUiState.value.activity.size)
-        assertEquals(0, viewModel.componentListUiState.value.provider.size)
-        assertEquals(0, viewModel.componentListUiState.value.receiver.size)
-        assertEquals(0, viewModel.componentListUiState.value.service.size)
+        assertEquals(AppInfoUiState(AppItem("")), viewModel.appInfoUiState.value)
         assertEquals(AppBarUiState(), viewModel.appBarUiState.value)
         assertEquals(AppDetailTabs.Info, viewModel.tabState.value.selectedItem)
 
         collectJob1.cancel()
         collectJob2.cancel()
         collectJob3.cancel()
+    }
+
+    @Test
+    fun stateIsLoadingWhenDataLoading() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) {
+            viewModel.appInfoUiState.collect()
+        }
+        assertEquals(
+            Result.Loading,
+            viewModel.appInfoUiState.value.componentSearchUiState,
+        )
+        collectJob.cancel()
     }
 
     @Test
@@ -198,12 +210,26 @@ class AppDetailViewModelTest {
         val packageName = sampleAppList.first().packageName
         val packageInfo = pm.getPackageInfoCompat(packageName, 0)
         viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        viewModel.loadComponentList()
+        viewModel.updateComponentList()
 
         assertEquals(
-            Success(
-                appInfo = sampleAppList.first().toAppItem(packageInfo),
+            sampleAppList.first().toAppItem(packageInfo),
+            viewModel.appInfoUiState.value.appInfo,
+        )
+
+        assertEquals(
+            Result.Success(
+                ComponentSearchResult(
+                    app = sampleAppList.first().toAppItem(packageInfo),
+                    activity = sampleComponentList.filter { it.type == ACTIVITY },
+                    service = sampleComponentList.filter { it.type != SERVICE },
+                    receiver = sampleComponentList.filter { it.type == RECEIVER },
+                    provider = sampleComponentList.filter { it.type != PROVIDER },
+                ),
             ),
-            viewModel.appInfoUiState.value,
+            viewModel.appInfoUiState.value.componentSearchUiState,
         )
 
         collectJob.cancel()
@@ -290,5 +316,34 @@ private val sampleAppList = listOf(
         isSystem = true,
         isEnabled = false,
         firstInstallTime = System.now(),
+    ),
+)
+
+private val sampleComponentList = listOf(
+    ComponentInfo(
+        simpleName = "ExampleActivity",
+        name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
+        packageName = "com.merxury.blocker",
+        description = "An example activity",
+        type = ACTIVITY,
+        pmBlocked = true,
+        ifwBlocked = true,
+        isRunning = true,
+    ),
+    ComponentInfo(
+        name = "ComponentActivity",
+        simpleName = "ComponentActivity",
+        packageName = "com.merxury.blocker",
+        pmBlocked = false,
+        ifwBlocked = true,
+        isRunning = false,
+        type = ACTIVITY,
+    ),
+    ComponentInfo(
+        name = "AlarmManagerSchedulerBroadcast",
+        simpleName = "AlarmManagerSchedulerBroadcast",
+        packageName = "com.merxury.blocker",
+        pmBlocked = false,
+        type = RECEIVER,
     ),
 )
