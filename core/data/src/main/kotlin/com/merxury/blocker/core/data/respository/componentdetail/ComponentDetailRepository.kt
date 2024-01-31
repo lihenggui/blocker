@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ComponentDetailRepository {
 
-    val updatedComponent : Flow<ComponentDetail>
+    val updatedComponent: Flow<ComponentDetail>
 
     fun hasUserGeneratedDetail(packageName: String): Flow<Boolean>
 
