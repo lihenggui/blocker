@@ -19,14 +19,13 @@ package com.merxury.blocker.feature.appdetail
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
@@ -64,12 +63,17 @@ class AppDetailScreenScreenshotTests {
     private val components = ComponentListPreviewParameterProvider().values.first()
     private val activityComponents = components.filter { it.type == ACTIVITY }.toMutableStateList()
     private val rule = RuleListPreviewParameterProvider().values.first().first()
-    private val matchedRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> =
-        Result.Success(
-            data = mapOf(
-                rule to components.toMutableStateList(),
+    private val matchedRuleUiState: Result<List<MatchedItem>> = Result.Success(
+        data = listOf(
+            MatchedItem(
+                header = MatchedHeaderData(
+                    title = rule.name,
+                    uniqueId = rule.id.toString(),
+                ),
+                componentList = components,
             ),
-        )
+        ),
+    )
 
     @Before
     fun setTimeZone() {
