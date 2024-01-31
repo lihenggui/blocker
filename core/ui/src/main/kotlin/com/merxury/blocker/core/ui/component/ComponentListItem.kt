@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
+import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
@@ -158,7 +158,7 @@ fun ComponentListItem(
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        Switch(
+        BlockerSwitch(
             checked = enabled,
             onCheckedChange = {
                 onSwitchClick(item, !enabled)
