@@ -20,8 +20,8 @@ import androidx.compose.runtime.mutableStateListOf
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
 
-val matchedItemTestData = com.merxury.blocker.core.domain.model.MatchedItem(
-    header = com.merxury.blocker.core.domain.model.MatchedHeaderData(
+val matchedItemTestData = MatchedItem(
+    header = MatchedHeaderData(
         title = "Blocker",
         uniqueId = "com.merxury.blocker",
     ),
