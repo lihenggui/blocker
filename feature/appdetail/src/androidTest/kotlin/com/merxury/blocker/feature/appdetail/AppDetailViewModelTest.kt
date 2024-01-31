@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.appdetail
 
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
@@ -28,6 +27,8 @@ import com.merxury.blocker.core.domain.components.SearchComponentsUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
@@ -241,7 +242,17 @@ class AppDetailViewModelTest {
             viewModel.appInfoUiState.value.componentSearchUiState,
         )
         assertEquals(
-            Result.Success(mapOf(sampleRuleList[0] to sampleComponentList.toMutableStateList())),
+            Result.Success(
+                listOf(
+                    MatchedItem(
+                        header = MatchedHeaderData(
+                            title = sampleRuleList[0].name,
+                            uniqueId = sampleRuleList[0].id.toString(),
+                        ),
+                        componentList = sampleComponentList,
+                    ),
+                ),
+            ),
             viewModel.appInfoUiState.value.matchedRuleUiState,
         )
 
