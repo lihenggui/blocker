@@ -649,8 +649,14 @@ class AppDetailViewModel @Inject constructor(
     ) {
         _appInfoUiState.update {
             val listUiState = it.componentSearchUiState
+            val sdkUiState = it.matchedGeneralRuleUiState
             it.copy(
                 componentSearchUiState = listUiState.updateComponentInfoSwitchState(
+                    changed = changed,
+                    controllerType = controllerType,
+                    enabled = enabled,
+                ),
+                matchedGeneralRuleUiState = sdkUiState.updateComponentInfoSwitchState(
                     changed = changed,
                     controllerType = controllerType,
                     enabled = enabled,
