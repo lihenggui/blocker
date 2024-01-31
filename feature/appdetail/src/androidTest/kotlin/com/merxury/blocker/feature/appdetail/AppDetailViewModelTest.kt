@@ -201,7 +201,7 @@ class AppDetailViewModelTest {
         )
         assertEquals(
             Result.Loading,
-            viewModel.appInfoUiState.value.matchedGeneralRuleUiState,
+            viewModel.appInfoUiState.value.matchedRuleUiState,
         )
         collectJob.cancel()
     }
@@ -242,7 +242,7 @@ class AppDetailViewModelTest {
         )
         assertEquals(
             Result.Success(mapOf(sampleRuleList[0] to sampleComponentList.toMutableStateList())),
-            viewModel.appInfoUiState.value.matchedGeneralRuleUiState,
+            viewModel.appInfoUiState.value.matchedRuleUiState,
         )
 
         collectJob.cancel()

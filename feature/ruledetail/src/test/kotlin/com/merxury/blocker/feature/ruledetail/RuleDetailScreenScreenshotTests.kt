@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
@@ -32,8 +34,6 @@ import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvi
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import dagger.hilt.android.testing.HiltTestApplication

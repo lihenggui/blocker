@@ -16,30 +16,31 @@
 
 package com.merxury.blocker.core.ui.extension
 
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import timber.log.Timber
 
 /**
- * Utility function to update the switch state of a Result<Map<GeneralRule, List<ComponentInfo>>>
+ * Utility function to update the switch state of a Result<List<MatchedItem>>
  * It is used in doing async operations on the switch button and updating the state of the ui
  * before the actual operation is completed
  */
-fun Result<Map<GeneralRule, List<ComponentInfo>>>.updateComponentInfoSwitchState(
+fun Result<List<MatchedItem>>.updateComponentInfoSwitchState(
     changed: List<ComponentInfo>,
     controllerType: ControllerType,
     enabled: Boolean,
-): Result<Map<GeneralRule, List<ComponentInfo>>> {
+): Result<List<MatchedItem>> {
     if (this !is Result.Success) {
         Timber.w("Wrong UI state: $this, cannot update switch state.")
         return this
     }
-    val updatedData = data.mapValues { (_, components) ->
-        val updatedItems = components.filter { currentItem ->
+    val updatedDataList = data.map { item ->
+        val currentList = item.componentList
+        val updatedItems = item.componentList.filter { currentItem ->
             changed.any { changedItem ->
                 currentItem.packageName == changedItem.packageName && currentItem.name == changedItem.name
             }
@@ -50,46 +51,55 @@ fun Result<Map<GeneralRule, List<ComponentInfo>>>.updateComponentInfoSwitchState
                 it.copy(pmBlocked = !enabled)
             }
         }
-        return@mapValues if (updatedItems.isEmpty()) {
-            components
+        val updatedList = if (updatedItems.isEmpty()) {
+            currentList
         } else {
-            components.map { currentItem ->
+            currentList.map { currentItem ->
                 updatedItems.find {
                     it.packageName == currentItem.packageName && it.name == currentItem.name
                 } ?: currentItem
             }
         }
+        MatchedItem(
+            header = item.header,
+            componentList = updatedList,
+        )
     }
-    return Result.Success(updatedData)
+    return Result.Success(updatedDataList)
 }
 
 /**
  * Utility function to update the component detail in a screen without reload the data
  */
-fun Result<Map<GeneralRule, List<ComponentInfo>>>.updateComponentDetailUiState(
+fun Result<List<MatchedItem>>.updateComponentDetailUiState(
     detail: ComponentDetail,
-): Result<Map<GeneralRule, List<ComponentInfo>>> {
+): Result<List<MatchedItem>> {
     if (this !is Result.Success) {
         Timber.w("Wrong UI state: $this, cannot update component detail.")
         return this
     }
-    val updatedData = data.mapValues { (_, components) ->
-        val updatedItems = components.filter { currentItem ->
+    val updatedDataList = data.map { item ->
+        val currentList = item.componentList
+        val updatedItems = currentList.filter { currentItem ->
             currentItem.name == detail.name
         }.map {
             it.copy(
                 description = detail.description,
             )
         }
-        return@mapValues if (updatedItems.isEmpty()) {
-            components
+        val updatedList = if (updatedItems.isEmpty()) {
+            currentList
         } else {
-            components.map { currentItem ->
+            currentList.map { currentItem ->
                 updatedItems.find {
                     it.name == currentItem.name
                 } ?: currentItem
             }
         }
+        MatchedItem(
+            header = item.header,
+            componentList = updatedList,
+        )
     }
-    return Result.Success(updatedData)
+    return Result.Success(updatedDataList)
 }

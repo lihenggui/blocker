@@ -29,13 +29,13 @@ import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith

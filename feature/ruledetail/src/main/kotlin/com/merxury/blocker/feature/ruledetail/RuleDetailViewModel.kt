@@ -20,7 +20,6 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
@@ -41,6 +40,8 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -48,8 +49,6 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
@@ -383,6 +382,6 @@ sealed interface RuleInfoUiState {
 sealed interface RuleMatchedAppListUiState {
     data object Loading : RuleMatchedAppListUiState
     data class Success(
-        val list: SnapshotStateList<MatchedItem>,
+        val list: List<MatchedItem>,
     ) : RuleMatchedAppListUiState
 }

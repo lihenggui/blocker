@@ -31,12 +31,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.ruledetail.RuleMatchedAppListUiState
 import com.merxury.blocker.feature.ruledetail.RuleMatchedAppListUiState.Loading

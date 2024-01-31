@@ -90,11 +90,12 @@ import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
@@ -471,7 +472,7 @@ fun AppDetailScreen(
         shareAllRules = shareAllRules,
         onRefresh = onRefresh,
         showOpenInLibChecker = appInfoUiState.showOpenInLibChecker,
-        matchedGeneralRuleUiState = appInfoUiState.matchedGeneralRuleUiState,
+        matchedGeneralRuleUiState = appInfoUiState.matchedRuleUiState,
     )
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
@@ -519,7 +520,7 @@ fun AppDetailContent(
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
     showOpenInLibChecker: Boolean = false,
-    matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
+    matchedGeneralRuleUiState: Result<List<MatchedItem>> = Result.Loading,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -786,7 +787,7 @@ fun AppDetailTabContent(
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     showOpenInLibChecker: Boolean = false,
-    matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
+    matchedGeneralRuleUiState: Result<List<MatchedItem>> = Result.Loading,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -1061,9 +1062,15 @@ fun AppDetailScreenSdkPreview(
                 appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
-                    matchedGeneralRuleUiState = Result.Success(
-                        data = mapOf(
-                            rule to components.toMutableStateList(),
+                    matchedRuleUiState = Result.Success(
+                        data = listOf(
+                            MatchedItem(
+                                header = MatchedHeaderData(
+                                    title = rule.name,
+                                    uniqueId = rule.id.toString(),
+                                ),
+                                componentList = components,
+                            ),
                         ),
                     ),
                 ),
@@ -1090,7 +1097,7 @@ fun AppDetailScreenSdkLoadingPreview(
                 appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
-                    matchedGeneralRuleUiState = Result.Loading,
+                    matchedRuleUiState = Result.Loading,
                 ),
                 componentListUiState = Result.Success(
                     ComponentSearchResult(appList[0]),
@@ -1115,7 +1122,7 @@ fun AppDetailScreenSdkErrorPreview(
                 appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
-                    matchedGeneralRuleUiState = Result.Error(
+                    matchedRuleUiState = Result.Error(
                         Exception("Error"),
                     ),
                 ),

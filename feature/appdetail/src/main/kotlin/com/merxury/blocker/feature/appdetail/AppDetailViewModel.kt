@@ -49,14 +49,15 @@ import com.merxury.blocker.core.domain.components.SearchComponentsUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.asResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -244,39 +245,23 @@ class AppDetailViewModel @Inject constructor(
         searchMatchedRuleJob?.cancel()
         searchMatchedRuleJob = viewModelScope.launch(exceptionHandler) {
             val packageName = appDetailArgs.packageName
-            searchMatchedRuleInAppUseCase(packageName).collect { result ->
-                val matchedRuleUiState = when (result) {
-                    is Result.Loading -> {
-                        Timber.v("Searching matched rule in app $packageName")
-                        Result.Loading
+            searchMatchedRuleInAppUseCase(packageName)
+                .asResult()
+                .collect { result ->
+                    when (result) {
+                        is Result.Loading ->
+                            Timber.v("Loading matched rule for $packageName")
+                        is Result.Error ->
+                            Timber.e(result.exception, "Fail to search matched rule")
+                        is Result.Success ->
+                            Timber.v("Matched rule for $packageName is loaded, size = ${result.data.size}")
                     }
-
-                    is Result.Error -> {
-                        Timber.e(
-                            result.exception,
-                            "Fail to find matched rule in app $packageName",
+                    _appInfoUiState.update {
+                        it.copy(
+                            matchedRuleUiState = result,
                         )
-                        Result.Error(result.exception)
-                    }
-
-                    is Result.Success -> {
-                        Timber.v("Found ${result.data.size} rule in app $packageName")
-                        val map = result.data.mapValues { (_, value) ->
-                            value.map {
-                                it
-                            }
-                        }
-                        Result.Success(map)
                     }
                 }
-                // Map result with data to StateList
-                // TODO Use a better way to update the UI
-                _appInfoUiState.update {
-                    it.copy(
-                        matchedGeneralRuleUiState = matchedRuleUiState,
-                    )
-                }
-            }
         }
     }
 
@@ -390,7 +375,7 @@ class AppDetailViewModel @Inject constructor(
             return
         }
         val componentList = currentComponentListUiState.data
-        val sdkUiState = _appInfoUiState.value.matchedGeneralRuleUiState
+        val sdkUiState = _appInfoUiState.value.matchedRuleUiState
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val list = when (tabState.value.selectedItem) {
                 Receiver -> componentList.receiver
@@ -399,8 +384,7 @@ class AppDetailViewModel @Inject constructor(
                 Provider -> componentList.provider
                 Sdk -> (sdkUiState as? Result.Success)
                     ?.data
-                    ?.values
-                    ?.flatten()
+                    ?.flatMap { it.componentList }
                     ?: listOf()
 
                 else -> return@launch
@@ -650,14 +634,14 @@ class AppDetailViewModel @Inject constructor(
     ) {
         _appInfoUiState.update {
             val listUiState = it.componentSearchUiState
-            val sdkUiState = it.matchedGeneralRuleUiState
+            val sdkUiState = it.matchedRuleUiState
             it.copy(
                 componentSearchUiState = listUiState.updateComponentInfoSwitchState(
                     changed = changed,
                     controllerType = controllerType,
                     enabled = enabled,
                 ),
-                matchedGeneralRuleUiState = sdkUiState.updateComponentInfoSwitchState(
+                matchedRuleUiState = sdkUiState.updateComponentInfoSwitchState(
                     changed = changed,
                     controllerType = controllerType,
                     enabled = enabled,
@@ -835,10 +819,10 @@ class AppDetailViewModel @Inject constructor(
         componentDetailRepository.updatedComponent.collect { detail ->
             _appInfoUiState.update {
                 val listsState = it.componentSearchUiState
-                val sdkUiState = it.matchedGeneralRuleUiState
+                val sdkUiState = it.matchedRuleUiState
                 it.copy(
                     componentSearchUiState = listsState.updateComponentDetailUiState(detail),
-                    matchedGeneralRuleUiState = sdkUiState.updateComponentDetailUiState(detail),
+                    matchedRuleUiState = sdkUiState.updateComponentDetailUiState(detail),
                 )
             }
         }
@@ -878,7 +862,7 @@ data class AppInfoUiState(
     val isRefreshing: Boolean = false,
     val error: UiMessage? = null,
     val componentSearchUiState: Result<ComponentSearchResult> = Result.Loading,
-    val matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
+    val matchedRuleUiState: Result<List<MatchedItem>> = Result.Loading,
     val iconBasedTheming: Bitmap? = null,
     val showOpenInLibChecker: Boolean = false,
 )

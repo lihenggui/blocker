@@ -413,7 +413,7 @@ class AppDetailScreenScreenshotTests {
                     appInfoUiState = AppInfoUiState(
                         appInfo = appList[0],
                         showOpenInLibChecker = true,
-                        matchedGeneralRuleUiState = matchedRuleUiState,
+                        matchedRuleUiState = matchedRuleUiState,
                     ),
                     componentListUiState = Result.Success(
                         ComponentSearchResult(appList[0]),
@@ -433,7 +433,7 @@ class AppDetailScreenScreenshotTests {
                     appInfoUiState = AppInfoUiState(
                         appInfo = appList[0],
                         showOpenInLibChecker = true,
-                        matchedGeneralRuleUiState = Result.Loading,
+                        matchedRuleUiState = Result.Loading,
                     ),
                     componentListUiState = Result.Success(
                         ComponentSearchResult(appList[0]),
@@ -453,7 +453,7 @@ class AppDetailScreenScreenshotTests {
                     appInfoUiState = AppInfoUiState(
                         appInfo = appList[0],
                         showOpenInLibChecker = true,
-                        matchedGeneralRuleUiState = Result.Error(
+                        matchedRuleUiState = Result.Error(
                             Exception("Error"),
                         ),
                     ),

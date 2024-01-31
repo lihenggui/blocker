@@ -18,23 +18,20 @@ package com.merxury.blocker.feature.appdetail.sdk
 
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
 import com.merxury.blocker.core.ui.component.NoComponentScreen
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.R as uiR
@@ -42,7 +39,7 @@ import com.merxury.blocker.core.ui.R as uiR
 @Composable
 fun SdkContent(
     modifier: Modifier = Modifier,
-    data: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
+    data: Result<List<MatchedItem>> = Result.Loading,
     navigateToRuleDetail: (String) -> Unit = {},
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
@@ -59,21 +56,9 @@ fun SdkContent(
                 NoComponentScreen()
                 return
             }
-            val matchedList: MutableList<MatchedItem> = mutableListOf()
-            sdks.forEach { (rule, components) ->
-                val matchedItem = MatchedItem(
-                    header = MatchedHeaderData(
-                        title = rule.name,
-                        uniqueId = rule.id.toString(),
-                        icon = rule.iconUrl,
-                    ),
-                    componentList = components,
-                )
-                matchedList.add(matchedItem)
-            }
             CollapsibleList(
                 modifier = modifier.testTag("app:sdkList"),
-                list = matchedList.toMutableStateList(),
+                list = sdks,
                 navigateToDetail = navigateToRuleDetail,
                 navigationMenuItemDesc = uiR.string.core_ui_open_rule_detail,
                 onStopServiceClick = onStopServiceClick,
@@ -100,9 +85,15 @@ fun SdkContentPreview(
     ) components: List<ComponentInfo>,
 ) {
     val rule = RuleListPreviewParameterProvider().values.first()[0]
-    val data: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Success(
-        data = mapOf(
-            rule to components.toMutableStateList(),
+    val data: Result<List<MatchedItem>> = Result.Success(
+        data = listOf(
+            MatchedItem(
+                header = MatchedHeaderData(
+                    title = rule.name,
+                    uniqueId = rule.id.toString(),
+                ),
+                componentList = components,
+            ),
         ),
     )
     BlockerTheme {
