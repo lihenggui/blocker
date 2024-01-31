@@ -17,10 +17,16 @@
 package com.merxury.blocker.core.ui.extension
 
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.result.Result
+import timber.log.Timber
 
 /**
  * Utility function to update the switch state of a [ComponentSearchResult]
@@ -33,7 +39,10 @@ fun Result<ComponentSearchResult>.updateComponentInfoSwitchState(
     enabled: Boolean,
 ): Result<ComponentSearchResult> {
     // If the result is not success, return the result as it is
-    if (this !is Result.Success) return this
+    if (this !is Result.Success) {
+        Timber.w("Wrong UI state: $this, cannot update switch state.")
+        return this
+    }
     // Find the matching components in the list and change the ifwBlocked to the new value
     val activity = getUpdatedListState(this.data.activity, changed, controllerType, enabled)
     val service = getUpdatedListState(this.data.service, changed, controllerType, enabled)
@@ -76,4 +85,48 @@ private fun getUpdatedListState(
             it.packageName == currentItem.packageName && it.name == currentItem.name
         } ?: currentItem
     }
+}
+
+fun Result<ComponentSearchResult>.updateComponentDetailUiState(
+    detail: ComponentDetail,
+): Result<ComponentSearchResult> {
+    if (this !is Result.Success) {
+        Timber.w("Wrong UI state: $this, cannot update component detail.")
+        return this
+    }
+    val componentItem = data.activity.find {
+        it.name == detail.name
+    } ?: data.service.find {
+        it.name == detail.name
+    } ?: data.receiver.find {
+        it.name == detail.name
+    } ?: data.provider.find {
+        it.name == detail.name
+    }
+    if (componentItem == null) {
+        Timber.w("Cannot find component with name ${detail.name}, return empty result")
+        return this
+    }
+    val updatedItem = componentItem.copy(
+        description = detail.description,
+    )
+    val updatedList = when (componentItem.type) {
+        ACTIVITY -> data.activity
+        SERVICE -> data.service
+        RECEIVER -> data.receiver
+        PROVIDER -> data.provider
+    }.map {
+        if (it.name == updatedItem.name) {
+            updatedItem
+        } else {
+            it
+        }
+    }
+    val updatedUiState = when (updatedItem.type) {
+        ACTIVITY -> data.copy(activity = updatedList)
+        SERVICE -> data.copy(service = updatedList)
+        RECEIVER -> data.copy(receiver = updatedList)
+        PROVIDER -> data.copy(provider = updatedList)
+    }
+    return Result.Success(updatedUiState)
 }

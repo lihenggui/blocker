@@ -16,11 +16,13 @@
 
 package com.merxury.blocker.core.ui.extension
 
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
+import timber.log.Timber
 
 /**
  * Utility function to update the switch state of a Result<Map<GeneralRule, List<ComponentInfo>>>
@@ -32,7 +34,10 @@ fun Result<Map<GeneralRule, List<ComponentInfo>>>.updateComponentInfoSwitchState
     controllerType: ControllerType,
     enabled: Boolean,
 ): Result<Map<GeneralRule, List<ComponentInfo>>> {
-    if (this !is Result.Success) return this
+    if (this !is Result.Success) {
+        Timber.w("Wrong UI state: $this, cannot update switch state.")
+        return this
+    }
     val updatedData = data.mapValues { (_, components) ->
         val updatedItems = components.filter { currentItem ->
             changed.any { changedItem ->
@@ -51,6 +56,34 @@ fun Result<Map<GeneralRule, List<ComponentInfo>>>.updateComponentInfoSwitchState
             components.map { currentItem ->
                 updatedItems.find {
                     it.packageName == currentItem.packageName && it.name == currentItem.name
+                } ?: currentItem
+            }
+        }
+    }
+    return Result.Success(updatedData)
+}
+
+fun Result<Map<GeneralRule, List<ComponentInfo>>>.updateComponentDetailUiState(
+    detail: ComponentDetail,
+): Result<Map<GeneralRule, List<ComponentInfo>>> {
+    if (this !is Result.Success) {
+        Timber.w("Wrong UI state: $this, cannot update component detail.")
+        return this
+    }
+    val updatedData = data.mapValues { (_, components) ->
+        val updatedItems = components.filter { currentItem ->
+            currentItem.name == detail.name
+        }.map {
+            it.copy(
+                description = detail.description,
+            )
+        }
+        return@mapValues if (updatedItems.isEmpty()) {
+            components
+        } else {
+            components.map { currentItem ->
+                updatedItems.find {
+                    it.name == currentItem.name
                 } ?: currentItem
             }
         }
