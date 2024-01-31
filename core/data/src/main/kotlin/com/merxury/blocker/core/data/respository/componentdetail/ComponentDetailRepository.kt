@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface ComponentDetailRepository {
 
+    val updatedComponent : Flow<ComponentDetail>
+
     fun hasUserGeneratedDetail(packageName: String): Flow<Boolean>
 
     fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
@@ -28,6 +30,4 @@ interface ComponentDetailRepository {
     fun getLocalComponentDetail(name: String): Flow<ComponentDetail?>
 
     fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
-
-    fun listenToComponentDetailChanges(): Flow<ComponentDetail>
 }

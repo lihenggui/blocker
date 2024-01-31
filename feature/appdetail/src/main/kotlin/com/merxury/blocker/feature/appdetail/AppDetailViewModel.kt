@@ -79,6 +79,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.extension.updateComponentDetailUiState
 import com.merxury.blocker.core.ui.extension.updateComponentInfoSwitchState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -831,84 +832,17 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun listenComponentDetailChanges() = viewModelScope.launch {
-        componentDetailRepository.listenToComponentDetailChanges().collect {
-//            updateComponentDetail(it)
+        componentDetailRepository.updatedComponent.collect { detail ->
+            _appInfoUiState.update {
+                val listsState = it.componentSearchUiState
+                val sdkUiState = it.matchedGeneralRuleUiState
+                it.copy(
+                    componentSearchUiState = listsState.updateComponentDetailUiState(detail),
+                    matchedGeneralRuleUiState = sdkUiState.updateComponentDetailUiState(detail),
+                )
+            }
         }
     }
-
-//    // TODO Refactor this function to remove duplications
-//    private suspend fun updateComponentDetail(componentDetail: ComponentDetail) {
-//        Timber.v("Update component detail: $componentDetail")
-//        val currentState = _componentListUiState.value.copy()
-//        currentState.receiver.find { it.name == componentDetail.name }
-//            ?.let { item ->
-//                val index = currentState.receiver.indexOf(item)
-//                if (index == -1) {
-//                    Timber.w("Cannot find receiver ${componentDetail.name} to update")
-//                    return
-//                }
-//                withContext(mainDispatcher) {
-//                    _componentListUiState.update {
-//                        it.copy(
-//                            receiver = it.receiver.toMutableStateList().apply {
-//                                set(index, item.copy(description = componentDetail.description))
-//                            },
-//                        )
-//                    }
-//                }
-//            }
-//        currentState.service.find { it.name == componentDetail.name }
-//            ?.let { item ->
-//                val index = currentState.service.indexOf(item)
-//                if (index == -1) {
-//                    Timber.w("Cannot find service ${componentDetail.name} to update")
-//                    return
-//                }
-//                withContext(mainDispatcher) {
-//                    _componentListUiState.update {
-//                        it.copy(
-//                            service = it.service.toMutableStateList().apply {
-//                                set(index, item.copy(description = componentDetail.description))
-//                            },
-//                        )
-//                    }
-//                }
-//            }
-//        currentState.activity.find { it.name == componentDetail.name }
-//            ?.let { item ->
-//                val index = currentState.activity.indexOf(item)
-//                if (index == -1) {
-//                    Timber.w("Cannot find activity ${componentDetail.name} to update")
-//                    return
-//                }
-//                withContext(mainDispatcher) {
-//                    _componentListUiState.update {
-//                        it.copy(
-//                            activity = it.activity.toMutableStateList().apply {
-//                                set(index, item.copy(description = componentDetail.description))
-//                            },
-//                        )
-//                    }
-//                }
-//            }
-//        currentState.provider.find { it.name == componentDetail.name }
-//            ?.let { item ->
-//                val index = currentState.provider.indexOf(item)
-//                if (index == -1) {
-//                    Timber.w("Cannot find provider ${componentDetail.name} to update")
-//                    return
-//                }
-//                withContext(mainDispatcher) {
-//                    _componentListUiState.update {
-//                        it.copy(
-//                            provider = it.provider.toMutableStateList().apply {
-//                                set(index, item.copy(description = componentDetail.description))
-//                            },
-//                        )
-//                    }
-//                }
-//            }
-//    }
 
     private suspend fun getAppIcon(packageInfo: PackageInfo?) = withContext(ioDispatcher) {
         val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
