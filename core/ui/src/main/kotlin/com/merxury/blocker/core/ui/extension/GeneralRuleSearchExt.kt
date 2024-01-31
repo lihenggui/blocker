@@ -63,6 +63,9 @@ fun Result<Map<GeneralRule, List<ComponentInfo>>>.updateComponentInfoSwitchState
     return Result.Success(updatedData)
 }
 
+/**
+ * Utility function to update the component detail in a screen without reload the data
+ */
 fun Result<Map<GeneralRule, List<ComponentInfo>>>.updateComponentDetailUiState(
     detail: ComponentDetail,
 ): Result<Map<GeneralRule, List<ComponentInfo>>> {

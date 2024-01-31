@@ -87,6 +87,10 @@ private fun getUpdatedListState(
     }
 }
 
+/**
+ * Utility function to update the component detail in the list without reload the data
+ */
+
 fun Result<ComponentSearchResult>.updateComponentDetailUiState(
     detail: ComponentDetail,
 ): Result<ComponentSearchResult> {
