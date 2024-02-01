@@ -212,8 +212,8 @@ class AppDetailViewModelTest {
                 listOf(
                     MatchedItem(
                         header = MatchedHeaderData(
-                            title = "Android WorkerManager",
-                            uniqueId = "2",
+                            title = "Test rule 1",
+                            uniqueId = "1",
                         ),
                         componentList = sampleComponentList,
                     ),
@@ -256,6 +256,7 @@ private val sampleComponentList = listOf(
         packageName = "com.merxury.test1",
         type = ACTIVITY,
         pmBlocked = false,
+        description = "An example activity",
     ),
     ComponentInfo(
         simpleName = "Service1",
@@ -263,6 +264,7 @@ private val sampleComponentList = listOf(
         packageName = "com.merxury.test1",
         pmBlocked = false,
         type = SERVICE,
+        description = "An example service",
     ),
     ComponentInfo(
         simpleName = "Receiver1",
@@ -270,6 +272,7 @@ private val sampleComponentList = listOf(
         packageName = "com.merxury.test1",
         pmBlocked = false,
         type = RECEIVER,
+        description = "An example receiver",
     ),
     ComponentInfo(
         simpleName = "Provider1",
@@ -277,6 +280,7 @@ private val sampleComponentList = listOf(
         packageName = "com.merxury.test1",
         pmBlocked = false,
         type = PROVIDER,
+        description = "An example provider",
     ),
 )
 
@@ -303,7 +307,7 @@ private val sampleRuleList = listOf(
     GeneralRule(
         id = 1,
         name = "Test rule 1",
-        searchKeyword = listOf("test1"),
+        searchKeyword = listOf("activity", "service", "receiver", "provider"),
     ),
     GeneralRule(
         id = 2,
