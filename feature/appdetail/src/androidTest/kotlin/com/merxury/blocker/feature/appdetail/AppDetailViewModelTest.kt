@@ -241,7 +241,6 @@ class AppDetailViewModelTest {
             ),
             viewModel.appInfoUiState.value.componentSearchUiState,
         )
-        // No matched rule in this case
         assertEquals(
             Result.Success(
                 listOf(
