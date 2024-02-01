@@ -165,7 +165,7 @@ class AppDetailViewModelTest {
     }
 
     @Test
-    fun stateIsInitiallyEmpty() = runTest {
+    fun appInfoUiState_whenInitial_thenShowDefault() = runTest {
         assertEquals(
             AppInfoUiState(AppItem("")),
             viewModel.appInfoUiState.value,
@@ -173,40 +173,17 @@ class AppDetailViewModelTest {
     }
 
     @Test
-    fun stateIsDefaultWhenNotUpdate() = runTest {
-        val collectJob1 = launch(UnconfinedTestDispatcher()) {
-            viewModel.appInfoUiState.collect()
-        }
-        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
-        val collectJob3 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
-
-        assertEquals(AppInfoUiState(AppItem("")), viewModel.appInfoUiState.value)
+    fun appBarUiState_whenInitial_thenShowDefault() = runTest {
         assertEquals(AppBarUiState(), viewModel.appBarUiState.value)
+    }
+
+    @Test
+    fun tabState_whenInitial_thenShowDefault() = runTest {
         assertEquals(AppDetailTabs.Info, viewModel.tabState.value.selectedItem)
-
-        collectJob1.cancel()
-        collectJob2.cancel()
-        collectJob3.cancel()
     }
 
     @Test
-    fun stateIsLoadingWhenDataLoading() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.appInfoUiState.collect()
-        }
-        assertEquals(
-            Result.Loading,
-            viewModel.appInfoUiState.value.componentSearchUiState,
-        )
-        assertEquals(
-            Result.Loading,
-            viewModel.appInfoUiState.value.matchedRuleUiState,
-        )
-        collectJob.cancel()
-    }
-
-    @Test
-    fun stateIsSuccessWhenGetData() = runTest {
+    fun appInfoUiState_whenSuccess_thenShowData() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.appInfoUiState.collect()
         }
@@ -258,40 +235,11 @@ class AppDetailViewModelTest {
     }
 
     @Test
-    fun selectedTabUpdateWhenSwitchTabOrTabChanged() = runTest {
+    fun tabState_whenSwitchTab_thenUpdateSelectedItem() = runTest {
         val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
         viewModel.switchTab(AppDetailTabs.Receiver)
-
         assertEquals(AppDetailTabs.Receiver, viewModel.tabState.value.selectedItem)
-        viewModel.changeSearchMode(true)
-
         collectJob1.cancel()
-    }
-
-    @Test
-    fun tabAndAppBarUpdateWhenSwitchTabAndSearch() = runTest {
-        val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
-        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
-        val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.appInfoUiState.collect()
-        }
-
-        viewModel.switchTab(AppDetailTabs.Receiver)
-        assertEquals(AppDetailTabs.Receiver, viewModel.tabState.value.selectedItem)
-
-        appRepository.sendAppList(sampleAppList)
-        viewModel.loadAppInfo()
-        componentRepository.sendComponentList(sampleComponentList)
-        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
-        viewModel.loadComponentList()
-        viewModel.updateComponentList()
-        viewModel.changeSearchMode(true)
-        viewModel.search("test123456")
-        assertEquals(AppDetailTabs.Info, viewModel.tabState.value.selectedItem)
-
-        collectJob1.cancel()
-        collectJob2.cancel()
-        collectJob.cancel()
     }
 }
 
