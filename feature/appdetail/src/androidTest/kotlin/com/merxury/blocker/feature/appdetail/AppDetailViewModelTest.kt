@@ -37,18 +37,9 @@ import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
-import com.merxury.blocker.core.model.preference.AppSorting
-import com.merxury.blocker.core.model.preference.ComponentShowPriority
-import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
-import com.merxury.blocker.core.model.preference.DarkThemeConfig
-import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.model.preference.SortingOrder
-import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
-import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
@@ -56,6 +47,7 @@ import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
+import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
@@ -68,7 +60,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock.System
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -189,7 +180,7 @@ class AppDetailViewModelTest {
         }
 
         appRepository.sendAppList(sampleAppList)
-        userDataRepository.sendUserData(sampleUserData)
+        userDataRepository.sendUserData(defaultUserData)
         val packageName = sampleAppList.first().packageName
         val packageInfo = pm.getPackageInfoCompat(packageName, 0)
         viewModel.loadAppInfo()
@@ -243,169 +234,85 @@ class AppDetailViewModelTest {
     }
 }
 
-private val sampleUserData = UserPreferenceData(
-    darkThemeConfig = DarkThemeConfig.DARK,
-    useDynamicColor = false,
-    controllerType = ControllerType.SHIZUKU,
-    ruleServerProvider = RuleServerProvider.JIHULAB,
-    ruleBackupFolder = "",
-    backupSystemApp = true,
-    restoreSystemApp = true,
-    showSystemApps = true,
-    showServiceInfo = true,
-    appSorting = AppSorting.LAST_UPDATE_TIME,
-    appSortingOrder = SortingOrder.DESCENDING,
-    componentShowPriority = ComponentShowPriority.NONE,
-    componentSortingOrder = ASCENDING,
-    componentSorting = PACKAGE_NAME,
-    isFirstTimeInitializationCompleted = true,
-    showRunningAppsOnTop = true,
-    appDisplayLanguage = "",
-    libDisplayLanguage = "",
-)
-
 private val sampleAppList = listOf(
     InstalledApp(
-        label = "App",
-        packageName = "com.merxury.blocker",
-        versionName = "1.0.0",
-        versionCode = 1,
-        minSdkVersion = 33,
-        targetSdkVersion = 21,
-        isSystem = false,
-        isEnabled = true,
-        firstInstallTime = System.now(),
-        lastUpdateTime = System.now(),
+        label = "App1",
+        packageName = "com.merxury.test1",
     ),
     InstalledApp(
-        label = "App",
-        packageName = "com.merxury.test",
-        versionName = "23.3.2",
-        versionCode = 23,
-        minSdkVersion = 33,
-        targetSdkVersion = 21,
-        isSystem = true,
-        isEnabled = true,
-        firstInstallTime = System.now(),
-        lastUpdateTime = System.now(),
+        label = "App2",
+        packageName = "com.merxury.test2",
     ),
     InstalledApp(
-        label = "App",
-        packageName = "com.merxury.system",
-        versionName = "0.13.2",
-        versionCode = 13,
-        minSdkVersion = 33,
-        targetSdkVersion = 21,
-        isSystem = true,
-        isEnabled = false,
-        firstInstallTime = System.now(),
+        label = "App3",
+        packageName = "com.merxury.test3",
     ),
 )
 
 private val sampleComponentList = listOf(
     ComponentInfo(
-        simpleName = "ExampleActivity",
-        name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
-        packageName = "com.merxury.blocker",
-        description = "An example activity",
+        simpleName = "Activity1",
+        name = "com.merxury.blocker.test.activity1",
+        packageName = "com.merxury.test1",
         type = ACTIVITY,
-        pmBlocked = true,
-        ifwBlocked = true,
-        isRunning = true,
-    ),
-    ComponentInfo(
-        name = "ComponentActivity",
-        simpleName = "ComponentActivity",
-        packageName = "com.merxury.blocker",
-        description = "An example activity",
         pmBlocked = false,
-        ifwBlocked = true,
-        isRunning = false,
-        type = ACTIVITY,
     ),
     ComponentInfo(
-        name = "AlarmManagerSchedulerBroadcast",
-        simpleName = "AlarmManagerSchedulerBroadcast",
-        packageName = "com.merxury.blocker",
-        description = "An example activity",
+        simpleName = "Service1",
+        name = "com.merxury.blocker.test.service1",
+        packageName = "com.merxury.test1",
+        pmBlocked = false,
+        type = SERVICE,
+    ),
+    ComponentInfo(
+        simpleName = "Receiver1",
+        name = "com.merxury.blocker.test.receiver1",
+        packageName = "com.merxury.test1",
         pmBlocked = false,
         type = RECEIVER,
+    ),
+    ComponentInfo(
+        simpleName = "Provider1",
+        name = "com.merxury.blocker.test.provider1",
+        packageName = "com.merxury.test1",
+        pmBlocked = false,
+        type = PROVIDER,
     ),
 )
 
 private val sampleComponentDetailList = listOf(
     ComponentDetail(
-        name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
-        sdkName = "ExampleActivity",
+        name = "com.merxury.blocker.test.activity1",
         description = "An example activity",
-        disableEffect = "Disable effect",
-        contributor = "Contributor",
-        addedVersion = "1.0.0",
-        removedVersion = "2.0.0",
-        recommendToBlock = true,
-        lastUpdateTime = System.now(),
     ),
     ComponentDetail(
-        name = "ComponentActivity",
-        sdkName = "ComponentActivity",
-        description = "An example activity",
-        disableEffect = "Disable effect",
-        contributor = "Contributor",
-        addedVersion = "1.0.0",
-        removedVersion = "2.0.0",
-        recommendToBlock = true,
-        lastUpdateTime = System.now(),
+        name = "com.merxury.blocker.test.service1",
+        description = "An example service",
     ),
     ComponentDetail(
-        name = "AlarmManagerSchedulerBroadcast",
-        sdkName = "AlarmManagerSchedulerBroadcast",
-        description = "An example activity",
-        disableEffect = "Disable effect",
-        contributor = "Contributor",
-        addedVersion = "1.0.0",
-        removedVersion = "2.0.0",
-        recommendToBlock = true,
-        lastUpdateTime = System.now(),
+        name = "com.merxury.blocker.test.receiver1",
+        description = "An example receiver",
+    ),
+    ComponentDetail(
+        name = "com.merxury.blocker.test.provider1",
+        description = "An example provider",
     ),
 )
 
 private val sampleRuleList = listOf(
     GeneralRule(
         id = 1,
-        name = "AWS SDK for Kotlin (Developer Preview)",
-        iconUrl = null,
-        company = "Amazon",
-        description = "The AWS SDK for Kotlin simplifies the use of AWS services by " +
-            "providing a set of libraries that are consistent and familiar for " +
-            "Kotlin developers. All AWS SDKs support API lifecycle considerations " +
-            "such as credential management, retries, data marshaling, and serialization.",
-        sideEffect = "Unknown",
-        safeToBlock = true,
-        contributors = listOf("Online contributor"),
-        searchKeyword = listOf("androidx.google.example1"),
+        name = "Test rule 1",
+        searchKeyword = listOf("test1"),
     ),
     GeneralRule(
         id = 2,
-        name = "Android WorkerManager",
-        iconUrl = null,
-        company = "Google",
-        description = "WorkManager is the recommended solution for persistent work. " +
-            "Work is persistent when it remains scheduled through app restarts and " +
-            "system reboots. Because most background processing is best accomplished " +
-            "through persistent work, WorkManager is the primary recommended API for " +
-            "background processing.",
-        sideEffect = "Background works won't be able to execute",
-        safeToBlock = false,
-        contributors = listOf("Google"),
-        searchKeyword = listOf(
-            "androidx.google.example1",
-            "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
-            "ComponentActivity",
-            "AlarmManagerSchedulerBroadcast",
-        ),
+        name = "Test rule 2",
+        searchKeyword = listOf("test2"),
     ),
     GeneralRule(
         id = 3,
-        name = "Android WorkerManager Test",
+        name = "Test rule 3",
+        searchKeyword = listOf("test3"),
     ),
 )
