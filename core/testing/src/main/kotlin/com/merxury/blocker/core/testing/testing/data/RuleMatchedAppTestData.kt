@@ -17,8 +17,8 @@
 package com.merxury.blocker.core.testing.testing.data
 
 import androidx.compose.runtime.mutableStateListOf
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 
 val matchedItemTestData = MatchedItem(
     header = MatchedHeaderData(

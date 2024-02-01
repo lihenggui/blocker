@@ -113,7 +113,10 @@ class DesignSystemDetectorTest {
                 src/test.kt:25: Error: Using LargeTopAppBar instead of BlockerTopAppBar [DesignSystem]
                     LargeTopAppBar()
                     ~~~~~~~~~~~~~~~~
-                21 errors, 0 warnings
+                src/test.kt:26: Error: Using Switch instead of BlockerSwitch [DesignSystem]
+                    Switch()
+                    ~~~~~~~~
+                22 errors, 0 warnings
                 """.trimIndent(),
             )
     }

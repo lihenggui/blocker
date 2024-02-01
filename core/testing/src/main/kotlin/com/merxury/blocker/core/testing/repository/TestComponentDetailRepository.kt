@@ -25,6 +25,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class TestComponentDetailRepository : ComponentDetailRepository {
+    override val updatedComponent: Flow<ComponentDetail>
+        get() = flowOf(ComponentDetail(""))
+
     private val componentDetail: MutableSharedFlow<List<ComponentDetail>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
@@ -43,9 +46,6 @@ class TestComponentDetailRepository : ComponentDetailRepository {
     }
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
-
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
-        flowOf(ComponentDetail(""))
 
     fun sendComponentDetail(componentDetail: List<ComponentDetail>) {
         this.componentDetail.tryEmit(componentDetail)

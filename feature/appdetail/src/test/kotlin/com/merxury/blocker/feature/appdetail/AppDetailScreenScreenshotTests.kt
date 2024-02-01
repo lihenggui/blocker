@@ -19,13 +19,13 @@ package com.merxury.blocker.feature.appdetail
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.ComponentSearchResult
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
@@ -34,11 +34,11 @@ import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.AppDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.PreviewParameterData
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -63,12 +63,17 @@ class AppDetailScreenScreenshotTests {
     private val components = ComponentListPreviewParameterProvider().values.first()
     private val activityComponents = components.filter { it.type == ACTIVITY }.toMutableStateList()
     private val rule = RuleListPreviewParameterProvider().values.first().first()
-    private val matchedRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> =
-        Result.Success(
-            data = mapOf(
-                rule to components.toMutableStateList(),
+    private val matchedRuleUiState: Result<List<MatchedItem>> = Result.Success(
+        data = listOf(
+            MatchedItem(
+                header = MatchedHeaderData(
+                    title = rule.name,
+                    uniqueId = rule.id.toString(),
+                ),
+                componentList = components,
             ),
-        )
+        ),
+    )
 
     @Before
     fun setTimeZone() {
@@ -77,104 +82,180 @@ class AppDetailScreenScreenshotTests {
     }
 
     @Test
-    fun appDetailScreen() {
-        composeTestRule.captureMultiDevice("AppDetailScreen") {
-            AppDetailScreen()
+    fun appDetailScreenAppInfoTab() {
+        composeTestRule.captureMultiDevice("AppDetailScreenAppInfoTab") {
+            AppDetailScreenAppInfoTab()
         }
     }
 
     @Test
-    fun appDetailScreen_dark() {
+    fun appDetailScreenAppInfoTab_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppDetailScreen",
+            screenshotName = "AppDetailScreenAppInfoTab",
             darkMode = true,
         ) {
-            AppDetailScreen()
+            AppDetailScreenAppInfoTab()
         }
     }
 
     @Test
-    fun appDetailWithLibCheckerScreen() {
-        composeTestRule.captureMultiDevice("AppDetailWithLibCheckerScreen") {
-            AppDetailScreen(isLibCheckerInstalled = true)
+    fun appDetailScreenComponentTab() {
+        composeTestRule.captureMultiDevice("AppDetailScreenComponentTab") {
+            AppDetailScreenComponentTab()
         }
     }
 
     @Test
-    fun appDetailWithLibCheckerScreen_dark() {
+    fun appDetailScreenComponentTab_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppDetailWithLibCheckerScreen",
+            screenshotName = "AppDetailScreenComponentTab",
             darkMode = true,
         ) {
-            AppDetailScreen(isLibCheckerInstalled = true)
+            AppDetailScreenComponentTab()
         }
     }
 
     @Test
-    fun appDetailScreenWithLoading() {
-        composeTestRule.captureMultiDevice("AppDetailScreenLoading") {
-            AppDetailScreenLoading()
+    fun appDetailScreenComponentEmpty() {
+        composeTestRule.captureMultiDevice("AppDetailScreenComponentEmpty") {
+            AppDetailScreenComponentEmpty()
         }
     }
 
     @Test
-    fun appDetailScreenWithLoading_dark() {
+    fun appDetailScreenComponentEmpty_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppDetailScreenLoading",
+            screenshotName = "AppDetailScreenComponentEmpty",
             darkMode = true,
         ) {
-            AppDetailScreenLoading()
+            AppDetailScreenComponentEmpty()
         }
     }
 
     @Test
-    fun appDetailScreenWithError() {
-        composeTestRule.captureMultiDevice("AppDetailScreenError") {
-            AppDetailScreenError()
+    fun appDetailScreenComponentLoading() {
+        composeTestRule.captureMultiDevice("AppDetailScreenComponentLoading") {
+            AppDetailScreenComponentLoading()
         }
     }
 
     @Test
-    fun appDetailScreenWithError_dark() {
+    fun appDetailScreenComponentLoading_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppDetailScreenError",
+            screenshotName = "AppDetailScreenComponentLoading",
             darkMode = true,
         ) {
-            AppDetailScreenError()
+            AppDetailScreenComponentLoading()
         }
     }
 
     @Test
-    fun appDetailScreenSelectedComponentTab() {
-        composeTestRule.captureMultiDevice("AppDetailScreenSelectedComponentTab") {
-            AppDetailSreenSelectedCompnentTab()
+    fun appDetailScreenComponentError() {
+        composeTestRule.captureMultiDevice("AppDetailScreenComponentError") {
+            AppDetailScreenComponentError()
         }
     }
 
     @Test
-    fun appDetailScreenSelectedComponentTab_dark() {
+    fun appDetailScreenComponentError_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppDetailScreenSelectedComponentTab",
+            screenshotName = "AppDetailScreenComponentError",
             darkMode = true,
         ) {
-            AppDetailSreenSelectedCompnentTab()
+            AppDetailScreenComponentError()
+        }
+    }
+
+    @Test
+    fun appDetailScreenComponentRefreshing() {
+        composeTestRule.captureMultiDevice("AppDetailScreenComponentRefreshing") {
+            AppDetailScreenComponentRefreshing()
+        }
+    }
+
+    @Test
+    fun appDetailScreenComponentRefreshing_dark() {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = DefaultTestDevices.PHONE.spec,
+            screenshotName = "AppDetailScreenComponentRefreshing",
+            darkMode = true,
+        ) {
+            AppDetailScreenComponentRefreshing()
+        }
+    }
+
+    @Test
+    fun appDetailScreenSdkTab() {
+        composeTestRule.captureMultiDevice("AppDetailScreenSdkTab") {
+            AppDetailScreenSdkTab()
+        }
+    }
+
+    @Test
+    fun appDetailScreenSdkTab_dark() {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = DefaultTestDevices.PHONE.spec,
+            screenshotName = "AppDetailScreenSdkTab",
+            darkMode = true,
+        ) {
+            AppDetailScreenSdkTab()
+        }
+    }
+
+    @Test
+    fun appDetailScreenSdkLoading() {
+        composeTestRule.captureMultiDevice("AppDetailScreenSdkLoading") {
+            AppDetailScreenSdkLoading()
+        }
+    }
+
+    @Test
+    fun appDetailScreenSdkLoading_dark() {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = DefaultTestDevices.PHONE.spec,
+            screenshotName = "AppDetailScreenSdkLoading",
+            darkMode = true,
+        ) {
+            AppDetailScreenSdkLoading()
+        }
+    }
+
+    @Test
+    fun appDetailScreenSdkError() {
+        composeTestRule.captureMultiDevice("AppDetailScreenSdkError") {
+            AppDetailScreenSdkError()
+        }
+    }
+
+    @Test
+    fun appDetailScreenSdkError_dark() {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = DefaultTestDevices.PHONE.spec,
+            screenshotName = "AppDetailScreenSdkError",
+            darkMode = true,
+        ) {
+            AppDetailScreenSdkError()
         }
     }
 
     @Test
     fun appDetailScreenSearchMode() {
         composeTestRule.captureMultiDevice("AppDetailScreenSearchMode") {
-            AppDetailSreenSearchMode()
+            AppDetailScreenSearchMode()
         }
     }
 
@@ -186,14 +267,14 @@ class AppDetailScreenScreenshotTests {
             screenshotName = "AppDetailScreenSearchMode",
             darkMode = true,
         ) {
-            AppDetailSreenSearchMode()
+            AppDetailScreenSearchMode()
         }
     }
 
     @Test
     fun appDetailScreenSelectedMode() {
         composeTestRule.captureMultiDevice("AppDetailScreenSelectedMode") {
-            AppDetailSreenSelectedMode()
+            AppDetailScreenSelectedMode()
         }
     }
 
@@ -205,92 +286,203 @@ class AppDetailScreenScreenshotTests {
             screenshotName = "AppDetailScreenSelectedMode",
             darkMode = true,
         ) {
-            AppDetailSreenSelectedMode()
+            AppDetailScreenSelectedMode()
         }
     }
 
     @Composable
-    private fun AppDetailScreen(isLibCheckerInstalled: Boolean = false) {
+    private fun AppDetailScreenAppInfoTab() {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = Success(
+                    appInfoUiState = AppInfoUiState(
                         appInfo = appList[0],
-                        isLibCheckerInstalled = isLibCheckerInstalled,
-                        matchedGeneralRuleUiState = matchedRuleUiState,
                     ),
-                    componentListUiState = ComponentListUiState(),
-                    tabState = tabState[0],
-                    topAppBarUiState = AppBarUiState(),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun AppDetailScreenLoading() {
-        BlockerTheme {
-            Surface {
-                AppDetailScreen(
-                    appInfoUiState = AppInfoUiState.Loading,
-                    componentListUiState = ComponentListUiState(),
-                    tabState = tabState[0],
-                    topAppBarUiState = AppBarUiState(),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun AppDetailScreenError() {
-        BlockerTheme {
-            Surface {
-                AppDetailScreen(
-                    appInfoUiState = AppInfoUiState.Error(error = UiMessage("Error")),
-                    componentListUiState = ComponentListUiState(),
-                    tabState = tabState[0],
-                    topAppBarUiState = AppBarUiState(),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun AppDetailSreenSelectedCompnentTab() {
-        BlockerTheme {
-            Surface {
-                AppDetailScreen(
-                    appInfoUiState = Success(
-                        appInfo = appList[0],
-                        iconBasedTheming = null,
-                        matchedGeneralRuleUiState = matchedRuleUiState,
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(appList[0]),
                     ),
-                    tabState = tabState[1],
+                    tabState = tabState[0],
+                    topAppBarUiState = AppBarUiState(),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun AppDetailScreenComponentTab() {
+        BlockerTheme {
+            Surface {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(
+                            app = appList[0],
+                            activity = components.filter { it.type == ACTIVITY },
+                        ),
+                    ),
                     topAppBarUiState = AppBarUiState(
                         actions = listOf(
                             SEARCH,
                             MORE,
                         ),
                     ),
-                    componentListUiState = ComponentListUiState(
-                        activity = activityComponents,
-                    ),
+                    tabState = tabState[1],
                 )
             }
         }
     }
 
     @Composable
-    private fun AppDetailSreenSearchMode() {
+    private fun AppDetailScreenComponentEmpty() {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = Success(
+                    appInfoUiState = AppInfoUiState(
                         appInfo = appList[0],
-                        iconBasedTheming = null,
-                        matchedGeneralRuleUiState = matchedRuleUiState,
+                        showOpenInLibChecker = true,
+                    ),
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(appList[0]),
+                    ),
+                    tabState = tabState[2],
+                    topAppBarUiState = AppBarUiState(),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun AppDetailScreenComponentLoading() {
+        BlockerTheme {
+            Surface {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(
+                        appInfo = PreviewParameterData.appList[0],
+                        error = UiMessage("Error"),
+                    ),
+                    componentListUiState = Result.Loading,
+                    tabState = tabState[1],
+                    topAppBarUiState = AppBarUiState(),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun AppDetailScreenComponentError() {
+        BlockerTheme {
+            Surface {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(
+                        appInfo = appList[0],
+                        showOpenInLibChecker = true,
+                    ),
+                    componentListUiState = Result.Error(
+                        Exception("Error"),
                     ),
                     tabState = tabState[1],
+                    topAppBarUiState = AppBarUiState(),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun AppDetailScreenComponentRefreshing() {
+        BlockerTheme {
+            Surface {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(
+                        appInfo = PreviewParameterData.appList[0],
+                        isRefreshing = true,
+                    ),
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(
+                            app = PreviewParameterData.appList[0],
+                            activity = components.filter { it.type == ACTIVITY },
+                        ),
+                    ),
+                    tabState = tabState[1],
+                    topAppBarUiState = AppBarUiState(),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun AppDetailScreenSdkTab() {
+        BlockerTheme {
+            Surface {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(
+                        appInfo = appList[0],
+                        showOpenInLibChecker = true,
+                        matchedRuleUiState = matchedRuleUiState,
+                    ),
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(appList[0]),
+                    ),
+                    tabState = tabState[3],
+                    topAppBarUiState = AppBarUiState(),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun AppDetailScreenSdkLoading() {
+        BlockerTheme {
+            Surface {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(
+                        appInfo = appList[0],
+                        showOpenInLibChecker = true,
+                        matchedRuleUiState = Result.Loading,
+                    ),
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(appList[0]),
+                    ),
+                    tabState = tabState[3],
+                    topAppBarUiState = AppBarUiState(),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun AppDetailScreenSdkError() {
+        BlockerTheme {
+            Surface {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(
+                        appInfo = appList[0],
+                        showOpenInLibChecker = true,
+                        matchedRuleUiState = Result.Error(
+                            Exception("Error"),
+                        ),
+                    ),
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(appList[0]),
+                    ),
+                    tabState = tabState[3],
+                    topAppBarUiState = AppBarUiState(),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun AppDetailScreenSearchMode() {
+        BlockerTheme {
+            Surface {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(
+                            app = appList[0],
+                            activity = components.filter { it.type == ACTIVITY },
+                        ),
+                    ),
                     topAppBarUiState = AppBarUiState(
                         actions = listOf(
                             SEARCH,
@@ -298,44 +490,37 @@ class AppDetailScreenScreenshotTests {
                         ),
                         isSearchMode = true,
                     ),
-                    componentListUiState = ComponentListUiState(
-                        activity = activityComponents,
-                    ),
+                    tabState = tabState[1],
                 )
             }
         }
     }
 
     @Composable
-    private fun AppDetailSreenSelectedMode() {
+    private fun AppDetailScreenSelectedMode() {
         BlockerTheme {
             Surface {
-                BlockerTheme {
-                    Surface {
-                        AppDetailScreen(
-                            appInfoUiState = Success(
-                                appInfo = appList[0],
-                                iconBasedTheming = null,
-                                matchedGeneralRuleUiState = matchedRuleUiState,
-                            ),
-                            componentListUiState = ComponentListUiState(
-                                activity = activityComponents,
-                            ),
-                            topAppBarUiState = AppBarUiState(
-                                actions = listOf(
-                                    SEARCH,
-                                    MORE,
-                                ),
-                                isSearchMode = true,
-                                isSelectedMode = true,
-                                selectedComponentList = listOf(
-                                    activityComponents[0],
-                                ),
-                            ),
-                            tabState = tabState[1],
-                        )
-                    }
-                }
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                    componentListUiState = Result.Success(
+                        ComponentSearchResult(
+                            app = appList[0],
+                            activity = activityComponents,
+                        ),
+                    ),
+                    topAppBarUiState = AppBarUiState(
+                        actions = listOf(
+                            SEARCH,
+                            MORE,
+                        ),
+                        isSearchMode = true,
+                        isSelectedMode = true,
+                        selectedComponentList = listOf(
+                            activityComponents[0],
+                        ),
+                    ),
+                    tabState = tabState[1],
+                )
             }
         }
     }

@@ -20,7 +20,6 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
@@ -37,20 +36,21 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.FilesDir
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
+import com.merxury.blocker.core.ui.extension.updateComponentInfoSwitchState
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
@@ -87,7 +87,6 @@ class RuleDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
 ) : ViewModel() {
@@ -140,7 +139,7 @@ class RuleDetailViewModel @Inject constructor(
                 RuleInfoUiState.Success(
                     ruleInfo = ruleWithIcon,
                     ruleIcon = getRuleIcon(iconFile, context = context),
-                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
+                    matchedAppsUiState = Result.Loading,
                 )
             }
             currentSearchKeyword = rule.searchKeyword
@@ -159,11 +158,11 @@ class RuleDetailViewModel @Inject constructor(
                 return@launch
             }
             val matchedAppState = ruleUiList.matchedAppsUiState
-            if (matchedAppState !is RuleMatchedAppListUiState.Success) {
+            if (matchedAppState !is Result.Success) {
                 Timber.e("Matched app list is not ready")
                 return@launch
             }
-            val list = matchedAppState.list
+            val list = matchedAppState.data
                 .flatMap { it.componentList }
             controlAllComponentsInternal(list, enable, action)
         }
@@ -186,16 +185,20 @@ class RuleDetailViewModel @Inject constructor(
         enable: Boolean,
         action: suspend (Int, Int) -> Unit,
     ) {
+        val controllerType = userDataRepository.userData.first().controllerType
         var successCount = 0
         componentRepository.batchControlComponent(
             components = list,
             newState = enable,
         )
+            .onStart {
+                changeComponentUiStatus(list, controllerType, enable)
+            }
             .catch { exception ->
+                changeComponentUiStatus(list, controllerType, !enable)
                 _errorState.emit(exception.toErrorMessage())
             }
-            .collect { component ->
-                changeComponentUiStatus(component.packageName, component.name, enable)
+            .collect { _ ->
                 successCount++
                 action(successCount, list.size)
             }
@@ -228,7 +231,7 @@ class RuleDetailViewModel @Inject constructor(
             .toMutableStateList()
         withContext(mainDispatcher) {
             _ruleInfoUiState.update {
-                val matchedApps = RuleMatchedAppListUiState.Success(searchResult)
+                val matchedApps = Result.Success(searchResult)
                 if (it is RuleInfoUiState.Success) {
                     it.copy(matchedAppsUiState = matchedApps)
                 } else {
@@ -275,20 +278,19 @@ class RuleDetailViewModel @Inject constructor(
     }
 
     fun controlComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         enabled: Boolean,
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            controlComponentInternal(packageName, componentName, enabled)
+            controlComponentInternal(component, enabled)
             analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
         }
     }
 
-    private suspend fun changeComponentUiStatus(
-        packageName: String,
-        componentName: String,
+    private fun changeComponentUiStatus(
+        changed: List<ComponentInfo>,
+        controllerType: ControllerType,
         enable: Boolean,
     ) {
         val currentUiState = _ruleInfoUiState.value
@@ -296,52 +298,32 @@ class RuleDetailViewModel @Inject constructor(
             Timber.e("Cannot control component when rule info is not ready")
             return
         }
-        val matchedAppState = currentUiState.matchedAppsUiState
-        if (matchedAppState !is RuleMatchedAppListUiState.Success) {
-            Timber.e("Cannot control component when matched app list is not ready")
-            return
-        }
-        withContext(cpuDispatcher) {
-            val currentController = userDataRepository.userData.first().controllerType
-            val matchedApp = matchedAppState.list.firstOrNull { matchedApp ->
-                matchedApp.header.uniqueId == packageName
-            }
-            if (matchedApp == null) {
-                Timber.e("Cannot find matched app for package name: $packageName")
-                return@withContext
-            }
-            val list = matchedApp.componentList
-            val position = list.indexOfFirst { it.name == componentName }
-            if (position == -1) {
-                Timber.w("Cannot find component $componentName in the matched list")
-                return@withContext
-            }
-            withContext(mainDispatcher) {
-                list[position] = if (currentController == IFW) {
-                    list[position].copy(ifwBlocked = !enable)
-                } else {
-                    list[position].copy(pmBlocked = !enable)
-                }
-            }
+        val newState = currentUiState.matchedAppsUiState.updateComponentInfoSwitchState(
+            changed = changed,
+            controllerType = controllerType,
+            enabled = enable,
+        )
+        _ruleInfoUiState.update {
+            currentUiState.copy(matchedAppsUiState = newState)
         }
     }
 
     private suspend fun controlComponentInternal(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         enabled: Boolean,
     ) {
-        componentRepository.controlComponent(packageName, componentName, enabled)
+        val controllerType = userDataRepository.userData.first().controllerType
+        componentRepository.controlComponent(component.packageName, component.name, enabled)
             .onStart {
-                changeComponentUiStatus(packageName, componentName, enabled)
+                changeComponentUiStatus(listOf(component), controllerType, enabled)
             }
             .catch { exception ->
                 _errorState.emit(exception.toErrorMessage())
-                changeComponentUiStatus(packageName, componentName, !enabled)
+                changeComponentUiStatus(listOf(component), controllerType, !enabled)
             }
             .collect { result ->
                 if (!result) {
-                    changeComponentUiStatus(packageName, componentName, !enabled)
+                    changeComponentUiStatus(listOf(component), controllerType, !enabled)
                 }
             }
     }
@@ -378,13 +360,6 @@ sealed interface RuleInfoUiState {
     data class Success(
         val ruleInfo: GeneralRule,
         val ruleIcon: Bitmap?,
-        val matchedAppsUiState: RuleMatchedAppListUiState,
+        val matchedAppsUiState: Result<List<MatchedItem>>,
     ) : RuleInfoUiState
-}
-
-sealed interface RuleMatchedAppListUiState {
-    data object Loading : RuleMatchedAppListUiState
-    data class Success(
-        val list: SnapshotStateList<MatchedItem>,
-    ) : RuleMatchedAppListUiState
 }

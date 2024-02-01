@@ -35,6 +35,9 @@ internal class LocalComponentDetailRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailRepository {
 
+    override val updatedComponent: Flow<ComponentDetail>
+        get() = userGeneratedDataSource.eventFlow
+
     override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> =
         userGeneratedDataSource.getByPackageName(packageName)
             .map { it.isNotEmpty() }
@@ -62,7 +65,4 @@ internal class LocalComponentDetailRepository @Inject constructor(
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> =
         userGeneratedDataSource.saveComponentData(componentDetail)
-
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
-        userGeneratedDataSource.eventFlow
 }
