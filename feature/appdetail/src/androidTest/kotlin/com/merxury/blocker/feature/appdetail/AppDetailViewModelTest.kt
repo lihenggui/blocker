@@ -27,6 +27,8 @@ import com.merxury.blocker.core.domain.components.SearchComponentsUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
@@ -242,7 +244,15 @@ class AppDetailViewModelTest {
         // No matched rule in this case
         assertEquals(
             Result.Success(
-                listOf(),
+                listOf(
+                    MatchedItem(
+                        header = MatchedHeaderData(
+                            title = "Android WorkerManager",
+                            uniqueId = "2",
+                        ),
+                        componentList = sampleComponentList,
+                    )
+                ),
             ),
             viewModel.appInfoUiState.value.matchedRuleUiState,
         )
@@ -431,9 +441,9 @@ private val sampleRuleList = listOf(
         contributors = listOf("Google"),
         searchKeyword = listOf(
             "androidx.google.example1",
-            "androidx.google.example2",
-            "androidx.google.example3",
-            "androidx.google.example4",
+            "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
+            "ComponentActivity",
+            "AlarmManagerSchedulerBroadcast",
         ),
     ),
     GeneralRule(
