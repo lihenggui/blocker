@@ -59,8 +59,6 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.appdetail.navigation.PACKAGE_NAME_ARG
@@ -250,7 +248,7 @@ class AppDetailViewModelTest {
                             uniqueId = "2",
                         ),
                         componentList = sampleComponentList,
-                    )
+                    ),
                 ),
             ),
             viewModel.appInfoUiState.value.matchedRuleUiState,
