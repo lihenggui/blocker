@@ -46,6 +46,7 @@ import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
@@ -138,7 +139,7 @@ class RuleDetailViewModel @Inject constructor(
                 RuleInfoUiState.Success(
                     ruleInfo = ruleWithIcon,
                     ruleIcon = getRuleIcon(iconFile, context = context),
-                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
+                    matchedAppsUiState = Result.Loading,
                 )
             }
             currentSearchKeyword = rule.searchKeyword
@@ -157,11 +158,11 @@ class RuleDetailViewModel @Inject constructor(
                 return@launch
             }
             val matchedAppState = ruleUiList.matchedAppsUiState
-            if (matchedAppState !is RuleMatchedAppListUiState.Success) {
+            if (matchedAppState !is Result.Success) {
                 Timber.e("Matched app list is not ready")
                 return@launch
             }
-            val list = matchedAppState.list
+            val list = matchedAppState.data
                 .flatMap { it.componentList }
             controlAllComponentsInternal(list, enable, action)
         }
@@ -226,7 +227,7 @@ class RuleDetailViewModel @Inject constructor(
             .toMutableStateList()
         withContext(mainDispatcher) {
             _ruleInfoUiState.update {
-                val matchedApps = RuleMatchedAppListUiState.Success(searchResult)
+                val matchedApps = Result.Success(searchResult)
                 if (it is RuleInfoUiState.Success) {
                     it.copy(matchedAppsUiState = matchedApps)
                 } else {
@@ -294,13 +295,13 @@ class RuleDetailViewModel @Inject constructor(
             return
         }
         val matchedAppState = currentUiState.matchedAppsUiState
-        if (matchedAppState !is RuleMatchedAppListUiState.Success) {
+        if (matchedAppState !is Result.Success) {
             Timber.e("Cannot control component when matched app list is not ready")
             return
         }
         withContext(cpuDispatcher) {
             val currentController = userDataRepository.userData.first().controllerType
-            val matchedApp = matchedAppState.list.firstOrNull { matchedApp ->
+            val matchedApp = matchedAppState.data.firstOrNull { matchedApp ->
                 matchedApp.header.uniqueId == packageName
             }
             if (matchedApp == null) {
@@ -375,13 +376,6 @@ sealed interface RuleInfoUiState {
     data class Success(
         val ruleInfo: GeneralRule,
         val ruleIcon: Bitmap?,
-        val matchedAppsUiState: RuleMatchedAppListUiState,
+        val matchedAppsUiState: Result<List<MatchedItem>>,
     ) : RuleInfoUiState
-}
-
-sealed interface RuleMatchedAppListUiState {
-    data object Loading : RuleMatchedAppListUiState
-    data class Success(
-        val list: List<MatchedItem>,
-    ) : RuleMatchedAppListUiState
 }

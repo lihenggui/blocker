@@ -41,7 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -80,6 +79,7 @@ import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -323,7 +323,7 @@ fun RuleDetailScreen(
 @Composable
 fun RuleDetailContent(
     modifier: Modifier = Modifier,
-    ruleMatchedAppListUiState: RuleMatchedAppListUiState,
+    ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     onBackClick: () -> Unit,
     appBarUiState: AppBarUiState = AppBarUiState(),
@@ -483,7 +483,7 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
 @Composable
 fun RuleDetailTabContent(
     modifier: Modifier = Modifier,
-    ruleMatchedAppListUiState: RuleMatchedAppListUiState,
+    ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
@@ -562,18 +562,16 @@ fun RuleDetailScreenPreview(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
-                    matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        list = remember {
-                            mutableStateListOf(
-                                MatchedItem(
-                                    header = MatchedHeaderData(
-                                        title = appList.first().label,
-                                        uniqueId = appList.first().packageName,
-                                    ),
-                                    componentList = components,
+                    matchedAppsUiState = Result.Success(
+                        listOf(
+                            MatchedItem(
+                                header = MatchedHeaderData(
+                                    title = appList.first().label,
+                                    uniqueId = appList.first().packageName,
                                 ),
-                            )
-                        },
+                                componentList = components,
+                            ),
+                        ),
                     ),
                 ),
                 tabState = tabState[0],
@@ -603,18 +601,16 @@ fun RuleDetailScreenSelectedDescriptionPreview(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
-                    matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        list = remember {
-                            mutableStateListOf(
-                                MatchedItem(
-                                    header = MatchedHeaderData(
-                                        title = appList.first().label,
-                                        uniqueId = appList.first().packageName,
-                                    ),
-                                    componentList = components,
+                    matchedAppsUiState = Result.Success(
+                        listOf(
+                            MatchedItem(
+                                header = MatchedHeaderData(
+                                    title = appList.first().label,
+                                    uniqueId = appList.first().packageName,
                                 ),
-                            )
-                        },
+                                componentList = components,
+                            ),
+                        ),
                     ),
                 ),
                 tabState = tabState[1],
@@ -637,7 +633,7 @@ fun RuleDetailScreenWithApplicableLoadingPreview(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
-                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
+                    matchedAppsUiState = Result.Loading,
                 ),
                 tabState = tabState[0],
             )
