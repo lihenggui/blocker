@@ -51,6 +51,8 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.appdetail.navigation.PACKAGE_NAME_ARG
@@ -240,10 +242,26 @@ class AppDetailViewModelTest {
 
     @Test
     fun tabState_whenSwitchTab_thenUpdateSelectedItem() = runTest {
-        val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
         viewModel.switchTab(AppDetailTabs.Receiver)
         assertEquals(AppDetailTabs.Receiver, viewModel.tabState.value.selectedItem)
-        collectJob1.cancel()
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenSwitchTab_thenUpdateActionButtons() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        viewModel.switchTab(AppDetailTabs.Receiver)
+        assertEquals(
+            AppBarUiState(
+                actions = listOf(
+                    SEARCH,
+                    MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        collectJob.cancel()
     }
 }
 
