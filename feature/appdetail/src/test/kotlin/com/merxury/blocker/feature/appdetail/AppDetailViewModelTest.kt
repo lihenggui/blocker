@@ -313,8 +313,10 @@ class AppDetailViewModelTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
         viewModel.switchSelectedMode(true)
         assertEquals(
-            true,
-            viewModel.appBarUiState.value.isSelectedMode,
+            AppBarUiState(
+                isSelectedMode = true,
+            ),
+            viewModel.appBarUiState.value,
         )
         collectJob.cancel()
     }
