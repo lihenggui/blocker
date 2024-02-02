@@ -16,10 +16,10 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import android.content.Context
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.PackageInfoFlags
 import androidx.lifecycle.SavedStateHandle
-import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
@@ -64,6 +64,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import kotlin.test.assertEquals
 
 class AppDetailViewModelTest {
@@ -90,14 +93,24 @@ class AppDetailViewModelTest {
             KEYWORD_ARG to "",
         ),
     )
+    private val packageInfo = mock<PackageInfo> {
+        on { toString() } doReturn "MockedPackageInfo"
+    }
+    private val pm = mock<PackageManager> {
+        on { getPackageInfo(any<String>(), any<Int>()) } doReturn packageInfo
+        on {
+            getPackageInfo(
+                any<String>(),
+                any<PackageInfoFlags>(),
+            )
+        } doReturn packageInfo
+    }
+    private val workerManager = mock<WorkManager>()
+
     private lateinit var viewModel: AppDetailViewModel
-    private lateinit var context: Context
-    private lateinit var pm: PackageManager
 
     @Before
     fun setup() {
-        context = ApplicationProvider.getApplicationContext()
-        pm = context.packageManager
         val zipAppRuleUseCase = ZipAppRuleUseCase(
             componentRepository = componentRepository,
             userDataRepository = userDataRepository,
@@ -144,7 +157,7 @@ class AppDetailViewModelTest {
             componentDetailRepository = componentDetailRepository,
             getServiceController = getServiceControllerUseCase,
             analyticsHelper = analyticsHelper,
-            workerManager = WorkManager.getInstance(context),
+            workerManager = workerManager,
             searchMatchedRuleInAppUseCase = searchMatchedRuleInAppUseCase,
             zipAppRuleUseCase = zipAppRuleUseCase,
             zipAllRuleUseCase = zipAllRuleUseCase,
@@ -198,7 +211,7 @@ class AppDetailViewModelTest {
         assertEquals(
             Result.Success(
                 ComponentSearchResult(
-                    app = sampleAppList.first().toAppItem(packageInfo),
+                    app = sampleAppList.first().toAppItem(),
                     activity = sampleComponentList.filter { it.type == ACTIVITY },
                     service = sampleComponentList.filter { it.type == SERVICE },
                     receiver = sampleComponentList.filter { it.type == RECEIVER },
