@@ -283,6 +283,30 @@ class AppDetailViewModelTest {
         collectJob1.cancel()
         collectJob2.cancel()
     }
+
+    @Test
+    fun appBarUiState_whenSearchResult_thenShowSearchResult() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
+        viewModel.loadComponentList()
+        viewModel.search("Activity")
+        viewModel.changeSearchMode(true)
+        viewModel.loadComponentList()
+        assertEquals(
+            Result.Success(
+                ComponentSearchResult(
+                    app = sampleAppList.first().toAppItem(),
+                    activity = sampleComponentList.filter { it.type == ACTIVITY },
+                ),
+            ),
+            viewModel.appInfoUiState.value.componentSearchUiState,
+        )
+        collectJob.cancel()
+    }
 }
 
 private val sampleAppList = listOf(
