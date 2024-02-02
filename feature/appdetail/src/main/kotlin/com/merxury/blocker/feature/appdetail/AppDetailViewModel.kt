@@ -596,7 +596,7 @@ class AppDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
-        componentRepository.controlComponent(component.packageName, component.name, enabled)
+        componentRepository.controlComponent(component, enabled)
             .onStart {
                 changeComponentsUiStatus(
                     changed = listOf(component),

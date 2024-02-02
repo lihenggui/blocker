@@ -99,10 +99,8 @@ fun NoApplicableAppScreen() {
 fun RuleMatchedAppListPreview() {
     val componentInfo = ComponentInfo(
         name = ".ui.component.ComponentListActivity",
-        simpleName = "ComponentListItem",
         packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
-        pmBlocked = false,
     )
     val matchedItem = MatchedItem(
         header = MatchedHeaderData(

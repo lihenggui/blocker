@@ -194,9 +194,9 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                     // IFW controller did not support disabling provider
                     // Fallback to other controller
                     if (!it.state) {
-                        fallbackController.enable(it.packageName, it.name)
+                        fallbackController.enable(it.toComponentInfo())
                     } else {
-                        fallbackController.disable(it.packageName, it.name)
+                        fallbackController.disable(it.toComponentInfo())
                     }
                 } else {
                     val currentState = ifwController.checkComponentEnableState(
@@ -205,9 +205,9 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                     )
                     if (currentState == it.state) return@forEach
                     if (it.state) {
-                        ifwController.enable(it.packageName, it.name)
+                        ifwController.enable(it.toComponentInfo())
                     } else {
-                        ifwController.disable(it.packageName, it.name)
+                        ifwController.disable(it.toComponentInfo())
                     }
                 }
                 count++
@@ -218,9 +218,9 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                 )
                 if (currentState == it.state) return@forEach
                 if (it.state) {
-                    fallbackController.enable(it.packageName, it.name)
+                    fallbackController.enable(it.toComponentInfo())
                 } else {
-                    fallbackController.disable(it.packageName, it.name)
+                    fallbackController.disable(it.toComponentInfo())
                 }
                 count++
             }
