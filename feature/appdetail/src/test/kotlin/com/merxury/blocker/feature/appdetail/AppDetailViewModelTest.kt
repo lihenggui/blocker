@@ -263,6 +263,26 @@ class AppDetailViewModelTest {
         )
         collectJob.cancel()
     }
+
+    @Test
+    fun appBarUiState_whenSearchNotResult_thenSwitchToInfoTab() = runTest {
+        val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+        viewModel.switchTab(AppDetailTabs.Receiver)
+        viewModel.search("123")
+        viewModel.changeSearchMode(true)
+        viewModel.loadTabInfo()
+        assertEquals(
+            AppBarUiState(
+                isSearchMode = true,
+                keyword = "123",
+            ),
+            viewModel.appBarUiState.value,
+        )
+        assertEquals(AppDetailTabs.Info, viewModel.tabState.value.selectedItem)
+        collectJob1.cancel()
+        collectJob2.cancel()
+    }
 }
 
 private val sampleAppList = listOf(

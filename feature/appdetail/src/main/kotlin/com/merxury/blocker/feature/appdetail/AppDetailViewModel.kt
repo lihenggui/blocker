@@ -300,7 +300,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadTabInfo() = viewModelScope.launch(mainDispatcher) {
+    fun loadTabInfo() = viewModelScope.launch(mainDispatcher) {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
