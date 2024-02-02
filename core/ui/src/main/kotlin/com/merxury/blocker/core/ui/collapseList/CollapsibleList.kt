@@ -178,7 +178,6 @@ fun RuleMatchedAppListPreview() {
         simpleName = "ComponentListItem",
         packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
-        pmBlocked = false,
     )
     val matchedItem = MatchedItem(
         header = MatchedHeaderData(

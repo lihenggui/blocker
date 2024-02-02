@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.rule.work
 
 import android.content.Context
-import android.content.pm.ComponentInfo
 import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
@@ -27,6 +26,8 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
@@ -93,43 +94,23 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 }
                 Timber.i("Importing ${documentFile.name}")
                 setForeground(updateNotification(documentFile.name ?: "", importedCount, total))
-                var packageName: String? = null
                 context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
                     val fileContent = stream.bufferedReader().use { it.readText() }
                     if (fileContent.isEmpty()) {
                         return@forEach
                     }
                     val rule = Rules.decodeFromString(xmlParser, fileContent)
-                    val activities = rule.activity.componentFilter.asSequence()
-                        .map { filter -> filter.name.split("/") }
-                        .map { names ->
-                            val component = ComponentInfo()
-                            component.packageName = names[0]
-                            component.name = names[1]
-                            packageName = component.packageName
-                            component
-                        }
-                        .toList()
-                    val broadcast = rule.broadcast.componentFilter.asSequence()
-                        .map { filter -> filter.name.split("/") }
-                        .map { names ->
-                            val component = ComponentInfo()
-                            component.packageName = names[0]
-                            component.name = names[1]
-                            packageName = component.packageName
-                            component
-                        }
-                        .toList()
-                    val service = rule.service.componentFilter.asSequence()
-                        .map { filter -> filter.name.split("/") }
-                        .map { names ->
-                            val component = ComponentInfo()
-                            component.packageName = names[0]
-                            component.name = names[1]
-                            packageName = component.packageName
-                            component
-                        }
-                        .toList()
+                    val activities = rule.activity.componentFilter
+                        .map { getComponentFromName(it.name) }
+                    val broadcast = rule.broadcast.componentFilter
+                        .map { getComponentFromName(it.name) }
+                    val service = rule.service.componentFilter
+                        .map { getComponentFromName(it.name) }
+                    // Assume that all components in the same file belong to the same package
+                    val packageName = activities.firstOrNull()?.packageName
+                        ?: broadcast.firstOrNull()?.packageName
+                        ?: service.firstOrNull()?.packageName
+                        ?: return@forEach
                     val isSystemApp =
                         ApplicationUtil.isSystemApp(context.packageManager, packageName)
                     if (!shouldRestoreSystemApps && isSystemApp) {
@@ -156,6 +137,17 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         Timber.i("Imported $importedCount IFW rules.")
         return@withContext Result.success(
             workDataOf(PARAM_IMPORT_COUNT to importedCount),
+        )
+    }
+
+    private fun getComponentFromName(name: String): ComponentInfo {
+        val splitResult = name.split("/")
+        val packageName = splitResult[0]
+        val componentName = splitResult[1]
+        return ComponentInfo(
+            packageName = packageName,
+            name = componentName,
+            type = ACTIVITY,
         )
     }
 
