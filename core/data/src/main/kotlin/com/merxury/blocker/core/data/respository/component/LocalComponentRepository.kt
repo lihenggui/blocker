@@ -142,22 +142,7 @@ internal class LocalComponentRepository @Inject constructor(
             PM -> controlInPmMode(component, newState)
             SHIZUKU -> controlInShizukuMode(component, newState)
         }
-        if (result) {
-            val controllerType = userData.controllerType
-            val updatedComponent = component.copy(
-                pmBlocked = if (controllerType != IFW) {
-                    !newState
-                } else {
-                    component.pmBlocked
-                },
-                ifwBlocked = if (controllerType == IFW) {
-                    !newState
-                } else {
-                    component.ifwBlocked
-                }
-            )
-            appComponentDao.update(updatedComponent.toAppComponentEntity())
-        }
+        updateComponentStatus(packageName, componentName)
         emit(result)
     }
 
@@ -273,5 +258,23 @@ internal class LocalComponentRepository @Inject constructor(
         } else {
             shizukuController.disable(component)
         }
+    }
+
+    private suspend fun updateComponentStatus(
+        packageName: String,
+        componentName: String,
+    ): ComponentInfo? {
+        val component = appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
+            .first()
+        if (component == null) {
+            Timber.e("Component $packageName/$componentName not found in database")
+            return null
+        }
+        val newState = component.copy(
+            pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
+            ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
+        )
+        appComponentDao.update(newState)
+        return newState.toComponentInfo()
     }
 }
