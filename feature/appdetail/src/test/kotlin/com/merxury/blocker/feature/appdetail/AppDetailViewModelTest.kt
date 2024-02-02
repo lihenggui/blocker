@@ -371,10 +371,11 @@ class AppDetailViewModelTest {
         viewModel.switchTab(AppDetailTabs.Activity)
         viewModel.switchSelectedMode(true)
         viewModel.selectItem(sampleComponentList.first())
+        viewModel.selectItem(sampleComponentList.last())
         assertEquals(
             AppBarUiState(
                 isSelectedMode = true,
-                selectedComponentList = listOf(sampleComponentList.first()),
+                selectedComponentList = listOf(sampleComponentList.first(), sampleComponentList.last()),
                 actions = listOf(
                     SEARCH,
                     MORE,
@@ -386,7 +387,7 @@ class AppDetailViewModelTest {
         assertEquals(
             AppBarUiState(
                 isSelectedMode = true,
-                selectedComponentList = emptyList(),
+                selectedComponentList = listOf(sampleComponentList.last()),
                 actions = listOf(
                     SEARCH,
                     MORE,
