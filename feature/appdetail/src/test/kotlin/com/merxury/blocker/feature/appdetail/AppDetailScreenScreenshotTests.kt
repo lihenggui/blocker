@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.appdetail
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
@@ -61,7 +60,7 @@ class AppDetailScreenScreenshotTests {
     private val appList = AppListPreviewParameterProvider().values.first()
     private val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     private val components = ComponentListPreviewParameterProvider().values.first()
-    private val activityComponents = components.filter { it.type == ACTIVITY }.toMutableStateList()
+    private val activityComponents = components.filter { it.type == ACTIVITY }
     private val rule = RuleListPreviewParameterProvider().values.first().first()
     private val matchedRuleUiState: Result<List<MatchedItem>> = Result.Success(
         data = listOf(
