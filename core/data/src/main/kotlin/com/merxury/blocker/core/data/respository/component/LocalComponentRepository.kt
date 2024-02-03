@@ -176,7 +176,6 @@ internal class LocalComponentRepository @Inject constructor(
                 }
                 blockedByPm.forEach {
                     pmController.enable(it)
-                    emit(it)
                 }
             }
         }
