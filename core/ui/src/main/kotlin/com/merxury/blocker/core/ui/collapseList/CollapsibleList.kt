@@ -39,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -200,7 +199,7 @@ fun RuleMatchedAppListPreview() {
     BlockerTheme {
         Surface {
             CollapsibleList(
-                list = listOf(matchedItem, matchedItem2).toMutableStateList(),
+                list = listOf(matchedItem, matchedItem2),
             )
         }
     }

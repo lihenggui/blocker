@@ -44,7 +44,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -552,7 +551,7 @@ fun RuleDetailScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
-    val components = ComponentListPreviewParameterProvider().values.first().toMutableStateList()
+    val components = ComponentListPreviewParameterProvider().values.first()
     val appList = AppListPreviewParameterProvider().values.first()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
@@ -591,7 +590,7 @@ fun RuleDetailScreenSelectedDescriptionPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
-    val components = ComponentListPreviewParameterProvider().values.first().toMutableStateList()
+    val components = ComponentListPreviewParameterProvider().values.first()
     val appList = AppListPreviewParameterProvider().values.first()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
