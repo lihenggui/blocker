@@ -179,11 +179,17 @@ class AppDetailViewModel @Inject constructor(
         if (keyword == _appBarUiState.value.keyword) return
         _appBarUiState.update { it.copy(keyword = keyword) }
         searchJob?.cancel()
+        loadComponentListJob?.cancel()
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             Timber.v("Start filtering component list with keyword: $keyword")
             val packageName = appDetailArgs.packageName
             searchComponents(packageName, keyword).collect { result ->
                 updateTabState(result)
+                _appInfoUiState.update {
+                    it.copy(
+                        componentSearchUiState = Result.Success(result),
+                    )
+                }
             }
         }
     }
