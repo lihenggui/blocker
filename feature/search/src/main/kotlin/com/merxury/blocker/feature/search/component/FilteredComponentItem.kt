@@ -221,10 +221,8 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
 fun AppListItemPreview() {
     val componentInfo = ComponentInfo(
         name = "component",
-        simpleName = "com",
         packageName = "blocker",
         type = ACTIVITY,
-        pmBlocked = false,
     )
     val filterAppItem = FilteredComponent(
         app = AppItem(
@@ -257,10 +255,8 @@ fun AppListItemPreview() {
 fun AppListItemWithoutServicePreview() {
     val componentInfo = ComponentInfo(
         name = "component",
-        simpleName = "com",
         packageName = "blocker",
         type = ACTIVITY,
-        pmBlocked = false,
     )
     val filterAppItem = FilteredComponent(
         app = AppItem(

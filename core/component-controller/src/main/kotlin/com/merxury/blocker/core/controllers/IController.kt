@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.controllers
 
-import android.content.pm.ComponentInfo
+import com.merxury.blocker.core.model.data.ComponentInfo
 
 /**
  * Created by Mercury on 2018/1/13.
@@ -30,18 +30,17 @@ interface IController {
     /**
      * a method to change a component's state
      *
-     * @param packageName   package name
-     * @param componentName component name
+     * @param component     the component to be changed
      * @param state         PackageManager.COMPONENT_ENABLED_STATE_ENABLED: enable component
      * COMPONENT_ENABLED_STATE_DISABLED: disable component
      * @return true : changed component state successfully
      * false: cannot disable component
      */
-    suspend fun switchComponent(packageName: String, componentName: String, state: Int): Boolean
+    suspend fun switchComponent(component: ComponentInfo, state: Int): Boolean
 
-    suspend fun enable(packageName: String, componentName: String): Boolean
+    suspend fun enable(component: ComponentInfo): Boolean
 
-    suspend fun disable(packageName: String, componentName: String): Boolean
+    suspend fun disable(component: ComponentInfo): Boolean
 
     suspend fun batchEnable(
         componentList: List<ComponentInfo>,

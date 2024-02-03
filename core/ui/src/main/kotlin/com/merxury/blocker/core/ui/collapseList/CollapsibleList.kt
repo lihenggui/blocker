@@ -39,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -178,7 +177,6 @@ fun RuleMatchedAppListPreview() {
         simpleName = "ComponentListItem",
         packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
-        pmBlocked = false,
     )
     val matchedItem = MatchedItem(
         header = MatchedHeaderData(
@@ -201,7 +199,7 @@ fun RuleMatchedAppListPreview() {
     BlockerTheme {
         Surface {
             CollapsibleList(
-                list = listOf(matchedItem, matchedItem2).toMutableStateList(),
+                list = listOf(matchedItem, matchedItem2),
             )
         }
     }

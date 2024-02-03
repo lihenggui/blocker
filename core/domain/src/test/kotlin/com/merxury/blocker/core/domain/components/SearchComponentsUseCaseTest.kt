@@ -79,7 +79,6 @@ class SearchComponentsUseCaseTest {
                 simpleName = "$it",
                 name = "$packageName.$it",
                 type = componentMapping[it % 4] ?: ComponentType.ACTIVITY,
-                pmBlocked = false,
             )
         }
     }

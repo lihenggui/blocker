@@ -39,7 +39,6 @@ data class AppComponentEntity(
 fun AppComponentEntity.toComponentInfo() = ComponentInfo(
     packageName = packageName,
     name = componentName,
-    simpleName = componentName.substringAfterLast('.'),
     type = type,
     exported = exported,
     ifwBlocked = ifwBlocked,

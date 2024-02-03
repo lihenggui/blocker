@@ -52,7 +52,6 @@ object ComponentListPreviewParameterData {
             name = "AlarmManagerSchedulerBroadcast",
             simpleName = "AlarmManagerSchedulerBroadcast",
             packageName = "com.merxury.blocker",
-            pmBlocked = false,
             type = RECEIVER,
         ),
     )

@@ -30,6 +30,8 @@ import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.ShizukuControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
@@ -101,7 +103,15 @@ class ImportMatRulesWorker @AssistedInject constructor(
                         return@forEach
                     }
                     setForeground(updateNotification(packageName, current, total))
-                    controller.disable(packageName, name)
+                    val component = ComponentInfo(
+                        packageName = packageName,
+                        name = name,
+                        // The controller doesn't care about the type of the component
+                        // It will query internally, so we just set it to ACTIVITY
+                        // Just to avoid compilation error
+                        type = ACTIVITY,
+                    )
+                    controller.disable(component)
                     current++
                 }
             }

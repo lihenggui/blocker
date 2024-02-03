@@ -130,16 +130,17 @@ internal class LocalComponentRepository @Inject constructor(
     }
 
     override fun controlComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         newState: Boolean,
     ): Flow<Boolean> = flow {
+        val packageName = component.packageName
+        val componentName = component.name
         Timber.d("Control $packageName/$componentName to state $newState")
         val userData = userDataRepository.userData.first()
         val result = when (userData.controllerType) {
-            IFW -> controlInIfwMode(packageName, componentName, newState)
-            PM -> controlInPmMode(packageName, componentName, newState)
-            SHIZUKU -> controlInShizukuMode(packageName, componentName, newState)
+            IFW -> controlInIfwMode(component, newState)
+            PM -> controlInPmMode(component, newState)
+            SHIZUKU -> controlInShizukuMode(component, newState)
         }
         updateComponentStatus(packageName, componentName)
         emit(result)
@@ -150,7 +151,6 @@ internal class LocalComponentRepository @Inject constructor(
         newState: Boolean,
     ): Flow<ComponentInfo> = flow {
         Timber.i("Batch control ${components.size} components to state $newState")
-        val list = components.map { it.toAndroidComponentInfo() }
         val userData = userDataRepository.userData.first()
         val controller = when (userData.controllerType) {
             IFW -> ifwController
@@ -163,9 +163,9 @@ internal class LocalComponentRepository @Inject constructor(
             val providers = components.filter { it.type == ComponentType.PROVIDER }
             providers.forEach {
                 if (newState) {
-                    pmController.enable(it.packageName, it.name)
+                    pmController.enable(it)
                 } else {
-                    pmController.disable(it.packageName, it.name)
+                    pmController.disable(it)
                 }
                 emit(it)
             }
@@ -175,22 +175,18 @@ internal class LocalComponentRepository @Inject constructor(
                     it.pmBlocked && it.type != ComponentType.PROVIDER
                 }
                 blockedByPm.forEach {
-                    pmController.enable(it.packageName, it.name)
+                    pmController.enable(it)
                     emit(it)
                 }
             }
         }
         if (newState) {
-            controller.batchEnable(list) {
-                updateComponentStatus(it.packageName, it.name)?.let { component ->
-                    emit(component)
-                }
+            controller.batchEnable(components) {
+                emit(it)
             }
         } else {
-            controller.batchDisable(list) {
-                updateComponentStatus(it.packageName, it.name)?.let { component ->
-                    emit(component)
-                }
+            controller.batchDisable(components) {
+                emit(it)
             }
         }
     }
@@ -211,57 +207,56 @@ internal class LocalComponentRepository @Inject constructor(
     }
 
     private suspend fun controlInIfwMode(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         newState: Boolean,
     ): Boolean {
-        // Intent Firewall doesn't have the ability to enable/disable providers
-        // Use PM controller instead in this case
-        val type = localDataSource.getComponentType(packageName, componentName)
-            .first()
+        val packageName = component.packageName
+        val componentName = component.name
+        val type = component.type
         if (type == ComponentType.PROVIDER) {
             Timber.v("Component $packageName/$componentName is provider.")
-            return controlInPmMode(packageName, componentName, newState)
+            return controlInPmMode(component, newState)
         }
         return if (newState) {
             // Need to enable the component by PM controller first
             val blockedByPm = !pmController.checkComponentEnableState(packageName, componentName)
             if (blockedByPm) {
-                pmController.enable(packageName, componentName)
+                pmController.enable(component)
             }
-            ifwController.enable(packageName, componentName)
+            ifwController.enable(component)
         } else {
-            ifwController.disable(packageName, componentName)
+            ifwController.disable(component)
         }
     }
 
     private suspend fun controlInPmMode(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         newState: Boolean,
     ): Boolean {
         return if (newState) {
             // Need to enable the component by PM controller first
-            val blockedByIfw = !ifwController.checkComponentEnableState(packageName, componentName)
+            val blockedByIfw = !ifwController.checkComponentEnableState(
+                component.packageName,
+                component.name,
+            )
             if (blockedByIfw) {
-                ifwController.enable(packageName, componentName)
+                ifwController.enable(component)
             }
-            pmController.enable(packageName, componentName)
+            pmController.enable(component)
         } else {
-            pmController.disable(packageName, componentName)
+            pmController.disable(component)
         }
     }
 
     private suspend fun controlInShizukuMode(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         newState: Boolean,
     ): Boolean {
         // In Shizuku mode, use root privileges as little as possible
         return if (newState) {
-            shizukuController.enable(packageName, componentName)
+            shizukuController.enable(component)
         } else {
-            shizukuController.disable(packageName, componentName)
+            shizukuController.disable(component)
         }
     }
 

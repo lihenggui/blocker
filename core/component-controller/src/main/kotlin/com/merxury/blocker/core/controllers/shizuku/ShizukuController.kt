@@ -18,12 +18,12 @@ package com.merxury.blocker.core.controllers.shizuku
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ComponentInfo
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import android.os.Build
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.ShizukuBinderWrapper
@@ -44,10 +44,11 @@ internal class ShizukuController @Inject constructor(
     }
 
     override suspend fun switchComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         state: Int,
     ): Boolean {
+        val packageName = component.packageName
+        val componentName = component.name
         // 0 means kill the application
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm.setComponentEnabledSetting(
@@ -68,18 +69,16 @@ internal class ShizukuController @Inject constructor(
         return true
     }
 
-    override suspend fun enable(packageName: String, componentName: String): Boolean {
+    override suspend fun enable(component: ComponentInfo): Boolean {
         return switchComponent(
-            packageName,
-            componentName,
+            component,
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
         )
     }
 
-    override suspend fun disable(packageName: String, componentName: String): Boolean {
+    override suspend fun disable(component: ComponentInfo): Boolean {
         return switchComponent(
-            packageName,
-            componentName,
+            component,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
         )
     }
@@ -90,7 +89,7 @@ internal class ShizukuController @Inject constructor(
     ): Int {
         var successCount = 0
         componentList.forEach {
-            if (enable(it.packageName, it.name)) {
+            if (enable(it)) {
                 successCount++
             }
             action(it)
@@ -104,7 +103,7 @@ internal class ShizukuController @Inject constructor(
     ): Int {
         var successCount = 0
         componentList.forEach {
-            if (disable(it.packageName, it.name)) {
+            if (disable(it)) {
                 successCount++
             }
             action(it)

@@ -47,8 +47,7 @@ class FakeComponentRepository @Inject constructor() : ComponentRepository {
     )
 
     override fun controlComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         newState: Boolean,
     ): Flow<Boolean> = flowOf(false)
 
@@ -58,11 +57,8 @@ class FakeComponentRepository @Inject constructor() : ComponentRepository {
     ): Flow<ComponentInfo> = flowOf(
         ComponentInfo(
             name = "",
-            simpleName = "",
             packageName = "",
             type = ACTIVITY,
-            exported = false,
-            pmBlocked = false,
         ),
     )
 

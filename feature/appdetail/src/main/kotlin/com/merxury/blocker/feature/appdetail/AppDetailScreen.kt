@@ -57,7 +57,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -1175,7 +1174,7 @@ fun AppDetailScreenSelectedModePreview(
 ) {
     val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     val components = ComponentListPreviewParameterProvider().values.first()
-    val activityComponents = components.filter { it.type == ACTIVITY }.toMutableStateList()
+    val activityComponents = components.filter { it.type == ACTIVITY }
     BlockerTheme {
         Surface {
             AppDetailScreen(

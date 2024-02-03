@@ -23,11 +23,11 @@ package com.merxury.blocker.core.controllers.root.command
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.extension.exec
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -40,10 +40,11 @@ internal class RootController @Inject constructor(
 ) : IController {
 
     override suspend fun switchComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         state: Int,
     ): Boolean {
+        val packageName = component.packageName
+        val componentName = component.name
         val comm: String = when (state) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> removeEscapeCharacter(
                 String.format(
@@ -76,18 +77,16 @@ internal class RootController @Inject constructor(
         }
     }
 
-    override suspend fun enable(packageName: String, componentName: String): Boolean {
+    override suspend fun enable(component: ComponentInfo): Boolean {
         return switchComponent(
-            packageName,
-            componentName,
+            component,
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
         )
     }
 
-    override suspend fun disable(packageName: String, componentName: String): Boolean {
+    override suspend fun disable(component: ComponentInfo): Boolean {
         return switchComponent(
-            packageName,
-            componentName,
+            component,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
         )
     }
@@ -98,7 +97,7 @@ internal class RootController @Inject constructor(
     ): Int {
         var succeededCount = 0
         componentList.forEach {
-            if (enable(it.packageName, it.name)) {
+            if (enable(it)) {
                 succeededCount++
             }
             action(it)
@@ -112,7 +111,7 @@ internal class RootController @Inject constructor(
     ): Int {
         var succeededCount = 0
         componentList.forEach {
-            if (disable(it.packageName, it.name)) {
+            if (disable(it)) {
                 succeededCount++
             }
             action(it)
