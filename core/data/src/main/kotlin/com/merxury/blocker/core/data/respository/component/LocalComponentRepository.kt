@@ -176,7 +176,6 @@ internal class LocalComponentRepository @Inject constructor(
                 }
                 blockedByPm.forEach {
                     pmController.enable(it)
-                    emit(it)
                 }
             }
         }
@@ -189,7 +188,15 @@ internal class LocalComponentRepository @Inject constructor(
                 emit(it)
             }
         }
+        val updatedComponents = components.map {
+            it.copy(
+                pmBlocked = !pmController.checkComponentEnableState(it.packageName, it.name),
+                ifwBlocked = !ifwController.checkComponentEnableState(it.packageName, it.name),
+            ).toAppComponentEntity()
+        }
+        appComponentDao.upsertComponentList(updatedComponents)
     }
+        .flowOn(ioDispatcher)
 
     override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
         .map { list ->
