@@ -327,6 +327,9 @@ class AppDetailViewModelTest {
                 ComponentSearchResult(
                     app = sampleAppList.first().toAppItem(),
                     activity = sampleComponentList.filter { it.type == ACTIVITY },
+                    service = sampleComponentList.filter { it.type == SERVICE },
+                    receiver = sampleComponentList.filter { it.type == RECEIVER },
+                    provider = sampleComponentList.filter { it.type == PROVIDER },
                 ),
             ),
             viewModel.appInfoUiState.value.componentSearchUiState,
