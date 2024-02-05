@@ -106,6 +106,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -312,6 +313,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
+    @VisibleForTesting
     fun loadTabInfo() = viewModelScope.launch(mainDispatcher) {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
