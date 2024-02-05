@@ -396,6 +396,33 @@ class AppDetailViewModelTest {
         )
         collectJob.cancel()
     }
+
+    @Test
+    fun appBarUiState_whenExistSelectedMode_thenClearSelectedComponentList() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
+        viewModel.loadComponentList()
+        viewModel.switchTab(AppDetailTabs.Activity)
+        viewModel.switchSelectedMode(true)
+        viewModel.selectAll()
+        viewModel.switchSelectedMode(false)
+        assertEquals(
+            AppBarUiState(
+                isSelectedMode = false,
+                selectedComponentList = emptyList(),
+                actions = listOf(
+                    SEARCH,
+                    MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        collectJob.cancel()
+    }
 }
 
 private val sampleAppList = listOf(
