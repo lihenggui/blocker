@@ -295,7 +295,6 @@ class AppDetailViewModelTest {
         viewModel.loadComponentList()
         viewModel.search("Activity")
         viewModel.changeSearchMode(true)
-        viewModel.loadComponentList()
         assertEquals(
             Result.Success(
                 ComponentSearchResult(
