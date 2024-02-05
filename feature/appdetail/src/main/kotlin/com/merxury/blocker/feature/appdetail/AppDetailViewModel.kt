@@ -179,11 +179,17 @@ class AppDetailViewModel @Inject constructor(
         if (keyword == _appBarUiState.value.keyword) return
         _appBarUiState.update { it.copy(keyword = keyword) }
         searchJob?.cancel()
+        loadComponentListJob?.cancel()
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             Timber.v("Start filtering component list with keyword: $keyword")
             val packageName = appDetailArgs.packageName
             searchComponents(packageName, keyword).collect { result ->
                 updateTabState(result)
+                _appInfoUiState.update {
+                    it.copy(
+                        componentSearchUiState = Result.Success(result),
+                    )
+                }
             }
         }
     }
@@ -224,17 +230,23 @@ class AppDetailViewModel @Inject constructor(
     private var loadComponentListJob: Job? = null
 
     fun loadComponentList() {
-        loadComponentListJob?.cancel()
-        loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val packageName = appDetailArgs.packageName
-            Timber.v("Start loading component: $packageName")
-            searchComponents(packageName).collect { result ->
-                updateTabState(result)
-                _appInfoUiState.update {
-                    it.copy(
-                        componentSearchUiState = Result.Success(result),
-                        isRefreshing = false,
-                    )
+        if (_appBarUiState.value.isSearchMode) {
+            val keyword = _appBarUiState.value.keyword
+            search(keyword)
+        } else {
+            searchJob?.cancel()
+            loadComponentListJob?.cancel()
+            loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                val packageName = appDetailArgs.packageName
+                Timber.v("Start loading component: $packageName")
+                searchComponents(packageName).collect { result ->
+                    updateTabState(result)
+                    _appInfoUiState.update {
+                        it.copy(
+                            componentSearchUiState = Result.Success(result),
+                            isRefreshing = false,
+                        )
+                    }
                 }
             }
         }
@@ -596,7 +608,7 @@ class AppDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
-        componentRepository.controlComponent(component.packageName, component.name, enabled)
+        componentRepository.controlComponent(component, enabled)
             .onStart {
                 changeComponentsUiStatus(
                     changed = listOf(component),

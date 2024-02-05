@@ -20,7 +20,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.os.IBinder
 import com.merxury.blocker.core.controller.root.service.IRootService
@@ -29,6 +28,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.exception.RootUnavailableException
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.PermissionUtils
 import com.topjohnwu.superuser.ipc.RootService
@@ -78,11 +78,12 @@ internal class RootApiController @Inject constructor(
     }
 
     override suspend fun switchComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         state: Int,
     ): Boolean {
         val rootService = rootService
+        val packageName = component.packageName
+        val componentName = component.name
         if (rootService == null) {
             Timber.w("Cannot switch component: root server is not initialized")
             return false
@@ -96,18 +97,16 @@ internal class RootApiController @Inject constructor(
         return true
     }
 
-    override suspend fun enable(packageName: String, componentName: String): Boolean {
+    override suspend fun enable(component: ComponentInfo): Boolean {
         return switchComponent(
-            packageName,
-            componentName,
+            component,
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
         )
     }
 
-    override suspend fun disable(packageName: String, componentName: String): Boolean {
+    override suspend fun disable(component: ComponentInfo): Boolean {
         return switchComponent(
-            packageName,
-            componentName,
+            component,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
         )
     }
@@ -118,7 +117,7 @@ internal class RootApiController @Inject constructor(
     ): Int {
         var successCount = 0
         componentList.forEach {
-            if (enable(it.packageName, it.name)) {
+            if (enable(it)) {
                 successCount++
             }
             action(it)
@@ -132,7 +131,7 @@ internal class RootApiController @Inject constructor(
     ): Int {
         var successCount = 0
         componentList.forEach {
-            if (disable(it.packageName, it.name)) {
+            if (disable(it)) {
                 successCount++
             }
             action(it)

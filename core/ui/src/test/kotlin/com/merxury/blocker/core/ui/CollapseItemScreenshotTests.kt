@@ -111,9 +111,7 @@ class CollapseItemScreenshotTests {
                 ComponentInfo(
                     packageName = "com.merxury.example",
                     name = "com.merxury.example.provider",
-                    simpleName = "example",
                     type = PROVIDER,
-                    pmBlocked = false,
                 ),
             )
         }

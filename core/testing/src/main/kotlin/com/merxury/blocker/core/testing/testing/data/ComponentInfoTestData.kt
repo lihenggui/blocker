@@ -25,9 +25,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 val receiverTestData: SnapshotStateList<ComponentInfo> = mutableStateListOf(
     ComponentInfo(
         name = "AlarmManagerSchedulerBroadcast",
-        simpleName = "AlarmManagerSchedulerBroadcast",
         packageName = "com.merxury.blocker",
-        pmBlocked = false,
         type = RECEIVER,
     ),
 )
@@ -35,16 +33,12 @@ val receiverTestData: SnapshotStateList<ComponentInfo> = mutableStateListOf(
 val activityItemsTestData: SnapshotStateList<ComponentInfo> = mutableStateListOf(
     ComponentInfo(
         name = "ComponentActivity",
-        simpleName = "ComponentActivity",
         packageName = "com.merxury.blocker",
-        pmBlocked = false,
         type = ACTIVITY,
     ),
     ComponentInfo(
         name = "PreviewActivity",
-        simpleName = "PreviewActivity",
         packageName = "com.merxury.blocker",
-        pmBlocked = false,
         type = ACTIVITY,
     ),
 )
@@ -52,17 +46,13 @@ val activityItemsTestData: SnapshotStateList<ComponentInfo> = mutableStateListOf
 val activityInfoTestData: SnapshotStateList<ComponentInfo> = mutableStateListOf(
     ComponentInfo(
         name = "ComponentActivity",
-        simpleName = "ComponentActivity",
         packageName = "com.merxury.blocker",
-        pmBlocked = false,
         exported = false,
         type = ACTIVITY,
     ),
     ComponentInfo(
         name = "PreviewActivity",
-        simpleName = "PreviewActivity",
         packageName = "com.merxury.blocker",
-        pmBlocked = false,
         exported = false,
         type = ACTIVITY,
     ),

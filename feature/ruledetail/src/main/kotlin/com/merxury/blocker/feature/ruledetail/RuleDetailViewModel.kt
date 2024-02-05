@@ -20,7 +20,6 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import androidx.compose.runtime.toMutableStateList
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -225,10 +224,9 @@ class RuleDetailViewModel @Inject constructor(
                 )
                 val searchedComponentInfo = components
                     .toSet() // Remove duplicate components caused by multiple keywords
-                    .toMutableStateList()
+                    .toList()
                 MatchedItem(headerData, searchedComponentInfo)
             }
-            .toMutableStateList()
         withContext(mainDispatcher) {
             _ruleInfoUiState.update {
                 val matchedApps = Result.Success(searchResult)
@@ -313,7 +311,7 @@ class RuleDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
-        componentRepository.controlComponent(component.packageName, component.name, enabled)
+        componentRepository.controlComponent(component, enabled)
             .onStart {
                 changeComponentUiStatus(listOf(component), controllerType, enabled)
             }
