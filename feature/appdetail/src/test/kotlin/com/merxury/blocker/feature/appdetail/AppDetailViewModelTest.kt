@@ -300,6 +300,33 @@ class AppDetailViewModelTest {
                 ComponentSearchResult(
                     app = sampleAppList.first().toAppItem(),
                     activity = sampleComponentList.filter { it.type == ACTIVITY },
+                    service = sampleComponentList.filter { it.type == SERVICE },
+                    receiver = sampleComponentList.filter { it.type == RECEIVER },
+                    provider = sampleComponentList.filter { it.type == PROVIDER },
+                    ),
+            ),
+            viewModel.appInfoUiState.value.componentSearchUiState,
+        )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenExitSearchMode_thenShowAllComponents() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
+        viewModel.loadComponentList()
+        viewModel.search("Activity")
+        viewModel.changeSearchMode(true)
+        viewModel.changeSearchMode(false)
+        assertEquals(
+            Result.Success(
+                ComponentSearchResult(
+                    app = sampleAppList.first().toAppItem(),
+                    activity = sampleComponentList.filter { it.type == ACTIVITY },
                 ),
             ),
             viewModel.appInfoUiState.value.componentSearchUiState,
@@ -374,7 +401,10 @@ class AppDetailViewModelTest {
         assertEquals(
             AppBarUiState(
                 isSelectedMode = true,
-                selectedComponentList = listOf(sampleComponentList.first(), sampleComponentList.last()),
+                selectedComponentList = listOf(
+                    sampleComponentList.first(),
+                    sampleComponentList.last(),
+                ),
                 actions = listOf(
                     SEARCH,
                     MORE,
@@ -398,7 +428,7 @@ class AppDetailViewModelTest {
     }
 
     @Test
-    fun appBarUiState_whenExistSelectedMode_thenClearSelectedComponentList() = runTest {
+    fun appBarUiState_whenExitSelectedMode_thenClearSelectedComponentList() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
         appRepository.sendAppList(sampleAppList)
         userDataRepository.sendUserData(defaultUserData)
