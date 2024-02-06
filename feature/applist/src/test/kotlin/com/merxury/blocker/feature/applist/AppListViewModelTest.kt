@@ -24,6 +24,7 @@ import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
@@ -36,6 +37,9 @@ import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -120,4 +124,30 @@ class AppListViewModelTest {
     fun appListUiState_whenInitial_thenShowDefault() = runTest {
         assertIs<Initializing>(viewModel.uiState.value)
     }
+
+    @Test
+    fun appListUiState_whenInitializingApp_thenShowInitializingApp() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        viewModel.loadData()
+        viewModel.uiState.value.let {
+            assertIs<AppListUiState.Success>(it)
+        }
+        collectJob.cancel()
+    }
 }
+
+private val sampleAppList = listOf(
+    InstalledApp(
+        label = "App1",
+        packageName = "com.merxury.test1",
+    ),
+    InstalledApp(
+        label = "App2",
+        packageName = "com.merxury.test2",
+    ),
+    InstalledApp(
+        label = "App3",
+        packageName = "com.merxury.test3",
+    ),
+)
