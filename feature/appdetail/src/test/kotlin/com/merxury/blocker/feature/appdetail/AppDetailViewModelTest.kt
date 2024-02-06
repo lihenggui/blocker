@@ -51,6 +51,8 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.appdetail.navigation.PACKAGE_NAME_ARG
@@ -240,10 +242,241 @@ class AppDetailViewModelTest {
 
     @Test
     fun tabState_whenSwitchTab_thenUpdateSelectedItem() = runTest {
-        val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
         viewModel.switchTab(AppDetailTabs.Receiver)
         assertEquals(AppDetailTabs.Receiver, viewModel.tabState.value.selectedItem)
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenSwitchTab_thenUpdateActionButtons() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        viewModel.switchTab(AppDetailTabs.Receiver)
+        assertEquals(
+            AppBarUiState(
+                actions = listOf(
+                    SEARCH,
+                    MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenSearchNotResult_thenSwitchToInfoTab() = runTest {
+        val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+        viewModel.switchTab(AppDetailTabs.Receiver)
+        viewModel.search("123")
+        viewModel.changeSearchMode(true)
+        viewModel.loadTabInfo()
+        assertEquals(
+            AppBarUiState(
+                isSearchMode = true,
+                keyword = "123",
+            ),
+            viewModel.appBarUiState.value,
+        )
+        assertEquals(AppDetailTabs.Info, viewModel.tabState.value.selectedItem)
         collectJob1.cancel()
+        collectJob2.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenSearchResult_thenShowSearchResult() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
+        viewModel.loadComponentList()
+        viewModel.changeSearchMode(true)
+        val keyword = "Activity"
+        viewModel.search(keyword)
+        assertEquals(
+            Result.Success(
+                ComponentSearchResult(
+                    app = sampleAppList.first().toAppItem(),
+                    activity = sampleComponentList.filter {
+                        it.type == ACTIVITY && it.name.contains(
+                            keyword,
+                            ignoreCase = true,
+                        )
+                    },
+                    service = sampleComponentList.filter {
+                        it.type == SERVICE && it.name.contains(
+                            keyword,
+                            ignoreCase = true,
+                        )
+                    },
+                    receiver = sampleComponentList.filter {
+                        it.type == RECEIVER && it.name.contains(
+                            keyword,
+                            ignoreCase = true,
+                        )
+                    },
+                    provider = sampleComponentList.filter {
+                        it.type == PROVIDER && it.name.contains(
+                            keyword,
+                            ignoreCase = true,
+                        )
+                    },
+                ),
+            ),
+            viewModel.appInfoUiState.value.componentSearchUiState,
+        )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenExitSearchMode_thenShowAllComponents() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
+        viewModel.loadComponentList()
+        viewModel.changeSearchMode(true)
+        val keyword = "Activity"
+        viewModel.search(keyword)
+        viewModel.changeSearchMode(false)
+        assertEquals(
+            Result.Success(
+                ComponentSearchResult(
+                    app = sampleAppList.first().toAppItem(),
+                    activity = sampleComponentList.filter { it.type == ACTIVITY },
+                    service = sampleComponentList.filter { it.type == SERVICE },
+                    receiver = sampleComponentList.filter { it.type == RECEIVER },
+                    provider = sampleComponentList.filter { it.type == PROVIDER },
+                ),
+            ),
+            viewModel.appInfoUiState.value.componentSearchUiState,
+        )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenSwitchSelectedMode_thenUpdateSelectedMode() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        viewModel.switchSelectedMode(true)
+        assertEquals(
+            AppBarUiState(
+                isSelectedMode = true,
+            ),
+            viewModel.appBarUiState.value,
+        )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenSelectedAll_thenUpdateSelectedComponentList() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
+        viewModel.loadComponentList()
+        viewModel.switchTab(AppDetailTabs.Activity)
+        viewModel.switchSelectedMode(true)
+        viewModel.selectAll()
+        assertEquals(
+            AppBarUiState(
+                isSelectedMode = true,
+                selectedComponentList = sampleComponentList.filter { it.type == ACTIVITY },
+                actions = listOf(
+                    SEARCH,
+                    MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        viewModel.selectAll()
+        assertEquals(
+            AppBarUiState(
+                isSelectedMode = true,
+                selectedComponentList = emptyList(),
+                actions = listOf(
+                    SEARCH,
+                    MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenSelectedDeselectComponent_thenUpdateSelectedComponentList() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
+        viewModel.loadComponentList()
+        viewModel.switchTab(AppDetailTabs.Activity)
+        viewModel.switchSelectedMode(true)
+        viewModel.selectItem(sampleComponentList.first())
+        viewModel.selectItem(sampleComponentList.last())
+        assertEquals(
+            AppBarUiState(
+                isSelectedMode = true,
+                selectedComponentList = listOf(
+                    sampleComponentList.first(),
+                    sampleComponentList.last(),
+                ),
+                actions = listOf(
+                    SEARCH,
+                    MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        viewModel.deselectItem(sampleComponentList.first())
+        assertEquals(
+            AppBarUiState(
+                isSelectedMode = true,
+                selectedComponentList = listOf(sampleComponentList.last()),
+                actions = listOf(
+                    SEARCH,
+                    MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenExitSelectedMode_thenClearSelectedComponentList() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        viewModel.loadAppInfo()
+        componentRepository.sendComponentList(sampleComponentList)
+        componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
+        viewModel.loadComponentList()
+        viewModel.switchTab(AppDetailTabs.Activity)
+        viewModel.switchSelectedMode(true)
+        viewModel.selectAll()
+        viewModel.switchSelectedMode(false)
+        assertEquals(
+            AppBarUiState(
+                isSelectedMode = false,
+                selectedComponentList = emptyList(),
+                actions = listOf(
+                    SEARCH,
+                    MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        collectJob.cancel()
     }
 }
 
@@ -276,6 +509,14 @@ private val sampleComponentList = listOf(
         packageName = "com.merxury.test1",
         type = SERVICE,
         description = "An example service",
+        pmBlocked = true,
+    ),
+    ComponentInfo(
+        simpleName = "Service2",
+        name = "com.merxury.blocker.test.service2",
+        packageName = "com.merxury.test1",
+        type = SERVICE,
+        description = "An example service",
     ),
     ComponentInfo(
         simpleName = "Receiver1",
@@ -300,6 +541,10 @@ private val sampleComponentDetailList = listOf(
     ),
     ComponentDetail(
         name = "com.merxury.blocker.test.service1",
+        description = "An example service",
+    ),
+    ComponentDetail(
+        name = "com.merxury.blocker.test.service2",
         description = "An example service",
     ),
     ComponentDetail(

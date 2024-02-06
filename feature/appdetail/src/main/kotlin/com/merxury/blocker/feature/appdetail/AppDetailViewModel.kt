@@ -24,6 +24,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
+import androidx.annotation.VisibleForTesting
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -312,7 +313,8 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadTabInfo() = viewModelScope.launch(mainDispatcher) {
+    @VisibleForTesting
+    fun loadTabInfo() = viewModelScope.launch(mainDispatcher) {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
@@ -366,7 +368,7 @@ class AppDetailViewModel @Inject constructor(
     fun changeSearchMode(isSearchMode: Boolean) {
         Timber.v("Change search mode: $isSearchMode")
         if (!isSearchMode) {
-            loadComponentList()
+            search("")
         }
         _appBarUiState.update {
             val originalSearchState = it.isSearchMode
