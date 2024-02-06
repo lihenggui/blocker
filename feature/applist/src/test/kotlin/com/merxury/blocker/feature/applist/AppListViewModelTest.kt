@@ -45,11 +45,6 @@ class AppListViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    @get:Rule
-    val tempFolder: TemporaryFolder = TemporaryFolder.builder()
-        .assureDeletion()
-        .build()
-
     private val analyticsHelper = TestAnalyticsHelper()
     private val userDataRepository = TestUserDataRepository()
     private val appRepository = TestAppRepository()
@@ -60,7 +55,6 @@ class AppListViewModelTest {
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val permissionMonitor = TestPermissionMonitor()
     private val appController = FakeAppController()
-
     private val packageInfo = mock<PackageInfo> {
         on { toString() } doReturn "MockedPackageInfo"
     }
