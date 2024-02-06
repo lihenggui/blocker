@@ -23,7 +23,6 @@ import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
@@ -44,11 +43,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class AppListViewModelTest {
