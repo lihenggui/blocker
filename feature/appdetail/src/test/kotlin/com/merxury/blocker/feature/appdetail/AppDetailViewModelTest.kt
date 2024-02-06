@@ -340,8 +340,9 @@ class AppDetailViewModelTest {
         componentRepository.sendComponentList(sampleComponentList)
         componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
         viewModel.loadComponentList()
-        viewModel.search("Activity")
         viewModel.changeSearchMode(true)
+        val keyword = "Activity"
+        viewModel.search(keyword)
         viewModel.changeSearchMode(false)
         assertEquals(
             Result.Success(
