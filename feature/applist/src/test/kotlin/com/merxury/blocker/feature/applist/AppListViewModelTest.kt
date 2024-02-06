@@ -23,6 +23,7 @@ import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
@@ -33,13 +34,18 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
+import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 class AppListViewModelTest {
     @get:Rule
@@ -108,5 +114,10 @@ class AppListViewModelTest {
             mainDispatcher = dispatcher,
             appRepository = appRepository,
         )
+    }
+
+    @Test
+    fun appListUiState_whenInitial_thenShowDefault() = runTest {
+        assertIs<Initializing>(viewModel.uiState.value)
     }
 }
