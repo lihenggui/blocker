@@ -293,13 +293,37 @@ class AppDetailViewModelTest {
         componentRepository.sendComponentList(sampleComponentList)
         componentDetailRepository.sendComponentDetail(sampleComponentDetailList)
         viewModel.loadComponentList()
-        viewModel.search("Activity")
         viewModel.changeSearchMode(true)
+        val keyword = "Activity"
+        viewModel.search(keyword)
         assertEquals(
             Result.Success(
                 ComponentSearchResult(
                     app = sampleAppList.first().toAppItem(),
-                    activity = sampleComponentList.filter { it.type == ACTIVITY },
+                    activity = sampleComponentList.filter {
+                        it.type == ACTIVITY && it.name.contains(
+                            keyword,
+                            ignoreCase = true,
+                        )
+                    },
+                    service = sampleComponentList.filter {
+                        it.type == SERVICE && it.name.contains(
+                            keyword,
+                            ignoreCase = true,
+                        )
+                    },
+                    receiver = sampleComponentList.filter {
+                        it.type == RECEIVER && it.name.contains(
+                            keyword,
+                            ignoreCase = true,
+                        )
+                    },
+                    provider = sampleComponentList.filter {
+                        it.type == PROVIDER && it.name.contains(
+                            keyword,
+                            ignoreCase = true,
+                        )
+                    },
                 ),
             ),
             viewModel.appInfoUiState.value.componentSearchUiState,
