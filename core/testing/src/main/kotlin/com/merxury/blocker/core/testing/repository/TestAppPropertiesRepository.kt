@@ -72,4 +72,8 @@ class TestAppPropertiesRepository : AppPropertiesRepository {
             ),
         )
     }
+
+    fun sendAppProperties(appPropertiesData: AppPropertiesData) {
+        this.appPropertiesFlow.tryEmit(appPropertiesData)
+    }
 }
