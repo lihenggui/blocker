@@ -23,7 +23,13 @@ import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.preference.AppPropertiesData
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
@@ -31,14 +37,13 @@ import com.merxury.blocker.core.testing.repository.TestAppPropertiesRepository
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
+import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
+import com.merxury.blocker.feature.applist.AppListUiState.Success
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -46,6 +51,7 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class AppListViewModelTest {
@@ -124,13 +130,18 @@ class AppListViewModelTest {
 
     @Test
     fun appListUiState_whenInitializingApp_thenShowInitializingApp() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect() }
         appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        appPropertiesRepository.sendAppProperties(AppPropertiesData())
+        componentRepository.sendComponentList(sampleComponentList)
         viewModel.loadData()
-        viewModel.uiState.value.let {
-            assertIs<AppListUiState.Success>(it)
+        viewModel.uiState.collect { uiState ->
+
+            sampleAppList.forEach {
+                assertEquals(Initializing(it.label), uiState)
+            }
+            assertIs<Success>(viewModel.uiState.value)
         }
-        collectJob.cancel()
     }
 }
 
@@ -146,5 +157,37 @@ private val sampleAppList = listOf(
     InstalledApp(
         label = "App3",
         packageName = "com.merxury.test3",
+    ),
+)
+
+private val sampleComponentList = listOf(
+    ComponentInfo(
+        simpleName = "Activity1",
+        name = "com.merxury.blocker.test.activity1",
+        packageName = "com.merxury.test1",
+        type = ACTIVITY,
+        description = "An example activity",
+    ),
+    ComponentInfo(
+        simpleName = "Service1",
+        name = "com.merxury.blocker.test.service1",
+        packageName = "com.merxury.test1",
+        type = SERVICE,
+        description = "An example service",
+        pmBlocked = true,
+    ),
+    ComponentInfo(
+        simpleName = "Receiver1",
+        name = "com.merxury.blocker.test.receiver1",
+        packageName = "com.merxury.test1",
+        type = RECEIVER,
+        description = "An example receiver",
+    ),
+    ComponentInfo(
+        simpleName = "Provider1",
+        name = "com.merxury.blocker.test.provider1",
+        packageName = "com.merxury.test1",
+        type = PROVIDER,
+        description = "An example provider",
     ),
 )
