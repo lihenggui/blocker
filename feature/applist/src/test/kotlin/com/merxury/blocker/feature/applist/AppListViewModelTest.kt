@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.applist
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
+import app.cash.turbine.test
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
@@ -29,6 +30,7 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.AppPropertiesData
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
@@ -44,6 +46,9 @@ import com.merxury.blocker.core.testing.util.TestPermissionMonitor
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -129,19 +134,23 @@ class AppListViewModelTest {
     }
 
     @Test
-    fun appListUiState_whenInitializingApp_thenShowInitializingApp() = runTest {
+    fun appListUiState_whenInitialized_thenShowAppList() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) {
+            viewModel.appListFlow.collect()
+        }
         appRepository.sendAppList(sampleAppList)
         userDataRepository.sendUserData(defaultUserData)
         appPropertiesRepository.sendAppProperties(AppPropertiesData())
         componentRepository.sendComponentList(sampleComponentList)
         viewModel.loadData()
-        viewModel.uiState.collect { uiState ->
-
-            sampleAppList.forEach {
-                assertEquals(Initializing(it.label), uiState)
-            }
-            assertIs<Success>(viewModel.uiState.value)
+        viewModel.uiState.test {
+            assertEquals(Success(), awaitItem())
         }
+        assertEquals(
+            sampleAppList.map { it.toAppItem(packageInfo = packageInfo) },
+            viewModel.appListFlow.value.toList(),
+        )
+        collectJob.cancel()
     }
 }
 
