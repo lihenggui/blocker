@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.applist
 
+import com.merxury.blocker.core.ui.R.string as uiString
 import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
@@ -69,7 +70,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
-import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
@@ -350,7 +350,7 @@ class AppListViewModel @Inject constructor(
 }
 
 sealed interface AppListUiState {
-    class Initializing(val processingName: String = "") : AppListUiState
-    class Error(val error: UiMessage) : AppListUiState
+    data class Initializing(val processingName: String = "") : AppListUiState
+    data class Error(val error: UiMessage) : AppListUiState
     data class Success(val isRefreshing: Boolean = false) : AppListUiState
 }
