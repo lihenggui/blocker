@@ -20,6 +20,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import app.cash.turbine.test
+import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
@@ -151,6 +152,32 @@ class AppListViewModelTest {
             viewModel.appListFlow.value.toList(),
         )
         collectJob.cancel()
+    }
+
+    @Test
+    fun appListUiState_whenPermissionChange_thenRefreshing() = runTest {
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        appPropertiesRepository.sendAppProperties(AppPropertiesData(componentDatabaseInitialized = true))
+        componentRepository.sendComponentList(sampleComponentList)
+        viewModel.loadData()
+        viewModel.listenPermissionChanges()
+        permissionMonitor.setPermission(SHELL_USER)
+        viewModel.uiState.test {
+            assertEquals(Success(isRefreshing = true), awaitItem())
+        }
+    }
+
+    @Test
+    fun appListUiState_whenShowSystemAppChange_thenRefreshing() = runTest {
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        appPropertiesRepository.sendAppProperties(AppPropertiesData(componentDatabaseInitialized = true))
+        componentRepository.sendComponentList(sampleComponentList)
+        viewModel.loadData()
+        viewModel.listenShowSystemAppsChanges()
+        userDataRepository.setShowSystemApps(true)
+        assertEquals(Success(isRefreshing = true), viewModel.uiState.value)
     }
 }
 

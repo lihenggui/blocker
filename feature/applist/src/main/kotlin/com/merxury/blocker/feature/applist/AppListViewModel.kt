@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.applist
 
 import com.merxury.blocker.core.ui.R.string as uiString
 import android.content.pm.PackageManager
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
@@ -154,7 +155,8 @@ class AppListViewModel @Inject constructor(
         }
     }
 
-    private fun listenPermissionChanges() = viewModelScope.launch {
+    @VisibleForTesting
+    fun listenPermissionChanges() = viewModelScope.launch {
         permissionMonitor.permissionStatus
             .collect { status ->
                 if (status != NO_PERMISSION) {
@@ -245,7 +247,8 @@ class AppListViewModel @Inject constructor(
 
     private var listenShowSystemAppsChangesJob: Job? = null
 
-    private fun listenShowSystemAppsChanges() {
+    @VisibleForTesting
+    fun listenShowSystemAppsChanges() {
         listenShowSystemAppsChangesJob?.cancel()
         listenShowSystemAppsChangesJob = viewModelScope.launch {
             userDataRepository.userData
