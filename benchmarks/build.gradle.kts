@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import com.merxury.blocker.BlockerBuildType
 import com.merxury.blocker.configureFlavors
 
 plugins {
@@ -35,23 +34,6 @@ android {
 
     buildFeatures {
         buildConfig = true
-    }
-
-    buildTypes {
-        // This benchmark buildType is used for benchmarking, and should function like your
-        // release build (for example, with minification on). It's signed with a debug key
-        // for easy local/CI testing.
-        create("benchmark") {
-            // Keep the build type debuggable so we can attach a debugger if needed.
-            isDebuggable = true
-            signingConfig = signingConfigs.getByName("debug")
-            matchingFallbacks.add("release")
-            buildConfigField(
-                "String",
-                "APP_BUILD_TYPE_SUFFIX",
-                "\"${BlockerBuildType.BENCHMARK.applicationIdSuffix ?: ""}\""
-            )
-        }
     }
 
     // Use the same flavor dimensions as the application to allow generating Baseline Profiles on prod,
