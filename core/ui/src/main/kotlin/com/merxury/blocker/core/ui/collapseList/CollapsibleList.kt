@@ -30,7 +30,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -132,7 +132,7 @@ fun CollapsibleList(
                         )
                         // Add horizontal divider after last item
                         if (ruleMatchedApp.componentList.last() == it) {
-                            Divider(
+                            HorizontalDivider(
                                 modifier = modifier,
                             )
                         }
