@@ -19,7 +19,6 @@ package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -45,7 +44,6 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
  * @param label The text label content.
  */
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun BlockerFilterChip(
     selected: Boolean,
     onSelectedChange: (Boolean) -> Unit,
@@ -84,6 +82,8 @@ fun BlockerFilterChip(
                 alpha = BlockerChipDefaults.DISABLED_CHIP_CONTENT_ALPHA,
             ),
             selectedBorderWidth = BlockerChipDefaults.ChipBorderWidth,
+            enabled = enabled,
+            selected = selected,
         ),
         colors = FilterChipDefaults.filterChipColors(
             labelColor = MaterialTheme.colorScheme.onBackground,
