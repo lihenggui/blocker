@@ -79,7 +79,7 @@ fun BlockerScrollableTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
     containerColor: Color = TabRowDefaults.primaryContainerColor,
-    contentColor: Color = TabRowDefaults.primaryContainerColor,
+    contentColor: Color = TabRowDefaults.primaryContentColor,
     tabs: @Composable () -> Unit,
 ) {
     ScrollableTabRow(
@@ -113,7 +113,7 @@ fun BlockerTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
     containerColor: Color = TabRowDefaults.primaryContainerColor,
-    contentColor: Color = TabRowDefaults.primaryContainerColor,
+    contentColor: Color = TabRowDefaults.primaryContentColor,
     tabs: @Composable () -> Unit,
 ) {
     TabRow(
