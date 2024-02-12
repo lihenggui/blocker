@@ -27,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,8 +78,8 @@ fun BlockerTab(
 fun BlockerScrollableTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
-    containerColor: Color = TabRowDefaults.containerColor,
-    contentColor: Color = TabRowDefaults.contentColor,
+    containerColor: Color = TabRowDefaults.primaryContainerColor,
+    contentColor: Color = TabRowDefaults.primaryContentColor,
     tabs: @Composable () -> Unit,
 ) {
     ScrollableTabRow(
@@ -90,7 +91,7 @@ fun BlockerScrollableTabRow(
         contentColor = contentColor,
         indicator = { tabPositions ->
             val tab = tabPositions.getOrNull(selectedTabIndex) ?: tabPositions.first()
-            TabRowDefaults.Indicator(
+            SecondaryIndicator(
                 modifier = Modifier.tabIndicatorOffset(tab),
                 height = 2.dp,
                 color = contentColor,
@@ -111,8 +112,8 @@ fun BlockerScrollableTabRow(
 fun BlockerTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
-    containerColor: Color = TabRowDefaults.containerColor,
-    contentColor: Color = TabRowDefaults.contentColor,
+    containerColor: Color = TabRowDefaults.primaryContainerColor,
+    contentColor: Color = TabRowDefaults.primaryContentColor,
     tabs: @Composable () -> Unit,
 ) {
     TabRow(
@@ -121,7 +122,7 @@ fun BlockerTabRow(
         containerColor = containerColor,
         contentColor = contentColor,
         indicator = { tabPositions ->
-            TabRowDefaults.Indicator(
+            SecondaryIndicator(
                 modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
                 height = 2.dp,
                 color = contentColor,

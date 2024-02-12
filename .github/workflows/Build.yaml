@@ -48,6 +48,17 @@ jobs:
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v2
 
+      # Consider using a scheduled job to clean up the runner disk space, and not on every build
+      - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
       - name: Write sign info
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'lihenggui/Blocker'
         run: |
@@ -233,6 +244,18 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
           ls /dev/kvm
+          
+
+      # Consider using a scheduled job to clean up the runner disk space, and not on every build
+      - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -257,7 +280,7 @@ jobs:
 
       # Cache AVD. See https://github.com/ReactiveCircus/android-emulator-runner
       - name: AVD cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: avdcache
         with:
           path: |
