@@ -39,14 +39,16 @@ import javax.inject.Singleton
  */
 @Singleton
 internal class RetrofitBlockerNetwork @Inject constructor(
-    private val okhttpCallFactory: Call.Factory,
+    private val okhttpCallFactory: dagger.Lazy<Call.Factory>,
 ) : BlockerNetworkDataSource {
+
     override suspend fun getRuleLatestCommitId(provider: RuleServerProvider): NetworkChangeList {
         val request = Request.Builder()
             .url(provider.commitApiUrl)
             .build()
         return try {
-            val json = okhttpCallFactory.newCall(request)
+            val json = okhttpCallFactory.get()
+                .newCall(request)
                 .await()
                 .body
                 ?.string() ?: ""
@@ -66,7 +68,8 @@ internal class RetrofitBlockerNetwork @Inject constructor(
         val request = Request.Builder()
             .url(provider.downloadLink)
             .build()
-        val response = okhttpCallFactory.newCall(request)
+        val response = okhttpCallFactory.get()
+            .newCall(request)
             .execute()
         if (!response.isSuccessful) {
             Timber.e("Failed to download rules from ${provider.downloadLink}")
