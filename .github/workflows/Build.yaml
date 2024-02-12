@@ -151,11 +151,16 @@ jobs:
       # Replace task exclusions with `-Pandroidx.baselineprofile.skipgeneration` when
       # https://android-review.googlesource.com/c/platform/frameworks/support/+/2602790 landed in a
       # release build
-      - name: Build all build type and flavor permutations including baseline profiles
-        run: ./gradlew :app-compose:assemble
-          -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=baselineprofile
-          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
-          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
+      - name: Build all build type and flavor permutations
+        run: ./gradlew :app-compose:assemble :benchmarks:assemble
+          -x pixel6Api33MarketNonMinifiedReleaseAndroidTest
+          -x pixel6Api33MarketNonMinifiedBenchmarkAndroidTest
+          -x pixel6Api33FossNonMinifiedReleaseAndroidTest
+          -x pixel6Api33FossNonMinifiedBenchmarkAndroidTest
+          -x collectFossNonMinifiedReleaseBaselineProfile
+          -x collectFossNonMinifiedBenchmarkBaselineProfile
+          -x collectMarketNonMinifiedReleaseBaselineProfile
+          -x collectMarketNonMinifiedBenchmarkBaselineProfile
 
       - name: Upload Foss apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
