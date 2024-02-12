@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.testing.repository
 
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
@@ -24,30 +24,30 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
-class TestComponentDetailRepository : IComponentDetailRepository {
-    private val componentDetail: MutableSharedFlow<ComponentDetail> =
+class TestComponentDetailRepository : ComponentDetailRepository {
+    override val updatedComponent: Flow<ComponentDetail>
+        get() = flowOf(ComponentDetail(""))
+
+    private val componentDetail: MutableSharedFlow<List<ComponentDetail>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
     override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flowOf(false)
 
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
-            it.takeIf { componentDetail -> componentDetail.name == name }
+            it.find { componentDetail -> componentDetail.name == name }
         }
     }
 
     override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
-            it.takeIf { componentDetail -> componentDetail.name == name }
+            it.find { componentDetail -> componentDetail.name == name }
         }
     }
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
-        flowOf(ComponentDetail(""))
-
-    fun sendComponentDetail(componentDetail: ComponentDetail) {
+    fun sendComponentDetail(componentDetail: List<ComponentDetail>) {
         this.componentDetail.tryEmit(componentDetail)
     }
 }

@@ -18,15 +18,15 @@ package com.merxury.blocker.core.domain.detail
 
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.result.asResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -40,48 +40,45 @@ import javax.inject.Inject
  */
 class SearchMatchedRuleInAppUseCase @Inject constructor(
     private val componentRepository: ComponentRepository,
-    private val componentDetailRepository: IComponentDetailRepository,
+    private val componentDetailRepository: ComponentDetailRepository,
     private val ruleRepository: GeneralRuleRepository,
     @FilesDir private val filesDir: File,
     @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(DEFAULT) private val dispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(packageName: String): Flow<Result<Map<GeneralRule, List<ComponentInfo>>>> {
+    operator fun invoke(packageName: String): Flow<List<MatchedItem>> {
         return combine(
             ruleRepository.getGeneralRules(),
             componentRepository.getComponentList(packageName),
         ) { rules, components ->
             rules.mapNotNull { rule ->
                 findMatchedComponents(rule, components)
-            }
-                .toMap()
-                .mapKeys {
-                    // Map relative icon path to absolute path in the data folder
-                    val rule = it.key
-                    val icon = rule.iconUrl
-                    if (icon.isNullOrEmpty()) {
-                        return@mapKeys rule
-                    }
-                    val iconFile = filesDir
+            }.map { (rule, matchedComponents) ->
+                val iconUrl = rule.iconUrl?.let { url ->
+                    filesDir
                         .resolve(ruleBaseFolder)
-                        .resolve(icon)
-                    return@mapKeys rule.copy(iconUrl = iconFile.absolutePath)
+                        .resolve(url)
                 }
-                .mapValues { entry ->
-                    val list = entry.value
-                    list.map { component ->
-                        val componentDetail = componentDetailRepository
-                            .getLocalComponentDetail(component.name)
-                            .first()
-                        if (componentDetail == null) {
-                            return@map component
-                        }
-                        return@map component.copy(
-                            description = componentDetail.description,
-                        )
+                val componentsWithDescription = matchedComponents.map { component ->
+                    val desc = componentDetailRepository.getLocalComponentDetail(component.name)
+                        .first()
+                        ?.description
+                    if (desc != null) {
+                        component.copy(description = desc)
+                    } else {
+                        component
                     }
                 }
-        }.asResult()
+                MatchedItem(
+                    header = MatchedHeaderData(
+                        title = rule.name,
+                        uniqueId = rule.id.toString(),
+                        icon = iconUrl,
+                    ),
+                    componentList = componentsWithDescription,
+                )
+            }
+        }
     }
 
     private suspend fun findMatchedComponents(

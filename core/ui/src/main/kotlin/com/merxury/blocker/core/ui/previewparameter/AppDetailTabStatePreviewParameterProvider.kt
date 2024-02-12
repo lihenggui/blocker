@@ -22,6 +22,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 
@@ -55,6 +56,30 @@ class AppDetailTabStatePreviewParameterProvider :
                 itemCount = mapOf(
                     Info to 1,
                     Activity to 2,
+                ),
+            ),
+            TabState(
+                items = listOf(
+                    Info,
+                    Activity,
+                ),
+                selectedItem = Activity,
+                itemCount = mapOf(
+                    Info to 1,
+                    Activity to 0,
+                ),
+            ),
+            TabState(
+                items = listOf(
+                    Info,
+                    Activity,
+                    Sdk,
+                ),
+                selectedItem = Sdk,
+                itemCount = mapOf(
+                    Info to 1,
+                    Activity to 2,
+                    Sdk to 3,
                 ),
             ),
         ),

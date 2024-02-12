@@ -25,12 +25,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -46,12 +45,12 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 
 @Composable
 fun CollapsibleItem(
@@ -125,7 +124,7 @@ fun CollapsibleItem(
             menuList = items,
         )
     }
-    Divider(modifier = modifier)
+    HorizontalDivider(modifier = modifier)
 }
 
 @Composable
@@ -153,7 +152,6 @@ private fun MatchedAppInfo(
 fun CollapseAppItemPreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
-        .toMutableStateList()
     val matchedItem = MatchedItem(
         header = MatchedHeaderData(
             title = "Blocker",
@@ -175,7 +173,6 @@ fun CollapseAppItemPreview() {
 fun CollapseRuleItemPreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
-        .toMutableStateList()
     val matchedItem = MatchedItem(
         header = MatchedHeaderData(
             title = "Blocker",
@@ -198,7 +195,6 @@ fun CollapseRuleItemPreview() {
 fun CollapseItemLongNamePreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
-        .toMutableStateList()
     val matchedItem = MatchedItem(
         header = MatchedHeaderData(
             title = "Blocker Test test long long long long name",

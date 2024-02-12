@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(projects.core.common)
     implementation(projects.core.componentController)
+    implementation(projects.core.domain)
     implementation(projects.core.designsystem)
     implementation(projects.core.ui)
 }

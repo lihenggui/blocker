@@ -61,8 +61,7 @@ class TestComponentRepository : ComponentRepository {
     }
 
     override fun controlComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         newState: Boolean,
     ): Flow<Boolean> = flowOf(true)
 

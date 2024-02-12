@@ -41,11 +41,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -75,9 +73,12 @@ import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -85,8 +86,6 @@ import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvi
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -281,7 +280,7 @@ fun RuleDetailScreen(
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
@@ -323,7 +322,7 @@ fun RuleDetailScreen(
 @Composable
 fun RuleDetailContent(
     modifier: Modifier = Modifier,
-    ruleMatchedAppListUiState: RuleMatchedAppListUiState,
+    ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     onBackClick: () -> Unit,
     appBarUiState: AppBarUiState = AppBarUiState(),
@@ -337,7 +336,7 @@ fun RuleDetailContent(
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
@@ -483,7 +482,7 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
 @Composable
 fun RuleDetailTabContent(
     modifier: Modifier = Modifier,
-    ruleMatchedAppListUiState: RuleMatchedAppListUiState,
+    ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
@@ -494,7 +493,7 @@ fun RuleDetailTabContent(
     navigateToAppDetail: (String) -> Unit = { _ -> },
     onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
 ) {
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     val coroutineScope = rememberCoroutineScope()
@@ -552,7 +551,7 @@ fun RuleDetailScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
-    val components = ComponentListPreviewParameterProvider().values.first().toMutableStateList()
+    val components = ComponentListPreviewParameterProvider().values.first()
     val appList = AppListPreviewParameterProvider().values.first()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
@@ -562,18 +561,16 @@ fun RuleDetailScreenPreview(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
-                    matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        list = remember {
-                            mutableStateListOf(
-                                MatchedItem(
-                                    header = MatchedHeaderData(
-                                        title = appList.first().label,
-                                        uniqueId = appList.first().packageName,
-                                    ),
-                                    componentList = components,
+                    matchedAppsUiState = Result.Success(
+                        listOf(
+                            MatchedItem(
+                                header = MatchedHeaderData(
+                                    title = appList.first().label,
+                                    uniqueId = appList.first().packageName,
                                 ),
-                            )
-                        },
+                                componentList = components,
+                            ),
+                        ),
                     ),
                 ),
                 tabState = tabState[0],
@@ -593,7 +590,7 @@ fun RuleDetailScreenSelectedDescriptionPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
-    val components = ComponentListPreviewParameterProvider().values.first().toMutableStateList()
+    val components = ComponentListPreviewParameterProvider().values.first()
     val appList = AppListPreviewParameterProvider().values.first()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
@@ -603,18 +600,16 @@ fun RuleDetailScreenSelectedDescriptionPreview(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
-                    matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        list = remember {
-                            mutableStateListOf(
-                                MatchedItem(
-                                    header = MatchedHeaderData(
-                                        title = appList.first().label,
-                                        uniqueId = appList.first().packageName,
-                                    ),
-                                    componentList = components,
+                    matchedAppsUiState = Result.Success(
+                        listOf(
+                            MatchedItem(
+                                header = MatchedHeaderData(
+                                    title = appList.first().label,
+                                    uniqueId = appList.first().packageName,
                                 ),
-                            )
-                        },
+                                componentList = components,
+                            ),
+                        ),
                     ),
                 ),
                 tabState = tabState[1],
@@ -637,7 +632,7 @@ fun RuleDetailScreenWithApplicableLoadingPreview(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
-                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
+                    matchedAppsUiState = Result.Loading,
                 ),
                 tabState = tabState[0],
             )

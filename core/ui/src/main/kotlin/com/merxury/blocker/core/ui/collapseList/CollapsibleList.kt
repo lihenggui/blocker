@@ -30,7 +30,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -38,9 +38,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,18 +49,18 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.component.ComponentListItem
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CollapsibleList(
     modifier: Modifier = Modifier,
-    list: SnapshotStateList<MatchedItem>,
+    list: List<MatchedItem>,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -71,7 +69,7 @@ fun CollapsibleList(
     navigateToDetail: (String) -> Unit = { _ -> },
     onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
@@ -134,7 +132,7 @@ fun CollapsibleList(
                         )
                         // Add horizontal divider after last item
                         if (ruleMatchedApp.componentList.last() == it) {
-                            Divider(
+                            HorizontalDivider(
                                 modifier = modifier,
                             )
                         }
@@ -179,7 +177,6 @@ fun RuleMatchedAppListPreview() {
         simpleName = "ComponentListItem",
         packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
-        pmBlocked = false,
     )
     val matchedItem = MatchedItem(
         header = MatchedHeaderData(
@@ -202,7 +199,7 @@ fun RuleMatchedAppListPreview() {
     BlockerTheme {
         Surface {
             CollapsibleList(
-                list = listOf(matchedItem, matchedItem2).toMutableStateList(),
+                list = listOf(matchedItem, matchedItem2),
             )
         }
     }

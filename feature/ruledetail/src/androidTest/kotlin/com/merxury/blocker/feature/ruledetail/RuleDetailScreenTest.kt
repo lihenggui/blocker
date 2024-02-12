@@ -24,6 +24,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.testing.data.generalRuleTestData
 import com.merxury.blocker.core.testing.testing.data.ruleMatchedAppListTestData
 import com.merxury.blocker.core.ui.R
@@ -105,9 +106,7 @@ class RuleDetailScreenTest {
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = generalRuleTestData,
                     ruleIcon = null,
-                    matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        ruleMatchedAppListTestData,
-                    ),
+                    matchedAppsUiState = Result.Success(ruleMatchedAppListTestData),
                 ),
                 onBackClick = {},
                 tabState = tabState,
@@ -149,7 +148,7 @@ class RuleDetailScreenTest {
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = generalRuleTestData,
                     ruleIcon = null,
-                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
+                    matchedAppsUiState = Result.Loading,
                 ),
                 onBackClick = {},
                 tabState = tabState,

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.rule
+package com.merxury.blocker.core.domain.model
 
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.merxury.blocker.core.model.data.ComponentInfo
-
-data class MatchedItem(
-    val header: MatchedHeaderData,
-    val componentList: SnapshotStateList<ComponentInfo>,
+data class MatchedHeaderData(
+    val title: String,
+    val uniqueId: String,
+    val icon: Any? = null,
 )
