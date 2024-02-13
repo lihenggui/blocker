@@ -43,7 +43,6 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
-import javax.inject.Provider
 
 /**
  * [Application] class for Blocker
@@ -57,7 +56,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     lateinit var userDataRepository: UserDataRepository
 
     @Inject
-    lateinit var imageLoader: Provider<ImageLoader>
+    lateinit var imageLoader: dagger.Lazy<ImageLoader>
 
     @Inject
     lateinit var profileVerifierLogger: ProfileVerifierLogger

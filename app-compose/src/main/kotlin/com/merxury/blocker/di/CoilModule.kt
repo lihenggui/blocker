@@ -17,6 +17,7 @@
 package com.merxury.blocker.di
 
 import android.content.Context
+import androidx.tracing.trace
 import coil.ImageLoader
 import coil.decode.SvgDecoder
 import com.merxury.blocker.R
@@ -43,12 +44,13 @@ object CoilModule {
     @Provides
     @Singleton
     fun imageLoader(
-        okHttpCallFactory: Call.Factory,
+        // We specifically request dagger.Lazy here, so that it's not instantiated from Dagger.
+        okHttpCallFactory: dagger.Lazy<Call.Factory>,
         @ApplicationContext application: Context,
-    ): ImageLoader {
+    ): ImageLoader = trace("BlockerImageLoader") {
         val iconSize = application.resources.getDimensionPixelSize(R.dimen.app_icon_size)
-        return ImageLoader.Builder(application)
-            .callFactory(okHttpCallFactory)
+        ImageLoader.Builder(application)
+            .callFactory(okHttpCallFactory.get())
             .components {
                 add(SvgDecoder.Factory())
                 add(AppIconKeyer())
