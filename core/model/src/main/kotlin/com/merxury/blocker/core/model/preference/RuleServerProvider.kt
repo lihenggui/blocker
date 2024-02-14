@@ -29,9 +29,9 @@ enum class RuleServerProvider(
         commitApiUrl = "https://api.github.com/repos/lihenggui/blocker-general-rules/commits",
         downloadLink = "https://github.com/lihenggui/blocker-general-rules/archive/refs/heads/main.zip",
     ),
-    JIHULAB(
-        baseUrl = "https://jihulab.com/mercuryli/blocker-general-rules/-/raw/main/",
-        commitApiUrl = "https://jihulab.com/api/v4/projects/43543/repository/commits",
-        downloadLink = "https://jihulab.com/mercuryli/blocker-general-rules/-/archive/main/blocker-general-rules-main.zip",
+    GITLAB(
+        baseUrl = "https://gitlab.com/mercuryli/blocker-general-rules/-/raw/main/",
+        commitApiUrl = "https://gitlab.com/api/v4/projects/54080457/repository/commits",
+        downloadLink = "https://gitlab.com/mercuryli/blocker-general-rules/-/archive/main/blocker-general-rules-main.zip",
     ),
 }
