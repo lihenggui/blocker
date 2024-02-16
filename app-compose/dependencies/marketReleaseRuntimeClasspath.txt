@@ -135,7 +135,7 @@ com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0
 com.atlassian.commonmark:commonmark:0.13.0
 com.caverock:androidsvg-aar:1.4
 com.github.jeziellago:Markwon:58aa5aba6a
-com.github.jeziellago:compose-markdown:0.4.0
+com.github.jeziellago:compose-markdown:0.4.1
 com.github.topjohnwu.libsu:core:5.2.2
 com.github.topjohnwu.libsu:io:5.2.2
 com.github.topjohnwu.libsu:nio:5.2.2
