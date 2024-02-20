@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.applist
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
+import app.cash.turbine.test
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
@@ -135,10 +136,9 @@ class AppListViewModelTest {
         appPropertiesRepository.sendAppProperties(AppPropertiesData())
         componentRepository.sendComponentList(sampleComponentList)
         viewModel.loadData()
-        viewModel.uiState.collect { uiState ->
-
+        viewModel.uiState.test {
             sampleAppList.forEach {
-                assertEquals(Initializing(it.label), uiState)
+                assertEquals(Initializing(it.label), awaitItem())
             }
             assertIs<Success>(viewModel.uiState.value)
         }
