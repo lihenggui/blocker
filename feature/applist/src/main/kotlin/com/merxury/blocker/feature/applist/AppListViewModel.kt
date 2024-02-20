@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.applist
 
-import com.merxury.blocker.core.ui.R.string as uiString
 import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
@@ -70,6 +69,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
