@@ -131,16 +131,24 @@ class AppListViewModelTest {
 
     @Test
     fun appListUiState_whenInitializingApp_thenShowInitializingApp() = runTest {
-        appRepository.sendAppList(sampleAppList)
-        userDataRepository.sendUserData(defaultUserData)
-        appPropertiesRepository.sendAppProperties(AppPropertiesData())
-        componentRepository.sendComponentList(sampleComponentList)
-        viewModel.loadData()
         viewModel.uiState.test {
+            // Cause sending of app list will trigger the initialization of the database
+            // The condition will be initialized in the `test` block
+            userDataRepository.sendUserData(defaultUserData)
+            appPropertiesRepository.sendAppProperties(AppPropertiesData())
+            componentRepository.sendComponentList(sampleComponentList)
+            appRepository.sendAppList(sampleAppList)
+
+            // Initial state
+            assertEquals(Initializing(), awaitItem())
+            // Actual app list
             sampleAppList.forEach {
                 assertEquals(Initializing(it.label), awaitItem())
             }
-            assertIs<Success>(viewModel.uiState.value)
+            // Going to search the component list
+            // It will emit an Initializing state and then a Success state
+            assertEquals(Initializing(), awaitItem())
+            assertIs<Success>(awaitItem())
         }
     }
 }
