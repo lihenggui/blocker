@@ -20,7 +20,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import app.cash.turbine.test
-import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
@@ -31,7 +30,6 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.AppPropertiesData
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
@@ -47,9 +45,6 @@ import com.merxury.blocker.core.testing.util.TestPermissionMonitor
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -135,49 +130,41 @@ class AppListViewModelTest {
     }
 
     @Test
-    fun appListUiState_whenInitialized_thenShowAppList() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.appListFlow.collect()
-        }
-        appRepository.sendAppList(sampleAppList)
-        userDataRepository.sendUserData(defaultUserData)
-        appPropertiesRepository.sendAppProperties(AppPropertiesData())
-        componentRepository.sendComponentList(sampleComponentList)
-        viewModel.loadData()
+    fun appListUiState_whenInitializingApp_thenShowInitializingApp() = runTest {
         viewModel.uiState.test {
-            assertEquals(Success(), awaitItem())
-        }
-        assertEquals(
-            sampleAppList.map { it.toAppItem(packageInfo = packageInfo) },
-            viewModel.appListFlow.value.toList(),
-        )
-        collectJob.cancel()
-    }
+            // Cause sending of app list will trigger the initialization of the database
+            // The condition will be initialized in the `test` block
+            userDataRepository.sendUserData(defaultUserData)
+            appPropertiesRepository.sendAppProperties(AppPropertiesData())
+            componentRepository.sendComponentList(sampleComponentList)
+            appRepository.sendAppList(sampleAppList)
 
-    @Test
-    fun appListUiState_whenPermissionChange_thenRefreshing() = runTest {
-        appRepository.sendAppList(sampleAppList)
-        userDataRepository.sendUserData(defaultUserData)
-        appPropertiesRepository.sendAppProperties(AppPropertiesData(componentDatabaseInitialized = true))
-        componentRepository.sendComponentList(sampleComponentList)
-        viewModel.loadData()
-        viewModel.listenPermissionChanges()
-        permissionMonitor.setPermission(SHELL_USER)
-        viewModel.uiState.test {
-            assertEquals(Success(isRefreshing = true), awaitItem())
+            // Initial state
+            assertEquals(Initializing(), awaitItem())
+            // Actual app list
+            sampleAppList.forEach {
+                assertEquals(Initializing(it.label), awaitItem())
+            }
+            // Going to search the component list
+            // It will emit an Initializing state and then a Success state
+            assertEquals(Initializing(), awaitItem())
+            assertIs<Success>(awaitItem())
         }
     }
 
     @Test
     fun appListUiState_whenShowSystemAppChange_thenRefreshing() = runTest {
-        appRepository.sendAppList(sampleAppList)
-        userDataRepository.sendUserData(defaultUserData)
-        appPropertiesRepository.sendAppProperties(AppPropertiesData(componentDatabaseInitialized = true))
-        componentRepository.sendComponentList(sampleComponentList)
-        viewModel.loadData()
-        viewModel.listenShowSystemAppsChanges()
-        userDataRepository.setShowSystemApps(true)
-        assertEquals(Success(isRefreshing = true), viewModel.uiState.value)
+        viewModel.uiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+            appPropertiesRepository.sendAppProperties(AppPropertiesData(componentDatabaseInitialized = true))
+            componentRepository.sendComponentList(sampleComponentList)
+            appRepository.sendAppList(sampleAppList)
+            assertEquals(Initializing(), awaitItem())
+            assertEquals(Success(), awaitItem())
+            userDataRepository.setShowSystemApps(true)
+            assertEquals(Success(isRefreshing = true), awaitItem())
+            assertEquals(Success(), awaitItem())
+        }
     }
 }
 
@@ -193,6 +180,7 @@ private val sampleAppList = listOf(
     InstalledApp(
         label = "App3",
         packageName = "com.merxury.test3",
+        isSystem = true,
     ),
 )
 
