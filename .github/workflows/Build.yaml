@@ -48,16 +48,16 @@ jobs:
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v2
 
-      # Consider using a scheduled job to clean up the runner disk space, and not on every build
-      - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
-        uses: jlumbroso/free-disk-space@main
+      - name: Delete unnecessary tools 🔧
+        uses: jlumbroso/free-disk-space@v1.3.1
         with:
-          tool-cache: false
-          android: false
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
+          android: false # Don't remove Android tools
+          tool-cache: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
+          dotnet: true # rm -rf /usr/share/dotnet
+          haskell: true # rm -rf /opt/ghc...
+          swap-storage: true # rm -f /mnt/swapfile (4GiB)
+          docker-images: false # Takes 16s, enable if needed in the future
+          large-packages: false # includes google-cloud-sdk and it's slow
 
       - name: Write sign info
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'lihenggui/Blocker'
@@ -234,24 +234,23 @@ jobs:
         api-level: [ 26, 34 ]
 
     steps:
+      - name: Delete unnecessary tools 🔧
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: false # Don't remove Android tools
+          tool-cache: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
+          dotnet: true # rm -rf /usr/share/dotnet
+          haskell: true # rm -rf /opt/ghc...
+          swap-storage: true # rm -f /mnt/swapfile (4GiB)
+          docker-images: false # Takes 16s, enable if needed in the future
+          large-packages: false # includes google-cloud-sdk and it's slow
+
       - name: Enable KVM group perms
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
           ls /dev/kvm
-          
-
-      # Consider using a scheduled job to clean up the runner disk space, and not on every build
-      - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: false
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
 
       - name: Checkout
         uses: actions/checkout@v4
