@@ -20,6 +20,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import app.cash.turbine.test
+import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
@@ -162,6 +163,21 @@ class AppListViewModelTest {
             assertEquals(Initializing(), awaitItem())
             assertEquals(Success(), awaitItem())
             userDataRepository.setShowSystemApps(true)
+            assertEquals(Success(isRefreshing = true), awaitItem())
+            assertEquals(Success(), awaitItem())
+        }
+    }
+
+    @Test
+    fun appListUiState_whenPermissionChange_thenRefreshing() = runTest {
+        viewModel.uiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+            appPropertiesRepository.sendAppProperties(AppPropertiesData(componentDatabaseInitialized = true))
+            componentRepository.sendComponentList(sampleComponentList)
+            appRepository.sendAppList(sampleAppList)
+            assertEquals(Initializing(), awaitItem())
+            assertEquals(Success(), awaitItem())
+            permissionMonitor.setPermission(SHELL_USER)
             assertEquals(Success(isRefreshing = true), awaitItem())
             assertEquals(Success(), awaitItem())
         }
