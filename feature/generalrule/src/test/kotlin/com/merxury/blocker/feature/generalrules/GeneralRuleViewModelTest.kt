@@ -27,10 +27,13 @@ import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito.mock
+import kotlin.test.assertEquals
 
 class GeneralRuleViewModelTest {
     @get:Rule
@@ -47,7 +50,7 @@ class GeneralRuleViewModelTest {
     private val userDataRepository = TestUserDataRepository()
     private val componentRepository = TestComponentRepository()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
-
+    private lateinit var viewModel: GeneralRulesViewModel
     private val context = mock<Context>()
 
     @Before
@@ -72,7 +75,7 @@ class GeneralRuleViewModelTest {
             ioDispatcher = dispatcher,
         )
 
-        val viewModel = GeneralRulesViewModel(
+        viewModel = GeneralRulesViewModel(
             appRepository = appRepository,
             appPropertiesRepository = appPropertiesRepository,
             generalRuleRepository = generalRuleRepository,
@@ -81,5 +84,10 @@ class GeneralRuleViewModelTest {
             updateRule = updateRule,
             ioDispatcher = dispatcher,
         )
+    }
+
+    @Test
+    fun uiState_whenInitial_thenShowLoading() = runTest {
+        assertEquals(GeneralRuleUiState.Loading, viewModel.uiState.value)
     }
 }
