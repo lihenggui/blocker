@@ -28,6 +28,7 @@ dependencies {
     implementation(projects.core.domain)
 
     testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
 
