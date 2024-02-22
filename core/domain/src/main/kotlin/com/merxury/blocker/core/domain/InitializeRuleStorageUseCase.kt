@@ -16,8 +16,6 @@
 
 package com.merxury.blocker.core.domain
 
-import androidx.lifecycle.asFlow
-import androidx.lifecycle.asLiveData
 import androidx.work.ExistingWorkPolicy.KEEP
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
@@ -49,24 +47,20 @@ class InitializeRuleStorageUseCase @Inject constructor(
             return@flow
         }
         Timber.v("Enqueue copy rules to storage worker")
-        workManager.apply {
-            enqueueUniqueWork(
-                CopyRulesToStorageWorker.WORK_NAME,
-                KEEP,
-                CopyRulesToStorageWorker.copyWork(),
-            )
-            getWorkInfosByTagFlow(CopyRulesToStorageWorker.WORK_NAME)
-                .asLiveData()
-                .asFlow()
-                .collect { workInfoList ->
-                    workInfoList.forEach { workInfo ->
-                        Timber.d("WorkInfo: ${workInfo.tags}, state = ${workInfo.state}")
-                        when (workInfo.state) {
-                            State.SUCCEEDED -> emit(InitializeState.Done)
-                            else -> emit(InitializeState.Initializing(workInfo.state.name))
-                        }
+        workManager.enqueueUniqueWork(
+            CopyRulesToStorageWorker.WORK_NAME,
+            KEEP,
+            CopyRulesToStorageWorker.copyWork(),
+        )
+        workManager.getWorkInfosByTagFlow(CopyRulesToStorageWorker.WORK_NAME)
+            .collect { workInfoList ->
+                workInfoList.forEach { workInfo ->
+                    Timber.d("WorkInfo: ${workInfo.tags}, state = ${workInfo.state}")
+                    when (workInfo.state) {
+                        State.SUCCEEDED -> emit(InitializeState.Done)
+                        else -> emit(InitializeState.Initializing(workInfo.state.name))
                     }
                 }
-        }
+            }
     }.flowOn(ioDispatcher)
 }
