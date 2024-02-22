@@ -32,7 +32,6 @@ dependencies {
     implementation(projects.core.rule)
 
     testImplementation(projects.core.testing)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.datetime)
     implementation(libs.hilt.android)

@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.feature.generalrules
 
-import androidx.work.WorkManager
+import android.content.Context
 import app.cash.turbine.test
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
@@ -28,7 +28,6 @@ import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.model.preference.AppPropertiesData
 import com.merxury.blocker.core.testing.repository.TestAppPropertiesRepository
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
@@ -61,7 +60,7 @@ class GeneralRuleViewModelTest {
     private val componentRepository = TestComponentRepository()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private lateinit var viewModel: GeneralRulesViewModel
-    private val workerManager = mock<WorkManager>()
+    private val context = mock<Context>()
 
     @Before
     fun setup() {
@@ -69,7 +68,7 @@ class GeneralRuleViewModelTest {
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = tempFolder.newFolder().absolutePath,
             ioDispatcher = dispatcher,
-            workManager = workerManager,
+            appContext = context,
         )
         val searchRule = SearchGeneralRuleUseCase(
             generalRuleRepository = generalRuleRepository,
@@ -104,7 +103,6 @@ class GeneralRuleViewModelTest {
     @Test
     fun uiState_whenSuccess_thenShowData() = runTest {
         viewModel.uiState.test {
-            appPropertiesRepository.sendAppProperties(AppPropertiesData())
             appRepository.sendAppList(sampleAppList)
             userDataRepository.sendUserData(defaultUserData)
             componentRepository.sendComponentList(sampleComponentList)
