@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.generalrules
+package com.merxury.blocker.feature.generalrule
 
+import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.work.WorkManager
 import app.cash.turbine.test
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
@@ -36,13 +37,15 @@ import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
+import com.merxury.blocker.feature.generalrules.GeneralRulesViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.Mockito.mock
 import kotlin.test.assertEquals
 
 class GeneralRuleViewModelTest {
@@ -61,7 +64,7 @@ class GeneralRuleViewModelTest {
     private val componentRepository = TestComponentRepository()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private lateinit var viewModel: GeneralRulesViewModel
-    private val workManager = mock<WorkManager>()
+    private val workManager = WorkManager.getInstance(getInstrumentation().targetContext)
 
     @Before
     fun setup() {
@@ -98,7 +101,7 @@ class GeneralRuleViewModelTest {
 
     @Test
     fun uiState_whenInitial_thenShowLoading() = runTest {
-        assertEquals(GeneralRuleUiState.Loading, viewModel.uiState.value)
+        assertEquals(Loading, viewModel.uiState.value)
     }
 
     @Test
@@ -109,8 +112,8 @@ class GeneralRuleViewModelTest {
             userDataRepository.sendUserData(defaultUserData)
             componentRepository.sendComponentList(sampleComponentList)
             generalRuleRepository.sendRuleList(sampleRuleList)
-            assertEquals(GeneralRuleUiState.Loading, awaitItem())
-            assertEquals(GeneralRuleUiState.Success(sampleRuleList), awaitItem())
+            assertEquals(Loading, awaitItem())
+            assertEquals(Success(sampleRuleList), awaitItem())
         }
     }
 }
