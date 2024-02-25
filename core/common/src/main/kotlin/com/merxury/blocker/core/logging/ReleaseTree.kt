@@ -51,6 +51,7 @@ class ReleaseTree @Inject constructor(
     private val initErrorHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Error occurred while initializing log file", throwable)
     }
+
     @SuppressLint("LogNotTimber")
     private val writeErrorHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Error occurred while writing log", throwable)
