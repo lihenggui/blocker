@@ -16,12 +16,14 @@
 
 package com.merxury.blocker.core.logging
 
+import android.annotation.SuppressLint
 import android.util.Log
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -36,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
 const val LOG_DIR = "logs"
-
+private const val TAG = "ReleaseTree"
 class ReleaseTree @Inject constructor(
     @FilesDir private val filesDir: File,
     @ApplicationScope private val coroutineScope: CoroutineScope,
@@ -45,8 +47,17 @@ class ReleaseTree @Inject constructor(
     private val writeFile = AtomicReference<File>()
     private val initMutex: Mutex = Mutex()
 
+    @SuppressLint("LogNotTimber")
+    private val initErrorHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.e(TAG, "Error occurred while initializing log file", throwable)
+    }
+    @SuppressLint("LogNotTimber")
+    private val writeErrorHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.e(TAG, "Error occurred while writing log", throwable)
+    }
+
     init {
-        coroutineScope.launch(ioDispatcher) {
+        coroutineScope.launch(ioDispatcher + initErrorHandler) {
             initMutex.withLock {
                 createLogFile()
                 clearOldLogsIfNecessary(days = 7)
@@ -79,7 +90,7 @@ class ReleaseTree @Inject constructor(
         if (priority == Log.VERBOSE) {
             return
         }
-        coroutineScope.launch(ioDispatcher) {
+        coroutineScope.launch(ioDispatcher + writeErrorHandler) {
             // Wait until initMutex being unlocked
             if (initMutex.isLocked) {
                 initMutex.withLock { }
