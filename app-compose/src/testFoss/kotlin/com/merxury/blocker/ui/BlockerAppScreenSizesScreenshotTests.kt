@@ -36,6 +36,7 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.BindValue
@@ -122,13 +123,15 @@ class BlockerAppScreenSizesScreenshotTests {
             ) {
                 TestHarness(size = DpSize(width, height)) {
                     BoxWithConstraints {
-                        BlockerApp(
-                            windowSizeClass = WindowSizeClass.calculateFromSize(
-                                DpSize(maxWidth, maxHeight),
-                            ),
-                            networkMonitor = networkMonitor,
-                            permissionMonitor = permissionMonitor,
-                        )
+                        BlockerTheme {
+                            BlockerApp(
+                                windowSizeClass = WindowSizeClass.calculateFromSize(
+                                    DpSize(maxWidth, maxHeight),
+                                ),
+                                networkMonitor = networkMonitor,
+                                permissionMonitor = permissionMonitor,
+                            )
+                        }
                     }
                 }
             }
