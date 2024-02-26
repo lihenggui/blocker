@@ -170,8 +170,8 @@ fun BlockerNavigationRail(
 
 @ThemePreviews
 @Composable
-fun BlockerNavigationPreview() {
-    val items = listOf("For you", "Saved", "Interests")
+fun BlockerNavigationBarPreview() {
+    val items = listOf("Apps", "Rules", "Search")
     val icons = listOf(
         BlockerIcons.Apps,
         BlockerIcons.GeneralRule,
@@ -205,6 +205,46 @@ fun BlockerNavigationPreview() {
                         onClick = { },
                     )
                 }
+            }
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun NiaNavigationRailPreview() {
+    val items = listOf("Apps", "Rules", "Search")
+    val icons = listOf(
+        BlockerIcons.Apps,
+        BlockerIcons.GeneralRule,
+        BlockerIcons.Search,
+    )
+    val selectedIcons = listOf(
+        BlockerIcons.Apps,
+        BlockerIcons.GeneralRule,
+        BlockerIcons.Search,
+    )
+
+    BlockerTheme {
+        BlockerNavigationRail {
+            items.forEachIndexed { index, item ->
+                BlockerNavigationRailItem(
+                    icon = {
+                        Icon(
+                            imageVector = icons[index],
+                            contentDescription = item,
+                        )
+                    },
+                    selectedIcon = {
+                        Icon(
+                            imageVector = selectedIcons[index],
+                            contentDescription = item,
+                        )
+                    },
+                    label = { Text(item) },
+                    selected = index == 0,
+                    onClick = { },
+                )
             }
         }
     }
