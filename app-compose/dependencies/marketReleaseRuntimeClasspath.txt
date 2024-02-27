@@ -139,9 +139,6 @@ com.github.topjohnwu.libsu:service:5.2.2
 com.google.accompanist:accompanist-drawablepainter:0.32.0
 com.google.accompanist:accompanist-navigation-material:0.34.0
 com.google.accompanist:accompanist-permissions:0.34.0
-com.google.android.datatransport:transport-api:3.0.0
-com.google.android.datatransport:transport-backend-cct:3.1.9
-com.google.android.datatransport:transport-runtime:3.1.9
 com.google.android.material:material:1.11.0
 com.google.code.findbugs:jsr305:3.0.2
 com.google.dagger:dagger-lint-aar:2.50
@@ -196,7 +193,6 @@ org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.8.0
 org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
 org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0
 org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.8.0
-org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0
 org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.5.0
 org.jetbrains.kotlinx:kotlinx-datetime:0.5.0
 org.jetbrains.kotlinx:kotlinx-serialization-bom:1.6.3
