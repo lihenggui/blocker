@@ -24,6 +24,8 @@ import android.os.Bundle
 import androidx.core.os.bundleOf
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.ComponentInfo
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -88,9 +90,16 @@ class ComponentProvider : ContentProvider() {
             val shareCmpInfo = Json.decodeFromString<ShareCmpInfo>(rawString)
             Timber.d("controlComponent: $shareCmpInfo")
             shareCmpInfo.components.forEach { component ->
-                componentRepository.controlComponent(
+                val blockerComponent = ComponentInfo(
+                    name = component.name,
                     packageName = packageName,
-                    componentName = component.name,
+                    // The controller doesn't care about the type of the component
+                    // It will query internally, so we just set it to ACTIVITY
+                    // Just to avoid compilation error
+                    type = ACTIVITY,
+                )
+                componentRepository.controlComponent(
+                    blockerComponent,
                     newState = !component.block,
                 ).first()
                 analyticsHelper.logControlComponentViaProvider(newState = !component.block)

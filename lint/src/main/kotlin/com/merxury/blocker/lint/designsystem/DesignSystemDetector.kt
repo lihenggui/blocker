@@ -97,6 +97,7 @@ class DesignSystemDetector : Detector(), Detector.UastScanner {
             "SmallTopAppBar" to "BlockerTopAppBar",
             "MediumTopAppBar" to "BlockerTopAppBar",
             "LargeTopAppBar" to "BlockerTopAppBar",
+            "Switch" to "BlockerSwitch",
         )
         val RECEIVER_NAMES = mapOf(
             "Icons" to "BlockerIcons",

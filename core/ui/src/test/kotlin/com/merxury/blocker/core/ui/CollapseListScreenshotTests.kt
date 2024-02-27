@@ -22,20 +22,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -87,7 +86,6 @@ class CollapseListScreenshotTests {
     private fun CollapseListExample() {
         val components = ComponentListPreviewParameterProvider().values
             .first()
-            .toMutableStateList()
         val emptyList = remember {
             mutableStateListOf<ComponentInfo>()
         }
@@ -115,7 +113,7 @@ class CollapseListScreenshotTests {
         BlockerTheme {
             Surface {
                 CollapsibleList(
-                    list = listOf(matchedItem, matchedItem1, matchedItem2).toMutableStateList(),
+                    list = listOf(matchedItem, matchedItem1, matchedItem2),
                 )
             }
         }

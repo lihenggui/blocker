@@ -31,21 +31,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
+import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.feature.ruledetail.RuleMatchedAppListUiState
-import com.merxury.blocker.feature.ruledetail.RuleMatchedAppListUiState.Loading
-import com.merxury.blocker.feature.ruledetail.RuleMatchedAppListUiState.Success
 
 @Composable
 fun RuleMatchedAppList(
     modifier: Modifier = Modifier,
-    ruleMatchedAppListUiState: RuleMatchedAppListUiState,
+    ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -53,18 +53,19 @@ fun RuleMatchedAppList(
     navigateToAppDetail: (String) -> Unit = { _ -> },
     onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
 ) {
     when (ruleMatchedAppListUiState) {
-        Loading -> LoadingScreen()
-        is Success -> {
-            if (ruleMatchedAppListUiState.list.isEmpty()) {
+        is Result.Loading -> LoadingScreen()
+        is Result.Error -> ErrorScreen(error = ruleMatchedAppListUiState.exception.toErrorMessage())
+        is Result.Success -> {
+            if (ruleMatchedAppListUiState.data.isEmpty()) {
                 NoApplicableAppScreen()
                 return
             }
             CollapsibleList(
                 modifier = modifier.testTag("rule:matchedAppList"),
-                list = ruleMatchedAppListUiState.list,
+                list = ruleMatchedAppListUiState.data,
                 navigateToDetail = navigateToAppDetail,
                 navigationMenuItemDesc = string.core_ui_open_app_detail,
                 onStopServiceClick = onStopServiceClick,
@@ -98,10 +99,8 @@ fun NoApplicableAppScreen() {
 fun RuleMatchedAppListPreview() {
     val componentInfo = ComponentInfo(
         name = ".ui.component.ComponentListActivity",
-        simpleName = "ComponentListItem",
         packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
-        pmBlocked = false,
     )
     val matchedItem = MatchedItem(
         header = MatchedHeaderData(
@@ -121,10 +120,8 @@ fun RuleMatchedAppListPreview() {
             mutableStateListOf()
         },
     )
-    val uiState = Success(
-        list = remember {
-            mutableStateListOf(matchedItem, matchedItem2)
-        },
+    val uiState = Result.Success(
+        listOf(matchedItem, matchedItem2),
     )
     BlockerTheme {
         Surface {

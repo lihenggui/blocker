@@ -19,7 +19,7 @@ package com.merxury.blocker.feature.appdetail.componentdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -39,7 +39,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ComponentDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val componentDetailRepository: IComponentDetailRepository,
+    private val componentDetailRepository: ComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val componentDetailArg = ComponentDetailArgs(savedStateHandle)

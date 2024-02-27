@@ -57,7 +57,10 @@ fun RuleDescription(
                 } else {
                     rule.description.orEmpty()
                 },
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                ),
+                linkColor = MaterialTheme.colorScheme.tertiary,
                 isTextSelectable = true,
             )
             InfoItemHeading(

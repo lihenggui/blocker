@@ -350,7 +350,7 @@ class AppListViewModel @Inject constructor(
 }
 
 sealed interface AppListUiState {
-    class Initializing(val processingName: String = "") : AppListUiState
-    class Error(val error: UiMessage) : AppListUiState
+    data class Initializing(val processingName: String = "") : AppListUiState
+    data class Error(val error: UiMessage) : AppListUiState
     data class Success(val isRefreshing: Boolean = false) : AppListUiState
 }

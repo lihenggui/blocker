@@ -23,5 +23,4 @@ package com.merxury.blocker
 enum class BlockerBuildType(val applicationIdSuffix: String? = null) {
     DEBUG(".debug"),
     RELEASE,
-    BENCHMARK(".benchmark")
 }

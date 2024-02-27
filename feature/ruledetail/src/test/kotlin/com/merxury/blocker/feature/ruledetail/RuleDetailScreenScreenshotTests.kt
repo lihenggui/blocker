@@ -19,11 +19,11 @@ package com.merxury.blocker.feature.ruledetail
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
@@ -32,8 +32,6 @@ import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvi
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import dagger.hilt.android.testing.HiltTestApplication
@@ -58,7 +56,6 @@ class RuleDetailScreenScreenshotTests {
     private val ruleList = RuleListPreviewParameterProvider().values.first()
     private val components = ComponentListPreviewParameterProvider().values
         .first()
-        .toMutableStateList()
     private val appList = AppListPreviewParameterProvider().values.first()
     private val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
@@ -171,18 +168,16 @@ class RuleDetailScreenScreenshotTests {
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
                         ruleIcon = null,
-                        matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                            list = remember {
-                                mutableStateListOf(
-                                    MatchedItem(
-                                        header = MatchedHeaderData(
-                                            title = appList.first().label,
-                                            uniqueId = appList.first().packageName,
-                                        ),
-                                        componentList = components,
+                        matchedAppsUiState = Result.Success(
+                            listOf(
+                                MatchedItem(
+                                    header = MatchedHeaderData(
+                                        title = appList.first().label,
+                                        uniqueId = appList.first().packageName,
                                     ),
-                                )
-                            },
+                                    componentList = components,
+                                ),
+                            ),
                         ),
                     ),
                     tabState = tabState[0],
@@ -204,18 +199,16 @@ class RuleDetailScreenScreenshotTests {
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
                         ruleIcon = null,
-                        matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                            list = remember {
-                                mutableStateListOf(
-                                    MatchedItem(
-                                        header = MatchedHeaderData(
-                                            title = appList.first().label,
-                                            uniqueId = appList.first().packageName,
-                                        ),
-                                        componentList = components,
+                        matchedAppsUiState = Result.Success(
+                            listOf(
+                                MatchedItem(
+                                    header = MatchedHeaderData(
+                                        title = appList.first().label,
+                                        uniqueId = appList.first().packageName,
                                     ),
-                                )
-                            },
+                                    componentList = components,
+                                ),
+                            ),
                         ),
                     ),
                     tabState = tabState[1],
@@ -232,7 +225,7 @@ class RuleDetailScreenScreenshotTests {
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
                         ruleIcon = null,
-                        matchedAppsUiState = RuleMatchedAppListUiState.Loading,
+                        matchedAppsUiState = Result.Loading,
                     ),
                     tabState = tabState[1],
                 )

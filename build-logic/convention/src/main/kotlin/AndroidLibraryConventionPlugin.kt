@@ -21,6 +21,7 @@ import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configurePrintApksTask
 import com.merxury.blocker.disableUnnecessaryAndroidTests
+import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
@@ -61,6 +62,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 }
             }
             dependencies {
+                add("implementation", libs.findLibrary("androidx.tracing.ktx").get())
                 add("testImplementation", kotlin("test"))
             }
         }

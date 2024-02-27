@@ -30,7 +30,7 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.logging.ReleaseTree
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
-import com.merxury.blocker.core.model.preference.RuleServerProvider.JIHULAB
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.sync.initializers.Sync
@@ -43,7 +43,6 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
-import javax.inject.Provider
 
 /**
  * [Application] class for Blocker
@@ -57,7 +56,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     lateinit var userDataRepository: UserDataRepository
 
     @Inject
-    lateinit var imageLoader: Provider<ImageLoader>
+    lateinit var imageLoader: dagger.Lazy<ImageLoader>
 
     @Inject
     lateinit var profileVerifierLogger: ProfileVerifierLogger
@@ -134,9 +133,9 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
         // Set default server provider for first time run
         val locale = Locale.getDefault().toString()
         if (locale == "zh_CN") {
-            // Set default server provider to JihuLab for Chinese users
-            Timber.i("Set default server provider to JihuLab")
-            userDataRepository.setRuleServerProvider(JIHULAB)
+            // Set default server provider to GitLab for Chinese users
+            Timber.i("Set default server provider to GitLab")
+            userDataRepository.setRuleServerProvider(GITLAB)
         } else {
             Timber.i("Set default server provider to GitHub")
             userDataRepository.setRuleServerProvider(GITHUB)

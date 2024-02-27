@@ -18,6 +18,7 @@
 package com.merxury.blocker.core.network.di
 
 import android.content.Context
+import androidx.tracing.trace
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.BuildConfig
 import com.merxury.blocker.core.network.fake.FakeAssetManager
@@ -40,16 +41,18 @@ internal object NetworkModule {
 
     @Provides
     @Singleton
-    fun okHttpCallFactory(): Call.Factory = OkHttpClient.Builder()
-        .addInterceptor(
-            HttpLoggingInterceptor()
-                .apply {
-                    if (BuildConfig.DEBUG) {
-                        setLevel(HttpLoggingInterceptor.Level.HEADERS)
-                    }
-                },
-        )
-        .build()
+    fun okHttpCallFactory(): Call.Factory = trace("BlockerOkHttpClient") {
+        OkHttpClient.Builder()
+            .addInterceptor(
+                HttpLoggingInterceptor()
+                    .apply {
+                        if (BuildConfig.DEBUG) {
+                            setLevel(HttpLoggingInterceptor.Level.BODY)
+                        }
+                    },
+            )
+            .build()
+    }
 
     @OptIn(ExperimentalSerializationApi::class)
     @Provides
@@ -64,7 +67,7 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideBlockerNetworkDataSource(
-        okHttpCallFactory: Call.Factory,
+        okHttpCallFactory: dagger.Lazy<Call.Factory>,
     ): BlockerNetworkDataSource {
         return RetrofitBlockerNetwork(okHttpCallFactory)
     }

@@ -19,12 +19,13 @@ package com.merxury.blocker.core.testing.controller
 import com.merxury.blocker.core.controllers.IServiceController
 
 class FakeServiceController : IServiceController {
+    private val runningServices = mutableListOf<String>()
     override suspend fun load(): Boolean {
         return true
     }
 
     override fun isServiceRunning(packageName: String, serviceName: String): Boolean {
-        return false
+        return runningServices.contains(serviceName)
     }
 
     override suspend fun stopService(packageName: String, serviceName: String): Boolean {
@@ -33,5 +34,9 @@ class FakeServiceController : IServiceController {
 
     override suspend fun startService(packageName: String, serviceName: String): Boolean {
         return true
+    }
+
+    fun sendRunningServices(vararg name: String) {
+        runningServices.addAll(name)
     }
 }

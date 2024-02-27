@@ -17,10 +17,10 @@
 package com.merxury.blocker.core.controllers.ifw
 
 import android.content.ComponentName
-import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.core.ifw.IIntentFirewall
 import timber.log.Timber
 import javax.inject.Inject
@@ -32,10 +32,11 @@ internal class IfwController @Inject constructor(
 ) : IController {
 
     override suspend fun switchComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         state: Int,
     ): Boolean {
+        val packageName = component.packageName
+        val componentName = component.name
         return when (state) {
             COMPONENT_ENABLED_STATE_DISABLED -> intentFirewall.add(packageName, componentName)
             COMPONENT_ENABLED_STATE_ENABLED -> intentFirewall.remove(packageName, componentName)
@@ -43,18 +44,16 @@ internal class IfwController @Inject constructor(
         }
     }
 
-    override suspend fun enable(packageName: String, componentName: String): Boolean {
+    override suspend fun enable(component: ComponentInfo): Boolean {
         return switchComponent(
-            packageName,
-            componentName,
+            component,
             COMPONENT_ENABLED_STATE_ENABLED,
         )
     }
 
-    override suspend fun disable(packageName: String, componentName: String): Boolean {
+    override suspend fun disable(component: ComponentInfo): Boolean {
         return switchComponent(
-            packageName,
-            componentName,
+            component,
             COMPONENT_ENABLED_STATE_DISABLED,
         )
     }
@@ -71,12 +70,11 @@ internal class IfwController @Inject constructor(
         val list = componentList.map { ComponentName(it.packageName, it.name) }
         intentFirewall.removeAll(list) {
             succeededCount++
-            action(
-                ComponentInfo().apply {
-                    packageName = it.packageName
-                    name = it.className
-                },
-            )
+            val component = componentList
+                .find { info -> info.packageName == it.packageName && info.name == it.className }
+            if (component != null) {
+                action(component)
+            }
         }
         return succeededCount
     }
@@ -93,12 +91,11 @@ internal class IfwController @Inject constructor(
         val list = componentList.map { ComponentName(it.packageName, it.name) }
         intentFirewall.addAll(list) {
             succeededCount++
-            action(
-                ComponentInfo().apply {
-                    packageName = it.packageName
-                    name = it.className
-                },
-            )
+            val component = componentList
+                .find { info -> info.packageName == it.packageName && info.name == it.className }
+            if (component != null) {
+                action(component)
+            }
         }
         return succeededCount
     }

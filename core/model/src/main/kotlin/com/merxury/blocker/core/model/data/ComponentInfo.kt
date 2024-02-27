@@ -19,11 +19,11 @@ package com.merxury.blocker.core.model.data
 import com.merxury.blocker.core.model.ComponentType
 
 data class ComponentInfo(
-    val name: String,
-    val simpleName: String,
     val packageName: String,
+    val name: String,
     val type: ComponentType,
-    val pmBlocked: Boolean,
+    val simpleName: String = name.substringAfterLast('.'),
+    val pmBlocked: Boolean = false,
     val exported: Boolean = false,
     val isRunning: Boolean = false,
     val ifwBlocked: Boolean = false,

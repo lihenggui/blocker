@@ -34,8 +34,7 @@ interface ComponentRepository {
     fun updateComponentList(packageName: String): Flow<Result<Unit>>
 
     fun controlComponent(
-        packageName: String,
-        componentName: String,
+        component: ComponentInfo,
         newState: Boolean,
     ): Flow<Boolean>
 

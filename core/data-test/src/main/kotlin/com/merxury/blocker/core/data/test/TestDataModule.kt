@@ -20,7 +20,7 @@ import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.di.DataModule
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -61,7 +61,7 @@ internal interface TestDataModule {
     @Binds
     fun bindsComponentDetailRepository(
         componentDetailRepository: FakeComponentDetailRepository,
-    ): IComponentDetailRepository
+    ): ComponentDetailRepository
 
     @Binds
     fun bindsComponentRepository(
