@@ -316,7 +316,7 @@ class AppDetailViewModel @Inject constructor(
     }
 
     @VisibleForTesting
-    fun loadTabInfo() = viewModelScope.launch(mainDispatcher) {
+    fun loadTabInfo() = viewModelScope.launch {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
@@ -325,7 +325,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch(mainDispatcher) {
+    fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch {
         if (newTab != tabState.value.selectedItem) {
             Timber.d("Switch tab to ${newTab.name}, screen = ${appDetailArgs.packageName}")
             _tabState.update {
