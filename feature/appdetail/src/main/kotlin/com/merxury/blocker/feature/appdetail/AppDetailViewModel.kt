@@ -102,6 +102,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
@@ -177,7 +178,6 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun search(keyword: String) {
-        if (keyword == _appBarUiState.value.keyword) return
         _appBarUiState.update { it.copy(keyword = keyword) }
         searchJob?.cancel()
         loadComponentListJob?.cancel()
@@ -280,6 +280,7 @@ class AppDetailViewModel @Inject constructor(
 
     private fun listenSortStateChange() = viewModelScope.launch {
         userDataRepository.userData
+            .drop(1)
             .distinctUntilChanged()
             .collect {
                 loadComponentList()
@@ -311,6 +312,7 @@ class AppDetailViewModel @Inject constructor(
                 actions = getAppBarAction(),
             )
         }
+        loadComponentList()
     }
 
     @VisibleForTesting
