@@ -16,8 +16,12 @@
 
 package com.merxury.blocker.feature.generalrule
 
-import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import android.util.Log
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.work.Configuration
 import androidx.work.WorkManager
+import androidx.work.impl.utils.SynchronousExecutor
+import androidx.work.testing.WorkManagerTestInitHelper
 import app.cash.turbine.test
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
@@ -64,10 +68,17 @@ class GeneralRuleViewModelTest {
     private val componentRepository = TestComponentRepository()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private lateinit var viewModel: GeneralRulesViewModel
-    private val workManager = WorkManager.getInstance(getInstrumentation().targetContext)
+    private lateinit var workManager: WorkManager
 
     @Before
     fun setup() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val config = Configuration.Builder()
+            .setMinimumLoggingLevel(Log.DEBUG)
+            .setExecutor(SynchronousExecutor())
+            .build()
+        WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
+        workManager = WorkManager.getInstance(context)
         val initGeneralRuleUseCase = InitializeRuleStorageUseCase(
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = tempFolder.newFolder().absolutePath,
