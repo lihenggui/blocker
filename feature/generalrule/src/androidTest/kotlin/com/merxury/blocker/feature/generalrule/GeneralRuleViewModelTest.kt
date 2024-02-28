@@ -132,13 +132,10 @@ class GeneralRuleViewModelTest {
 private val sampleRuleList = listOf(
     GeneralRule(
         id = 1,
-        name = "AWS SDK for Kotlin (Developer Preview)",
+        name = "Rule1",
         iconUrl = null,
-        company = "Amazon",
-        description = "The AWS SDK for Kotlin simplifies the use of AWS services by " +
-            "providing a set of libraries that are consistent and familiar for " +
-            "Kotlin developers. All AWS SDKs support API lifecycle considerations " +
-            "such as credential management, retries, data marshaling, and serialization.",
+        company = "Rule1 company",
+        description = "Rule1 description",
         sideEffect = "Unknown",
         safeToBlock = true,
         contributors = listOf("Online contributor"),
@@ -146,15 +143,11 @@ private val sampleRuleList = listOf(
     ),
     GeneralRule(
         id = 2,
-        name = "Android WorkerManager",
+        name = "Rule2",
         iconUrl = null,
-        company = "Google",
-        description = "WorkManager is the recommended solution for persistent work. " +
-            "Work is persistent when it remains scheduled through app restarts and " +
-            "system reboots. Because most background processing is best accomplished " +
-            "through persistent work, WorkManager is the primary recommended API for " +
-            "background processing.",
-        sideEffect = "Background works won't be able to execute",
+        company = "Rule2 company",
+        description = "Rule2 description",
+        sideEffect = "Unknown",
         safeToBlock = false,
         contributors = listOf("Google"),
         searchKeyword = listOf(
@@ -166,20 +159,20 @@ private val sampleRuleList = listOf(
     ),
     GeneralRule(
         id = 3,
-        name = "Pangolin Advertising SDK",
+        name = "Rule3",
         iconUrl = "icon/chuanshanjia.svg",
-        company = "Beijing Juliang Engine Network Technology Co., Ltd.",
-        description = "Pangolin is a global developer growth platform, providing global developers with full life cycle services and growth solutions such as user growth, traffic monetization, and LTV improvement.",
+        company = "Rule3 company",
+        description = "Rule3 description",
         sideEffect = "Unknown",
         safeToBlock = false,
         contributors = listOf("Tester"),
         searchKeyword = listOf(
             "com.ss.android.socialbase.",
             "com.ss.android.downloadlib.",
-            "com.bytedance.embedapplog.",
-            "com.bytedance.pangle.",
-            "com.bytedance.tea.crash.",
-            "com.bytedance.sdk.openadsdk.",
+            "com.example.component.",
+            "com.example.component.",
+            "com.example.tea.component.",
+            "com.example.sdk.component.",
         ),
     ),
 )
