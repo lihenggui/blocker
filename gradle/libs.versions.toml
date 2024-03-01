@@ -60,7 +60,7 @@ room = "2.6.1"
 shizuku = "13.1.5"
 xmlutil = "0.86.3"
 turbine = "1.0.0"
-truth = "1.4.0"
+truth = "1.4.2"
 material = "1.11.0"
 
 [libraries]
