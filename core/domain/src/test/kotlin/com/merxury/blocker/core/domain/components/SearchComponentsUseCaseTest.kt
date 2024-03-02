@@ -143,7 +143,7 @@ class SearchComponentsUseCaseTest {
                     .sortedBy { it.simpleName.lowercase() },
                 service = listWithRunningService.filter { it.type == ComponentType.SERVICE }
                     .sortedBy { it.simpleName.lowercase() }
-                    .sortedByDescending { it.name == "5" },
+                    .sortedByDescending { it.isRunning },
                 receiver = components1.filter { it.type == ComponentType.RECEIVER }
                     .sortedBy { it.simpleName.lowercase() },
                 provider = components1.filter { it.type == ComponentType.PROVIDER }
