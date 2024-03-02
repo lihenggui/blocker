@@ -141,10 +141,10 @@ com.google.accompanist:accompanist-navigation-material:0.34.0
 com.google.accompanist:accompanist-permissions:0.34.0
 com.google.android.material:material:1.11.0
 com.google.code.findbugs:jsr305:3.0.2
-com.google.dagger:dagger-lint-aar:2.50
-com.google.dagger:dagger:2.50
-com.google.dagger:hilt-android:2.50
-com.google.dagger:hilt-core:2.50
+com.google.dagger:dagger-lint-aar:2.51
+com.google.dagger:dagger:2.51
+com.google.dagger:hilt-android:2.51
+com.google.dagger:hilt-core:2.51
 com.google.errorprone:error_prone_annotations:2.15.0
 com.google.guava:failureaccess:1.0.1
 com.google.guava:guava:31.0.1-jre
