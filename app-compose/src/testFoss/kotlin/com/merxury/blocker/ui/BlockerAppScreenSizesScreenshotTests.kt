@@ -33,9 +33,11 @@ import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.BindValue
@@ -57,7 +59,7 @@ import javax.inject.Inject
 /**
  * Tests that the navigation UI is rendered correctly on different screen sizes.
  */
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterialNavigationApi::class)
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 // Configure Robolectric to use a very large screen size that can fit all of the test sizes.
@@ -91,6 +93,9 @@ class BlockerAppScreenSizesScreenshotTests {
     lateinit var networkMonitor: NetworkMonitor
 
     @Inject
+    lateinit var timeZoneMonitor: TimeZoneMonitor
+
+    @Inject
     lateinit var permissionMonitor: PermissionMonitor
 
     @Before
@@ -122,13 +127,15 @@ class BlockerAppScreenSizesScreenshotTests {
             ) {
                 TestHarness(size = DpSize(width, height)) {
                     BoxWithConstraints {
-                        BlockerApp(
+                        val appState = rememberBlockerAppState(
                             windowSizeClass = WindowSizeClass.calculateFromSize(
                                 DpSize(maxWidth, maxHeight),
                             ),
                             networkMonitor = networkMonitor,
                             permissionMonitor = permissionMonitor,
+                            timeZoneMonitor = timeZoneMonitor,
                         )
+                        BlockerApp(appState)
                     }
                 }
             }
