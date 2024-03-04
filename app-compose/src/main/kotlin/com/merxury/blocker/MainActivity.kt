@@ -34,26 +34,31 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.metrics.performance.JankStats
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.MainActivityUiState.Loading
 import com.merxury.blocker.MainActivityUiState.Success
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
+import com.merxury.blocker.core.ui.LocalTimeZone
 import com.merxury.blocker.ui.BlockerApp
+import com.merxury.blocker.ui.rememberBlockerAppState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterialNavigationApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -68,6 +73,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var permissionMonitor: PermissionMonitor
+
+    @Inject
+    lateinit var timeZoneMonitor: TimeZoneMonitor
 
     @Inject
     lateinit var analyticsHelper: AnalyticsHelper
@@ -140,7 +148,20 @@ class MainActivity : ComponentActivity() {
                 )
                 onDispose {}
             }
-            CompositionLocalProvider(LocalAnalyticsHelper provides analyticsHelper) {
+
+            val appState = rememberBlockerAppState(
+                windowSizeClass = calculateWindowSizeClass(this),
+                networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
+                timeZoneMonitor = timeZoneMonitor,
+            )
+
+            val currentTimeZone by appState.currentTimeZone.collectAsStateWithLifecycle()
+
+            CompositionLocalProvider(
+                LocalAnalyticsHelper provides analyticsHelper,
+                LocalTimeZone provides currentTimeZone,
+            ) {
                 BlockerDynamicTheme(
                     darkTheme = darkTheme,
                     defaultTheme = shouldDisableDynamicTheming(uiState),
@@ -148,9 +169,7 @@ class MainActivity : ComponentActivity() {
                     iconBasedThemingState = iconBasedThemingState,
                 ) {
                     BlockerApp(
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
-                        windowSizeClass = calculateWindowSizeClass(this),
+                        appState,
                         updateIconBasedThemingState = viewModel::updateIconBasedThemingState,
                     )
                 }

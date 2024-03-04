@@ -18,7 +18,6 @@
 package com.merxury.blocker.ui
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -35,7 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Long
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,8 +49,6 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.R
-import com.merxury.blocker.core.data.util.NetworkMonitor
-import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
@@ -72,20 +68,12 @@ import com.merxury.blocker.navigation.BlockerNavHost
 import com.merxury.blocker.navigation.TopLevelDestination
 
 @OptIn(
-    ExperimentalLayoutApi::class,
     ExperimentalComposeUiApi::class,
     ExperimentalMaterialNavigationApi::class,
 )
 @Composable
 fun BlockerApp(
-    windowSizeClass: WindowSizeClass,
-    networkMonitor: NetworkMonitor,
-    permissionMonitor: PermissionMonitor,
-    appState: BlockerAppState = rememberBlockerAppState(
-        networkMonitor = networkMonitor,
-        permissionMonitor = permissionMonitor,
-        windowSizeClass = windowSizeClass,
-    ),
+    appState: BlockerAppState,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
     val shouldShowGradientBackground =

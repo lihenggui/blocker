@@ -32,6 +32,7 @@ import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.components.SingletonComponent
@@ -87,4 +88,7 @@ internal interface TestDataModule {
     fun bindsAppStateCache(
         appStateCache: TestAppStateCache,
     ): IAppStateCache
+
+    @Binds
+    fun binds(impl: DefaultZoneIdTimeZoneMonitor): TimeZoneMonitor
 }

@@ -36,6 +36,8 @@ import com.merxury.blocker.core.data.util.AppPermissionMonitor
 import com.merxury.blocker.core.data.util.ConnectivityManagerNetworkMonitor
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.TimeZoneBroadcastMonitor
+import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -93,4 +95,7 @@ abstract class DataModule {
     internal abstract fun bindAppStateCache(
         appStateCache: AppStateCache,
     ): IAppStateCache
+
+    @Binds
+    internal abstract fun binds(impl: TimeZoneBroadcastMonitor): TimeZoneMonitor
 }
