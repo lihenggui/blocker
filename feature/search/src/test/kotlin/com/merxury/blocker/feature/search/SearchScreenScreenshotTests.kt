@@ -78,7 +78,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenSelectedApp_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenSelectedApp",
             darkMode = true,
         ) {
@@ -97,7 +97,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenSelectedComponent_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenSelectedComponent",
             darkMode = true,
         ) {
@@ -116,7 +116,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenSelectedRule_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenSelectedRule",
             darkMode = true,
         ) {
@@ -135,7 +135,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenSelectedMode_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenSelectedMode",
             darkMode = true,
         ) {
@@ -154,7 +154,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenEmpty_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenEmpty",
             darkMode = true,
         ) {
@@ -173,7 +173,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenLoading_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenLoading",
             darkMode = true,
         ) {
@@ -192,7 +192,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenNoResult_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenNoResult",
             darkMode = true,
         ) {
@@ -211,7 +211,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenInitial_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenInitial",
             darkMode = true,
         ) {
@@ -230,7 +230,7 @@ class SearchScreenScreenshotTests {
     fun searchScreenError_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SearchScreenError",
             darkMode = true,
         ) {

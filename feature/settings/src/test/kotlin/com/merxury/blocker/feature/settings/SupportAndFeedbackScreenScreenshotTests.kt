@@ -65,7 +65,7 @@ class SupportAndFeedbackScreenScreenshotTests {
     fun supportAndFeedbackScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SupportAndFeedbackScreen",
             darkMode = true,
         ) {

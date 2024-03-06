@@ -80,7 +80,7 @@ class GeneralRuleScreenScreenshotTests {
     fun generalRuleListScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "GeneralRuleListScreen",
             darkMode = true,
         ) {
@@ -99,7 +99,7 @@ class GeneralRuleScreenScreenshotTests {
     fun generalRuleScreenLoading_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "GeneralRuleScreenLoading",
             darkMode = true,
         ) {
@@ -118,7 +118,7 @@ class GeneralRuleScreenScreenshotTests {
     fun generalRuleScreenError_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "GeneralRuleScreenError",
             darkMode = true,
         ) {

@@ -62,7 +62,7 @@ class ComponentSortBottomSheetScreenshotTests {
     fun componentSortBottomSheet_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "ComponentSortBottomSheet",
             darkMode = true,
         ) {
@@ -81,7 +81,7 @@ class ComponentSortBottomSheetScreenshotTests {
     fun componentSortBottomSheetLoading_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
+            deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "ComponentSortBottomSheetLoading",
             darkMode = true,
         ) {
