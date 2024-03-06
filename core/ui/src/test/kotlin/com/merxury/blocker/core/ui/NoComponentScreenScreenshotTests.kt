@@ -72,7 +72,7 @@ class NoComponentScreenScreenshotTests {
             .captureRoboImage(
                 "src/test/screenshots/NoComponentScreen" +
                     "/NoComponentScreen_fontScale2.png",
-                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
+                roborazziOptions = DefaultRoborazziOptions,
             )
     }
 

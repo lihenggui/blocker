@@ -73,7 +73,7 @@ class ErrorScreenScreenshotTests {
             .captureRoboImage(
                 "src/test/screenshots/ErrorScreen" +
                     "/ErrorScreen_fontScale2.png",
-                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
+                roborazziOptions = DefaultRoborazziOptions,
             )
     }
 

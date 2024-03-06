@@ -73,7 +73,7 @@ class ComponentListScreenshotTests {
             .captureRoboImage(
                 "src/test/screenshots/ComponentList" +
                     "/ComponentList_fontScale2.png",
-                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
+                roborazziOptions = DefaultRoborazziOptions,
             )
     }
 

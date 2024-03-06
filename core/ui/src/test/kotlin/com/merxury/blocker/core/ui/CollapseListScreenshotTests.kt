@@ -78,7 +78,7 @@ class CollapseListScreenshotTests {
             .captureRoboImage(
                 "src/test/screenshots/CollapseList" +
                     "/CollapseList_fontScale2.png",
-                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
+                roborazziOptions = DefaultRoborazziOptions,
             )
     }
 

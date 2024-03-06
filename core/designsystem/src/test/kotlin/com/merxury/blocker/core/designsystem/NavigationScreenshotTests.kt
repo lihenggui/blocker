@@ -76,7 +76,7 @@ class NavigationScreenshotTests {
             .captureRoboImage(
                 "src/test/screenshots/Navigation" +
                     "/Navigation_fontScale2.png",
-                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
+                roborazziOptions = DefaultRoborazziOptions,
             )
     }
 

@@ -82,7 +82,7 @@ class RuleCardScreenshotTests {
             .captureRoboImage(
                 "src/test/screenshots/RuleCard" +
                     "/RuleCard_fontScale2.png",
-                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
+                roborazziOptions = DefaultRoborazziOptions,
             )
     }
 

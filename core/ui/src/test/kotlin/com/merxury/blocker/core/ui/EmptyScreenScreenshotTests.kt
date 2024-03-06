@@ -72,7 +72,7 @@ class EmptyScreenScreenshotTests {
             .captureRoboImage(
                 "src/test/screenshots/EmptyScreen" +
                     "/EmptyScreen_fontScale2.png",
-                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
+                roborazziOptions = DefaultRoborazziOptions,
             )
     }
 
