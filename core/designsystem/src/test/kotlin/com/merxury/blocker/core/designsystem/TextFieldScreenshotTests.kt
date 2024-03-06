@@ -71,7 +71,7 @@ class TextFieldScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/TextField/TextField_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 

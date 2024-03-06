@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.compose)
@@ -20,25 +21,15 @@ plugins {
 }
 
 android {
-    namespace = "com.merxury.blocker.core.testing"
+    namespace = "com.merxury.blocker.core.screenshottesting"
 }
 
 dependencies {
-    api(kotlin("test"))
-    api(libs.androidx.compose.ui.test)
-    api(projects.core.analytics)
-    api(projects.core.data)
-    api(projects.core.model)
-
-    debugApi(libs.androidx.compose.ui.testManifest)
-
-    implementation(libs.androidx.test.rules)
-    implementation(libs.hilt.android.testing)
-    implementation(libs.kotlinx.coroutines.test)
-    implementation(libs.kotlinx.datetime)
+    api(libs.roborazzi)
+    implementation(libs.accompanist.testharness)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui.test)
+    implementation(libs.robolectric)
     implementation(projects.core.common)
-    implementation(projects.core.componentController)
-    implementation(projects.core.domain)
     implementation(projects.core.designsystem)
-    implementation(projects.core.ui)
 }

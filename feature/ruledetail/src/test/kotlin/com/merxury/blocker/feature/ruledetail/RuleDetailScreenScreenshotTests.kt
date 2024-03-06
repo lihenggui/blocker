@@ -76,7 +76,7 @@ class RuleDetailScreenScreenshotTests {
     fun ruleDetailScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "RuleDetailScreen",
             darkMode = true,
         ) {
@@ -95,7 +95,7 @@ class RuleDetailScreenScreenshotTests {
     fun ruleDetailScreenSelectedApplicable_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "RuleDetailScreenSelectedApplicable",
             darkMode = true,
         ) {
@@ -114,7 +114,7 @@ class RuleDetailScreenScreenshotTests {
     fun ruleDetailScreenWithApplicableLoading_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "RuleDetailScreenWithApplicableLoading",
             darkMode = true,
         ) {
@@ -133,7 +133,7 @@ class RuleDetailScreenScreenshotTests {
     fun ruleDetailScreenLoading_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "RuleDetailScreenLoading",
             darkMode = true,
         ) {
@@ -152,7 +152,7 @@ class RuleDetailScreenScreenshotTests {
     fun ruleDetailScreenError_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "RuleDetailScreenError",
             darkMode = true,
         ) {

@@ -137,7 +137,7 @@ class BlockerAppScreenSizesScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/testFoss/screenshots/$screenshotName.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 

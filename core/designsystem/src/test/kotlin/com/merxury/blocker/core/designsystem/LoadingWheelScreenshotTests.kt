@@ -75,7 +75,7 @@ class LoadingWheelScreenshotTests {
             composeTestRule.onRoot()
                 .captureRoboImage(
                     "src/test/screenshots/LoadingWheel/LoadingWheel_animation_$deltaTime.png",
-                    roborazziOptions = DefaultRoborazziOptions,
+                    roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
                 )
         }
     }

@@ -66,7 +66,7 @@ class SettingsScreenScreenshotTests {
     fun settingsScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "SettingsScreen",
             darkMode = true,
         ) {

@@ -73,7 +73,7 @@ class TabsScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/Tabs/Tabs_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 

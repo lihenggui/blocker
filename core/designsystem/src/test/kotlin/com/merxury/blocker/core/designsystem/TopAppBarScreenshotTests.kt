@@ -125,7 +125,7 @@ class TopAppBarScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/TopAppBar/TopAppBar_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 
@@ -145,7 +145,7 @@ class TopAppBarScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/TopAppBar/TopAppBar_navActions_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 
@@ -165,7 +165,7 @@ class TopAppBarScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/TopAppBar/MediumTopAppBar_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 
@@ -185,7 +185,7 @@ class TopAppBarScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/TopAppBar/TopAppBar_loading_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 

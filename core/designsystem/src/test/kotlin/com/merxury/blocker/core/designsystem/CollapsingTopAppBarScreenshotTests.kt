@@ -103,7 +103,7 @@ class CollapsingTopAppBarScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/CollapsingTopAppBar/CollapsingTopAppBarCollapsed_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 
@@ -123,7 +123,7 @@ class CollapsingTopAppBarScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/CollapsingTopAppBar/CollapsingTopAppBarHalfway_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 
@@ -143,7 +143,7 @@ class CollapsingTopAppBarScreenshotTests {
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/test/screenshots/CollapsingTopAppBar/CollapsingTopAppBarExpanded_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 

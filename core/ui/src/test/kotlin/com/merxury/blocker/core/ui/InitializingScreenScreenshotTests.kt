@@ -72,7 +72,7 @@ class InitializingScreenScreenshotTests {
             .captureRoboImage(
                 "src/test/screenshots/InitializingScreen" +
                     "/InitializingScreen_fontScale2.png",
-                roborazziOptions = DefaultRoborazziOptions,
+                roborazziOptions = com.merxury.blocker.core.testing.util.DefaultRoborazziOptions,
             )
     }
 

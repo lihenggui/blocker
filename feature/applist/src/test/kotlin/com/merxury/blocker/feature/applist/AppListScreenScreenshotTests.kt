@@ -65,7 +65,7 @@ class AppListScreenScreenshotTests {
     fun appListScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "AppListScreen",
             darkMode = true,
         ) {
@@ -84,7 +84,7 @@ class AppListScreenScreenshotTests {
     fun appListScreen_initializing_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "AppListScreenInitializing",
             darkMode = true,
         ) {
@@ -103,7 +103,7 @@ class AppListScreenScreenshotTests {
     fun appListScreen_error_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "AppListScreenError",
             darkMode = true,
         ) {
@@ -122,7 +122,7 @@ class AppListScreenScreenshotTests {
     fun appListScreen_empty_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE.spec,
             screenshotName = "AppListScreenEmpty",
             darkMode = true,
         ) {
