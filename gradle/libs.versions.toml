@@ -2,8 +2,8 @@
 accompanist = "0.34.0"
 androidDesugarJdkLibs = "2.0.4"
 # AGP and tools should be updated together
-androidGradlePlugin = "8.2.2"
-androidTools = "31.2.2"
+androidGradlePlugin = "8.3.0"
+androidTools = "31.3.0"
 androidxActivity = "1.8.2"
 androidxAppCompat = "1.6.1"
 androidxBrowser = "1.7.0"
@@ -151,7 +151,6 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-kotlin-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxSerializationJson" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
-robolectric-shadows = { group = "org.robolectric", name = "shadows-framework", version.ref = "robolectric" }
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
