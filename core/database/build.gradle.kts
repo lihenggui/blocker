@@ -35,4 +35,11 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     androidTestImplementation(projects.core.testing)
+
+    // TODO Remove in the AGP 8.3.x release
+    modules {
+        module("com.google.guava:listenablefuture") {
+            replacedBy("com.google.guava:guava", "listenablefuture is part of guava")
+        }
+    }
 }
