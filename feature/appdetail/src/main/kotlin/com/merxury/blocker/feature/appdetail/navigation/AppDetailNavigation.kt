@@ -42,6 +42,8 @@ internal const val TAB_ARG = "tab"
 @VisibleForTesting
 internal const val KEYWORD_ARG = "keyword"
 
+const val APP_DETAIL_ROUTE = "app_detail_route"
+
 internal class AppDetailArgs(
     val packageName: String,
     val tabs: AppDetailTabs = AppDetailTabs.Info,
@@ -66,7 +68,7 @@ fun NavController.navigateToAppDetail(
 ) {
     val encodedId = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
     val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
-    navigate("app_detail_route/$encodedId?screen=${tab.name}?keyword=$keywords") {
+    navigate("$APP_DETAIL_ROUTE/$encodedId?screen=${tab.name}?keyword=$keywords") {
         // Avoid multiple copies of the same destination when
         // reselecting the same item
         launchSingleTop = true
@@ -82,7 +84,7 @@ fun NavGraphBuilder.detailScreen(
     navigateToRuleDetail: (String) -> Unit,
 ) {
     composable(
-        route = "app_detail_route/{$PACKAGE_NAME_ARG}?screen={$TAB_ARG}?keyword={$KEYWORD_ARG}",
+        route = "$APP_DETAIL_ROUTE/{$PACKAGE_NAME_ARG}?screen={$TAB_ARG}?keyword={$KEYWORD_ARG}",
         arguments = listOf(
             navArgument(PACKAGE_NAME_ARG) { type = NavType.StringType },
             navArgument(TAB_ARG) { type = NavType.StringType },
