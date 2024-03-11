@@ -20,6 +20,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
@@ -65,13 +66,13 @@ fun NavController.navigateToAppDetail(
     packageName: String,
     tab: AppDetailTabs = AppDetailTabs.Info,
     searchKeyword: List<String> = listOf(),
+    navOptions: NavOptionsBuilder.() -> Unit = {},
 ) {
     val encodedId = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
     val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
-    navigate("$APP_DETAIL_ROUTE/$encodedId?screen=${tab.name}?keyword=$keywords") {
-        // Avoid multiple copies of the same destination when
-        // reselecting the same item
-        launchSingleTop = true
+    val newRoute = "$APP_DETAIL_ROUTE/$encodedId?screen=${tab.name}?keyword=$keywords"
+    navigate(newRoute) {
+        navOptions()
     }
 }
 
