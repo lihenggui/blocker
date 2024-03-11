@@ -9,6 +9,8 @@ androidxAppCompat = "1.6.1"
 androidxBrowser = "1.8.0"
 androidxComposeBom = "2024.02.02"
 androidxComposeCompiler = "1.5.10"
+androidxComposeMaterial3Adaptive = "1.0.0-alpha06"
+androidxComposeRuntimeTracing = "1.0.0-beta01"
 androidxCore = "1.12.0"
 androidxCoreSplashscreen = "1.0.1"
 androidxDataStore = "1.0.0"
@@ -81,8 +83,10 @@ androidx-compose-foundation-layout = { group = "androidx.compose.foundation", na
 androidx-compose-material = { group = "androidx.compose.material", name = "material" , version.ref = "androidxComposeMaterial" }
 androidx-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material3-adaptive = { group = "androidx.compose.material3", name = "material3-adaptive", version.ref = "androidxComposeMaterial3Adaptive" }
 androidx-compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
+androidx-compose-runtime-tracing = { group = "androidx.compose.runtime", name = "runtime-tracing", version.ref = "androidxComposeRuntimeTracing" }
 androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-testManifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
