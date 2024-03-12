@@ -72,6 +72,7 @@ fun AppListRoute(
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
     modifier: Modifier = Modifier,
+    highlightSelectedTopic: Boolean = false,
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

@@ -30,11 +30,9 @@ import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
-import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE
-import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
@@ -47,6 +45,7 @@ import com.merxury.blocker.feature.sort.navigation.appSortScreen
 import com.merxury.blocker.feature.sort.navigation.componentSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
+import com.merxury.blocker.ui.applist2pane.appListDetailScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
@@ -76,18 +75,15 @@ fun BlockerNavHost(
             enterTransition = { fadeIn(animationSpec = tween(300)) },
             exitTransition = { fadeOut(animationSpec = tween(300)) },
         ) {
-            appListScreen(
+            appListDetailScreen(
                 navigateToAppDetail = navController::navigateToAppDetail,
                 navigateToSettings = navController::navigateToSettings,
                 navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
                 navigateTooAppSortScreen = navController::navigateToAppSortScreen,
-            )
-            detailScreen(
-                onBackClick = onBackClick,
                 snackbarHostState = snackbarHostState,
+                updateIconBasedThemingState = updateIconBasedThemingState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
                 navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
-                updateIconBasedThemingState = updateIconBasedThemingState,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
             generalRuleScreen(

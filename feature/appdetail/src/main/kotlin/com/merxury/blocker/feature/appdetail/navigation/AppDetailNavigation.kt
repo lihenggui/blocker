@@ -76,13 +76,15 @@ fun NavController.navigateToAppDetail(
     }
 }
 
-fun NavGraphBuilder.detailScreen(
+fun NavGraphBuilder.appDetailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
+    onAppClick: (String) -> Unit,
+    showBackButton: Boolean,
 ) {
     composable(
         route = "$APP_DETAIL_ROUTE/{$PACKAGE_NAME_ARG}?$TAB_ARG={$TAB_ARG}?$KEYWORD_ARG={$KEYWORD_ARG}",
@@ -99,6 +101,8 @@ fun NavGraphBuilder.detailScreen(
             navigateToComponentSortScreen = navigateToComponentSortScreen,
             navigateToRuleDetail = navigateToRuleDetail,
             updateIconBasedThemingState = updateIconBasedThemingState,
+            onAppClick = onAppClick,
+            showBackButton = showBackButton,
         )
     }
 }
