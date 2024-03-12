@@ -27,7 +27,6 @@ const val APP_LIST_ROUTE = "app_list_route"
 const val PACKAGE_NAME_ARG = "packageName"
 const val TAB_ARG = "tab"
 const val KEYWORD_ARG = "keyword"
-const val APP_DETAIL_ROUTE = "app_detail_route"
 
 fun NavController.navigateToAppList(
     packageName: String? = null,
@@ -37,9 +36,9 @@ fun NavController.navigateToAppList(
 ) {
     val keywords = searchKeyword.joinToString(",")
     val route = if (packageName != null) {
-        "$APP_DETAIL_ROUTE?${PACKAGE_NAME_ARG}=$packageName?$TAB_ARG=${tab.name}?$KEYWORD_ARG=$keywords"
+        "$APP_LIST_ROUTE?${PACKAGE_NAME_ARG}=$packageName?$TAB_ARG=${tab.name}?$KEYWORD_ARG=$keywords"
     } else {
-        APP_DETAIL_ROUTE
+        APP_LIST_ROUTE
     }
     navigate(route, navOptions)
 }
