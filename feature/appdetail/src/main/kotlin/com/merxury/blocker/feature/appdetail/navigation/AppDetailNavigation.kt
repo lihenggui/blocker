@@ -70,7 +70,7 @@ fun NavController.navigateToAppDetail(
 ) {
     val encodedId = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
     val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
-    val newRoute = "$APP_DETAIL_ROUTE/$encodedId?screen=${tab.name}?keyword=$keywords"
+    val newRoute = "$APP_DETAIL_ROUTE/$encodedId?$TAB_ARG=${tab.name}?$KEYWORD_ARG=$keywords"
     navigate(newRoute) {
         navOptions()
     }
@@ -85,7 +85,7 @@ fun NavGraphBuilder.detailScreen(
     navigateToRuleDetail: (String) -> Unit,
 ) {
     composable(
-        route = "$APP_DETAIL_ROUTE/{$PACKAGE_NAME_ARG}?screen={$TAB_ARG}?keyword={$KEYWORD_ARG}",
+        route = "$APP_DETAIL_ROUTE/{$PACKAGE_NAME_ARG}?$TAB_ARG={$TAB_ARG}?$KEYWORD_ARG={$KEYWORD_ARG}",
         arguments = listOf(
             navArgument(PACKAGE_NAME_ARG) { type = NavType.StringType },
             navArgument(TAB_ARG) { type = NavType.StringType },
