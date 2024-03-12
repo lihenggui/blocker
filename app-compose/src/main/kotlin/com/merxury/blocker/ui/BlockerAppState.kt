@@ -199,7 +199,11 @@ class BlockerAppState(
             }
 
             when (topLevelDestination) {
-                APP -> navController.navigateToAppList(topLevelNavOptions)
+                APP -> navController.navigateToAppList(
+                    packageName = null,
+                    navOptions = topLevelNavOptions,
+                )
+
                 RULE -> navController.navigateToGeneralRule(topLevelNavOptions)
                 SEARCH -> navController.navigateToSearch(topLevelNavOptions)
             }
