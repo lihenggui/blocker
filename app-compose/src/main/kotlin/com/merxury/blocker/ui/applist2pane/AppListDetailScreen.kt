@@ -48,7 +48,6 @@ import com.merxury.blocker.feature.applist.navigation.PACKAGE_NAME_ARG
 private const val APP_LIST_DETAIL_PANE_ROUTE = "app_list_detail_pane_route"
 
 fun NavGraphBuilder.appListDetailScreen(
-    navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
@@ -69,7 +68,6 @@ fun NavGraphBuilder.appListDetailScreen(
         ),
     ) {
         AppListDetailRoute(
-            navigateToAppDetail = navigateToAppDetail,
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
             navigateTooAppSortScreen = navigateTooAppSortScreen,
@@ -84,7 +82,6 @@ fun NavGraphBuilder.appListDetailScreen(
 
 @Composable
 internal fun AppListDetailRoute(
-    navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
@@ -97,7 +94,6 @@ internal fun AppListDetailRoute(
 ) {
     val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
     AppListDetailScreen(
-        navigateToAppDetail = navigateToAppDetail,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         navigateTooAppSortScreen = navigateTooAppSortScreen,
@@ -114,7 +110,6 @@ internal fun AppListDetailRoute(
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun AppListDetailScreen(
-    navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
@@ -148,7 +143,7 @@ internal fun AppListDetailScreen(
         scaffoldState = listDetailNavigator.scaffoldState,
         listPane = {
             AppListRoute(
-                navigateToAppDetail = navigateToAppDetail,
+                navigateToAppDetail = ::onAppClickShowDetailPane,
                 navigateToSettings = navigateToSettings,
                 navigateToSupportAndFeedback = navigateToSupportAndFeedback,
                 navigateTooAppSortScreen = navigateTooAppSortScreen,

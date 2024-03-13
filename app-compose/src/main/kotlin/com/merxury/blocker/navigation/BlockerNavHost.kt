@@ -76,7 +76,6 @@ fun BlockerNavHost(
             exitTransition = { fadeOut(animationSpec = tween(300)) },
         ) {
             appListDetailScreen(
-                navigateToAppDetail = navController::navigateToAppDetail,
                 navigateToSettings = navController::navigateToSettings,
                 navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
                 navigateTooAppSortScreen = navController::navigateToAppSortScreen,
