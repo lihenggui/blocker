@@ -20,23 +20,17 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.applist.AppListRoute
 
 const val APP_LIST_ROUTE = "app_list_route"
 const val PACKAGE_NAME_ARG = "packageName"
-const val TAB_ARG = "tab"
-const val KEYWORD_ARG = "keyword"
 
 fun NavController.navigateToAppList(
     packageName: String? = null,
-    tab: AppDetailTabs = AppDetailTabs.Info,
-    searchKeyword: List<String> = listOf(),
     navOptions: NavOptions? = null,
 ) {
-    val keywords = searchKeyword.joinToString(",")
     val route = if (packageName != null) {
-        "$APP_LIST_ROUTE?${PACKAGE_NAME_ARG}=$packageName?$TAB_ARG=${tab.name}?$KEYWORD_ARG=$keywords"
+        "$APP_LIST_ROUTE?${PACKAGE_NAME_ARG}=$packageName"
     } else {
         APP_LIST_ROUTE
     }

@@ -43,9 +43,7 @@ import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.AppListRoute
 import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE
-import com.merxury.blocker.feature.applist.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.applist.navigation.PACKAGE_NAME_ARG
-import com.merxury.blocker.feature.applist.navigation.TAB_ARG
 
 private const val APP_LIST_DETAIL_PANE_ROUTE = "app_list_detail_pane_route"
 
@@ -64,16 +62,6 @@ fun NavGraphBuilder.appListDetailScreen(
         route = APP_LIST_ROUTE,
         arguments = listOf(
             navArgument(PACKAGE_NAME_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-            navArgument(TAB_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-            navArgument(KEYWORD_ARG) {
                 type = NavType.StringType
                 defaultValue = null
                 nullable = true

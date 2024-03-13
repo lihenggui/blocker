@@ -47,7 +47,7 @@ const val APP_DETAIL_ROUTE = "app_detail_route"
 
 internal class AppDetailArgs(
     val packageName: String,
-    val tabs: AppDetailTabs = AppDetailTabs.Info,
+    val tabs: String = AppDetailTabs.Info.name,
     val searchKeyword: List<String> = listOf(),
 ) {
     constructor(savedStateHandle: SavedStateHandle) :
@@ -56,7 +56,7 @@ internal class AppDetailArgs(
                 checkNotNull(savedStateHandle[PACKAGE_NAME_ARG]),
                 URL_CHARACTER_ENCODING,
             ),
-            AppDetailTabs.fromName(savedStateHandle[TAB_ARG]),
+            savedStateHandle[TAB_ARG] ?: AppDetailTabs.Info.name,
             URLDecoder.decode(checkNotNull(savedStateHandle[KEYWORD_ARG]), URL_CHARACTER_ENCODING)
                 .split(","),
         )
