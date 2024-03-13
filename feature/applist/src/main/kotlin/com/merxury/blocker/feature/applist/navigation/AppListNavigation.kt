@@ -19,7 +19,9 @@ package com.merxury.blocker.feature.applist.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.merxury.blocker.feature.applist.AppListRoute
 
 const val APP_LIST_ROUTE = "app_list_route"
@@ -45,6 +47,13 @@ fun NavGraphBuilder.appListScreen(
 ) {
     composable(
         route = APP_LIST_ROUTE,
+        arguments = listOf(
+            navArgument(PACKAGE_NAME_ARG) {
+                defaultValue = null
+                nullable = true
+                type = NavType.StringType
+            },
+        ),
     ) {
         AppListRoute(
             navigateToAppDetail = navigateToAppDetail,
