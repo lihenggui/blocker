@@ -152,8 +152,7 @@ fun AppDetailRoute(
     navigateToRuleDetail: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
-    onAppClick: (String) -> Unit,
-    showBackButton: Boolean,
+    showBackButton: Boolean = true,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -244,6 +243,7 @@ fun AppDetailRoute(
             viewModel.loadComponentList()
             viewModel.updateComponentList()
         },
+        showBackButton = showBackButton,
     )
     if (appInfoUiState.error != null) {
         BlockerErrorAlertDialog(
@@ -397,6 +397,7 @@ fun AppDetailScreen(
     componentListUiState: Result<ComponentSearchResult>,
     tabState: TabState<AppDetailTabs>,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     onBackClick: () -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     switchTab: (AppDetailTabs) -> Unit = {},
@@ -474,6 +475,7 @@ fun AppDetailScreen(
         onRefresh = onRefresh,
         showOpenInLibChecker = appInfoUiState.showOpenInLibChecker,
         matchedGeneralRuleUiState = appInfoUiState.matchedRuleUiState,
+        showBackButton = showBackButton,
     )
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
@@ -490,6 +492,7 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     isRefreshing: Boolean = false,
+    showBackButton: Boolean = true,
     navigateToComponentDetail: (String) -> Unit = {},
     navigateToRuleDetail: (String) -> Unit = {},
     navigateToComponentSortScreen: () -> Unit,
@@ -580,6 +583,7 @@ fun AppDetailContent(
                 onBackClick = onBackClick,
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
+                showBackButton = showBackButton,
             )
         },
         modifier = modifier.nestedScroll(nestedScrollConnection),
@@ -695,6 +699,7 @@ private fun TopAppBar(
     app: AppItem,
     topAppBarUiState: AppBarUiState,
     toolbarState: ToolbarState,
+    showBackButton: Boolean = true,
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponentsInPage: () -> Unit = {},
@@ -711,6 +716,7 @@ private fun TopAppBar(
 ) {
     if (!isSelectedMode) {
         BlockerCollapsingTopAppBar(
+            showBackButton = showBackButton,
             progress = toolbarState.progress,
             onNavigationClick = {
                 if (isSearchMode) {

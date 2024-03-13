@@ -163,7 +163,6 @@ internal fun AppListDetailScreen(
                     navigateToComponentSortScreen = navigateToComponentSortScreen,
                     navigateToRuleDetail = navigateToRuleDetail,
                     updateIconBasedThemingState = updateIconBasedThemingState,
-                    onAppClick = ::onAppClickShowDetailPane,
                     showBackButton = !listDetailNavigator.isListPaneVisible(),
                 )
                 composable(route = APP_DETAIL_ROUTE) {

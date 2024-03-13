@@ -83,7 +83,6 @@ fun NavGraphBuilder.appDetailScreen(
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
-    onAppClick: (String) -> Unit,
     showBackButton: Boolean,
 ) {
     composable(
@@ -101,7 +100,6 @@ fun NavGraphBuilder.appDetailScreen(
             navigateToComponentSortScreen = navigateToComponentSortScreen,
             navigateToRuleDetail = navigateToRuleDetail,
             updateIconBasedThemingState = updateIconBasedThemingState,
-            onAppClick = onAppClick,
             showBackButton = showBackButton,
         )
     }
