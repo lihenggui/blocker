@@ -164,7 +164,7 @@ internal fun AppListDetailScreen(
                 navigateToSettings = navigateToSettings,
                 navigateToSupportAndFeedback = navigateToSupportAndFeedback,
                 navigateTooAppSortScreen = navigateTooAppSortScreen,
-                highlightSelectedTopic = listDetailNavigator.isDetailPaneVisible(),
+                highlightSelectedApp = listDetailNavigator.isDetailPaneVisible(),
             )
         },
         detailPane = {

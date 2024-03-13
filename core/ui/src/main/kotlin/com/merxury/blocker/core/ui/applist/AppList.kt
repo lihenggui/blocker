@@ -48,6 +48,8 @@ import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvi
 fun AppList(
     appList: List<AppItem>,
     modifier: Modifier = Modifier,
+    highlightSelectedApp: Boolean = false,
+    selectedPackageName: String? = null,
     onAppItemClick: (String) -> Unit = {},
     onClearCacheClick: (String) -> Unit = {},
     onClearDataClick: (String) -> Unit = {},
@@ -67,6 +69,7 @@ fun AppList(
             state = listState,
         ) {
             itemsIndexed(appList, key = { _, item -> item.packageName }) { _, item ->
+                val isSelected = highlightSelectedApp && item.packageName == selectedPackageName
                 AppListItem(
                     label = item.label,
                     packageName = item.packageName,
@@ -83,6 +86,7 @@ fun AppList(
                     onUninstallClick = onUninstallClick,
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
+                    isSelected = isSelected,
                 )
             }
             item {
