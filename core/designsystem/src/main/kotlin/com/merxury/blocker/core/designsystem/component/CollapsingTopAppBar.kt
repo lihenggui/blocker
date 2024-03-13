@@ -67,6 +67,7 @@ val MaxToolbarHeight = 188.dp
 @Composable
 fun BlockerCollapsingTopAppBar(
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     progress: Float,
     onNavigationClick: () -> Unit = {},
     title: String,
@@ -91,14 +92,20 @@ fun BlockerCollapsingTopAppBar(
                 .fillMaxSize(),
         ) {
             CollapsingToolbarLayout(progress = progress) {
-                IconButton(
-                    onClick = onNavigationClick,
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.Back,
-                        contentDescription = stringResource(id = R.string.core_designsystem_back),
-                        tint = MaterialTheme.colorScheme.onSurface,
+                if (showBackButton) {
+                    IconButton(
+                        onClick = onNavigationClick,
+                        modifier = Modifier.then(Modifier.size(24.dp)),
+                    ) {
+                        Icon(
+                            imageVector = BlockerIcons.Back,
+                            contentDescription = stringResource(id = R.string.core_designsystem_back),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.size(24.dp),
                     )
                 }
                 BlockerBodyLargeText(
@@ -288,6 +295,7 @@ fun CollapsingToolbarHalfwayPreview() {
         BlockerCollapsingTopAppBar(
             progress = 0.5f,
             title = "Title with long name 0123456789",
+            showBackButton = false,
             actions = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
