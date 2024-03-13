@@ -26,17 +26,12 @@ android {
 dependencies {
     api(kotlin("test"))
     api(libs.androidx.compose.ui.test)
-    api(libs.roborazzi)
     api(projects.core.analytics)
     api(projects.core.data)
     api(projects.core.model)
 
-    compileOnly(libs.robolectric.shadows)
-
     debugApi(libs.androidx.compose.ui.testManifest)
 
-    implementation(libs.accompanist.testharness)
-    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.test.rules)
     implementation(libs.hilt.android.testing)
     implementation(libs.kotlinx.coroutines.test)
@@ -45,5 +40,4 @@ dependencies {
     implementation(projects.core.componentController)
     implementation(projects.core.domain)
     implementation(projects.core.designsystem)
-    implementation(projects.core.ui)
 }

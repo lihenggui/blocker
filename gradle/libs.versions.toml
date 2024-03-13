@@ -2,12 +2,12 @@
 accompanist = "0.34.0"
 androidDesugarJdkLibs = "2.0.4"
 # AGP and tools should be updated together
-androidGradlePlugin = "8.2.2"
-androidTools = "31.2.2"
+androidGradlePlugin = "8.3.0"
+androidTools = "31.3.0"
 androidxActivity = "1.8.2"
 androidxAppCompat = "1.6.1"
-androidxBrowser = "1.7.0"
-androidxComposeBom = "2024.02.01"
+androidxBrowser = "1.8.0"
+androidxComposeBom = "2024.02.02"
 androidxComposeCompiler = "1.5.10"
 androidxCore = "1.12.0"
 androidxCoreSplashscreen = "1.0.1"
@@ -16,7 +16,7 @@ androidxEspresso = "3.5.1"
 androidxHiltNavigationCompose = "1.2.0"
 androidxLifecycle = "2.7.0"
 androidxMacroBenchmark = "1.2.3"
-androidxComposeMaterial = "1.6.2"
+androidxComposeMaterial = "1.6.3"
 androidxNavigation = "2.7.7"
 androidxMetrics = "1.0.0-beta01"
 androidxPalette = "1.0.0"
@@ -32,10 +32,6 @@ appiconloader = "1.5.0"
 coil = "2.6.0"
 composeMarkdown = "0.4.1"
 dependencyGuard = "0.5.0"
-firebaseBom = "32.7.2"
-firebaseCrashlyticsPlugin = "2.9.9"
-firebasePerfPlugin = "1.4.2"
-gmsPlugin = "4.4.1"
 googleAndroidMaterial = "1.11.0"
 hilt = "2.51"
 hiltExt = "1.2.0"
@@ -57,7 +53,7 @@ roborazzi = "1.10.1"
 room = "2.6.1"
 shizuku = "13.1.5"
 xmlutil = "0.86.3"
-turbine = "1.0.0"
+turbine = "1.1.0"
 truth = "1.4.2"
 material = "1.11.0"
 # Non open-source dependencies
@@ -143,7 +139,6 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-kotlin-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxSerializationJson" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
-robolectric-shadows = { group = "org.robolectric", name = "shadows-framework", version.ref = "robolectric" }
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }

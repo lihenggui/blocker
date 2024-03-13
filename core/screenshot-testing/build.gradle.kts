@@ -16,30 +16,20 @@
 
 plugins {
     alias(libs.plugins.blocker.android.library)
-    alias(libs.plugins.blocker.android.library.jacoco)
+    alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.hilt)
-    alias(libs.plugins.blocker.android.room)
-    alias(libs.plugins.ksp)
 }
 
 android {
-    defaultConfig {
-        testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
-    }
-    namespace = "com.merxury.blocker.core.database"
+    namespace = "com.merxury.blocker.core.screenshottesting"
 }
 
 dependencies {
-    api(projects.core.model)
-    implementation(libs.kotlinx.datetime)
-    implementation(libs.kotlinx.serialization.json)
-
-    androidTestImplementation(projects.core.testing)
-
-    // TODO Remove in the AGP 8.3.x release
-    modules {
-        module("com.google.guava:listenablefuture") {
-            replacedBy("com.google.guava:guava", "listenablefuture is part of guava")
-        }
-    }
+    api(libs.roborazzi)
+    implementation(libs.accompanist.testharness)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui.test)
+    implementation(libs.robolectric)
+    implementation(projects.core.common)
+    implementation(projects.core.designsystem)
 }

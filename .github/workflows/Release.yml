@@ -74,13 +74,13 @@ jobs:
 
       - name: Get apk info
         id: apk-info
-        uses: zhaobozhen/apk-info-action@1.1.2
+        uses: zhaobozhen/apk-info-action@v1.1.3
         with:
           apk-path: ${{ steps.apk-path.outputs.foss_path }}
 
       - name: Build Changelog
         id: build_changelog
-        uses: mikepenz/release-changelog-builder-action@v4.1.1
+        uses: mikepenz/release-changelog-builder-action@v4.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
@@ -128,7 +128,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
         with:

@@ -45,6 +45,7 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
@@ -57,6 +58,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.datetime.TimeZone
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
@@ -64,6 +66,7 @@ fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
     permissionMonitor: PermissionMonitor,
+    timeZoneMonitor: TimeZoneMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
     navController: NavHostController = rememberNavController(bottomSheetNavigator),
@@ -76,14 +79,16 @@ fun rememberBlockerAppState(
         windowSizeClass,
         networkMonitor,
         permissionMonitor,
+        timeZoneMonitor,
     ) {
         BlockerAppState(
-            bottomSheetNavigator,
-            navController,
-            coroutineScope,
-            windowSizeClass,
-            networkMonitor,
-            permissionMonitor,
+            bottomSheetNavigator = bottomSheetNavigator,
+            navController = navController,
+            coroutineScope = coroutineScope,
+            windowSizeClass = windowSizeClass,
+            networkMonitor = networkMonitor,
+            permissionMonitor = permissionMonitor,
+            timeZoneMonitor = timeZoneMonitor,
         )
     }
 }
@@ -93,10 +98,11 @@ fun rememberBlockerAppState(
 class BlockerAppState(
     val bottomSheetNavigator: BottomSheetNavigator,
     val navController: NavHostController,
-    val coroutineScope: CoroutineScope,
+    coroutineScope: CoroutineScope,
     val windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
     permissionMonitor: PermissionMonitor,
+    timeZoneMonitor: TimeZoneMonitor,
 ) {
     val currentDestination: NavDestination?
         @Composable get() = navController
@@ -154,6 +160,13 @@ class BlockerAppState(
             scope = coroutineScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = null,
+        )
+
+    val currentTimeZone = timeZoneMonitor.currentTimeZone
+        .stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(5_000),
+            TimeZone.currentSystemDefault(),
         )
 
     /**
