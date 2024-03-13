@@ -22,12 +22,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
@@ -60,6 +62,7 @@ private val appIconSize = 80.dp
 private val collapsedTitleSize = 22.sp
 private val expandedTitleSize = 28.sp
 private val padding = 4.dp
+private val minNavWidth = 1.dp
 
 val MinToolbarHeight = 64.dp
 val MaxToolbarHeight = 188.dp
@@ -104,9 +107,7 @@ fun BlockerCollapsingTopAppBar(
                         )
                     }
                 } else {
-                    Box(
-                        modifier = Modifier.size(24.dp),
-                    )
+                    Spacer(modifier = Modifier.width(minNavWidth))
                 }
                 BlockerBodyLargeText(
                     text = title,
@@ -194,9 +195,15 @@ private fun CollapsingToolbarLayout(
                 x = 0,
                 y = MinToolbarHeight.roundToPx() / 2 - navigationIcon.height / 2,
             )
+            val navWidth = navigationIcon.width
+            val space = if (navWidth == minNavWidth.roundToPx()) {
+                0
+            } else {
+                contentPadding.roundToPx()
+            }
             title.placeRelative(
                 x = lerp(
-                    start = navigationIcon.width + contentPadding.roundToPx(),
+                    start = navWidth + space,
                     stop = 0,
                     fraction = progress,
                 ),
