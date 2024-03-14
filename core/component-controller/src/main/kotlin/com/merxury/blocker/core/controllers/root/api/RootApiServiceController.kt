@@ -80,11 +80,7 @@ internal class RootApiServiceController @Inject constructor(
     }
 
     override fun isServiceRunning(packageName: String, serviceName: String): Boolean {
-        val rootService = rootService
-        if (rootService == null) {
-            Timber.w("Cannot get running service, rootService is null")
-            return false
-        }
+        val rootService = rootService ?: return false
         return rootService.isServiceRunning(packageName, serviceName)
     }
 
