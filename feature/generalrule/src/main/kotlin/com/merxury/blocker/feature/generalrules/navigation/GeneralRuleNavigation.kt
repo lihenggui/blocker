@@ -28,7 +28,7 @@ const val GENERAL_RULE_ROUTE = "rule_list_route"
 const val RULE_ID_ARG = "ruleId"
 
 fun NavController.navigateToGeneralRule(
-    ruleId: Int? = null,
+    ruleId: String? = null,
     navOptions: NavOptions? = null,
 ) {
     val route = if (ruleId != null) {
@@ -49,7 +49,7 @@ fun NavGraphBuilder.generalRuleScreen(
             navArgument(RULE_ID_ARG) {
                 defaultValue = null
                 nullable = true
-                type = NavType.IntType
+                type = NavType.StringType
             },
         ),
     ) {

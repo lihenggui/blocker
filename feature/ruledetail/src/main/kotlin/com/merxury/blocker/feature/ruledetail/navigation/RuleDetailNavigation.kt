@@ -35,7 +35,8 @@ internal const val RULE_ID_ARG = "ruleId"
 
 @VisibleForTesting
 internal const val TAB_ARG = "tab"
-internal const val RULE_DETAIL_ROUTE = "rule_detail_route"
+
+const val RULE_DETAIL_ROUTE = "rule_detail_route"
 
 internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Applicable) {
     constructor(savedStateHandle: SavedStateHandle) :
@@ -46,7 +47,7 @@ internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Applicable
 }
 
 fun NavController.navigateToRuleDetail(
-    ruleId: Int,
+    ruleId: String,
     tab: RuleDetailTabs = Applicable,
     navOptions: NavOptionsBuilder.() -> Unit = {},
 ) {
