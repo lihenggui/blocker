@@ -19,20 +19,43 @@ package com.merxury.blocker.feature.generalrules.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
 
 const val GENERAL_RULE_ROUTE = "rule_list_route"
+const val RULE_ID_ARG = "ruleId"
 
-fun NavController.navigateToGeneralRule(navOptions: NavOptions) =
-    navigate(GENERAL_RULE_ROUTE, navOptions)
+fun NavController.navigateToGeneralRule(
+    ruleId: Int? = null,
+    navOptions: NavOptions? = null,
+) {
+    val route = if (ruleId != null) {
+        "$GENERAL_RULE_ROUTE?${RULE_ID_ARG}=$ruleId"
+    } else {
+        GENERAL_RULE_ROUTE
+    }
+    navigate(route, navOptions)
+}
 
 fun NavGraphBuilder.generalRuleScreen(
+    highlightSelectedRule: Boolean = false,
     navigateToRuleDetail: (String) -> Unit,
 ) {
-    composable(route = GENERAL_RULE_ROUTE) {
+    composable(
+        route = GENERAL_RULE_ROUTE,
+        arguments = listOf(
+            navArgument(RULE_ID_ARG) {
+                defaultValue = null
+                nullable = true
+                type = NavType.IntType
+            },
+        ),
+    ) {
         GeneralRulesRoute(
-            navigateToRuleDetail,
+            highlightSelectedRule = highlightSelectedRule,
+            navigateToRuleDetail = navigateToRuleDetail,
         )
     }
 }
