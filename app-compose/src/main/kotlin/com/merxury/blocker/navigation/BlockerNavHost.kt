@@ -33,11 +33,9 @@ import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE
-import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
-import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
@@ -46,6 +44,7 @@ import com.merxury.blocker.feature.sort.navigation.componentSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.ui.applist2pane.appListDetailScreen
+import com.merxury.blocker.ui.rulelist2pane.ruleListDetailScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
@@ -85,11 +84,7 @@ fun BlockerNavHost(
                 navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
-            generalRuleScreen(
-                navigateToRuleDetail = navController::navigateToRuleDetail,
-            )
-            ruleDetailScreen(
-                onBackClick = onBackClick,
+            ruleListDetailScreen(
                 snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
                 updateIconBasedThemingState = updateIconBasedThemingState,
