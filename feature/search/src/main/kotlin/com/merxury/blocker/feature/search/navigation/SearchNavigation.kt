@@ -19,22 +19,52 @@ package com.merxury.blocker.feature.search.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.search.SearchRoute
 
 const val SEARCH_ROUTE = "search_route"
+const val PACKAGE_NAME_ARG = "packageName"
+const val RULE_ID_ARG = "ruleId"
 
-fun NavController.navigateToSearch(navOptions: NavOptions) =
-    navigate(SEARCH_ROUTE, navOptions)
+fun NavController.navigateToSearch(
+    packageName: String? = null,
+    ruleId: String? = null,
+    navOptions: NavOptions? = null,
+) {
+    val route = if (packageName != null) {
+        "$SEARCH_ROUTE?$PACKAGE_NAME_ARG=$packageName"
+    } else if (ruleId != null) {
+        "$SEARCH_ROUTE?$RULE_ID_ARG=$ruleId"
+    } else {
+        SEARCH_ROUTE
+    }
+    navigate(route, navOptions)
+}
 
 fun NavGraphBuilder.searchScreen(
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
-    composable(route = SEARCH_ROUTE) {
+    composable(
+        route = SEARCH_ROUTE,
+        arguments = listOf(
+            navArgument(RULE_ID_ARG) {
+                defaultValue = null
+                nullable = true
+                type = NavType.StringType
+            },
+            navArgument(PACKAGE_NAME_ARG) {
+                defaultValue = null
+                nullable = true
+                type = NavType.StringType
+            },
+        ),
+    ) {
         SearchRoute(
             snackbarHostState = snackbarHostState,
             navigateToAppDetail = navigateToAppDetail,
