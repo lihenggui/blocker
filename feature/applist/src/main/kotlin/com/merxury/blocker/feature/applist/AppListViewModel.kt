@@ -167,6 +167,18 @@ class AppListViewModel @Inject constructor(
 
     fun onAppClick(packageName: String?) {
         savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        loadSelectedApp()
+    }
+
+
+    private fun loadSelectedApp() {
+        _uiState.update {
+            if (it is Success) {
+                it.copy(selectedPackageName = selectedPackageName.value)
+            } else {
+                it
+            }
+        }
     }
 
     private fun listenPermissionChanges() = viewModelScope.launch {
