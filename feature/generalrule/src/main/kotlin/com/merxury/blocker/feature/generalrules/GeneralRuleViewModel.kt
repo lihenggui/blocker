@@ -71,7 +71,7 @@ class GeneralRulesViewModel @Inject constructor(
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private var loadRuleJob: Job? = null
-    private val selectedRuleId: StateFlow<Int?> = savedStateHandle.getStateFlow(
+    private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
         RULE_ID_ARG, null,
     )
 
@@ -226,7 +226,7 @@ sealed interface GeneralRuleUiState {
     data class Success(
         val rules: List<GeneralRule>,
         val matchProgress: Float = 0F,
-        val selectedRuleId: Int? = null,
+        val selectedRuleId: String? = null,
     ) : GeneralRuleUiState
 
     data class Error(val error: UiMessage) : GeneralRuleUiState

@@ -45,7 +45,7 @@ fun GeneralRulesList(
     rules: List<GeneralRule>,
     modifier: Modifier = Modifier,
     highlightSelectedRule: Boolean = false,
-    selectedRuleId: Int? = null,
+    selectedRuleId: String? = null,
     onClick: (String) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
@@ -58,7 +58,7 @@ fun GeneralRulesList(
             state = listState,
         ) {
             items(rules, key = { it.id }) {
-                val isSelected = highlightSelectedRule && it.id == selectedRuleId
+                val isSelected = highlightSelectedRule && it.id.toString() == selectedRuleId
                 RuleCard(
                     item = it,
                     isSelected = isSelected,
@@ -124,6 +124,6 @@ fun GeneralRuleScreenPreview() {
         ),
     )
     BlockerTheme {
-        GeneralRulesList(rules = ruleList, highlightSelectedRule = true, selectedRuleId = 1)
+        GeneralRulesList(rules = ruleList, highlightSelectedRule = true, selectedRuleId = "1")
     }
 }

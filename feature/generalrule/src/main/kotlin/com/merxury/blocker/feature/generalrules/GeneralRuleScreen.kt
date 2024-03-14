@@ -64,7 +64,10 @@ fun GeneralRulesRoute(
     GeneralRulesScreen(
         highlightSelectedRule = highlightSelectedRule,
         uiState = uiState,
-        navigateToRuleDetail = navigateToRuleDetail,
+        navigateToRuleDetail = {
+            viewModel.onRuleClick(it)
+            navigateToRuleDetail(it)
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
