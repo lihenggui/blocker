@@ -22,8 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.PaneAdaptedValue
-import androidx.compose.material3.adaptive.ThreePaneScaffoldNavigator
 import androidx.compose.material3.adaptive.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,6 +36,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.ui.extension.isDetailPaneVisible
+import com.merxury.blocker.core.ui.extension.isListPaneVisible
 import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
@@ -180,11 +180,3 @@ internal fun AppListDetailScreen(
         }
     }
 }
-
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun <T> ThreePaneScaffoldNavigator<T>.isListPaneVisible(): Boolean =
-    scaffoldState.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
-
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun <T> ThreePaneScaffoldNavigator<T>.isDetailPaneVisible(): Boolean =
-    scaffoldState.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded

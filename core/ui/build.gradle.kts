@@ -33,6 +33,7 @@ dependencies {
     api(libs.appiconloader.coil)
 
     implementation(projects.core.domain)
+    implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
     implementation(libs.kotlinx.datetime)
