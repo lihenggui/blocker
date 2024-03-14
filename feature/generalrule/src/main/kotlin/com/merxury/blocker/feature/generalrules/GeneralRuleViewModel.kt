@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.generalrules
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -34,6 +35,7 @@ import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
+import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
@@ -61,6 +63,7 @@ class GeneralRulesViewModel @Inject constructor(
     private val initGeneralRuleUseCase: InitializeRuleStorageUseCase,
     private val searchRule: SearchGeneralRuleUseCase,
     private val updateRule: UpdateRuleMatchedAppUseCase,
+    private val savedStateHandle: SavedStateHandle,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<GeneralRuleUiState>(Loading)
@@ -68,6 +71,9 @@ class GeneralRulesViewModel @Inject constructor(
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private var loadRuleJob: Job? = null
+    private val selectedRuleId: StateFlow<Int?> = savedStateHandle.getStateFlow(
+        RULE_ID_ARG, null,
+    )
 
     init {
         loadData()
@@ -75,6 +81,21 @@ class GeneralRulesViewModel @Inject constructor(
 
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)
+    }
+
+    fun onRuleClick(ruleId: String?) {
+        savedStateHandle[RULE_ID_ARG] = ruleId
+        loadSelectedRule()
+    }
+
+    private fun loadSelectedRule() {
+        _uiState.update {
+            if (it is Success) {
+                it.copy(selectedRuleId = selectedRuleId.value)
+            } else {
+                it
+            }
+        }
     }
 
     private fun loadData() {
@@ -205,6 +226,7 @@ sealed interface GeneralRuleUiState {
     data class Success(
         val rules: List<GeneralRule>,
         val matchProgress: Float = 0F,
+        val selectedRuleId: Int? = null,
     ) : GeneralRuleUiState
 
     data class Error(val error: UiMessage) : GeneralRuleUiState
