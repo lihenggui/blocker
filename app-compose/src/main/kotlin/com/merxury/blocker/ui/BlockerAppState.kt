@@ -204,7 +204,10 @@ class BlockerAppState(
                     navOptions = topLevelNavOptions,
                 )
 
-                RULE -> navController.navigateToGeneralRule(topLevelNavOptions)
+                RULE -> navController.navigateToGeneralRule(
+                    ruleId = null,
+                    navOptions = topLevelNavOptions,
+                    )
                 SEARCH -> navController.navigateToSearch(topLevelNavOptions)
             }
         }
