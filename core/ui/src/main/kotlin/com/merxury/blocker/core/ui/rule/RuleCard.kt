@@ -16,6 +16,9 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -52,10 +55,17 @@ import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProv
 @Composable
 fun RuleCard(
     item: GeneralRule,
+    isSelected: Boolean = false,
     onCardClick: (String) -> Unit = { },
 ) {
+    val animatedColor = animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
+        animationSpec = tween(300, 0, LinearEasing),
+        label = "color",
+    )
     BlockerOutlinedCard(
         modifier = Modifier,
+        color = animatedColor.value,
         onClick = { onCardClick(item.id.toString()) },
     ) {
         CardHeader(
@@ -148,7 +158,7 @@ fun RuleBasicInfoPreview(
     ruleList: List<GeneralRule>,
 ) {
     BlockerTheme {
-        RuleCard(item = ruleList[1])
+        RuleCard(item = ruleList[1], isSelected = true)
     }
 }
 
