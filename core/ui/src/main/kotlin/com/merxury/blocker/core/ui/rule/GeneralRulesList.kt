@@ -44,6 +44,8 @@ import com.merxury.blocker.core.model.data.GeneralRule
 fun GeneralRulesList(
     rules: List<GeneralRule>,
     modifier: Modifier = Modifier,
+    highlightSelectedRule: Boolean = false,
+    selectedRuleId: Int? = null,
     onClick: (String) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
@@ -56,8 +58,10 @@ fun GeneralRulesList(
             state = listState,
         ) {
             items(rules, key = { it.id }) {
+                val isSelected = highlightSelectedRule && it.id == selectedRuleId
                 RuleCard(
                     item = it,
+                    isSelected = isSelected,
                     onCardClick = onClick,
                 )
             }
@@ -120,6 +124,6 @@ fun GeneralRuleScreenPreview() {
         ),
     )
     BlockerTheme {
-        GeneralRulesList(rules = ruleList)
+        GeneralRulesList(rules = ruleList, highlightSelectedRule = true, selectedRuleId = 1)
     }
 }
