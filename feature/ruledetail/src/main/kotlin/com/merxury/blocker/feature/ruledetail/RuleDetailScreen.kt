@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.ruledetail
 
+import com.merxury.blocker.core.ui.R.string as uistring
 import android.content.Context
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
@@ -99,10 +100,10 @@ import com.merxury.blocker.feature.ruledetail.component.RuleMatchedAppList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun RuleDetailRoute(
+    showBackButton: Boolean = true,
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
@@ -118,6 +119,7 @@ fun RuleDetailRoute(
     val scope = rememberCoroutineScope()
     RuleDetailScreen(
         ruleInfoUiState = ruleInfoUiState,
+        showBackButton = showBackButton,
         onBackClick = onBackClick,
         tabState = tabState,
         switchTab = viewModel::switchTab,
@@ -267,6 +269,7 @@ private fun showDisableProgress(
 @Composable
 fun RuleDetailScreen(
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     ruleInfoUiState: RuleInfoUiState,
     tabState: TabState<RuleDetailTabs>,
     appBarUiState: AppBarUiState = AppBarUiState(),
@@ -292,6 +295,7 @@ fun RuleDetailScreen(
         is RuleInfoUiState.Success -> {
             RuleDetailContent(
                 modifier = modifier,
+                showBackButton = showBackButton,
                 ruleMatchedAppListUiState = ruleInfoUiState.matchedAppsUiState,
                 ruleInfoUiState = ruleInfoUiState,
                 onBackClick = onBackClick,
@@ -322,6 +326,7 @@ fun RuleDetailScreen(
 @Composable
 fun RuleDetailContent(
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     onBackClick: () -> Unit,
@@ -384,6 +389,7 @@ fun RuleDetailContent(
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
+                showBackButton = showBackButton,
                 progress = toolbarState.progress,
                 onNavigationClick = onBackClick,
                 title = ruleInfoUiState.ruleInfo.name,
@@ -558,6 +564,7 @@ fun RuleDetailScreenPreview(
     BlockerTheme {
         Surface {
             RuleDetailScreen(
+                showBackButton = false,
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
