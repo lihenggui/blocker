@@ -28,7 +28,7 @@ import javax.inject.Inject
 class Search2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
+    val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
         PACKAGE_NAME_ARG, null,
     )
     val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(RULE_ID_ARG, null)
@@ -38,10 +38,6 @@ class Search2PaneViewModel @Inject constructor(
     }
 
     fun onAppClick(packageName: String?) {
-        savedStateHandle[PACKAGE_NAME_ARG] = packageName
-    }
-
-    fun onComponentClick(packageName: String?) {
         savedStateHandle[PACKAGE_NAME_ARG] = packageName
     }
 }
