@@ -28,15 +28,20 @@ import com.merxury.blocker.feature.search.SearchRoute
 
 const val SEARCH_ROUTE = "search_route"
 const val PACKAGE_NAME_ARG = "packageName"
+internal const val TAB_ARG = "tab"
+internal const val KEYWORD_ARG = "keyword"
 const val RULE_ID_ARG = "ruleId"
 
 fun NavController.navigateToSearch(
     packageName: String? = null,
+    tabs: String = AppDetailTabs.Info.name,
+    searchKeyword: List<String> = listOf(),
     ruleId: String? = null,
     navOptions: NavOptions? = null,
 ) {
+    val keywords = searchKeyword.joinToString(",")
     val route = if (packageName != null) {
-        "$SEARCH_ROUTE?$PACKAGE_NAME_ARG=$packageName"
+        "$SEARCH_ROUTE?$PACKAGE_NAME_ARG=$packageName?$TAB_ARG=${tabs}?$KEYWORD_ARG=${keywords}"
     } else if (ruleId != null) {
         "$SEARCH_ROUTE?$RULE_ID_ARG=$ruleId"
     } else {
@@ -59,6 +64,16 @@ fun NavGraphBuilder.searchScreen(
                 type = NavType.StringType
             },
             navArgument(PACKAGE_NAME_ARG) {
+                defaultValue = null
+                nullable = true
+                type = NavType.StringType
+            },
+            navArgument(TAB_ARG) {
+                defaultValue = AppDetailTabs.Info.name
+                nullable = true
+                type = NavType.StringType
+            },
+            navArgument(KEYWORD_ARG) {
                 defaultValue = null
                 nullable = true
                 type = NavType.StringType
