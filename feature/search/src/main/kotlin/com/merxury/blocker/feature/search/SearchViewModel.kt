@@ -54,10 +54,8 @@ import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
 import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
 import com.merxury.blocker.feature.search.LocalSearchUiState.Loading
 import com.merxury.blocker.feature.search.LocalSearchUiState.Success
-import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
-import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -114,12 +112,6 @@ class SearchViewModel @Inject constructor(
     private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
         PACKAGE_NAME_ARG, null,
     )
-    private val selectedTab: StateFlow<String?> = savedStateHandle.getStateFlow(
-        TAB_ARG, null,
-    )
-    private val searchKeyword: StateFlow<String?> = savedStateHandle.getStateFlow(
-        KEYWORD_ARG, null,
-    )
 
     private val _tabState = MutableStateFlow(
         TabState(
@@ -155,10 +147,8 @@ class SearchViewModel @Inject constructor(
         loadSelectedItem()
     }
 
-    fun onComponentClick(packageName: String?, tab: String?, keyword: String?) {
+    fun onComponentClick(packageName: String?) {
         savedStateHandle[PACKAGE_NAME_ARG] = packageName
-        savedStateHandle[TAB_ARG] = tab
-        savedStateHandle[KEYWORD_ARG] = keyword
         loadSelectedItem()
     }
 
@@ -247,8 +237,6 @@ class SearchViewModel @Inject constructor(
                 componentTabUiState = ComponentTabUiState(
                     list = components,
                     selectedPackageName = selectedPackageName.value,
-                    selectedTab = selectedTab.value,
-                    searchKeyword = searchKeyword.value,
                 ),
                 ruleTabUiState = RuleTabUiState(
                     list = rules,
@@ -475,8 +463,6 @@ data class AppTabUiState(
 data class ComponentTabUiState(
     val list: List<FilteredComponent> = listOf(),
     val selectedPackageName: String? = null,
-    val selectedTab: String? = null,
-    val searchKeyword: String? = null,
 )
 
 data class RuleTabUiState(
