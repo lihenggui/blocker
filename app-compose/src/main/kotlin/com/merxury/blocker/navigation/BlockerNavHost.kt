@@ -29,6 +29,7 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
@@ -78,6 +79,15 @@ fun BlockerNavHost(
                 navigateToSettings = navController::navigateToSettings,
                 navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
                 navigateTooAppSortScreen = navController::navigateToAppSortScreen,
+                snackbarHostState = snackbarHostState,
+                updateIconBasedThemingState = updateIconBasedThemingState,
+                navigateToComponentDetail = navController::navigateToComponentDetail,
+                navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
+                navigateToRuleDetail = navController::navigateToRuleDetail,
+            )
+            appDetailScreen(
+                onBackClick = onBackClick,
+                showBackButton = true,
                 snackbarHostState = snackbarHostState,
                 updateIconBasedThemingState = updateIconBasedThemingState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
