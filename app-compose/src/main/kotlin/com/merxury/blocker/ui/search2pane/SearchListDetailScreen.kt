@@ -74,7 +74,7 @@ fun NavGraphBuilder.searchListDetailScreen(
             },
             navArgument(TAB_ARG) {
                 type = NavType.StringType
-                defaultValue = AppDetailTabs.Info.name
+                defaultValue = null
                 nullable = true
             },
             navArgument(KEYWORD_ARG) {
@@ -195,7 +195,7 @@ internal fun SearchListDetailScreen(
                         }
                     }
                 }
-            } else if (selectedRuleId != null) {
+            } else {
                 NavHost(
                     navController = nestedNavController,
                     startDestination = RULE_DETAIL_ROUTE,
@@ -214,6 +214,7 @@ internal fun SearchListDetailScreen(
                         }
                     }
                 }
+
             }
         },
     )

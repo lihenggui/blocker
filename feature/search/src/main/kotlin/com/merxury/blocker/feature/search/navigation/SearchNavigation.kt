@@ -69,7 +69,7 @@ fun NavGraphBuilder.searchScreen(
                 type = NavType.StringType
             },
             navArgument(TAB_ARG) {
-                defaultValue = AppDetailTabs.Info.name
+                defaultValue = null
                 nullable = true
                 type = NavType.StringType
             },
