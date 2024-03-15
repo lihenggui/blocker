@@ -16,7 +16,9 @@
 
 package com.merxury.blocker.feature.search
 
+import com.merxury.blocker.core.ui.R.string as uiString
 import android.content.pm.PackageManager
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
@@ -52,6 +54,10 @@ import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
 import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
 import com.merxury.blocker.feature.search.LocalSearchUiState.Loading
 import com.merxury.blocker.feature.search.LocalSearchUiState.Success
+import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
+import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
+import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
+import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -71,7 +77,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -84,6 +89,7 @@ class SearchViewModel @Inject constructor(
     private val getAppController: GetAppControllerUseCase,
     private val userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
+    private val savedStateHandle: SavedStateHandle,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _searchUiState = MutableStateFlow(SearchUiState())
@@ -102,6 +108,18 @@ class SearchViewModel @Inject constructor(
     }
     private var searchJob: Job? = null
     private var loadAppJob: Job? = null
+    private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
+        RULE_ID_ARG, null,
+    )
+    private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
+        PACKAGE_NAME_ARG, null,
+    )
+    private val selectedTab: StateFlow<String?> = savedStateHandle.getStateFlow(
+        TAB_ARG, null,
+    )
+    private val searchKeyword: StateFlow<String?> = savedStateHandle.getStateFlow(
+        KEYWORD_ARG, null,
+    )
 
     private val _tabState = MutableStateFlow(
         TabState(
@@ -128,6 +146,37 @@ class SearchViewModel @Inject constructor(
                 } else {
                     _localSearchUiState.emit(Idle)
                 }
+            }
+        }
+    }
+
+    fun onAppClick(packageName: String?) {
+        savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        loadSelectedItem()
+    }
+
+    fun onComponentClick(packageName: String?, tab: String?, keyword: String?) {
+        savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        savedStateHandle[TAB_ARG] = tab
+        savedStateHandle[KEYWORD_ARG] = keyword
+        loadSelectedItem()
+    }
+
+    fun onRuleClick(ruleId: String?) {
+        savedStateHandle[RULE_ID_ARG] = ruleId
+        loadSelectedItem()
+    }
+
+    private fun loadSelectedItem() {
+        _localSearchUiState.update {
+            if (it is Success) {
+                it.copy(
+                    appTabUiState = it.appTabUiState.copy(selectedPackageName = selectedPackageName.value),
+                    componentTabUiState = it.componentTabUiState.copy(selectedPackageName = selectedPackageName.value),
+                    ruleTabUiState = it.ruleTabUiState.copy(selectedRuleId = selectedRuleId.value),
+                )
+            } else {
+                it
             }
         }
     }
@@ -191,9 +240,20 @@ class SearchViewModel @Inject constructor(
             Timber.v("Find ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             Success(
                 searchKeyword = keyword.split(","),
-                appTabUiState = AppTabUiState(list = apps),
-                componentTabUiState = ComponentTabUiState(list = components),
-                ruleTabUiState = RuleTabUiState(list = rules),
+                appTabUiState = AppTabUiState(
+                    list = apps,
+                    selectedPackageName = selectedPackageName.value,
+                ),
+                componentTabUiState = ComponentTabUiState(
+                    list = components,
+                    selectedPackageName = selectedPackageName.value,
+                    selectedTab = selectedTab.value,
+                    searchKeyword = searchKeyword.value,
+                ),
+                ruleTabUiState = RuleTabUiState(
+                    list = rules,
+                    selectedRuleId = selectedRuleId.value,
+                ),
             )
         }
         searchJob?.cancel()
@@ -307,6 +367,7 @@ class SearchViewModel @Inject constructor(
         }
         return list
     }
+
     fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         getAppController().first()
             .clearCache(packageName)
@@ -408,14 +469,19 @@ sealed interface LocalSearchUiState {
 
 data class AppTabUiState(
     val list: List<AppItem> = listOf(),
+    val selectedPackageName: String? = null,
 )
 
 data class ComponentTabUiState(
     val list: List<FilteredComponent> = listOf(),
+    val selectedPackageName: String? = null,
+    val selectedTab: String? = null,
+    val searchKeyword: String? = null,
 )
 
 data class RuleTabUiState(
     val list: List<GeneralRule> = listOf(),
+    val selectedRuleId: String? = null,
 )
 
 data class SearchUiState(
