@@ -34,14 +34,14 @@ const val RULE_ID_ARG = "ruleId"
 
 fun NavController.navigateToSearch(
     packageName: String? = null,
-    tabs: String = AppDetailTabs.Info.name,
+    tabs: AppDetailTabs = AppDetailTabs.Info,
     searchKeyword: List<String> = listOf(),
     ruleId: String? = null,
     navOptions: NavOptions? = null,
 ) {
     val keywords = searchKeyword.joinToString(",")
     val route = if (packageName != null) {
-        "$SEARCH_ROUTE?$PACKAGE_NAME_ARG=$packageName?$TAB_ARG=${tabs}?$KEYWORD_ARG=${keywords}"
+        "$SEARCH_ROUTE?$PACKAGE_NAME_ARG=$packageName?$TAB_ARG=${tabs.name}?$KEYWORD_ARG=${keywords}"
     } else if (ruleId != null) {
         "$SEARCH_ROUTE?$RULE_ID_ARG=$ruleId"
     } else {
