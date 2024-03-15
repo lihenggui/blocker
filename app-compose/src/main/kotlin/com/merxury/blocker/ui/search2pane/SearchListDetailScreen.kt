@@ -49,6 +49,7 @@ import com.merxury.blocker.feature.search.SearchRoute
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
+import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
 
 private const val SEARCH_LIST_DETAIL_PANE_ROUTE = "search_list_detail_pane_route"
@@ -60,13 +61,8 @@ fun NavGraphBuilder.searchListDetailScreen(
     navigateToComponentSortScreen: () -> Unit,
 ) {
     composable(
-        route = SEARCH_LIST_DETAIL_PANE_ROUTE,
+        route = SEARCH_ROUTE,
         arguments = listOf(
-            navArgument(RULE_ID_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
             navArgument(PACKAGE_NAME_ARG) {
                 type = NavType.StringType
                 defaultValue = null
@@ -78,6 +74,11 @@ fun NavGraphBuilder.searchListDetailScreen(
                 nullable = true
             },
             navArgument(KEYWORD_ARG) {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
+            },
+            navArgument(RULE_ID_ARG) {
                 type = NavType.StringType
                 defaultValue = null
                 nullable = true
