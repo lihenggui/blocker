@@ -28,8 +28,8 @@ import com.merxury.blocker.feature.search.SearchRoute
 
 const val SEARCH_ROUTE = "search_route"
 const val PACKAGE_NAME_ARG = "packageName"
-internal const val TAB_ARG = "tab"
-internal const val KEYWORD_ARG = "keyword"
+const val TAB_ARG = "tab"
+const val KEYWORD_ARG = "keyword"
 const val RULE_ID_ARG = "ruleId"
 
 fun NavController.navigateToSearch(
