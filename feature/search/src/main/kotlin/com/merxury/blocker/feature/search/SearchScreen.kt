@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search
 
+import com.merxury.blocker.core.ui.R.string as uistring
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
@@ -93,10 +94,10 @@ import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun SearchRoute(
+    highlightSelectedItem: Boolean = false,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit,
@@ -128,10 +129,16 @@ fun SearchRoute(
             handleEnableAppClick(context, viewModel, scope, snackbarHostState)
         },
         searchUiState = selectUiState,
+        highlightSelectedItem = highlightSelectedItem,
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         navigateToAppDetail = navigateToAppDetail,
-        navigateToRuleDetail = navigateToRuleDetail,
+        onAppClick = viewModel::onAppClick,
+        onComponentClick = viewModel::onComponentClick,
+        navigateToRuleDetail = {
+            viewModel.onRuleClick(it)
+            navigateToRuleDetail(it)
+        },
         onClearCacheClick = viewModel::clearCache,
         onClearDataClick = viewModel::clearData,
         onForceStopClick = viewModel::forceStop,
@@ -219,9 +226,12 @@ private fun handleBlockAllClick(
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
+    highlightSelectedItem: Boolean = false,
     tabState: TabState<SearchScreenTabs>,
     localSearchUiState: LocalSearchUiState,
     searchUiState: SearchUiState,
+    onAppClick: (String) -> Unit = { },
+    onComponentClick: (String) -> Unit = { },
     switchTab: (SearchScreenTabs) -> Unit = {},
     onSearchQueryChanged: (String) -> Unit = {},
     onSearchTriggered: (String) -> Unit = {},
@@ -274,12 +284,15 @@ fun SearchScreen(
                 is Success -> SearchResultScreen(
                     modifier = modifier,
                     tabState = tabState,
+                    highlightSelectedItem = highlightSelectedItem,
                     switchTab = switchTab,
                     localSearchUiState = localSearchUiState,
                     searchUiState = searchUiState,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
+                    onAppClick = onAppClick,
+                    onComponentClick = onComponentClick,
                     navigateToAppDetail = navigateToAppDetail,
                     navigateToRuleDetail = navigateToRuleDetail,
                     appList = localSearchUiState.appTabUiState.list,
@@ -339,6 +352,7 @@ fun TopBar(
 @Composable
 fun ComponentSearchResultContent(
     modifier: Modifier = Modifier,
+    highlightSelectedApp: Boolean = false,
     searchUiState: SearchUiState,
     componentTabUiState: ComponentTabUiState,
     switchSelectedMode: (Boolean) -> Unit,
@@ -361,9 +375,12 @@ fun ComponentSearchResultContent(
             state = listState,
         ) {
             items(componentTabUiState.list, key = { it.app.packageName }) {
+                val isSelected =
+                    highlightSelectedApp && it.app.packageName == componentTabUiState.selectedPackageName
                 FilteredComponentItem(
                     items = it,
                     isSelectedMode = searchUiState.isSelectedMode,
+                    isSelected = isSelected,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
@@ -371,7 +388,7 @@ fun ComponentSearchResultContent(
                         onComponentClick(component)
                         analyticsHelper.logComponentSearchResultClicked()
                     },
-                    isSelected = searchUiState.selectedAppList.contains(it),
+                    isSelectedInSelectedMode = searchUiState.selectedAppList.contains(it),
                 )
             }
             item {
@@ -395,6 +412,8 @@ fun ComponentSearchResultContent(
 @Composable
 fun AppSearchResultContent(
     modifier: Modifier = Modifier,
+    highlightSelectedApp: Boolean = false,
+    selectedPackageName: String? = null,
     appList: List<AppItem>,
     onClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit = { },
@@ -411,6 +430,8 @@ fun AppSearchResultContent(
     val analyticsHelper = LocalAnalyticsHelper.current
     AppList(
         appList = appList,
+        highlightSelectedApp = highlightSelectedApp,
+        selectedPackageName = selectedPackageName,
         onAppItemClick = { packageName ->
             onClick(packageName)
             analyticsHelper.logAppSearchResultClicked()
@@ -428,6 +449,8 @@ fun AppSearchResultContent(
 @Composable
 fun RuleSearchResultContent(
     modifier: Modifier = Modifier,
+    highlightSelectedRule: Boolean = false,
+    selectedRuleId: String? = null,
     list: List<GeneralRule>,
     onClick: (String) -> Unit,
 ) {
@@ -438,6 +461,8 @@ fun RuleSearchResultContent(
     val analyticsHelper = LocalAnalyticsHelper.current
     GeneralRulesList(
         modifier = modifier.fillMaxSize(),
+        highlightSelectedRule = highlightSelectedRule,
+        selectedRuleId = selectedRuleId,
         rules = list,
         onClick = { id ->
             onClick(id)

@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 fun SearchResultScreen(
     modifier: Modifier,
+    highlightSelectedItem: Boolean,
     tabState: TabState<SearchScreenTabs>,
     switchTab: (SearchScreenTabs) -> Unit,
     localSearchUiState: Success,
@@ -61,6 +62,8 @@ fun SearchResultScreen(
     onSelect: (FilteredComponent) -> Unit,
     onDeselect: (FilteredComponent) -> Unit,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
+    onAppClick: (String) -> Unit = { },
+    onComponentClick: (String) -> Unit = { },
     navigateToRuleDetail: (String) -> Unit = { },
     appList: List<AppItem> = emptyList(),
     onClearCacheClick: (String) -> Unit = { },
@@ -105,7 +108,10 @@ fun SearchResultScreen(
             when (it) {
                 0 -> AppSearchResultContent(
                     appList = appList,
+                    highlightSelectedApp = highlightSelectedItem,
+                    selectedPackageName = localSearchUiState.appTabUiState.selectedPackageName,
                     onClick = { packageName ->
+                        onAppClick(packageName)
                         navigateToAppDetail(packageName, Info, listOf())
                         keyboardController?.hide()
                     },
@@ -123,7 +129,9 @@ fun SearchResultScreen(
                     searchUiState = searchUiState,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
+                    highlightSelectedApp = highlightSelectedItem,
                     onComponentClick = { filterResult ->
+                        onComponentClick(filterResult.app.packageName)
                         val searchKeyword = localSearchUiState.searchKeyword
                         val firstTab = if (filterResult.receiver.isNotEmpty()) {
                             Receiver
@@ -142,6 +150,8 @@ fun SearchResultScreen(
 
                 2 -> RuleSearchResultContent(
                     list = localSearchUiState.ruleTabUiState.list,
+                    highlightSelectedRule = highlightSelectedItem,
+                    selectedRuleId = localSearchUiState.ruleTabUiState.selectedRuleId,
                     onClick = navigateToRuleDetail,
                 )
             }
