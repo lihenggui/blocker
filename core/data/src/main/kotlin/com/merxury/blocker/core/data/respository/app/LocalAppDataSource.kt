@@ -24,8 +24,8 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
+import com.merxury.blocker.core.minSdkVersionCompat
 import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.model.minSdkVersionCompat
 import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
