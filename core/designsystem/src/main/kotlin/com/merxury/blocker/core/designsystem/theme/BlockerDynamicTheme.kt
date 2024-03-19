@@ -22,7 +22,6 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
-import com.merxury.blocker.core.model.data.IconBasedThemingState
 
 const val MIN_CONTRAST_OF_PRIMARY_VS_SURFACE = 3f
 

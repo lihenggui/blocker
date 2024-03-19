@@ -62,8 +62,8 @@ import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.GradientColors
+import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
 import com.merxury.blocker.core.designsystem.theme.LocalGradientColors
-import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.navigation.BlockerNavHost
 import com.merxury.blocker.navigation.TopLevelDestination
 

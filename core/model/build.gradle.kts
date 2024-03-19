@@ -16,7 +16,6 @@
 
 plugins {
     alias(libs.plugins.blocker.android.library)
-    id("kotlin-parcelize")
     id("kotlinx-serialization")
 }
 
