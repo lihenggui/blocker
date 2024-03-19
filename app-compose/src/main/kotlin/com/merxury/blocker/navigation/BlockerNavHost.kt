@@ -28,7 +28,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail

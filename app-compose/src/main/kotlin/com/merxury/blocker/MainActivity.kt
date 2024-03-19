@@ -47,7 +47,7 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
-import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.ui.LocalTimeZone
 import com.merxury.blocker.ui.BlockerApp
