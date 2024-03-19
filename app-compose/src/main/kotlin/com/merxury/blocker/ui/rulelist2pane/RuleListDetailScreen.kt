@@ -35,7 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
 import com.merxury.blocker.core.ui.extension.isDetailPaneVisible
 import com.merxury.blocker.core.ui.extension.isListPaneVisible
 import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
