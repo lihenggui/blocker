@@ -40,7 +40,6 @@ dependencies {
     implementation(libs.androidx.palette)
     implementation(libs.coil.kt.compose)
     implementation(libs.google.android.material)
-    implementation(projects.core.model)
 
     testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.accompanist.testharness)
