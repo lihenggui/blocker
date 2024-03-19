@@ -193,7 +193,7 @@ com.squareup.okhttp3:logging-interceptor:4.12.0
 com.squareup.okhttp3:okhttp:4.12.0
 com.squareup.okio:okio-jvm:3.8.0
 com.squareup.okio:okio:3.8.0
-com.squareup.retrofit2:retrofit:2.9.0
+com.squareup.retrofit2:retrofit:2.10.0
 dev.rikka.shizuku:aidl:13.1.5
 dev.rikka.shizuku:api:13.1.5
 dev.rikka.shizuku:provider:13.1.5
