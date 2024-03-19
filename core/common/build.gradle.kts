@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.jacoco)
     alias(libs.plugins.blocker.android.hilt)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -25,7 +26,6 @@ android {
 }
 
 dependencies {
-    api(projects.core.model)
     api(libs.timber)
     api(libs.kotlinx.datetime)
     implementation(libs.hiddenapibypass)
