@@ -215,7 +215,6 @@ internal fun SearchListDetailScreen(
                         }
                     }
                 }
-
             }
         },
     )

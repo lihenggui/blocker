@@ -19,9 +19,7 @@ package com.merxury.blocker.feature.search.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.search.SearchRoute
@@ -32,54 +30,15 @@ const val TAB_ARG = "tab"
 const val KEYWORD_ARG = "keyword"
 const val RULE_ID_ARG = "ruleId"
 
-fun NavController.navigateToSearch(
-    packageName: String? = null,
-    tabs: AppDetailTabs = AppDetailTabs.Info,
-    searchKeyword: List<String> = listOf(),
-    ruleId: String? = null,
-    navOptions: NavOptions? = null,
-) {
-    val keywords = searchKeyword.joinToString(",")
-    val route = if (packageName != null) {
-        "$SEARCH_ROUTE?$PACKAGE_NAME_ARG=$packageName?$TAB_ARG=${tabs.name}?$KEYWORD_ARG=${keywords}"
-    } else if (ruleId != null) {
-        "$SEARCH_ROUTE?$RULE_ID_ARG=$ruleId"
-    } else {
-        SEARCH_ROUTE
-    }
-    navigate(route, navOptions)
-}
+fun NavController.navigateToSearch(navOptions: NavOptions) =
+    navigate(SEARCH_ROUTE, navOptions)
 
 fun NavGraphBuilder.searchScreen(
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
-    composable(
-        route = SEARCH_ROUTE,
-        arguments = listOf(
-            navArgument(RULE_ID_ARG) {
-                defaultValue = null
-                nullable = true
-                type = NavType.StringType
-            },
-            navArgument(PACKAGE_NAME_ARG) {
-                defaultValue = null
-                nullable = true
-                type = NavType.StringType
-            },
-            navArgument(TAB_ARG) {
-                defaultValue = null
-                nullable = true
-                type = NavType.StringType
-            },
-            navArgument(KEYWORD_ARG) {
-                defaultValue = null
-                nullable = true
-                type = NavType.StringType
-            },
-        ),
-    ) {
+    composable(route = SEARCH_ROUTE) {
         SearchRoute(
             snackbarHostState = snackbarHostState,
             navigateToAppDetail = navigateToAppDetail,
