@@ -18,14 +18,19 @@ package com.merxury.blocker.ui.applist2pane
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.PaneScaffoldDirective
+import androidx.compose.material3.adaptive.calculateDensePaneScaffoldDirective
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -121,7 +126,17 @@ internal fun AppListDetailScreen(
     navigateToRuleDetail: (String) -> Unit,
     onAppClick: (String) -> Unit,
 ) {
-    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
+    val systemDirective = calculateDensePaneScaffoldDirective(currentWindowAdaptiveInfo())
+    val customDirective = PaneScaffoldDirective(
+        contentPadding = PaddingValues(0.dp),
+        maxHorizontalPartitions = systemDirective.maxHorizontalPartitions,
+        horizontalPartitionSpacerSize = 0.dp,
+        maxVerticalPartitions = systemDirective.maxVerticalPartitions,
+        verticalPartitionSpacerSize = systemDirective.verticalPartitionSpacerSize,
+        excludedBounds = systemDirective.excludedBounds
+    )
+
+    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator<Nothing>(customDirective)
     BackHandler(listDetailNavigator.canNavigateBack()) {
         listDetailNavigator.navigateBack()
     }
