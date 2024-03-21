@@ -45,8 +45,8 @@ import com.merxury.blocker.feature.sort.navigation.appSortScreen
 import com.merxury.blocker.feature.sort.navigation.componentSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
-import com.merxury.blocker.ui.applist2pane.appListDetailScreen
-import com.merxury.blocker.ui.rulelist2pane.ruleListDetailScreen
+import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
+import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
