@@ -165,8 +165,6 @@ fun BlockerApp(
 
                     Column(Modifier.fillMaxSize()) {
                         // TODO Show the top app bar on top level destinations.
-                        val destination = appState.currentTopLevelDestination
-                        val shouldShowTopAppBar = destination != null
                         BlockerNavHost(
                             bottomSheetNavigator = appState.bottomSheetNavigator,
                             navController = appState.navController,
@@ -174,13 +172,6 @@ fun BlockerApp(
                             dismissBottomSheet = appState::dismissBottomSheet,
                             snackbarHostState = snackbarHostState,
                             updateIconBasedThemingState = updateIconBasedThemingState,
-                            modifier = if (shouldShowTopAppBar) {
-                                Modifier.consumeWindowInsets(
-                                    WindowInsets.safeDrawing.only(WindowInsetsSides.Top),
-                                )
-                            } else {
-                                Modifier
-                            },
                         )
                     }
 
