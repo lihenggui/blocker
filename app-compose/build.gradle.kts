@@ -115,6 +115,8 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3.adaptive)
+    implementation(libs.androidx.compose.material3.adaptive.layout)
+    implementation(libs.androidx.compose.material3.adaptive.navigation)
     implementation(libs.androidx.compose.material3.windowSizeClass)
     implementation(libs.androidx.compose.runtime.tracing)
     implementation(libs.androidx.compose.animation)
@@ -126,6 +128,7 @@ dependencies {
     implementation(libs.accompanist.navigation.material)
     implementation(libs.androidx.profileinstaller)
     implementation(libs.androidx.tracing.ktx)
+    implementation(libs.androidx.window.core)
     implementation(libs.androidx.work.ktx)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)

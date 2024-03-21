@@ -20,9 +20,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.ListDetailPaneScaffold
-import androidx.compose.material3.adaptive.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,8 +38,6 @@ import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.extension.isDetailPaneVisible
-import com.merxury.blocker.core.ui.extension.isListPaneVisible
 import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
@@ -51,6 +50,9 @@ import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
+import com.merxury.blocker.ui.calculateNoContentPaddingScaffoldDirective
+import com.merxury.blocker.ui.isDetailPaneVisible
+import com.merxury.blocker.ui.isListPaneVisible
 
 private const val SEARCH_LIST_DETAIL_PANE_ROUTE = "search_list_detail_pane_route"
 
@@ -128,7 +130,12 @@ internal fun SearchListDetailScreen(
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
 ) {
-    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
+    val scaffoldDirective = calculateNoContentPaddingScaffoldDirective(
+        currentWindowAdaptiveInfo(),
+    )
+    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator<Nothing>(
+        scaffoldDirective = scaffoldDirective,
+    )
     BackHandler(listDetailNavigator.canNavigateBack()) {
         listDetailNavigator.navigateBack()
     }
@@ -164,7 +171,8 @@ internal fun SearchListDetailScreen(
     }
 
     ListDetailPaneScaffold(
-        scaffoldState = listDetailNavigator.scaffoldState,
+        value = listDetailNavigator.scaffoldValue,
+        directive = listDetailNavigator.scaffoldDirective,
         listPane = {
             SearchRoute(
                 snackbarHostState = snackbarHostState,

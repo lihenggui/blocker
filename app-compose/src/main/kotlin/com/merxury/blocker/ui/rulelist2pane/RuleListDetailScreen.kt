@@ -18,19 +18,15 @@ package com.merxury.blocker.ui.rulelist2pane
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.ListDetailPaneScaffold
-import androidx.compose.material3.adaptive.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.PaneScaffoldDirective
-import androidx.compose.material3.adaptive.calculateDensePaneScaffoldDirective
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -41,14 +37,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
-import com.merxury.blocker.core.ui.extension.isDetailPaneVisible
-import com.merxury.blocker.core.ui.extension.isListPaneVisible
 import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
 import com.merxury.blocker.feature.generalrules.navigation.GENERAL_RULE_ROUTE
 import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.ruledetail.navigation.RULE_DETAIL_ROUTE
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
+import com.merxury.blocker.ui.calculateNoContentPaddingScaffoldDirective
+import com.merxury.blocker.ui.isDetailPaneVisible
+import com.merxury.blocker.ui.isListPaneVisible
 
 private const val RULE_LIST_DETAIL_PANE_ROUTE = "rule_list_detail_pane_route"
 
@@ -101,17 +98,12 @@ internal fun RuleListDetailScreen(
     navigateToAppDetail: (String) -> Unit,
     onRuleClick: (String) -> Unit,
 ) {
-    val systemDirective = calculateDensePaneScaffoldDirective(currentWindowAdaptiveInfo())
-    val customDirective = PaneScaffoldDirective(
-        contentPadding = PaddingValues(0.dp),
-        maxHorizontalPartitions = systemDirective.maxHorizontalPartitions,
-        horizontalPartitionSpacerSize = 0.dp,
-        maxVerticalPartitions = systemDirective.maxVerticalPartitions,
-        verticalPartitionSpacerSize = systemDirective.verticalPartitionSpacerSize,
-        excludedBounds = systemDirective.excludedBounds
+    val scaffoldDirective = calculateNoContentPaddingScaffoldDirective(
+        currentWindowAdaptiveInfo(),
     )
-
-    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator<Nothing>(customDirective)
+    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator<Nothing>(
+        scaffoldDirective = scaffoldDirective,
+    )
     BackHandler(listDetailNavigator.canNavigateBack()) {
         listDetailNavigator.navigateBack()
     }
@@ -130,7 +122,8 @@ internal fun RuleListDetailScreen(
     }
 
     ListDetailPaneScaffold(
-        scaffoldState = listDetailNavigator.scaffoldState,
+        value = listDetailNavigator.scaffoldValue,
+        directive = listDetailNavigator.scaffoldDirective,
         listPane = {
             GeneralRulesRoute(
                 highlightSelectedRule = listDetailNavigator.isDetailPaneVisible(),
