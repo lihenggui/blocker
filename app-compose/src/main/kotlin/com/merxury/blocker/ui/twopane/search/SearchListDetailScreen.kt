@@ -50,9 +50,9 @@ import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
-import com.merxury.blocker.ui.calculateNoContentPaddingScaffoldDirective
-import com.merxury.blocker.ui.isDetailPaneVisible
-import com.merxury.blocker.ui.isListPaneVisible
+import com.merxury.blocker.ui.twopane.calculateNoContentPaddingScaffoldDirective
+import com.merxury.blocker.ui.twopane.isDetailPaneVisible
+import com.merxury.blocker.ui.twopane.isListPaneVisible
 
 private const val SEARCH_LIST_DETAIL_PANE_ROUTE = "search_list_detail_pane_route"
 

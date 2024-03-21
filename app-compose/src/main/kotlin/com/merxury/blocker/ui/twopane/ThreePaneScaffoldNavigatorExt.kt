@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.ui
+package com.merxury.blocker.ui.twopane
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi

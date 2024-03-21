@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.ui.applist2pane
+package com.merxury.blocker.ui.twopane.applist
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

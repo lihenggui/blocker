@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.ui.rulelist2pane
+package com.merxury.blocker.ui.twopane.rule
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -43,9 +43,9 @@ import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.ruledetail.navigation.RULE_DETAIL_ROUTE
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
-import com.merxury.blocker.ui.calculateNoContentPaddingScaffoldDirective
-import com.merxury.blocker.ui.isDetailPaneVisible
-import com.merxury.blocker.ui.isListPaneVisible
+import com.merxury.blocker.ui.twopane.calculateNoContentPaddingScaffoldDirective
+import com.merxury.blocker.ui.twopane.isDetailPaneVisible
+import com.merxury.blocker.ui.twopane.isListPaneVisible
 
 private const val RULE_LIST_DETAIL_PANE_ROUTE = "rule_list_detail_pane_route"
 
