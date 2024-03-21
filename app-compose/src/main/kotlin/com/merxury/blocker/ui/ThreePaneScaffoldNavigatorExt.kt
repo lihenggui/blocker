@@ -28,11 +28,10 @@ import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.material3.adaptive.occludingVerticalHingeBounds
 import androidx.compose.material3.adaptive.separatingVerticalHingeBounds
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowWidthSizeClass
-import androidx.compose.ui.geometry.Rect
-
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 internal fun <T> ThreePaneScaffoldNavigator<T>.isListPaneVisible(): Boolean =
