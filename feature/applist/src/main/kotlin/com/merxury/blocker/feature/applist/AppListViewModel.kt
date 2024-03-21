@@ -95,7 +95,8 @@ class AppListViewModel @Inject constructor(
     private val _warningState = MutableStateFlow<WarningDialogData?>(null)
     val warningState = _warningState.asStateFlow()
     private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
-        PACKAGE_NAME_ARG, null,
+        PACKAGE_NAME_ARG,
+        null,
     )
 
     // Internal list for storing the displayed app list (data storing)
@@ -169,7 +170,6 @@ class AppListViewModel @Inject constructor(
         savedStateHandle[PACKAGE_NAME_ARG] = packageName
         loadSelectedApp()
     }
-
 
     private fun loadSelectedApp() {
         _uiState.update {

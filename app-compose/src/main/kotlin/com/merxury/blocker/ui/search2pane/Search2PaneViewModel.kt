@@ -29,7 +29,8 @@ class Search2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
-        PACKAGE_NAME_ARG, null,
+        PACKAGE_NAME_ARG,
+        null,
     )
     val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(RULE_ID_ARG, null)
 

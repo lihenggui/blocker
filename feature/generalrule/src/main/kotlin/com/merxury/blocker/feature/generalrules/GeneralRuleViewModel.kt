@@ -72,7 +72,8 @@ class GeneralRulesViewModel @Inject constructor(
     val errorState = _errorState.asStateFlow()
     private var loadRuleJob: Job? = null
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
-        RULE_ID_ARG, null,
+        RULE_ID_ARG,
+        null,
     )
 
     init {

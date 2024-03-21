@@ -107,10 +107,12 @@ class SearchViewModel @Inject constructor(
     private var searchJob: Job? = null
     private var loadAppJob: Job? = null
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
-        RULE_ID_ARG, null,
+        RULE_ID_ARG,
+        null,
     )
     private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
-        PACKAGE_NAME_ARG, null,
+        PACKAGE_NAME_ARG,
+        null,
     )
 
     private val _tabState = MutableStateFlow(
