@@ -50,7 +50,6 @@ import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
-import com.merxury.blocker.ui.search2pane.Search2PaneViewModel
 import com.merxury.blocker.ui.twopane.calculateNoContentPaddingScaffoldDirective
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
@@ -71,17 +70,17 @@ fun NavGraphBuilder.searchListDetailScreen(
                 defaultValue = null
                 nullable = true
             },
+            navArgument(RULE_ID_ARG) {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
+            },
             navArgument(TAB_ARG) {
                 type = NavType.StringType
                 defaultValue = null
                 nullable = true
             },
             navArgument(KEYWORD_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-            navArgument(RULE_ID_ARG) {
                 type = NavType.StringType
                 defaultValue = null
                 nullable = true
@@ -105,10 +104,12 @@ internal fun SearchListDetailScreen(
     navigateToComponentSortScreen: () -> Unit,
     viewModel: Search2PaneViewModel = hiltViewModel(),
 ) {
-    val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
+    val search2PaneState by viewModel.search2PaneState.collectAsStateWithLifecycle()
     val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
     SearchListDetailScreen(
-        selectedPackageName = selectedPackageName,
+        selectedPackageName = search2PaneState.selectedPackageName,
+        selectedTab = search2PaneState.selectedAppTabs?: AppDetailTabs.Info,
+        searchKeyword = search2PaneState.searchKeyword?: listOf(),
         selectedRuleId = selectedRuleId,
         snackbarHostState = snackbarHostState,
         onAppClick = viewModel::onAppClick,
@@ -123,9 +124,11 @@ internal fun SearchListDetailScreen(
 @Composable
 internal fun SearchListDetailScreen(
     selectedPackageName: String?,
+    selectedTab: AppDetailTabs = AppDetailTabs.Info,
+    searchKeyword: List<String> = listOf(),
     selectedRuleId: String?,
     snackbarHostState: SnackbarHostState,
-    onAppClick: (String) -> Unit,
+    onAppClick: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     onRuleClick: (String) -> Unit,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
@@ -148,7 +151,7 @@ internal fun SearchListDetailScreen(
         tab: AppDetailTabs = AppDetailTabs.Info,
         searchKeyword: List<String> = listOf(),
     ) {
-        onAppClick(packageName)
+        onAppClick(packageName, tab, searchKeyword)
         nestedNavController.navigateToAppDetail(
             packageName = packageName,
             tab = tab,
@@ -229,7 +232,7 @@ internal fun SearchListDetailScreen(
     LaunchedEffect(Unit) {
         if (selectedPackageName != null) {
             // Initial packageName was provided when navigating to AppList, so show its details.
-            onAppClickShowDetailPane(selectedPackageName)
+            onAppClickShowDetailPane(selectedPackageName, selectedTab, searchKeyword)
         } else if (selectedRuleId != null) {
             // Initial ruleId was provided when navigating to RuleList, so show its details.
             onRuleClickShowDetailPane(selectedRuleId)

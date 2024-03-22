@@ -14,31 +14,65 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.ui.search2pane
+package com.merxury.blocker.ui.twopane.search
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
+import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.feature.search.navigation.AppDetailArgs
+import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
+import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
+import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
 class Search2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
-        PACKAGE_NAME_ARG,
-        null,
-    )
+    private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle)
+    private val _search2PaneState = MutableStateFlow(Search2PaneState())
+    val search2PaneState: StateFlow<Search2PaneState> = _search2PaneState
     val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(RULE_ID_ARG, null)
+    init {
+        loadState()
+    }
+
+    private fun loadState() {
+        _search2PaneState.update {
+            Search2PaneState(
+                selectedPackageName = appDetailArgs.packageName,
+                selectedAppTabs = AppDetailTabs.fromName(appDetailArgs.tabs),
+                searchKeyword = appDetailArgs.searchKeyword,
+            )
+        }
+    }
 
     fun onRuleClick(ruleId: String?) {
         savedStateHandle[RULE_ID_ARG] = ruleId
     }
 
-    fun onAppClick(packageName: String?) {
+    fun onAppClick(
+        packageName: String?,
+        tabs: AppDetailTabs?,
+        keyword: List<String>?,
+    ) {
         savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        if (tabs != null) {
+            savedStateHandle[TAB_ARG] = tabs.name
+        }
+        if (keyword != null) {
+            savedStateHandle[KEYWORD_ARG] = keyword
+        }
     }
 }
+
+data class Search2PaneState(
+    val selectedPackageName: String? = null,
+    val selectedAppTabs: AppDetailTabs? = AppDetailTabs.Info,
+    val searchKeyword: List<String>? = listOf(),
+)
