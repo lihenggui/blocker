@@ -33,7 +33,7 @@ import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
-import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE
+import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE_BASIC
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
@@ -65,7 +65,7 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     dismissBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
-    startDestination: String = APP_LIST_ROUTE,
+    startDestination: String = APP_LIST_ROUTE_BASIC,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
     ModalBottomSheetLayout(bottomSheetNavigator) {

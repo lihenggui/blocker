@@ -42,7 +42,7 @@ import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.AppListRoute
-import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE
+import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE_BASIC
 import com.merxury.blocker.feature.applist.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.ui.twopane.calculateNoContentPaddingScaffoldDirective
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
@@ -61,7 +61,7 @@ fun NavGraphBuilder.appListDetailScreen(
     navigateToRuleDetail: (String) -> Unit,
 ) {
     composable(
-        route = APP_LIST_ROUTE,
+        route = APP_LIST_ROUTE_BASIC,
         arguments = listOf(
             navArgument(PACKAGE_NAME_ARG) {
                 type = NavType.StringType

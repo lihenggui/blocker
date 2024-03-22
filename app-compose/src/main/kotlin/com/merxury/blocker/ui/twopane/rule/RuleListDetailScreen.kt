@@ -38,7 +38,7 @@ import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
 import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
-import com.merxury.blocker.feature.generalrules.navigation.GENERAL_RULE_ROUTE
+import com.merxury.blocker.feature.generalrules.navigation.GENERAL_RULE_ROUTE_BASIC
 import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.ruledetail.navigation.RULE_DETAIL_ROUTE
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
@@ -55,7 +55,7 @@ fun NavGraphBuilder.ruleListDetailScreen(
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
 ) {
     composable(
-        route = GENERAL_RULE_ROUTE,
+        route = GENERAL_RULE_ROUTE_BASIC,
         arguments = listOf(
             navArgument(RULE_ID_ARG) {
                 type = NavType.StringType

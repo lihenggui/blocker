@@ -24,17 +24,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
 
-const val GENERAL_RULE_ROUTE = "rule_list_route"
+const val GENERAL_RULE_ROUTE_BASIC = "rule_list_route"
 const val RULE_ID_ARG = "ruleId"
+const val GENERAL_RULE_ROUTE = "$GENERAL_RULE_ROUTE_BASIC?$RULE_ID_ARG={$RULE_ID_ARG}"
 
 fun NavController.navigateToGeneralRule(
     ruleId: String? = null,
     navOptions: NavOptions? = null,
 ) {
     val route = if (ruleId != null) {
-        "$GENERAL_RULE_ROUTE?${RULE_ID_ARG}=$ruleId"
+        "$GENERAL_RULE_ROUTE_BASIC?${RULE_ID_ARG}=$ruleId"
     } else {
-        GENERAL_RULE_ROUTE
+        GENERAL_RULE_ROUTE_BASIC
     }
     navigate(route, navOptions)
 }

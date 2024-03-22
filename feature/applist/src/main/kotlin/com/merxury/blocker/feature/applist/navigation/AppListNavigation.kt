@@ -24,17 +24,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.feature.applist.AppListRoute
 
-const val APP_LIST_ROUTE = "app_list_route"
+const val APP_LIST_ROUTE_BASIC = "app_list_route"
 const val PACKAGE_NAME_ARG = "packageName"
+const val APP_LIST_ROUTE = "$APP_LIST_ROUTE_BASIC?$PACKAGE_NAME_ARG={$PACKAGE_NAME_ARG}"
 
 fun NavController.navigateToAppList(
     packageName: String? = null,
     navOptions: NavOptions? = null,
 ) {
     val route = if (packageName != null) {
-        "$APP_LIST_ROUTE?${PACKAGE_NAME_ARG}=$packageName"
+        "$APP_LIST_ROUTE_BASIC?${PACKAGE_NAME_ARG}=$packageName"
     } else {
-        APP_LIST_ROUTE
+        APP_LIST_ROUTE_BASIC
     }
     navigate(route, navOptions)
 }
