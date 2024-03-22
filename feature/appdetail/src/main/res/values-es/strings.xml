@@ -53,4 +53,5 @@
     <string name="feature_appdetail_all_rules">Todas las reglas</string>
     <string name="feature_appdetail_app_info">Información de la aplicación</string>
     <string name="feature_appdetail_app_info_with_libchecker_summary">Use LibChecker para ver los detalles de la aplicación</string>
+    <string name="feature_appdetail_select_an_app">Seleccione una aplicación</string>
 </resources>
