@@ -17,9 +17,7 @@
 package com.merxury.blocker.ui.twopane.applist
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
@@ -38,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
+import com.merxury.blocker.feature.appdetail.AppDetailPlaceholder
 import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
@@ -175,9 +174,7 @@ internal fun AppListDetailScreen(
                     showBackButton = !listDetailNavigator.isListPaneVisible(),
                 )
                 composable(route = APP_DETAIL_ROUTE) {
-                    Box {
-                        Text("Placeholder")
-                    }
+                    AppDetailPlaceholder()
                 }
             }
         },

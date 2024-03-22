@@ -17,8 +17,6 @@
 package com.merxury.blocker.ui.twopane.rule
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
@@ -40,6 +38,7 @@ import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
 import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
 import com.merxury.blocker.feature.generalrules.navigation.GENERAL_RULE_ROUTE_BASIC
 import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
+import com.merxury.blocker.feature.ruledetail.RuleDetailPlaceholder
 import com.merxury.blocker.feature.ruledetail.navigation.RULE_DETAIL_ROUTE
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
@@ -144,9 +143,7 @@ internal fun RuleListDetailScreen(
                     updateIconBasedThemingState = updateIconBasedThemingState,
                 )
                 composable(route = RULE_DETAIL_ROUTE) {
-                    Box {
-                        Text("Placeholder")
-                    }
+                    RuleDetailPlaceholder()
                 }
             }
         },
