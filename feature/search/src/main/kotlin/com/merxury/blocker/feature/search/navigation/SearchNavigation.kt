@@ -31,7 +31,7 @@ const val TAB_ARG = "tab"
 const val KEYWORD_ARG = "keyword"
 const val RULE_ID_ARG = "ruleId"
 
-internal class AppDetailArgs(
+class AppDetailArgs(
     val packageName: String,
     val tabs: String = AppDetailTabs.Info.name,
     val searchKeyword: List<String> = listOf(),
