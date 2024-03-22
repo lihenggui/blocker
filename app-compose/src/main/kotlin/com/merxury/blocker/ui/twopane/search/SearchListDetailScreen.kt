@@ -108,8 +108,8 @@ internal fun SearchListDetailScreen(
     val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
     SearchListDetailScreen(
         selectedPackageName = search2PaneState.selectedPackageName,
-        selectedTab = search2PaneState.selectedAppTabs?: AppDetailTabs.Info,
-        searchKeyword = search2PaneState.searchKeyword?: listOf(),
+        selectedTab = search2PaneState.selectedAppTabs ?: AppDetailTabs.Info,
+        searchKeyword = search2PaneState.searchKeyword ?: listOf(),
         selectedRuleId = selectedRuleId,
         snackbarHostState = snackbarHostState,
         onAppClick = viewModel::onAppClick,

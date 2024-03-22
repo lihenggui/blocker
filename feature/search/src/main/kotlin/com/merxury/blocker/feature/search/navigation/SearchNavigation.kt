@@ -40,7 +40,7 @@ class AppDetailArgs(
         this(
             savedStateHandle[PACKAGE_NAME_ARG] ?: "",
             savedStateHandle[TAB_ARG] ?: AppDetailTabs.Info.name,
-            savedStateHandle[KEYWORD_ARG] ?: listOf()
+            savedStateHandle[KEYWORD_ARG] ?: listOf(),
         )
 }
 
