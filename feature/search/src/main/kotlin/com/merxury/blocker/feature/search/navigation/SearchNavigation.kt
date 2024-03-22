@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search.navigation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -29,6 +30,19 @@ const val PACKAGE_NAME_ARG = "packageName"
 const val TAB_ARG = "tab"
 const val KEYWORD_ARG = "keyword"
 const val RULE_ID_ARG = "ruleId"
+
+internal class AppDetailArgs(
+    val packageName: String,
+    val tabs: String = AppDetailTabs.Info.name,
+    val searchKeyword: List<String> = listOf(),
+) {
+    constructor(savedStateHandle: SavedStateHandle) :
+        this(
+            savedStateHandle[PACKAGE_NAME_ARG] ?: "",
+            savedStateHandle[TAB_ARG] ?: AppDetailTabs.Info.name,
+            savedStateHandle[KEYWORD_ARG] ?: listOf()
+        )
+}
 
 fun NavController.navigateToSearch(navOptions: NavOptions) =
     navigate(SEARCH_ROUTE, navOptions)
