@@ -118,3 +118,7 @@ Alternatively, you can use [Weblate](https://weblate.sanmer.dev/projects/blocker
 
 * The Shell permission of Shizuku cannot disable unmodified application components. Please restart
   Shizuku with Root privileges or try modifying the APK.
+
+2. What's the difference between the `foss` version and the `market` version?
+
+* You can view the detailed changes in [#619 Build & Check F-Droid version](https://github.com/lihenggui/blocker/pull/619/files). The `foss` version eliminates closed-source libraries such as Firebase and GMS. Conversely, the `market` version integrates Firebase Crashlytics and Firebase Analytics services, enabling the developer to receive crash reports and usage data. This feedback makes it easier for developers to address issues or adjust features based on their usage. The version available on Google Play is the market version. If you prefer not to use analytics services, you can download the `foss` version from the [GitHub release page](https://github.com/lihenggui/blocker/releases) or [F-Droid](https://f-droid.org/packages/com.merxury.blocker/).

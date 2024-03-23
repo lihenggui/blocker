@@ -108,3 +108,7 @@ Blocker app的默认字符串资源在工程以下几个位置：
    state for 'xx' to state 'xx'。
 
 * Shizuku的Shell权限无法禁用未修改的应用组件，请用Root身份重启Shizuku，或者修改APK之后尝试。
+
+2. `foss`版本和`market`版本有什么区别？
+
+* 您可以在 [#619 Build & Check F-Droid version](https://github.com/lihenggui/blocker/pull/619/files) 查看详细的更改。`foss`版本移除了如Firebase和GMS这样的闭源库， 而`market`版本整合了Firebase Crashlytics和Firebase Analytics服务，使开发者能够接收到崩溃报告和使用数据。开发者可以更容易解决问题或根据功能的使用情况调整功能。在Google Play上提供的是`market`版本。如果您不想使用分析服务，可以从 [GitHub发布页面](https://github.com/lihenggui/blocker/releases) 或 [F-Droid](https://f-droid.org/packages/com.merxury.blocker/) 下载`foss`版本。
