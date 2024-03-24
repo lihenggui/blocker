@@ -117,7 +117,7 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
             BlockerTheme(
                 blockerTheme = blockerTheme,
                 darkTheme = darkMode,
-                disableDynamicTheming = !dynamicTheming,
+                useDynamicTheming = dynamicTheming,
             ) {
                 // Keying is necessary in some cases (e.g. animations)
                 key(blockerTheme, darkMode, dynamicTheming) {

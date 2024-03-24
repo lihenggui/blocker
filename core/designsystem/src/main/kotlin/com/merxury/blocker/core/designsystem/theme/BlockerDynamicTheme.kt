@@ -17,53 +17,27 @@
 package com.merxury.blocker.core.designsystem.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
+import com.materialkolor.DynamicMaterialTheme
 
 const val MIN_CONTRAST_OF_PRIMARY_VS_SURFACE = 3f
 
 @Composable
 fun BlockerDynamicTheme(
-    iconBasedThemingState: IconBasedThemingState,
+    iconThemingState: IconThemingState,
     darkTheme: Boolean = isSystemInDarkTheme(),
-    defaultTheme: Boolean = false,
-    disableDynamicTheming: Boolean = true,
+    useDynamicTheming: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val defaultColorScheme = when {
-        !disableDynamicTheming && supportsDynamicTheming() -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        else -> if (darkTheme) DarkBlockerColorScheme else LightBlockerColorScheme
+    val seedColor = if (useDynamicTheming) {
+        iconThemingState.seedColor ?: LightBlockerColorScheme.primary
+    } else {
+        LightBlockerColorScheme.primary
     }
-    val dominantColorState = rememberDominantColorState(
-        colorScheme = defaultColorScheme,
-    ) { color ->
-        // We want a color which has sufficient contrast against the surface color
-        color.contrastAgainst(defaultColorScheme.surface) >= MIN_CONTRAST_OF_PRIMARY_VS_SURFACE
-    }
-    val icon = iconBasedThemingState.icon
-    val isDarkTheme = isSystemInDarkTheme()
-    DynamicThemePrimaryColorsFromImage(
-        defaultColorScheme = defaultColorScheme,
-        dominantColorState = dominantColorState,
+    DynamicMaterialTheme(
+        seedColor = seedColor,
         useDarkTheme = darkTheme,
-        useBlockerTheme = defaultTheme,
-        disableDynamicTheming = disableDynamicTheming,
-    ) {
-        LaunchedEffect(icon) {
-            // Update the dominantColorState with colors coming from the podcast image URL
-            if (icon != null && !disableDynamicTheming) {
-                dominantColorState.updateColorsFromImageBitmap(icon, isDarkTheme)
-            } else {
-                dominantColorState.reset()
-            }
-        }
-        content()
-    }
+        animate = true,
+        content = content,
+    )
 }
