@@ -20,7 +20,6 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -60,6 +59,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -88,7 +88,7 @@ import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
@@ -151,7 +151,7 @@ fun AppDetailRoute(
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconThemingState) -> Unit,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -252,7 +252,7 @@ fun AppDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateIconBasedThemingState(IconBasedThemingState(icon = null, isBasedIcon = false))
+            updateIconBasedThemingState(IconThemingState())
         }
     }
     event?.let {
@@ -416,7 +416,7 @@ fun AppDetailScreen(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToComponentSortScreen: () -> Unit = {},
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
+    updateIconBasedThemingState: (IconThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
     enableAllSelectedComponents: () -> Unit = {},
@@ -432,7 +432,7 @@ fun AppDetailScreen(
     AppDetailContent(
         app = appInfoUiState.appInfo,
         isRefreshing = appInfoUiState.isRefreshing,
-        iconBasedTheming = appInfoUiState.iconBasedTheming,
+        seedColor = appInfoUiState.seedColor,
         topAppBarUiState = topAppBarUiState,
         componentListUiState = componentListUiState,
         tabState = tabState,
@@ -479,14 +479,14 @@ fun AppDetailScreen(
 @Composable
 fun AppDetailContent(
     app: AppItem,
-    iconBasedTheming: Bitmap?,
     tabState: TabState<AppDetailTabs>,
     componentListUiState: Result<ComponentSearchResult>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
-    modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
+    modifier: Modifier = Modifier,
+    seedColor: Color? = null,
     isRefreshing: Boolean = false,
     navigateToComponentDetail: (String) -> Unit = {},
     navigateToRuleDetail: (String) -> Unit = {},
@@ -506,7 +506,7 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconThemingState) -> Unit,
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
     enableAllSelectedComponents: () -> Unit = {},
@@ -556,7 +556,7 @@ fun AppDetailContent(
             }
         }
     }
-    updateIconBasedThemingState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
+    updateIconBasedThemingState(IconThemingState(seedColor = seedColor))
     Scaffold(
         topBar = {
             TopAppBar(
@@ -935,7 +935,7 @@ fun AppDetailScreenComponentPreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                appInfoUiState = AppInfoUiState(appInfo = appList[0]),
                 componentListUiState = Result.Success(
                     ComponentSearchResult(
                         app = appList[0],
@@ -1146,7 +1146,7 @@ fun AppDetailScreenSearchModePreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                appInfoUiState = AppInfoUiState(appInfo = appList[0]),
                 componentListUiState = Result.Success(
                     ComponentSearchResult(
                         app = appList[0],
@@ -1178,7 +1178,7 @@ fun AppDetailScreenSelectedModePreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                appInfoUiState = AppInfoUiState(appInfo = appList[0]),
                 componentListUiState = Result.Success(
                     ComponentSearchResult(
                         app = appList[0],

@@ -105,7 +105,6 @@ class RuleDetailScreenTest {
             RuleDetailScreen(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = generalRuleTestData,
-                    ruleIcon = null,
                     matchedAppsUiState = Result.Success(ruleMatchedAppListTestData),
                 ),
                 onBackClick = {},
@@ -147,7 +146,6 @@ class RuleDetailScreenTest {
             RuleDetailScreen(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = generalRuleTestData,
-                    ruleIcon = null,
                     matchedAppsUiState = Result.Loading,
                 ),
                 onBackClick = {},
