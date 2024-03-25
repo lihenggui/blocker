@@ -35,7 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.feature.appdetail.AppDetailPlaceholder
 import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
@@ -54,7 +54,7 @@ fun NavGraphBuilder.appListDetailScreen(
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
@@ -77,7 +77,7 @@ fun NavGraphBuilder.appListDetailScreen(
             navigateToComponentDetail = navigateToComponentDetail,
             navigateToComponentSortScreen = navigateToComponentSortScreen,
             navigateToRuleDetail = navigateToRuleDetail,
-            updateIconBasedThemingState = updateIconBasedThemingState,
+            updateIconThemingState = updateIconThemingState,
         )
     }
 }
@@ -88,7 +88,7 @@ internal fun AppListDetailRoute(
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
@@ -105,7 +105,7 @@ internal fun AppListDetailRoute(
         navigateToComponentDetail = navigateToComponentDetail,
         navigateToComponentSortScreen = navigateToComponentSortScreen,
         navigateToRuleDetail = navigateToRuleDetail,
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
     )
 }
 
@@ -117,7 +117,7 @@ internal fun AppListDetailScreen(
     navigateTooAppSortScreen: () -> Unit,
     selectedPackageName: String?,
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
@@ -170,7 +170,7 @@ internal fun AppListDetailScreen(
                     navigateToComponentDetail = navigateToComponentDetail,
                     navigateToComponentSortScreen = navigateToComponentSortScreen,
                     navigateToRuleDetail = navigateToRuleDetail,
-                    updateIconBasedThemingState = updateIconBasedThemingState,
+                    updateIconThemingState = updateIconThemingState,
                     showBackButton = !listDetailNavigator.isListPaneVisible(),
                 )
                 composable(route = APP_DETAIL_ROUTE) {

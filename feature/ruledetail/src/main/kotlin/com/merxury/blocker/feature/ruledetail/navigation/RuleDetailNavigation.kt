@@ -62,7 +62,7 @@ fun NavGraphBuilder.ruleDetailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
 ) {
     composable(
         route = "$RULE_DETAIL_ROUTE/{$RULE_ID_ARG}?$TAB_ARG={$TAB_ARG}",
@@ -76,7 +76,7 @@ fun NavGraphBuilder.ruleDetailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToAppDetail = navigateToAppDetail,
-            updateIconBasedThemingState = updateIconBasedThemingState,
+            updateIconThemingState = updateIconThemingState,
         )
     }
 }

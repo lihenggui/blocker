@@ -79,7 +79,7 @@ fun NavController.navigateToAppDetail(
 fun NavGraphBuilder.appDetailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
@@ -99,7 +99,7 @@ fun NavGraphBuilder.appDetailScreen(
             navigateToComponentDetail = navigateToComponentDetail,
             navigateToComponentSortScreen = navigateToComponentSortScreen,
             navigateToRuleDetail = navigateToRuleDetail,
-            updateIconBasedThemingState = updateIconBasedThemingState,
+            updateIconThemingState = updateIconThemingState,
             showBackButton = showBackButton,
         )
     }

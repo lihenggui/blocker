@@ -36,7 +36,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
@@ -58,7 +58,7 @@ private const val SEARCH_LIST_DETAIL_PANE_ROUTE = "search_list_detail_pane_route
 
 fun NavGraphBuilder.searchListDetailScreen(
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
 ) {
@@ -89,7 +89,7 @@ fun NavGraphBuilder.searchListDetailScreen(
     ) {
         SearchListDetailScreen(
             snackbarHostState = snackbarHostState,
-            updateIconBasedThemingState = updateIconBasedThemingState,
+            updateIconThemingState = updateIconThemingState,
             navigateToComponentDetail = navigateToComponentDetail,
             navigateToComponentSortScreen = navigateToComponentSortScreen,
         )
@@ -99,7 +99,7 @@ fun NavGraphBuilder.searchListDetailScreen(
 @Composable
 internal fun SearchListDetailScreen(
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
     viewModel: Search2PaneViewModel = hiltViewModel(),
@@ -114,7 +114,7 @@ internal fun SearchListDetailScreen(
         snackbarHostState = snackbarHostState,
         onAppClick = viewModel::onAppClick,
         onRuleClick = viewModel::onRuleClick,
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
         navigateToComponentDetail = navigateToComponentDetail,
         navigateToComponentSortScreen = navigateToComponentSortScreen,
     )
@@ -130,7 +130,7 @@ internal fun SearchListDetailScreen(
     snackbarHostState: SnackbarHostState,
     onAppClick: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     onRuleClick: (String) -> Unit,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
 ) {
@@ -198,7 +198,7 @@ internal fun SearchListDetailScreen(
                         navigateToComponentDetail = navigateToComponentDetail,
                         navigateToComponentSortScreen = navigateToComponentSortScreen,
                         navigateToRuleDetail = ::onRuleClickShowDetailPane,
-                        updateIconBasedThemingState = updateIconBasedThemingState,
+                        updateIconThemingState = updateIconThemingState,
                         showBackButton = !listDetailNavigator.isListPaneVisible(),
                     )
                     composable(route = APP_DETAIL_ROUTE) {
@@ -217,7 +217,7 @@ internal fun SearchListDetailScreen(
                         onBackClick = listDetailNavigator::navigateBack,
                         snackbarHostState = snackbarHostState,
                         navigateToAppDetail = ::onAppClickShowDetailPane,
-                        updateIconBasedThemingState = updateIconBasedThemingState,
+                        updateIconThemingState = updateIconThemingState,
                         showBackButton = !listDetailNavigator.isListPaneVisible(),
                     )
                     composable(route = RULE_DETAIL_ROUTE) {

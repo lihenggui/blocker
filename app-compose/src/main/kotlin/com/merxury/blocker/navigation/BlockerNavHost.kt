@@ -66,7 +66,7 @@ fun BlockerNavHost(
     dismissBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = APP_LIST_ROUTE_BASIC,
-    updateIconBasedThemingState: (IconThemingState) -> Unit = {},
+    updateIconThemingState: (IconThemingState) -> Unit = {},
 ) {
     ModalBottomSheetLayout(bottomSheetNavigator) {
         NavHost(
@@ -81,7 +81,7 @@ fun BlockerNavHost(
                 navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
                 navigateTooAppSortScreen = navController::navigateToAppSortScreen,
                 snackbarHostState = snackbarHostState,
-                updateIconBasedThemingState = updateIconBasedThemingState,
+                updateIconThemingState = updateIconThemingState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
                 navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
@@ -90,7 +90,7 @@ fun BlockerNavHost(
                 onBackClick = onBackClick,
                 showBackButton = true,
                 snackbarHostState = snackbarHostState,
-                updateIconBasedThemingState = updateIconBasedThemingState,
+                updateIconThemingState = updateIconThemingState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
                 navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
@@ -98,7 +98,7 @@ fun BlockerNavHost(
             ruleListDetailScreen(
                 snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
-                updateIconBasedThemingState = updateIconBasedThemingState,
+                updateIconThemingState = updateIconThemingState,
             )
             searchScreen(
                 snackbarHostState = snackbarHostState,
@@ -109,7 +109,7 @@ fun BlockerNavHost(
                 onBackClick = onBackClick,
                 snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
-                updateIconBasedThemingState = updateIconBasedThemingState,
+                updateIconThemingState = updateIconThemingState,
             )
             settingsScreen(
                 onBackClick,

@@ -107,7 +107,7 @@ fun RuleDetailRoute(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -142,7 +142,7 @@ fun RuleDetailRoute(
         },
         onSwitch = viewModel::controlComponent,
         navigateToAppDetail = navigateToAppDetail,
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -153,7 +153,7 @@ fun RuleDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateIconBasedThemingState(IconThemingState())
+            updateIconThemingState(IconThemingState())
         }
     }
 }
@@ -285,7 +285,7 @@ fun RuleDetailScreen(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconThemingState) -> Unit = { _ -> },
+    updateIconThemingState: (IconThemingState) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -312,7 +312,7 @@ fun RuleDetailScreen(
                 onEnableAllInPageClick = onEnableAllInPageClick,
                 onSwitch = onSwitch,
                 navigateToAppDetail = navigateToAppDetail,
-                updateIconBasedThemingState = updateIconBasedThemingState,
+                updateIconThemingState = updateIconThemingState,
             )
         }
 
@@ -343,7 +343,7 @@ fun RuleDetailContent(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconThemingState) -> Unit = { _ -> },
+    updateIconThemingState: (IconThemingState) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -380,7 +380,7 @@ fun RuleDetailContent(
             }
         }
     }
-    updateIconBasedThemingState(
+    updateIconThemingState(
         IconThemingState(seedColor = ruleInfoUiState.seedColor),
     )
     Scaffold(

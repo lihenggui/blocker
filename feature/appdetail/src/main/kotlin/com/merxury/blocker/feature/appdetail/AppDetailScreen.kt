@@ -151,7 +151,7 @@ fun AppDetailRoute(
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     showBackButton: Boolean = true,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
@@ -207,7 +207,7 @@ fun AppDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
         onSelectAll = viewModel::selectAll,
         blockAllSelectedComponents = { viewModel.controlAllSelectedComponents(false) },
         enableAllSelectedComponents = { viewModel.controlAllSelectedComponents(true) },
@@ -254,7 +254,7 @@ fun AppDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateIconBasedThemingState(IconThemingState())
+            updateIconThemingState(IconThemingState())
         }
     }
     event?.let {
@@ -419,7 +419,7 @@ fun AppDetailScreen(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToComponentSortScreen: () -> Unit = {},
-    updateIconBasedThemingState: (IconThemingState) -> Unit = {},
+    updateIconThemingState: (IconThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
     enableAllSelectedComponents: () -> Unit = {},
@@ -461,7 +461,7 @@ fun AppDetailScreen(
         onLaunchActivityClick = onLaunchActivityClick,
         onCopyNameClick = onCopyNameClick,
         onCopyFullNameClick = onCopyFullNameClick,
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
         onSelectAll = onSelectAll,
         blockAllSelectedComponents = blockAllSelectedComponents,
         enableAllSelectedComponents = enableAllSelectedComponents,
@@ -511,7 +511,7 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
     enableAllSelectedComponents: () -> Unit = {},
@@ -561,7 +561,7 @@ fun AppDetailContent(
             }
         }
     }
-    updateIconBasedThemingState(IconThemingState(seedColor = seedColor))
+    updateIconThemingState(IconThemingState(seedColor = seedColor))
     Scaffold(
         topBar = {
             TopAppBar(

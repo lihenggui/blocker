@@ -74,7 +74,7 @@ import com.merxury.blocker.navigation.TopLevelDestination
 @Composable
 fun BlockerApp(
     appState: BlockerAppState,
-    updateIconBasedThemingState: (IconThemingState) -> Unit = {},
+    updateIconThemingState: (IconThemingState) -> Unit = {},
 ) {
     val shouldShowGradientBackground =
         appState.currentTopLevelDestination == TopLevelDestination.APP
@@ -171,7 +171,7 @@ fun BlockerApp(
                             onBackClick = appState::onBackClick,
                             dismissBottomSheet = appState::dismissBottomSheet,
                             snackbarHostState = snackbarHostState,
-                            updateIconBasedThemingState = updateIconBasedThemingState,
+                            updateIconThemingState = updateIconThemingState,
                         )
                     }
 

@@ -34,7 +34,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
 import com.merxury.blocker.feature.generalrules.navigation.GENERAL_RULE_ROUTE_BASIC
 import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
@@ -51,7 +51,7 @@ private const val RULE_LIST_DETAIL_PANE_ROUTE = "rule_list_detail_pane_route"
 fun NavGraphBuilder.ruleListDetailScreen(
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
 ) {
     composable(
         route = GENERAL_RULE_ROUTE_BASIC,
@@ -65,7 +65,7 @@ fun NavGraphBuilder.ruleListDetailScreen(
     ) {
         RuleListDetailRoute(
             snackbarHostState = snackbarHostState,
-            updateIconBasedThemingState = updateIconBasedThemingState,
+            updateIconThemingState = updateIconThemingState,
             navigateToAppDetail = navigateToAppDetail,
         )
     }
@@ -74,7 +74,7 @@ fun NavGraphBuilder.ruleListDetailScreen(
 @Composable
 internal fun RuleListDetailRoute(
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToAppDetail: (String) -> Unit,
     viewModel: RuleList2PaneViewModel = hiltViewModel(),
 ) {
@@ -83,7 +83,7 @@ internal fun RuleListDetailRoute(
         selectedRuleId = selectedPackageName,
         onRuleClick = viewModel::onRuleClick,
         snackbarHostState = snackbarHostState,
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
         navigateToAppDetail = navigateToAppDetail,
     )
 }
@@ -93,7 +93,7 @@ internal fun RuleListDetailRoute(
 internal fun RuleListDetailScreen(
     selectedRuleId: String?,
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     navigateToAppDetail: (String) -> Unit,
     onRuleClick: (String) -> Unit,
 ) {
@@ -140,7 +140,7 @@ internal fun RuleListDetailScreen(
                     onBackClick = listDetailNavigator::navigateBack,
                     snackbarHostState = snackbarHostState,
                     navigateToAppDetail = navigateToAppDetail,
-                    updateIconBasedThemingState = updateIconBasedThemingState,
+                    updateIconThemingState = updateIconThemingState,
                 )
                 composable(route = RULE_DETAIL_ROUTE) {
                     RuleDetailPlaceholder()
