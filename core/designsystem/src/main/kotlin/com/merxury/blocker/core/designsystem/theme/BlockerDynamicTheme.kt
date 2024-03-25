@@ -17,7 +17,10 @@
 package com.merxury.blocker.core.designsystem.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import com.materialkolor.DynamicMaterialTheme
 
 const val MIN_CONTRAST_OF_PRIMARY_VS_SURFACE = 3f
@@ -29,10 +32,18 @@ fun BlockerDynamicTheme(
     useDynamicTheming: Boolean = false,
     content: @Composable () -> Unit,
 ) {
+    val defaultColorScheme = when {
+        useDynamicTheming && supportsDynamicTheming() -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+
+        else -> if (darkTheme) DarkBlockerColorScheme else LightBlockerColorScheme
+    }
     val seedColor = if (useDynamicTheming) {
-        iconThemingState.seedColor ?: LightBlockerColorScheme.primary
+        iconThemingState.seedColor ?: defaultColorScheme.primary
     } else {
-        LightBlockerColorScheme.primary
+        defaultColorScheme.primary
     }
     DynamicMaterialTheme(
         seedColor = seedColor,
