@@ -126,7 +126,6 @@ class RuleDetailViewModel @Inject constructor(
     private fun loadData() {
         loadRuleDetailJob?.cancel()
         loadRuleDetailJob = viewModelScope.launch {
-            val context: Context = appContext
             val ruleId = ruleIdArgs.ruleId
             val rule = ruleRepository.getGeneralRule(ruleId)
                 .first()
@@ -139,12 +138,23 @@ class RuleDetailViewModel @Inject constructor(
             _ruleInfoUiState.update {
                 RuleInfoUiState.Success(
                     ruleInfo = ruleWithIcon,
-                    seedColor = getSeedColor(iconFile, context = context),
                     matchedAppsUiState = Result.Loading,
                 )
             }
+            updateSeedColor(iconFile)
             currentSearchKeyword = rule.searchKeyword
             loadMatchedApps(rule.searchKeyword)
+        }
+    }
+
+    private fun updateSeedColor(iconFile: File?) = viewModelScope.launch(ioDispatcher) {
+        if (iconFile == null) return@launch
+        val useDynamicColor = userDataRepository.userData.first().useDynamicColor
+        if (!useDynamicColor) return@launch
+        _ruleInfoUiState.update {
+            if (it !is RuleInfoUiState.Success) return@update it
+            val seedColor = getSeedColor(iconFile, context = appContext)
+            it.copy(seedColor = seedColor)
         }
     }
 

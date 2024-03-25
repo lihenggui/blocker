@@ -172,6 +172,7 @@ class AppDetailViewModel @Inject constructor(
         loadTabInfo()
         updateSearchKeyword()
         loadAppInfo()
+        updateSeedColor()
         loadComponentList()
         updateComponentList()
         listenSortStateChange()
@@ -820,18 +821,27 @@ class AppDetailViewModel @Inject constructor(
             }
         } else {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
-            val userData = userDataRepository.userData.first()
             _appInfoUiState.update {
                 it.copy(
                     appInfo = app.toAppItem(packageInfo = packageInfo),
-                    seedColor = if (userData.useDynamicColor) {
-                        getSeedColor(packageInfo)
-                    } else {
-                        null
-                    },
                     showOpenInLibChecker = isLibCheckerInstalled,
                 )
             }
+        }
+    }
+
+    private fun updateSeedColor() = viewModelScope.launch(ioDispatcher) {
+        val useDynamicColor = userDataRepository.userData.first().useDynamicColor
+        if (!useDynamicColor) {
+            return@launch
+        }
+        val packageName = appDetailArgs.packageName
+        val packageInfo = pm.getPackageInfoCompat(packageName, PackageManager.GET_META_DATA)
+        val seedColor = getSeedColor(packageInfo)
+        _appInfoUiState.update {
+            it.copy(
+                seedColor = seedColor,
+            )
         }
     }
 

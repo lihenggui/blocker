@@ -31,7 +31,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -94,7 +93,6 @@ fun BlockerNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
-        containerColor = Color.Transparent,
         contentColor = BlockerNavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
         content = content,
@@ -161,7 +159,6 @@ fun BlockerNavigationRail(
 ) {
     NavigationRail(
         modifier = modifier,
-        containerColor = Color.Transparent,
         contentColor = BlockerNavigationDefaults.navigationContentColor(),
         header = header,
         content = content,
