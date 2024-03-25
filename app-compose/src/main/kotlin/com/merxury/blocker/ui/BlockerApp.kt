@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -157,9 +156,7 @@ fun BlockerApp(
                             destinations = appState.topLevelDestinations,
                             onNavigateToDestination = appState::navigateToTopLevelDestination,
                             currentTopLevelDestination = appState.currentTopLevelDestination,
-                            modifier = Modifier
-                                .testTag("BlockerNavRail")
-                                .safeDrawingPadding(),
+                            modifier = Modifier.testTag("BlockerNavRail"),
                         )
                     }
 
