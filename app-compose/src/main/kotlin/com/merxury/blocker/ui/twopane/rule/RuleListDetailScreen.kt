@@ -17,6 +17,7 @@
 package com.merxury.blocker.ui.twopane.rule
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
@@ -147,6 +148,7 @@ internal fun RuleListDetailScreen(
                 }
             }
         },
+        windowInsets = WindowInsets(0, 0, 0, 0),
     )
     LaunchedEffect(Unit) {
         if (selectedRuleId != null) {
