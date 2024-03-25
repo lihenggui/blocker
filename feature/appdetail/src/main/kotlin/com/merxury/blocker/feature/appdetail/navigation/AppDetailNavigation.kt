@@ -25,7 +25,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
 import java.net.URLDecoder
@@ -79,7 +79,7 @@ fun NavController.navigateToAppDetail(
 fun NavGraphBuilder.appDetailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,

@@ -63,7 +63,7 @@ class ThemeTest {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
-                disableDynamicTheming = false,
+                useDynamicTheming = true,
                 blockerTheme = false,
             ) {
                 val colorScheme = dynamicLightColorSchemeWithFallback()
@@ -83,7 +83,7 @@ class ThemeTest {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
-                disableDynamicTheming = false,
+                useDynamicTheming = true,
                 blockerTheme = false,
             ) {
                 val colorScheme = dynamicDarkColorSchemeWithFallback()
@@ -103,7 +103,7 @@ class ThemeTest {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
-                disableDynamicTheming = true,
+                useDynamicTheming = false,
                 blockerTheme = true,
             ) {
                 val colorScheme = LightBlockerColorScheme
@@ -123,7 +123,7 @@ class ThemeTest {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
-                disableDynamicTheming = true,
+                useDynamicTheming = false,
                 blockerTheme = true,
             ) {
                 val colorScheme = DarkBlockerColorScheme

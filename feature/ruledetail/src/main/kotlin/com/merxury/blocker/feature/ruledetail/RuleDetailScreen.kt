@@ -73,7 +73,7 @@ import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.designsystem.theme.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -107,7 +107,7 @@ fun RuleDetailRoute(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconThemingState) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -153,7 +153,7 @@ fun RuleDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateIconBasedThemingState(IconBasedThemingState(icon = null, isBasedIcon = false))
+            updateIconBasedThemingState(IconThemingState())
         }
     }
 }
@@ -285,7 +285,7 @@ fun RuleDetailScreen(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
+    updateIconBasedThemingState: (IconThemingState) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -343,7 +343,7 @@ fun RuleDetailContent(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
+    updateIconBasedThemingState: (IconThemingState) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -381,10 +381,7 @@ fun RuleDetailContent(
         }
     }
     updateIconBasedThemingState(
-        IconBasedThemingState(
-            icon = ruleInfoUiState.ruleIcon,
-            isBasedIcon = true,
-        ),
+        IconThemingState(seedColor = ruleInfoUiState.seedColor),
     )
     Scaffold(
         topBar = {
@@ -567,7 +564,6 @@ fun RuleDetailScreenPreview(
                 showBackButton = false,
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
-                    ruleIcon = null,
                     matchedAppsUiState = Result.Success(
                         listOf(
                             MatchedItem(
@@ -606,7 +602,6 @@ fun RuleDetailScreenSelectedDescriptionPreview(
             RuleDetailScreen(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
-                    ruleIcon = null,
                     matchedAppsUiState = Result.Success(
                         listOf(
                             MatchedItem(
@@ -638,7 +633,6 @@ fun RuleDetailScreenWithApplicableLoadingPreview(
             RuleDetailScreen(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
-                    ruleIcon = null,
                     matchedAppsUiState = Result.Loading,
                 ),
                 tabState = tabState[0],

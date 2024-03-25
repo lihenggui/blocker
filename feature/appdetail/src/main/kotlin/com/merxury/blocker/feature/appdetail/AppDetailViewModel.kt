@@ -21,10 +21,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.annotation.VisibleForTesting
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -34,6 +35,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
+import com.materialkolor.ktx.themeColorOrNull
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IServiceController
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -170,6 +172,7 @@ class AppDetailViewModel @Inject constructor(
         loadTabInfo()
         updateSearchKeyword()
         loadAppInfo()
+        updateSeedColor()
         loadComponentList()
         updateComponentList()
         listenSortStateChange()
@@ -264,8 +267,10 @@ class AppDetailViewModel @Inject constructor(
                     when (result) {
                         is Result.Loading ->
                             Timber.v("Loading matched rule for $packageName")
+
                         is Result.Error ->
                             Timber.e(result.exception, "Fail to search matched rule")
+
                         is Result.Success ->
                             Timber.v("Matched rule for $packageName is loaded, size = ${result.data.size}")
                     }
@@ -816,18 +821,27 @@ class AppDetailViewModel @Inject constructor(
             }
         } else {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
-            val userData = userDataRepository.userData.first()
             _appInfoUiState.update {
                 it.copy(
                     appInfo = app.toAppItem(packageInfo = packageInfo),
-                    iconBasedTheming = if (userData.useDynamicColor) {
-                        getAppIcon(packageInfo)
-                    } else {
-                        null
-                    },
                     showOpenInLibChecker = isLibCheckerInstalled,
                 )
             }
+        }
+    }
+
+    private fun updateSeedColor() = viewModelScope.launch(ioDispatcher) {
+        val useDynamicColor = userDataRepository.userData.first().useDynamicColor
+        if (!useDynamicColor) {
+            return@launch
+        }
+        val packageName = appDetailArgs.packageName
+        val packageInfo = pm.getPackageInfoCompat(packageName, PackageManager.GET_META_DATA)
+        val seedColor = getSeedColor(packageInfo)
+        _appInfoUiState.update {
+            it.copy(
+                seedColor = seedColor,
+            )
         }
     }
 
@@ -844,10 +858,13 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getAppIcon(packageInfo: PackageInfo?) = withContext(ioDispatcher) {
-        val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
-        return@withContext icon?.toBitmap()
-    }
+    private suspend fun getSeedColor(packageInfo: PackageInfo?): Color? =
+        withContext(ioDispatcher) {
+            val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+            return@withContext icon?.toBitmap()
+                ?.asImageBitmap()
+                ?.themeColorOrNull()
+        }
 
     fun zipAllRule() = zipAllRuleUseCase()
 
@@ -879,6 +896,6 @@ data class AppInfoUiState(
     val error: UiMessage? = null,
     val componentSearchUiState: Result<ComponentSearchResult> = Result.Loading,
     val matchedRuleUiState: Result<List<MatchedItem>> = Result.Loading,
-    val iconBasedTheming: Bitmap? = null,
+    val seedColor: Color? = null,
     val showOpenInLibChecker: Boolean = false,
 )
