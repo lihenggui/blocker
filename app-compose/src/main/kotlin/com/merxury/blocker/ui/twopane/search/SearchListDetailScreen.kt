@@ -18,6 +18,7 @@ package com.merxury.blocker.ui.twopane.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -228,6 +229,7 @@ internal fun SearchListDetailScreen(
                 }
             }
         },
+        windowInsets = WindowInsets(0, 0, 0, 0),
     )
     LaunchedEffect(Unit) {
         if (selectedPackageName != null) {

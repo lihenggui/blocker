@@ -38,7 +38,6 @@ import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportA
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
-import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
 import com.merxury.blocker.feature.sort.navigation.appSortScreen
@@ -47,6 +46,7 @@ import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
 import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
+import com.merxury.blocker.ui.twopane.search.searchListDetailScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
@@ -100,10 +100,11 @@ fun BlockerNavHost(
                 navigateToAppDetail = navController::navigateToAppDetail,
                 updateIconThemingState = updateIconThemingState,
             )
-            searchScreen(
+            searchListDetailScreen(
                 snackbarHostState = snackbarHostState,
-                navigateToAppDetail = navController::navigateToAppDetail,
-                navigateToRuleDetail = navController::navigateToRuleDetail,
+                updateIconThemingState = updateIconThemingState,
+                navigateToComponentDetail = navController::navigateToComponentDetail,
+                navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
             )
             ruleDetailScreen(
                 onBackClick = onBackClick,
