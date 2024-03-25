@@ -23,8 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.materialkolor.DynamicMaterialTheme
 
-const val MIN_CONTRAST_OF_PRIMARY_VS_SURFACE = 3f
-
 @Composable
 fun BlockerDynamicTheme(
     iconThemingState: IconThemingState,
