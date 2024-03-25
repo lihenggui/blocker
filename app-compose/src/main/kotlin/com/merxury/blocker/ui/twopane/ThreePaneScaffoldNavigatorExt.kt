@@ -63,7 +63,8 @@ internal fun calculateNoContentPaddingScaffoldDirective(
         }
         else -> {
             maxHorizontalPartitions = 2
-            verticalSpacerSize = 24.dp
+            // TODO: Add paddings for different panes?
+            verticalSpacerSize = 0.dp
         }
     }
     val maxVerticalPartitions: Int
