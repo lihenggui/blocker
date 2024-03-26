@@ -49,7 +49,7 @@ import com.merxury.blocker.feature.search.SearchRoute
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
-import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE
+import com.merxury.blocker.feature.search.navigation.SEARCH_LIST_APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import com.merxury.blocker.ui.twopane.calculateNoContentPaddingScaffoldDirective
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
@@ -64,14 +64,9 @@ fun NavGraphBuilder.searchListDetailScreen(
     navigateToComponentSortScreen: () -> Unit,
 ) {
     composable(
-        route = SEARCH_ROUTE,
+        route = SEARCH_LIST_APP_DETAIL_ROUTE,
         arguments = listOf(
             navArgument(PACKAGE_NAME_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-            navArgument(RULE_ID_ARG) {
                 type = NavType.StringType
                 defaultValue = null
                 nullable = true
@@ -95,6 +90,23 @@ fun NavGraphBuilder.searchListDetailScreen(
             navigateToComponentSortScreen = navigateToComponentSortScreen,
         )
     }
+    composable(
+        route = SEARCH_LIST_DETAIL_PANE_ROUTE,
+        arguments = listOf(
+            navArgument(RULE_ID_ARG) {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
+            },
+        ),
+    ) {
+        SearchListDetailScreen(
+            snackbarHostState = snackbarHostState,
+            updateIconThemingState = updateIconThemingState,
+            navigateToComponentDetail = navigateToComponentDetail,
+            navigateToComponentSortScreen = navigateToComponentSortScreen,
+        )
+    }
 }
 
 @Composable
@@ -105,12 +117,14 @@ internal fun SearchListDetailScreen(
     navigateToComponentSortScreen: () -> Unit,
     viewModel: Search2PaneViewModel = hiltViewModel(),
 ) {
-    val search2PaneState by viewModel.search2PaneState.collectAsStateWithLifecycle()
+    val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
+    val searchKeyword by viewModel.searchKeyword.collectAsStateWithLifecycle()
+    val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
     val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
     SearchListDetailScreen(
-        selectedPackageName = search2PaneState.selectedPackageName,
-        selectedTab = search2PaneState.selectedAppTabs ?: AppDetailTabs.Info,
-        searchKeyword = search2PaneState.searchKeyword ?: listOf(),
+        selectedPackageName = selectedPackageName,
+        selectedTab = AppDetailTabs.fromName(selectedTab),
+        searchKeyword = searchKeyword?.split(",") ?: listOf(),
         selectedRuleId = selectedRuleId,
         snackbarHostState = snackbarHostState,
         onAppClick = viewModel::onAppClick,
@@ -187,7 +201,11 @@ internal fun SearchListDetailScreen(
             )
         },
         detailPane = {
-            if (selectedPackageName != null) {
+            if (selectedPackageName == null && selectedRuleId == null) {
+                Box {
+                    Text("Search Detail")
+                }
+            } else if (selectedPackageName != null) {
                 NavHost(
                     navController = nestedNavController,
                     startDestination = APP_DETAIL_ROUTE,

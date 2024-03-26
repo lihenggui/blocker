@@ -16,43 +16,85 @@
 
 package com.merxury.blocker.feature.search.navigation
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.search.SearchRoute
 
-const val SEARCH_ROUTE = "search_route"
+const val SEARCH_ROUTE_BASIC = "search_route"
 const val PACKAGE_NAME_ARG = "packageName"
 const val TAB_ARG = "tab"
 const val KEYWORD_ARG = "keyword"
 const val RULE_ID_ARG = "ruleId"
+const val SEARCH_LIST_APP_DETAIL_ROUTE =
+    "$SEARCH_ROUTE_BASIC?$PACKAGE_NAME_ARG={$PACKAGE_NAME_ARG}?$TAB_ARG={$TAB_ARG}?$KEYWORD_ARG={$KEYWORD_ARG}"
+const val SEARCH_LIST_RULE_DETAIL_ROUTE = "$SEARCH_ROUTE_BASIC?$RULE_ID_ARG={$RULE_ID_ARG}"
 
-class AppDetailArgs(
-    val packageName: String,
-    val tabs: String = AppDetailTabs.Info.name,
-    val searchKeyword: List<String> = listOf(),
+fun NavController.navigateToSearch(
+    packageName: String? = null,
+    tab: AppDetailTabs = AppDetailTabs.Info,
+    keyword: List<String> = listOf(),
+    ruleId: String? = null,
+    navOptions: NavOptions? = null,
 ) {
-    constructor(savedStateHandle: SavedStateHandle) :
-        this(
-            savedStateHandle[PACKAGE_NAME_ARG] ?: "",
-            savedStateHandle[TAB_ARG] ?: AppDetailTabs.Info.name,
-            savedStateHandle[KEYWORD_ARG] ?: listOf(),
-        )
+    val route = if (ruleId != null) {
+        "$SEARCH_ROUTE_BASIC?$RULE_ID_ARG=$ruleId"
+    } else {
+        "$SEARCH_ROUTE_BASIC?$PACKAGE_NAME_ARG=$packageName?$TAB_ARG=${tab.name}?$KEYWORD_ARG=${
+            keyword.joinToString(
+                ",",
+            )
+        }"
+    }
+    navigate(route, navOptions)
 }
-
-fun NavController.navigateToSearch(navOptions: NavOptions) =
-    navigate(SEARCH_ROUTE, navOptions)
 
 fun NavGraphBuilder.searchScreen(
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
-    composable(route = SEARCH_ROUTE) {
+    composable(
+        route = SEARCH_LIST_APP_DETAIL_ROUTE,
+        arguments = listOf(
+            navArgument(PACKAGE_NAME_ARG) {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
+            },
+            navArgument(TAB_ARG) {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
+            },
+            navArgument(KEYWORD_ARG) {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
+            },
+        ),
+    ) {
+        SearchRoute(
+            snackbarHostState = snackbarHostState,
+            navigateToAppDetail = navigateToAppDetail,
+            navigateToRuleDetail = navigateToRuleDetail,
+        )
+    }
+    composable(
+        route = SEARCH_LIST_RULE_DETAIL_ROUTE,
+        arguments = listOf(
+            navArgument(RULE_ID_ARG) {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
+            },
+        ),
+    ) {
         SearchRoute(
             snackbarHostState = snackbarHostState,
             navigateToAppDetail = navigateToAppDetail,

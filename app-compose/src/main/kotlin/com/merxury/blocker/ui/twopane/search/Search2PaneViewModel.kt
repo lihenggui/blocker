@@ -19,38 +19,23 @@ package com.merxury.blocker.ui.twopane.search
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.search.navigation.AppDetailArgs
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
 class Search2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle)
-    private val _search2PaneState = MutableStateFlow(Search2PaneState())
-    val search2PaneState: StateFlow<Search2PaneState> = _search2PaneState
+    val selectedPackageName: StateFlow<String?> =
+        savedStateHandle.getStateFlow(PACKAGE_NAME_ARG, null)
+    val searchKeyword: StateFlow<String?> = savedStateHandle.getStateFlow(KEYWORD_ARG, null)
+    val selectedTab: StateFlow<String?> = savedStateHandle.getStateFlow(TAB_ARG, null)
     val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(RULE_ID_ARG, null)
-    init {
-        loadState()
-    }
-
-    private fun loadState() {
-        _search2PaneState.update {
-            Search2PaneState(
-                selectedPackageName = appDetailArgs.packageName,
-                selectedAppTabs = AppDetailTabs.fromName(appDetailArgs.tabs),
-                searchKeyword = appDetailArgs.searchKeyword,
-            )
-        }
-    }
 
     fun onRuleClick(ruleId: String?) {
         savedStateHandle[RULE_ID_ARG] = ruleId
@@ -66,13 +51,7 @@ class Search2PaneViewModel @Inject constructor(
             savedStateHandle[TAB_ARG] = tabs.name
         }
         if (keyword != null) {
-            savedStateHandle[KEYWORD_ARG] = keyword
+            savedStateHandle[KEYWORD_ARG] = keyword.joinToString(",")
         }
     }
 }
-
-data class Search2PaneState(
-    val selectedPackageName: String? = null,
-    val selectedAppTabs: AppDetailTabs? = AppDetailTabs.Info,
-    val searchKeyword: List<String>? = listOf(),
-)
