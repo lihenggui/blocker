@@ -51,6 +51,7 @@ import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.search.navigation.SEARCH_LIST_APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
+import com.merxury.blocker.feature.search.screen.SearchDetailPlaceholder
 import com.merxury.blocker.ui.twopane.calculateNoContentPaddingScaffoldDirective
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
@@ -202,9 +203,7 @@ internal fun SearchListDetailScreen(
         },
         detailPane = {
             if (selectedPackageName == null && selectedRuleId == null) {
-                Box {
-                    Text("Search Detail")
-                }
+                SearchDetailPlaceholder()
             } else if (selectedPackageName != null) {
                 NavHost(
                     navController = nestedNavController,
