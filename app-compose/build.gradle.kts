@@ -71,7 +71,7 @@ android {
                     keyPassword = project.properties["releaseKeyPassword"] as String
                 }
             } else {
-                signingConfigs.getByName("debug")
+                signingConfigs.named("debug").get()
             }
             // Ensure Baseline Profile is fresh for release builds.
             baselineProfile.automaticGenerationDuringBuild = true
