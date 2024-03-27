@@ -151,7 +151,8 @@ fun AppDetailRoute(
     navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
+    showBackButton: Boolean = true,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -206,7 +207,7 @@ fun AppDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
         onSelectAll = viewModel::selectAll,
         blockAllSelectedComponents = { viewModel.controlAllSelectedComponents(false) },
         enableAllSelectedComponents = { viewModel.controlAllSelectedComponents(true) },
@@ -242,6 +243,7 @@ fun AppDetailRoute(
             viewModel.loadComponentList()
             viewModel.updateComponentList()
         },
+        showBackButton = showBackButton,
     )
     if (appInfoUiState.error != null) {
         BlockerErrorAlertDialog(
@@ -252,7 +254,7 @@ fun AppDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateIconBasedThemingState(IconThemingState())
+            updateIconThemingState(IconThemingState())
         }
     }
     event?.let {
@@ -395,6 +397,7 @@ fun AppDetailScreen(
     componentListUiState: Result<ComponentSearchResult>,
     tabState: TabState<AppDetailTabs>,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     onBackClick: () -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     switchTab: (AppDetailTabs) -> Unit = {},
@@ -416,7 +419,7 @@ fun AppDetailScreen(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToComponentSortScreen: () -> Unit = {},
-    updateIconBasedThemingState: (IconThemingState) -> Unit = {},
+    updateIconThemingState: (IconThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
     enableAllSelectedComponents: () -> Unit = {},
@@ -458,7 +461,7 @@ fun AppDetailScreen(
         onLaunchActivityClick = onLaunchActivityClick,
         onCopyNameClick = onCopyNameClick,
         onCopyFullNameClick = onCopyFullNameClick,
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
         onSelectAll = onSelectAll,
         blockAllSelectedComponents = blockAllSelectedComponents,
         enableAllSelectedComponents = enableAllSelectedComponents,
@@ -472,6 +475,7 @@ fun AppDetailScreen(
         onRefresh = onRefresh,
         showOpenInLibChecker = appInfoUiState.showOpenInLibChecker,
         matchedGeneralRuleUiState = appInfoUiState.matchedRuleUiState,
+        showBackButton = showBackButton,
     )
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
@@ -488,6 +492,7 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     seedColor: Color? = null,
     isRefreshing: Boolean = false,
+    showBackButton: Boolean = true,
     navigateToComponentDetail: (String) -> Unit = {},
     navigateToRuleDetail: (String) -> Unit = {},
     navigateToComponentSortScreen: () -> Unit,
@@ -506,7 +511,7 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
     enableAllSelectedComponents: () -> Unit = {},
@@ -556,7 +561,7 @@ fun AppDetailContent(
             }
         }
     }
-    updateIconBasedThemingState(IconThemingState(seedColor = seedColor))
+    updateIconThemingState(IconThemingState(seedColor = seedColor))
     Scaffold(
         topBar = {
             TopAppBar(
@@ -578,6 +583,7 @@ fun AppDetailContent(
                 onBackClick = onBackClick,
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
+                showBackButton = showBackButton,
             )
         },
         modifier = modifier.nestedScroll(nestedScrollConnection),
@@ -693,6 +699,7 @@ private fun TopAppBar(
     app: AppItem,
     topAppBarUiState: AppBarUiState,
     toolbarState: ToolbarState,
+    showBackButton: Boolean = true,
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponentsInPage: () -> Unit = {},
@@ -709,6 +716,7 @@ private fun TopAppBar(
 ) {
     if (!isSelectedMode) {
         BlockerCollapsingTopAppBar(
+            showBackButton = showBackButton,
             progress = toolbarState.progress,
             onNavigationClick = {
                 if (isSearchMode) {

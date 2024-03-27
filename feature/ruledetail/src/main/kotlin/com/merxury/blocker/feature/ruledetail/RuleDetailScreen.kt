@@ -103,10 +103,11 @@ import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun RuleDetailRoute(
+    showBackButton: Boolean = true,
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -118,6 +119,7 @@ fun RuleDetailRoute(
     val scope = rememberCoroutineScope()
     RuleDetailScreen(
         ruleInfoUiState = ruleInfoUiState,
+        showBackButton = showBackButton,
         onBackClick = onBackClick,
         tabState = tabState,
         switchTab = viewModel::switchTab,
@@ -140,7 +142,7 @@ fun RuleDetailRoute(
         },
         onSwitch = viewModel::controlComponent,
         navigateToAppDetail = navigateToAppDetail,
-        updateIconBasedThemingState = updateIconBasedThemingState,
+        updateIconThemingState = updateIconThemingState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -151,7 +153,7 @@ fun RuleDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateIconBasedThemingState(IconThemingState())
+            updateIconThemingState(IconThemingState())
         }
     }
 }
@@ -267,6 +269,7 @@ private fun showDisableProgress(
 @Composable
 fun RuleDetailScreen(
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     ruleInfoUiState: RuleInfoUiState,
     tabState: TabState<RuleDetailTabs>,
     appBarUiState: AppBarUiState = AppBarUiState(),
@@ -282,7 +285,7 @@ fun RuleDetailScreen(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconThemingState) -> Unit = { _ -> },
+    updateIconThemingState: (IconThemingState) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -292,6 +295,7 @@ fun RuleDetailScreen(
         is RuleInfoUiState.Success -> {
             RuleDetailContent(
                 modifier = modifier,
+                showBackButton = showBackButton,
                 ruleMatchedAppListUiState = ruleInfoUiState.matchedAppsUiState,
                 ruleInfoUiState = ruleInfoUiState,
                 onBackClick = onBackClick,
@@ -308,7 +312,7 @@ fun RuleDetailScreen(
                 onEnableAllInPageClick = onEnableAllInPageClick,
                 onSwitch = onSwitch,
                 navigateToAppDetail = navigateToAppDetail,
-                updateIconBasedThemingState = updateIconBasedThemingState,
+                updateIconThemingState = updateIconThemingState,
             )
         }
 
@@ -322,6 +326,7 @@ fun RuleDetailScreen(
 @Composable
 fun RuleDetailContent(
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     onBackClick: () -> Unit,
@@ -338,7 +343,7 @@ fun RuleDetailContent(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateIconBasedThemingState: (IconThemingState) -> Unit = { _ -> },
+    updateIconThemingState: (IconThemingState) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -375,12 +380,13 @@ fun RuleDetailContent(
             }
         }
     }
-    updateIconBasedThemingState(
+    updateIconThemingState(
         IconThemingState(seedColor = ruleInfoUiState.seedColor),
     )
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
+                showBackButton = showBackButton,
                 progress = toolbarState.progress,
                 onNavigationClick = onBackClick,
                 title = ruleInfoUiState.ruleInfo.name,
@@ -555,6 +561,7 @@ fun RuleDetailScreenPreview(
     BlockerTheme {
         Surface {
             RuleDetailScreen(
+                showBackButton = false,
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     matchedAppsUiState = Result.Success(

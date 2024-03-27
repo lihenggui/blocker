@@ -43,14 +43,14 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
         const val PROVIDER = "provider"
         const val SDK = "sdks"
 
-        fun fromName(name: String?): AppDetailTabs = when (name) {
+        fun fromName(name: String?): AppDetailTabs? = when (name) {
             INFO -> Info
             RECEIVER -> Receiver
             SERVICE -> Service
             ACTIVITY -> Activity
             PROVIDER -> Provider
             SDK -> Sdk
-            else -> throw IllegalArgumentException("Invalid screen name in detail page")
+            else -> null
         }
 
         fun toComponentType(name: String?): ComponentType = when (name) {

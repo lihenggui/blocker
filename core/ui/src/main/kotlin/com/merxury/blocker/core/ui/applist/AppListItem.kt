@@ -18,7 +18,11 @@ package com.merxury.blocker.core.ui.applist
 
 import android.content.pm.PackageInfo
 import android.view.MotionEvent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +51,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.DpOffset
@@ -84,15 +90,24 @@ fun AppListItem(
     onUninstallClick: (String) -> Unit = {},
     onEnableClick: (String) -> Unit = {},
     onDisableClick: (String) -> Unit = {},
+    isSelected: Boolean = false,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
+    val animatedColor = animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
+        animationSpec = tween(300, 0, LinearEasing),
+        label = "color",
+    )
     Box {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
+                .semantics(mergeDescendants = true) {
+                    selected = isSelected
+                }
                 .fillMaxWidth()
                 .combinedClickable(
                     onClick = { onClick(packageName) },
@@ -107,6 +122,9 @@ fun AppListItem(
                     }
                     false
                 }
+                .background(
+                    color = animatedColor.value,
+                )
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             AppIcon(packageInfo, iconModifier.size(48.dp))
@@ -202,7 +220,11 @@ private fun AppContent(
             }
         }
         BlockerBodyMediumText(
-            text = stringResource(id = string.core_ui_version_code_template, versionName, versionCode),
+            text = stringResource(
+                id = string.core_ui_version_code_template,
+                versionName,
+                versionCode,
+            ),
         )
         if (serviceStatus != null) {
             BlockerBodyMediumText(
@@ -278,6 +300,7 @@ fun AppListItemWithLongAppName(
                 isAppRunning = appList[2].isRunning,
                 packageInfo = appList[2].packageInfo,
                 appServiceStatus = appList[2].appServiceStatus,
+                isSelected = true,
             )
         }
     }

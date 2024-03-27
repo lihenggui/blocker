@@ -43,4 +43,5 @@
     <string name="feature_search_search_hint">Aplicaciones, características y reglas</string>
     <string name="feature_search_no_search_result">Todavía no hay resultados de búsqueda</string>
     <string name="feature_search_check_icon">Comprobar</string>
+    <string name="feature_search_selecte_an_app_or_a_rule">Seleccionar una aplicación o una regla</string>
 </resources>
