@@ -19,7 +19,7 @@ package com.merxury.blocker.ui.twopane.search
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.search.navigation.IS_APP_PAGE
+import com.merxury.blocker.feature.search.navigation.IS_APP_DETAIL_PAGE
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
@@ -32,7 +32,8 @@ import javax.inject.Inject
 class Search2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val isAppPage: StateFlow<Boolean> = savedStateHandle.getStateFlow(IS_APP_PAGE, true)
+    val isAppDetailPage: StateFlow<Boolean> =
+        savedStateHandle.getStateFlow(IS_APP_DETAIL_PAGE, true)
     val selectedPackageName: StateFlow<String?> =
         savedStateHandle.getStateFlow(PACKAGE_NAME_ARG, null)
     val searchKeyword: StateFlow<String?> = savedStateHandle.getStateFlow(KEYWORD_ARG, null)
@@ -44,7 +45,7 @@ class Search2PaneViewModel @Inject constructor(
         savedStateHandle[PACKAGE_NAME_ARG] = null
         savedStateHandle[TAB_ARG] = null
         savedStateHandle[KEYWORD_ARG] = null
-        savedStateHandle[IS_APP_PAGE] = false
+        savedStateHandle[IS_APP_DETAIL_PAGE] = false
     }
 
     fun onAppClick(
@@ -60,6 +61,6 @@ class Search2PaneViewModel @Inject constructor(
             savedStateHandle[KEYWORD_ARG] = keyword.joinToString(",")
         }
         savedStateHandle[RULE_ID_ARG] = null
-        savedStateHandle[IS_APP_PAGE] = true
+        savedStateHandle[IS_APP_DETAIL_PAGE] = true
     }
 }

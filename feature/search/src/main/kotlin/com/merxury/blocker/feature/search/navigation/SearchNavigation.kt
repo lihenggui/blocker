@@ -27,7 +27,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.search.SearchRoute
 
 const val SEARCH_ROUTE_BASIC = "search_route"
-const val IS_APP_PAGE = "isAppPage"
+const val IS_APP_DETAIL_PAGE = "isAppDetailPage"
 const val PACKAGE_NAME_ARG = "packageName"
 const val TAB_ARG = "tab"
 const val KEYWORD_ARG = "keyword"

@@ -45,7 +45,7 @@ import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.SearchRoute
-import com.merxury.blocker.feature.search.navigation.IS_APP_PAGE
+import com.merxury.blocker.feature.search.navigation.IS_APP_DETAIL_PAGE
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
@@ -68,7 +68,7 @@ fun NavGraphBuilder.searchListDetailScreen(
     composable(
         route = SEARCH_LIST_APP_DETAIL_ROUTE,
         arguments = listOf(
-            navArgument(IS_APP_PAGE) {
+            navArgument(IS_APP_DETAIL_PAGE) {
                 type = NavType.BoolType
                 defaultValue = true
             },
@@ -111,14 +111,14 @@ internal fun SearchListDetailScreen(
     navigateToComponentSortScreen: () -> Unit,
     viewModel: Search2PaneViewModel = hiltViewModel(),
 ) {
-    val isAppPage by viewModel.isAppPage.collectAsStateWithLifecycle()
+    val isAppDetailPage by viewModel.isAppDetailPage.collectAsStateWithLifecycle()
     val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
     val searchKeyword by viewModel.searchKeyword.collectAsStateWithLifecycle()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
     val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
     SearchListDetailScreen(
         snackbarHostState = snackbarHostState,
-        isAppPage = isAppPage,
+        isAppDetailPage = isAppDetailPage,
         selectedPackageName = selectedPackageName,
         selectedTab = AppDetailTabs.fromName(selectedTab),
         searchKeyword = searchKeyword?.split(",") ?: listOf(),
@@ -135,7 +135,7 @@ internal fun SearchListDetailScreen(
 @Composable
 internal fun SearchListDetailScreen(
     snackbarHostState: SnackbarHostState,
-    isAppPage: Boolean,
+    isAppDetailPage: Boolean,
     selectedPackageName: String? = null,
     selectedTab: AppDetailTabs? = null,
     selectedRuleId: String? = null,
@@ -213,7 +213,7 @@ internal fun SearchListDetailScreen(
         detailPane = {
             if (selectedPackageName == null && selectedRuleId == null) {
                 SearchDetailPlaceholder()
-            } else if (isAppPage) {
+            } else if (isAppDetailPage) {
                 NavHost(
                     navController = nestedNavController,
                     startDestination = APP_DETAIL_ROUTE,
