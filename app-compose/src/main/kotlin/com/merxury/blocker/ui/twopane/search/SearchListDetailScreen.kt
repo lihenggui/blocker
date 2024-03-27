@@ -179,6 +179,19 @@ internal fun SearchListDetailScreen(
         listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
     }
 
+    fun onAppClickShowDetailPane(
+        packageName: String,
+    ) {
+        onAppClick(packageName, AppDetailTabs.Info, listOf())
+        nestedNavController.navigateToAppDetail(
+            packageName = packageName,
+            navOptions = {
+                popUpTo(SEARCH_LIST_DETAIL_PANE_ROUTE)
+            },
+        )
+        listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
+    }
+
     fun onRuleClickShowDetailPane(ruleId: String) {
         onRuleClick(ruleId)
         nestedNavController.navigateToRuleDetail(
