@@ -24,7 +24,6 @@ android {
     namespace = "com.merxury.blocker.feature.generalrule"
 }
 dependencies {
-    implementation(libs.androidx.work.ktx)
     implementation(projects.core.data)
     implementation(projects.core.domain)
 
