@@ -76,10 +76,8 @@ fun NavController.navigateToAppDetail(
     val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
     val newRoute = StringBuilder(APP_DETAIL_ROUTE).apply {
         append("/$encodedPackageName")
-        append("?$TAB_ARG=$encodedTab")
-        if (searchKeyword.isNotEmpty()) {
-            append("?$KEYWORD_ARG=$keywords")
-        }
+        append("?$TAB_ARG={$encodedTab}")
+        append("?$KEYWORD_ARG={$keywords}")
     }.toString()
 
     navigate(newRoute) {
