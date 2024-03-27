@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.domain
 
-import android.content.Context
 import androidx.work.ExistingWorkPolicy.KEEP
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
@@ -26,7 +25,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -36,7 +34,7 @@ import java.io.File
 import javax.inject.Inject
 
 class InitializeRuleStorageUseCase @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    private val workManager: WorkManager,
     @FilesDir private val filesDir: File,
     @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -48,7 +46,6 @@ class InitializeRuleStorageUseCase @Inject constructor(
             emit(InitializeState.Done)
             return@flow
         }
-        val workManager = WorkManager.getInstance(appContext)
         Timber.v("Enqueue copy rules to storage worker")
         workManager.enqueueUniqueWork(
             CopyRulesToStorageWorker.WORK_NAME,
