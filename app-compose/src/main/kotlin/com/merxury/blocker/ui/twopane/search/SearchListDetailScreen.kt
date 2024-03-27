@@ -45,7 +45,6 @@ import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.SearchRoute
-import com.merxury.blocker.feature.search.navigation.IS_APP_PAGE
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
@@ -68,10 +67,6 @@ fun NavGraphBuilder.searchListDetailScreen(
     composable(
         route = SEARCH_LIST_APP_DETAIL_ROUTE,
         arguments = listOf(
-            navArgument(IS_APP_PAGE) {
-                type = NavType.BoolType
-                defaultValue = true
-            },
             navArgument(PACKAGE_NAME_ARG) {
                 type = NavType.StringType
                 defaultValue = null
