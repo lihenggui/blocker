@@ -56,7 +56,10 @@ internal class AppDetailArgs(
                 checkNotNull(savedStateHandle[PACKAGE_NAME_ARG]),
                 URL_CHARACTER_ENCODING,
             ),
-            savedStateHandle[TAB_ARG] ?: AppDetailTabs.Info.name,
+            URLDecoder.decode(
+                checkNotNull(savedStateHandle[TAB_ARG]),
+                URL_CHARACTER_ENCODING,
+            ),
             URLDecoder.decode(checkNotNull(savedStateHandle[KEYWORD_ARG]), URL_CHARACTER_ENCODING)
                 .split(","),
         )
@@ -68,9 +71,17 @@ fun NavController.navigateToAppDetail(
     searchKeyword: List<String> = listOf(),
     navOptions: NavOptionsBuilder.() -> Unit = {},
 ) {
-    val encodedId = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
+    val encodedPackageName = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
+    val encodedTab = URLEncoder.encode(tab.name, URL_CHARACTER_ENCODING)
     val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
-    val newRoute = "$APP_DETAIL_ROUTE/$encodedId?$TAB_ARG=${tab.name}?$KEYWORD_ARG=$keywords"
+    val newRoute = StringBuilder(APP_DETAIL_ROUTE).apply {
+        append("/$encodedPackageName")
+        append("?$TAB_ARG=$encodedTab")
+        if (searchKeyword.isNotEmpty()) {
+            append("?$KEYWORD_ARG=$keywords")
+        }
+    }.toString()
+
     navigate(newRoute) {
         navOptions()
     }
@@ -90,7 +101,10 @@ fun NavGraphBuilder.appDetailScreen(
         arguments = listOf(
             navArgument(PACKAGE_NAME_ARG) { type = NavType.StringType },
             navArgument(TAB_ARG) { type = NavType.StringType },
-            navArgument(KEYWORD_ARG) { type = NavType.StringType },
+            navArgument(KEYWORD_ARG) {
+                type = NavType.StringType
+                nullable = true
+            },
         ),
     ) {
         AppDetailRoute(
