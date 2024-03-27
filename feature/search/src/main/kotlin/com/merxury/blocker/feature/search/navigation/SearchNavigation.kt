@@ -44,12 +44,14 @@ fun NavController.navigateToSearch(
 ) {
     val route = if (ruleId != null) {
         "$SEARCH_ROUTE_BASIC?$RULE_ID_ARG=$ruleId"
-    } else {
+    } else if (packageName != null) {
         "$SEARCH_ROUTE_BASIC?$PACKAGE_NAME_ARG=$packageName?$TAB_ARG=${tab.name}?$KEYWORD_ARG=${
             keyword.joinToString(
                 ",",
             )
         }"
+    } else {
+        SEARCH_ROUTE_BASIC
     }
     navigate(route, navOptions)
 }

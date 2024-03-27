@@ -72,29 +72,17 @@ fun NavGraphBuilder.searchListDetailScreen(
                 defaultValue = null
                 nullable = true
             },
+            navArgument(RULE_ID_ARG) {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
+            },
             navArgument(TAB_ARG) {
                 type = NavType.StringType
                 defaultValue = null
                 nullable = true
             },
             navArgument(KEYWORD_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-        ),
-    ) {
-        SearchListDetailScreen(
-            snackbarHostState = snackbarHostState,
-            updateIconThemingState = updateIconThemingState,
-            navigateToComponentDetail = navigateToComponentDetail,
-            navigateToComponentSortScreen = navigateToComponentSortScreen,
-        )
-    }
-    composable(
-        route = SEARCH_LIST_DETAIL_PANE_ROUTE,
-        arguments = listOf(
-            navArgument(RULE_ID_ARG) {
                 type = NavType.StringType
                 defaultValue = null
                 nullable = true
