@@ -79,9 +79,11 @@ class GeneralRuleViewModelTest {
             .build()
         WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
         workManager = WorkManager.getInstance(context)
+        // Use actual filesDir in the AndroidTest
+        val filesDir = context.filesDir
         val initGeneralRuleUseCase = InitializeRuleStorageUseCase(
-            filesDir = tempFolder.newFolder(),
-            ruleBaseFolder = tempFolder.newFolder().absolutePath,
+            filesDir = filesDir,
+            ruleBaseFolder = filesDir.absolutePath,
             ioDispatcher = dispatcher,
             workManager = workManager,
         )
@@ -124,7 +126,11 @@ class GeneralRuleViewModelTest {
             componentRepository.sendComponentList(sampleComponentList)
             generalRuleRepository.sendRuleList(sampleRuleList)
             assertEquals(Loading, awaitItem())
-            assertEquals(Success(sampleRuleList), awaitItem())
+            assertEquals(Success(
+                rules = sampleRuleList,
+                matchProgress = 0F,
+            ), awaitItem())
+            assertEquals(Success(rules = sampleRuleList, matchProgress = 1F), awaitItem())
         }
     }
 }
@@ -133,7 +139,6 @@ private val sampleRuleList = listOf(
     GeneralRule(
         id = 1,
         name = "Rule1",
-        iconUrl = null,
         company = "Rule1 company",
         description = "Rule1 description",
         sideEffect = "Unknown",
@@ -144,7 +149,6 @@ private val sampleRuleList = listOf(
     GeneralRule(
         id = 2,
         name = "Rule2",
-        iconUrl = null,
         company = "Rule2 company",
         description = "Rule2 description",
         sideEffect = "Unknown",
@@ -160,7 +164,6 @@ private val sampleRuleList = listOf(
     GeneralRule(
         id = 3,
         name = "Rule3",
-        iconUrl = "icon/chuanshanjia.svg",
         company = "Rule3 company",
         description = "Rule3 description",
         sideEffect = "Unknown",
