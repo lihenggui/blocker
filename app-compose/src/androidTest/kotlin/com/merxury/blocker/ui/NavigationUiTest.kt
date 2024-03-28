@@ -19,14 +19,18 @@ package com.merxury.blocker.ui
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -70,6 +74,9 @@ class NavigationUiTest {
     @Inject
     lateinit var permissionMonitor: PermissionMonitor
 
+    @Inject
+    lateinit var timeZoneMonitor: TimeZoneMonitor
+
     @Before
     fun setup() {
         hiltRule.inject()
@@ -81,11 +88,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(400.dp, 400.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -101,11 +104,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(610.dp, 400.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -121,11 +120,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(900.dp, 400.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -141,11 +136,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(400.dp, 500.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -161,11 +152,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(610.dp, 500.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -181,11 +168,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(900.dp, 500.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -201,11 +184,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(400.dp, 1000.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -221,11 +200,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(610.dp, 1000.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -241,11 +216,7 @@ class NavigationUiTest {
             TestHarness(size = DpSize(900.dp, 1000.dp)) {
                 BoxWithConstraints {
                     BlockerApp(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
+                        fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
                     )
                 }
             }
@@ -254,4 +225,13 @@ class NavigationUiTest {
         composeTestRule.onNodeWithTag("BlockerNavRail").assertIsDisplayed()
         composeTestRule.onNodeWithTag("BlockerBottomBar").assertDoesNotExist()
     }
+
+    @OptIn(ExperimentalMaterialNavigationApi::class)
+    @Composable
+    private fun fakeAppState(maxWidth: Dp, maxHeight: Dp) = rememberBlockerAppState(
+        windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight)),
+        networkMonitor = networkMonitor,
+        permissionMonitor = permissionMonitor,
+        timeZoneMonitor = timeZoneMonitor,
+    )
 }

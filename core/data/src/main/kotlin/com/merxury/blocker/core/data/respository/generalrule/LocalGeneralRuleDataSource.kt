@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.respository.generalrule
 
+import android.os.Build
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.FilesDir
@@ -50,8 +51,16 @@ internal class LocalGeneralRuleDataSource @Inject constructor(
         val language = userDataRepository.getLibDisplayLanguage()
         val ruleFile = getRuleFile(language)
         ruleFile.inputStream().use { inputStream ->
-            val serializedRule = json.decodeFromStream<List<NetworkGeneralRule>>(inputStream)
-                .map { it.asExternalModel() }
+            val serializedRule = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+                // https://github.com/Kotlin/kotlinx.serialization/issues/2457
+                // Use decodeFromString instead of decodeFromStream to avoid the issue
+                val text = inputStream.bufferedReader().use { it.readText() }
+                json.decodeFromString<List<NetworkGeneralRule>>(text)
+                    .map { it.asExternalModel() }
+            } else {
+                json.decodeFromStream<List<NetworkGeneralRule>>(inputStream)
+                    .map { it.asExternalModel() }
+            }
             emit(serializedRule)
         }
     }

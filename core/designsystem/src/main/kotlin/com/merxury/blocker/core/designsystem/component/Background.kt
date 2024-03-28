@@ -151,7 +151,7 @@ annotation class ThemePreviews
 @ThemePreviews
 @Composable
 fun BackgroundDefault() {
-    BlockerTheme(disableDynamicTheming = true) {
+    BlockerTheme(useDynamicTheming = false) {
         BlockerBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -159,7 +159,7 @@ fun BackgroundDefault() {
 @ThemePreviews
 @Composable
 fun BackgroundDynamic() {
-    BlockerTheme(disableDynamicTheming = false) {
+    BlockerTheme {
         BlockerBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -175,7 +175,7 @@ fun BackgroundAndroid() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundDefault() {
-    BlockerTheme(disableDynamicTheming = true) {
+    BlockerTheme {
         BlockerGradientBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -183,7 +183,7 @@ fun GradientBackgroundDefault() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundDynamic() {
-    BlockerTheme(disableDynamicTheming = false) {
+    BlockerTheme {
         BlockerGradientBackground(Modifier.size(100.dp), content = {})
     }
 }

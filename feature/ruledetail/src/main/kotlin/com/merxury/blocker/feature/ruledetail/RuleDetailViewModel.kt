@@ -19,7 +19,8 @@ package com.merxury.blocker.feature.ruledetail
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -28,6 +29,7 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.size.Scale
+import com.materialkolor.ktx.themeColorOrNull
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -124,7 +126,6 @@ class RuleDetailViewModel @Inject constructor(
     private fun loadData() {
         loadRuleDetailJob?.cancel()
         loadRuleDetailJob = viewModelScope.launch {
-            val context: Context = appContext
             val ruleId = ruleIdArgs.ruleId
             val rule = ruleRepository.getGeneralRule(ruleId)
                 .first()
@@ -137,12 +138,23 @@ class RuleDetailViewModel @Inject constructor(
             _ruleInfoUiState.update {
                 RuleInfoUiState.Success(
                     ruleInfo = ruleWithIcon,
-                    ruleIcon = getRuleIcon(iconFile, context = context),
                     matchedAppsUiState = Result.Loading,
                 )
             }
+            updateSeedColor(iconFile)
             currentSearchKeyword = rule.searchKeyword
             loadMatchedApps(rule.searchKeyword)
+        }
+    }
+
+    private fun updateSeedColor(iconFile: File?) = viewModelScope.launch(ioDispatcher) {
+        if (iconFile == null) return@launch
+        val useDynamicColor = userDataRepository.userData.first().useDynamicColor
+        if (!useDynamicColor) return@launch
+        _ruleInfoUiState.update {
+            if (it !is RuleInfoUiState.Success) return@update it
+            val seedColor = getSeedColor(iconFile, context = appContext)
+            it.copy(seedColor = seedColor)
         }
     }
 
@@ -332,8 +344,10 @@ class RuleDetailViewModel @Inject constructor(
         _tabState.update { it.copy(selectedItem = screen) }
     }
 
-    private suspend fun getRuleIcon(icon: File?, context: Context) =
+    private suspend fun getSeedColor(icon: File?, context: Context): Color? =
         withContext(ioDispatcher) {
+            val useDynamicColor = userDataRepository.userData.first().useDynamicColor
+            if (!useDynamicColor) return@withContext null
             val request = ImageRequest.Builder(context)
                 .data(icon)
                 // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
@@ -348,7 +362,8 @@ class RuleDetailViewModel @Inject constructor(
                 is SuccessResult -> result.drawable.toBitmap()
                 else -> null
             }
-            return@withContext bitmap
+            return@withContext bitmap?.asImageBitmap()
+                ?.themeColorOrNull()
         }
 }
 
@@ -357,7 +372,7 @@ sealed interface RuleInfoUiState {
     class Error(val error: UiMessage) : RuleInfoUiState
     data class Success(
         val ruleInfo: GeneralRule,
-        val ruleIcon: Bitmap?,
         val matchedAppsUiState: Result<List<MatchedItem>>,
+        val seedColor: Color? = null,
     ) : RuleInfoUiState
 }

@@ -24,7 +24,6 @@ plugins {
     alias(libs.plugins.blocker.android.hilt)
     alias(libs.plugins.blocker.android.application.firebase)
     alias(libs.plugins.ksp)
-    id("jacoco")
     id("kotlin-parcelize")
     id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.baselineprofile)
@@ -72,7 +71,7 @@ android {
                     keyPassword = project.properties["releaseKeyPassword"] as String
                 }
             } else {
-                signingConfigs.getByName("debug")
+                signingConfigs.named("debug").get()
             }
             // Ensure Baseline Profile is fresh for release builds.
             baselineProfile.automaticGenerationDuringBuild = true
@@ -145,10 +144,12 @@ dependencies {
     testImplementation(libs.work.testing)
     testFossImplementation(libs.robolectric)
     testFossImplementation(libs.roborazzi)
+    testFossImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
     androidTestImplementation(projects.core.dataTest)
     androidTestImplementation(projects.core.datastoreTest)
+    androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.navigation.testing)
     androidTestImplementation(libs.accompanist.testharness)
     androidTestImplementation(libs.hilt.android.testing)

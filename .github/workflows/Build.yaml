@@ -35,6 +35,7 @@ jobs:
     permissions:
       contents: write
       security-events: write
+      pull-requests: write
 
     timeout-minutes: 60
 
@@ -144,7 +145,7 @@ jobs:
           commit_message: "🤖 Updates screenshots"
 
       # Run local tests after screenshot tests to avoid wrong UP-TO-DATE. TODO: Ignore screenshots.
-      - name: Run local tests
+      - name: Run local tests and create report
         if: always()
         run: ./gradlew testFossDebug :lint:test
 
@@ -196,15 +197,15 @@ jobs:
       - name: Get apk info
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
         id: apk-info
-        uses: zhaobozhen/apk-info-action@1.1.2
+        uses: zhaobozhen/apk-info-action@v1.1.3
         with:
           apk-path: ${{ steps.apk-path.outputs.foss_path }}
 
-      - name: Upload test results (XML)
+      - name: Upload JVM local results (XML)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: local-test-results
           path: '**/build/test-results/test*UnitTest/**.xml'
 
       - name: Check lint
@@ -231,7 +232,7 @@ jobs:
     timeout-minutes: 90
     strategy:
       matrix:
-        api-level: [ 26, 34 ]
+        api-level: [ 26, 30, 34 ]
 
     steps:
       - name: Delete unnecessary tools 🔧
@@ -270,9 +271,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build projects before running emulator
-        run: ./gradlew packageFossDebug packageFossDebugAndroidTest
-
       # Cache AVD. See https://github.com/ReactiveCircus/android-emulator-runner
       - name: AVD cache
         uses: actions/cache@v4
@@ -297,7 +295,7 @@ jobs:
           heap-size: 600M
           script: echo "Generated AVD snapshot for caching."
 
-      - name: Run instrumentation tests
+      - name: Build projects and run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
@@ -307,9 +305,41 @@ jobs:
           heap-size: 600M
           script: ./gradlew connectedMarketDebugAndroidTest --daemon
 
+      - name: Run local tests (including Roborazzi) for the combined coverage report (only API 30)
+        if: matrix.api-level == 30
+        # There is no need to verify Roborazzi tests to generate coverage.
+        run: ./gradlew testFossDebugUnitTest -Proborazzi.test.verify=false # Add Prod if we ever add JVM tests for prod
+
+      # Add `createProdDebugUnitTestCoverageReport` if we ever add JVM tests for prod
+      - name: Generate coverage reports for Debug variants (only API 30)
+        if: matrix.api-level == 30
+        run: ./gradlew createFossDebugCombinedCoverageReport
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports-${{ matrix.api-level }}
           path: '**/build/reports/androidTests'
+
+      - name: Display local test coverage (only API 30)
+        if: matrix.api-level == 30
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.6.1
+        with:
+          title: Combined test coverage report
+          min-coverage-overall: 40
+          min-coverage-changed-files: 60
+          paths: |
+            ${{ github.workspace }}/**/build/reports/jacoco/**/*Report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload local coverage reports (XML + HTML) (only API 30)
+        if: matrix.api-level == 30
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          if-no-files-found: error
+          compression-level: 1
+          overwrite: false
+          path: '**/build/reports/jacoco/'

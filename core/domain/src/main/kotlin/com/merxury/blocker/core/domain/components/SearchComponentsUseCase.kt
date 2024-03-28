@@ -74,7 +74,8 @@ class SearchComponentsUseCase @Inject constructor(
                 return@combineTransform
             }
             val receiver = filterAndSortComponentList(components, userData, RECEIVER)
-            val service = filterAndSortComponentList(components, userData, SERVICE)
+            val service =
+                filterAndSortComponentList(components, userData, SERVICE, serviceController)
             val activity = filterAndSortComponentList(components, userData, ACTIVITY)
             val provider = filterAndSortComponentList(components, userData, PROVIDER)
             val searchKeywords = keyword.split(",")
@@ -85,8 +86,7 @@ class SearchComponentsUseCase @Inject constructor(
                     ComponentSearchResult(
                         app = app.toAppItem(),
                         activity = activity.getComponentDescription(),
-                        service = service.getComponentDescription()
-                            .getServiceStatus(serviceController),
+                        service = service.getComponentDescription(),
                         receiver = receiver.getComponentDescription(),
                         provider = provider.getComponentDescription(),
                     ),
@@ -116,6 +116,7 @@ class SearchComponentsUseCase @Inject constructor(
         list: List<ComponentInfo>,
         userData: UserPreferenceData,
         type: ComponentType,
+        serviceController: IServiceController? = null,
     ): List<ComponentInfo> {
         val componentSorting = userData.componentSorting
         val componentSortingOrder = userData.componentSortingOrder
@@ -123,7 +124,21 @@ class SearchComponentsUseCase @Inject constructor(
         return list.filter { it.type == type }
             .sortBy(componentSorting, componentSortingOrder)
             .sortByPriority(componentShowPriority)
-            .showRunningServicesOnTop()
+            .let {
+                if (type == SERVICE) {
+                    it.map { service ->
+                        val packageName = service.packageName
+                        val name = service.name
+                        val isRunning = serviceController?.isServiceRunning(packageName, name)
+                            ?: false
+                        service.copy(isRunning = isRunning)
+                    }.sortedByDescending { service ->
+                        service.isRunning
+                    }
+                } else {
+                    it
+                }
+            }
     }
 
     private fun searchMatchedComponent(
@@ -178,9 +193,5 @@ class SearchComponentsUseCase @Inject constructor(
             DISABLED_COMPONENTS_FIRST -> sortedBy { it.enabled() }
             ENABLED_COMPONENTS_FIRST -> sortedByDescending { it.enabled() }
         }
-    }
-
-    private fun List<ComponentInfo>.showRunningServicesOnTop(): List<ComponentInfo> {
-        return sortedByDescending { it.isRunning }
     }
 }

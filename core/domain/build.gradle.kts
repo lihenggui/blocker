@@ -31,7 +31,6 @@ dependencies {
     implementation(projects.core.ifwApi)
     implementation(projects.core.rule)
 
-    testImplementation(projects.core.testing)
     implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.datetime)
     implementation(libs.hilt.android)

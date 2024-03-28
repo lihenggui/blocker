@@ -22,7 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.MainActivityUiState.Loading
 import com.merxury.blocker.MainActivityUiState.Success
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,11 +44,13 @@ class MainActivityViewModel @Inject constructor(
         initialValue = Loading,
         started = SharingStarted.WhileSubscribed(5_000),
     )
-    private val _iconBasedThemingState: MutableStateFlow<IconBasedThemingState> = MutableStateFlow(IconBasedThemingState())
-    val iconBasedThemingState = _iconBasedThemingState.asStateFlow()
+    private val _iconThemingState: MutableStateFlow<IconThemingState> = MutableStateFlow(
+        IconThemingState(),
+    )
+    val iconThemingState = _iconThemingState.asStateFlow()
 
-    fun updateIconBasedThemingState(state: IconBasedThemingState) {
-        _iconBasedThemingState.value = state
+    fun updateIconBasedThemingState(state: IconThemingState) {
+        _iconThemingState.value = state
     }
 }
 

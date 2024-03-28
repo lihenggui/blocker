@@ -36,10 +36,12 @@ import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.testing.util.TestNetworkMonitor
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
+import com.merxury.blocker.core.testing.util.TestTimeZoneMonitor
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -53,7 +55,7 @@ import kotlin.test.assertTrue
  * is faked.
  */
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterialNavigationApi::class)
-class BlockerAppServiceStatusTest {
+class BlockerAppStateTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
@@ -62,6 +64,8 @@ class BlockerAppServiceStatusTest {
     private val networkMonitor = TestNetworkMonitor()
 
     private val permissionMonitor = TestPermissionMonitor()
+
+    private val timeZoneMonitor = TestTimeZoneMonitor()
 
     // Subject under test.
     private lateinit var state: BlockerAppState
@@ -81,6 +85,7 @@ class BlockerAppServiceStatusTest {
                     networkMonitor = networkMonitor,
                     permissionMonitor = permissionMonitor,
                     coroutineScope = backgroundScope,
+                    timeZoneMonitor = timeZoneMonitor,
                 )
             }
 
@@ -103,6 +108,7 @@ class BlockerAppServiceStatusTest {
                 windowSizeClass = getCompactWindowClass(),
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
+                timeZoneMonitor = timeZoneMonitor,
             )
         }
 
@@ -123,6 +129,7 @@ class BlockerAppServiceStatusTest {
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
+                timeZoneMonitor = timeZoneMonitor,
             )
         }
 
@@ -141,6 +148,7 @@ class BlockerAppServiceStatusTest {
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
+                timeZoneMonitor = timeZoneMonitor,
             )
         }
 
@@ -159,6 +167,7 @@ class BlockerAppServiceStatusTest {
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
+                timeZoneMonitor = timeZoneMonitor,
             )
         }
 
@@ -177,6 +186,7 @@ class BlockerAppServiceStatusTest {
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
+                timeZoneMonitor = timeZoneMonitor,
             )
         }
 
@@ -200,6 +210,7 @@ class BlockerAppServiceStatusTest {
                     networkMonitor = networkMonitor,
                     permissionMonitor = permissionMonitor,
                     coroutineScope = backgroundScope,
+                    timeZoneMonitor = timeZoneMonitor,
                 )
             }
 
@@ -210,6 +221,28 @@ class BlockerAppServiceStatusTest {
                 state.currentPermission.value,
             )
         }
+
+    @Test
+    fun blockerAppState_differentTZ_withTimeZoneMonitorChange() = runTest(UnconfinedTestDispatcher()) {
+        composeTestRule.setContent {
+            state = BlockerAppState(
+                bottomSheetNavigator = rememberBottomSheetNavigator(),
+                navController = NavHostController(LocalContext.current),
+                coroutineScope = backgroundScope,
+                windowSizeClass = getCompactWindowClass(),
+                networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
+                timeZoneMonitor = timeZoneMonitor,
+            )
+        }
+        val changedTz = TimeZone.of("Europe/Prague")
+        backgroundScope.launch { state.currentTimeZone.collect() }
+        timeZoneMonitor.setTimeZone(changedTz)
+        assertEquals(
+            changedTz,
+            state.currentTimeZone.value,
+        )
+    }
 
     private fun getCompactWindowClass() = WindowSizeClass.calculateFromSize(DpSize(500.dp, 300.dp))
 }

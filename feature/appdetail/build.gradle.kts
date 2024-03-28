@@ -33,6 +33,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.material.kolor)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.turbine)
