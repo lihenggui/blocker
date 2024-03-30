@@ -126,10 +126,13 @@ class GeneralRuleViewModelTest {
             componentRepository.sendComponentList(sampleComponentList)
             generalRuleRepository.sendRuleList(sampleRuleList)
             assertEquals(Loading, awaitItem())
-            assertEquals(Success(
-                rules = sampleRuleList,
-                matchProgress = 0F,
-            ), awaitItem())
+            assertEquals(
+                Success(
+                    rules = sampleRuleList,
+                    matchProgress = 0F,
+                ),
+                awaitItem(),
+            )
             assertEquals(Success(rules = sampleRuleList, matchProgress = 1F), awaitItem())
         }
     }
