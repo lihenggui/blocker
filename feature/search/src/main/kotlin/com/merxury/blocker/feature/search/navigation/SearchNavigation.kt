@@ -57,14 +57,14 @@ fun NavController.navigateToSearch(
     navOptions: NavOptions? = null,
 ) {
     val keywords = searchKeyword.joinToString(",")
-    val route = if (packageName != null) {
+    val route = if (!packageName.isNullOrEmpty()) {
         StringBuilder(SEARCH_ROUTE_BASIC).apply {
             append("?$packageName")
             append("?$TAB_ARG=${tab.name}")
             append("?$KEYWORD_ARG=$keywords")
         }.toString()
     } else if (ruleId != null) {
-        "$SEARCH_ROUTE_BASIC?$RULE_ID_ARG=$ruleId"
+        "$SEARCH_ROUTE_BASIC?${RULE_ID_ARG}=$ruleId"
     } else {
         SEARCH_ROUTE_BASIC
     }
