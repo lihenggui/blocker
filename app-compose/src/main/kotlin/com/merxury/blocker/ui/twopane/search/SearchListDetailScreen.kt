@@ -45,11 +45,10 @@ import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.SearchRoute
-import com.merxury.blocker.feature.search.navigation.IS_APP_DETAIL_PAGE
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
-import com.merxury.blocker.feature.search.navigation.SEARCH_LIST_APP_DETAIL_ROUTE
+import com.merxury.blocker.feature.search.navigation.SEARCH_DETAIL_ROUTE
 import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE_BASIC
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import com.merxury.blocker.feature.search.screen.SearchDetailPlaceholder
@@ -66,12 +65,8 @@ fun NavGraphBuilder.searchListDetailScreen(
     navigateToComponentSortScreen: () -> Unit,
 ) {
     composable(
-        route = SEARCH_LIST_APP_DETAIL_ROUTE,
+        route = SEARCH_DETAIL_ROUTE,
         arguments = listOf(
-            navArgument(IS_APP_DETAIL_PAGE) {
-                type = NavType.BoolType
-                defaultValue = true
-            },
             navArgument(PACKAGE_NAME_ARG) {
                 type = NavType.StringType
                 defaultValue = null
@@ -91,7 +86,7 @@ fun NavGraphBuilder.searchListDetailScreen(
                 type = NavType.StringType
                 defaultValue = null
                 nullable = true
-            }
+            },
         ),
     ) {
         SearchListDetailScreen(
@@ -112,16 +107,14 @@ internal fun SearchListDetailScreen(
     viewModel: Search2PaneViewModel = hiltViewModel(),
 ) {
     val isAppDetailPage by viewModel.isAppDetailPage.collectAsStateWithLifecycle()
-    val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
-    val searchKeyword by viewModel.searchKeyword.collectAsStateWithLifecycle()
-    val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
+    val search2PaneState by viewModel.search2PaneState.collectAsStateWithLifecycle()
     val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
     SearchListDetailScreen(
         snackbarHostState = snackbarHostState,
         isAppDetailPage = isAppDetailPage,
-        selectedPackageName = selectedPackageName,
-        selectedTab = AppDetailTabs.fromName(selectedTab),
-        searchKeyword = searchKeyword?.split(",") ?: listOf(),
+        selectedPackageName = search2PaneState.selectedPackageName,
+        selectedTab = search2PaneState.selectedAppTabs ?: AppDetailTabs.Info,
+        searchKeyword = search2PaneState.searchKeyword ?: listOf(),
         selectedRuleId = selectedRuleId,
         onAppClick = viewModel::onAppClick,
         onRuleClick = viewModel::onRuleClick,
@@ -263,7 +256,7 @@ internal fun SearchListDetailScreen(
             onAppClickShowDetailPane(
                 packageName = selectedPackageName,
                 tab = selectedTab ?: AppDetailTabs.Info,
-                searchKeyword = searchKeyword
+                searchKeyword = searchKeyword,
             )
         } else if (selectedRuleId != null) {
             // Initial ruleId was provided when navigating to RuleList, so show its details.

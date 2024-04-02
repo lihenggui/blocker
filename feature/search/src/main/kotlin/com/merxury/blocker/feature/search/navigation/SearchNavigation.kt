@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search.navigation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -32,14 +33,42 @@ const val PACKAGE_NAME_ARG = "packageName"
 const val TAB_ARG = "tab"
 const val KEYWORD_ARG = "keyword"
 const val RULE_ID_ARG = "ruleId"
-const val SEARCH_LIST_APP_DETAIL_ROUTE =
-    "$SEARCH_ROUTE_BASIC?$PACKAGE_NAME_ARG={$PACKAGE_NAME_ARG}?$TAB_ARG={$TAB_ARG}?$KEYWORD_ARG={$KEYWORD_ARG}"
-const val SEARCH_LIST_RULE_DETAIL_ROUTE = "$SEARCH_ROUTE_BASIC?$RULE_ID_ARG={$RULE_ID_ARG}"
+const val SEARCH_DETAIL_ROUTE =
+    "$SEARCH_ROUTE_BASIC?$PACKAGE_NAME_ARG={$PACKAGE_NAME_ARG}?$TAB_ARG={$TAB_ARG}?$KEYWORD_ARG={$KEYWORD_ARG}?$SEARCH_ROUTE_BASIC?$RULE_ID_ARG={$RULE_ID_ARG}"
+
+class AppDetailArgs(
+    val packageName: String = "",
+    val tabs: String = AppDetailTabs.Info.name,
+    val searchKeyword: String = "",
+) {
+    constructor(savedStateHandle: SavedStateHandle) :
+        this(
+            savedStateHandle[PACKAGE_NAME_ARG] ?: "",
+            savedStateHandle[TAB_ARG] ?: AppDetailTabs.Info.name,
+            savedStateHandle[KEYWORD_ARG] ?: "",
+        )
+}
 
 fun NavController.navigateToSearch(
+    packageName: String? = null,
+    tab: AppDetailTabs = AppDetailTabs.Info,
+    searchKeyword: List<String> = listOf(),
+    ruleId: String? = null,
     navOptions: NavOptions? = null,
 ) {
-    navigate(SEARCH_ROUTE_BASIC, navOptions)
+    val keywords = searchKeyword.joinToString(",")
+    val route = if (packageName != null) {
+        StringBuilder(SEARCH_ROUTE_BASIC).apply {
+            append("?$packageName")
+            append("?$TAB_ARG=${tab.name}")
+            append("?$KEYWORD_ARG=$keywords")
+        }.toString()
+    } else if (ruleId != null) {
+        "$SEARCH_ROUTE_BASIC?$RULE_ID_ARG=$ruleId"
+    } else {
+        SEARCH_ROUTE_BASIC
+    }
+    navigate(route, navOptions)
 }
 
 fun NavGraphBuilder.searchScreen(
@@ -48,7 +77,7 @@ fun NavGraphBuilder.searchScreen(
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
     composable(
-        route = SEARCH_LIST_APP_DETAIL_ROUTE,
+        route = SEARCH_DETAIL_ROUTE,
         arguments = listOf(
             navArgument(PACKAGE_NAME_ARG) {
                 type = NavType.StringType
@@ -65,17 +94,6 @@ fun NavGraphBuilder.searchScreen(
                 defaultValue = null
                 nullable = true
             },
-        ),
-    ) {
-        SearchRoute(
-            snackbarHostState = snackbarHostState,
-            navigateToAppDetail = navigateToAppDetail,
-            navigateToRuleDetail = navigateToRuleDetail,
-        )
-    }
-    composable(
-        route = SEARCH_LIST_RULE_DETAIL_ROUTE,
-        arguments = listOf(
             navArgument(RULE_ID_ARG) {
                 type = NavType.StringType
                 defaultValue = null
