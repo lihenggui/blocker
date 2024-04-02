@@ -51,11 +51,10 @@ class Search2PaneViewModel @Inject constructor(
             Search2PaneState(
                 selectedPackageName = appDetailArgs.packageName,
                 selectedAppTabs = AppDetailTabs.fromName(appDetailArgs.tabs),
-                searchKeyword = appDetailArgs.searchKeyword.split(",")
+                searchKeyword = appDetailArgs.searchKeyword.split(","),
             )
         }
     }
-
 
     fun onRuleClick(ruleId: String?) {
         savedStateHandle[RULE_ID_ARG] = ruleId
@@ -83,4 +82,3 @@ data class Search2PaneState(
     val selectedAppTabs: AppDetailTabs? = null,
     val searchKeyword: List<String>? = null,
 )
-
