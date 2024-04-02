@@ -59,6 +59,7 @@ class Search2PaneViewModel @Inject constructor(
 
     fun onRuleClick(ruleId: String?) {
         savedStateHandle[RULE_ID_ARG] = ruleId
+        savedStateHandle[IS_APP_DETAIL_PAGE] = false
     }
 
     fun onAppClick(
@@ -73,12 +74,13 @@ class Search2PaneViewModel @Inject constructor(
         if (keyword != null) {
             savedStateHandle[KEYWORD_ARG] = keyword.joinToString(",")
         }
+        savedStateHandle[IS_APP_DETAIL_PAGE] = true
     }
 }
 
 data class Search2PaneState(
     val selectedPackageName: String? = null,
-    val selectedAppTabs: AppDetailTabs? = AppDetailTabs.Info,
-    val searchKeyword: List<String>? = listOf(),
+    val selectedAppTabs: AppDetailTabs? = null,
+    val searchKeyword: List<String>? = null,
 )
 

@@ -204,7 +204,7 @@ internal fun SearchListDetailScreen(
             )
         },
         detailPane = {
-            if (selectedPackageName == null && selectedRuleId == null) {
+            if (selectedPackageName.isNullOrEmpty() && selectedRuleId.isNullOrBlank()) {
                 SearchDetailPlaceholder()
             } else if (isAppDetailPage) {
                 NavHost(
@@ -251,7 +251,7 @@ internal fun SearchListDetailScreen(
         windowInsets = WindowInsets(0, 0, 0, 0),
     )
     LaunchedEffect(Unit) {
-        if (selectedPackageName != null) {
+        if (!selectedPackageName.isNullOrBlank()) {
             // Initial packageName was provided when navigating to AppList, so show its details.
             onAppClickShowDetailPane(
                 packageName = selectedPackageName,
