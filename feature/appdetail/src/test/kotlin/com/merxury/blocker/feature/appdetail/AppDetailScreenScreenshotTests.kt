@@ -312,7 +312,7 @@ class AppDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                    appInfoUiState = AppInfoUiState(appInfo = appList[0]),
                     componentListUiState = Result.Success(
                         ComponentSearchResult(
                             app = appList[0],
@@ -475,7 +475,7 @@ class AppDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                    appInfoUiState = AppInfoUiState(appInfo = appList[0]),
                     componentListUiState = Result.Success(
                         ComponentSearchResult(
                             app = appList[0],
@@ -500,7 +500,7 @@ class AppDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = AppInfoUiState(appInfo = appList[0], iconBasedTheming = null),
+                    appInfoUiState = AppInfoUiState(appInfo = appList[0]),
                     componentListUiState = Result.Success(
                         ComponentSearchResult(
                             app = appList[0],

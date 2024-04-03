@@ -23,7 +23,6 @@ plugins {
     alias(libs.plugins.blocker.android.application.jacoco)
     alias(libs.plugins.blocker.android.hilt)
     alias(libs.plugins.ksp)
-    id("jacoco")
     id("kotlin-parcelize")
     alias(libs.plugins.baselineprofile)
     alias(libs.plugins.roborazzi)
@@ -67,7 +66,7 @@ android {
                     keyPassword = project.properties["releaseKeyPassword"] as String
                 }
             } else {
-                signingConfigs.getByName("debug")
+                signingConfigs.named("debug").get()
             }
             // Ensure Baseline Profile is fresh for release builds.
             baselineProfile.automaticGenerationDuringBuild = true

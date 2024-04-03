@@ -167,7 +167,6 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        ruleIcon = null,
                         matchedAppsUiState = Result.Success(
                             listOf(
                                 MatchedItem(
@@ -198,7 +197,6 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        ruleIcon = null,
                         matchedAppsUiState = Result.Success(
                             listOf(
                                 MatchedItem(
@@ -224,7 +222,6 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        ruleIcon = null,
                         matchedAppsUiState = Result.Loading,
                     ),
                     tabState = tabState[1],

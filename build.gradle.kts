@@ -21,6 +21,7 @@ buildscript {
     }
 }
 
+// Lists all plugins used throughout the project
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -33,4 +34,17 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.roborazzi) apply false
     alias(libs.plugins.room) apply false
+    alias(libs.plugins.module.graph) apply true // Plugin applied to allow module graph generation
+}
+
+// Task to print all the module paths in the project e.g. :core:data
+// Used by module graph generator script
+tasks.register("printModulePaths") {
+    doLast {
+        subprojects {
+            if (subprojects.size == 0) {
+                println(this.path)
+            }
+        }
+    }
 }

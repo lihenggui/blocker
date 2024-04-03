@@ -47,7 +47,7 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
-import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.ui.LocalTimeZone
 import com.merxury.blocker.ui.BlockerApp
@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         var uiState: MainActivityUiState by mutableStateOf(Loading)
-        var iconBasedThemingState: IconBasedThemingState by mutableStateOf(IconBasedThemingState())
+        var iconThemingState: IconThemingState by mutableStateOf(IconThemingState())
 
         // Update the uiState
         lifecycleScope.launch {
@@ -100,9 +100,9 @@ class MainActivity : ComponentActivity() {
         // observe theming based icon state
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.iconBasedThemingState
+                viewModel.iconThemingState
                     .collect {
-                        iconBasedThemingState = it
+                        iconThemingState = it
                     }
             }
         }
@@ -164,9 +164,8 @@ class MainActivity : ComponentActivity() {
             ) {
                 BlockerDynamicTheme(
                     darkTheme = darkTheme,
-                    defaultTheme = shouldDisableDynamicTheming(uiState),
-                    disableDynamicTheming = shouldDisableDynamicTheming(uiState),
-                    iconBasedThemingState = iconBasedThemingState,
+                    useDynamicTheming = shouldUseDynamicTheming(uiState),
+                    iconThemingState = iconThemingState,
                 ) {
                     BlockerApp(
                         appState,
@@ -189,14 +188,14 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Returns `true` if the dynamic color is disabled, as a function of the [uiState].
+ * Returns `true` if the dynamic color is used, as a function of the [uiState].
  */
 @Composable
-private fun shouldDisableDynamicTheming(
+private fun shouldUseDynamicTheming(
     uiState: MainActivityUiState,
 ): Boolean = when (uiState) {
     Loading -> false
-    is Success -> !uiState.userData.useDynamicColor
+    is Success -> uiState.userData.useDynamicColor
 }
 
 /**

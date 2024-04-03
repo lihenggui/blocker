@@ -29,6 +29,7 @@ dependencies {
     implementation(projects.core.domain)
     implementation(libs.coil.kt.compose)
     implementation(libs.compose.markdown)
+    implementation(libs.material.kolor)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)

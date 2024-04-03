@@ -2,13 +2,13 @@
 accompanist = "0.34.0"
 androidDesugarJdkLibs = "2.0.4"
 # AGP and tools should be updated together
-androidGradlePlugin = "8.3.0"
-androidTools = "31.3.0"
+androidGradlePlugin = "8.3.1"
+androidTools = "31.3.1"
 androidxActivity = "1.8.2"
 androidxAppCompat = "1.6.1"
 androidxBrowser = "1.8.0"
-androidxComposeBom = "2024.02.02"
-androidxComposeCompiler = "1.5.10"
+androidxComposeBom = "2024.03.00"
+androidxComposeCompiler = "1.5.11"
 androidxCore = "1.12.0"
 androidxCoreSplashscreen = "1.0.1"
 androidxDataStore = "1.0.0"
@@ -16,7 +16,7 @@ androidxEspresso = "3.5.1"
 androidxHiltNavigationCompose = "1.2.0"
 androidxLifecycle = "2.7.0"
 androidxMacroBenchmark = "1.2.3"
-androidxComposeMaterial = "1.6.3"
+androidxComposeMaterial = "1.6.4"
 androidxNavigation = "2.7.7"
 androidxMetrics = "1.0.0-beta01"
 androidxPalette = "1.0.0"
@@ -33,23 +33,25 @@ coil = "2.6.0"
 composeMarkdown = "0.4.1"
 dependencyGuard = "0.5.0"
 googleAndroidMaterial = "1.11.0"
-hilt = "2.51"
+hilt = "2.51.1"
 hiltExt = "1.2.0"
 jacoco = "0.8.7"
-kotlin = "1.9.22"
+kotlin = "1.9.23"
 kotlinxCoroutines = "1.8.0"
 kotlinxDatetime = "0.5.0"
 kotlinxSerializationJson = "1.6.3"
-ksp = "1.9.22-1.0.18"
+ksp = "1.9.23-1.0.19"
 libsu = "5.2.2"
+materialKolor = "1.4.4"
 mockitoKotlin = "5.2.1"
+moduleGraph = "2.5.0"
 okhttp = "4.12.0"
-protobuf = "3.25.3"
+protobuf = "4.26.1"
 protobufPlugin = "0.9.4"
-retrofit = "2.9.0"
+retrofit = "2.11.0"
 retrofitKotlinxSerializationJson = "1.0.0"
-robolectric = "4.11.1"
-roborazzi = "1.10.1"
+robolectric = "4.12"
+roborazzi = "1.11.0"
 room = "2.6.1"
 shizuku = "13.1.5"
 xmlutil = "0.86.3"
@@ -131,6 +133,7 @@ lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = 
 lint-checks = { group = "com.android.tools.lint", name = "lint-checks", version.ref = "androidTools" }
 lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "androidTools" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+material-kolor = { group = "com.materialkolor", name = "material-kolor", version.ref = "materialKolor" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" }
@@ -172,6 +175,7 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+module-graph = { id = "com.jraska.module.graph.assertion", version.ref = "moduleGraph" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 room = { id = "androidx.room", version.ref = "room" }

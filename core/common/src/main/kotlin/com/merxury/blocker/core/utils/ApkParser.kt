@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.utils
+package com.merxury.blocker.core.model.util
 
 import android.content.ComponentName
 import android.content.pm.ActivityInfo
@@ -23,6 +23,7 @@ import android.content.pm.ServiceInfo
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,7 +32,6 @@ import org.xmlpull.v1.XmlPullParserException
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
-import java.lang.reflect.InvocationTargetException
 
 internal object ApkParser {
 
@@ -47,16 +47,45 @@ internal object ApkParser {
                 assetManagerClass = Class
                     .forName("android.content.res.AssetManager")
                 return assetManagerClass.getDeclaredConstructor().newInstance()
-            } catch (e: ClassNotFoundException) {
-                Timber.e(e, "Cannot create AssetManager")
-            } catch (e: InstantiationException) {
-                Timber.e(e, "Cannot create AssetManager")
-            } catch (e: IllegalAccessException) {
+            } catch (e: Exception) {
                 Timber.e(e, "Cannot create AssetManager")
             }
-
             return null
         }
+
+    /**
+     * Parses AndroidManifest of the given apkFile and returns the value of
+     * minSdkVersion using undocumented API which is marked as
+     * "not to be used by applications"
+     * Source: https://stackoverflow.com/questions/20372193/get-minsdkversion-and-targetsdkversion-from-apk-file
+     *
+     * @param apkFile
+     * @return minSdkVersion or -1 if not found in Manifest
+     */
+    suspend fun getMinSdkVersion(
+        apkFile: File,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ): Int {
+        return withContext(dispatcher) {
+            try {
+                val parser = getParserForManifest(apkFile)
+                while (parser.next() != XmlPullParser.END_DOCUMENT) {
+                    if (parser.eventType == XmlPullParser.START_TAG && parser.name == "uses-sdk") {
+                        for (i in 0 until parser.attributeCount) {
+                            if (parser.getAttributeName(i) == "minSdkVersion") {
+                                return@withContext parser.getAttributeIntValue(i, -1)
+                            }
+                        }
+                    }
+                }
+            } catch (e: XmlPullParserException) {
+                Timber.e(e, "Error occurs in parsing manifest")
+            } catch (e: IOException) {
+                Timber.e(e, "Cannot parse manifest")
+            }
+            return@withContext -1
+        }
+    }
 
     suspend fun getActivities(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
         val activities = mutableListOf<ActivityInfo>()
@@ -177,12 +206,8 @@ internal object ApkParser {
                 assetManagerInstance,
                 apkFile.absolutePath,
             ) as Int
-        } catch (e: NoSuchMethodException) {
-            e.printStackTrace()
-        } catch (e: InvocationTargetException) {
-            e.printStackTrace()
-        } catch (e: IllegalAccessException) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot access addAssetPath")
         }
         return -1
     }

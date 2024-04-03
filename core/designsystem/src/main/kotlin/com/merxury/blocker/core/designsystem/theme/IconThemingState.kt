@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.designsystem.theme
 
-import android.graphics.Bitmap
+import androidx.compose.ui.graphics.Color
 
-data class IconBasedThemingState(
-    val icon: Bitmap? = null,
-    val isBasedIcon: Boolean = false,
+data class IconThemingState(
+    val seedColor: Color? = null,
 )
