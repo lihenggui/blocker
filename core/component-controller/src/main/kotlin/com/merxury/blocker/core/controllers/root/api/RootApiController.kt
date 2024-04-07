@@ -85,8 +85,8 @@ internal class RootApiController @Inject constructor(
         val packageName = component.packageName
         val componentName = component.name
         if (rootService == null) {
-            Timber.w("Cannot switch component: root server is not initialized")
-            return false
+            Timber.e("Cannot switch component: root server is not initialized")
+            throw RootUnavailableException()
         }
         Timber.d("Switch component: $packageName/$componentName, state: $state")
         rootService.setComponentEnabledSetting(

@@ -55,4 +55,9 @@ interface IIntentFirewall {
      * Remove the IFW rules for specific package
      */
     suspend fun clear(packageName: String)
+
+    /**
+     * Reset cache
+     */
+    fun resetCache()
 }
