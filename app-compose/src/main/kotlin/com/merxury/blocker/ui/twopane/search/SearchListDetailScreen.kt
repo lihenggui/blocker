@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
@@ -52,7 +51,6 @@ import com.merxury.blocker.feature.search.navigation.SEARCH_DETAIL_ROUTE
 import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE_BASIC
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import com.merxury.blocker.feature.search.screen.SearchDetailPlaceholder
-import com.merxury.blocker.ui.twopane.calculateNoContentPaddingScaffoldDirective
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
 
@@ -139,12 +137,7 @@ internal fun SearchListDetailScreen(
     navigateToComponentDetail: (String) -> Unit,
     navigateToComponentSortScreen: () -> Unit,
 ) {
-    val scaffoldDirective = calculateNoContentPaddingScaffoldDirective(
-        currentWindowAdaptiveInfo(),
-    )
-    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator<Nothing>(
-        scaffoldDirective = scaffoldDirective,
-    )
+    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator()
     BackHandler(listDetailNavigator.canNavigateBack()) {
         listDetailNavigator.navigateBack()
     }
@@ -248,7 +241,6 @@ internal fun SearchListDetailScreen(
                 }
             }
         },
-        windowInsets = WindowInsets(0, 0, 0, 0),
     )
     LaunchedEffect(Unit) {
         if (!selectedPackageName.isNullOrBlank()) {

@@ -19,7 +19,6 @@ package com.merxury.blocker.ui.twopane.rule
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
@@ -43,7 +42,6 @@ import com.merxury.blocker.feature.ruledetail.RuleDetailPlaceholder
 import com.merxury.blocker.feature.ruledetail.navigation.RULE_DETAIL_ROUTE
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
-import com.merxury.blocker.ui.twopane.calculateNoContentPaddingScaffoldDirective
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
 
@@ -98,12 +96,7 @@ internal fun RuleListDetailScreen(
     navigateToAppDetail: (String) -> Unit,
     onRuleClick: (String) -> Unit,
 ) {
-    val scaffoldDirective = calculateNoContentPaddingScaffoldDirective(
-        currentWindowAdaptiveInfo(),
-    )
-    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator<Nothing>(
-        scaffoldDirective = scaffoldDirective,
-    )
+    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator()
     BackHandler(listDetailNavigator.canNavigateBack()) {
         listDetailNavigator.navigateBack()
     }
@@ -148,7 +141,6 @@ internal fun RuleListDetailScreen(
                 }
             }
         },
-        windowInsets = WindowInsets(0, 0, 0, 0),
     )
     LaunchedEffect(Unit) {
         if (selectedRuleId != null) {
