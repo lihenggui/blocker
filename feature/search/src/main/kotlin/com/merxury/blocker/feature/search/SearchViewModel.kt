@@ -65,6 +65,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
@@ -226,7 +227,7 @@ class SearchViewModel @Inject constructor(
     fun controlAllSelectedComponents(enable: Boolean, action: (Int, Int) -> Unit) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             var current = 0
-            val list = _searchUiState.value.selectedComponentList
+            val list = searchUiState.value.selectedComponentList
             componentRepository.batchControlComponent(
                 components = list,
                 newState = enable,
@@ -234,11 +235,13 @@ class SearchViewModel @Inject constructor(
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
+                .onCompletion {
+                    switchSelectedMode(false)
+                }
                 .collect {
                     action(++current, list.size)
                 }
         }
-        switchSelectedMode(false)
     }
 
     fun dismissAlert() = viewModelScope.launch {
