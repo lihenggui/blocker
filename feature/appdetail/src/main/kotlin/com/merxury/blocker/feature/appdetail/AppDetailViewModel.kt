@@ -188,7 +188,7 @@ class AppDetailViewModel @Inject constructor(
             Timber.v("Start filtering component list with keyword: $keyword")
             val packageName = appDetailArgs.packageName
             searchComponents(packageName, keyword).collect { result ->
-                updateTabState(result)
+                updateComponentTabs(result)
                 _appInfoUiState.update {
                     it.copy(
                         componentSearchUiState = Result.Success(result),
@@ -198,21 +198,54 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateTabState(result: ComponentSearchResult) {
+    private suspend fun updateComponentTabs(result: ComponentSearchResult) {
+        val sdkCount = tabState.value.itemCount[Sdk] ?: 0
         val itemCountMap = mapOf(
             Info to 1,
             Receiver to result.receiver.size,
             Service to result.service.size,
             Activity to result.activity.size,
             Provider to result.provider.size,
-            Sdk to 1,
+            Sdk to sdkCount,
         ).filter { it.value > 0 }
         val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
         if (_tabState.value.selectedItem !in nonEmptyItems) {
             Timber.d(
-                "Selected tab ${_tabState.value.selectedItem}" +
+                "Selected tab ${tabState.value.selectedItem}" +
                     "is not in non-empty items, return to first item",
             )
+            _tabState.emit(
+                TabState(
+                    items = nonEmptyItems,
+                    selectedItem = nonEmptyItems.first(),
+                    itemCount = itemCountMap,
+                ),
+            )
+        } else {
+            _tabState.emit(
+                TabState(
+                    items = nonEmptyItems,
+                    selectedItem = tabState.value.selectedItem,
+                    itemCount = itemCountMap,
+                ),
+            )
+        }
+    }
+
+    private suspend fun updateSdkTab(result: Result<List<MatchedItem>>) {
+        val count = if (result !is Result.Success) {
+            // Show sdk tab while it is loading
+            1
+        } else {
+            result.data.size
+        }
+        val itemCountMap = tabState.value.itemCount.toMutableMap()
+        // Avoid info tab disappear
+        itemCountMap[Info] = 1
+        itemCountMap[Sdk] = count
+        val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
+        if (_tabState.value.selectedItem !in nonEmptyItems) {
+            Timber.d("Could not locate in SDK tab, return to first tab")
             _tabState.emit(
                 TabState(
                     items = nonEmptyItems,
@@ -244,7 +277,7 @@ class AppDetailViewModel @Inject constructor(
                 val packageName = appDetailArgs.packageName
                 Timber.v("Start loading component: $packageName")
                 searchComponents(packageName).collect { result ->
-                    updateTabState(result)
+                    updateComponentTabs(result)
                     _appInfoUiState.update {
                         it.copy(
                             componentSearchUiState = Result.Success(result),
@@ -274,6 +307,7 @@ class AppDetailViewModel @Inject constructor(
                         is Result.Success ->
                             Timber.v("Matched rule for $packageName is loaded, size = ${result.data.size}")
                     }
+                    updateSdkTab(result)
                     _appInfoUiState.update {
                         it.copy(
                             matchedRuleUiState = result,
