@@ -28,6 +28,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import nl.adaptivity.xmlutil.serialization.XML
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -40,6 +41,7 @@ object IfwModule {
         }
     }
 
+    @Singleton
     @Provides
     fun providesIntentFirewall(
         pm: PackageManager,

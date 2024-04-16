@@ -292,4 +292,9 @@ internal class IntentFirewall @Inject constructor(
     private fun formatName(packageName: String, name: String): String {
         return "$packageName/$name"
     }
+
+    override fun resetCache() {
+        Timber.d("Reset IFW cache")
+        ruleCache.clear()
+    }
 }
