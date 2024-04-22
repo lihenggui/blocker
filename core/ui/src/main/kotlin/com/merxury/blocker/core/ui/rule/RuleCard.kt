@@ -43,6 +43,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.core.ui.R.plurals
@@ -136,6 +137,7 @@ private fun CardContent(searchKeyword: List<String>) {
         )
         BlockerBodyMediumText(
             text = searchKeyword.joinToString("\n"),
+            style = MaterialTheme.typography.bodyMedium.condensedRegular(),
             modifier = Modifier.padding(end = 16.dp, bottom = 16.dp, top = 8.dp),
         )
     }
