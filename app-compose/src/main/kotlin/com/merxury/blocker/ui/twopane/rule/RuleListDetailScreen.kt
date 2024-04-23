@@ -17,7 +17,6 @@
 package com.merxury.blocker.ui.twopane.rule
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -77,9 +76,9 @@ internal fun RuleListDetailRoute(
     navigateToAppDetail: (String) -> Unit,
     viewModel: RuleList2PaneViewModel = hiltViewModel(),
 ) {
-    val selectedPackageName by viewModel.selectedRuleId.collectAsStateWithLifecycle()
+    val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
     RuleListDetailScreen(
-        selectedRuleId = selectedPackageName,
+        selectedRuleId = selectedRuleId,
         onRuleClick = viewModel::onRuleClick,
         snackbarHostState = snackbarHostState,
         updateIconThemingState = updateIconThemingState,
