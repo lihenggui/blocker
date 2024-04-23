@@ -17,9 +17,6 @@
 package com.merxury.blocker.ui.twopane.search
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -41,13 +38,13 @@ import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
+import com.merxury.blocker.feature.ruledetail.navigation.RULE_DETAIL_ROUTE
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.SearchRoute
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
-import com.merxury.blocker.feature.search.navigation.SEARCH_DETAIL_ROUTE
 import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE_BASIC
 import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import com.merxury.blocker.feature.search.screen.SearchDetailPlaceholder
@@ -63,7 +60,7 @@ fun NavGraphBuilder.searchListDetailScreen(
     navigateToComponentSortScreen: () -> Unit,
 ) {
     composable(
-        route = SEARCH_DETAIL_ROUTE,
+        route = SEARCH_ROUTE_BASIC,
         arguments = listOf(
             navArgument(PACKAGE_NAME_ARG) {
                 type = NavType.StringType
@@ -104,15 +101,17 @@ internal fun SearchListDetailScreen(
     navigateToComponentSortScreen: () -> Unit,
     viewModel: Search2PaneViewModel = hiltViewModel(),
 ) {
-    val isAppDetailPage by viewModel.isAppDetailPage.collectAsStateWithLifecycle()
-    val search2PaneState by viewModel.search2PaneState.collectAsStateWithLifecycle()
+    val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
+    val selectedAppTabs by viewModel.selectedAppTabs.collectAsStateWithLifecycle()
+    val searchKeywords by viewModel.searchKeyword.collectAsStateWithLifecycle()
     val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
+    val isAppDetailPage by viewModel.isAppDetailPage.collectAsStateWithLifecycle()
     SearchListDetailScreen(
         snackbarHostState = snackbarHostState,
         isAppDetailPage = isAppDetailPage,
-        selectedPackageName = search2PaneState.selectedPackageName,
-        selectedTab = search2PaneState.selectedAppTabs ?: AppDetailTabs.Info,
-        searchKeyword = search2PaneState.searchKeyword ?: listOf(),
+        selectedPackageName = selectedPackageName,
+        selectedTab = AppDetailTabs.fromName(selectedAppTabs),
+        searchKeyword = listOf(searchKeywords ?: ""),
         selectedRuleId = selectedRuleId,
         onAppClick = viewModel::onAppClick,
         onRuleClick = viewModel::onRuleClick,
@@ -197,7 +196,7 @@ internal fun SearchListDetailScreen(
             )
         },
         detailPane = {
-            if (selectedPackageName.isNullOrEmpty() && selectedRuleId.isNullOrBlank()) {
+            if (selectedPackageName.isNullOrEmpty() && selectedRuleId.isNullOrBlank() && !isAppDetailPage) {
                 SearchDetailPlaceholder()
             } else if (isAppDetailPage) {
                 NavHost(
@@ -214,36 +213,26 @@ internal fun SearchListDetailScreen(
                         updateIconThemingState = updateIconThemingState,
                         showBackButton = !listDetailNavigator.isListPaneVisible(),
                     )
-                    composable(route = APP_DETAIL_ROUTE) {
-                        Box {
-                            Text("Search Detail")
-                        }
-                    }
                 }
-            } else {
+            } else if (selectedRuleId != null) {
                 NavHost(
                     navController = nestedNavController,
-                    startDestination = SEARCH_ROUTE_BASIC,
+                    startDestination = RULE_DETAIL_ROUTE,
                     route = SEARCH_PANE_ROUTE,
                 ) {
                     ruleDetailScreen(
+                        showBackButton = !listDetailNavigator.isListPaneVisible(),
                         onBackClick = listDetailNavigator::navigateBack,
                         snackbarHostState = snackbarHostState,
                         navigateToAppDetail = ::onAppClickShowDetailPane,
                         updateIconThemingState = updateIconThemingState,
-                        showBackButton = !listDetailNavigator.isListPaneVisible(),
                     )
-                    composable(route = SEARCH_ROUTE_BASIC) {
-                        Box {
-                            Text("Search Detail")
-                        }
-                    }
                 }
             }
         },
     )
     LaunchedEffect(Unit) {
-        if (!selectedPackageName.isNullOrBlank()) {
+        if (!selectedPackageName.isNullOrEmpty()) {
             // Initial packageName was provided when navigating to AppList, so show its details.
             onAppClickShowDetailPane(
                 packageName = selectedPackageName,

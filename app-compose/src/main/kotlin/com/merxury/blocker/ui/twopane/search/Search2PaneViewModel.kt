@@ -19,8 +19,6 @@ package com.merxury.blocker.ui.twopane.search
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.search.navigation.AppDetailArgs
-import com.merxury.blocker.feature.search.navigation.IS_APP_DETAIL_PAGE
 import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
 import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
 import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
@@ -28,44 +26,26 @@ import com.merxury.blocker.feature.search.navigation.TAB_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
 class Search2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle)
-    val isAppDetailPage: StateFlow<Boolean> =
-        savedStateHandle.getStateFlow(IS_APP_DETAIL_PAGE, true)
+    val selectedPackageName: StateFlow<String?> =
+        savedStateHandle.getStateFlow(PACKAGE_NAME_ARG, null)
+    val selectedAppTabs: StateFlow<String?> = savedStateHandle.getStateFlow(TAB_ARG, null)
+    val searchKeyword: StateFlow<String?> = savedStateHandle.getStateFlow(KEYWORD_ARG, null)
     val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(RULE_ID_ARG, null)
-    private val _search2PaneState = MutableStateFlow(Search2PaneState())
-    val search2PaneState: StateFlow<Search2PaneState> = _search2PaneState
-
-    init {
-        loadState()
-    }
-
-    private fun loadState() {
-        _search2PaneState.update {
-            Search2PaneState(
-                selectedPackageName = appDetailArgs.packageName,
-                selectedAppTabs = AppDetailTabs.fromName(appDetailArgs.tabs),
-                searchKeyword = appDetailArgs.searchKeyword.split(","),
-            )
-        }
-    }
-
-    fun onRuleClick(ruleId: String?) {
-        savedStateHandle[RULE_ID_ARG] = ruleId
-        savedStateHandle[IS_APP_DETAIL_PAGE] = false
-    }
+    private val _isAppDetailPage: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isAppDetailPage: StateFlow<Boolean> = _isAppDetailPage
 
     fun onAppClick(
         packageName: String?,
         tabs: AppDetailTabs?,
         keyword: List<String>?,
     ) {
+        _isAppDetailPage.value = true
         savedStateHandle[PACKAGE_NAME_ARG] = packageName
         if (tabs != null) {
             savedStateHandle[TAB_ARG] = tabs.name
@@ -73,12 +53,11 @@ class Search2PaneViewModel @Inject constructor(
         if (keyword != null) {
             savedStateHandle[KEYWORD_ARG] = keyword.joinToString(",")
         }
-        savedStateHandle[IS_APP_DETAIL_PAGE] = true
+    }
+
+    fun onRuleClick(ruleId: String?) {
+        savedStateHandle[RULE_ID_ARG] = ruleId
+        _isAppDetailPage.value = false
     }
 }
 
-data class Search2PaneState(
-    val selectedPackageName: String? = null,
-    val selectedAppTabs: AppDetailTabs? = null,
-    val searchKeyword: List<String>? = null,
-)
