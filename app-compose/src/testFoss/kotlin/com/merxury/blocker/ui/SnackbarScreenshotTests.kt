@@ -16,24 +16,22 @@
 
 package com.merxury.blocker.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.work.Configuration
-import androidx.work.testing.SynchronousExecutor
-import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -58,6 +56,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.LooperMode
+import java.util.TimeZone
 import javax.inject.Inject
 
 /**
@@ -107,23 +106,18 @@ class SnackbarScreenshotTests {
 
     @Before
     fun setup() {
-        val config = Configuration.Builder()
-            .setMinimumLoggingLevel(Log.DEBUG)
-            .setExecutor(SynchronousExecutor())
-            .build()
-
-        // Initialize WorkManager for instrumentation tests.
-        WorkManagerTestInitHelper.initializeTestWorkManager(
-            InstrumentationRegistry.getInstrumentation().context,
-            config,
-        )
-
         hiltRule.inject()
 
         // Configure user data
         runBlocking {
             userDataRepository.setIsFirstTimeInitializationCompleted(true)
         }
+    }
+
+    @Before
+    fun setTimeZone() {
+        // Make time zone deterministic in tests
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
     }
 
     @Test
@@ -199,24 +193,31 @@ class SnackbarScreenshotTests {
     ) {
         lateinit var scope: CoroutineScope
         composeTestRule.setContent {
-            scope = rememberCoroutineScope()
+            CompositionLocalProvider(
+                // Replaces images with placeholders
+                LocalInspectionMode provides true,
+            ) {
+                scope = rememberCoroutineScope()
 
-            TestHarness(size = DpSize(width, height)) {
-                BoxWithConstraints {
-                    val appState = rememberBlockerAppState(
-                        windowSizeClass = WindowSizeClass.calculateFromSize(
-                            DpSize(maxWidth, maxHeight),
-                        ),
-                        networkMonitor = networkMonitor,
-                        timeZoneMonitor = timeZoneMonitor,
-                        permissionMonitor = permissionMonitor,
-                    )
-                    BlockerTheme {
-                        BlockerApp(
-                            appState = appState,
-                            snackbarHostState = snackbarHostState,
-                            updateIconBasedThemingState = {},
+                DeviceConfigurationOverride(
+                    DeviceConfigurationOverride.ForcedSize(DpSize(width, height)),
+                ) {
+                    BoxWithConstraints {
+                        val appState = rememberBlockerAppState(
+                            windowSizeClass = WindowSizeClass.calculateFromSize(
+                                DpSize(maxWidth, maxHeight),
+                            ),
+                            networkMonitor = networkMonitor,
+                            timeZoneMonitor = timeZoneMonitor,
+                            permissionMonitor = permissionMonitor,
                         )
+                        BlockerTheme {
+                            BlockerApp(
+                                appState = appState,
+                                snackbarHostState = snackbarHostState,
+                                updateIconBasedThemingState = {},
+                            )
+                        }
                     }
                 }
             }
