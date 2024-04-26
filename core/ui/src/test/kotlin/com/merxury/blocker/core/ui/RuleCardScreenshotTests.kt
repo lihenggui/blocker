@@ -29,7 +29,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
-import com.merxury.blocker.core.ui.rule.RuleCard
+import com.merxury.blocker.core.ui.rule.RuleItem
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -107,6 +107,6 @@ class RuleCardScreenshotTests {
                 name = "Android WorkerManager Test",
             )
         }
-        RuleCard(item = item)
+        RuleItem(item = item)
     }
 }

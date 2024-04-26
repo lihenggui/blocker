@@ -56,9 +56,9 @@ fun GeneralRulesList(
             state = listState,
         ) {
             items(rules, key = { it.id }) {
-                RuleCard(
+                RuleItem(
                     item = it,
-                    onCardClick = onClick,
+                    onClick = onClick,
                 )
             }
             item {
