@@ -28,11 +28,13 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
@@ -41,6 +43,7 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggab
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 
 @Composable
@@ -49,6 +52,8 @@ fun GeneralRulesList(
     modifier: Modifier = Modifier,
     onClick: (String) -> Unit = {},
 ) {
+    val matchedRuleList = rules.filter { it.matchedAppCount > 0 }
+    val unmatchedRuleList = rules.filter { it.matchedAppCount == 0 }
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = rules.size,
@@ -58,11 +63,32 @@ fun GeneralRulesList(
             modifier = modifier.testTag("rule:list"),
             state = listState,
         ) {
-            items(rules, key = { it.id }) {
-                RuleItem(
-                    item = it,
-                    onClick = onClick,
-                )
+            if (matchedRuleList.isNotEmpty()) {
+                item {
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_matching_app_found))
+                }
+                items(matchedRuleList, key = { it.id }) {
+                    RuleItem(
+                        item = it,
+                        onClick = onClick,
+                    )
+                }
+            }
+            if (matchedRuleList.isNotEmpty() && unmatchedRuleList.isNotEmpty()) {
+                item {
+                    HorizontalDivider(modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
+                }
+            }
+            if (unmatchedRuleList.isNotEmpty()) {
+                item {
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_not_matching_app_found))
+                }
+                items(unmatchedRuleList, key = { it.id }) {
+                    RuleItem(
+                        item = it,
+                        onClick = onClick,
+                    )
+                }
             }
             item {
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
