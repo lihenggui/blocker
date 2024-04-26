@@ -60,7 +60,7 @@ fun RuleItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(item.name) }
+            .clickable { onClick(item.id.toString()) }
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         RuleIcon(iconUrl = item.iconUrl)
