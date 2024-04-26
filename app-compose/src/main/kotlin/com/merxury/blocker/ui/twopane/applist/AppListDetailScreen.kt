@@ -17,7 +17,6 @@
 package com.merxury.blocker.ui.twopane.applist
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole

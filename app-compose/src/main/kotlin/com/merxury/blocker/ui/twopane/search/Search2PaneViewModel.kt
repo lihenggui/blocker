@@ -60,4 +60,3 @@ class Search2PaneViewModel @Inject constructor(
         _isAppDetailPage.value = false
     }
 }
-
