@@ -130,7 +130,6 @@ private fun MatchedAppIcon(matchedAppCount: Int) {
                 fontSize = 12.sp,
             )
         }
-
     }
 }
 

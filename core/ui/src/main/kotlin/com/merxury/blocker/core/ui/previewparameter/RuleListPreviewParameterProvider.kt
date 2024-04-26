@@ -35,7 +35,7 @@ class RuleListPreviewParameterProvider : PreviewParameterProvider<List<GeneralRu
                 safeToBlock = true,
                 contributors = listOf("Online contributor"),
                 searchKeyword = listOf("androidx.google.example1"),
-                matchedAppCount = 2
+                matchedAppCount = 2,
             ),
             GeneralRule(
                 id = 2,
