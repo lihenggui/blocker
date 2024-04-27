@@ -48,42 +48,41 @@ import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProv
 
 @Composable
 fun GeneralRulesList(
-    rules: List<GeneralRule>,
+    matchedRules: List<GeneralRule>,
+    unmatchedRules: List<GeneralRule>,
     modifier: Modifier = Modifier,
     onClick: (String) -> Unit = {},
 ) {
-    val matchedRuleList = rules.filter { it.matchedAppCount > 0 }
-    val unmatchedRuleList = rules.filter { it.matchedAppCount == 0 }
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
-        itemsAvailable = rules.size,
+        itemsAvailable = matchedRules.size,
     )
     Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = modifier.testTag("rule:list"),
             state = listState,
         ) {
-            if (matchedRuleList.isNotEmpty()) {
+            if (matchedRules.isNotEmpty()) {
                 item {
                     RuleItemHeader(title = stringResource(id = R.string.core_ui_matching_app_found))
                 }
-                items(matchedRuleList, key = { it.id }) {
+                items(matchedRules, key = { it.id }) {
                     RuleItem(
                         item = it,
                         onClick = onClick,
                     )
                 }
             }
-            if (matchedRuleList.isNotEmpty() && unmatchedRuleList.isNotEmpty()) {
+            if (matchedRules.isNotEmpty() && unmatchedRules.isNotEmpty()) {
                 item {
                     HorizontalDivider(modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
                 }
             }
-            if (unmatchedRuleList.isNotEmpty()) {
+            if (unmatchedRules.isNotEmpty()) {
                 item {
                     RuleItemHeader(title = stringResource(id = R.string.core_ui_not_matching_app_found))
                 }
-                items(unmatchedRuleList, key = { it.id }) {
+                items(unmatchedRules, key = { it.id }) {
                     RuleItem(
                         item = it,
                         onClick = onClick,
@@ -103,7 +102,7 @@ fun GeneralRulesList(
             state = scrollbarState,
             orientation = Vertical,
             onThumbMoved = listState.rememberDraggableScroller(
-                itemsAvailable = rules.size,
+                itemsAvailable = matchedRules.size,
             ),
         )
     }
@@ -117,7 +116,7 @@ fun GeneralRuleScreenPreview(
 ) {
     BlockerTheme {
         Surface {
-            GeneralRulesList(rules = ruleList)
+            GeneralRulesList(matchedRules = ruleList, unmatchedRules = ruleList)
         }
     }
 }

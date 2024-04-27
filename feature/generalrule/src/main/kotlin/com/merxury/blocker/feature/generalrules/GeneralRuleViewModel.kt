@@ -103,11 +103,13 @@ class GeneralRulesViewModel @Inject constructor(
             .catch { _uiState.emit(Error(it.toErrorMessage())) }
             .distinctUntilChanged()
             .collect { rules ->
+                val matchedRules = rules.filter { it.matchedAppCount > 0 }
+                val unmatchedRules = rules.filter { it.matchedAppCount == 0 }
                 _uiState.update { state ->
                     val newState = if (state is Success) {
-                        state.copy(rules = rules)
+                        state.copy(matchedRules = matchedRules, unmatchedRules = unmatchedRules)
                     } else {
-                        Success(rules = rules)
+                        Success(matchedRules = rules, unmatchedRules = unmatchedRules)
                     }
                     if (!skipLoading) {
                         newState
@@ -203,7 +205,8 @@ class GeneralRulesViewModel @Inject constructor(
 sealed interface GeneralRuleUiState {
     data object Loading : GeneralRuleUiState
     data class Success(
-        val rules: List<GeneralRule>,
+        val matchedRules: List<GeneralRule>,
+        val unmatchedRules: List<GeneralRule>,
         val matchProgress: Float = 0F,
     ) : GeneralRuleUiState
 

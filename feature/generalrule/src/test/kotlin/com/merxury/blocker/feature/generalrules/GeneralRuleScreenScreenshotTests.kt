@@ -131,9 +131,17 @@ class GeneralRuleScreenScreenshotTests {
         progress: Float,
     ) {
         val ruleList = RuleListPreviewParameterProvider().values.first()
+        val matchedRules = ruleList.filter { it.matchedAppCount > 0 }
+        val unmatchedRules = ruleList.filter { it.matchedAppCount == 0 }
         BlockerTheme {
             Surface {
-                GeneralRulesScreen(uiState = Success(rules = ruleList, matchProgress = progress))
+                GeneralRulesScreen(
+                    uiState = Success(
+                        matchedRules = matchedRules,
+                        unmatchedRules = unmatchedRules,
+                        matchProgress = progress,
+                    ),
+                )
             }
         }
     }

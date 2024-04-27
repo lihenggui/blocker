@@ -97,7 +97,7 @@ class GeneralRulesListScreenshotTests {
 
     @Composable
     private fun GeneralRulesListWithMatchedAndUnmatchedExample() {
-        val ruleListWithMatchedAndUnmatchedApp = listOf(
+        val matchedRules = listOf(
             GeneralRule(
                 id = 1,
                 name = "AWS SDK for Kotlin (Developer Preview)",
@@ -113,6 +113,9 @@ class GeneralRulesListScreenshotTests {
                 searchKeyword = listOf("androidx.google.example1"),
                 matchedAppCount = 5,
             ),
+
+        )
+        val unmatchedRules = listOf(
             GeneralRule(
                 id = 2,
                 name = "Android WorkerManager",
@@ -134,12 +137,12 @@ class GeneralRulesListScreenshotTests {
                 ),
             ),
         )
-        GeneralRulesList(rules = ruleListWithMatchedAndUnmatchedApp)
+        GeneralRulesList(matchedRules = matchedRules, unmatchedRules = unmatchedRules)
     }
 
     @Composable
     private fun GeneralRulesListWithMatchedExample() {
-        val ruleListWithMatchedApp = listOf(
+        val matchedRules = listOf(
             GeneralRule(
                 id = 1,
                 name = "AWS SDK for Kotlin (Developer Preview)",
@@ -177,12 +180,12 @@ class GeneralRulesListScreenshotTests {
                 matchedAppCount = 13,
             ),
         )
-        GeneralRulesList(rules = ruleListWithMatchedApp)
+        GeneralRulesList(matchedRules = matchedRules, unmatchedRules = listOf())
     }
 
     @Composable
     private fun GeneralRulesListWithUnmatchedExample() {
-        val ruleListWithUnmatchedApp = listOf(
+        val unmatchedRules = listOf(
             GeneralRule(
                 id = 1,
                 name = "AWS SDK for Kotlin (Developer Preview)",
@@ -218,6 +221,6 @@ class GeneralRulesListScreenshotTests {
                 ),
             ),
         )
-        GeneralRulesList(rules = ruleListWithUnmatchedApp)
+        GeneralRulesList(matchedRules = listOf(), unmatchedRules = unmatchedRules)
     }
 }
