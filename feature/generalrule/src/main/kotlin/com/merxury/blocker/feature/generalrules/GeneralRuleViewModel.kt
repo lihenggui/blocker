@@ -37,8 +37,6 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -143,21 +141,18 @@ class GeneralRulesViewModel @Inject constructor(
             return@launch
         }
         var matchedApps = 0F
-        ruleList.map { rule ->
-            async {
-                // No need to handle result
-                updateRule(rule).firstOrNull()
-                matchedApps += 1
-                _uiState.update {
-                    if (it is Success) {
-                        it.copy(matchProgress = matchedApps / ruleList.size)
-                    } else {
-                        it
-                    }
+        ruleList.forEach { rule ->
+            // No need to handle result
+            updateRule(rule).firstOrNull()
+            matchedApps += 1
+            _uiState.update {
+                if (it is Success) {
+                    it.copy(matchProgress = matchedApps / ruleList.size)
+                } else {
+                    it
                 }
             }
         }
-            .awaitAll()
         saveHash()
     }
 
