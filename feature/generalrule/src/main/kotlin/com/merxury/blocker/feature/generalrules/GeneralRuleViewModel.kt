@@ -107,7 +107,7 @@ class GeneralRulesViewModel @Inject constructor(
                     val newState = if (state is Success) {
                         state.copy(matchedRules = matchedRules, unmatchedRules = unmatchedRules)
                     } else {
-                        Success(matchedRules = rules, unmatchedRules = unmatchedRules)
+                        Success(matchedRules = matchedRules, unmatchedRules = unmatchedRules)
                     }
                     if (!skipLoading) {
                         newState
