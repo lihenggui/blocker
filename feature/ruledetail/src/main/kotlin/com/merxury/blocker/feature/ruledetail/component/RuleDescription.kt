@@ -80,6 +80,10 @@ fun RuleDescription(
                 ),
             )
             InfoItemHeading(
+                heading = stringResource(id = string.feature_ruledetail_keywords),
+                description = rule.searchKeyword,
+            )
+            InfoItemHeading(
                 heading = stringResource(id = string.feature_ruledetail_contributors),
                 description = rule.contributors,
             )
