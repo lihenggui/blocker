@@ -75,7 +75,7 @@ fun GeneralRulesList(
             }
             if (matchedRules.isNotEmpty() && unmatchedRules.isNotEmpty()) {
                 item {
-                    HorizontalDivider(modifier = Modifier.padding(top = 8.dp, bottom = 8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp))
                 }
             }
             if (unmatchedRules.isNotEmpty()) {
