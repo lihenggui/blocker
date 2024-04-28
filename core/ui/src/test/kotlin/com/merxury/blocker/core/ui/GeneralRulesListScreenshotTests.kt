@@ -49,7 +49,7 @@ class GeneralRulesListScreenshotTests {
 
     @Test
     fun generalRulesListWithMatchedAndUnmatched_multipleThemes() {
-        composeTestRule.captureMultiTheme("GeneralRulesListWithMatchedAndUnmatched") {
+        composeTestRule.captureMultiTheme("GeneralRulesList") {
             Surface {
                 GeneralRulesListWithMatchedAndUnmatchedExample()
             }
@@ -58,7 +58,7 @@ class GeneralRulesListScreenshotTests {
 
     @Test
     fun generalRulesListWithMatchedApp_multipleThemes() {
-        composeTestRule.captureMultiTheme("GeneralRulesListWithMatchedApp") {
+        composeTestRule.captureMultiTheme("GeneralRulesList","OnlyWithMatchedApp") {
             Surface {
                 GeneralRulesListWithMatchedExample()
             }
@@ -67,7 +67,7 @@ class GeneralRulesListScreenshotTests {
 
     @Test
     fun generalRulesListWithUnmatchedApp_multipleThemes() {
-        composeTestRule.captureMultiTheme("GeneralRulesListWithUnmatchedApp") {
+        composeTestRule.captureMultiTheme("GeneralRulesList","OnlyWithUnmatchedApp") {
             Surface {
                 GeneralRulesListWithUnmatchedExample()
             }
