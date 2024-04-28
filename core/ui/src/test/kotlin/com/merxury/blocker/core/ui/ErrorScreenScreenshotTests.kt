@@ -79,6 +79,6 @@ class ErrorScreenScreenshotTests {
 
     @Composable
     private fun ErrorScreenExample() {
-        ErrorScreen(UiMessage("RuntimeException"))
+        ErrorScreen(UiMessage("RuntimeExceptionTest"))
     }
 }
