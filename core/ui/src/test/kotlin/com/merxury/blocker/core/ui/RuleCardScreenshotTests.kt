@@ -91,14 +91,14 @@ class RuleCardScreenshotTests {
         val item = if (!isSimple) {
             GeneralRule(
                 id = 2,
-                name = "Android WorkerManager",
+                name = "Android WorkerManager1",
                 iconUrl = null,
-                company = "Google",
-                description = "WorkManager is the recommended solution for persistent work. " + "Work is persistent when it remains scheduled through app restarts and " + "system reboots. Because most background processing is best accomplished " + "through persistent work, WorkManager is the primary recommended API for " + "background processing.",
-                sideEffect = "Background works won't be able to execute",
+                company = "Google1",
+                description = "Work1Manager is the recommended solution for persistent work. " + "Work is persistent when it remains scheduled through app restarts and " + "system reboots. Because most background processing is best accomplished " + "through persistent work, WorkManager is the primary recommended API for " + "background processing.",
+                sideEffect = "Background1 works won't be able to execute",
                 safeToBlock = false,
-                contributors = listOf("Google"),
-                searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
+                contributors = listOf("Google1"),
+                searchKeyword = listOf("androidx.work1.", "androidx.work.impl"),
                 matchedAppCount = 10,
             )
         } else {
