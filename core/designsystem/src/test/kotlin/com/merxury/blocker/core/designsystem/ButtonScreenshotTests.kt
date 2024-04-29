@@ -47,7 +47,7 @@ class ButtonScreenshotTests {
     fun blockerButton_multipleThemes() {
         composeTestRule.captureMultiTheme("Button") { description ->
             Surface {
-                BlockerButton(onClick = {}, text = { Text("$description Button") })
+                BlockerButton(onClick = {}, text = { Text("$description Button1") })
             }
         }
     }
@@ -56,7 +56,7 @@ class ButtonScreenshotTests {
     fun blockerOutlineButton_multipleThemes() {
         composeTestRule.captureMultiTheme("Button", "OutlineButton") { description ->
             Surface {
-                BlockerOutlinedButton(onClick = {}, text = { Text("$description OutlineButton") })
+                BlockerOutlinedButton(onClick = {}, text = { Text("$description OutlineButton1") })
             }
         }
     }
