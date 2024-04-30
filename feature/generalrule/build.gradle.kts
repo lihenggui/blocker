@@ -27,14 +27,12 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.domain)
 
+    testImplementation(projects.core.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.ext)
+    testImplementation(libs.androidx.work.testing)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
-    testImplementation(projects.core.testing)
-    testImplementation(projects.core.screenshotTesting)
-
-    androidTestImplementation(projects.core.testing)
-    androidTestImplementation(libs.androidx.work.testing)
-    androidTestImplementation(libs.turbine)
 }
