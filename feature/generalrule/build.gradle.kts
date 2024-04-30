@@ -32,6 +32,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(projects.core.testing)
+    testImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
     androidTestImplementation(libs.androidx.work.testing)

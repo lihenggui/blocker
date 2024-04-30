@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search
 
+import com.merxury.blocker.core.ui.R.string as uistring
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
@@ -93,7 +94,6 @@ import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun SearchRoute(
@@ -428,17 +428,19 @@ fun AppSearchResultContent(
 @Composable
 fun RuleSearchResultContent(
     modifier: Modifier = Modifier,
-    list: List<GeneralRule>,
+    matchedRules: List<GeneralRule>,
+    unmatchedRules: List<GeneralRule>,
     onClick: (String) -> Unit,
 ) {
-    if (list.isEmpty()) {
+    if (matchedRules.isEmpty()) {
         EmptyScreen(textRes = string.feature_search_no_search_result)
         return
     }
     val analyticsHelper = LocalAnalyticsHelper.current
     GeneralRulesList(
         modifier = modifier.fillMaxSize(),
-        rules = list,
+        matchedRules = matchedRules,
+        unmatchedRules = unmatchedRules,
         onClick = { id ->
             onClick(id)
             analyticsHelper.logRuleSearchResultClicked(id)
@@ -516,7 +518,7 @@ fun SearchScreenSelectedRule() {
                 localSearchUiState = Success(
                     searchKeyword = listOf(keyword),
                     ruleTabUiState = RuleTabUiState(
-                        list = ruleList,
+                        matchedRules = ruleList,
                     ),
                 ),
                 tabState = tabState[2],

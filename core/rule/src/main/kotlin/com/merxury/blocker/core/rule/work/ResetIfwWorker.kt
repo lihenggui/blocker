@@ -31,6 +31,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.PermissionUtils
+import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -42,6 +43,7 @@ import java.io.IOException
 @HiltWorker
 class ResetIfwWorker @AssistedInject constructor(
     @Assisted private val context: Context,
+    private val intentFirewall: IIntentFirewall,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
@@ -75,6 +77,7 @@ class ResetIfwWorker @AssistedInject constructor(
                 )
                 count++
             }
+            intentFirewall.resetCache()
         } catch (e: RuntimeException) {
             Timber.e(e, "Failed to clear IFW rules")
             return@withContext Result.failure(
@@ -106,6 +109,7 @@ class ResetIfwWorker @AssistedInject constructor(
                     recursively = false,
                     dispatcher = ioDispatcher,
                 )
+                intentFirewall.resetCache()
             }
         } catch (e: RuntimeException) {
             Timber.e(e, "Failed to clear IFW rules")

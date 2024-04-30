@@ -148,7 +148,10 @@ fun ComponentListItem(
                     )
                 }
             }
-            BlockerBodyMediumText(text = item.name)
+            BlockerBodyMediumText(
+                text = item.name,
+                style = MaterialTheme.typography.bodyMedium.condensedRegular(),
+            )
             item.description?.let {
                 Spacer(modifier = Modifier.height(4.dp))
                 BlockerBodyMediumText(

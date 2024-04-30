@@ -292,7 +292,7 @@ class SearchScreenScreenshotTests {
                     localSearchUiState = Success(
                         searchKeyword = listOf(keyword),
                         ruleTabUiState = RuleTabUiState(
-                            list = ruleList,
+                            matchedRules = ruleList,
                         ),
                     ),
                     tabState = tabState[2],
