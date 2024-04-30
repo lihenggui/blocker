@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.generalrule
+package com.merxury.blocker.feature.generalrules
 
+import android.content.Context
 import android.util.Log
-import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import androidx.work.impl.utils.SynchronousExecutor
@@ -43,15 +45,17 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
-import com.merxury.blocker.feature.generalrules.GeneralRulesViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.mockito.Mockito.mock
 import kotlin.test.assertEquals
 
+@RunWith(AndroidJUnit4::class)
 class GeneralRuleViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -67,18 +71,18 @@ class GeneralRuleViewModelTest {
     private val userDataRepository = TestUserDataRepository()
     private val componentRepository = TestComponentRepository()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val workManager = mock<WorkManager>()
+
     private lateinit var viewModel: GeneralRulesViewModel
-    private lateinit var workManager: WorkManager
 
     @Before
     fun setup() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val config = Configuration.Builder()
             .setMinimumLoggingLevel(Log.DEBUG)
             .setExecutor(SynchronousExecutor())
             .build()
         WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
-        workManager = WorkManager.getInstance(context)
         // Use actual filesDir in the AndroidTest
         val filesDir = context.filesDir
         val initGeneralRuleUseCase = InitializeRuleStorageUseCase(
@@ -125,15 +129,25 @@ class GeneralRuleViewModelTest {
             userDataRepository.sendUserData(defaultUserData)
             componentRepository.sendComponentList(sampleComponentList)
             generalRuleRepository.sendRuleList(sampleRuleList)
+            val matchedRules = sampleRuleList.filter { it.matchedAppCount > 0 }
+            val unmatchedRules = sampleRuleList.filter { it.matchedAppCount == 0 }
             assertEquals(Loading, awaitItem())
             assertEquals(
                 Success(
-                    rules = sampleRuleList,
+                    matchedRules = matchedRules,
+                    unmatchedRules = unmatchedRules,
                     matchProgress = 0F,
                 ),
                 awaitItem(),
             )
-            assertEquals(Success(rules = sampleRuleList, matchProgress = 1F), awaitItem())
+            assertEquals(
+                Success(
+                    matchedRules = matchedRules,
+                    unmatchedRules = unmatchedRules,
+                    matchProgress = 1F,
+                ),
+                awaitItem(),
+            )
         }
     }
 }
@@ -148,6 +162,7 @@ private val sampleRuleList = listOf(
         safeToBlock = true,
         contributors = listOf("Online contributor"),
         searchKeyword = listOf("androidx.google.example1"),
+        matchedAppCount = 2,
     ),
     GeneralRule(
         id = 2,
@@ -163,6 +178,7 @@ private val sampleRuleList = listOf(
             "androidx.google.example3",
             "androidx.google.example4",
         ),
+        matchedAppCount = 13,
     ),
     GeneralRule(
         id = 3,
