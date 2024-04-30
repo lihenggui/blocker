@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
@@ -55,6 +56,7 @@ fun BlockerBodyMediumText(
     maxLines: Int = Int.MAX_VALUE,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    fontWeight: FontWeight? = FontWeight(400),
 ) {
     Text(
         text = text,
@@ -64,6 +66,7 @@ fun BlockerBodyMediumText(
         modifier = modifier,
         fontSize = fontSize,
         color = color,
+        fontWeight = fontWeight,
     )
 }
 

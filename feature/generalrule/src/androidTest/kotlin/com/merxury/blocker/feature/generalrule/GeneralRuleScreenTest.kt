@@ -79,8 +79,13 @@ class GeneralRuleScreenTest {
     @Test
     fun showRulesList() {
         composeTestRule.setContent {
+            val matchedRules = generalRuleListTestData.filter { it.matchedAppCount > 0 }
+            val unmatchedRules = generalRuleListTestData.filter { it.matchedAppCount == 0 }
             GeneralRulesScreen(
-                uiState = GeneralRuleUiState.Success(generalRuleListTestData),
+                uiState = GeneralRuleUiState.Success(
+                    matchedRules = matchedRules,
+                    unmatchedRules = unmatchedRules,
+                ),
                 navigateToRuleDetail = {},
             )
         }
@@ -93,8 +98,13 @@ class GeneralRuleScreenTest {
     @Test
     fun showFastScrollbar_whenRulesListMoreThanOneScreen() {
         composeTestRule.setContent {
+            val matchedRules = generalRuleListTestData.filter { it.matchedAppCount > 0 }
+            val unmatchedRules = generalRuleListTestData.filter { it.matchedAppCount == 0 }
             GeneralRulesScreen(
-                uiState = GeneralRuleUiState.Success(generalRuleListTestData),
+                uiState = GeneralRuleUiState.Success(
+                    matchedRules = matchedRules,
+                    unmatchedRules = unmatchedRules,
+                ),
                 navigateToRuleDetail = {},
             )
         }

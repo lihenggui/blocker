@@ -29,7 +29,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
-import com.merxury.blocker.core.ui.rule.RuleCard
+import com.merxury.blocker.core.ui.rule.RuleItem
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -43,51 +43,51 @@ import kotlin.test.Test
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
-class RuleCardScreenshotTests {
+class RuleItemScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun ruleCard_multipleThemes() {
-        composeTestRule.captureMultiTheme("RuleCard") {
+    fun ruleItem_multipleThemes() {
+        composeTestRule.captureMultiTheme("RuleItem") {
             Surface {
-                RuleCardExample()
+                RuleItemExample()
             }
         }
     }
 
     @Test
-    fun ruleCard_simple_multipleThemes() {
-        composeTestRule.captureMultiTheme("RuleCard", "RuleCardSimple") {
+    fun ruleItem_simple_multipleThemes() {
+        composeTestRule.captureMultiTheme("RuleItem", "RuleItemSimple") {
             Surface {
-                RuleCardExample(isSimple = true)
+                RuleItemExample(isSimple = true)
             }
         }
     }
 
     @Test
-    fun ruleCard_hugeFont() {
+    fun ruleItem_hugeFont() {
         composeTestRule.setContent {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
                 TestHarness(fontScale = 2f) {
                     BlockerTheme {
-                        RuleCardExample()
+                        RuleItemExample()
                     }
                 }
             }
         }
         composeTestRule.onRoot()
             .captureRoboImage(
-                "src/test/screenshots/RuleCard" +
-                    "/RuleCard_fontScale2.png",
+                "src/test/screenshots/RuleItem" +
+                    "/RuleItem_fontScale2.png",
                 roborazziOptions = DefaultRoborazziOptions,
             )
     }
 
     @Composable
-    private fun RuleCardExample(isSimple: Boolean = false) {
+    private fun RuleItemExample(isSimple: Boolean = false) {
         val item = if (!isSimple) {
             GeneralRule(
                 id = 2,
@@ -107,6 +107,6 @@ class RuleCardScreenshotTests {
                 name = "Android WorkerManager Test",
             )
         }
-        RuleCard(item = item)
+        RuleItem(item = item)
     }
 }
