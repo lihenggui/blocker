@@ -77,4 +77,6 @@
     <string name="core_ui_operation_completed">操作已完成</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">您想要清除此应用的数据吗？</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">您想要卸载此应用吗？</string>
+    <string name="core_ui_matched_rules">已找到匹配规则</string>
+    <string name="core_ui_unmatched_rules">未找到匹配规则</string>
 </resources>
