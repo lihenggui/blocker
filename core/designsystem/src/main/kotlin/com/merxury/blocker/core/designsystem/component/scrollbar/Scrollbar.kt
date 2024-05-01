@@ -1,5 +1,5 @@
-/* Copyright 2024 Blocker
- * Copyright 2021 The Android Open Source Project
+/*
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,13 +194,13 @@ internal fun Orientation.valueOf(intOffset: IntOffset) = when (this) {
  */
 @Composable
 fun Scrollbar(
-    modifier: Modifier = Modifier,
     orientation: Orientation,
     state: ScrollbarState,
-    minThumbSize: Dp = 40.dp,
+    modifier: Modifier = Modifier,
     interactionSource: MutableInteractionSource? = null,
-    thumb: @Composable () -> Unit,
+    minThumbSize: Dp = 40.dp,
     onThumbMoved: ((Float) -> Unit)? = null,
+    thumb: @Composable () -> Unit,
 ) {
     // Using Offset.Unspecified and Float.NaN instead of null
     // to prevent unnecessary boxing of primitives
