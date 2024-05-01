@@ -96,7 +96,7 @@ class GeneralRuleScreenTest {
     }
 
     @Test
-    fun showFastScrollbar_whenRulesListMoreThanOneScreen() {
+    fun showDraggableScrollbar_whenRulesListMoreThanOneScreen() {
         composeTestRule.setContent {
             val matchedRules = generalRuleListTestData.filter { it.matchedAppCount > 0 }
             val unmatchedRules = generalRuleListTestData.filter { it.matchedAppCount == 0 }
