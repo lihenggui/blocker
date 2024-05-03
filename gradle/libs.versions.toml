@@ -36,7 +36,7 @@ firebaseBom = "32.8.1"
 firebaseCrashlyticsPlugin = "2.9.9"
 firebasePerfPlugin = "1.4.2"
 gmsPlugin = "4.4.1"
-googleAndroidMaterial = "1.11.0"
+googleAndroidMaterial = "1.12.0"
 googleOss = "17.0.1"
 googleOssPlugin = "0.10.6"
 hilt = "2.51.1"
@@ -63,7 +63,7 @@ shizuku = "13.1.5"
 xmlutil = "0.86.3"
 turbine = "1.1.0"
 truth = "1.4.2"
-material = "1.11.0"
+material = "1.12.0"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
