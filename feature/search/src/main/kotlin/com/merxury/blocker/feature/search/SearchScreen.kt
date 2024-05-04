@@ -56,7 +56,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
-import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
+import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -378,7 +378,7 @@ fun ComponentSearchResultContent(
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
-        listState.FastScrollbar(
+        listState.DraggableScrollbar(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
@@ -428,17 +428,19 @@ fun AppSearchResultContent(
 @Composable
 fun RuleSearchResultContent(
     modifier: Modifier = Modifier,
-    list: List<GeneralRule>,
+    matchedRules: List<GeneralRule>,
+    unmatchedRules: List<GeneralRule>,
     onClick: (String) -> Unit,
 ) {
-    if (list.isEmpty()) {
+    if (matchedRules.isEmpty()) {
         EmptyScreen(textRes = string.feature_search_no_search_result)
         return
     }
     val analyticsHelper = LocalAnalyticsHelper.current
     GeneralRulesList(
         modifier = modifier.fillMaxSize(),
-        rules = list,
+        matchedRules = matchedRules,
+        unmatchedRules = unmatchedRules,
         onClick = { id ->
             onClick(id)
             analyticsHelper.logRuleSearchResultClicked(id)
@@ -516,7 +518,7 @@ fun SearchScreenSelectedRule() {
                 localSearchUiState = Success(
                     searchKeyword = listOf(keyword),
                     ruleTabUiState = RuleTabUiState(
-                        list = ruleList,
+                        matchedRules = ruleList,
                     ),
                 ),
                 tabState = tabState[2],
