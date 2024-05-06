@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.model.preference
 
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.data.UserEditableSettings
 
 data class UserPreferenceData(
     val darkThemeConfig: DarkThemeConfig,
@@ -37,4 +38,19 @@ data class UserPreferenceData(
     val isFirstTimeInitializationCompleted: Boolean,
     val appDisplayLanguage: String,
     val libDisplayLanguage: String,
-)
+) {
+    fun toUserEditableSettings() = UserEditableSettings(
+            controllerType = controllerType,
+            ruleServerProvider = ruleServerProvider,
+            appDisplayLanguage = appDisplayLanguage,
+            libDisplayLanguage = libDisplayLanguage,
+            ruleBackupFolder = ruleBackupFolder,
+            backupSystemApp = backupSystemApp,
+            restoreSystemApp = restoreSystemApp,
+            showSystemApps = showSystemApps,
+            showServiceInfo = showServiceInfo,
+            darkThemeConfig = darkThemeConfig,
+            useDynamicColor = useDynamicColor,
+        )
+}
+

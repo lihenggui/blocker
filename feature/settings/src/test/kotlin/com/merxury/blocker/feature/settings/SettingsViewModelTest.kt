@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.settings
 
 import android.app.Application
-import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
@@ -64,19 +63,7 @@ class SettingsViewModelTest {
     fun settingsUiState_whenSuccess_thenShowData() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.settingsUiState.collect() }
         userDataRepository.sendUserData(defaultUserData)
-        val defaultUserData = UserEditableSettings(
-            controllerType = defaultUserData.controllerType,
-            ruleServerProvider = defaultUserData.ruleServerProvider,
-            appDisplayLanguage = defaultUserData.appDisplayLanguage,
-            libDisplayLanguage = defaultUserData.libDisplayLanguage,
-            ruleBackupFolder = defaultUserData.ruleBackupFolder,
-            backupSystemApp = defaultUserData.backupSystemApp,
-            restoreSystemApp = defaultUserData.restoreSystemApp,
-            showSystemApps = defaultUserData.showSystemApps,
-            showServiceInfo = defaultUserData.showServiceInfo,
-            darkThemeConfig = defaultUserData.darkThemeConfig,
-            useDynamicColor = defaultUserData.useDynamicColor,
-        )
+        val defaultUserData = defaultUserData.toUserEditableSettings()
 
         assertEquals(
             Success(defaultUserData),
