@@ -45,7 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
+import androidx.compose.ui.util.fastSumBy
+import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -72,9 +73,6 @@ fun CollapsibleList(
     onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
-    val scrollbarState = listState.scrollbarState(
-        itemsAvailable = list.size,
-    )
     val isExpandedMap = rememberSavableSnapshotStateMap {
         List(list.size) { index: Int -> index to false }
             .toMutableStateMap()
@@ -143,7 +141,14 @@ fun CollapsibleList(
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
-        listState.FastScrollbar(
+        val expandItemCount = isExpandedMap.filterValues { it }
+            .keys
+            .map { list[it] }
+            .fastSumBy { it.componentList.size }
+        val scrollbarState = listState.scrollbarState(
+            itemsAvailable = list.size + expandItemCount,
+        )
+        listState.DraggableScrollbar(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)

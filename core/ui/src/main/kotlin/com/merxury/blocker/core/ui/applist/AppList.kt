@@ -36,7 +36,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
-import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
+import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -89,7 +89,7 @@ fun AppList(
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
-        listState.FastScrollbar(
+        listState.DraggableScrollbar(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
