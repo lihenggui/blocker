@@ -40,17 +40,16 @@ data class UserPreferenceData(
     val libDisplayLanguage: String,
 ) {
     fun toUserEditableSettings() = UserEditableSettings(
-            controllerType = controllerType,
-            ruleServerProvider = ruleServerProvider,
-            appDisplayLanguage = appDisplayLanguage,
-            libDisplayLanguage = libDisplayLanguage,
-            ruleBackupFolder = ruleBackupFolder,
-            backupSystemApp = backupSystemApp,
-            restoreSystemApp = restoreSystemApp,
-            showSystemApps = showSystemApps,
-            showServiceInfo = showServiceInfo,
-            darkThemeConfig = darkThemeConfig,
-            useDynamicColor = useDynamicColor,
-        )
+        controllerType = controllerType,
+        ruleServerProvider = ruleServerProvider,
+        appDisplayLanguage = appDisplayLanguage,
+        libDisplayLanguage = libDisplayLanguage,
+        ruleBackupFolder = ruleBackupFolder,
+        backupSystemApp = backupSystemApp,
+        restoreSystemApp = restoreSystemApp,
+        showSystemApps = showSystemApps,
+        showServiceInfo = showServiceInfo,
+        darkThemeConfig = darkThemeConfig,
+        useDynamicColor = useDynamicColor,
+    )
 }
-
