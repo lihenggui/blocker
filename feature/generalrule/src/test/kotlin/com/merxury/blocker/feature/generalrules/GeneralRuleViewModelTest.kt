@@ -83,11 +83,9 @@ class GeneralRuleViewModelTest {
             .setExecutor(SynchronousExecutor())
             .build()
         WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
-        // Use actual filesDir in the AndroidTest
-        val filesDir = context.filesDir
         val initGeneralRuleUseCase = InitializeRuleStorageUseCase(
-            filesDir = filesDir,
-            ruleBaseFolder = filesDir.absolutePath,
+            filesDir = tempFolder.newFolder(),
+            ruleBaseFolder = tempFolder.newFolder().absolutePath,
             ioDispatcher = dispatcher,
             workManager = workManager,
         )
