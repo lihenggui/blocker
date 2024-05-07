@@ -57,7 +57,7 @@ class AppSortViewModelTest {
         userDataRepository.sendUserData(defaultUserData)
         assertEquals(
             Success(defaultUserData.toAppSortInfo()),
-            viewModel.appSortInfoUiState.value
+            viewModel.appSortInfoUiState.value,
         )
 
         collectJob.cancel()
@@ -75,7 +75,7 @@ class AppSortViewModelTest {
         val updatedUserData = defaultUserData.copy(appSorting = AppSorting.LAST_UPDATE_TIME)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
-            viewModel.appSortInfoUiState.value
+            viewModel.appSortInfoUiState.value,
         )
 
         collectJob.cancel()
@@ -93,7 +93,7 @@ class AppSortViewModelTest {
         val updatedUserData = defaultUserData.copy(appSortingOrder = SortingOrder.DESCENDING)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
-            viewModel.appSortInfoUiState.value
+            viewModel.appSortInfoUiState.value,
         )
 
         collectJob.cancel()
@@ -111,7 +111,7 @@ class AppSortViewModelTest {
         val updatedUserData = defaultUserData.copy(showRunningAppsOnTop = true)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
-            viewModel.appSortInfoUiState.value
+            viewModel.appSortInfoUiState.value,
         )
 
         collectJob.cancel()
