@@ -61,7 +61,7 @@ import com.merxury.blocker.feature.sort.R.string
 fun ComponentSortBottomSheetRoute(
     dismissHandler: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SortViewModel = hiltViewModel(),
+    viewModel: ComponentSortViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.componentSortInfoUiState.collectAsStateWithLifecycle()
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
