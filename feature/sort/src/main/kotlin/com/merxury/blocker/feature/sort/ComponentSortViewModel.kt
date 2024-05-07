@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.sort
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -45,7 +46,8 @@ class ComponentSortViewModel @Inject constructor(
         loadComponentSortInfo()
     }
 
-    private fun loadComponentSortInfo() = viewModelScope.launch {
+    @VisibleForTesting
+    fun loadComponentSortInfo() = viewModelScope.launch {
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
         val order = userData.componentSortingOrder
