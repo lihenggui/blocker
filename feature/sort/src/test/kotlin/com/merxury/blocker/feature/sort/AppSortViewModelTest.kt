@@ -20,21 +20,16 @@ import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
-import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.feature.sort.AppSortInfoUiState.Success
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
 
 class AppSortViewModelTest {
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
-
     private val userDataRepository = TestUserDataRepository()
     private lateinit var viewModel: AppSortViewModel
 
