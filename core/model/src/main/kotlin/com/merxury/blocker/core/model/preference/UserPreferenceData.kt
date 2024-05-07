@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.model.preference
 
+import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
 
@@ -51,5 +52,11 @@ data class UserPreferenceData(
         showServiceInfo = showServiceInfo,
         darkThemeConfig = darkThemeConfig,
         useDynamicColor = useDynamicColor,
+    )
+
+    fun toAppSortInfo() = AppSortInfo(
+        sorting = appSorting,
+        order = appSortingOrder,
+        showRunningAppsOnTop = showRunningAppsOnTop,
     )
 }
