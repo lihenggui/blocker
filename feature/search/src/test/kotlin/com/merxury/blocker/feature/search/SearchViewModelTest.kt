@@ -29,7 +29,6 @@ import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
 import com.merxury.blocker.core.testing.repository.TestAppPropertiesRepository
 import com.merxury.blocker.core.testing.repository.TestAppRepository
-import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
@@ -63,9 +62,7 @@ class SearchViewModelTest {
     private val appStateCache = TestAppStateCache()
     private val componentRepository = TestComponentRepository()
     private val appController = FakeAppController()
-    private val getServiceController = FakeServiceController()
     private val generalRuleRepository = TestGeneralRuleRepository()
-    private val componentDetailRepository = TestComponentDetailRepository()
     private val serviceController = FakeServiceController()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val packageInfo = mock<PackageInfo> {
