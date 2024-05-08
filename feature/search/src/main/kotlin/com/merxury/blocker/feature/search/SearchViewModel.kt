@@ -16,7 +16,9 @@
 
 package com.merxury.blocker.feature.search
 
+import com.merxury.blocker.core.ui.R.string as uiString
 import android.content.pm.PackageManager
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
@@ -72,7 +74,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -120,7 +121,8 @@ class SearchViewModel @Inject constructor(
         load()
     }
 
-    private fun load() {
+    @VisibleForTesting
+    fun load() {
         loadAppJob?.cancel()
         loadAppJob = viewModelScope.launch {
             initializeDatabase().collect {
