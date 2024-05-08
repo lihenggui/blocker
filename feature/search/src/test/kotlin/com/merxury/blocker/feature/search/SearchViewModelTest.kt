@@ -24,6 +24,12 @@ import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
 import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
 import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
@@ -149,4 +155,74 @@ class SearchViewModelTest {
             viewModel.tabState.value,
         )
     }
+
+    @Test
+    fun searchUiState_whenSearch_thenShowResult() {
+        componentRepository.sendComponentList(sampleComponentList)
+        generalRuleRepository.sendRuleList(sampleRuleList)
+        viewModel.search("blocker")
+        viewModel.load()
+        assertEquals(
+            SearchUiState(keyword = "blocker"),
+            viewModel.searchUiState.value,
+        )
+    }
 }
+
+private val sampleComponentList = listOf(
+    ComponentInfo(
+        simpleName = "Activity1",
+        name = "com.merxury.blocker.test.activity1",
+        packageName = "com.merxury.test1",
+        type = ACTIVITY,
+        description = "An example activity",
+    ),
+    ComponentInfo(
+        simpleName = "Service1",
+        name = "com.merxury.blocker.test.service1",
+        packageName = "com.merxury.test1",
+        type = SERVICE,
+        description = "An example service",
+        pmBlocked = true,
+    ),
+    ComponentInfo(
+        simpleName = "Service2",
+        name = "com.merxury.test.service2",
+        packageName = "com.merxury.test1",
+        type = SERVICE,
+        description = "An example service",
+    ),
+    ComponentInfo(
+        simpleName = "Receiver1",
+        name = "com.merxury.blocker.test.receiver1",
+        packageName = "com.merxury.test1",
+        type = RECEIVER,
+        description = "An example receiver",
+    ),
+    ComponentInfo(
+        simpleName = "Provider1",
+        name = "com.merxury.test.provider1",
+        packageName = "com.merxury.test1",
+        type = PROVIDER,
+        description = "An example provider",
+    ),
+)
+
+private val sampleRuleList = listOf(
+    GeneralRule(
+        id = 1,
+        name = "Test rule blocker",
+        searchKeyword = listOf("activity", "service", "receiver", "provider"),
+    ),
+    GeneralRule(
+        id = 2,
+        name = "Test rule 2",
+        searchKeyword = listOf("test2"),
+    ),
+    GeneralRule(
+        id = 3,
+        name = "Test rule 3",
+        searchKeyword = listOf("test3"),
+    ),
+)
+
