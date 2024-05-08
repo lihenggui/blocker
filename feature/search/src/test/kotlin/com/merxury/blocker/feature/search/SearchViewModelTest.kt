@@ -393,7 +393,8 @@ class SearchViewModelTest {
                 provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
             ),
         )
-        val matchedComponentList = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName}
+        val matchedComponentList =
+            sampleComponentList.filter { it.packageName == sampleAppList[0].packageName }
         viewModel.switchSelectedMode(true)
         viewModel.selectAll()
         assertEquals(
@@ -419,7 +420,6 @@ class SearchViewModelTest {
 
         collectJob.cancel()
     }
-
 }
 
 private const val searchKeyword = "blocker"
