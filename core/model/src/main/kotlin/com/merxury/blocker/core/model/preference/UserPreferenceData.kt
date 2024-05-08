@@ -20,6 +20,7 @@ import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.data.ComponentSortInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
+import org.jetbrains.annotations.TestOnly
 
 data class UserPreferenceData(
     val darkThemeConfig: DarkThemeConfig,
@@ -55,12 +56,14 @@ data class UserPreferenceData(
         useDynamicColor = useDynamicColor,
     )
 
+    @TestOnly
     fun toAppSortInfo() = AppSortInfo(
         sorting = appSorting,
         order = appSortingOrder,
         showRunningAppsOnTop = showRunningAppsOnTop,
     )
 
+    @TestOnly
     fun toComponentSortInfo() = ComponentSortInfo(
         sorting = componentSorting,
         order = componentSortingOrder,
