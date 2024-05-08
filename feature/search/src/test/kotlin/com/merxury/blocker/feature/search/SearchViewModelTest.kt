@@ -227,10 +227,10 @@ class SearchViewModelTest {
         appRepository.sendAppList(sampleAppList)
         componentRepository.sendComponentList(sampleComponentList)
         generalRuleRepository.sendRuleList(sampleRuleList)
-        viewModel.search("blocker")
+        viewModel.search(searchKeyword)
         viewModel.load()
         val matchedAppList: List<AppItem> =
-            sampleAppList.filter { it.label.contains("blocker") }
+            sampleAppList.filter { it.label.contains(searchKeyword) }
                 .map { it.toAppItem().copy(packageInfo = packageInfo) }
         val matchedComponentList = listOf(
             FilteredComponent(
@@ -339,7 +339,57 @@ class SearchViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun searchUiState_whenSelectAll_thenUpdateSelectedList() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+
+        userDataRepository.sendUserData(defaultUserData)
+        appRepository.sendAppList(sampleAppList)
+        componentRepository.sendComponentList(sampleComponentList)
+        generalRuleRepository.sendRuleList(sampleRuleList)
+
+        viewModel.search(searchKeyword)
+        viewModel.load()
+        val matchedAppList = listOf(
+            FilteredComponent(
+                app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
+                activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
+                service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
+                receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
+                provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
+            ),
+        )
+        val matchedComponentList = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName}
+        viewModel.switchSelectedMode(true)
+        viewModel.selectAll()
+        assertEquals(
+            SearchUiState(
+                keyword = searchKeyword,
+                isSelectedMode = true,
+                selectedAppList = matchedAppList,
+                selectedComponentList = matchedComponentList,
+            ),
+            viewModel.searchUiState.value,
+        )
+
+        viewModel.selectAll()
+        assertEquals(
+            SearchUiState(
+                keyword = searchKeyword,
+                isSelectedMode = true,
+                selectedAppList = emptyList(),
+                selectedComponentList = emptyList(),
+            ),
+            viewModel.searchUiState.value,
+        )
+
+        collectJob.cancel()
+    }
+
 }
+
+private const val searchKeyword = "blocker"
 
 private val sampleAppList = listOf(
     InstalledApp(
