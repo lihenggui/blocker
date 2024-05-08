@@ -227,10 +227,10 @@ class SearchViewModelTest {
         appRepository.sendAppList(sampleAppList)
         componentRepository.sendComponentList(sampleComponentList)
         generalRuleRepository.sendRuleList(sampleRuleList)
-        viewModel.search(searchKeyword)
+        viewModel.search(SEARCH_KEYWORD)
         viewModel.load()
         val matchedAppList: List<AppItem> =
-            sampleAppList.filter { it.label.contains(searchKeyword) }
+            sampleAppList.filter { it.label.contains(SEARCH_KEYWORD) }
                 .map { it.toAppItem().copy(packageInfo = packageInfo) }
         val matchedComponentList = listOf(
             FilteredComponent(
@@ -382,7 +382,7 @@ class SearchViewModelTest {
         componentRepository.sendComponentList(sampleComponentList)
         generalRuleRepository.sendRuleList(sampleRuleList)
 
-        viewModel.search(searchKeyword)
+        viewModel.search(SEARCH_KEYWORD)
         viewModel.load()
         val matchedAppList = listOf(
             FilteredComponent(
@@ -399,7 +399,7 @@ class SearchViewModelTest {
         viewModel.selectAll()
         assertEquals(
             SearchUiState(
-                keyword = searchKeyword,
+                keyword = SEARCH_KEYWORD,
                 isSelectedMode = true,
                 selectedAppList = matchedAppList,
                 selectedComponentList = matchedComponentList,
@@ -410,7 +410,7 @@ class SearchViewModelTest {
         viewModel.selectAll()
         assertEquals(
             SearchUiState(
-                keyword = searchKeyword,
+                keyword = SEARCH_KEYWORD,
                 isSelectedMode = true,
                 selectedAppList = emptyList(),
                 selectedComponentList = emptyList(),
@@ -422,7 +422,7 @@ class SearchViewModelTest {
     }
 }
 
-private const val searchKeyword = "blocker"
+private const val SEARCH_KEYWORD = "blocker"
 
 private val sampleAppList = listOf(
     InstalledApp(
@@ -496,4 +496,3 @@ private val sampleRuleList = listOf(
         searchKeyword = listOf("test3"),
     ),
 )
-
