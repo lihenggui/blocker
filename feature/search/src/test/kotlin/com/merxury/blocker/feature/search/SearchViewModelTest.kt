@@ -168,16 +168,12 @@ class SearchViewModelTest {
     @Test
     fun searchUiState_whenSearch_thenUpdateKeyword() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
-
-        componentRepository.sendComponentList(sampleComponentList)
-        generalRuleRepository.sendRuleList(sampleRuleList)
         viewModel.search("blocker")
         viewModel.load()
         assertEquals(
             SearchUiState(keyword = "blocker"),
             viewModel.searchUiState.value,
         )
-
         collectJob.cancel()
     }
 
@@ -221,7 +217,6 @@ class SearchViewModelTest {
                 ),
                 awaitItem(),
             )
-
         }
     }
 }
