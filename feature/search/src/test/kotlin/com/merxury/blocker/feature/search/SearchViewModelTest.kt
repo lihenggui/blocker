@@ -219,6 +219,48 @@ class SearchViewModelTest {
             )
         }
     }
+
+    @Test
+    fun tabState_whenSearch_thenUpdateItems() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+        userDataRepository.sendUserData(defaultUserData)
+        appRepository.sendAppList(sampleAppList)
+        componentRepository.sendComponentList(sampleComponentList)
+        generalRuleRepository.sendRuleList(sampleRuleList)
+        viewModel.search("blocker")
+        viewModel.load()
+        val matchedAppList: List<AppItem> =
+            sampleAppList.filter { it.label.contains("blocker") }
+                .map { it.toAppItem().copy(packageInfo = packageInfo) }
+        val matchedComponentList = listOf(
+            FilteredComponent(
+                app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
+                activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
+                service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
+                receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
+                provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
+            ),
+        )
+        val searchedRuleList = sampleRuleList.filter { it.name.contains("blocker") }
+        assertEquals(
+            TabState(
+                items = listOf(
+                    SearchScreenTabs.App(
+                        count = matchedAppList.size,
+                    ),
+                    SearchScreenTabs.Component(
+                        count = matchedComponentList.size,
+                    ),
+                    SearchScreenTabs.Rule(
+                        count = searchedRuleList.size,
+                    ),
+                ),
+                selectedItem = SearchScreenTabs.App(),
+            ),
+            viewModel.tabState.value,
+        )
+        collectJob.cancel()
+    }
 }
 
 private val sampleAppList = listOf(
