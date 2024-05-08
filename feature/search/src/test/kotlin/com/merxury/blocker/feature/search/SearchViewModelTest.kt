@@ -263,7 +263,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun tabState_whenSwitchTab_thenUpdateSelectedItem()  = runTest{
+    fun tabState_whenSwitchTab_thenUpdateSelectedItem() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
         viewModel.switchTab(SearchScreenTabs.Component())
         assertEquals(
@@ -277,6 +277,66 @@ class SearchViewModelTest {
             ),
             viewModel.tabState.value,
         )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun searchUiState_whenSwitchSelectedMode_thenUpdateSelectedMode() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+        viewModel.switchSelectedMode(true)
+        assertEquals(
+            SearchUiState(isSelectedMode = true),
+            viewModel.searchUiState.value,
+        )
+        viewModel.switchSelectedMode(false)
+        assertEquals(
+            SearchUiState(isSelectedMode = false),
+            viewModel.searchUiState.value,
+        )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun searchUiState_whenSelectDeselectApps_thenUpdateSelectedList() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+
+        userDataRepository.sendUserData(defaultUserData)
+        appRepository.sendAppList(sampleAppList)
+        componentRepository.sendComponentList(sampleComponentList)
+        generalRuleRepository.sendRuleList(sampleRuleList)
+
+        val targetItem = FilteredComponent(
+            app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
+            activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
+            service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
+            receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
+            provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
+        )
+        viewModel.switchSelectedMode(true)
+        viewModel.selectItem(
+            item = targetItem,
+        )
+        assertEquals(
+            SearchUiState(
+                isSelectedMode = true,
+                selectedAppList = listOf(targetItem),
+                selectedComponentList = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName },
+            ),
+            viewModel.searchUiState.value,
+        )
+
+        viewModel.deselectItem(
+            item = targetItem,
+        )
+        assertEquals(
+            SearchUiState(
+                isSelectedMode = true,
+                selectedAppList = emptyList(),
+                selectedComponentList = emptyList(),
+            ),
+            viewModel.searchUiState.value,
+        )
+
         collectJob.cancel()
     }
 }
