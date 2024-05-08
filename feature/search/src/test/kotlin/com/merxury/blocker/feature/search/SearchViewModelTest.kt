@@ -297,6 +297,39 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun searchUiState_whenExitSelectedMode_thenClearSelectedList() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+
+        userDataRepository.sendUserData(defaultUserData)
+        appRepository.sendAppList(sampleAppList)
+        componentRepository.sendComponentList(sampleComponentList)
+        generalRuleRepository.sendRuleList(sampleRuleList)
+
+        val targetItem = FilteredComponent(
+            app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
+            activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
+            service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
+            receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
+            provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
+        )
+        viewModel.switchSelectedMode(true)
+        viewModel.selectItem(
+            item = targetItem,
+        )
+        viewModel.switchSelectedMode(false)
+        assertEquals(
+            SearchUiState(
+                isSelectedMode = false,
+                selectedAppList = emptyList(),
+                selectedComponentList = emptyList(),
+            ),
+            viewModel.searchUiState.value,
+        )
+
+        collectJob.cancel()
+    }
+
+    @Test
     fun searchUiState_whenSelectDeselectApps_thenUpdateSelectedList() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
 
