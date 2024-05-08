@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.search
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
+import app.cash.turbine.test
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
@@ -28,8 +29,11 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
@@ -38,12 +42,17 @@ import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
+import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -157,7 +166,9 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun searchUiState_whenSearch_thenShowResult() {
+    fun searchUiState_whenSearch_thenUpdateKeyword() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+
         componentRepository.sendComponentList(sampleComponentList)
         generalRuleRepository.sendRuleList(sampleRuleList)
         viewModel.search("blocker")
@@ -166,21 +177,82 @@ class SearchViewModelTest {
             SearchUiState(keyword = "blocker"),
             viewModel.searchUiState.value,
         )
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun localSearchUiState_whenSearch_thenShowResult() = runTest {
+        viewModel.localSearchUiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+            appRepository.sendAppList(sampleAppList)
+            componentRepository.sendComponentList(sampleComponentList)
+            generalRuleRepository.sendRuleList(sampleRuleList)
+            viewModel.search("blocker")
+            viewModel.load()
+            val matchedAppList: List<AppItem> =
+                sampleAppList.filter { it.label.contains("blocker") }
+                    .map { it.toAppItem().copy(packageInfo = packageInfo) }
+            val matchedComponentList = listOf(
+                FilteredComponent(
+                    app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
+                    activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
+                    service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
+                    receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
+                    provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
+                ),
+            )
+            val searchedRuleList = sampleRuleList.filter { it.name.contains("blocker") }
+            assertEquals(LocalSearchUiState.Idle, awaitItem())
+            assertEquals(LocalSearchUiState.Loading, awaitItem())
+            assertEquals(
+                LocalSearchUiState.Success(
+                    searchKeyword = listOf("blocker"),
+                    appTabUiState = AppTabUiState(
+                        list = matchedAppList,
+                    ),
+                    componentTabUiState = ComponentTabUiState(
+                        list = matchedComponentList,
+                    ),
+                    ruleTabUiState = RuleTabUiState(
+                        matchedRules = searchedRuleList.filter { it.matchedAppCount > 0 },
+                        unmatchedRules = searchedRuleList.filter { it.matchedAppCount == 0 },
+                    ),
+                ),
+                awaitItem(),
+            )
+
+        }
     }
 }
+
+private val sampleAppList = listOf(
+    InstalledApp(
+        label = "blocker",
+        packageName = "com.merxury.blocker.test1",
+    ),
+    InstalledApp(
+        label = "blocker1",
+        packageName = "com.merxury.blocker1.test2",
+    ),
+    InstalledApp(
+        label = "App3",
+        packageName = "com.merxury.test3",
+    ),
+)
 
 private val sampleComponentList = listOf(
     ComponentInfo(
         simpleName = "Activity1",
-        name = "com.merxury.blocker.test.activity1",
-        packageName = "com.merxury.test1",
+        name = "com.merxury.blocker.test1.activity1",
+        packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
         description = "An example activity",
     ),
     ComponentInfo(
         simpleName = "Service1",
-        name = "com.merxury.blocker.test.service1",
-        packageName = "com.merxury.test1",
+        name = "com.merxury.blocker.test1.service1",
+        packageName = "com.merxury.blocker.test1",
         type = SERVICE,
         description = "An example service",
         pmBlocked = true,
@@ -213,10 +285,11 @@ private val sampleRuleList = listOf(
         id = 1,
         name = "Test rule blocker",
         searchKeyword = listOf("activity", "service", "receiver", "provider"),
+        matchedAppCount = 1,
     ),
     GeneralRule(
         id = 2,
-        name = "Test rule 2",
+        name = "Test rule 2 blocker",
         searchKeyword = listOf("test2"),
     ),
     GeneralRule(
