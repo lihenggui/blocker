@@ -261,6 +261,24 @@ class SearchViewModelTest {
         )
         collectJob.cancel()
     }
+
+    @Test
+    fun tabState_whenSwitchTab_thenUpdateSelectedItem()  = runTest{
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+        viewModel.switchTab(SearchScreenTabs.Component())
+        assertEquals(
+            TabState(
+                items = listOf(
+                    SearchScreenTabs.App(),
+                    SearchScreenTabs.Component(),
+                    SearchScreenTabs.Rule(),
+                ),
+                selectedItem = SearchScreenTabs.Component(),
+            ),
+            viewModel.tabState.value,
+        )
+        collectJob.cancel()
+    }
 }
 
 private val sampleAppList = listOf(
