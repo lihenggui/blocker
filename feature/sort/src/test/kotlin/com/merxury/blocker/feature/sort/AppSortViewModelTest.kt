@@ -64,7 +64,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_updateAppSorting() = runTest {
+    fun appSortInfoUiState_whenUpdateAppSorting_thenUpdateAppSorting() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.appSortInfoUiState.collect()
         }
@@ -82,7 +82,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_updateAppSortingOrder() = runTest {
+    fun appSortInfoUiState_whenUpdateAppSortingOrder_thenUpdateAppSortingOrder() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.appSortInfoUiState.collect()
         }
@@ -100,7 +100,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_updateShowRunningAppsOnTop() = runTest {
+    fun appSortInfoUiState_whenUpdateShowRunningAppsOnTop_thenUpdateShowRunningAppsOnTop() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.appSortInfoUiState.collect()
         }

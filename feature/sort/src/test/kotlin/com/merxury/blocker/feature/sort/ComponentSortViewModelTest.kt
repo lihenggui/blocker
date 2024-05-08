@@ -65,7 +65,7 @@ class ComponentSortViewModelTest {
     }
 
     @Test
-    fun componentSortInfoUiState_updateComponentSorting() = runTest {
+    fun componentSortInfoUiState_whenUpdateComponentSorting_thenUpdateComponentSorting() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.componentSortInfoUiState.collect()
         }
@@ -83,7 +83,7 @@ class ComponentSortViewModelTest {
     }
 
     @Test
-    fun componentSortInfoUiState_updateComponentSortingOrder() = runTest {
+    fun componentSortInfoUiState_whenUpdateComponentSortingOrder_thenUpdateComponentSortingOrder() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.componentSortInfoUiState.collect()
         }
@@ -101,7 +101,7 @@ class ComponentSortViewModelTest {
     }
 
     @Test
-    fun componentSortInfoUiState_updateComponentShowPriority() = runTest {
+    fun componentSortInfoUiState_whenUpdateComponentShowPriority_thenUpdateComponentShowPriority() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.componentSortInfoUiState.collect()
         }
