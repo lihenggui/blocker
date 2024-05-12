@@ -46,6 +46,7 @@ import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -53,6 +54,9 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
@@ -72,7 +76,9 @@ class GeneralRuleViewModelTest {
     private val componentRepository = TestComponentRepository()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val context = ApplicationProvider.getApplicationContext<Context>()
-    private val workManager = mock<WorkManager>()
+    private val workManager = mock<WorkManager> {
+        on { getWorkInfosByTagFlow(any()) } doReturn emptyFlow()
+    }
 
     private lateinit var viewModel: GeneralRulesViewModel
 
@@ -122,12 +128,18 @@ class GeneralRuleViewModelTest {
     @Test
     fun uiState_whenSuccess_thenShowData() = runTest {
         viewModel.uiState.test {
-            appPropertiesRepository.sendAppProperties(AppPropertiesData())
+            appPropertiesRepository.sendAppProperties(
+                AppPropertiesData(
+                    componentDatabaseInitialized = true,
+                    generalRuleDatabaseInitialized = true,
+                ),
+            )
             appRepository.sendAppList(sampleAppList)
             userDataRepository.sendUserData(defaultUserData)
             componentRepository.sendComponentList(sampleComponentList)
             generalRuleRepository.sendRuleList(sampleRuleList)
             val matchedRules = sampleRuleList.filter { it.matchedAppCount > 0 }
+                .sortedByDescending { it.matchedAppCount }
             val unmatchedRules = sampleRuleList.filter { it.matchedAppCount == 0 }
             assertEquals(Loading, awaitItem())
             assertEquals(
@@ -138,6 +150,11 @@ class GeneralRuleViewModelTest {
                 ),
                 awaitItem(),
             )
+            // Discard the progress update
+            // 0.33
+            awaitItem()
+            // 0.66
+            awaitItem()
             assertEquals(
                 Success(
                     matchedRules = matchedRules,
