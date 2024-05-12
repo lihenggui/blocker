@@ -127,20 +127,20 @@ class GeneralRuleViewModelTest {
 
     @Test
     fun uiState_whenSuccess_thenShowData() = runTest {
-        appPropertiesRepository.sendAppProperties(
-            AppPropertiesData(
-                componentDatabaseInitialized = true,
-                generalRuleDatabaseInitialized = true,
-            ),
-        )
-        appRepository.sendAppList(sampleAppList)
-        userDataRepository.sendUserData(defaultUserData)
-        componentRepository.sendComponentList(sampleComponentList)
-        generalRuleRepository.sendRuleList(sampleRuleList)
-        val matchedRules = sampleRuleList.filter { it.matchedAppCount > 0 }
-            .sortedByDescending { it.matchedAppCount }
-        val unmatchedRules = sampleRuleList.filter { it.matchedAppCount == 0 }
         viewModel.uiState.test {
+            appPropertiesRepository.sendAppProperties(
+                AppPropertiesData(
+                    componentDatabaseInitialized = true,
+                    generalRuleDatabaseInitialized = true,
+                ),
+            )
+            appRepository.sendAppList(sampleAppList)
+            userDataRepository.sendUserData(defaultUserData)
+            componentRepository.sendComponentList(sampleComponentList)
+            generalRuleRepository.sendRuleList(sampleRuleList)
+            val matchedRules = sampleRuleList.filter { it.matchedAppCount > 0 }
+                .sortedByDescending { it.matchedAppCount }
+            val unmatchedRules = sampleRuleList.filter { it.matchedAppCount == 0 }
             assertEquals(Loading, awaitItem())
             assertEquals(
                 Success(
