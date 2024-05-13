@@ -3,7 +3,7 @@
 ## Blocker
 [![release](https://img.shields.io/github/v/release/lihenggui/blocker?label=release&color=red)](https://github.com/lihenggui/blocker/releases)
 [![download](https://shields.io/github/downloads/lihenggui/blocker/total?label=download)](https://github.com/lihenggui/blocker/releases/latest)
-[![translation](https://weblate.sanmer.dev/widget/blocker/svg-badge.svg)](https://weblate.sanmer.dev/engage/blocker/)
+[![translation](https://weblate.sanmer.app/widget/blocker/svg-badge.svg)](https://weblate.sanmer.app/engage/blocker/)
 [![follow](https://img.shields.io/badge/follow-Telegram-blue.svg?label=follow)](https://t.me/blockerandroid) 
 [![license](https://img.shields.io/github/license/lihenggui/blocker)](LICENSE) 
 
@@ -109,7 +109,7 @@ Default string resources for the Blocker app are located here:
 
 Translate each and place them in the respective locations ([module]/src/main/res/values-[lang]/strings.xml).  
 
-Alternatively, you can use [Weblate](https://weblate.sanmer.dev/projects/blocker/) to translate this project. (Thanks [@SanmerDev](https://github.com/SanmerDev) for providing the service)
+Alternatively, you can use [Weblate](https://weblate.sanmer.app/projects/blocker/) to translate this project. (Thanks [@SanmerDev](https://github.com/SanmerDev) for providing the service)
 
 ## Frequently Asked Questions
 
