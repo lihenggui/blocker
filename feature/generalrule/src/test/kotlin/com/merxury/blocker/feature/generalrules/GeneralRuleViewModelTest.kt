@@ -16,8 +16,6 @@
 
 package com.merxury.blocker.feature.generalrules
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkManager
 import app.cash.turbine.test
@@ -70,7 +68,6 @@ class GeneralRuleViewModelTest {
     private val userDataRepository = TestUserDataRepository()
     private val componentRepository = TestComponentRepository()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
-    private val context = ApplicationProvider.getApplicationContext<Context>()
     private val workManager = mock<WorkManager> {
         on { getWorkInfosByTagFlow(any()) } doReturn emptyFlow()
     }
