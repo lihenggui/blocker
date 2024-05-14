@@ -149,7 +149,8 @@ fun SearchResultScreen(
                 )
 
                 2 -> RuleSearchResultContent(
-                    list = localSearchUiState.ruleTabUiState.list,
+                    matchedRules = localSearchUiState.ruleTabUiState.matchedRules,
+                    unmatchedRules = localSearchUiState.ruleTabUiState.unmatchedRules,
                     highlightSelectedRule = highlightSelectedItem,
                     selectedRuleId = localSearchUiState.ruleTabUiState.selectedRuleId,
                     onClick = navigateToRuleDetail,

@@ -85,4 +85,6 @@
     <string name="core_ui_sdk_with_count" translatable="false">SDK</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Do you want to clear data of this app?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Do you want to uninstall this app?</string>
+    <string name="core_ui_matched_rules">Matched rules</string>
+    <string name="core_ui_unmatched_rules">Unmatched rules</string>
 </resources>

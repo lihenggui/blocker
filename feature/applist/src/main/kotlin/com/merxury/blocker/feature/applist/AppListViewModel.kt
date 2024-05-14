@@ -381,6 +381,6 @@ sealed interface AppListUiState {
     data class Error(val error: UiMessage) : AppListUiState
     data class Success(
         val isRefreshing: Boolean = false,
-        val selectedPackageName: String?,
+        val selectedPackageName: String? = null,
     ) : AppListUiState
 }

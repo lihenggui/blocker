@@ -23,5 +23,6 @@
     <string name="feature_ruledetail_no_description">Sin descripción</string>
     <string name="feature_ruledetail_block_all_of_this_page">Bloquear toda esta página</string>
     <string name="feature_ruledetail_enable_all_of_this_page">Incluya esta página completa</string>
+    <string name="feature_ruledetail_keywords">Palabras clave</string>
     <string name="feature_ruledetail_select_a_rule">Seleccione una regla</string>
 </resources>

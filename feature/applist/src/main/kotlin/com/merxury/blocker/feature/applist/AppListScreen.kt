@@ -221,7 +221,7 @@ fun AppListScreenPreview(
 ) {
     BlockerTheme {
         Surface {
-            AppListScreen(uiState = Success(selectedPackageName = null), appList = appList)
+            AppListScreen(uiState = Success(), appList = appList)
         }
     }
 }
@@ -251,7 +251,7 @@ fun AppListScreenErrorPreview() {
 fun AppListScreenEmptyPreview() {
     BlockerTheme {
         Surface {
-            AppListScreen(uiState = Success(selectedPackageName = null), appList = listOf())
+            AppListScreen(uiState = Success(), appList = listOf())
         }
     }
 }
