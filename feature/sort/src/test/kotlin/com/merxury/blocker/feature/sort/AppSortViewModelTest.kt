@@ -16,8 +16,10 @@
 
 package com.merxury.blocker.feature.sort
 
+import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
@@ -64,7 +66,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_updateAppSorting() = runTest {
+    fun appSortInfoUiState_whenUpdateAppSorting_thenUpdateAppSorting() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.appSortInfoUiState.collect()
         }
@@ -82,7 +84,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_updateAppSortingOrder() = runTest {
+    fun appSortInfoUiState_whenUpdateAppSortingOrder_thenUpdateAppSortingOrder() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.appSortInfoUiState.collect()
         }
@@ -100,7 +102,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_updateShowRunningAppsOnTop() = runTest {
+    fun appSortInfoUiState_whenUpdateShowRunningAppsOnTop_thenUpdateShowRunningAppsOnTop() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.appSortInfoUiState.collect()
         }
@@ -117,3 +119,9 @@ class AppSortViewModelTest {
         collectJob.cancel()
     }
 }
+
+private fun UserPreferenceData.toAppSortInfo() = AppSortInfo(
+    sorting = appSorting,
+    order = appSortingOrder,
+    showRunningAppsOnTop = showRunningAppsOnTop,
+)
