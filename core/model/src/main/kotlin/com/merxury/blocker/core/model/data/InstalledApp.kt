@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.model.data
 
 import kotlinx.datetime.Instant
-import org.jetbrains.annotations.TestOnly
 
 /**
  * External data layer representation of the installed app in the device
@@ -33,18 +32,4 @@ data class InstalledApp(
     val isEnabled: Boolean = true,
     val isSystem: Boolean = false,
     val label: String = "",
-) {
-    @TestOnly
-    fun toAppItem() = AppItem(
-        packageName = packageName,
-        versionName = versionName,
-        versionCode = versionCode,
-        minSdkVersion = minSdkVersion,
-        targetSdkVersion = targetSdkVersion,
-        firstInstallTime = firstInstallTime,
-        lastUpdateTime = lastUpdateTime,
-        isEnabled = isEnabled,
-        isSystem = isSystem,
-        label = label,
-    )
-}
+)

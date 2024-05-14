@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
