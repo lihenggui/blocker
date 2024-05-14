@@ -16,8 +16,10 @@
 
 package com.merxury.blocker.feature.sort
 
+import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
@@ -117,3 +119,9 @@ class AppSortViewModelTest {
         collectJob.cancel()
     }
 }
+
+private fun UserPreferenceData.toAppSortInfo() = AppSortInfo(
+    sorting = appSorting,
+    order = appSortingOrder,
+    showRunningAppsOnTop = showRunningAppsOnTop,
+)
