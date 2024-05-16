@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.accompanist.testharness)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui.test)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.robolectric)
     implementation(projects.core.common)
     implementation(projects.core.designsystem)
