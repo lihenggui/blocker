@@ -202,7 +202,6 @@ internal fun AppListDetailScreen(
                         )
                         composable(route = APP_DETAIL_ROUTE) {
                             AppDetailPlaceholder()
-
                         }
                     }
                 }
