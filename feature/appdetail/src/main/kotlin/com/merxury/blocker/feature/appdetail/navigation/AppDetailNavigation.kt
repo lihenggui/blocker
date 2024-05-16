@@ -71,6 +71,16 @@ fun NavController.navigateToAppDetail(
     searchKeyword: List<String> = listOf(),
     navOptions: NavOptionsBuilder.() -> Unit = {},
 ) {
+    navigate(createAppDetailRoute(packageName, tab, searchKeyword)) {
+        navOptions()
+    }
+}
+
+fun createAppDetailRoute(
+    packageName: String,
+    tab: AppDetailTabs = AppDetailTabs.Info,
+    searchKeyword: List<String> = listOf(),
+): String {
     val encodedPackageName = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
     val encodedTab = URLEncoder.encode(tab.name, URL_CHARACTER_ENCODING)
     val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
@@ -79,10 +89,7 @@ fun NavController.navigateToAppDetail(
         append("?$TAB_ARG=$encodedTab")
         append("?$KEYWORD_ARG=$keywords")
     }.toString()
-
-    navigate(newRoute) {
-        navOptions()
-    }
+    return newRoute
 }
 
 fun NavGraphBuilder.appDetailScreen(

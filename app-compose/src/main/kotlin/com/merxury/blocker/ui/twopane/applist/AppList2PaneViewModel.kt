@@ -27,7 +27,7 @@ import javax.inject.Inject
 class AppList2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(PACKAGE_NAME_ARG, null)
+    val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(PACKAGE_NAME_ARG, savedStateHandle[PACKAGE_NAME_ARG])
 
     fun onAppClick(packageName: String?) {
         savedStateHandle[PACKAGE_NAME_ARG] = packageName
