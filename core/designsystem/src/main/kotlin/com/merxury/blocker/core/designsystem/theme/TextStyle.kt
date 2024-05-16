@@ -18,11 +18,11 @@ package com.merxury.blocker.core.designsystem.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.DeviceFontFamilyName
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import com.merxury.blocker.core.designsystem.R
 
 @Composable
 fun TextStyle.condensedRegular() = this.copy(
-    fontFamily = FontFamily(Font(R.font.roboto_condensed_regular)),
+    fontFamily = FontFamily(Font(DeviceFontFamilyName("sans-serif-condensed"))),
 )

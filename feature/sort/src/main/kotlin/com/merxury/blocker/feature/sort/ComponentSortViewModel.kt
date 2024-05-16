@@ -16,15 +16,14 @@
 
 package com.merxury.blocker.feature.sort
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.model.data.ComponentSortInfo
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
-import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
-import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Loading
 import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,7 +34,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SortViewModel @Inject constructor(
+class ComponentSortViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
 ) : ViewModel() {
 
@@ -47,7 +46,8 @@ class SortViewModel @Inject constructor(
         loadComponentSortInfo()
     }
 
-    private fun loadComponentSortInfo() = viewModelScope.launch {
+    @VisibleForTesting
+    fun loadComponentSortInfo() = viewModelScope.launch {
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
         val order = userData.componentSortingOrder
@@ -74,9 +74,3 @@ sealed interface ComponentSortInfoUiState {
     data object Loading : ComponentSortInfoUiState
     data class Success(val componentSortInfo: ComponentSortInfo) : ComponentSortInfoUiState
 }
-
-data class ComponentSortInfo(
-    val sorting: ComponentSorting = COMPONENT_NAME,
-    val order: SortingOrder = ASCENDING,
-    val priority: ComponentShowPriority = DISABLED_COMPONENTS_FIRST,
-)
