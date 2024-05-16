@@ -110,7 +110,8 @@ fun GeneralRulesScreen(
                 }
 
                 is Success -> GeneralRulesList(
-                    rules = uiState.rules,
+                    matchedRules = uiState.matchedRules,
+                    unmatchedRules = uiState.unmatchedRules,
                     onClick = { id ->
                         navigateToRuleDetail(id)
                         analyticsHelper.logGeneralRuleClicked(id)
@@ -134,7 +135,8 @@ fun GeneralRuleScreenMatchProgressPreview(
     BlockerTheme {
         GeneralRulesScreen(
             uiState = Success(
-                rules = ruleList,
+                matchedRules = ruleList.filter { it.matchedAppCount > 0 },
+                unmatchedRules = ruleList.filter { it.matchedAppCount == 0 },
                 matchProgress = 0.5F,
             ),
         )
@@ -150,7 +152,8 @@ fun GeneralRuleScreenMatchedCompletedPreview(
     BlockerTheme {
         GeneralRulesScreen(
             uiState = Success(
-                rules = ruleList,
+                matchedRules = ruleList.filter { it.matchedAppCount > 0 },
+                unmatchedRules = ruleList.filter { it.matchedAppCount == 0 },
                 matchProgress = 1F,
             ),
         )
@@ -166,7 +169,8 @@ fun GeneralRuleScreenMatchStartPreview(
     BlockerTheme {
         GeneralRulesScreen(
             uiState = Success(
-                rules = ruleList,
+                matchedRules = ruleList.filter { it.matchedAppCount > 0 },
+                unmatchedRules = ruleList.filter { it.matchedAppCount == 0 },
                 matchProgress = 0F,
             ),
         )

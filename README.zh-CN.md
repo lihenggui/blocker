@@ -1,7 +1,7 @@
 ## Blocker
 [![release](https://img.shields.io/github/v/release/lihenggui/blocker?label=release&color=red)](https://github.com/lihenggui/blocker/releases)
 [![download](https://shields.io/github/downloads/lihenggui/blocker/total?label=download)](https://github.com/lihenggui/blocker/releases/latest)
-[![translation](https://weblate.sanmer.dev/widget/blocker/svg-badge.svg)](https://weblate.sanmer.dev/engage/blocker/)
+[![translation](https://weblate.sanmer.app/widget/blocker/svg-badge.svg)](https://weblate.sanmer.app/engage/blocker/)
 [![follow](https://img.shields.io/badge/follow-Telegram-blue.svg?label=follow)](https://t.me/blockerandroid) 
 [![license](https://img.shields.io/github/license/lihenggui/blocker)](LICENSE) 
 
@@ -100,7 +100,7 @@ Blocker app的默认字符串资源在工程以下几个位置：
 
 对应的翻译文件需要放在对应工程的对应资源目录中 ([module]/src/main/res/values-[lang]/strings.xml)。 
 
-你也可以使用 [Weblate](https://weblate.sanmer.dev/projects/blocker/) 来翻译此项目。 (感谢 [@SanmerDev](https://github.com/SanmerDev) 提供的服务)
+你也可以使用 [Weblate](https://weblate.sanmer.app/projects/blocker/) 来翻译此项目。 (感谢 [@SanmerDev](https://github.com/SanmerDev) 提供的服务)
 
 ## 常见问题
 

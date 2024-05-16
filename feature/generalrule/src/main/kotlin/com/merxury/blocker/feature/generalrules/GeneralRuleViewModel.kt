@@ -37,8 +37,6 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -103,11 +101,13 @@ class GeneralRulesViewModel @Inject constructor(
             .catch { _uiState.emit(Error(it.toErrorMessage())) }
             .distinctUntilChanged()
             .collect { rules ->
+                val matchedRules = rules.filter { it.matchedAppCount > 0 }
+                val unmatchedRules = rules.filter { it.matchedAppCount == 0 }
                 _uiState.update { state ->
                     val newState = if (state is Success) {
-                        state.copy(rules = rules)
+                        state.copy(matchedRules = matchedRules, unmatchedRules = unmatchedRules)
                     } else {
-                        Success(rules = rules)
+                        Success(matchedRules = matchedRules, unmatchedRules = unmatchedRules)
                     }
                     if (!skipLoading) {
                         newState
@@ -141,21 +141,18 @@ class GeneralRulesViewModel @Inject constructor(
             return@launch
         }
         var matchedApps = 0F
-        ruleList.map { rule ->
-            async {
-                // No need to handle result
-                updateRule(rule).firstOrNull()
-                matchedApps += 1
-                _uiState.update {
-                    if (it is Success) {
-                        it.copy(matchProgress = matchedApps / ruleList.size)
-                    } else {
-                        it
-                    }
+        ruleList.forEach { rule ->
+            // No need to handle result
+            updateRule(rule).firstOrNull()
+            matchedApps += 1
+            _uiState.update {
+                if (it is Success) {
+                    it.copy(matchProgress = matchedApps / ruleList.size)
+                } else {
+                    it
                 }
             }
         }
-            .awaitAll()
         saveHash()
     }
 
@@ -203,7 +200,8 @@ class GeneralRulesViewModel @Inject constructor(
 sealed interface GeneralRuleUiState {
     data object Loading : GeneralRuleUiState
     data class Success(
-        val rules: List<GeneralRule>,
+        val matchedRules: List<GeneralRule>,
+        val unmatchedRules: List<GeneralRule>,
         val matchProgress: Float = 0F,
     ) : GeneralRuleUiState
 

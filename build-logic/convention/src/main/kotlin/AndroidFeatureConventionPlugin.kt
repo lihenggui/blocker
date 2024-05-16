@@ -28,6 +28,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             pluginManager.apply {
                 apply("blocker.android.library")
                 apply("blocker.android.hilt")
+                apply("io.github.takahirom.roborazzi")
             }
             extensions.configure<LibraryExtension> {
                 defaultConfig {

@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.search
 
 import android.content.pm.PackageManager
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
@@ -120,7 +121,8 @@ class SearchViewModel @Inject constructor(
         load()
     }
 
-    private fun load() {
+    @VisibleForTesting
+    fun load() {
         loadAppJob?.cancel()
         loadAppJob = viewModelScope.launch {
             initializeDatabase().collect {
@@ -190,11 +192,16 @@ class SearchViewModel @Inject constructor(
             filterComponentList.clear()
             filterComponentList.addAll(components)
             Timber.v("Find ${apps.size} apps, ${components.size} components, ${rules.size} rules")
+            val matchedRules = rules.filter { it.matchedAppCount > 0 }
+            val unmatchedRules = rules.filter { it.matchedAppCount == 0 }
             Success(
                 searchKeyword = keyword.split(","),
                 appTabUiState = AppTabUiState(list = apps),
                 componentTabUiState = ComponentTabUiState(list = components),
-                ruleTabUiState = RuleTabUiState(list = rules),
+                ruleTabUiState = RuleTabUiState(
+                    matchedRules = matchedRules,
+                    unmatchedRules = unmatchedRules,
+                ),
             )
         }
         searchJob?.cancel()
@@ -205,6 +212,8 @@ class SearchViewModel @Inject constructor(
                 }
                 .collect { searchResult ->
                     _localSearchUiState.emit(searchResult)
+                    val ruleCount = searchResult.ruleTabUiState.matchedRules.size +
+                        searchResult.ruleTabUiState.unmatchedRules.size
                     _tabState.update {
                         it.copy(
                             items = listOf(
@@ -215,7 +224,7 @@ class SearchViewModel @Inject constructor(
                                     count = searchResult.componentTabUiState.list.size,
                                 ),
                                 SearchScreenTabs.Rule(
-                                    count = searchResult.ruleTabUiState.list.size,
+                                    count = ruleCount,
                                 ),
                             ),
                         )
@@ -310,6 +319,7 @@ class SearchViewModel @Inject constructor(
         }
         return list
     }
+
     fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         getAppController().first()
             .clearCache(packageName)
@@ -418,7 +428,8 @@ data class ComponentTabUiState(
 )
 
 data class RuleTabUiState(
-    val list: List<GeneralRule> = listOf(),
+    val matchedRules: List<GeneralRule> = listOf(),
+    val unmatchedRules: List<GeneralRule> = listOf(),
 )
 
 data class SearchUiState(

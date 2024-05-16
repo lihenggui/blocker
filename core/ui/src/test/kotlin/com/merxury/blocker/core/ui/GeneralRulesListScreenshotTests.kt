@@ -48,10 +48,28 @@ class GeneralRulesListScreenshotTests {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun generalRulesList_multipleThemes() {
+    fun generalRulesListWithMatchedAndUnmatched_multipleThemes() {
         composeTestRule.captureMultiTheme("GeneralRulesList") {
             Surface {
-                GeneralRulesListExample()
+                GeneralRulesListWithMatchedAndUnmatchedExample()
+            }
+        }
+    }
+
+    @Test
+    fun generalRulesListWithMatchedApp_multipleThemes() {
+        composeTestRule.captureMultiTheme("GeneralRulesList", "OnlyWithMatchedApp") {
+            Surface {
+                GeneralRulesListWithMatchedExample()
+            }
+        }
+    }
+
+    @Test
+    fun generalRulesListWithUnmatchedApp_multipleThemes() {
+        composeTestRule.captureMultiTheme("GeneralRulesList", "OnlyWithUnmatchedApp") {
+            Surface {
+                GeneralRulesListWithUnmatchedExample()
             }
         }
     }
@@ -64,7 +82,7 @@ class GeneralRulesListScreenshotTests {
             ) {
                 TestHarness(fontScale = 2f) {
                     BlockerTheme {
-                        GeneralRulesListExample()
+                        GeneralRulesListWithMatchedAndUnmatchedExample()
                     }
                 }
             }
@@ -78,8 +96,96 @@ class GeneralRulesListScreenshotTests {
     }
 
     @Composable
-    private fun GeneralRulesListExample() {
-        val ruleList = listOf(
+    private fun GeneralRulesListWithMatchedAndUnmatchedExample() {
+        val matchedRules = listOf(
+            GeneralRule(
+                id = 1,
+                name = "AWS SDK for Kotlin (Developer Preview)",
+                iconUrl = null,
+                company = "Amazon",
+                description = "The AWS SDK for Kotlin simplifies the use of AWS services by " +
+                    "providing a set of libraries that are consistent and familiar for " +
+                    "Kotlin developers. All AWS SDKs support API lifecycle considerations " +
+                    "such as credential management, retries, data marshaling, and serialization.",
+                sideEffect = "Unknown",
+                safeToBlock = true,
+                contributors = listOf("Online contributor"),
+                searchKeyword = listOf("androidx.google.example1"),
+                matchedAppCount = 5,
+            ),
+
+        )
+        val unmatchedRules = listOf(
+            GeneralRule(
+                id = 2,
+                name = "Android WorkerManager",
+                iconUrl = null,
+                company = "Google",
+                description = "WorkManager is the recommended solution for persistent work. " +
+                    "Work is persistent when it remains scheduled through app restarts and " +
+                    "system reboots. Because most background processing is best accomplished " +
+                    "through persistent work, WorkManager is the primary recommended API for " +
+                    "background processing.",
+                sideEffect = "Background works won't be able to execute",
+                safeToBlock = false,
+                contributors = listOf("Google"),
+                searchKeyword = listOf(
+                    "androidx.google.example1",
+                    "androidx.google.example2",
+                    "androidx.google.example3",
+                    "androidx.google.example4",
+                ),
+            ),
+        )
+        GeneralRulesList(matchedRules = matchedRules, unmatchedRules = unmatchedRules)
+    }
+
+    @Composable
+    private fun GeneralRulesListWithMatchedExample() {
+        val matchedRules = listOf(
+            GeneralRule(
+                id = 1,
+                name = "AWS SDK for Kotlin (Developer Preview)",
+                iconUrl = null,
+                company = "Amazon",
+                description = "The AWS SDK for Kotlin simplifies the use of AWS services by " +
+                    "providing a set of libraries that are consistent and familiar for " +
+                    "Kotlin developers. All AWS SDKs support API lifecycle considerations " +
+                    "such as credential management, retries, data marshaling, and serialization.",
+                sideEffect = "Unknown",
+                safeToBlock = true,
+                contributors = listOf("Online contributor"),
+                searchKeyword = listOf("androidx.google.example1"),
+                matchedAppCount = 5,
+            ),
+            GeneralRule(
+                id = 2,
+                name = "Android WorkerManager",
+                iconUrl = null,
+                company = "Google",
+                description = "WorkManager is the recommended solution for persistent work. " +
+                    "Work is persistent when it remains scheduled through app restarts and " +
+                    "system reboots. Because most background processing is best accomplished " +
+                    "through persistent work, WorkManager is the primary recommended API for " +
+                    "background processing.",
+                sideEffect = "Background works won't be able to execute",
+                safeToBlock = false,
+                contributors = listOf("Google"),
+                searchKeyword = listOf(
+                    "androidx.google.example1",
+                    "androidx.google.example2",
+                    "androidx.google.example3",
+                    "androidx.google.example4",
+                ),
+                matchedAppCount = 13,
+            ),
+        )
+        GeneralRulesList(matchedRules = matchedRules, unmatchedRules = listOf())
+    }
+
+    @Composable
+    private fun GeneralRulesListWithUnmatchedExample() {
+        val unmatchedRules = listOf(
             GeneralRule(
                 id = 1,
                 name = "AWS SDK for Kotlin (Developer Preview)",
@@ -115,6 +221,6 @@ class GeneralRulesListScreenshotTests {
                 ),
             ),
         )
-        GeneralRulesList(rules = ruleList)
+        GeneralRulesList(matchedRules = listOf(), unmatchedRules = unmatchedRules)
     }
 }
