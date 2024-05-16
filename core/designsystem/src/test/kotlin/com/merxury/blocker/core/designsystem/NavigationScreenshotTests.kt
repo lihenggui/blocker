@@ -23,10 +23,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationBar
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationBarItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -65,7 +66,9 @@ class NavigationScreenshotTests {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
-                TestHarness(fontScale = 2f) {
+                DeviceConfigurationOverride(
+                    DeviceConfigurationOverride.FontScale(2f),
+                ) {
                     BlockerTheme {
                         BlockerNavigationBarExample("Looong item")
                     }

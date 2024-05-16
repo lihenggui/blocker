@@ -24,11 +24,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
@@ -67,7 +68,9 @@ class CardScreenshotTests {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
-                TestHarness(fontScale = 2f) {
+                DeviceConfigurationOverride(
+                    DeviceConfigurationOverride.FontScale(2f),
+                ) {
                     BlockerTheme {
                         BlockerCardExample()
                     }

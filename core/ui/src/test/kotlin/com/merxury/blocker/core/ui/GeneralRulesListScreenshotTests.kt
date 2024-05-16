@@ -21,10 +21,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
@@ -80,7 +81,9 @@ class GeneralRulesListScreenshotTests {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
-                TestHarness(fontScale = 2f) {
+                DeviceConfigurationOverride(
+                    DeviceConfigurationOverride.FontScale(2f),
+                ) {
                     BlockerTheme {
                         GeneralRulesListWithMatchedAndUnmatchedExample()
                     }
