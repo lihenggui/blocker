@@ -47,6 +47,9 @@ import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Loading
 import com.merxury.blocker.feature.ruledetail.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.ruledetail.navigation.TAB_ARG
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -140,7 +143,7 @@ class RuleDetailViewModelTest {
                     header = MatchedHeaderData(
                         title = sampleAppList.first().label,
                         uniqueId = sampleAppList.first().packageName,
-                        icon = pm.getPackageInfoCompat(sampleAppList.first().packageName, 0)
+                        icon = pm.getPackageInfoCompat(sampleAppList.first().packageName, 0),
                     ),
                     componentList = listOf(sampleComponentList.first()),
                 ),
@@ -166,6 +169,22 @@ class RuleDetailViewModelTest {
                 awaitItem(),
             )
         }
+    }
+
+    @Test
+    fun tabState_whenSwitchTab_thenUpdateSelectedItem() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+        viewModel.switchTab(RuleDetailTabs.Description)
+        assertEquals(RuleDetailTabs.Description, viewModel.tabState.value.selectedItem)
+        collectJob.cancel()
+    }
+
+    @Test
+    fun appBarUiState_whenSwitchTab_thenUpdateAppBarActions() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+        viewModel.switchTab(RuleDetailTabs.Description)
+        assertEquals(listOf(), viewModel.appBarUiState.value.actions)
+        collectJob.cancel()
     }
 }
 
