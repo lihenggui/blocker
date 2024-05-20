@@ -36,6 +36,7 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         Timber.d("Cloning repository from ${repoInfo.url} to ${gitRepository.absolutePath}")
         Git.cloneRepository()
             .setURI(repoInfo.url)
+            .setRemote(repoInfo.remoteName)
             .setDirectory(gitRepository)
             .call()
         Timber.d("Repository cloned successfully")
@@ -136,6 +137,7 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         Timber.d("Pulling changes on branch $currentBranch from ${repoInfo.url}")
         val git = Git(FileRepository(gitFolder))
         git.pull()
+            .setRemote(repoInfo.remoteName)
             .call()
         return true
     }
@@ -148,13 +150,15 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         val git = Git(FileRepository(gitFolder))
         Timber.d("Fetching changes from remote $repoInfo.url")
         git.fetch()
+            .setRemote(repoInfo.remoteName)
             .call()
-        Timber.d("Merging changes from origin/main")
+        Timber.d("Merging changes from ${repoInfo.remoteName}/main")
         git.merge()
-            .include(git.repository.exactRef("refs/remotes/origin/main"))
+            .include(git.repository.resolve("refs/remotes/${repoInfo.remoteName}/main"))
             .call()
         // Resolve conflicts if any
-        val status = git.status().call()
+        val status = git.status()
+            .call()
         if (status.hasUncommittedChanges()) {
             Timber.e("Conflicts detected, files with conflicts: ${status.conflicting}")
             // Reset the merge
@@ -166,15 +170,15 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         return MERGED
     }
 
-    override suspend fun setRemoteUrl(remoteUrl: String): Boolean {
+    override suspend fun setRemote(url: String, name: String): Boolean {
         if (!gitFolder.exists()) {
             Timber.e("$gitFolder is not a git repository")
             return false
         }
         val git = Git(FileRepository(gitFolder))
         git.remoteSetUrl()
-            .setRemoteName("origin")
-            .setRemoteUri(URIish(remoteUrl))
+            .setRemoteName(name)
+            .setRemoteUri(URIish(url))
             .call()
         return true
     }

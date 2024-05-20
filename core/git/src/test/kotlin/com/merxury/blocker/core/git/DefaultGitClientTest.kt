@@ -18,11 +18,17 @@ package com.merxury.blocker.core.git
 
 import kotlinx.coroutines.test.runTest
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.MergeResult
+import org.eclipse.jgit.api.PullResult
 import org.eclipse.jgit.internal.storage.file.FileRepository
+import org.eclipse.jgit.lib.Ref
+import org.eclipse.jgit.transport.FetchResult
+import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals
@@ -34,17 +40,39 @@ class DefaultGitClientTest {
     private lateinit var repositoryInfo: RepositoryInfo
     private lateinit var gitAction: DefaultGitClient
     private lateinit var tempDir: File
+    private lateinit var remoteDir: File
 
     @Before
     fun setUp() {
-        repositoryInfo = RepositoryInfo("https://github.com/example/repo.git", "repo", "main")
         tempDir = createTempDirectory().toFile()
+        remoteDir = createTempDirectory().toFile()
+        repositoryInfo = RepositoryInfo(
+            remoteName = "origin",
+            url = remoteDir.toURI().toString(),
+            repoName = "repo",
+            branch = "main",
+        )
         gitAction = DefaultGitClient(repositoryInfo, tempDir)
+
+        // Initialize remote repository
+        Git.init()
+            .setDirectory(remoteDir)
+            .call()
+        val remoteGit = Git(FileRepository(File(remoteDir, ".git")))
+        val file = File(remoteDir, "test.txt")
+        file.writeText("Hello, World!")
+        remoteGit.add()
+            .addFilepattern(".")
+            .call()
+        remoteGit.commit()
+            .setMessage("Initial commit")
+            .call()
     }
 
     @After
     fun tearDown() {
         tempDir.deleteRecursively()
+        remoteDir.deleteRecursively()
     }
 
     @Test
@@ -175,5 +203,50 @@ class DefaultGitClientTest {
         val mainBranchName = "main"
         gitAction.renameBranch(mainBranchName)
         assertEquals(mainBranchName, gitAction.getCurrentBranch())
+    }
+
+    // Test for override suspend fun setRemote(url: String, name: String)
+    @Test
+    fun givenRemoteDoesNotExist_whenSetRemote_thenRemoteIsSet() = runTest {
+        gitAction.createGitRepository()
+        val url = "https://www.example.com/repo.git"
+        val name = "example"
+        val result = gitAction.setRemote(url, name)
+        assertTrue(result)
+
+        // Verify that the remote was set
+        val git = Git(FileRepository(File(tempDir, "${repositoryInfo.repoName}/.git")))
+        val remoteConfig = git.remoteList().call()
+        assertTrue(remoteConfig.any { it.name == name && it.urIs.contains(URIish(url)) })
+    }
+
+    // Test for cloneRepository
+    @Test
+    fun givenValidRemoteRepository_whenCloneRepository_thenRepositoryIsCloned() = runTest {
+        val result = gitAction.cloneRepository()
+        assertTrue(result)
+
+        // Verify that the repository was cloned
+        val gitDir = File(tempDir, repositoryInfo.repoName)
+        assertTrue(gitDir.exists())
+        assertTrue(File(gitDir, ".git").exists())
+    }
+
+    // Test for pull
+    @Test
+    fun givenValidRemoteRepository_whenPull_thenRepositoryIsPulled() = runTest {
+        gitAction.createGitRepository()
+        gitAction.setRemote(repositoryInfo.url, repositoryInfo.remoteName)
+        val result = gitAction.pull()
+        assertTrue(result)
+    }
+
+    // Test for fetchAndMergeFromMain
+    @Test
+    fun givenValidRemoteRepository_whenFetchAndMergeFromMain_thenRepositoryIsMerged() = runTest {
+        gitAction.createGitRepository()
+        gitAction.setRemote(repositoryInfo.url, repositoryInfo.remoteName)
+        val result = gitAction.fetchAndMergeFromMain()
+        assertEquals(MergeStatus.MERGED, result)
     }
 }

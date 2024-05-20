@@ -27,5 +27,5 @@ interface GitClient {
     suspend fun getCurrentBranch(): String?
     suspend fun pull(): Boolean
     suspend fun fetchAndMergeFromMain(): MergeStatus
-    suspend fun setRemoteUrl(remoteUrl: String): Boolean
+    suspend fun setRemote(url: String, name: String): Boolean
 }

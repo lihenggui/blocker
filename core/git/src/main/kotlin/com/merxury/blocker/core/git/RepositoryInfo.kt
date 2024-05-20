@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.git
 
 data class RepositoryInfo(
+    val remoteName: String,
     val url: String,
     val repoName: String,
     val branch: String,
