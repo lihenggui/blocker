@@ -24,6 +24,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
+import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
@@ -132,12 +133,21 @@ class RuleDetailViewModelTest {
             appRepository.sendAppList(sampleAppList)
             userDataRepository.sendUserData(defaultUserData)
             generalRuleRepository.sendRuleList(sampleRuleList)
+            componentRepository.sendComponentList(sampleComponentList)
             viewModel.loadData()
             val matchedApps = listOf(
                 MatchedItem(
-                    header = sampleAppList.first().toMatchedHeaderData(),
+                    header = MatchedHeaderData(
+                        title = sampleAppList.first().label,
+                        uniqueId = sampleAppList.first().packageName,
+                        icon = pm.getPackageInfoCompat(sampleAppList.first().packageName, 0)
+                    ),
                     componentList = listOf(sampleComponentList.first()),
                 ),
+            )
+            assertEquals(
+                Loading,
+                awaitItem(),
             )
             assertEquals(
                 RuleInfoUiState.Success(
@@ -146,6 +156,8 @@ class RuleDetailViewModelTest {
                 ),
                 awaitItem(),
             )
+            awaitItem()
+            awaitItem()
             assertEquals(
                 RuleInfoUiState.Success(
                     ruleInfo = sampleRuleList.first(),
@@ -167,8 +179,7 @@ private val sampleRuleList = listOf(
         safeToBlock = true,
         contributors = listOf("Online contributor"),
         searchKeyword = listOf(
-            "androidx.google.example1",
-            "test.activity",
+            "com.merxury.blocker.test.activity1",
         ),
         matchedAppCount = 2,
     ),
@@ -260,9 +271,4 @@ private val sampleComponentList = listOf(
         type = PROVIDER,
         description = "An example provider",
     ),
-)
-
-fun InstalledApp.toMatchedHeaderData() = MatchedHeaderData(
-    title = label,
-    uniqueId = packageName,
 )
