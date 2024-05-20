@@ -17,6 +17,8 @@
 package com.merxury.blocker.feature.settings
 
 import android.app.Application
+import com.merxury.blocker.core.model.data.UserEditableSettings
+import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
@@ -72,3 +74,17 @@ class SettingsViewModelTest {
         collectJob.cancel()
     }
 }
+
+private fun UserPreferenceData.toUserEditableSettings() = UserEditableSettings(
+    controllerType = controllerType,
+    ruleServerProvider = ruleServerProvider,
+    appDisplayLanguage = appDisplayLanguage,
+    libDisplayLanguage = libDisplayLanguage,
+    ruleBackupFolder = ruleBackupFolder,
+    backupSystemApp = backupSystemApp,
+    restoreSystemApp = restoreSystemApp,
+    showSystemApps = showSystemApps,
+    showServiceInfo = showServiceInfo,
+    darkThemeConfig = darkThemeConfig,
+    useDynamicColor = useDynamicColor,
+)
