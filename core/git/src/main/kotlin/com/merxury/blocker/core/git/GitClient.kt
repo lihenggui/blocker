@@ -16,7 +16,9 @@
 
 package com.merxury.blocker.core.git
 
-data class RepositoryInfo (
-    val url: String,
-    val branch: String,
-)
+interface GitClient {
+    suspend fun cloneRepository(): Boolean
+    suspend fun commitChanges(commitMessage: String): Boolean
+    suspend fun hasLocalChanges(): Boolean
+    suspend fun add(filePattern: String): Int
+}

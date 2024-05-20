@@ -61,6 +61,7 @@ robolectric = "4.12.1"
 roborazzi = "1.15.0"
 room = "2.6.1"
 shizuku = "13.1.5"
+timber = "5.0.1"
 xmlutil = "0.86.3"
 turbine = "1.1.0"
 truth = "1.4.2"
@@ -165,7 +166,7 @@ shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuk
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-android", version.ref = "xmlutil" }
 xmlutil-serialization-android = { group = "io.github.pdvrieze.xmlutil", name = "serialization-android", version.ref = "xmlutil" }
-timber = "com.jakewharton.timber:timber:5.0.1"
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 hiddenapibypass = "org.lsposed.hiddenapibypass:hiddenapibypass:4.3"
 
 # Dependencies of the included build-logic

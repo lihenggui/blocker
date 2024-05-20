@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-plugins {
-    alias(libs.plugins.blocker.android.library)
-    alias(libs.plugins.blocker.android.library.jacoco)
-    alias(libs.plugins.blocker.android.hilt)
-}
+package com.merxury.blocker.core.git
 
-android {
-    namespace = "com.merxury.blocker.core.git"
-}
-
-dependencies {
-    implementation(libs.timber)
-    implementation(libs.eclipse.jgit)
-    implementation(libs.kotlinx.coroutines.android)
-
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockito.kotlin)
-}
+data class RepositoryInfo(
+    val url: String,
+    val name: String,
+    val branch: String,
+)
