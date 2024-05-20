@@ -25,6 +25,7 @@ import org.junit.Before
 import org.junit.Test
 import java.io.File
 import kotlin.io.path.createTempDirectory
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -131,5 +132,30 @@ class DefaultGitClientTest {
         val git = Git(FileRepository(File(baseDirectory, "${repositoryInfo.name}/.git")))
         val status = git.status().call()
         assertTrue(status.added.contains("test.txt"))
+    }
+
+    @Test
+    fun givenBranchExists_whenCheckout_thenBranchIsCheckedOut() = runTest {
+        val mainBranchName = "main"
+        gitAction.createGitRepository()
+        // An empty repository does not have a HEAD yet
+        // We should commit something first
+        val file = File(baseDirectory, "${repositoryInfo.name}/test.txt")
+        file.writeText("Hello, World!")
+        gitAction.add(".")
+        gitAction.commitChanges("Initial commit")
+        gitAction.renameBranch(mainBranchName)
+
+        val testBranchName = "test-branch"
+        val createResult = gitAction.createBranch(testBranchName)
+        assertTrue(createResult)
+
+        val checkoutResult = gitAction.checkoutLocalBranch(testBranchName)
+        assertTrue(checkoutResult)
+        assertEquals(testBranchName, gitAction.getCurrentBranch())
+
+        val resultMain = gitAction.checkoutLocalBranch("main")
+        assertTrue(resultMain)
+        assertEquals(mainBranchName, gitAction.getCurrentBranch())
     }
 }

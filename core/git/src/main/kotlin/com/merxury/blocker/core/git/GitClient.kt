@@ -21,4 +21,8 @@ interface GitClient {
     suspend fun commitChanges(commitMessage: String): Boolean
     suspend fun hasLocalChanges(): Boolean
     suspend fun add(filePattern: String): Int
+    suspend fun checkoutLocalBranch(branchName: String): Boolean
+    suspend fun createBranch(branchName: String): Boolean
+    suspend fun renameBranch(name: String): Boolean
+    suspend fun getCurrentBranch(): String?
 }

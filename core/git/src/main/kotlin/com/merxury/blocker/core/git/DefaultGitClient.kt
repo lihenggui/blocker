@@ -19,6 +19,7 @@ package com.merxury.blocker.core.git
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.jetbrains.annotations.TestOnly
+import timber.log.Timber
 import java.io.File
 
 /** Default implementation of Git using JGit */
@@ -60,6 +61,63 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         val status = git.status()
             .call()
         return status.added.size + status.changed.size + status.removed.size + status.missing.size
+    }
+
+    override suspend fun checkoutLocalBranch(branchName: String): Boolean {
+        // Check if it's a git repository
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return false
+        }
+        val branchWithNamespace = "refs/heads/$branchName"
+        Timber.d("Checking out branch $branchWithNamespace")
+        // Find the branch list and check if the branch exists
+        val branches = Git(FileRepository(gitFolder)).branchList().call()
+        if (branches.none { it.name == branchWithNamespace }) {
+            Timber.e("Branch $branchWithNamespace does not exist")
+            return false
+        }
+        val git = Git(FileRepository(gitFolder))
+        git.checkout()
+            .setName(branchWithNamespace)
+            .call()
+        return true
+    }
+
+    override suspend fun createBranch(branchName: String): Boolean {
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return false
+        }
+        Timber.d("Creating branch $branchName")
+        val git = Git(FileRepository(gitFolder))
+        git.checkout()
+            .setCreateBranch(true)
+            .setName(branchName)
+            .call()
+        return true
+    }
+
+    override suspend fun renameBranch(name: String): Boolean {
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return false
+        }
+        Timber.d("Renaming branch to $name")
+        val git = Git(FileRepository(gitFolder))
+        git.branchRename()
+            .setNewName(name)
+            .call()
+        return true
+    }
+
+    override suspend fun getCurrentBranch(): String? {
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return null
+        }
+        val git = Git(FileRepository(gitFolder))
+        return git.repository.branch
     }
 
     /**
