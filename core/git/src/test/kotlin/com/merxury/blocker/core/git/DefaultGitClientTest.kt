@@ -155,4 +155,25 @@ class DefaultGitClientTest {
         assertTrue(resultMain)
         assertEquals(mainBranchName, gitAction.getCurrentBranch())
     }
+
+    @Test
+    fun givenBranchNotExists_whenGetCurrentBranch_thenReturnMaster() = runTest {
+        gitAction.createGitRepository()
+        assertEquals("master", gitAction.getCurrentBranch())
+    }
+
+    // Test for renameBranch
+    @Test
+    fun givenBranchExists_whenRenameBranch_thenBranchIsRenamed() = runTest {
+        gitAction.createGitRepository()
+        // An empty repository does not have a HEAD yet
+        // We should commit something first
+        val file = File(tempDir, "${repositoryInfo.name}/test.txt")
+        file.writeText("Hello, World!")
+        gitAction.add(".")
+        gitAction.commitChanges("Initial commit")
+        val mainBranchName = "main"
+        gitAction.renameBranch(mainBranchName)
+        assertEquals(mainBranchName, gitAction.getCurrentBranch())
+    }
 }
