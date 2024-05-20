@@ -16,16 +16,8 @@
 
 package com.merxury.blocker.core.git
 
-interface GitClient {
-    suspend fun cloneRepository(): Boolean
-    suspend fun commitChanges(commitMessage: String): Boolean
-    suspend fun hasLocalChanges(): Boolean
-    suspend fun add(filePattern: String): Int
-    suspend fun checkoutLocalBranch(branchName: String): Boolean
-    suspend fun createBranch(branchName: String): Boolean
-    suspend fun renameBranch(name: String): Boolean
-    suspend fun getCurrentBranch(): String?
-    suspend fun pull(): Boolean
-    suspend fun fetchAndMergeFromMain(): MergeStatus
-    suspend fun setRemoteUrl(remoteUrl: String): Boolean
+enum class MergeStatus {
+    MERGED,
+    CONFLICTS,
+    FAILED
 }

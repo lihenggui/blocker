@@ -18,6 +18,6 @@ package com.merxury.blocker.core.git
 
 data class RepositoryInfo(
     val url: String,
-    val name: String,
+    val repoName: String,
     val branch: String,
 )

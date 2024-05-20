@@ -16,22 +16,29 @@
 
 package com.merxury.blocker.core.git
 
+import com.merxury.blocker.core.git.MergeStatus.CONFLICTS
+import com.merxury.blocker.core.git.MergeStatus.FAILED
+import com.merxury.blocker.core.git.MergeStatus.MERGED
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.ResetCommand.ResetType
 import org.eclipse.jgit.internal.storage.file.FileRepository
+import org.eclipse.jgit.transport.URIish
 import org.jetbrains.annotations.TestOnly
 import timber.log.Timber
 import java.io.File
 
 /** Default implementation of Git using JGit */
 class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File) : GitClient {
-    private val gitRepository = File(baseDirectory, repoInfo.name)
+    private val gitRepository = File(baseDirectory, repoInfo.repoName)
     private val gitFolder = File(gitRepository, ".git")
 
     override suspend fun cloneRepository(): Boolean {
+        Timber.d("Cloning repository from ${repoInfo.url} to ${gitRepository.absolutePath}")
         Git.cloneRepository()
             .setURI(repoInfo.url)
             .setDirectory(gitRepository)
             .call()
+        Timber.d("Repository cloned successfully")
         return true
     }
 
@@ -118,6 +125,58 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         }
         val git = Git(FileRepository(gitFolder))
         return git.repository.branch
+    }
+
+    override suspend fun pull(): Boolean {
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return false
+        }
+        val currentBranch = getCurrentBranch()
+        Timber.d("Pulling changes on branch $currentBranch from ${repoInfo.url}")
+        val git = Git(FileRepository(gitFolder))
+        git.pull()
+            .call()
+        return true
+    }
+
+    override suspend fun fetchAndMergeFromMain(): MergeStatus {
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return FAILED
+        }
+        val git = Git(FileRepository(gitFolder))
+        Timber.d("Fetching changes from remote $repoInfo.url")
+        git.fetch()
+            .call()
+        Timber.d("Merging changes from origin/main")
+        git.merge()
+            .include(git.repository.exactRef("refs/remotes/origin/main"))
+            .call()
+        // Resolve conflicts if any
+        val status = git.status().call()
+        if (status.hasUncommittedChanges()) {
+            Timber.e("Conflicts detected, files with conflicts: ${status.conflicting}")
+            // Reset the merge
+            git.reset()
+                .setMode(ResetType.HARD)
+                .call()
+            return CONFLICTS
+        }
+        return MERGED
+    }
+
+    override suspend fun setRemoteUrl(remoteUrl: String): Boolean {
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return false
+        }
+        val git = Git(FileRepository(gitFolder))
+        git.remoteSetUrl()
+            .setRemoteName("origin")
+            .setRemoteUri(URIish(remoteUrl))
+            .call()
+        return true
     }
 
     /**
