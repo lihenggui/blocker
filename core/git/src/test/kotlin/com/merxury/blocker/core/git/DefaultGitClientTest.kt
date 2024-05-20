@@ -50,7 +50,7 @@ class DefaultGitClientTest {
     }
 
     @Test
-    fun testCreateRepository() = runTest {
+    fun givenNewRepository_whenCreateRepository_thenRepositoryIsCreated() = runTest {
         val result = gitAction.createGitRepository()
         assertTrue(result)
 
@@ -61,7 +61,7 @@ class DefaultGitClientTest {
     }
 
     @Test
-    fun testCommitChanges() = runTest {
+    fun givenRepositoryWithChanges_whenCommitChanges_thenChangesAreCommitted() = runTest {
         // Create a repository first
         gitAction.createGitRepository()
 
@@ -93,23 +93,43 @@ class DefaultGitClientTest {
             }
         }
         assertTrue(found)
+
+        // Verify that no local changes are detected
+        val resultNoChanges = gitAction.hasLocalChanges()
+        assertFalse(resultNoChanges)
     }
 
     @Test
-    fun testHasLocalChanges() = runTest {
+    fun givenRepositoryWithChanges_whenHasLocalChanges_thenTrue() = runTest {
         // Create a repository first
         gitAction.createGitRepository()
 
         // Add a file to the repository
         val file = File(baseDirectory, "${repositoryInfo.name}/test.txt")
         file.writeText("Hello, World!")
-        gitAction.add(".")
-        val result = gitAction.hasLocalChanges()
+        val result = gitAction.commitChanges("Test commit")
         assertTrue(result)
 
-        // Commit the changes
-        gitAction.commitChanges("Test commit")
-        val resultNoChanges = gitAction.hasLocalChanges()
-        assertFalse(resultNoChanges)
+        assertFalse(gitAction.hasLocalChanges())
+
+        // Write new content to the file
+        file.writeText("Hello, World! Again!")
+        assertTrue(gitAction.hasLocalChanges())
+    }
+
+    @Test
+    fun givenFileAddedToRepository_whenAdd_thenFileIsAdded() = runTest {
+        gitAction.createGitRepository()
+
+        // Add a file to the repository
+        val file = File(baseDirectory, "${repositoryInfo.name}/test.txt")
+        file.writeText("Hello, World!")
+        val result = gitAction.add(".")
+        assertTrue(result == 1)
+
+        // Verify that the file was added
+        val git = Git(FileRepository(File(baseDirectory, "${repositoryInfo.name}/.git")))
+        val status = git.status().call()
+        assertTrue(status.added.contains("test.txt"))
     }
 }
