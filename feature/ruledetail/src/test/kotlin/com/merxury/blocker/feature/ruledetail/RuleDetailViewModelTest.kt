@@ -22,6 +22,8 @@ import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
@@ -131,11 +133,23 @@ class RuleDetailViewModelTest {
             userDataRepository.sendUserData(defaultUserData)
             generalRuleRepository.sendRuleList(sampleRuleList)
             viewModel.loadData()
-
+            val matchedApps = listOf(
+                MatchedItem(
+                    header = sampleAppList.first().toMatchedHeaderData(),
+                    componentList = listOf(sampleComponentList.first()),
+                ),
+            )
             assertEquals(
                 RuleInfoUiState.Success(
                     ruleInfo = sampleRuleList.first(),
                     matchedAppsUiState = Result.Loading,
+                ),
+                awaitItem(),
+            )
+            assertEquals(
+                RuleInfoUiState.Success(
+                    ruleInfo = sampleRuleList.first(),
+                    matchedAppsUiState = Result.Success(matchedApps),
                 ),
                 awaitItem(),
             )
@@ -152,7 +166,10 @@ private val sampleRuleList = listOf(
         sideEffect = "Unknown",
         safeToBlock = true,
         contributors = listOf("Online contributor"),
-        searchKeyword = listOf("androidx.google.example1"),
+        searchKeyword = listOf(
+            "androidx.google.example1",
+            "test.activity",
+        ),
         matchedAppCount = 2,
     ),
     GeneralRule(
@@ -168,6 +185,7 @@ private val sampleRuleList = listOf(
             "androidx.google.example2",
             "androidx.google.example3",
             "androidx.google.example4",
+            "test.service",
         ),
         matchedAppCount = 13,
     ),
@@ -242,4 +260,9 @@ private val sampleComponentList = listOf(
         type = PROVIDER,
         description = "An example provider",
     ),
+)
+
+fun InstalledApp.toMatchedHeaderData() = MatchedHeaderData(
+    title = label,
+    uniqueId = packageName,
 )
