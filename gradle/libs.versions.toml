@@ -49,6 +49,7 @@ kotlinxDatetime = "0.6.0"
 kotlinxSerializationJson = "1.6.3"
 ksp = "1.9.24-1.0.20"
 libsu = "5.2.2"
+logbackClassic = "1.5.6"
 materialKolor = "1.5.1"
 mockitoKotlin = "5.3.1"
 moduleGraph = "2.5.0"
@@ -147,6 +148,7 @@ libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", versio
 lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "androidTools" }
 lint-checks = { group = "com.android.tools.lint", name = "lint-checks", version.ref = "androidTools" }
 lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "androidTools" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logbackClassic" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 material-kolor = { group = "com.materialkolor", name = "material-kolor", version.ref = "materialKolor" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }

@@ -32,7 +32,6 @@ import kotlin.test.assertTrue
 class DefaultGitClientTest {
 
     private lateinit var repositoryInfo: RepositoryInfo
-    private lateinit var baseDirectory: File
     private lateinit var gitAction: DefaultGitClient
     private lateinit var tempDir: File
 
@@ -40,9 +39,7 @@ class DefaultGitClientTest {
     fun setUp() {
         repositoryInfo = RepositoryInfo("https://github.com/example/repo.git", "repo", "main")
         tempDir = createTempDirectory().toFile()
-        baseDirectory = File(tempDir, "baseDirectory")
-        baseDirectory.mkdirs()
-        gitAction = DefaultGitClient(repositoryInfo, baseDirectory)
+        gitAction = DefaultGitClient(repositoryInfo, tempDir)
     }
 
     @After
@@ -56,7 +53,7 @@ class DefaultGitClientTest {
         assertTrue(result)
 
         // Verify that the repository was created
-        val gitDir = File(baseDirectory, repositoryInfo.name)
+        val gitDir = File(tempDir, repositoryInfo.name)
         assertTrue(gitDir.exists())
         assertTrue(File(gitDir, ".git").exists())
     }
@@ -67,13 +64,13 @@ class DefaultGitClientTest {
         gitAction.createGitRepository()
 
         // Add a file to the repository
-        val file = File(baseDirectory, "${repositoryInfo.name}/test.txt")
+        val file = File(tempDir, "${repositoryInfo.name}/test.txt")
         file.writeText("Hello, World!")
         val result = gitAction.commitChanges("Test commit")
         assertTrue(result)
 
         // Verify that the changes were committed
-        val git = Git(FileRepository(File(baseDirectory, "${repositoryInfo.name}/.git")))
+        val git = Git(FileRepository(File(tempDir, "${repositoryInfo.name}/.git")))
         val status = git.status().call()
         assertFalse(status.hasUncommittedChanges())
 
@@ -106,7 +103,7 @@ class DefaultGitClientTest {
         gitAction.createGitRepository()
 
         // Add a file to the repository
-        val file = File(baseDirectory, "${repositoryInfo.name}/test.txt")
+        val file = File(tempDir, "${repositoryInfo.name}/test.txt")
         file.writeText("Hello, World!")
         val result = gitAction.commitChanges("Test commit")
         assertTrue(result)
@@ -123,13 +120,13 @@ class DefaultGitClientTest {
         gitAction.createGitRepository()
 
         // Add a file to the repository
-        val file = File(baseDirectory, "${repositoryInfo.name}/test.txt")
+        val file = File(tempDir, "${repositoryInfo.name}/test.txt")
         file.writeText("Hello, World!")
         val result = gitAction.add(".")
         assertTrue(result == 1)
 
         // Verify that the file was added
-        val git = Git(FileRepository(File(baseDirectory, "${repositoryInfo.name}/.git")))
+        val git = Git(FileRepository(File(tempDir, "${repositoryInfo.name}/.git")))
         val status = git.status().call()
         assertTrue(status.added.contains("test.txt"))
     }
@@ -140,7 +137,7 @@ class DefaultGitClientTest {
         gitAction.createGitRepository()
         // An empty repository does not have a HEAD yet
         // We should commit something first
-        val file = File(baseDirectory, "${repositoryInfo.name}/test.txt")
+        val file = File(tempDir, "${repositoryInfo.name}/test.txt")
         file.writeText("Hello, World!")
         gitAction.add(".")
         gitAction.commitChanges("Initial commit")
