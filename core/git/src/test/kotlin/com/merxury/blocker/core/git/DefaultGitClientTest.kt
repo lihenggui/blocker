@@ -18,17 +18,12 @@ package com.merxury.blocker.core.git
 
 import kotlinx.coroutines.test.runTest
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.MergeResult
-import org.eclipse.jgit.api.PullResult
 import org.eclipse.jgit.internal.storage.file.FileRepository
-import org.eclipse.jgit.lib.Ref
-import org.eclipse.jgit.transport.FetchResult
 import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals
@@ -41,6 +36,7 @@ class DefaultGitClientTest {
     private lateinit var gitAction: DefaultGitClient
     private lateinit var tempDir: File
     private lateinit var remoteDir: File
+    private lateinit var remoteGit: Git
 
     @Before
     fun setUp() {
@@ -55,10 +51,10 @@ class DefaultGitClientTest {
         gitAction = DefaultGitClient(repositoryInfo, tempDir)
 
         // Initialize remote repository
-        Git.init()
+        remoteGit = Git.init()
             .setDirectory(remoteDir)
             .call()
-        val remoteGit = Git(FileRepository(File(remoteDir, ".git")))
+
         val file = File(remoteDir, "test.txt")
         file.writeText("Hello, World!")
         remoteGit.add()
@@ -66,6 +62,11 @@ class DefaultGitClientTest {
             .call()
         remoteGit.commit()
             .setMessage("Initial commit")
+            .call()
+        // Rename the master branch to main
+        remoteGit.branchRename()
+            .setOldName("master")
+            .setNewName("main")
             .call()
     }
 
@@ -187,10 +188,10 @@ class DefaultGitClientTest {
     @Test
     fun givenBranchNotExists_whenGetCurrentBranch_thenReturnMaster() = runTest {
         gitAction.createGitRepository()
+        // For local repository, the default branch is master
         assertEquals("master", gitAction.getCurrentBranch())
     }
 
-    // Test for renameBranch
     @Test
     fun givenBranchExists_whenRenameBranch_thenBranchIsRenamed() = runTest {
         gitAction.createGitRepository()
@@ -205,7 +206,6 @@ class DefaultGitClientTest {
         assertEquals(mainBranchName, gitAction.getCurrentBranch())
     }
 
-    // Test for override suspend fun setRemote(url: String, name: String)
     @Test
     fun givenRemoteDoesNotExist_whenSetRemote_thenRemoteIsSet() = runTest {
         gitAction.createGitRepository()
@@ -220,7 +220,6 @@ class DefaultGitClientTest {
         assertTrue(remoteConfig.any { it.name == name && it.urIs.contains(URIish(url)) })
     }
 
-    // Test for cloneRepository
     @Test
     fun givenValidRemoteRepository_whenCloneRepository_thenRepositoryIsCloned() = runTest {
         val result = gitAction.cloneRepository()
@@ -230,23 +229,70 @@ class DefaultGitClientTest {
         val gitDir = File(tempDir, repositoryInfo.repoName)
         assertTrue(gitDir.exists())
         assertTrue(File(gitDir, ".git").exists())
+        assertTrue(File(gitDir, "test.txt").exists())
     }
 
-    // Test for pull
     @Test
     fun givenValidRemoteRepository_whenPull_thenRepositoryIsPulled() = runTest {
-        gitAction.createGitRepository()
-        gitAction.setRemote(repositoryInfo.url, repositoryInfo.remoteName)
+        gitAction.cloneRepository()
+
+        // Add a new commit on the remote repository
+        val newFileName = "new.txt"
+        val fileContent = "Hello, World!"
+        val file = File(remoteDir, newFileName)
+        file.writeText(fileContent)
+        remoteGit.add()
+            .addFilepattern(".")
+            .call()
+        remoteGit.commit()
+            .setMessage("New commit")
+            .call()
+
+        // Pull the changes
         val result = gitAction.pull()
         assertTrue(result)
+
+        // Check the file is pulled in the local folder
+        val targetFile = File(tempDir, "${repositoryInfo.repoName}/$newFileName")
+        assertTrue(targetFile.exists())
+
+        // Check file content
+        assertEquals(fileContent, targetFile.readText())
     }
 
     // Test for fetchAndMergeFromMain
     @Test
     fun givenValidRemoteRepository_whenFetchAndMergeFromMain_thenRepositoryIsMerged() = runTest {
-        gitAction.createGitRepository()
-        gitAction.setRemote(repositoryInfo.url, repositoryInfo.remoteName)
+        gitAction.cloneRepository()
+
+        // Create a new branch and make changes
+        val newBranchName = "new-branch"
+        gitAction.createBranch(newBranchName)
+        val newFileName = "new.txt"
+        val fileContent = "Hello, World!"
+        val file = File(tempDir, "${repositoryInfo.repoName}/$newFileName")
+        file.writeText(fileContent)
+        gitAction.add(".")
+        gitAction.commitChanges("New commit")
+
+        // Add a new commit on the remote repository
+        val remoteChangedFileName = "remote-changed.txt"
+        val remoteChangedFileContent = "Hello, World! Remote"
+        val remoteChangedFile = File(remoteDir, remoteChangedFileName)
+        remoteChangedFile.writeText(remoteChangedFileContent)
+        remoteGit.add()
+            .addFilepattern(".")
+            .call()
+        remoteGit.commit()
+            .setMessage("Remote commit")
+            .call()
+
+        // Fetch and merge from main
         val result = gitAction.fetchAndMergeFromMain()
         assertEquals(MergeStatus.MERGED, result)
+
+        // Check the file is pulled in the local folder
+        val targetFile = File(tempDir, "${repositoryInfo.repoName}/$remoteChangedFileName")
+        assertTrue(targetFile.exists())
     }
 }

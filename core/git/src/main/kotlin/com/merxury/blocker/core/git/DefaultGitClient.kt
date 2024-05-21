@@ -136,8 +136,10 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         val currentBranch = getCurrentBranch()
         Timber.d("Pulling changes on branch $currentBranch from ${repoInfo.url}")
         val git = Git(FileRepository(gitFolder))
+        git.fetch()
+            .setRefSpecs("+refs/heads/*:refs/remotes/${repoInfo.remoteName}/*")
+            .call()
         git.pull()
-            .setRemote(repoInfo.remoteName)
             .call()
         return true
     }
@@ -151,6 +153,7 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         Timber.d("Fetching changes from remote $repoInfo.url")
         git.fetch()
             .setRemote(repoInfo.remoteName)
+            .setRefSpecs("+refs/heads/main:refs/remotes/${repoInfo.remoteName}/main")
             .call()
         Timber.d("Merging changes from ${repoInfo.remoteName}/main")
         git.merge()

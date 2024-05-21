@@ -19,5 +19,5 @@ package com.merxury.blocker.core.git
 enum class MergeStatus {
     MERGED,
     CONFLICTS,
-    FAILED
+    FAILED,
 }
