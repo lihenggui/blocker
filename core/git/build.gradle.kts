@@ -22,6 +22,9 @@ plugins {
 
 android {
     namespace = "com.merxury.blocker.core.git"
+    defaultConfig {
+        consumerProguardFiles("proguard-rules.pro")
+    }
 }
 
 dependencies {
