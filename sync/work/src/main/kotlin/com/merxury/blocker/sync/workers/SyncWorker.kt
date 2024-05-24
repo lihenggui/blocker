@@ -24,39 +24,36 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.ChangeListVersions
-import com.merxury.blocker.core.di.CacheDir
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.git.DefaultGitClient
 import com.merxury.blocker.core.git.RepositoryInfo
-import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
-import com.merxury.blocker.core.network.io.BinaryFileWriter
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.sync.initializers.SyncConstraints
 import com.merxury.blocker.sync.initializers.syncForegroundInfo
 import com.merxury.blocker.sync.status.ISyncSubscriber
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import timber.log.Timber
 import java.io.File
-import java.io.IOException
-import java.util.zip.ZipException
 
 private const val PREF_SYNC_RULE = "sync_rule"
 private const val PREF_LAST_SYNCED_TIME = "last_synced_time"
@@ -72,9 +69,7 @@ internal class SyncWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val userDataRepository: UserDataRepository,
-    @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
-    @RuleBaseFolder private val ruleBaseFolder: String,
     private val network: BlockerNetworkDataSource,
     private val blockerPreferences: BlockerPreferencesDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -129,7 +124,7 @@ internal class SyncWorker @AssistedInject constructor(
             "Last synced commit id: $localCommitId, latest commit id: $latestCommitId" +
                 ", start pulling rule...",
         )
-        cancelSyncAssetTask()
+        waitForCopyTaskFinish()
         val mainBranchName = "main"
         val repoInfo = RepositoryInfo(
             remoteName = provider.name,
@@ -164,41 +159,6 @@ internal class SyncWorker @AssistedInject constructor(
             Timber.e(e, "Failed to sync rules from remote")
             return false
         }
-//        val ruleFolder = cacheDir.resolve(ruleBaseFolder)
-//        if (!ruleFolder.exists()) {
-//            ruleFolder.mkdirs()
-//        }
-//        val file = File(ruleFolder, RULE_ZIP_FILENAME)
-//        try {
-//            file.outputStream().use { outputStream ->
-//                network.downloadRules(provider, BinaryFileWriter(outputStream))
-//            }
-//            Timber.d("Downloaded rule file: ${file.absolutePath}")
-//            // unzip the folder to rule folder
-//            FileUtils.unzip(file, ruleFolder.absolutePath)
-//            // Assume the name of the unzipped folder is 'blocker-general-rules-main
-//            // Rename to 'blocker-general-rules', and copy to filesDir
-//            val unzippedFolder = ruleFolder.resolve("blocker-general-rules-main")
-//            if (!unzippedFolder.exists()) {
-//                Timber.e("Unzipped folder $unzippedFolder does not exist")
-//                return false
-//            }
-//            val targetFolder = filesDir.resolve(ruleBaseFolder)
-//            if (targetFolder.exists()) {
-//                targetFolder.deleteRecursively()
-//            }
-//            Timber.d("Copying rule to $targetFolder")
-//            unzippedFolder.copyRecursively(targetFolder, overwrite = true)
-//            unzippedFolder.deleteRecursively()
-//        } catch (e: IOException) {
-//            Timber.e(e, "Failed to sync rule")
-//            return false
-//        } catch (e: ZipException) {
-//            Timber.e(e, "Cannot unzip the file")
-//            return false
-//        } finally {
-//            file.deleteRecursively()
-//        }
         // write latest commit id to preference
         updateChangeListVersions {
             copy(ruleCommitId = latestCommitId)
@@ -236,9 +196,20 @@ internal class SyncWorker @AssistedInject constructor(
         Timber.d("Mark rule sync time: ${Instant.fromEpochMilliseconds(currentTime)}")
     }
 
-    private fun cancelSyncAssetTask() {
+    private suspend fun waitForCopyTaskFinish() {
         val workManager = WorkManager.getInstance(appContext)
-        workManager.cancelAllWorkByTag(CopyRulesToStorageWorker.WORK_NAME)
+        workManager.getWorkInfosForUniqueWorkFlow(CopyRulesToStorageWorker.WORK_NAME)
+            .takeWhile {
+                val workInfo = it.firstOrNull()
+                val isRunning = workInfo?.state == WorkInfo.State.RUNNING
+                if (isRunning) {
+                    Timber.v("Copy asset task is running, waiting...")
+                } else {
+                    Timber.v("Copy asset task is not running, continue syncing rules.")
+                }
+                isRunning
+            }
+            .collect()
     }
 
     companion object {
