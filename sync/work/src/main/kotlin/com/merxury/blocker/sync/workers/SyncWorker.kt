@@ -140,13 +140,16 @@ internal class SyncWorker @AssistedInject constructor(
                     // Repo not initialized, delete the folder and clone again
                     Timber.i("Local rule folder is not a git repository, delete and clone again")
                     projectFolder.deleteRecursively()
+                    gitClient.setRemote(repoInfo.url, provider.name)
                     gitClient.cloneRepository()
                 } else {
                     // Repo initialized, pull the latest changes
+                    gitClient.setRemote(repoInfo.url, provider.name)
                     gitClient.pull()
                 }
             } else {
                 // Repo not exists, clone the repository
+                gitClient.setRemote(repoInfo.url, provider.name)
                 gitClient.cloneRepository()
             }
         } catch (e: Exception) {
