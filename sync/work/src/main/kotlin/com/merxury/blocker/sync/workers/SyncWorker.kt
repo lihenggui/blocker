@@ -48,7 +48,6 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
@@ -57,7 +56,6 @@ import java.io.File
 
 private const val PREF_SYNC_RULE = "sync_rule"
 private const val PREF_LAST_SYNCED_TIME = "last_synced_time"
-private const val RULE_ZIP_FILENAME = "rules.zip"
 
 /**
  * Syncs the data layer by delegating to the appropriate repository instances with
