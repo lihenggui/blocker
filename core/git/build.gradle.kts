@@ -17,27 +17,22 @@
 plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.jacoco)
-    id("kotlinx-serialization")
     alias(libs.plugins.blocker.android.hilt)
 }
+
 android {
+    namespace = "com.merxury.blocker.core.git"
     defaultConfig {
-        testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
+        consumerProguardFiles("proguard-rules.pro")
     }
-    namespace = "com.merxury.blocker.sync"
 }
+
 dependencies {
-    ksp(libs.hilt.ext.compiler)
+    implementation(libs.timber)
+    implementation(libs.eclipse.jgit)
+    implementation(libs.kotlinx.coroutines.android)
 
-    implementation(libs.androidx.tracing.ktx)
-    implementation(libs.androidx.work.ktx)
-    implementation(libs.hilt.ext.work)
-    implementation(projects.core.analytics)
-    implementation(projects.core.data)
-    implementation(projects.core.git)
-    implementation(projects.core.rule)
-
-    androidTestImplementation(libs.androidx.work.testing)
-    androidTestImplementation(libs.hilt.android.testing)
-    androidTestImplementation(projects.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.logback.classic)
+    testImplementation(libs.mockito.kotlin)
 }

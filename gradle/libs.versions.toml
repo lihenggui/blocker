@@ -41,12 +41,14 @@ googleOssPlugin = "0.10.6"
 hilt = "2.51.1"
 hiltExt = "1.2.0"
 jacoco = "0.8.7"
+jgit = "6.9.0.202403050737-r"
 kotlin = "2.0.0"
 kotlinxCoroutines = "1.8.1"
 kotlinxDatetime = "0.6.0"
 kotlinxSerializationJson = "1.6.3"
 ksp = "2.0.0-1.0.21"
 libsu = "5.2.2"
+logbackClassic = "1.5.6"
 materialKolor = "1.6.0"
 mockitoKotlin = "5.3.1"
 moduleGraph = "2.5.0"
@@ -59,6 +61,7 @@ robolectric = "4.12.2"
 roborazzi = "1.17.0"
 room = "2.6.1"
 shizuku = "13.1.5"
+timber = "5.0.1"
 xmlutil = "0.86.3"
 turbine = "1.1.0"
 truth = "1.4.2"
@@ -116,6 +119,7 @@ coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 compose-markdown = { group = "com.github.jeziellago", name = "compose-markdown", version.ref = "composeMarkdown" }
+eclipse-jgit = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref="firebaseBom"}
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
@@ -142,6 +146,7 @@ libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", versio
 lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "androidTools" }
 lint-checks = { group = "com.android.tools.lint", name = "lint-checks", version.ref = "androidTools" }
 lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "androidTools" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logbackClassic" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 material-kolor = { group = "com.materialkolor", name = "material-kolor", version.ref = "materialKolor" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
@@ -161,7 +166,7 @@ shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuk
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-android", version.ref = "xmlutil" }
 xmlutil-serialization-android = { group = "io.github.pdvrieze.xmlutil", name = "serialization-android", version.ref = "xmlutil" }
-timber = "com.jakewharton.timber:timber:5.0.1"
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 hiddenapibypass = "org.lsposed.hiddenapibypass:hiddenapibypass:4.3"
 
 # Dependencies of the included build-logic
