@@ -41,7 +41,7 @@ elif command -v ggrep &> /dev/null; then
 else
     echo "You don't have a version of 'grep' installed which supports Perl regular expressions."
     echo "On MacOS you can install one using Homebrew with the command: 'brew install grep'"
-    GREP_COMMAND=grep
+    exit 1
 fi
 
 # Initialize an array to store excluded modules
