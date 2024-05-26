@@ -34,7 +34,7 @@ fi
 # Check for a version of grep which supports Perl regex.
 # On MacOS the OS installed grep doesn't support Perl regex so check for the existence of the
 # GNU version instead which is prefixed with 'g' to distinguish it from the OS installed version.
-    if grep -P "" /dev/null > /dev/null 2>&1; then
+if grep -P "" /dev/null > /dev/null 2>&1; then
     GREP_COMMAND=grep
 elif command -v ggrep &> /dev/null; then
     GREP_COMMAND=ggrep
