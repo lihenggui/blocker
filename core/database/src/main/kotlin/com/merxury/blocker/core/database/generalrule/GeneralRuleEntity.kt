@@ -30,10 +30,12 @@ data class GeneralRuleEntity(
     val iconUrl: String? = null,
     val company: String? = null,
     val searchKeyword: List<String> = listOf(),
+    val networkSignature : List<String> = listOf(),
     val useRegexSearch: Boolean? = null,
     val description: String? = null,
     val safeToBlock: Boolean? = null,
     val sideEffect: String? = null,
+    val website: String? = null,
     val contributors: List<String> = listOf(),
     val matchedAppCount: Int = 0,
 )
