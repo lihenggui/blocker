@@ -24,7 +24,6 @@
     <string name="core_ui_disable">Désactiver</string>
     <string name="core_ui_running">En cours d\'exécution</string>
     <string name="core_ui_disabled">Désactivé</string>
-    <string name="core_ui_version_code_template" translatable="false">%1$s (%2$s)</string>
     <string name="core_ui_service_status_template" tools:ignore="PluralsCandidate">Service : %1$d en cours d\'exécution, %2$d bloqué, %3$d au total.</string>
     <string name="core_ui_rule_icon_description">Icône de règle</string>
     <string name="core_ui_copy_name">Copier le nom</string>
@@ -85,7 +84,6 @@
     <string name="core_ui_disabling_component_hint">Désactivation des composants, veuillez patienter… (%1$d/%2$d)</string>
     <string name="core_ui_enabling_component_hint">Activation des composants, veuillez patienter… (%1$d/%2$d)</string>
     <string name="core_ui_operation_completed">Opération terminée</string>
-    <string name="core_ui_sdk_with_count" translatable="false">SDK</string>
     <string name="core_ui_application_with_count">Application (%1$d)</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Voulez-vous désinstaller cette application ?</string>
