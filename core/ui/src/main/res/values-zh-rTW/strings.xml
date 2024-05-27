@@ -78,6 +78,6 @@
     <string name="core_ui_operation_completed">操作已完成</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">您想要清除此應用的數據嗎？</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">您想要卸載此應用嗎？</string>
-    <string name="core_ui_matched_sdk_trackers">已找到匹配SDK/跟踪器</string>
-    <string name="core_ui_unmatched_sdk_trackers">未找到匹配SDK/跟踪器</string>
+    <string name="core_ui_found">已找到</string>
+    <string name="core_ui_not_found">未找到</string>
 </resources>

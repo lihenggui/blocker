@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.R.string.core_ui_unmatched_sdk_trackers
+import com.merxury.blocker.core.ui.R.string.core_ui_not_found
 
 @Composable
 fun RuleItemHeader(
@@ -48,7 +48,7 @@ fun RuleItemHeader(
 fun RuleItemHeaderPreview() {
     BlockerTheme {
         Surface {
-            RuleItemHeader(title = stringResource(core_ui_unmatched_sdk_trackers))
+            RuleItemHeader(title = stringResource(core_ui_not_found))
         }
     }
 }
