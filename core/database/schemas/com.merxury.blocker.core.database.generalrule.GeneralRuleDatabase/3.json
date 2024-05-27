@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 2,
-    "identityHash": "275e6d4f924d5d60922ad63d63f393bf",
+    "version": 3,
+    "identityHash": "c15f9402386d505e7c5d3fceb7d8d149",
     "entities": [
       {
         "tableName": "general_rules",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `iconUrl` TEXT, `company` TEXT, `searchKeyword` TEXT NOT NULL, `useRegexSearch` INTEGER, `description` TEXT, `safeToBlock` INTEGER, `sideEffect` TEXT, `contributors` TEXT NOT NULL, `matchedAppCount` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `iconUrl` TEXT, `company` TEXT, `searchKeyword` TEXT NOT NULL, `networkSignature` TEXT NOT NULL, `useRegexSearch` INTEGER, `description` TEXT, `safeToBlock` INTEGER, `sideEffect` TEXT, `website` TEXT, `contributors` TEXT NOT NULL, `matchedAppCount` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -39,6 +39,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "networkSignature",
+            "columnName": "networkSignature",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
             "fieldPath": "useRegexSearch",
             "columnName": "useRegexSearch",
             "affinity": "INTEGER",
@@ -59,6 +65,12 @@
           {
             "fieldPath": "sideEffect",
             "columnName": "sideEffect",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "website",
+            "columnName": "website",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -88,7 +100,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '275e6d4f924d5d60922ad63d63f393bf')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c15f9402386d505e7c5d3fceb7d8d149')"
     ]
   }
 }
