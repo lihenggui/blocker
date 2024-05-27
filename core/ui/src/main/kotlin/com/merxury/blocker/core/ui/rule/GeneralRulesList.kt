@@ -64,7 +64,7 @@ fun GeneralRulesList(
         ) {
             if (matchedRules.isNotEmpty()) {
                 item {
-                    RuleItemHeader(title = stringResource(id = R.string.core_ui_matched_rules))
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_matched_sdk_trackers))
                 }
                 items(matchedRules, key = { it.id }) {
                     RuleItem(
@@ -80,7 +80,7 @@ fun GeneralRulesList(
             }
             if (unmatchedRules.isNotEmpty()) {
                 item {
-                    RuleItemHeader(title = stringResource(id = R.string.core_ui_unmatched_rules))
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_unmatched_sdk_trackers))
                 }
                 items(unmatchedRules, key = { it.id }) {
                     RuleItem(

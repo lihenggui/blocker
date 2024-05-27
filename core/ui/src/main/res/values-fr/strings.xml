@@ -17,6 +17,6 @@
 <resources>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Voulez-vous désinstaller cette application ?</string>
-    <string name="core_ui_matched_rules">Règles correspondantes</string>
-    <string name="core_ui_unmatched_rules">Règles non correspondantes</string>
+    <string name="core_ui_matched_sdk_trackers">SDK/Trackers correspondants</string>
+    <string name="core_ui_unmatched_sdk_trackers">SDK/Trackers non correspondants</string>
 </resources>
