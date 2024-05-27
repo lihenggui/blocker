@@ -22,7 +22,7 @@ data class GeneralRule(
     val iconUrl: String? = null,
     val company: String? = null,
     val searchKeyword: List<String> = listOf(),
-    val networkSignature : List<String> = listOf(),
+    val networkSignature: List<String> = listOf(),
     val useRegexSearch: Boolean? = null,
     val description: String? = null,
     val safeToBlock: Boolean? = null,
