@@ -130,6 +130,7 @@ class BlockerPreferencesDataSource @Inject constructor(
             isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
             appDisplayLanguage = it.appDisplayLanguage,
             libDisplayLanguage = it.libDisplayLanguage,
+            enableStatistics = it.enableStatistics,
         )
     }
 
@@ -321,6 +322,12 @@ class BlockerPreferencesDataSource @Inject constructor(
     suspend fun setLibDisplayLanguage(language: String) {
         userPreferences.updateData {
             it.copy { this.libDisplayLanguage = language }
+        }
+    }
+
+    suspend fun setEnableStatistics(allow: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.enableStatistics = allow }
         }
     }
 }

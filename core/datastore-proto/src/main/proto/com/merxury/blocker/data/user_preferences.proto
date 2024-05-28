@@ -48,4 +48,5 @@ message UserPreferences {
     string rule_commit_id = 17;
     string app_display_language = 18;
     string lib_display_language = 19;
+    bool enable_statistics = 20;
 }
