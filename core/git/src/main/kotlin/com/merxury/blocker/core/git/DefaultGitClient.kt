@@ -134,12 +134,14 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
             return false
         }
         val currentBranch = getCurrentBranch()
-        Timber.d("Pulling changes on branch $currentBranch from ${repoInfo.url}")
+        Timber.d("Pulling changes on branch $currentBranch from $repoInfo")
         val git = Git(FileRepository(gitFolder))
         git.fetch()
+            .setRemote(repoInfo.remoteName)
             .setRefSpecs("+refs/heads/*:refs/remotes/${repoInfo.remoteName}/*")
             .call()
         git.pull()
+            .setRemote(repoInfo.remoteName)
             .call()
         return true
     }
@@ -178,6 +180,7 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
             Timber.e("$gitFolder is not a git repository")
             return false
         }
+        Timber.i("Setting remote $name to $url")
         val git = Git(FileRepository(gitFolder))
         git.remoteSetUrl()
             .setRemoteName(name)
