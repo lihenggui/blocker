@@ -198,10 +198,10 @@ com.google.protobuf:protobuf-kotlin-lite:4.27.0
 com.googlecode.javaewah:JavaEWAH:1.2.3
 com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0
 com.jakewharton.timber:timber:5.0.1
-com.materialkolor:material-color-utilities-android:1.6.0
-com.materialkolor:material-color-utilities:1.6.0
-com.materialkolor:material-kolor-android:1.6.0
-com.materialkolor:material-kolor:1.6.0
+com.materialkolor:material-color-utilities-android:1.6.1
+com.materialkolor:material-color-utilities:1.6.1
+com.materialkolor:material-kolor-android:1.6.1
+com.materialkolor:material-kolor:1.6.1
 com.squareup.okhttp3:logging-interceptor:4.12.0
 com.squareup.okhttp3:okhttp:4.12.0
 com.squareup.okio:okio-jvm:3.8.0
