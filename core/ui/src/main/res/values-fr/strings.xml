@@ -13,10 +13,80 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="core_ui_component_with_count">Composant (%1$d)</string>
+    <string name="core_ui_online_rule_with_count">Règle en ligne (%1$d)</string>
+    <string name="core_ui_clear_cache">Effacer le cache</string>
+    <string name="core_ui_clear_data">Effacer les données</string>
+    <string name="core_ui_force_stop">Forcer l\'arrêt</string>
+    <string name="core_ui_uninstall">Désinstaller</string>
+    <string name="core_ui_enable">Activer</string>
+    <string name="core_ui_disable">Désactiver</string>
+    <string name="core_ui_running">En cours d\'exécution</string>
+    <string name="core_ui_disabled">Désactivé</string>
+    <string name="core_ui_service_status_template" tools:ignore="PluralsCandidate">Service : %1$d en cours d\'exécution, %2$d bloqué, %3$d au total.</string>
+    <string name="core_ui_rule_icon_description">Icône de règle</string>
+    <string name="core_ui_copy_name">Copier le nom</string>
+    <string name="core_ui_copy_full_name">Copier le nom complet</string>
+    <string name="core_ui_launch_activity">Lancer l\'activité</string>
+    <string name="core_ui_stop_service">Arrêter le service</string>
+    <string name="core_ui_no_components">Pas de composants</string>
+    <plurals name="core_ui_matched_component">
+        <item quantity="one">%1$d composant correspondant</item>
+        <item quantity="other">%1$d composants correspondants</item>
+        <item quantity="many">%1$d composants correspondants</item>
+    </plurals>
+    <plurals name="core_ui_matched_apps">
+        <item quantity="one">%1$d application correspondante</item>
+        <item quantity="other">%1$d applications correspondantes</item>
+        <item quantity="many">%1$d applications correspondantes</item>
+    </plurals>
+    <string name="core_ui_description">Description</string>
+    <string name="core_ui_applicable_application">Application applicable</string>
+    <string name="core_ui_loading">Chargement</string>
+    <string name="core_ui_error">Erreur</string>
+    <string name="core_ui_no_applicable_app">Aucune application applicable</string>
+    <string name="core_ui_app_info">Informations sur l\'application</string>
+    <string name="core_ui_activity_with_count">Activité (%1$d)</string>
+    <string name="core_ui_service_with_count">Service (%1$d)</string>
+    <string name="core_ui_receiver_with_count">Récepteur (%1$d)</string>
+    <string name="core_ui_provider_with_count">Fournisseur (%1$d)</string>
+    <string name="core_ui_initializing_database">Initialisation de la base de données</string>
+    <string name="core_ui_more_menu">Menu supplémentaire</string>
+    <string name="core_ui_search_icon">Rechercher</string>
+    <string name="core_ui_block_all_components">Bloquer tous les composants</string>
+    <string name="core_ui_enable_all_components">Activer tous les composants</string>
+    <string name="core_ui_open_app_detail">Ouvrir les détails de l\'application</string>
+    <string name="core_ui_open_rule_detail">Ouvrir les détails de la règle</string>
+    <string name="core_ui_sort_options">Options de tri</string>
+    <string name="core_ui_collapse_list">Réduire la liste</string>
+    <string name="core_ui_expand_list">Développer davantage</string>
+    <string name="core_ui_close">Fermer</string>
+    <string name="core_ui_block_selected">Bloquer la sélection</string>
+    <string name="core_ui_select_all">Sélectionner tout</string>
+    <string name="core_ui_enable_selected">Activer la sélection</string>
+    <string name="core_ui_not_found_icon">Icône introuvable</string>
+    <plurals name="core_ui_block_all">
+        <item quantity="one">Cette opération désactivera %1$d composant, voulez-vous continuer ?</item>
+        <item quantity="other">Cette opération désactivera %1$d composants, voulez-vous continuer ?</item>
+        <item quantity="many">Cette opération désactivera %1$d composants, voulez-vous continuer ?</item>
+    </plurals>
+    <plurals name="core_ui_enable_all">
+        <item quantity="one">Cette opération activera %1$d composant, voulez-vous continuer ?</item>
+        <item quantity="other">Cette opération activera %1$d composants, voulez-vous continuer ?</item>
+        <item quantity="many">Cette opération activera %1$d composants, voulez-vous continuer ?</item>
+    </plurals>
+    <plurals name="core_ui_selected_app_count">
+        <item quantity="one">%1$d application sélectionnée</item>
+        <item quantity="other">%1$d applications sélectionnées</item>
+        <item quantity="many">%1$d applications sélectionnées</item>
+    </plurals>
+    <string name="core_ui_disabling_component_hint">Désactivation des composants, veuillez patienter… (%1$d/%2$d)</string>
+    <string name="core_ui_enabling_component_hint">Activation des composants, veuillez patienter… (%1$d/%2$d)</string>
+    <string name="core_ui_operation_completed">Opération terminée</string>
+    <string name="core_ui_application_with_count">Application (%1$d)</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Voulez-vous désinstaller cette application ?</string>
-    <string name="core_ui_matched_rules">Règles correspondantes</string>
-    <string name="core_ui_unmatched_rules">Règles non correspondantes</string>
+    <string name="core_ui_found">Correspondance</string>
+    <string name="core_ui_not_found">Pas de correspondance</string>
 </resources>
