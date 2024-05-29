@@ -94,6 +94,7 @@ class SettingsViewModel @Inject constructor(
                         showServiceInfo = userData.showServiceInfo,
                         darkThemeConfig = userData.darkThemeConfig,
                         useDynamicColor = userData.useDynamicColor,
+                        enableStatistics = userData.enableStatistics,
                     ),
                 )
             }
@@ -196,6 +197,12 @@ class SettingsViewModel @Inject constructor(
     fun updateRestoreSystemApp(shouldRestore: Boolean) {
         viewModelScope.launch {
             userDataRepository.setRestoreSystemApp(shouldRestore)
+        }
+    }
+
+    fun updateEnableStatistics(allow: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setEnableStatistics(allow)
         }
     }
 

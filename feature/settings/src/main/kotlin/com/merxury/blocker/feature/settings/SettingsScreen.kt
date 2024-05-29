@@ -73,6 +73,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
@@ -82,6 +83,7 @@ import com.merxury.blocker.feature.settings.item.BackupSettings
 import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
 import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
+import com.merxury.blocker.feature.settings.item.SwitchSettingItem
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -112,6 +114,7 @@ fun SettingsRoute(
         onChangeBackupSystemApp = viewModel::updateBackupSystemApp,
         onChangeRestoreSystemApp = viewModel::updateRestoreSystemApp,
         onChangeRuleBackupFolder = viewModel::updateRuleBackupFolder,
+        onChangeEnableStatistics = viewModel::updateEnableStatistics,
         importRules = viewModel::importBlockerRules,
         exportRules = viewModel::exportBlockerRules,
         importIfwRules = viewModel::importIfwRules,
@@ -185,6 +188,7 @@ fun SettingsScreen(
     onChangeBackupSystemApp: (Boolean) -> Unit = { },
     onChangeRestoreSystemApp: (Boolean) -> Unit = { },
     onChangeRuleBackupFolder: (Uri?) -> Unit = { },
+    onChangeEnableStatistics: (Boolean) -> Unit = { },
     exportRules: () -> Unit = { },
     importRules: () -> Unit = { },
     exportIfwRules: () -> Unit = { },
@@ -234,6 +238,7 @@ fun SettingsScreen(
                         onChangeBackupSystemApp = onChangeBackupSystemApp,
                         onChangeRestoreSystemApp = onChangeRestoreSystemApp,
                         onChangeRuleBackupFolder = onChangeRuleBackupFolder,
+                        onChangeEnableStatistics = onChangeEnableStatistics,
                         exportRules = exportRules,
                         importRules = importRules,
                         exportIfwRules = exportIfwRules,
@@ -264,6 +269,7 @@ fun SettingsContent(
     onChangeBackupSystemApp: (Boolean) -> Unit = { },
     onChangeRestoreSystemApp: (Boolean) -> Unit = { },
     onChangeRuleBackupFolder: (Uri?) -> Unit = { },
+    onChangeEnableStatistics: (Boolean) -> Unit = { },
     exportRules: () -> Unit = { },
     importRules: () -> Unit = { },
     exportIfwRules: () -> Unit = { },
@@ -323,6 +329,10 @@ fun SettingsContent(
             resetIfwRules = resetIfwRules,
         )
         HorizontalDivider()
+        ItemHeader(
+            title = stringResource(id = string.feature_settings_others),
+            extraIconPadding = true,
+        )
         BlockerSettingItem(
             title = stringResource(id = string.feature_settings_import_mat_rules),
             onItemClick = {
@@ -339,6 +349,12 @@ fun SettingsContent(
                 }
             },
             extraIconPadding = true,
+        )
+
+        SwitchSettingItem(
+            itemRes = string.feature_settings_anonymous_statistics,
+            checked = settings.enableStatistics,
+            onCheckedChange = onChangeEnableStatistics,
         )
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
     }
@@ -361,6 +377,7 @@ fun SettingsScreenPreview() {
                         showServiceInfo = true,
                         darkThemeConfig = FOLLOW_SYSTEM,
                         useDynamicColor = false,
+                        enableStatistics = true,
                     ),
                 ),
             )

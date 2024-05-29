@@ -41,6 +41,7 @@ fun SwitchSettingItem(
     @StringRes itemRes: Int,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit = {},
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier
@@ -57,6 +58,7 @@ fun SwitchSettingItem(
         Spacer(modifier = Modifier.width(16.dp))
         BlockerSwitch(
             checked = checked,
+            enabled = enabled,
             onCheckedChange = null,
         )
     }

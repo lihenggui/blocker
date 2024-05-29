@@ -59,4 +59,6 @@
     <string name="feature_settings_export_log_title">Blocker日誌導出</string>
     <string name="feature_settings_provide_additional_details">請提供您遇到的問題的詳細資訊：\n</string>
     <string name="feature_settings_no_sharable_app_found">未找到可共享的應用程式。</string>
+    <string name="feature_settings_others">其他</string>
+    <string name="feature_settings_anonymous_statistics">匿名統計</string>
 </resources>

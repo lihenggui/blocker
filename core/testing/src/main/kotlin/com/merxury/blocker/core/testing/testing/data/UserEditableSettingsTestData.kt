@@ -27,4 +27,5 @@ val userEditableSettingsTestData = UserEditableSettings(
     backupSystemApp = true,
     darkThemeConfig = DARK,
     useDynamicColor = true,
+    enableStatistics = true,
 )
