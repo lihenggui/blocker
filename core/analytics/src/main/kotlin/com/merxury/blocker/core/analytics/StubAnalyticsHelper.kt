@@ -30,10 +30,10 @@ private const val TAG = "StubAnalyticsHelper"
 @Singleton
 internal class StubAnalyticsHelper @Inject constructor() : AnalyticsHelper {
     override fun logEvent(event: AnalyticsEvent) {
-        Timber.d("StubAnalytics: Received analytics event: $event")
+        Timber.d("Received analytics event: $event")
     }
 
     override fun setEnableStatistics(enable: Boolean) {
-        Timber.i("StubAnalytics: Setting analytics collection enabled: $enable")
+        Timber.i("Setting analytics collection enabled: $enable")
     }
 }

@@ -130,7 +130,9 @@ class BlockerPreferencesDataSource @Inject constructor(
             isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
             appDisplayLanguage = it.appDisplayLanguage,
             libDisplayLanguage = it.libDisplayLanguage,
-            enableStatistics = it.enableStatistics,
+            // The default value of disableStatistics is false,
+            // so we need to negate it to get the actual value
+            enableStatistics = !it.disableStatistics,
         )
     }
 
@@ -327,7 +329,7 @@ class BlockerPreferencesDataSource @Inject constructor(
 
     suspend fun setEnableStatistics(allow: Boolean) {
         userPreferences.updateData {
-            it.copy { this.enableStatistics = allow }
+            it.copy { this.disableStatistics = !allow }
         }
     }
 }
