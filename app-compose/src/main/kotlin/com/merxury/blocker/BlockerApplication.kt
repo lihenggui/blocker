@@ -26,6 +26,7 @@ import androidx.work.ExistingWorkPolicy.KEEP
 import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
+import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.logging.ReleaseTree
@@ -68,6 +69,9 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     @Inject
     lateinit var releaseTree: ReleaseTree
 
+    @Inject
+    lateinit var analyticsHelper: AnalyticsHelper
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -101,7 +105,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
                 .setFlags(Shell.FLAG_MOUNT_MASTER)
                 .setTimeout(10),
         )
-        initServerProvider()
+        initAppSettings()
         addApiExemptions()
         profileVerifierLogger()
         Sync.initialize(context = this)
@@ -109,9 +113,10 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
 
     override fun newImageLoader(): ImageLoader = imageLoader.get()
 
-    private fun initServerProvider() {
+    private fun initAppSettings() {
         applicationScope.launch {
             val userData = userDataRepository.userData.first()
+            analyticsHelper.setEnableStatistics(userData.enableStatistics)
             if (!userData.isFirstTimeInitializationCompleted) {
                 setDefaultRuleProvider()
                 copyRulesToInternalStorage()
