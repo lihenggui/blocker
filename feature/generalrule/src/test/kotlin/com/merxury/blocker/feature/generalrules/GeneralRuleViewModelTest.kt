@@ -79,6 +79,7 @@ class GeneralRuleViewModelTest {
         val initGeneralRuleUseCase = InitializeRuleStorageUseCase(
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = tempFolder.newFolder().absolutePath,
+            userDataRepository = userDataRepository,
             ioDispatcher = dispatcher,
             workManager = workManager,
         )

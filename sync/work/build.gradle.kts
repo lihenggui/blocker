@@ -34,6 +34,8 @@ dependencies {
     implementation(libs.hilt.ext.work)
     implementation(projects.core.analytics)
     implementation(projects.core.data)
+    implementation(projects.core.git)
+    implementation(projects.core.rule)
 
     androidTestImplementation(libs.androidx.work.testing)
     androidTestImplementation(libs.hilt.android.testing)

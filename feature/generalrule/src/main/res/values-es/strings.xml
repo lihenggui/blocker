@@ -15,5 +15,5 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_generalrule_rules">Reglas</string>
+    <string name="feature_generalrule_sdk_trackers">SDK/Trackers correspondants</string>
 </resources>

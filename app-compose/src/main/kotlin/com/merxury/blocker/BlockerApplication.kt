@@ -95,7 +95,6 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
             Shell.enableVerboseLogging = true
         }
         Timber.plant(releaseTree)
-        Sync.initialize(context = this)
         Shell.setDefaultBuilder(
             Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
@@ -105,6 +104,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
         initServerProvider()
         addApiExemptions()
         profileVerifierLogger()
+        Sync.initialize(context = this)
     }
 
     override fun newImageLoader(): ImageLoader = imageLoader.get()

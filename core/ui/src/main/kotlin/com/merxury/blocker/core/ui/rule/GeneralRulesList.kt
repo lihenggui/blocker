@@ -66,7 +66,7 @@ fun GeneralRulesList(
         ) {
             if (matchedRules.isNotEmpty()) {
                 item {
-                    RuleItemHeader(title = stringResource(id = R.string.core_ui_matched_rules))
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_found))
                 }
                 items(matchedRules, key = { it.id }) {
                     val isSelected = highlightSelectedRule && it.id.toString() == selectedRuleId
@@ -84,7 +84,7 @@ fun GeneralRulesList(
             }
             if (unmatchedRules.isNotEmpty()) {
                 item {
-                    RuleItemHeader(title = stringResource(id = R.string.core_ui_unmatched_rules))
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_not_found))
                 }
                 items(unmatchedRules, key = { it.id }) {
                     val isSelected = highlightSelectedRule && it.id.toString() == selectedRuleId

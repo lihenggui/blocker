@@ -88,6 +88,6 @@
     <string name="core_ui_operation_completed">Operación completada</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">¿Quieres borrar los datos de esta app?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">¿Quieres desinstalar esta aplicación?</string>
-    <string name="core_ui_matched_rules">Reglas coincidentes</string>
-    <string name="core_ui_unmatched_rules">Reglas no coincidentes</string>
+    <string name="core_ui_found">Encontrado</string>
+    <string name="core_ui_not_found">No encontrado</string>
 </resources>

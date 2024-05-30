@@ -21,7 +21,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.merxury.blocker.core.database.util.ListConverter
 
-@Database(entities = [GeneralRuleEntity::class], version = 2)
+@Database(entities = [GeneralRuleEntity::class], version = 3)
 @TypeConverters(ListConverter::class)
 internal abstract class GeneralRuleDatabase : RoomDatabase() {
     abstract fun generalRuleDao(): GeneralRuleDao
