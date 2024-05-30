@@ -20,20 +20,17 @@ package com.merxury.blocker.core.model.preference
  * Model representation for the online data provider
  */
 enum class RuleServerProvider(
-    val url: String,
-    val projectName: String,
+    val baseUrl: String,
     val commitApiUrl: String,
     val downloadLink: String,
 ) {
     GITHUB(
-        url = "https://github.com/lihenggui/blocker-general-rules.git",
-        projectName = "blocker-general-rules",
+        baseUrl = "https://raw.githubusercontent.com/lihenggui/blocker-general-rules/main/",
         commitApiUrl = "https://api.github.com/repos/lihenggui/blocker-general-rules/commits",
         downloadLink = "https://github.com/lihenggui/blocker-general-rules/archive/refs/heads/main.zip",
     ),
     GITLAB(
-        url = "https://gitlab.com/mercuryli/blocker-general-rules.git",
-        projectName = "blocker-general-rules",
+        baseUrl = "https://gitlab.com/mercuryli/blocker-general-rules/-/raw/main/",
         commitApiUrl = "https://gitlab.com/api/v4/projects/54080457/repository/commits",
         downloadLink = "https://gitlab.com/mercuryli/blocker-general-rules/-/archive/main/blocker-general-rules-main.zip",
     ),

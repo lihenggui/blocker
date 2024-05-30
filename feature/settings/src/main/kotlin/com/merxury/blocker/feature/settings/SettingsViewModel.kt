@@ -53,7 +53,7 @@ import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
-import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
+import com.merxury.blocker.core.rule.work.ListAllComponentsToStorageWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
@@ -326,10 +326,8 @@ class SettingsViewModel @Inject constructor(
             enqueueUniqueWork(
                 "ImportMatRule",
                 ExistingWorkPolicy.KEEP,
-                ImportMatRulesWorker.importWork(
-                    fileUri,
-                    userData.controllerType,
-                    userData.restoreSystemApp,
+                ListAllComponentsToStorageWorker.listAppComponentsWork(
+                    folderPath = userData.ruleBackupFolder,
                 ),
             )
         }

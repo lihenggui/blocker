@@ -42,8 +42,8 @@ enum class TopLevelDestination(
     RULE(
         selectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
         unselectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
-        iconTextId = R.string.sdk_trackers,
-        titleTextId = R.string.sdk_trackers,
+        iconTextId = R.string.rules,
+        titleTextId = R.string.rules,
     ),
     SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Search),
