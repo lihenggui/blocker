@@ -55,14 +55,19 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 
 @Composable
 fun GeneralRulesRoute(
+    highlightSelectedRule: Boolean = false,
     navigateToRuleDetail: (String) -> Unit,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     GeneralRulesScreen(
+        highlightSelectedRule = highlightSelectedRule,
         uiState = uiState,
-        navigateToRuleDetail = navigateToRuleDetail,
+        navigateToRuleDetail = {
+            viewModel.onRuleClick(it)
+            navigateToRuleDetail(it)
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -76,13 +81,14 @@ fun GeneralRulesRoute(
 @Composable
 fun GeneralRulesScreen(
     modifier: Modifier = Modifier,
+    highlightSelectedRule: Boolean = false,
     uiState: GeneralRuleUiState,
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
     Scaffold(
         topBar = {
             BlockerTopAppBarWithProgress(
-                title = stringResource(id = R.string.feature_generalrule_sdk_trackers),
+                title = stringResource(id = R.string.feature_generalrule_rules),
                 progress = if (uiState is Success) {
                     uiState.matchProgress
                 } else {
@@ -112,6 +118,8 @@ fun GeneralRulesScreen(
                 is Success -> GeneralRulesList(
                     matchedRules = uiState.matchedRules,
                     unmatchedRules = uiState.unmatchedRules,
+                    highlightSelectedRule = highlightSelectedRule,
+                    selectedRuleId = uiState.selectedRuleId,
                     onClick = { id ->
                         navigateToRuleDetail(id)
                         analyticsHelper.logGeneralRuleClicked(id)

@@ -169,7 +169,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     BlockerApp(
                         appState,
-                        updateIconBasedThemingState = viewModel::updateIconBasedThemingState,
+                        updateIconThemingState = viewModel::updateIconThemingState,
                     )
                 }
             }

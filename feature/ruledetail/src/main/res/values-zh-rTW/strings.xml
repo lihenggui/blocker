@@ -24,4 +24,5 @@
     <string name="feature_ruledetail_block_all_of_this_page">阻止本頁所有組件</string>
     <string name="feature_ruledetail_enable_all_of_this_page">啟用本頁所有組件</string>
     <string name="feature_ruledetail_keywords">關鍵詞</string>
+    <string name="feature_ruledetail_select_a_rule">選擇一個規則</string>
 </resources>

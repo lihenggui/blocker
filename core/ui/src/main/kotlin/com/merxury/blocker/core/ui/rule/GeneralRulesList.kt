@@ -51,6 +51,8 @@ fun GeneralRulesList(
     matchedRules: List<GeneralRule>,
     unmatchedRules: List<GeneralRule>,
     modifier: Modifier = Modifier,
+    highlightSelectedRule: Boolean = false,
+    selectedRuleId: String? = null,
     onClick: (String) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
@@ -64,11 +66,13 @@ fun GeneralRulesList(
         ) {
             if (matchedRules.isNotEmpty()) {
                 item {
-                    RuleItemHeader(title = stringResource(id = R.string.core_ui_found))
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_matched_rules))
                 }
                 items(matchedRules, key = { it.id }) {
+                    val isSelected = highlightSelectedRule && it.id.toString() == selectedRuleId
                     RuleItem(
                         item = it,
+                        isSelected = isSelected,
                         onClick = onClick,
                     )
                 }
@@ -80,11 +84,13 @@ fun GeneralRulesList(
             }
             if (unmatchedRules.isNotEmpty()) {
                 item {
-                    RuleItemHeader(title = stringResource(id = R.string.core_ui_not_found))
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_unmatched_rules))
                 }
                 items(unmatchedRules, key = { it.id }) {
+                    val isSelected = highlightSelectedRule && it.id.toString() == selectedRuleId
                     RuleItem(
                         item = it,
+                        isSelected = isSelected,
                         onClick = onClick,
                     )
                 }
@@ -116,7 +122,7 @@ fun GeneralRuleScreenPreview(
 ) {
     BlockerTheme {
         Surface {
-            GeneralRulesList(matchedRules = ruleList, unmatchedRules = ruleList)
+            GeneralRulesList(matchedRules = ruleList, unmatchedRules = ruleList, highlightSelectedRule = true, selectedRuleId = "1")
         }
     }
 }

@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.applist
 import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
@@ -48,6 +49,7 @@ import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
+import com.merxury.blocker.feature.applist.navigation.PACKAGE_NAME_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -77,6 +79,7 @@ class AppListViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val initializeDatabase: InitializeDatabaseUseCase,
+    private val savedStateHandle: SavedStateHandle,
     private val searchAppList: SearchAppListUseCase,
     private val getAppController: GetAppControllerUseCase,
     private val permissionMonitor: PermissionMonitor,
@@ -91,6 +94,10 @@ class AppListViewModel @Inject constructor(
     val errorState = _errorState.asStateFlow()
     private val _warningState = MutableStateFlow<WarningDialogData?>(null)
     val warningState = _warningState.asStateFlow()
+    private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
+        PACKAGE_NAME_ARG,
+        null,
+    )
 
     // Internal list for storing the displayed app list (data storing)
     private var appList = listOf<AppItem>()
@@ -149,8 +156,28 @@ class AppListViewModel @Inject constructor(
                     appList = list
                     appStateList = list.toMutableStateList()
                     _appListFlow.value = appStateList
-                    _uiState.emit(Success(isRefreshing = false))
+                    _uiState.emit(
+                        Success(
+                            selectedPackageName = selectedPackageName.value,
+                            isRefreshing = false,
+                        ),
+                    )
                 }
+        }
+    }
+
+    fun onAppClick(packageName: String?) {
+        savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        loadSelectedApp()
+    }
+
+    private fun loadSelectedApp() {
+        _uiState.update {
+            if (it is Success) {
+                it.copy(selectedPackageName = selectedPackageName.value)
+            } else {
+                it
+            }
         }
     }
 
@@ -352,5 +379,8 @@ class AppListViewModel @Inject constructor(
 sealed interface AppListUiState {
     data class Initializing(val processingName: String = "") : AppListUiState
     data class Error(val error: UiMessage) : AppListUiState
-    data class Success(val isRefreshing: Boolean = false) : AppListUiState
+    data class Success(
+        val isRefreshing: Boolean = false,
+        val selectedPackageName: String? = null,
+    ) : AppListUiState
 }
