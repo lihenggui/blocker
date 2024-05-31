@@ -225,7 +225,22 @@ jobs:
           sarif_file: './'
 
       - name: Check badging
+        id: check_badging
         run: ./gradlew :app-compose:checkMarketReleaseBadging
+
+      - name: Update badging if verification failed and it's a PR
+        id: update_badging
+        if: steps.check_badging.outcome == 'failure' && github.event_name == 'pull_request'
+        run: |
+          ./gradlew updateMarketReleaseBadging
+
+      - name: Push new badging if available
+        uses: stefanzweifel/git-auto-commit-action@v5
+        if: steps.update_badging.outcome == 'success'
+        with:
+          file_pattern: '*/*-badging.txt'
+          disable_globbing: true
+          commit_message: "🤖 Updates badging"
 
   androidTest:
     runs-on: ubuntu-latest
