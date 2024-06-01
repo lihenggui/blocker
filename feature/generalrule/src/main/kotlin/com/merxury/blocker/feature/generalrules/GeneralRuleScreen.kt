@@ -82,7 +82,7 @@ fun GeneralRulesScreen(
     Scaffold(
         topBar = {
             BlockerTopAppBarWithProgress(
-                title = stringResource(id = R.string.feature_generalrule_rules),
+                title = stringResource(id = R.string.feature_generalrule_sdk_trackers),
                 progress = if (uiState is Success) {
                     uiState.matchProgress
                 } else {
