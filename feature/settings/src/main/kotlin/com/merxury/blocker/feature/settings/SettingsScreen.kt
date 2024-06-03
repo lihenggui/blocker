@@ -56,6 +56,8 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.supportsDynamicTheming
 import com.merxury.blocker.core.model.data.ControllerType
@@ -356,6 +358,8 @@ fun SettingsContent(
             itemSummaryRes = string.feature_settings_anonymous_statistics_summary,
             checked = settings.enableStatistics,
             onCheckedChange = onChangeEnableStatistics,
+            enabled = settings.enableStatistics,
+            icon = ImageVectorIcon(BlockerIcons.Analytics),
         )
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
     }
