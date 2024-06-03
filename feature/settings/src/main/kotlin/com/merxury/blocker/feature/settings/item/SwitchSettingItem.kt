@@ -25,15 +25,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
@@ -54,16 +55,17 @@ fun SwitchSettingItem(
     onCheckedChange: (Boolean) -> Unit = {},
     enabled: Boolean = true,
 ) {
+    val disabledColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     Row(
         modifier = Modifier
             .clickable { onCheckedChange(!checked) }
             .padding(vertical = 12.dp)
             .padding(
-                if(icon != null) {
+                if (icon != null) {
                     PaddingValues(start = 16.dp, end = 24.dp)
                 } else {
                     PaddingValues(start = 56.dp, end = 24.dp)
-                }
+                },
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -72,11 +74,13 @@ fun SwitchSettingItem(
                 is ImageVectorIcon -> Icon(
                     imageVector = icon.imageVector,
                     contentDescription = null,
+                    tint = if (!enabled) disabledColor else LocalContentColor.current,
                 )
 
                 is DrawableResourceIcon -> Icon(
                     painter = painterResource(id = icon.id),
                     contentDescription = null,
+                    tint = if (!enabled) disabledColor else LocalContentColor.current,
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -85,15 +89,15 @@ fun SwitchSettingItem(
             Text(
                 text = stringResource(id = itemRes),
                 style = MaterialTheme.typography.bodyLarge,
+                color = if (!enabled) disabledColor else Color.Unspecified,
             )
             if (itemSummaryRes != null) {
                 Text(
                     text = stringResource(id = itemSummaryRes),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (!enabled) disabledColor else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-
         }
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -132,7 +136,7 @@ fun SwitchSettingsItemLongNamePreview() {
 }
 
 @Composable
-@Preview
+@ThemePreviews
 fun SwitchSettingsItemWithSummaryPreview() {
     BlockerTheme {
         Surface {
@@ -141,6 +145,7 @@ fun SwitchSettingsItemWithSummaryPreview() {
                 itemSummaryRes = R.string.feature_settings_anonymous_statistics_summary,
                 icon = ImageVectorIcon(BlockerIcons.Apps),
                 checked = true,
+                enabled = false,
             )
         }
     }
