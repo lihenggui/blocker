@@ -71,4 +71,5 @@
     <string name="feature_settings_no_sharable_app_found">No sharable app found.</string>
     <string name="feature_settings_others">Others</string>
     <string name="feature_settings_anonymous_statistics">Anonymous statistics</string>
+    <string name="feature_settings_anonymous_statistics_summary">We use Microsoft AppCenter to anonymously send the most commonly used marked libraries and some usage habits data to make LibChecker more practical</string>
 </resources>
