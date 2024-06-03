@@ -353,6 +353,7 @@ fun SettingsContent(
 
         SwitchSettingItem(
             itemRes = string.feature_settings_anonymous_statistics,
+            itemSummaryRes = string.feature_settings_anonymous_statistics_summary,
             checked = settings.enableStatistics,
             onCheckedChange = onChangeEnableStatistics,
         )
