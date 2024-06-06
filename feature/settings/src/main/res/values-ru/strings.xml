@@ -67,4 +67,5 @@
     <string name="feature_settings_no_sharable_app_found">Приложение для обмена не найдено.</string>
     <string name="feature_settings_others">Другие</string>
     <string name="feature_settings_anonymous_statistics">Анонимная статистика</string>
+    <string name="feature_settings_anonymous_statistics_summary">Мы используем Firebase Analytics для сбора и анализа данных о наиболее часто используемых функциях и поведении пользователей с целью улучшения функциональности Blocker.</string>
 </resources>

@@ -68,4 +68,5 @@
     <string name="feature_settings_no_sharable_app_found">No se encontró ninguna aplicación compartible.</string>
     <string name="feature_settings_others">Otros</string>
     <string name="feature_settings_anonymous_statistics">Estadísticas anónimas</string>
+    <string name="feature_settings_anonymous_statistics_summary">Utilizamos Firebase Analytics para recopilar y analizar datos sobre las funciones más utilizadas y el comportamiento del usuario con el fin de mejorar la funcionalidad de Blocker.</string>
 </resources>

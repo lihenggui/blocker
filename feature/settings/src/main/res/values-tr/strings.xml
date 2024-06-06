@@ -2,4 +2,5 @@
 <resources>
     <string name="feature_settings_others">Diğer</string>
     <string name="feature_settings_anonymous_statistics">Anonim İstatistikler</string>
+    <string name="feature_settings_anonymous_statistics_summary">Blocker işlevselliğini geliştirmek için en sık kullanılan işlevler ve kullanıcı davranışları hakkında veri toplamak ve analiz etmek için Firebase Analytics\'i kullanıyoruz.</string>
 </resources>
