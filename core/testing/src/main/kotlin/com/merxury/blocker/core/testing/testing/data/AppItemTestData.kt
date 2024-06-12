@@ -19,21 +19,7 @@ package com.merxury.blocker.core.testing.testing.data
 import com.merxury.blocker.core.model.data.AppItem
 import kotlinx.datetime.Clock.System
 
-val appInfoTestData = AppItem(
-    label = "Blocker",
-    packageName = "com.merxury.blocker",
-    versionName = "1.0.0",
-    versionCode = 1,
-    minSdkVersion = 21,
-    targetSdkVersion = 33,
-    isSystem = false,
-    isRunning = false,
-    isEnabled = true,
-    firstInstallTime = System.now(),
-    lastUpdateTime = System.now(),
-    appServiceStatus = null,
-    packageInfo = null,
-)
+
 
 val appListTestData = listOf(
     AppItem(
