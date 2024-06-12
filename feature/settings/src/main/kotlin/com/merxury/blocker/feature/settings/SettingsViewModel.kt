@@ -200,9 +200,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateEnableStatistics(allow: Boolean) {
+    fun updateCheckedStatistics(checked: Boolean) {
         viewModelScope.launch {
-            userDataRepository.setEnableStatistics(allow)
+            userDataRepository.setCheckedStatistics(checked)
         }
     }
 

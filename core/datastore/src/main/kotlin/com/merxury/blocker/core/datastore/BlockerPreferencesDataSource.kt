@@ -133,6 +133,7 @@ class BlockerPreferencesDataSource @Inject constructor(
             // The default value of disableStatistics is false,
             // so we need to negate it to get the actual value
             enableStatistics = !it.disableStatistics,
+            checkedStatistics = it.checkedStatistics,
         )
     }
 
@@ -330,6 +331,12 @@ class BlockerPreferencesDataSource @Inject constructor(
     suspend fun setEnableStatistics(allow: Boolean) {
         userPreferences.updateData {
             it.copy { this.disableStatistics = !allow }
+        }
+    }
+
+    suspend fun setCheckedStatistics(checked: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.checkedStatistics = checked }
         }
     }
 }

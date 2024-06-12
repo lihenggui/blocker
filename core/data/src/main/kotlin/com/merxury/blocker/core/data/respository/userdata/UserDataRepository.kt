@@ -71,4 +71,6 @@ interface UserDataRepository {
     suspend fun getLibDisplayLanguage(): String
 
     suspend fun setEnableStatistics(allow: Boolean)
+
+    suspend fun setCheckedStatistics(checked: Boolean)
 }

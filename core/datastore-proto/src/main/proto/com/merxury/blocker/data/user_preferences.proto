@@ -49,4 +49,5 @@ message UserPreferences {
     string app_display_language = 18;
     string lib_display_language = 19;
     bool disable_statistics = 20;
+    bool checked_statistics = 21;
 }
