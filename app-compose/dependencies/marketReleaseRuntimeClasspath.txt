@@ -219,9 +219,10 @@ io.coil-kt:coil-compose-base:2.6.0
 io.coil-kt:coil-compose:2.6.0
 io.coil-kt:coil-svg:2.6.0
 io.coil-kt:coil:2.6.0
-io.github.pdvrieze.xmlutil:core-android:0.86.3
-io.github.pdvrieze.xmlutil:core:0.86.3
-io.github.pdvrieze.xmlutil:serialization-android:0.86.3
+io.github.pdvrieze.xmlutil:core-android:0.90.0
+io.github.pdvrieze.xmlutil:core-jvmcommon:0.90.0
+io.github.pdvrieze.xmlutil:core:0.90.0
+io.github.pdvrieze.xmlutil:serialization-android:0.90.0
 io.noties.markwon:core:4.6.2
 io.noties.markwon:ext-strikethrough:4.6.2
 io.noties.markwon:ext-tables:4.6.2
@@ -240,8 +241,8 @@ org.jetbrains.kotlin:kotlin-android-extensions-runtime:2.0.0
 org.jetbrains.kotlin:kotlin-bom:1.8.22
 org.jetbrains.kotlin:kotlin-parcelize-runtime:2.0.0
 org.jetbrains.kotlin:kotlin-stdlib-common:2.0.0
-org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.21
-org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.21
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0
 org.jetbrains.kotlin:kotlin-stdlib:2.0.0
 org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1
 org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.8.1
