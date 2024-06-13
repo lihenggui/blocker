@@ -58,7 +58,7 @@ fun SwitchSettingItem(
     val disabledColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     Row(
         modifier = Modifier
-            .clickable { onCheckedChange(!checked) }
+            .clickable(enabled = enabled) { onCheckedChange(!checked) }
             .padding(vertical = 12.dp)
             .padding(
                 if (icon != null) {
