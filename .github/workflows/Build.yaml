@@ -225,7 +225,30 @@ jobs:
           sarif_file: './'
 
       - name: Check badging
+        id: check_badging
+        continue-on-error: true
         run: ./gradlew :app-compose:checkMarketReleaseBadging
+
+      - name: Prevent updating badging if this is a fork
+        id: checkfork_badging
+        continue-on-error: false
+        if: steps.check_badging.outcome == 'failure' && github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "::error::Badging check failed, please create a PR in your fork first." && exit 1
+
+      - name: Update badging if verification failed and it's a PR
+        id: update_badging
+        if: steps.check_badging.outcome == 'failure' && github.event_name == 'pull_request'
+        run: |
+          ./gradlew updateMarketReleaseBadging
+
+      - name: Push new badging if available
+        uses: stefanzweifel/git-auto-commit-action@v5
+        if: steps.update_badging.outcome == 'success'
+        with:
+          file_pattern: '*/*-badging.txt'
+          disable_globbing: true
+          commit_message: "🤖 Updates badging"
 
   androidTest:
     runs-on: ubuntu-latest

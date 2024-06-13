@@ -56,6 +56,7 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.component.ComponentListItem
+import timber.log.Timber
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -143,7 +144,13 @@ fun CollapsibleList(
         }
         val expandItemCount = isExpandedMap.filterValues { it }
             .keys
-            .map { list[it] }
+            .mapNotNull {
+                val item = list.getOrNull(it)
+                if (item == null) {
+                    Timber.e("Item not found for index $it, map = $isExpandedMap, list = $list")
+                }
+                item
+            }
             .fastSumBy { it.componentList.size }
         val scrollbarState = listState.scrollbarState(
             itemsAvailable = list.size + expandItemCount,
