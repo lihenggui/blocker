@@ -95,6 +95,7 @@ class SettingsViewModel @Inject constructor(
                         darkThemeConfig = userData.darkThemeConfig,
                         useDynamicColor = userData.useDynamicColor,
                         enableStatistics = userData.enableStatistics,
+                        checkedStatistics = userData.checkedStatistics,
                     ),
                 )
             }
