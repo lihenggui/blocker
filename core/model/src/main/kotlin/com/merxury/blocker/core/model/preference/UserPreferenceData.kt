@@ -38,5 +38,4 @@ data class UserPreferenceData(
     val appDisplayLanguage: String,
     val libDisplayLanguage: String,
     val enableStatistics: Boolean,
-    val checkedStatistics: Boolean,
 )

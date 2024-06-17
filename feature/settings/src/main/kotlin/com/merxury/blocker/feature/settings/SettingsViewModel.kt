@@ -35,6 +35,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
+import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.analytics.StubAnalyticsHelper
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -76,6 +78,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     appContext: Application,
     private val userDataRepository: UserDataRepository,
+    private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(appContext) {
     val settingsUiState: StateFlow<SettingsUiState> =
@@ -95,8 +98,9 @@ class SettingsViewModel @Inject constructor(
                         darkThemeConfig = userData.darkThemeConfig,
                         useDynamicColor = userData.useDynamicColor,
                         enableStatistics = userData.enableStatistics,
-                        checkedStatistics = userData.checkedStatistics,
                     ),
+                    // Only FOSS version provides StubAnalyticsHelper
+                    allowStatistics = analyticsHelper !is StubAnalyticsHelper,
                 )
             }
             .stateIn(
@@ -203,7 +207,7 @@ class SettingsViewModel @Inject constructor(
 
     fun updateCheckedStatistics(checked: Boolean) {
         viewModelScope.launch {
-            userDataRepository.setCheckedStatistics(checked)
+            userDataRepository.setEnableStatistics(checked)
         }
     }
 
@@ -359,5 +363,8 @@ class SettingsViewModel @Inject constructor(
 sealed interface SettingsUiState {
     data object Loading : SettingsUiState
 
-    data class Success(val settings: UserEditableSettings) : SettingsUiState
+    data class Success(
+        val settings: UserEditableSettings,
+        val allowStatistics: Boolean = false,
+    ) : SettingsUiState
 }

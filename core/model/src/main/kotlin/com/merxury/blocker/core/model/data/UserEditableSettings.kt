@@ -34,5 +34,4 @@ data class UserEditableSettings(
     val darkThemeConfig: DarkThemeConfig,
     val useDynamicColor: Boolean,
     val enableStatistics: Boolean = true,
-    val checkedStatistics: Boolean = true,
 )

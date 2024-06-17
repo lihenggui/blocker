@@ -49,7 +49,7 @@ val defaultUserData = UserPreferenceData(
     appDisplayLanguage = "en-US",
     libDisplayLanguage = "en-US",
     enableStatistics = true,
-    checkedStatistics = true,
+    allowStatistics = true,
 )
 
 class TestUserDataRepository : UserDataRepository {
@@ -145,6 +145,6 @@ class TestUserDataRepository : UserDataRepository {
     }
 
     override suspend fun setCheckedStatistics(checked: Boolean) {
-        _userData.tryEmit(currentUserData.copy(checkedStatistics = checked))
+        _userData.tryEmit(currentUserData.copy(allowStatistics = checked))
     }
 }

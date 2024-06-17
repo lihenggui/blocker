@@ -227,6 +227,7 @@ fun SettingsScreen(
                 is Success -> {
                     SettingsContent(
                         settings = uiState.settings,
+                        allowStatistics = uiState.allowStatistics,
                         supportDynamicColor = supportsDynamicTheming(),
                         snackbarHostState = snackbarHostState,
                         onChangeControllerType = onChangeControllerType,
@@ -257,6 +258,7 @@ fun SettingsScreen(
 @Composable
 fun SettingsContent(
     settings: UserEditableSettings,
+    allowStatistics: Boolean,
     supportDynamicColor: Boolean,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
@@ -356,9 +358,9 @@ fun SettingsContent(
         SwitchSettingItem(
             itemRes = string.feature_settings_anonymous_statistics,
             itemSummaryRes = string.feature_settings_anonymous_statistics_summary,
-            checked = settings.checkedStatistics,
+            checked = settings.enableStatistics,
             onCheckedChange = onChangeCheckedStatistics,
-            enabled = settings.enableStatistics,
+            enabled = allowStatistics,
             icon = ImageVectorIcon(BlockerIcons.Analytics),
         )
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))

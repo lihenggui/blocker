@@ -27,6 +27,7 @@ import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.analytics.StubAnalyticsHelper
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.logging.ReleaseTree
@@ -116,7 +117,9 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     private fun initAppSettings() {
         applicationScope.launch {
             val userData = userDataRepository.userData.first()
-            analyticsHelper.setEnableStatistics(userData.enableStatistics)
+            val allowStatistics = analyticsHelper !is StubAnalyticsHelper && userData.enableStatistics
+            userDataRepository.setEnableStatistics(allowStatistics)
+            analyticsHelper.setEnableStatistics(allowStatistics)
             if (!userData.isFirstTimeInitializationCompleted) {
                 setDefaultRuleProvider()
                 copyRulesToInternalStorage()

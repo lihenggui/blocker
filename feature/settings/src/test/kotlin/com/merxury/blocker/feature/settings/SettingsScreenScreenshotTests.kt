@@ -91,7 +91,7 @@ class SettingsScreenScreenshotTests {
                             darkThemeConfig = FOLLOW_SYSTEM,
                             useDynamicColor = false,
                             enableStatistics = false,
-                            checkedStatistics = true,
+                            allowStatistics = true,
                         ),
                     ),
                 )
