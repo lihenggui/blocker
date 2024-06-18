@@ -24,6 +24,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
 import android.system.Os
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.net.toFile
 import androidx.core.os.LocaleListCompat
@@ -99,8 +100,7 @@ class SettingsViewModel @Inject constructor(
                         useDynamicColor = userData.useDynamicColor,
                         enableStatistics = userData.enableStatistics,
                     ),
-                    // Only FOSS version provides StubAnalyticsHelper
-                    allowStatistics = analyticsHelper !is StubAnalyticsHelper,
+                    allowStatistics = isAllowStatistics(),
                 )
             }
             .stateIn(
@@ -357,6 +357,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userDataRepository.setDynamicColorPreference(useDynamicColor)
         }
+    }
+
+    // Only FOSS version provides StubAnalyticsHelper
+    @VisibleForTesting
+    fun isAllowStatistics(): Boolean {
+        return analyticsHelper !is StubAnalyticsHelper
     }
 }
 

@@ -69,9 +69,9 @@ class SettingsViewModelTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.settingsUiState.collect() }
         userDataRepository.sendUserData(defaultUserData)
         val defaultUserData = defaultUserData.toUserEditableSettings()
-
+        val allowStatistics = viewModel.isAllowStatistics()
         assertEquals(
-            Success(defaultUserData),
+            Success(defaultUserData, allowStatistics),
             viewModel.settingsUiState.value,
         )
         collectJob.cancel()
