@@ -111,8 +111,4 @@ class FakeUserDataRepository @Inject constructor(
     override suspend fun setEnableStatistics(allow: Boolean) {
         blockerPreferenceDataSource.setEnableStatistics(allow)
     }
-
-    override suspend fun setCheckedStatistics(checked: Boolean) {
-        blockerPreferenceDataSource.setCheckedStatistics(checked)
-    }
 }
