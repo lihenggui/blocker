@@ -16,4 +16,7 @@
     <string name="feature_settings_import_mat_rules">Importer les règles MyAndroidTools</string>
     <string name="feature_settings_application_list">Liste d\'application</string>
     <string name="feature_settings_export_rules">Règles d\'exportation</string>
+    <string name="feature_settings_others">Autres</string>
+    <string name="feature_settings_anonymous_statistics">Statistiques anonymes</string>
+    <string name="feature_settings_anonymous_statistics_summary">Nous utilisons Firebase Analytics pour recueillir et analyser des données sur les fonctions les plus fréquemment utilisées et le comportement des utilisateurs afin d\'améliorer la fonctionnalité de Blocker.</string>
 </resources>
