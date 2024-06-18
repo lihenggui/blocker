@@ -20,7 +20,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.merxury.blocker.core.model.data.TrafficData
 
-@Database(entities = [TrafficData::class], version = 1)
+@Database(entities = [TrafficDataEntity::class], version = 1)
 abstract class TrafficDataDatabase : RoomDatabase() {
     abstract fun trafficDataDao(): TrafficDataDao
 }
