@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.settings
 
 import android.app.Application
+import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
@@ -40,6 +41,7 @@ class SettingsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val userDataRepository = TestUserDataRepository()
+    private val analyticsHelper = NoOpAnalyticsHelper()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val appContext = mock<Application>()
     private lateinit var viewModel: SettingsViewModel
@@ -50,6 +52,7 @@ class SettingsViewModelTest {
             ioDispatcher = dispatcher,
             userDataRepository = userDataRepository,
             appContext = appContext,
+            analyticsHelper = analyticsHelper,
         )
     }
 
