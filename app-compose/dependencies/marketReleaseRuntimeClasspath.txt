@@ -150,10 +150,10 @@ com.github.ajalt.colormath:colormath-jvm:3.5.0
 com.github.ajalt.colormath:colormath:3.5.0
 com.github.jeziellago:Markwon:58aa5aba6a
 com.github.jeziellago:compose-markdown:0.5.0
-com.github.topjohnwu.libsu:core:5.2.2
-com.github.topjohnwu.libsu:io:5.2.2
-com.github.topjohnwu.libsu:nio:5.2.2
-com.github.topjohnwu.libsu:service:5.2.2
+com.github.topjohnwu.libsu:core:5.3.0
+com.github.topjohnwu.libsu:io:5.3.0
+com.github.topjohnwu.libsu:nio:5.3.0
+com.github.topjohnwu.libsu:service:5.3.0
 com.google.accompanist:accompanist-drawablepainter:0.32.0
 com.google.accompanist:accompanist-navigation-material:0.34.0
 com.google.accompanist:accompanist-permissions:0.34.0
