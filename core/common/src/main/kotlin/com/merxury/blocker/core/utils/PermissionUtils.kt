@@ -18,20 +18,45 @@ package com.merxury.blocker.core.utils
 
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
+import java.io.IOException
 
 object PermissionUtils {
-    suspend fun isRootAvailable(dispatcher: CoroutineDispatcher = Dispatchers.IO): Boolean {
-        return when (Shell.isAppGrantedRoot()) {
-            true -> true
-            false -> false
-            else -> requestRootPermission(dispatcher)
-        }
-    }
 
-    fun isRootAvailable(): Boolean {
-        return Shell.isAppGrantedRoot() == true
+    private var rooted: Boolean = false
+
+    suspend fun isRootAvailable(
+        dispatcher: CoroutineDispatcher,
+    ): Boolean = withContext(dispatcher) {
+        if (rooted) {
+            return@withContext true
+        }
+        val libSuStatus = Shell.isAppGrantedRoot() ?: false
+        if (libSuStatus) {
+            Timber.i("Get root permission from isAppGrantedRoot")
+            rooted = true
+            return@withContext true
+        } else {
+            val requestResult = requestRootPermission(dispatcher)
+            if (requestResult) {
+                rooted = true
+                Timber.i("Requested root permission from Shell.cmd(\"su\")")
+                return@withContext true
+            }
+            // isAppGrantedRoot is always false on KernelSU and APatch.
+            // This method looks for a file but su is not a real file in those
+            try {
+                Runtime.getRuntime().exec("su --version")
+                Timber.i("Requested permission from executing su in the runtime")
+                rooted = true
+                return@withContext true
+            } catch (e: IOException) {
+                Timber.e(e, "Root not available")
+                rooted = false
+                return@withContext false
+            }
+        }
     }
 
     private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean {

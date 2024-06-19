@@ -57,7 +57,7 @@ internal class IntentFirewall @Inject constructor(
     private suspend fun load(packageName: String): Rules = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
         val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
-        if (!PermissionUtils.isRootAvailable()) {
+        if (!PermissionUtils.isRootAvailable(dispatcher)) {
             Timber.v("Root unavailable, cannot load rule")
             return@withContext emptyRule(packageName)
         }
@@ -115,7 +115,7 @@ internal class IntentFirewall @Inject constructor(
     override suspend fun clear(packageName: String): Unit = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
         val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
-        if (!PermissionUtils.isRootAvailable()) {
+        if (!PermissionUtils.isRootAvailable(dispatcher)) {
             throw RootUnavailableException()
         }
         Timber.d("Clear IFW rule $filename")
@@ -129,7 +129,7 @@ internal class IntentFirewall @Inject constructor(
         packageName: String,
         componentName: String,
     ): Boolean {
-        if (!PermissionUtils.isRootAvailable()) {
+        if (!PermissionUtils.isRootAvailable(dispatcher)) {
             Timber.e("Root unavailable, cannot add rule")
             throw RootUnavailableException()
         }
@@ -150,7 +150,7 @@ internal class IntentFirewall @Inject constructor(
         packageName: String,
         componentName: String,
     ): Boolean {
-        if (!PermissionUtils.isRootAvailable()) {
+        if (!PermissionUtils.isRootAvailable(dispatcher)) {
             Timber.e("Root unavailable, cannot remove rule")
             throw RootUnavailableException()
         }
@@ -171,7 +171,7 @@ internal class IntentFirewall @Inject constructor(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
-        if (!PermissionUtils.isRootAvailable()) {
+        if (!PermissionUtils.isRootAvailable(dispatcher)) {
             Timber.e("Root unavailable, cannot add rules")
             throw RootUnavailableException()
         }
@@ -203,7 +203,7 @@ internal class IntentFirewall @Inject constructor(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
-        if (!PermissionUtils.isRootAvailable()) {
+        if (!PermissionUtils.isRootAvailable(dispatcher)) {
             Timber.e("Root unavailable, cannot remove rules")
             throw RootUnavailableException()
         }
