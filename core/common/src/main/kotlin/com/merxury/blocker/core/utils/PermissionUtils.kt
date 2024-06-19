@@ -44,24 +44,32 @@ object PermissionUtils {
                 Timber.i("Requested root permission from Shell.cmd(\"su\")")
                 return@withContext true
             }
-            // isAppGrantedRoot is always false on KernelSU and APatch.
-            // This method looks for a file but su is not a real file in those
-            try {
-                Runtime.getRuntime().exec("su --version")
-                Timber.i("Requested permission from executing su in the runtime")
+            val runtimeResult = requestRootInRuntime(dispatcher)
+            if (runtimeResult) {
                 rooted = true
-                return@withContext true
-            } catch (e: IOException) {
-                Timber.e(e, "Root not available")
-                rooted = false
-                return@withContext false
+                Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
             }
+            return@withContext runtimeResult
         }
     }
 
     private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean {
         return withContext(dispatcher) {
             Shell.cmd("su").exec().isSuccess
+        }
+    }
+
+    private suspend fun requestRootInRuntime(dispatcher: CoroutineDispatcher): Boolean {
+        // isAppGrantedRoot is always false on KernelSU and APatch.
+        // This method looks for a file but su is not a real file in those
+        return withContext(dispatcher) {
+            try {
+                Runtime.getRuntime().exec("su --version")
+                return@withContext true
+            } catch (e: IOException) {
+                Timber.e(e, "Root not available")
+                return@withContext false
+            }
         }
     }
 }
