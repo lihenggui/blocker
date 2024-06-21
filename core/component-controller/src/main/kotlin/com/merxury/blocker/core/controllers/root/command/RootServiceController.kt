@@ -38,7 +38,7 @@ internal class RootServiceController @Inject constructor(
 
     private val runningServices = mutableListOf<String>()
     override suspend fun load(): Boolean = withContext(defaultDispatcher) {
-        if (!PermissionUtils.isRootAvailable()) {
+        if (!PermissionUtils.isRootAvailable(ioDispatcher)) {
             return@withContext false
         }
         runningServices.clear()
