@@ -20,8 +20,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 
-class SearchTabStatePreviewParameterProvider :
-    PreviewParameterProvider<List<TabState<SearchScreenTabs>>> {
+class SearchTabStatePreviewParameterProvider : PreviewParameterProvider<List<TabState<SearchScreenTabs>>> {
     override val values: Sequence<List<TabState<SearchScreenTabs>>> = sequenceOf(
         listOf(
             TabState(

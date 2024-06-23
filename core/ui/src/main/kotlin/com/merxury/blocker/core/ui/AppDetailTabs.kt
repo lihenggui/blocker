@@ -31,9 +31,7 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
 
     object Sdk : AppDetailTabs(SDK, title = string.core_ui_sdk)
 
-    override fun toString(): String {
-        return "Screen name = $name"
-    }
+    override fun toString(): String = "Screen name = $name"
 
     companion object {
         const val INFO = "info"

@@ -144,54 +144,44 @@ class SearchComponentsUseCase @Inject constructor(
     private fun searchMatchedComponent(
         components: List<ComponentInfo>,
         keywords: List<String>,
-    ): List<ComponentInfo> {
-        return components.filter { component ->
-            keywords.any { keyword ->
-                component.name.contains(keyword, ignoreCase = true)
-            }
+    ): List<ComponentInfo> = components.filter { component ->
+        keywords.any { keyword ->
+            component.name.contains(keyword, ignoreCase = true)
         }
     }
 
-    private suspend inline fun List<ComponentInfo>.getComponentDescription(): List<ComponentInfo> {
-        return map {
-            val componentDetail = componentDetailRepository.getLocalComponentDetail(it.name)
-                .first()
-            it.copy(description = componentDetail?.description)
-        }
+    private suspend inline fun List<ComponentInfo>.getComponentDescription(): List<ComponentInfo> = map {
+        val componentDetail = componentDetailRepository.getLocalComponentDetail(it.name)
+            .first()
+        it.copy(description = componentDetail?.description)
     }
 
     private fun List<ComponentInfo>.getServiceStatus(
         serviceController: IServiceController,
-    ): List<ComponentInfo> {
-        return map {
-            it.copy(isRunning = serviceController.isServiceRunning(it.packageName, it.name))
-        }
+    ): List<ComponentInfo> = map {
+        it.copy(isRunning = serviceController.isServiceRunning(it.packageName, it.name))
     }
 
     private fun List<ComponentInfo>.sortBy(
         sortBy: ComponentSorting,
         order: SortingOrder,
-    ): List<ComponentInfo> {
-        return when (sortBy) {
-            COMPONENT_NAME -> when (order) {
-                ASCENDING -> sortedBy { it.simpleName.lowercase() }
-                DESCENDING -> sortedByDescending { it.simpleName.lowercase() }
-            }
+    ): List<ComponentInfo> = when (sortBy) {
+        COMPONENT_NAME -> when (order) {
+            ASCENDING -> sortedBy { it.simpleName.lowercase() }
+            DESCENDING -> sortedByDescending { it.simpleName.lowercase() }
+        }
 
-            PACKAGE_NAME -> when (order) {
-                ASCENDING -> sortedBy { it.name.lowercase() }
-                DESCENDING -> sortedByDescending { it.name.lowercase() }
-            }
+        PACKAGE_NAME -> when (order) {
+            ASCENDING -> sortedBy { it.name.lowercase() }
+            DESCENDING -> sortedByDescending { it.name.lowercase() }
         }
     }
 
     private fun List<ComponentInfo>.sortByPriority(
         priority: ComponentShowPriority,
-    ): List<ComponentInfo> {
-        return when (priority) {
-            NONE -> this
-            DISABLED_COMPONENTS_FIRST -> sortedBy { it.enabled() }
-            ENABLED_COMPONENTS_FIRST -> sortedByDescending { it.enabled() }
-        }
+    ): List<ComponentInfo> = when (priority) {
+        NONE -> this
+        DISABLED_COMPONENTS_FIRST -> sortedBy { it.enabled() }
+        ENABLED_COMPONENTS_FIRST -> sortedByDescending { it.enabled() }
     }
 }

@@ -108,7 +108,5 @@ internal class RootAppController @Inject constructor(
         }
     }
 
-    override fun isAppRunning(packageName: String): Boolean {
-        return runningAppList.contains(packageName)
-    }
+    override fun isAppRunning(packageName: String): Boolean = runningAppList.contains(packageName)
 }

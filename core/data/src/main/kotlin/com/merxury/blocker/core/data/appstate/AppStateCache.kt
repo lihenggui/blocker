@@ -45,9 +45,7 @@ internal class AppStateCache @Inject constructor(
 ) : IAppStateCache {
     private val cache = mutableMapOf<String, AppServiceStatus>()
 
-    override fun getOrNull(packageName: String): AppServiceStatus? {
-        return cache[packageName]
-    }
+    override fun getOrNull(packageName: String): AppServiceStatus? = cache[packageName]
 
     override suspend fun get(packageName: String): AppServiceStatus {
         val cachedResult = cache[packageName]

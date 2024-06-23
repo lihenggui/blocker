@@ -53,10 +53,8 @@ object PermissionUtils {
         }
     }
 
-    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean {
-        return withContext(dispatcher) {
-            Shell.cmd("su").exec().isSuccess
-        }
+    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean = withContext(dispatcher) {
+        Shell.cmd("su").exec().isSuccess
     }
 
     private suspend fun requestRootInRuntime(dispatcher: CoroutineDispatcher): Boolean {

@@ -68,9 +68,7 @@ internal object NetworkModule {
     @Singleton
     fun provideBlockerNetworkDataSource(
         okHttpCallFactory: dagger.Lazy<Call.Factory>,
-    ): BlockerNetworkDataSource {
-        return RetrofitBlockerNetwork(okHttpCallFactory)
-    }
+    ): BlockerNetworkDataSource = RetrofitBlockerNetwork(okHttpCallFactory)
 
     @Provides
     @Singleton

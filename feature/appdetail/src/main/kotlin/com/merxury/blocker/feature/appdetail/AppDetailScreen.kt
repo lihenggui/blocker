@@ -532,7 +532,8 @@ fun AppDetailContent(
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 toolbarState.scrollTopLimitReached =
-                    listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                    listState.firstVisibleItemIndex == 0 &&
+                    listState.firstVisibleItemScrollOffset == 0
                 toolbarState.scrollOffset -= available.y
                 return Offset(0f, toolbarState.consumed)
             }
@@ -546,7 +547,8 @@ fun AppDetailContent(
                             animationSpec = FloatExponentialDecaySpec(),
                         ) { value, _ ->
                             toolbarState.scrollTopLimitReached =
-                                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                                listState.firstVisibleItemIndex == 0 &&
+                                listState.firstVisibleItemScrollOffset == 0
                             toolbarState.scrollOffset -= (value - (toolbarState.height + toolbarState.offset))
                             if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
                         }
@@ -680,10 +682,8 @@ fun AppDetailAppBarActions(
 }
 
 @Composable
-private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
-    return rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
-        ExitUntilCollapsedState(heightRange = toolbarHeightRange)
-    }
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+    ExitUntilCollapsedState(heightRange = toolbarHeightRange)
 }
 
 @Composable

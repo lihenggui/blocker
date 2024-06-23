@@ -47,20 +47,18 @@ data class Application(
     val packageInfo: PackageInfo? = null,
 ) : Parcelable {
     private companion object : Parceler<Application> {
-        override fun create(parcel: Parcel): Application {
-            return Application(
-                packageName = parcel.readString().orEmpty(),
-                versionName = parcel.readString(),
-                versionCode = parcel.readLong(),
-                isEnabled = parcel.readInt() == 1,
-                label = parcel.readString().orEmpty(),
-                minSdkVersion = parcel.readInt(),
-                targetSdkVersion = parcel.readInt(),
-                firstInstallTime = Instant.fromEpochMilliseconds(parcel.readLong()),
-                lastUpdateTime = Instant.fromEpochMilliseconds(parcel.readLong()),
-                packageInfo = parcel.readParcelableCompat(PackageInfo::class.java.classLoader),
-            )
-        }
+        override fun create(parcel: Parcel): Application = Application(
+            packageName = parcel.readString().orEmpty(),
+            versionName = parcel.readString(),
+            versionCode = parcel.readLong(),
+            isEnabled = parcel.readInt() == 1,
+            label = parcel.readString().orEmpty(),
+            minSdkVersion = parcel.readInt(),
+            targetSdkVersion = parcel.readInt(),
+            firstInstallTime = Instant.fromEpochMilliseconds(parcel.readLong()),
+            lastUpdateTime = Instant.fromEpochMilliseconds(parcel.readLong()),
+            packageInfo = parcel.readParcelableCompat(PackageInfo::class.java.classLoader),
+        )
 
         override fun Application.write(parcel: Parcel, flags: Int) {
             parcel.writeString(packageName)
@@ -77,36 +75,30 @@ data class Application(
     }
 }
 
-suspend fun PackageInfo.toApplication(pm: PackageManager): Application {
-    return Application(
-        packageName = packageName,
-        versionName = versionName,
-        versionCode = getVersionCode(),
-        isEnabled = applicationInfo?.enabled ?: false,
-        label = applicationInfo?.loadLabel(pm).toString(),
-        minSdkVersion = applicationInfo.minSdkVersionCompat(),
-        targetSdkVersion = applicationInfo?.targetSdkVersion ?: 0,
-        firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
-        lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
-        packageInfo = this,
-    )
-}
+suspend fun PackageInfo.toApplication(pm: PackageManager): Application = Application(
+    packageName = packageName,
+    versionName = versionName,
+    versionCode = getVersionCode(),
+    isEnabled = applicationInfo?.enabled ?: false,
+    label = applicationInfo?.loadLabel(pm).toString(),
+    minSdkVersion = applicationInfo.minSdkVersionCompat(),
+    targetSdkVersion = applicationInfo?.targetSdkVersion ?: 0,
+    firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
+    lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
+    packageInfo = this,
+)
 
 @Suppress("DEPRECATION")
-private fun PackageInfo.getVersionCode(): Long {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        longVersionCode
-    } else {
-        versionCode.toLong()
-    }
+private fun PackageInfo.getVersionCode(): Long = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+    longVersionCode
+} else {
+    versionCode.toLong()
 }
 
-suspend fun ApplicationInfo.minSdkVersionCompat(): Int {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-        minSdkVersion
-    } else {
-        ApkParser.getMinSdkVersion(File(publicSourceDir))
-    }
+suspend fun ApplicationInfo.minSdkVersionCompat(): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+    minSdkVersion
+} else {
+    ApkParser.getMinSdkVersion(File(publicSourceDir))
 }
 
 inline fun <reified T : Parcelable> Parcel.readParcelableCompat(classLoader: ClassLoader?): T? =

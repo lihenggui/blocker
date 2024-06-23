@@ -102,21 +102,19 @@ private fun AssetManager.copyAssetFolder(srcName: String, dstName: String): Bool
     }
 }
 
-private fun AssetManager.copyAssetFile(srcName: String, dstName: String): Boolean {
-    return try {
-        val inStream = this.open(srcName)
-        val outFile = File(dstName)
-        val out: OutputStream = FileOutputStream(outFile)
-        val buffer = ByteArray(1024)
-        var read: Int
-        while (inStream.read(buffer).also { read = it } != -1) {
-            out.write(buffer, 0, read)
-        }
-        inStream.close()
-        out.close()
-        true
-    } catch (e: IOException) {
-        Timber.e(e, "Cannot copy files from $srcName to $dstName")
-        false
+private fun AssetManager.copyAssetFile(srcName: String, dstName: String): Boolean = try {
+    val inStream = this.open(srcName)
+    val outFile = File(dstName)
+    val out: OutputStream = FileOutputStream(outFile)
+    val buffer = ByteArray(1024)
+    var read: Int
+    while (inStream.read(buffer).also { read = it } != -1) {
+        out.write(buffer, 0, read)
     }
+    inStream.close()
+    out.close()
+    true
+} catch (e: IOException) {
+    Timber.e(e, "Cannot copy files from $srcName to $dstName")
+    false
 }

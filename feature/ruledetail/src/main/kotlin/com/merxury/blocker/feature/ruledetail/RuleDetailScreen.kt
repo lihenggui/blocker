@@ -469,10 +469,8 @@ fun MoreActionMenu(
 }
 
 @Composable
-private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
-    return rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
-        ExitUntilCollapsedState(heightRange = toolbarHeightRange)
-    }
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+    ExitUntilCollapsedState(heightRange = toolbarHeightRange)
 }
 
 @OptIn(ExperimentalFoundationApi::class)

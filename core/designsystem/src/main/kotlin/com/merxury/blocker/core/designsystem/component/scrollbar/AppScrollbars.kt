@@ -176,8 +176,7 @@ private fun Modifier.scrollThumb(
     return this then ScrollThumbElement { colorState.value }
 }
 
-private data class ScrollThumbElement(val colorProducer: ColorProducer) :
-    ModifierNodeElement<ScrollThumbNode>() {
+private data class ScrollThumbElement(val colorProducer: ColorProducer) : ModifierNodeElement<ScrollThumbNode>() {
     override fun create(): ScrollThumbNode = ScrollThumbNode(colorProducer)
     override fun update(node: ScrollThumbNode) {
         node.colorProducer = colorProducer
@@ -185,7 +184,9 @@ private data class ScrollThumbElement(val colorProducer: ColorProducer) :
     }
 }
 
-private class ScrollThumbNode(var colorProducer: ColorProducer) : DrawModifierNode, Modifier.Node() {
+private class ScrollThumbNode(var colorProducer: ColorProducer) :
+    Modifier.Node(),
+    DrawModifierNode {
     private val shape = RoundedCornerShape(16.dp)
 
     // naive cache outline calculation if size is the same

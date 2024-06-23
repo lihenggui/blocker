@@ -44,19 +44,15 @@ internal class IfwController @Inject constructor(
         }
     }
 
-    override suspend fun enable(component: ComponentInfo): Boolean {
-        return switchComponent(
-            component,
-            COMPONENT_ENABLED_STATE_ENABLED,
-        )
-    }
+    override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(
+        component,
+        COMPONENT_ENABLED_STATE_ENABLED,
+    )
 
-    override suspend fun disable(component: ComponentInfo): Boolean {
-        return switchComponent(
-            component,
-            COMPONENT_ENABLED_STATE_DISABLED,
-        )
-    }
+    override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(
+        component,
+        COMPONENT_ENABLED_STATE_DISABLED,
+    )
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
@@ -103,7 +99,5 @@ internal class IfwController @Inject constructor(
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
-    ): Boolean {
-        return intentFirewall.getComponentEnableState(packageName, componentName)
-    }
+    ): Boolean = intentFirewall.getComponentEnableState(packageName, componentName)
 }
