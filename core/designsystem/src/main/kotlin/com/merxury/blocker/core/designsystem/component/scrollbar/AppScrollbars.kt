@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.invalidateDraw
+import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.scrollbar.ThumbState.Active
@@ -181,6 +182,11 @@ private data class ScrollThumbElement(val colorProducer: ColorProducer) : Modifi
     override fun update(node: ScrollThumbNode) {
         node.colorProducer = colorProducer
         node.invalidateDraw()
+    }
+
+    override fun InspectorInfo.inspectableProperties() {
+        name = "scrollThumb"
+        properties["colorProducer"] = colorProducer
     }
 }
 
