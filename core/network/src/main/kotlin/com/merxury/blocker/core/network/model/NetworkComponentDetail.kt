@@ -33,26 +33,22 @@ data class NetworkComponentDetail(
     val recommendToBlock: Boolean = false,
 )
 
-fun NetworkComponentDetail.asExternalModel(): ComponentDetail {
-    return ComponentDetail(
-        name = name,
-        sdkName = sdkName,
-        description = description,
-        disableEffect = disableEffect,
-        contributor = contributor,
-        addedVersion = addedVersion,
-        recommendToBlock = recommendToBlock,
-    )
-}
+fun NetworkComponentDetail.asExternalModel(): ComponentDetail = ComponentDetail(
+    name = name,
+    sdkName = sdkName,
+    description = description,
+    disableEffect = disableEffect,
+    contributor = contributor,
+    addedVersion = addedVersion,
+    recommendToBlock = recommendToBlock,
+)
 
-fun ComponentDetail.asNetworkModel(): NetworkComponentDetail {
-    return NetworkComponentDetail(
-        name = name,
-        sdkName = sdkName,
-        description = description,
-        disableEffect = disableEffect,
-        contributor = contributor,
-        addedVersion = addedVersion,
-        recommendToBlock = recommendToBlock,
-    )
-}
+fun ComponentDetail.asNetworkModel(): NetworkComponentDetail = NetworkComponentDetail(
+    name = name,
+    sdkName = sdkName,
+    description = description,
+    disableEffect = disableEffect,
+    contributor = contributor,
+    addedVersion = addedVersion,
+    recommendToBlock = recommendToBlock,
+)

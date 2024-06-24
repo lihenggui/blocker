@@ -31,7 +31,8 @@ import kotlin.coroutines.resumeWithException
 internal class ContinuationCallback(
     private val call: Call,
     private val continuation: CancellableContinuation<Response>,
-) : Callback, CompletionHandler {
+) : Callback,
+    CompletionHandler {
 
     override fun onResponse(call: Call, response: Response) {
         continuation.resume(response)
@@ -51,10 +52,8 @@ internal class ContinuationCallback(
     }
 }
 
-internal suspend inline fun Call.await(): Response {
-    return suspendCancellableCoroutine { continuation ->
-        val callback = ContinuationCallback(this, continuation)
-        enqueue(callback)
-        continuation.invokeOnCancellation(callback)
-    }
+internal suspend inline fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
+    val callback = ContinuationCallback(this, continuation)
+    enqueue(callback)
+    continuation.invokeOnCancellation(callback)
 }

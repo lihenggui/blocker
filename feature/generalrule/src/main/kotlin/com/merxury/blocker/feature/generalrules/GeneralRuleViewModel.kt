@@ -176,17 +176,13 @@ class GeneralRulesViewModel @Inject constructor(
         return shouldReloadList
     }
 
-    private suspend fun getCurrentAppListHash(): String {
-        return appRepository.getApplicationList()
-            .first()
-            .hashCode()
-            .toString()
-    }
+    private suspend fun getCurrentAppListHash(): String = appRepository.getApplicationList()
+        .first()
+        .hashCode()
+        .toString()
 
-    private suspend fun getCurrentRuleHash(): String {
-        return generalRuleRepository.getRuleHash()
-            .first()
-    }
+    private suspend fun getCurrentRuleHash(): String = generalRuleRepository.getRuleHash()
+        .first()
 
     private suspend fun saveHash() {
         val appListHash = getCurrentAppListHash()

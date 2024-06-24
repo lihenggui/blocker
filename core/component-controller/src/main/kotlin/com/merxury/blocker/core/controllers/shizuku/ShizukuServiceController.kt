@@ -59,21 +59,17 @@ internal class ShizukuServiceController @Inject constructor(
         }
     }
 
-    override suspend fun load(): Boolean {
-        return try {
-            serviceList = am.getServices(MAX_SERVICE_COUNT, 0)
-            Timber.v("Loaded ${serviceList.size} running services")
-            true
-        } catch (e: Exception) {
-            Timber.e(e, "Error loading running services")
-            false
-        }
+    override suspend fun load(): Boolean = try {
+        serviceList = am.getServices(MAX_SERVICE_COUNT, 0)
+        Timber.v("Loaded ${serviceList.size} running services")
+        true
+    } catch (e: Exception) {
+        Timber.e(e, "Error loading running services")
+        false
     }
 
-    override fun isServiceRunning(packageName: String, serviceName: String): Boolean {
-        return serviceList.any {
-            it.service.packageName == packageName && it.service.className == serviceName
-        }
+    override fun isServiceRunning(packageName: String, serviceName: String): Boolean = serviceList.any {
+        it.service.packageName == packageName && it.service.className == serviceName
     }
 
     override suspend fun stopService(packageName: String, serviceName: String): Boolean {

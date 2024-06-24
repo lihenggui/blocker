@@ -52,71 +52,69 @@ class SearchAppListUseCase @Inject constructor(
     private val getServiceController: GetServiceControllerUseCase,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(query: String): Flow<List<AppItem>> {
-        return combineTransform(
-            userDataRepository.userData,
-            appRepository.getApplicationList(),
-            getAppController(),
-            getServiceController(),
-        ) { userData, appList, appController, serviceController ->
-            // Prepare the application data
-            Timber.v("App list updated, keywords: $query")
-            appController.refreshRunningAppList()
-            if (userData.showServiceInfo) {
-                serviceController.load()
-            }
-            Timber.v("Controllers are initialized")
-            val sortType = userData.appSorting
-            val sortOrder = userData.appSortingOrder
-            val finalList = if (userData.showSystemApps) {
-                appList
+    operator fun invoke(query: String): Flow<List<AppItem>> = combineTransform(
+        userDataRepository.userData,
+        appRepository.getApplicationList(),
+        getAppController(),
+        getServiceController(),
+    ) { userData, appList, appController, serviceController ->
+        // Prepare the application data
+        Timber.v("App list updated, keywords: $query")
+        appController.refreshRunningAppList()
+        if (userData.showServiceInfo) {
+            serviceController.load()
+        }
+        Timber.v("Controllers are initialized")
+        val sortType = userData.appSorting
+        val sortOrder = userData.appSortingOrder
+        val finalList = if (userData.showSystemApps) {
+            appList
+        } else {
+            appList.filterNot { it.isSystem }
+        }.filter {
+            it.label.contains(query, true) ||
+                it.packageName.contains(query, true)
+        }.map { installedApp ->
+            val packageName = installedApp.packageName
+            val cachedServiceStatus = if (userData.showServiceInfo) {
+                appStateCache.getOrNull(packageName)
             } else {
-                appList.filterNot { it.isSystem }
-            }.filter {
-                it.label.contains(query, true) ||
-                    it.packageName.contains(query, true)
-            }.map { installedApp ->
-                val packageName = installedApp.packageName
-                val cachedServiceStatus = if (userData.showServiceInfo) {
-                    appStateCache.getOrNull(packageName)
-                } else {
-                    null
-                }
-                AppItem(
-                    label = installedApp.label,
-                    packageName = packageName,
-                    versionName = installedApp.versionName,
-                    versionCode = installedApp.versionCode,
-                    isSystem = installedApp.isSystem,
-                    isRunning = appController.isAppRunning(packageName),
-                    isEnabled = installedApp.isEnabled,
-                    firstInstallTime = installedApp.firstInstallTime,
-                    lastUpdateTime = installedApp.lastUpdateTime,
-                    appServiceStatus = cachedServiceStatus,
-                    packageInfo = pm.getPackageInfoCompat(packageName, 0),
-                )
-            }.sortedWith(
-                appComparator(sortType, sortOrder),
-            ).let { sortedList ->
-                if (userData.showRunningAppsOnTop) {
-                    sortedList.sortedByDescending { it.isRunning }
-                } else {
-                    sortedList
-                }
+                null
             }
-            emit(finalList)
-            // Load service status is not a cheap operation,
-            // so we only load it when user wants to see it
-            if (userData.showServiceInfo) {
-                val listWithServiceInfo = finalList.map {
-                    val serviceStatus = appStateCache.get(it.packageName)
-                    it.copy(appServiceStatus = serviceStatus)
-                }
-                emit(listWithServiceInfo)
+            AppItem(
+                label = installedApp.label,
+                packageName = packageName,
+                versionName = installedApp.versionName,
+                versionCode = installedApp.versionCode,
+                isSystem = installedApp.isSystem,
+                isRunning = appController.isAppRunning(packageName),
+                isEnabled = installedApp.isEnabled,
+                firstInstallTime = installedApp.firstInstallTime,
+                lastUpdateTime = installedApp.lastUpdateTime,
+                appServiceStatus = cachedServiceStatus,
+                packageInfo = pm.getPackageInfoCompat(packageName, 0),
+            )
+        }.sortedWith(
+            appComparator(sortType, sortOrder),
+        ).let { sortedList ->
+            if (userData.showRunningAppsOnTop) {
+                sortedList.sortedByDescending { it.isRunning }
+            } else {
+                sortedList
             }
         }
-            .flowOn(cpuDispatcher)
+        emit(finalList)
+        // Load service status is not a cheap operation,
+        // so we only load it when user wants to see it
+        if (userData.showServiceInfo) {
+            val listWithServiceInfo = finalList.map {
+                val serviceStatus = appStateCache.get(it.packageName)
+                it.copy(appServiceStatus = serviceStatus)
+            }
+            emit(listWithServiceInfo)
+        }
     }
+        .flowOn(cpuDispatcher)
 
     private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =
         if (sortOrder == SortingOrder.ASCENDING) {

@@ -58,7 +58,5 @@ object AndroidCodeName {
         // Reference : https://source.android.com/setup/start/build-numbers
     }
 
-    fun getCodeName(code: Int): String {
-        return array.get(code) ?: "Android API $code"
-    }
+    fun getCodeName(code: Int): String = array.get(code) ?: "Android API $code"
 }

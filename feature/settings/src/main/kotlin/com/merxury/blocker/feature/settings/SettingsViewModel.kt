@@ -361,9 +361,7 @@ class SettingsViewModel @Inject constructor(
 
     // Only FOSS version provides StubAnalyticsHelper
     @VisibleForTesting
-    fun isAllowStatistics(): Boolean {
-        return analyticsHelper !is StubAnalyticsHelper
-    }
+    fun isAllowStatistics(): Boolean = analyticsHelper !is StubAnalyticsHelper
 }
 
 sealed interface SettingsUiState {

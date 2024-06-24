@@ -31,24 +31,16 @@ class TestAppRepository : AppRepository {
 
     override fun getApplicationList(): Flow<List<InstalledApp>> = appListFlow
 
-    override fun updateApplication(packageName: String): Flow<Result<Unit>> {
-        return flowOf(Success(Unit))
+    override fun updateApplication(packageName: String): Flow<Result<Unit>> = flowOf(Success(Unit))
+
+    override fun updateApplicationList(): Flow<Result<Unit>> = flowOf(Success(Unit))
+
+    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> = appListFlow.map {
+        it.filter { app -> app.packageName.contains(keyword) }
     }
 
-    override fun updateApplicationList(): Flow<Result<Unit>> {
-        return flowOf(Success(Unit))
-    }
-
-    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> {
-        return appListFlow.map {
-            it.filter { app -> app.packageName.contains(keyword) }
-        }
-    }
-
-    override fun getApplication(packageName: String): Flow<InstalledApp?> {
-        return appListFlow.map {
-            it.find { app -> app.packageName == packageName }
-        }
+    override fun getApplication(packageName: String): Flow<InstalledApp?> = appListFlow.map {
+        it.find { app -> app.packageName == packageName }
     }
 
     fun sendAppList(appList: List<InstalledApp>) {

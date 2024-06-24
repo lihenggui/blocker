@@ -22,13 +22,9 @@ import javax.inject.Inject
 
 class TestAppStateCache @Inject constructor() : IAppStateCache {
     private val cache = mutableMapOf<String, AppServiceStatus>()
-    override fun getOrNull(packageName: String): AppServiceStatus? {
-        return cache[packageName]
-    }
+    override fun getOrNull(packageName: String): AppServiceStatus? = cache[packageName]
 
-    override suspend fun get(packageName: String): AppServiceStatus {
-        return cache[packageName] ?: AppServiceStatus(packageName = packageName)
-    }
+    override suspend fun get(packageName: String): AppServiceStatus = cache[packageName] ?: AppServiceStatus(packageName = packageName)
 
     fun putAppState(vararg appServiceStatus: AppServiceStatus) {
         appServiceStatus.forEach {

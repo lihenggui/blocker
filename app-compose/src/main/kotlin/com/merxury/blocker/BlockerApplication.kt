@@ -50,7 +50,10 @@ import javax.inject.Inject
  * [Application] class for Blocker
  */
 @HiltAndroidApp
-class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Provider {
+class BlockerApplication :
+    Application(),
+    ImageLoaderFactory,
+    Configuration.Provider {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
