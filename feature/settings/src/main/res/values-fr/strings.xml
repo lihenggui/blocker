@@ -19,4 +19,15 @@
     <string name="feature_settings_others">Autres</string>
     <string name="feature_settings_anonymous_statistics">Statistiques anonymes</string>
     <string name="feature_settings_anonymous_statistics_summary">Nous utilisons Firebase Analytics pour recueillir et analyser des données sur les fonctions les plus fréquemment utilisées et le comportement des utilisateurs afin d\'améliorer la fonctionnalité de Blocker.</string>
+    <string name="feature_settings_backup_system_apps">Sauvegarde des applications système</string>
+    <string name="feature_settings_restore_system_apps">Restaurer les applications système</string>
+    <string name="feature_settings_blocker_rules">Règles de blocage</string>
+    <string name="feature_settings_ifw_rules">Règles IFW</string>
+    <string name="feature_settings_theme">Thème</string>
+    <string name="feature_settings_theme_default">Default</string>
+    <string name="feature_settings_android">Android</string>
+    <string name="feature_settings_dark_mode">Mode sombre</string>
+    <string name="feature_settings_system_default">Système par défaut</string>
+    <string name="feature_settings_light">Lumière</string>
+    <string name="feature_settings_dark">Sombre</string>
 </resources>
