@@ -65,7 +65,7 @@ object PermissionUtils {
                 Runtime.getRuntime().exec("su --version")
                 return@withContext true
             } catch (e: IOException) {
-                Timber.e(e, "Root not available")
+                Timber.e("Root not available: ${e.message}")
                 return@withContext false
             }
         }
