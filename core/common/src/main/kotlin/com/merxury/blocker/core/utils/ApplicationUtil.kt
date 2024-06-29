@@ -35,7 +35,6 @@ import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getApplicationInfoCompat
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.model.util.ApkParser
 import com.merxury.blocker.core.toApplication
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

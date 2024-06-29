@@ -22,7 +22,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
-import com.merxury.blocker.core.model.util.ApkParser
+import com.merxury.blocker.core.utils.ApkParser
 import kotlinx.datetime.Instant
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
