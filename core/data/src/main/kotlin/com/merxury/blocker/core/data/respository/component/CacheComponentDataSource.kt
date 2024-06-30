@@ -27,29 +27,23 @@ import javax.inject.Inject
 internal class CacheComponentDataSource @Inject constructor(
     private val componentDao: AppComponentDao,
 ) : ComponentDataSource {
-    override fun getComponent(packageName: String, componentName: String): Flow<ComponentInfo?> {
-        return componentDao.getByPackageNameAndComponentName(packageName, componentName)
-            .map { it?.toComponentInfo() }
-    }
+    override fun getComponent(packageName: String, componentName: String): Flow<ComponentInfo?> = componentDao.getByPackageNameAndComponentName(packageName, componentName)
+        .map { it?.toComponentInfo() }
 
     override fun getComponentList(
         packageName: String,
         type: ComponentType,
-    ): Flow<List<ComponentInfo>> {
-        return componentDao.getByPackageNameAndType(packageName, type)
-            .map { list ->
-                list.map { it.toComponentInfo() }
-            }
-    }
+    ): Flow<List<ComponentInfo>> = componentDao.getByPackageNameAndType(packageName, type)
+        .map { list ->
+            list.map { it.toComponentInfo() }
+        }
 
     override fun getComponentList(
         packageName: String,
-    ): Flow<List<ComponentInfo>> {
-        return componentDao.getByPackageName(packageName)
-            .map { list ->
-                list.map { it.toComponentInfo() }
-            }
-    }
+    ): Flow<List<ComponentInfo>> = componentDao.getByPackageName(packageName)
+        .map { list ->
+            list.map { it.toComponentInfo() }
+        }
 
     override fun getComponentType(
         packageName: String,

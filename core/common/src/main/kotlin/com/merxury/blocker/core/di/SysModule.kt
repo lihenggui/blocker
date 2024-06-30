@@ -32,39 +32,29 @@ object SysModule {
     @Provides
     fun providePackageManager(
         app: Application,
-    ): PackageManager {
-        return app.packageManager
-    }
+    ): PackageManager = app.packageManager
 
     @Singleton
     @Provides
     @AppPackageName
     fun provideAppPackageName(
         app: Application,
-    ): String {
-        return app.packageName
-    }
+    ): String = app.packageName
 
     @Provides
     @FilesDir
     fun provideFilesDir(
         app: Application,
-    ): File {
-        return app.filesDir
-    }
+    ): File = app.filesDir
 
     @Provides
     @CacheDir
     fun provideCacheDir(
         app: Application,
-    ): File {
-        return app.cacheDir
-    }
+    ): File = app.cacheDir
 
     @Provides
     fun provideAssetManager(
         app: Application,
-    ): AssetManager {
-        return app.assets
-    }
+    ): AssetManager = app.assets
 }

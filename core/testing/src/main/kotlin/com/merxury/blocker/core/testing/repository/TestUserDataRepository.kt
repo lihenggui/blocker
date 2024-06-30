@@ -48,6 +48,7 @@ val defaultUserData = UserPreferenceData(
     showRunningAppsOnTop = false,
     appDisplayLanguage = "en-US",
     libDisplayLanguage = "en-US",
+    enableStatistics = true,
 )
 
 class TestUserDataRepository : UserDataRepository {
@@ -136,5 +137,9 @@ class TestUserDataRepository : UserDataRepository {
 
     fun sendUserData(userData: UserPreferenceData) {
         _userData.tryEmit(userData)
+    }
+
+    override suspend fun setEnableStatistics(allow: Boolean) {
+        _userData.tryEmit(currentUserData.copy(enableStatistics = allow))
     }
 }

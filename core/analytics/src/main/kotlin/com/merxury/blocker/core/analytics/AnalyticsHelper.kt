@@ -23,4 +23,6 @@ package com.merxury.blocker.core.analytics
  */
 interface AnalyticsHelper {
     fun logEvent(event: AnalyticsEvent)
+
+    fun setEnableStatistics(enable: Boolean)
 }

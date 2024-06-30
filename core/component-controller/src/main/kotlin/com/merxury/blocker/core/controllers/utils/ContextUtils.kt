@@ -24,11 +24,9 @@ object ContextUtils {
      * If SDK >= 28, bypassing non-SDK interface restrictions by HiddenApiBypass
      */
     @SuppressLint("DiscouragedPrivateApi", "PrivateApi")
-    fun getUserIdHidden(context: Context): Int {
-        return Context::class.java
-            .getDeclaredMethod("getUserId")
-            .invoke(context) as Int
-    }
+    fun getUserIdHidden(context: Context): Int = Context::class.java
+        .getDeclaredMethod("getUserId")
+        .invoke(context) as Int
 
     val Context.userId get() = getUserIdHidden(this)
 }

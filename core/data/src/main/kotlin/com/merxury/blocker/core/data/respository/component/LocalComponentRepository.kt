@@ -54,11 +54,9 @@ internal class LocalComponentRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentRepository {
 
-    override fun getComponent(name: String): Flow<ComponentInfo?> {
-        return appComponentDao.getByName(name)
-            .map { it?.toComponentInfo() }
-            .flowOn(ioDispatcher)
-    }
+    override fun getComponent(name: String): Flow<ComponentInfo?> = appComponentDao.getByName(name)
+        .map { it?.toComponentInfo() }
+        .flowOn(ioDispatcher)
 
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =
         appComponentDao.getByPackageName(packageName)
@@ -109,25 +107,23 @@ internal class LocalComponentRepository @Inject constructor(
         }
             .flowOn(ioDispatcher)
 
-    override fun updateComponentList(packageName: String): Flow<Result<Unit>> {
-        return localDataSource.getComponentList(packageName)
-            .map { list ->
-                list.map { it.toAppComponentEntity() }
+    override fun updateComponentList(packageName: String): Flow<Result<Unit>> = localDataSource.getComponentList(packageName)
+        .map { list ->
+            list.map { it.toAppComponentEntity() }
+        }
+        .zip(appComponentDao.getByPackageName(packageName)) { latest, cached ->
+            val diff = (latest + cached).groupBy { it.componentName }
+                .filter { it.value.size == 1 }
+                .flatMap { it.value }
+            if (diff.isNotEmpty()) {
+                Timber.d("Found ${diff.size} components to delete for $packageName")
+                appComponentDao.delete(diff)
             }
-            .zip(appComponentDao.getByPackageName(packageName)) { latest, cached ->
-                val diff = (latest + cached).groupBy { it.componentName }
-                    .filter { it.value.size == 1 }
-                    .flatMap { it.value }
-                if (diff.isNotEmpty()) {
-                    Timber.d("Found ${diff.size} components to delete for $packageName")
-                    appComponentDao.delete(diff)
-                }
-                Timber.d("Update component list for $packageName, size: ${latest.size}")
-                appComponentDao.upsertComponentList(latest)
-                Success(Unit)
-            }
-            .flowOn(ioDispatcher)
-    }
+            Timber.d("Update component list for $packageName, size: ${latest.size}")
+            appComponentDao.upsertComponentList(latest)
+            Success(Unit)
+        }
+        .flowOn(ioDispatcher)
 
     override fun controlComponent(
         component: ComponentInfo,
@@ -239,20 +235,18 @@ internal class LocalComponentRepository @Inject constructor(
     private suspend fun controlInPmMode(
         component: ComponentInfo,
         newState: Boolean,
-    ): Boolean {
-        return if (newState) {
-            // Need to enable the component by PM controller first
-            val blockedByIfw = !ifwController.checkComponentEnableState(
-                component.packageName,
-                component.name,
-            )
-            if (blockedByIfw) {
-                ifwController.enable(component)
-            }
-            pmController.enable(component)
-        } else {
-            pmController.disable(component)
+    ): Boolean = if (newState) {
+        // Need to enable the component by PM controller first
+        val blockedByIfw = !ifwController.checkComponentEnableState(
+            component.packageName,
+            component.name,
+        )
+        if (blockedByIfw) {
+            ifwController.enable(component)
         }
+        pmController.enable(component)
+    } else {
+        pmController.disable(component)
     }
 
     private suspend fun controlInShizukuMode(

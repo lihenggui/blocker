@@ -123,25 +123,19 @@ class FakeGeneralRuleRepository @Inject constructor() : GeneralRuleRepository {
 
     override fun getGeneralRules(): Flow<List<GeneralRule>> = flowOf(generalRules)
 
-    override fun getGeneralRule(id: Int): Flow<GeneralRule> {
-        return getGeneralRules().map { it.first { rule -> rule.id == id } }
-    }
+    override fun getGeneralRule(id: Int): Flow<GeneralRule> = getGeneralRules().map { it.first { rule -> rule.id == id } }
 
-    override fun updateGeneralRule(): Flow<Result<Unit>> {
-        return flow {
-            emit(Result.Success(Unit))
-        }
+    override fun updateGeneralRule(): Flow<Result<Unit>> = flow {
+        emit(Result.Success(Unit))
     }
 
     override fun getRuleHash(): Flow<String> = flowOf("")
 
     override suspend fun saveGeneralRule(rule: GeneralRule) = Unit
 
-    override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> {
-        return getGeneralRules().map { rules ->
-            rules.filter { rule ->
-                rule.name.contains(keyword, ignoreCase = true) || rule.searchKeyword.contains(keyword)
-            }
+    override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = getGeneralRules().map { rules ->
+        rules.filter { rule ->
+            rule.name.contains(keyword, ignoreCase = true) || rule.searchKeyword.contains(keyword)
         }
     }
 }

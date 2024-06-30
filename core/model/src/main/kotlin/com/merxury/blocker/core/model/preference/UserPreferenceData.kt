@@ -37,4 +37,5 @@ data class UserPreferenceData(
     val isFirstTimeInitializationCompleted: Boolean,
     val appDisplayLanguage: String,
     val libDisplayLanguage: String,
+    val enableStatistics: Boolean,
 )

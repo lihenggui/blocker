@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.designsystem.component.scrollbar
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.SpringSpec
@@ -53,6 +52,7 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.invalidateDraw
+import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.scrollbar.ThumbState.Active
@@ -164,9 +164,6 @@ private fun ScrollableState.DecorativeScrollbarThumb(
     )
 }
 
-// TODO: This lint is removed in 1.6 as the recommendation has changed
-// remove when project is upgraded
-@SuppressLint("ComposableModifierFactory")
 @Composable
 private fun Modifier.scrollThumb(
     scrollableState: ScrollableState,
@@ -176,16 +173,22 @@ private fun Modifier.scrollThumb(
     return this then ScrollThumbElement { colorState.value }
 }
 
-private data class ScrollThumbElement(val colorProducer: ColorProducer) :
-    ModifierNodeElement<ScrollThumbNode>() {
+private data class ScrollThumbElement(val colorProducer: ColorProducer) : ModifierNodeElement<ScrollThumbNode>() {
     override fun create(): ScrollThumbNode = ScrollThumbNode(colorProducer)
     override fun update(node: ScrollThumbNode) {
         node.colorProducer = colorProducer
         node.invalidateDraw()
     }
+
+    override fun InspectorInfo.inspectableProperties() {
+        name = "scrollThumb"
+        properties["colorProducer"] = colorProducer
+    }
 }
 
-private class ScrollThumbNode(var colorProducer: ColorProducer) : DrawModifierNode, Modifier.Node() {
+private class ScrollThumbNode(var colorProducer: ColorProducer) :
+    Modifier.Node(),
+    DrawModifierNode {
     private val shape = RoundedCornerShape(16.dp)
 
     // naive cache outline calculation if size is the same

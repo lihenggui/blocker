@@ -177,4 +177,8 @@ class LocalUserDataRepository @Inject constructor(
         }
         return Locale.ENGLISH.toLanguageTag()
     }
+
+    override suspend fun setEnableStatistics(allow: Boolean) {
+        blockerPreferenceDataSource.setEnableStatistics(allow)
+    }
 }

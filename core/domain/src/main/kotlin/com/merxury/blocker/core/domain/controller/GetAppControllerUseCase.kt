@@ -31,14 +31,12 @@ class GetAppControllerUseCase @Inject constructor(
     @RootApiAppControl private val rootAppController: IAppController,
     @ShizukuAppControl private val shizukuAppController: IAppController,
 ) {
-    operator fun invoke(): Flow<IAppController> {
-        return userDataRepository.userData
-            .distinctUntilChanged()
-            .map { userData ->
-                when (userData.controllerType) {
-                    SHIZUKU -> shizukuAppController
-                    else -> rootAppController
-                }
+    operator fun invoke(): Flow<IAppController> = userDataRepository.userData
+        .distinctUntilChanged()
+        .map { userData ->
+            when (userData.controllerType) {
+                SHIZUKU -> shizukuAppController
+                else -> rootAppController
             }
-    }
+        }
 }

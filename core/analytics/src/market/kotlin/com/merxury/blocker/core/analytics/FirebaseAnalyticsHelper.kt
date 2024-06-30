@@ -27,10 +27,19 @@ import javax.inject.Inject
 internal class FirebaseAnalyticsHelper @Inject constructor(
     private val firebaseAnalytics: FirebaseAnalytics,
 ) : AnalyticsHelper {
+    private var enableStatistics = true
+
+    override fun setEnableStatistics(enable: Boolean) {
+        Timber.i("Setting analytics collection enabled: $enable")
+        enableStatistics = enable
+        firebaseAnalytics.setAnalyticsCollectionEnabled(enable)
+    }
 
     override fun logEvent(event: AnalyticsEvent) {
         Timber.v("Received analytics event: $event")
-        firebaseAnalytics.logEvent(event.type, event.extras.toBundle())
+        if (enableStatistics) {
+            firebaseAnalytics.logEvent(event.type, event.extras.toBundle())
+        }
     }
 
     private fun List<AnalyticsEvent.Param>.toBundle(): Bundle {
