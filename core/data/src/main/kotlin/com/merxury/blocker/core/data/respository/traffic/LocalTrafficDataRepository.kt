@@ -31,12 +31,10 @@ class LocalTrafficDataRepository @Inject constructor(
         trafficDataDao.insert(trafficData.fromExternalModel())
     }
 
-    override fun getTrafficData(packageName: String, keyword: String): Flow<List<TrafficData>> {
-        return trafficDataDao.getTrafficData(packageName, keyword)
-            .map { trafficDataList ->
-                trafficDataList.map { it.asExternalModel() }
-            }
-    }
+    override fun getTrafficData(packageName: String, keyword: String): Flow<List<TrafficData>> = trafficDataDao.getTrafficData(packageName, keyword)
+        .map { trafficDataList ->
+            trafficDataList.map { it.asExternalModel() }
+        }
 
     override fun deleteTrafficData() {
         trafficDataDao.deleteAll()

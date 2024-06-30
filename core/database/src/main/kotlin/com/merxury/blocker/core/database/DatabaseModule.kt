@@ -51,9 +51,7 @@ internal object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideTrafficDataDatabase(@ApplicationContext context: Context): TrafficDataDatabase {
-        return Room.databaseBuilder(context, TrafficDataDatabase::class.java, "traffic_data")
-            .fallbackToDestructiveMigration()
-            .build()
-    }
+    fun provideTrafficDataDatabase(@ApplicationContext context: Context): TrafficDataDatabase = Room.databaseBuilder(context, TrafficDataDatabase::class.java, "traffic_data")
+        .fallbackToDestructiveMigration()
+        .build()
 }

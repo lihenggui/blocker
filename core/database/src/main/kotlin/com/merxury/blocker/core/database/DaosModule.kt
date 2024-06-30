@@ -44,7 +44,5 @@ internal object DaosModule {
 
     @Provides
     @Singleton
-    fun provideTrafficDataDao(database: TrafficDataDatabase): TrafficDataDao {
-        return database.trafficDataDao()
-    }
+    fun provideTrafficDataDao(database: TrafficDataDatabase): TrafficDataDao = database.trafficDataDao()
 }
