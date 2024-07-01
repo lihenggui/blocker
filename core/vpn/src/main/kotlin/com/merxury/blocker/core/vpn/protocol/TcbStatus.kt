@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.database.traffic
+package com.merxury.blocker.core.vpn.protocol
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-
-@Database(entities = [TrafficDataEntity::class], version = 1)
-abstract class TrafficDataDatabase : RoomDatabase() {
-    abstract fun trafficDataDao(): TrafficDataDao
+internal enum class TcbStatus {
+    SYN_SENT,
+    SYN_RECEIVED,
+    ESTABLISHED,
+    CLOSE_WAIT,
+    LAST_ACK,
+    CLOSED,
 }
