@@ -64,7 +64,7 @@ shizuku = "13.1.5"
 timber = "5.0.1"
 xmlutil = "0.90.1"
 turbine = "1.1.0"
-truth = "1.4.2"
+truth = "1.4.3"
 material = "1.12.0"
 
 [libraries]
