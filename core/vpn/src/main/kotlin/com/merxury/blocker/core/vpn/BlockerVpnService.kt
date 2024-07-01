@@ -84,7 +84,9 @@ class BlockerVpnService : VpnService() {
         ToDeviceQueueWorker.stop()
         vpnInterface?.close()
         vpnInterface = null
+
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) {
+            @Suppress("DEPRECATION")
             stopForeground(true)
         } else {
             stopForeground(STOP_FOREGROUND_REMOVE)
