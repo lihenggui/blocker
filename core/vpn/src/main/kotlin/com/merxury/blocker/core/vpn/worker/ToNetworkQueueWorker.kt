@@ -59,7 +59,7 @@ class ToNetworkQueueWorker @Inject constructor(
     private suspend fun runWorker() = withContext(dispatcher) {
         val readBuffer = ByteBuffer.allocate(16384)
         while (scope.isActive) {
-            var readCount = 0
+            var readCount: Int
             try {
                 readCount = vpnInput.read(readBuffer)
             } catch (e: IOException) {

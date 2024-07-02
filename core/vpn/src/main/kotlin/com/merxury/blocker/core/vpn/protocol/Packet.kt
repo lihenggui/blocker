@@ -270,7 +270,7 @@ internal class Packet {
             ttl = BitUtils.getUnsignedByte(buffer.get())
             protocolNum = BitUtils.getUnsignedByte(buffer.get())
             protocol =
-                com.merxury.blocker.core.vpn.protocol.Packet.IP4Header.TransportProtocol.numberToEnum(
+                TransportProtocol.numberToEnum(
                     protocolNum.toInt(),
                 )
             headerChecksum = BitUtils.getUnsignedShort(buffer.short)

@@ -38,7 +38,7 @@ class ToDeviceQueueWorker @Inject constructor(
 ) {
 
     private lateinit var vpnOutput: FileChannel
-    var totalOutputCount = 0L
+    private var totalOutputCount = 0L
 
     private val scope = CoroutineScope(dispatcher + SupervisorJob())
 

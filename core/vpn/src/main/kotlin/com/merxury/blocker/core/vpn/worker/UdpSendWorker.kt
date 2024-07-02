@@ -114,7 +114,7 @@ class UdpSendWorker @Inject constructor(
             }
             managedChannel.lastTime = System.currentTimeMillis()
             val buffer = packet.backingBuffer
-            kotlin.runCatching {
+            runCatching {
                 while (isActive && buffer?.hasRemaining() == true) {
                     managedChannel.channel.write(buffer)
                 }

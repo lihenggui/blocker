@@ -57,7 +57,7 @@ class UdpSocketCleanWorker @Inject constructor(
                 while (isActive && iterator.hasNext()) {
                     val managedDatagramChannel = iterator.next()
                     if (System.currentTimeMillis() - managedDatagramChannel.value.lastTime > UDP_SOCKET_IDLE_TIMEOUT * 1000) {
-                        kotlin.runCatching {
+                        runCatching {
                             managedDatagramChannel.value.channel.close()
                         }.exceptionOrNull()?.printStackTrace()
                         iterator.remove()

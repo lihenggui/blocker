@@ -79,7 +79,7 @@ class UdpReceiveWorker @Inject constructor(
             val readyChannels = udpNioSelector.select()
             while (scope.isActive) {
                 val tunnel = udpTunnelQueue.poll() ?: break
-                kotlin.runCatching {
+                runCatching {
                     val key = tunnel.channel.register(udpNioSelector, SelectionKey.OP_READ, tunnel)
                     key.interestOps(SelectionKey.OP_READ)
                 }.exceptionOrNull()?.printStackTrace()
@@ -95,7 +95,7 @@ class UdpReceiveWorker @Inject constructor(
                 iterator.remove()
                 if (key.isValid && key.isReadable) {
                     val tunnel = key.attachment() as UdpTunnel
-                    kotlin.runCatching {
+                    runCatching {
                         val inputChannel = key.channel() as DatagramChannel
                         receiveBuffer.clear()
                         inputChannel.read(receiveBuffer)
