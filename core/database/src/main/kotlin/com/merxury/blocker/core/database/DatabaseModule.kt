@@ -20,6 +20,7 @@ import android.content.Context
 import androidx.room.Room
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
+import com.merxury.blocker.core.database.traffic.TrafficDataDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,6 +46,12 @@ internal object DatabaseModule {
     @Provides
     @Singleton
     fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase = Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
+        .fallbackToDestructiveMigration()
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideTrafficDataDatabase(@ApplicationContext context: Context): TrafficDataDatabase = Room.databaseBuilder(context, TrafficDataDatabase::class.java, "traffic_data")
         .fallbackToDestructiveMigration()
         .build()
 }
