@@ -22,6 +22,12 @@ import android.os.ParcelFileDescriptor
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.vpn.worker.TcpWorker
+import com.merxury.blocker.core.vpn.worker.ToDeviceQueueWorker
+import com.merxury.blocker.core.vpn.worker.ToNetworkQueueWorker
+import com.merxury.blocker.core.vpn.worker.UdpReceiveWorker
+import com.merxury.blocker.core.vpn.worker.UdpSendWorker
+import com.merxury.blocker.core.vpn.worker.UdpSocketCleanWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -39,23 +45,36 @@ class BlockerVpnService : VpnService() {
     lateinit var ioDispatcher: CoroutineDispatcher
 
     private var vpnInterface: ParcelFileDescriptor? = null
+    private lateinit var toNetworkQueueWorker: ToNetworkQueueWorker
+    private lateinit var toDeviceQueueWorker: ToDeviceQueueWorker
+    private lateinit var udpSendWorker: UdpSendWorker
+    private lateinit var udpReceiveWorker: UdpReceiveWorker
+    private lateinit var udpSocketCleanWorker: UdpSocketCleanWorker
+    private lateinit var tcpWorker: TcpWorker
 
     override fun onCreate() {
         super.onCreate()
-        UdpSendWorker.start(this)
-        UdpReceiveWorker.start(this)
-        UdpSocketCleanWorker.start()
-        TcpWorker.start(this)
+        toNetworkQueueWorker = ToNetworkQueueWorker(ioDispatcher)
+        toDeviceQueueWorker = ToDeviceQueueWorker(ioDispatcher)
+        udpSendWorker = UdpSendWorker(ioDispatcher)
+        udpReceiveWorker = UdpReceiveWorker(ioDispatcher)
+        udpSocketCleanWorker = UdpSocketCleanWorker(ioDispatcher)
+        tcpWorker = TcpWorker(ioDispatcher)
+
+        udpSendWorker.start(this)
+        udpReceiveWorker.start()
+        udpSocketCleanWorker.start()
+        tcpWorker.start(this)
         startVpn()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         disconnect()
-        UdpSendWorker.stop()
-        UdpReceiveWorker.stop()
-        UdpSocketCleanWorker.stop()
-        TcpWorker.stop()
+        udpSendWorker.stop()
+        udpReceiveWorker.stop()
+        udpSocketCleanWorker.stop()
+        tcpWorker.stop()
         vpnInterface?.close()
         vpnInterface = null
     }
@@ -75,13 +94,13 @@ class BlockerVpnService : VpnService() {
 
     private fun runVpn(vpnInterface: ParcelFileDescriptor) {
         val fileDescriptor = vpnInterface.fileDescriptor
-        ToNetworkQueueWorker.start(fileDescriptor)
-        ToDeviceQueueWorker.start(fileDescriptor)
+        toNetworkQueueWorker.start(fileDescriptor)
+        toDeviceQueueWorker.start(fileDescriptor)
     }
 
     private fun disconnect() {
-        ToNetworkQueueWorker.stop()
-        ToDeviceQueueWorker.stop()
+        toNetworkQueueWorker.stop()
+        toDeviceQueueWorker.stop()
         vpnInterface?.close()
         vpnInterface = null
 

@@ -76,20 +76,18 @@ internal class Packet {
         backingBuffer = null
     }
 
-    override fun toString(): String {
-        return buildString {
-            append("Packet{")
-            append("ip4Header=").append(ip4Header)
-            if (isTCP) {
-                append(", tcpHeader=").append(tcpHeader)
-            } else if (isUDP) {
-                append(", udpHeader=").append(udpHeader)
-            }
-            append(", payloadSize=").append(
-                backingBuffer?.limit()?.minus(backingBuffer?.position() ?: 0),
-            )
-            append('}')
+    override fun toString(): String = buildString {
+        append("Packet{")
+        append("ip4Header=").append(ip4Header)
+        if (isTCP) {
+            append(", tcpHeader=").append(tcpHeader)
+        } else if (isUDP) {
+            append(", udpHeader=").append(udpHeader)
         }
+        append(", payloadSize=").append(
+            backingBuffer?.limit()?.minus(backingBuffer?.position() ?: 0),
+        )
+        append('}')
     }
 
     fun updateTCPBuffer(
@@ -247,12 +245,10 @@ internal class Packet {
             ;
 
             companion object {
-                fun numberToEnum(protocolNumber: Int): TransportProtocol {
-                    return when (protocolNumber) {
-                        6 -> TCP
-                        17 -> UDP
-                        else -> OTHER
-                    }
+                fun numberToEnum(protocolNumber: Int): TransportProtocol = when (protocolNumber) {
+                    6 -> TCP
+                    17 -> UDP
+                    else -> OTHER
                 }
             }
         }
@@ -302,23 +298,21 @@ internal class Packet {
             destinationAddress?.address?.let { buffer.put(it) }
         }
 
-        override fun toString(): String {
-            return buildString {
-                append("IP4Header{")
-                append("version=").append(version)
-                append(", IHL=").append(ihl)
-                append(", typeOfService=").append(typeOfService)
-                append(", totalLength=").append(totalLength)
-                append(", identificationAndFlagsAndFragmentOffset=").append(
-                    identificationAndFlagsAndFragmentOffset,
-                )
-                append(", TTL=").append(ttl)
-                append(", protocol=").append(protocolNum).append(":").append(protocol)
-                append(", headerChecksum=").append(headerChecksum)
-                append(", sourceAddress=").append(sourceAddress?.hostAddress)
-                append(", destinationAddress=").append(destinationAddress?.hostAddress)
-                append('}')
-            }
+        override fun toString(): String = buildString {
+            append("IP4Header{")
+            append("version=").append(version)
+            append(", IHL=").append(ihl)
+            append(", typeOfService=").append(typeOfService)
+            append(", totalLength=").append(totalLength)
+            append(", identificationAndFlagsAndFragmentOffset=").append(
+                identificationAndFlagsAndFragmentOffset,
+            )
+            append(", TTL=").append(ttl)
+            append(", protocol=").append(protocolNum).append(":").append(protocol)
+            append(", headerChecksum=").append(headerChecksum)
+            append(", sourceAddress=").append(sourceAddress?.hostAddress)
+            append(", destinationAddress=").append(destinationAddress?.hostAddress)
+            append('}')
         }
     }
 
@@ -411,38 +405,34 @@ internal class Packet {
             }
         }
 
-        fun printSimple(): String {
-            return buildString {
-                if (isFIN) append("FIN ")
-                if (isSYN) append("SYN ")
-                if (isRST) append("RST ")
-                if (isPSH) append("PSH ")
-                if (isACK) append("ACK ")
-                if (isURG) append("URG ")
-                append("seq $sequenceNumber ")
-                append("ack $acknowledgementNumber ")
-            }
+        fun printSimple(): String = buildString {
+            if (isFIN) append("FIN ")
+            if (isSYN) append("SYN ")
+            if (isRST) append("RST ")
+            if (isPSH) append("PSH ")
+            if (isACK) append("ACK ")
+            if (isURG) append("URG ")
+            append("seq $sequenceNumber ")
+            append("ack $acknowledgementNumber ")
         }
 
-        override fun toString(): String {
-            return buildString {
-                append("TCPHeader{")
-                append("sourcePort=").append(sourcePort)
-                append(", destinationPort=").append(destinationPort)
-                append(", sequenceNumber=").append(sequenceNumber)
-                append(", acknowledgementNumber=").append(acknowledgementNumber)
-                append(", headerLength=").append(headerLength)
-                append(", window=").append(window)
-                append(", checksum=").append(checksum)
-                append(", flags=")
-                if (isFIN) append(" FIN")
-                if (isSYN) append(" SYN")
-                if (isRST) append(" RST")
-                if (isPSH) append(" PSH")
-                if (isACK) append(" ACK")
-                if (isURG) append(" URG")
-                append('}')
-            }
+        override fun toString(): String = buildString {
+            append("TCPHeader{")
+            append("sourcePort=").append(sourcePort)
+            append(", destinationPort=").append(destinationPort)
+            append(", sequenceNumber=").append(sequenceNumber)
+            append(", acknowledgementNumber=").append(acknowledgementNumber)
+            append(", headerLength=").append(headerLength)
+            append(", window=").append(window)
+            append(", checksum=").append(checksum)
+            append(", flags=")
+            if (isFIN) append(" FIN")
+            if (isSYN) append(" SYN")
+            if (isRST) append(" RST")
+            if (isPSH) append(" PSH")
+            if (isACK) append(" ACK")
+            if (isURG) append(" URG")
+            append('}')
         }
     }
 
@@ -471,29 +461,21 @@ internal class Packet {
             buffer.putShort(checksum.toShort())
         }
 
-        override fun toString(): String {
-            return buildString {
-                append("UDPHeader{")
-                append("sourcePort=").append(sourcePort)
-                append(", destinationPort=").append(destinationPort)
-                append(", length=").append(length)
-                append(", checksum=").append(checksum)
-                append('}')
-            }
+        override fun toString(): String = buildString {
+            append("UDPHeader{")
+            append("sourcePort=").append(sourcePort)
+            append(", destinationPort=").append(destinationPort)
+            append(", length=").append(length)
+            append(", checksum=").append(checksum)
+            append('}')
         }
     }
 
     private object BitUtils {
-        fun getUnsignedByte(value: Byte): Short {
-            return (value.toInt() and 0xFF).toShort()
-        }
+        fun getUnsignedByte(value: Byte): Short = (value.toInt() and 0xFF).toShort()
 
-        fun getUnsignedShort(value: Short): Int {
-            return value.toInt() and 0xFFFF
-        }
+        fun getUnsignedShort(value: Short): Int = value.toInt() and 0xFFFF
 
-        fun getUnsignedInt(value: Int): Long {
-            return value.toLong() and 0xFFFFFFFFL
-        }
+        fun getUnsignedInt(value: Int): Long = value.toLong() and 0xFFFFFFFFL
     }
 }
