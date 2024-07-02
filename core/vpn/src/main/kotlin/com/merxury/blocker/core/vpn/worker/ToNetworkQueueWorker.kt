@@ -75,9 +75,9 @@ class ToNetworkQueueWorker @Inject constructor(
                 totalInputCount += readCount
 
                 val packet = Packet(byteBuffer)
-                if (packet.isUDP) {
+                if (packet.isUdp) {
                     deviceToNetworkUDPQueue.offer(packet)
-                } else if (packet.isTCP) {
+                } else if (packet.isTcp) {
                     deviceToNetworkTCPQueue.offer(packet)
                 } else {
                     Timber.d("Unknown packet protocol type ${packet.ip4Header?.protocolNum}")

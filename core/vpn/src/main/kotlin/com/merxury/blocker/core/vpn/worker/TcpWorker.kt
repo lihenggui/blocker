@@ -22,10 +22,11 @@ import android.util.Base64
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.vpn.deviceToNetworkTCPQueue
+import com.merxury.blocker.core.vpn.model.Ip4Header
+import com.merxury.blocker.core.vpn.model.TcpHeader
+import com.merxury.blocker.core.vpn.model.TransportProtocol
 import com.merxury.blocker.core.vpn.networkToDeviceQueue
-import com.merxury.blocker.core.vpn.protocol.IpUtil
 import com.merxury.blocker.core.vpn.protocol.Packet
-import com.merxury.blocker.core.vpn.protocol.Packet.TCPHeader
 import com.merxury.blocker.core.vpn.protocol.TcbStatus
 import com.merxury.blocker.core.vpn.protocol.TcpPipe
 import com.merxury.blocker.core.vpn.tcpNioSelector
@@ -38,6 +39,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
@@ -177,7 +179,7 @@ class TcpWorker @Inject constructor(
                 theirSequenceNum = tcpHeader?.sequenceNumber ?: 0
                 myAcknowledgementNum = tcpHeader?.sequenceNumber?.plus(1) ?: 0
                 theirAcknowledgementNum = tcpHeader?.acknowledgementNumber ?: 0
-                sendTcpPack(this, TCPHeader.SYN.toByte() or TCPHeader.ACK.toByte())
+                sendTcpPack(this, TcpHeader.SYN.toByte() or TcpHeader.ACK.toByte())
             } else {
                 myAcknowledgementNum = tcpHeader?.sequenceNumber?.plus(1) ?: 0
             }
@@ -197,7 +199,7 @@ class TcpWorker @Inject constructor(
     private fun handleFin(packet: Packet, tcpPipe: TcpPipe) {
         tcpPipe.myAcknowledgementNum = packet.tcpHeader?.sequenceNumber?.plus(1) ?: 0
         tcpPipe.theirAcknowledgementNum = packet.tcpHeader?.acknowledgementNumber?.plus(1) ?: 0
-        sendTcpPack(tcpPipe, TCPHeader.ACK.toByte())
+        sendTcpPack(tcpPipe, TcpHeader.ACK.toByte())
         tcpPipe.closeUpStream()
         tcpPipe.tcbStatus = TcbStatus.CLOSE_WAIT
     }
@@ -224,14 +226,14 @@ class TcpWorker @Inject constructor(
             theirAcknowledgementNum = tcpHeader?.acknowledgementNumber ?: 0
             remoteOutBuffer = packet.backingBuffer
             tryFlushWrite(this)
-            sendTcpPack(this, TCPHeader.ACK.toByte())
+            sendTcpPack(this, TcpHeader.ACK.toByte())
         }
     }
 
     private fun sendTcpPack(tcpPipe: TcpPipe, flag: Byte, data: ByteArray? = null) {
         val dataSize = data?.size ?: 0
 
-        val packet = IpUtil.buildTcpPacket(
+        val packet = buildTcpPacket(
             tcpPipe.destinationAddress,
             tcpPipe.sourceAddress,
             flag,
@@ -248,7 +250,7 @@ class TcpWorker @Inject constructor(
             byteBuffer.put(it)
         }
 
-        packet.updateTCPBuffer(
+        packet.updateTcpBuffer(
             byteBuffer,
             flag,
             tcpPipe.mySequenceNum,
@@ -261,15 +263,61 @@ class TcpWorker @Inject constructor(
 
         networkToDeviceQueue.offer(byteBuffer)
 
-        if ((flag and TCPHeader.SYN.toByte()) != 0.toByte()) {
+        if ((flag and TcpHeader.SYN.toByte()) != 0.toByte()) {
             tcpPipe.mySequenceNum++
         }
-        if ((flag and TCPHeader.FIN.toByte()) != 0.toByte()) {
+        if ((flag and TcpHeader.FIN.toByte()) != 0.toByte()) {
             tcpPipe.mySequenceNum++
         }
-        if ((flag and TCPHeader.ACK.toByte()) != 0.toByte()) {
+        if ((flag and TcpHeader.ACK.toByte()) != 0.toByte()) {
             tcpPipe.mySequenceNum += dataSize
         }
+    }
+
+    private fun buildTcpPacket(
+        source: InetSocketAddress,
+        dest: InetSocketAddress,
+        flag: Byte,
+        ack: Long,
+        seq: Long,
+        ipId: Int,
+    ): Packet {
+        val ip4Header = Ip4Header(
+            version = 4,
+            ihl = 5,
+            destinationAddress = dest.address,
+            headerChecksum = 0,
+            headerLength = 20,
+            identificationAndFlagsAndFragmentOffset = ipId shl 16 or (0x40 shl 8) or 0,
+            optionsAndPadding = 0,
+            protocol = TransportProtocol.TCP,
+            protocolNum = 6,
+            sourceAddress = source.address,
+            totalLength = 60,
+            typeOfService = 0,
+            ttl = 64,
+        )
+
+        val tcpHeader = TcpHeader(
+            acknowledgementNumber = ack,
+            checksum = 0,
+            dataOffsetAndReserved = -96,
+            destinationPort = dest.port,
+            flags = flag,
+            headerLength = 40,
+            optionsAndPadding = null,
+            sequenceNumber = seq,
+            sourcePort = source.port,
+            urgentPointer = 0,
+            window = 65535,
+        )
+
+        return Packet(
+            isTcp = true,
+            isUdp = false,
+            ip4Header = ip4Header,
+            tcpHeader = tcpHeader,
+        )
     }
 
     private fun tryFlushWrite(tcpPipe: TcpPipe): Boolean {
@@ -277,7 +325,7 @@ class TcpWorker @Inject constructor(
         val buffer = tcpPipe.remoteOutBuffer
 
         if (tcpPipe.remoteSocketChannel.socket().isOutputShutdown && buffer?.remaining() != 0) {
-            sendTcpPack(tcpPipe, TCPHeader.FIN.toByte() or TCPHeader.ACK.toByte())
+            sendTcpPack(tcpPipe, TcpHeader.FIN.toByte() or TcpHeader.ACK.toByte())
             buffer?.compact()
             return false
         }
@@ -318,7 +366,7 @@ class TcpWorker @Inject constructor(
     private fun TcpPipe.closeRst() {
         Timber.d("closeRst $tunnelId")
         clean()
-        sendTcpPack(this, TCPHeader.RST.toByte())
+        sendTcpPack(this, TcpHeader.RST.toByte())
         upActive = false
         downActive = false
     }
@@ -340,7 +388,7 @@ class TcpWorker @Inject constructor(
                     buffer.flip()
                     val dataByteArray = ByteArray(buffer.remaining())
                     buffer.get(dataByteArray)
-                    sendTcpPack(this, TCPHeader.ACK.toByte(), dataByteArray)
+                    sendTcpPack(this, TcpHeader.ACK.toByte(), dataByteArray)
                 }
             }
         }
@@ -400,14 +448,14 @@ class TcpWorker @Inject constructor(
                     val ops = remoteSocketChannelKey.interestOps() and SelectionKey.OP_READ.inv()
                     remoteSocketChannelKey.interestOps(ops)
                 }
-                sendTcpPack(this, (TCPHeader.FIN.toByte() or TCPHeader.ACK.toByte()))
+                sendTcpPack(this, (TcpHeader.FIN.toByte() or TcpHeader.ACK.toByte()))
                 downActive = false
                 if (!upActive) {
                     clean()
                 }
             }
         } else {
-            sendTcpPack(this, (TCPHeader.FIN.toByte() or TCPHeader.ACK.toByte()))
+            sendTcpPack(this, (TcpHeader.FIN.toByte() or TcpHeader.ACK.toByte()))
             upActive = false
             downActive = false
             clean()

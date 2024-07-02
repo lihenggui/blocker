@@ -18,9 +18,11 @@ package com.merxury.blocker.core.vpn.worker
 
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.vpn.model.Ip4Header
+import com.merxury.blocker.core.vpn.model.TransportProtocol
+import com.merxury.blocker.core.vpn.model.UdpHeader
 import com.merxury.blocker.core.vpn.model.UdpTunnel
 import com.merxury.blocker.core.vpn.networkToDeviceQueue
-import com.merxury.blocker.core.vpn.protocol.IpUtil
 import com.merxury.blocker.core.vpn.protocol.Packet
 import com.merxury.blocker.core.vpn.udpNioSelector
 import com.merxury.blocker.core.vpn.udpSocketMap
@@ -61,16 +63,46 @@ class UdpReceiveWorker @Inject constructor(
     }
 
     private fun sendUdpPacket(tunnel: UdpTunnel, source: InetSocketAddress, data: ByteArray) {
-        val packet = IpUtil.buildUdpPacket(tunnel.remote, tunnel.local, ipId.addAndGet(1))
+        val packet = buildUdpPacket(tunnel.remote, tunnel.local, ipId.addAndGet(1))
 
         val byteBuffer = ByteBuffer.allocate(UDP_HEADER_FULL_SIZE + data.size)
         byteBuffer.apply {
             position(UDP_HEADER_FULL_SIZE)
             put(data)
         }
-        packet.updateUDPBuffer(byteBuffer, data.size)
+        packet.updateUdpBuffer(byteBuffer, data.size)
         byteBuffer.position(UDP_HEADER_FULL_SIZE + data.size)
         networkToDeviceQueue.offer(byteBuffer)
+    }
+
+    private fun buildUdpPacket(source: InetSocketAddress, dest: InetSocketAddress, ipId: Int): Packet {
+        val ip4Header = Ip4Header(
+            version = 4,
+            ihl = 5,
+            destinationAddress = dest.address,
+            headerChecksum = 0,
+            headerLength = 20,
+            identificationAndFlagsAndFragmentOffset = ipId shl 16 or (0x40 shl 8) or 0,
+            optionsAndPadding = 0,
+            protocol = TransportProtocol.UDP,
+            protocolNum = 17,
+            sourceAddress = source.address,
+            totalLength = 60,
+            typeOfService = 0,
+            ttl = 64,
+        )
+
+        val udpHeader = UdpHeader(
+            sourcePort = source.port,
+            destinationPort = dest.port,
+            length = 0,
+        )
+        return Packet(
+            isTcp = false,
+            isUdp = true,
+            ip4Header = ip4Header,
+            udpHeader = udpHeader,
+        )
     }
 
     private suspend fun runWorker() = withContext(dispatcher) {
