@@ -38,8 +38,6 @@ dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.android.tools.common)
     compileOnly(libs.compose.gradlePlugin)
-    compileOnly(libs.firebase.performance.gradlePlugin)
-    compileOnly(libs.firebase.crashlytics.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
@@ -94,10 +92,6 @@ gradlePlugin {
         register("androidRoom") {
             id = "blocker.android.room"
             implementationClass = "AndroidRoomConventionPlugin"
-        }
-        register("firebase") {
-            id = "blocker.android.application.firebase"
-            implementationClass = "AndroidApplicationFirebaseConventionPlugin"
         }
         register("androidFlavors") {
             id = "blocker.android.application.flavors"
