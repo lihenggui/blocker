@@ -153,13 +153,11 @@ class ThemeTest {
     private fun emptyGradientColors(colorScheme: ColorScheme): GradientColors =
         GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
 
-    private fun defaultGradientColors(colorScheme: ColorScheme): GradientColors {
-        return GradientColors(
-            top = colorScheme.inverseOnSurface,
-            bottom = colorScheme.primaryContainer,
-            container = colorScheme.surface,
-        )
-    }
+    private fun defaultGradientColors(colorScheme: ColorScheme): GradientColors = GradientColors(
+        top = colorScheme.inverseOnSurface,
+        bottom = colorScheme.primaryContainer,
+        container = colorScheme.surface,
+    )
 
     private fun dynamicGradientColorsWithFallback(colorScheme: ColorScheme): GradientColors = when {
         SDK_INT >= VERSION_CODES.S -> emptyGradientColors(colorScheme)

@@ -52,7 +52,7 @@ class ResetIfwWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         Timber.i("Clear IFW rules")
-        if (!PermissionUtils.isRootAvailable()) {
+        if (!PermissionUtils.isRootAvailable(ioDispatcher)) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )

@@ -17,8 +17,7 @@
 package com.merxury.blocker.core.ui
 
 sealed class SearchScreenTabs(val name: String, val title: Int = 0, val itemCount: Int = 0) {
-    data class App(val count: Int = 0) :
-        SearchScreenTabs(APP, title = R.string.core_ui_application_with_count, itemCount = count)
+    data class App(val count: Int = 0) : SearchScreenTabs(APP, title = R.string.core_ui_application_with_count, itemCount = count)
 
     data class Component(val count: Int = 0) :
         SearchScreenTabs(
@@ -27,12 +26,9 @@ sealed class SearchScreenTabs(val name: String, val title: Int = 0, val itemCoun
             itemCount = count,
         )
 
-    data class Rule(val count: Int = 0) :
-        SearchScreenTabs(RULE, title = R.string.core_ui_online_rule_with_count, itemCount = count)
+    data class Rule(val count: Int = 0) : SearchScreenTabs(RULE, title = R.string.core_ui_online_rule_with_count, itemCount = count)
 
-    override fun toString(): String {
-        return "Screen name = $name"
-    }
+    override fun toString(): String = "Screen name = $name"
 
     companion object {
         private const val APP = "app"

@@ -24,18 +24,16 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
 import timber.log.Timber
 
-fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int): PackageInfo? {
-    return try {
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
-                getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
+fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int): PackageInfo? = try {
+    when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
+            getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
 
-            else -> getPackageInfo(packageName, flags)
-        }
-    } catch (e: NameNotFoundException) {
-        Timber.i("$packageName is uninstalled. Can't find package info.")
-        null
+        else -> getPackageInfo(packageName, flags)
     }
+} catch (e: NameNotFoundException) {
+    Timber.i("$packageName is uninstalled. Can't find package info.")
+    null
 }
 
 fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): ApplicationInfo =

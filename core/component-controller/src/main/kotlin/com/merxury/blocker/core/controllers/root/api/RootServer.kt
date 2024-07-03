@@ -212,16 +212,12 @@ internal class RootServer : RootService() {
             return true
         }
 
-        override fun isAppRunning(packageName: String?): Boolean {
-            return currentRunningProcess.any { packageName in it.pkgList }
-        }
+        override fun isAppRunning(packageName: String?): Boolean = currentRunningProcess.any { packageName in it.pkgList }
 
-        override fun isServiceRunning(packageName: String?, serviceName: String?): Boolean {
-            return serviceList.any {
-                it.service.packageName == packageName &&
-                    it.service.className == serviceName &&
-                    it.started
-            }
+        override fun isServiceRunning(packageName: String?, serviceName: String?): Boolean = serviceList.any {
+            it.service.packageName == packageName &&
+                it.service.className == serviceName &&
+                it.started
         }
 
         override fun startService(packageName: String?, serviceName: String?): Boolean {

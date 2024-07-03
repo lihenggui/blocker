@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,7 +98,7 @@ fun BlockerTopAppBarWithProgress(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = String.format("%.0f%%", progress * 100),
+                        text = String.format(Locale.getDefault(), "%.0f%%", progress * 100),
                     )
                     BlockerLoadingWheel(
                         modifier = Modifier.size(36.dp),

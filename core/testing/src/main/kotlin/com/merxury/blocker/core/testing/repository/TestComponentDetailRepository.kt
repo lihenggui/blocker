@@ -33,16 +33,12 @@ class TestComponentDetailRepository : ComponentDetailRepository {
 
     override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flowOf(false)
 
-    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> {
-        return componentDetail.map {
-            it.find { componentDetail -> componentDetail.name == name }
-        }
+    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = componentDetail.map {
+        it.find { componentDetail -> componentDetail.name == name }
     }
 
-    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> {
-        return componentDetail.map {
-            it.find { componentDetail -> componentDetail.name == name }
-        }
+    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = componentDetail.map {
+        it.find { componentDetail -> componentDetail.name == name }
     }
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)

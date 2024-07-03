@@ -35,7 +35,6 @@ import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getApplicationInfoCompat
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.model.util.ApkParser
 import com.merxury.blocker.core.toApplication
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -162,27 +161,25 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): List<ActivityInfo> {
-        return withContext(dispatcher) {
-            val receivers = mutableListOf<ActivityInfo>()
-            try {
-                var flags = PackageManager.GET_RECEIVERS
-                flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or
-                        @Suppress("DEPRECATION")
-                        PackageManager.GET_DISABLED_COMPONENTS
-                } else {
-                    flags or PackageManager.MATCH_DISABLED_COMPONENTS
-                }
-                val components = pm.getPackageInfoCompat(packageName, flags)?.receivers
-                if (!components.isNullOrEmpty()) {
-                    Collections.addAll(receivers, *components)
-                }
-            } catch (e: PackageManager.NameNotFoundException) {
-                Timber.e("Cannot find specified package $packageName.")
+    ): List<ActivityInfo> = withContext(dispatcher) {
+        val receivers = mutableListOf<ActivityInfo>()
+        try {
+            var flags = PackageManager.GET_RECEIVERS
+            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                flags or
+                    @Suppress("DEPRECATION")
+                    PackageManager.GET_DISABLED_COMPONENTS
+            } else {
+                flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
-            receivers
+            val components = pm.getPackageInfoCompat(packageName, flags)?.receivers
+            if (!components.isNullOrEmpty()) {
+                Collections.addAll(receivers, *components)
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+            Timber.e("Cannot find specified package $packageName.")
         }
+        receivers
     }
 
     /**
@@ -234,27 +231,25 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): List<ProviderInfo> {
-        return withContext(dispatcher) {
-            val providers = mutableListOf<ProviderInfo>()
-            try {
-                var flags = PackageManager.GET_PROVIDERS
-                flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or
-                        @Suppress("DEPRECATION")
-                        PackageManager.GET_DISABLED_COMPONENTS
-                } else {
-                    flags or PackageManager.MATCH_DISABLED_COMPONENTS
-                }
-                val components = pm.getPackageInfoCompat(packageName, flags)?.providers
-                if (!components.isNullOrEmpty()) {
-                    Collections.addAll(providers, *components)
-                }
-            } catch (e: PackageManager.NameNotFoundException) {
-                Timber.w("Cannot find specified package $packageName.")
+    ): List<ProviderInfo> = withContext(dispatcher) {
+        val providers = mutableListOf<ProviderInfo>()
+        try {
+            var flags = PackageManager.GET_PROVIDERS
+            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                flags or
+                    @Suppress("DEPRECATION")
+                    PackageManager.GET_DISABLED_COMPONENTS
+            } else {
+                flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
-            providers
+            val components = pm.getPackageInfoCompat(packageName, flags)?.providers
+            if (!components.isNullOrEmpty()) {
+                Collections.addAll(providers, *components)
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+            Timber.w("Cannot find specified package $packageName.")
         }
+        providers
     }
 
     /**
@@ -274,16 +269,14 @@ object ApplicationUtil {
         packageName: String,
         flags: Int,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): PackageInfo? {
-        return withContext(dispatcher) {
-            var info: PackageInfo? = null
-            try {
-                info = pm.getPackageInfoCompat(packageName, flags)
-            } catch (e: PackageManager.NameNotFoundException) {
-                Timber.e("Cannot find specified package $packageName.")
-            }
-            info
+    ): PackageInfo? = withContext(dispatcher) {
+        var info: PackageInfo? = null
+        try {
+            info = pm.getPackageInfoCompat(packageName, flags)
+        } catch (e: PackageManager.NameNotFoundException) {
+            Timber.e("Cannot find specified package $packageName.")
         }
+        info
     }
 
     suspend fun getApplicationInfo(
@@ -307,30 +300,28 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): PackageInfo {
-        return withContext(dispatcher) {
-            var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
-                PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
+    ): PackageInfo = withContext(dispatcher) {
+        var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
+            PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
+            @Suppress("DEPRECATION")
+            PackageManager.GET_INTENT_FILTERS
+        flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            flags or
                 @Suppress("DEPRECATION")
-                PackageManager.GET_INTENT_FILTERS
-            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or
-                    @Suppress("DEPRECATION")
-                    PackageManager.GET_DISABLED_COMPONENTS
-            } else {
-                flags or PackageManager.MATCH_DISABLED_COMPONENTS
-            }
-            var info = PackageInfo()
-            try {
-                info = pm.getPackageInfoCompat(packageName, flags) ?: PackageInfo()
-            } catch (e: RuntimeException) {
-                Timber.e(e, "Can't get application components")
-                info = getPackageInfoFromManifest(pm, packageName)
-            } catch (e: PackageManager.NameNotFoundException) {
-                Timber.w("Cannot find specified package ($packageName).")
-            }
-            info
+                PackageManager.GET_DISABLED_COMPONENTS
+        } else {
+            flags or PackageManager.MATCH_DISABLED_COMPONENTS
         }
+        var info = PackageInfo()
+        try {
+            info = pm.getPackageInfoCompat(packageName, flags) ?: PackageInfo()
+        } catch (e: RuntimeException) {
+            Timber.e(e, "Can't get application components")
+            info = getPackageInfoFromManifest(pm, packageName)
+        } catch (e: PackageManager.NameNotFoundException) {
+            Timber.w("Cannot find specified package ($packageName).")
+        }
+        info
     }
 
     private suspend fun getPackageInfoFromManifest(
@@ -418,17 +409,13 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         componentName: String,
-    ): Boolean {
-        return getProviderList(pm, packageName).any { it.name == componentName }
-    }
+    ): Boolean = getProviderList(pm, packageName).any { it.name == componentName }
 
     suspend fun isActivity(
         pm: PackageManager,
         packageName: String,
         componentName: String,
-    ): Boolean {
-        return getActivityList(pm, packageName).any { it.name == componentName }
-    }
+    ): Boolean = getActivityList(pm, packageName).any { it.name == componentName }
 
     fun isDebugMode(context: Context): Boolean {
         val appInfo = context.packageManager.getApplicationInfo(context.packageName, 0)

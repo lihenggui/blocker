@@ -21,9 +21,7 @@ import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
 
 class FakeShizukuInitializer : IShizukuInitializer {
 
-    override suspend fun registerShizuku(): RegisterShizukuResult {
-        return RegisterShizukuResult(true, 0)
-    }
+    override suspend fun registerShizuku(): RegisterShizukuResult = RegisterShizukuResult(true, 0)
 
     override fun unregisterShizuku() {
         // Do nothing
@@ -31,7 +29,5 @@ class FakeShizukuInitializer : IShizukuInitializer {
 
     override fun hasPermission(): Boolean = true
 
-    override fun getUid(): Int {
-        return 0
-    }
+    override fun getUid(): Int = 0
 }

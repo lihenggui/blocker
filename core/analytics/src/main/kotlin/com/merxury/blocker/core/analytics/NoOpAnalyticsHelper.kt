@@ -22,4 +22,6 @@ package com.merxury.blocker.core.analytics
  */
 class NoOpAnalyticsHelper : AnalyticsHelper {
     override fun logEvent(event: AnalyticsEvent) = Unit
+
+    override fun setEnableStatistics(enable: Boolean) = Unit
 }

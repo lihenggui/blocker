@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -132,7 +131,6 @@ private suspend fun shareFile(
     context.startActivity(chooserIntent)
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SupportAndFeedbackScreen(
     onNavigationClick: () -> Unit = {},
