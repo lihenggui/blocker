@@ -26,12 +26,12 @@ import java.util.concurrent.ArrayBlockingQueue
 /**
  * Queue for UDP packets sent from device to network
  */
-internal val deviceToNetworkUDPQueue = ArrayBlockingQueue<Packet>(1024)
+internal val deviceToNetworkUdpQueue = ArrayBlockingQueue<Packet>(1024)
 
 /**
  * Queue for TCP packets sent from device to network
  */
-internal val deviceToNetworkTCPQueue = ArrayBlockingQueue<Packet>(1024)
+internal val deviceToNetworkTcpQueue = ArrayBlockingQueue<Packet>(1024)
 
 /**
  * Queue for packets sent from network to device

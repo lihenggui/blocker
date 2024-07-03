@@ -107,7 +107,7 @@ internal data class Packet(
             this.dataOffsetAndReserved = dataOffset
             backingBuffer?.put(IP4_HEADER_SIZE + 12, dataOffset)
 
-            updateTCPChecksum(payloadSize)
+            updateTcpChecksum(payloadSize)
 
             val ip4TotalLength = IP4_HEADER_SIZE + TCP_HEADER_SIZE + payloadSize
             backingBuffer?.putShort(2, ip4TotalLength.toShort())
@@ -161,7 +161,7 @@ internal data class Packet(
         backingBuffer?.putShort(10, sum.toShort())
     }
 
-    private fun updateTCPChecksum(payloadSize: Int) {
+    private fun updateTcpChecksum(payloadSize: Int) {
         var sum = 0
         var tcpLength = TCP_HEADER_SIZE + payloadSize
 

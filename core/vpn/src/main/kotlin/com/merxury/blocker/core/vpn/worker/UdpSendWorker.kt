@@ -19,7 +19,7 @@ package com.merxury.blocker.core.vpn.worker
 import android.net.VpnService
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.vpn.deviceToNetworkUDPQueue
+import com.merxury.blocker.core.vpn.deviceToNetworkUdpQueue
 import com.merxury.blocker.core.vpn.model.ManagedDatagramChannel
 import com.merxury.blocker.core.vpn.model.UdpTunnel
 import com.merxury.blocker.core.vpn.udpNioSelector
@@ -60,7 +60,7 @@ class UdpSendWorker @Inject constructor(
 
     private suspend fun runWorker() = withContext(dispatcher) {
         while (scope.isActive) {
-            val packet = deviceToNetworkUDPQueue.take()
+            val packet = deviceToNetworkUdpQueue.take()
 
             val destinationAddress = packet.ip4Header?.destinationAddress
             val udpHeader = packet.udpHeader

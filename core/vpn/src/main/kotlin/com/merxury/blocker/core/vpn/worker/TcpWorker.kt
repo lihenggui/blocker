@@ -21,7 +21,7 @@ import android.os.Build
 import android.util.Base64
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.vpn.deviceToNetworkTCPQueue
+import com.merxury.blocker.core.vpn.deviceToNetworkTcpQueue
 import com.merxury.blocker.core.vpn.model.Ip4Header
 import com.merxury.blocker.core.vpn.model.TcpHeader
 import com.merxury.blocker.core.vpn.model.TransportProtocol
@@ -48,6 +48,7 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 
 private const val TCP_HEADER_SIZE = Packet.IP4_HEADER_SIZE + Packet.TCP_HEADER_SIZE
+
 class TcpWorker @Inject constructor(
     @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
 ) {
@@ -84,7 +85,7 @@ class TcpWorker @Inject constructor(
     private suspend fun handleReadFromVpn() = withContext(dispatcher) {
         while (isActive) {
             val vpnService = this@TcpWorker.vpnService ?: return@withContext
-            val packet = deviceToNetworkTCPQueue.poll() ?: return@withContext
+            val packet = deviceToNetworkTcpQueue.poll() ?: return@withContext
             val destinationAddress = packet.ip4Header?.destinationAddress
             val tcpHeader = packet.tcpHeader
             val destinationPort = tcpHeader?.destinationPort
@@ -150,19 +151,19 @@ class TcpWorker @Inject constructor(
     private fun handlePacket(packet: Packet, tcpPipe: TcpPipe) {
         val tcpHeader = packet.tcpHeader ?: return
         when {
-            tcpHeader.isSYN -> {
+            tcpHeader.isSyn -> {
                 handleSyn(packet, tcpPipe)
             }
 
-            tcpHeader.isRST -> {
+            tcpHeader.isRst -> {
                 handleRst(tcpPipe)
             }
 
-            tcpHeader.isFIN -> {
+            tcpHeader.isFin -> {
                 handleFin(packet, tcpPipe)
             }
 
-            tcpHeader.isACK -> {
+            tcpHeader.isAck -> {
                 handleAck(packet, tcpPipe)
             }
         }

@@ -18,8 +18,8 @@ package com.merxury.blocker.core.vpn.worker
 
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.vpn.deviceToNetworkTCPQueue
-import com.merxury.blocker.core.vpn.deviceToNetworkUDPQueue
+import com.merxury.blocker.core.vpn.deviceToNetworkTcpQueue
+import com.merxury.blocker.core.vpn.deviceToNetworkUdpQueue
 import com.merxury.blocker.core.vpn.protocol.Packet
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -76,9 +76,9 @@ class ToNetworkQueueWorker @Inject constructor(
 
                 val packet = Packet(byteBuffer)
                 if (packet.isUdp) {
-                    deviceToNetworkUDPQueue.offer(packet)
+                    deviceToNetworkUdpQueue.offer(packet)
                 } else if (packet.isTcp) {
-                    deviceToNetworkTCPQueue.offer(packet)
+                    deviceToNetworkTcpQueue.offer(packet)
                 } else {
                     Timber.d("Unknown packet protocol type ${packet.ip4Header?.protocolNum}")
                 }

@@ -23,6 +23,7 @@ import java.nio.ByteBuffer
 
 internal data class Ip4Header(
     var version: Byte = 0,
+    // Internet Header Length
     var ihl: Byte = 0,
     var headerLength: Int = 0,
     var typeOfService: Short = 0,
@@ -38,9 +39,9 @@ internal data class Ip4Header(
 ) {
     @Throws(UnknownHostException::class)
     constructor(buffer: ByteBuffer) : this() {
-        val versionAndIHL = buffer.get()
-        version = (versionAndIHL.toInt() shr 4).toByte()
-        ihl = (versionAndIHL.toInt() and 0x0F).toByte()
+        val versionAndIhl = buffer.get()
+        version = (versionAndIhl.toInt() shr 4).toByte()
+        ihl = (versionAndIhl.toInt() and 0x0F).toByte()
         headerLength = ihl.toInt() shl 2
 
         typeOfService = buffer.get().toUnsignedByte()

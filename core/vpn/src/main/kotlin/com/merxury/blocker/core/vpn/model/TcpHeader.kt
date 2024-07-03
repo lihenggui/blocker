@@ -67,22 +67,22 @@ data class TcpHeader(
         }
     }
 
-    val isFIN: Boolean
+    val isFin: Boolean
         get() = (flags.toInt() and FIN) == FIN
 
-    val isSYN: Boolean
+    val isSyn: Boolean
         get() = (flags.toInt() and SYN) == SYN
 
-    val isRST: Boolean
+    val isRst: Boolean
         get() = (flags.toInt() and RST) == RST
 
-    val isPSH: Boolean
+    val isPsh: Boolean
         get() = (flags.toInt() and PSH) == PSH
 
-    val isACK: Boolean
+    val isAck: Boolean
         get() = (flags.toInt() and ACK) == ACK
 
-    val isURG: Boolean
+    val isUrg: Boolean
         get() = (flags.toInt() and URG) == URG
 
     fun fillHeader(buffer: ByteBuffer) {
@@ -105,12 +105,12 @@ data class TcpHeader(
     }
 
     fun printSimple(): String = buildString {
-        if (isFIN) append("FIN ")
-        if (isSYN) append("SYN ")
-        if (isRST) append("RST ")
-        if (isPSH) append("PSH ")
-        if (isACK) append("ACK ")
-        if (isURG) append("URG ")
+        if (isFin) append("FIN ")
+        if (isSyn) append("SYN ")
+        if (isRst) append("RST ")
+        if (isPsh) append("PSH ")
+        if (isAck) append("ACK ")
+        if (isUrg) append("URG ")
         append("seq $sequenceNumber ")
         append("ack $acknowledgementNumber ")
     }
@@ -125,12 +125,12 @@ data class TcpHeader(
         append(", window=").append(window)
         append(", checksum=").append(checksum)
         append(", flags=")
-        if (isFIN) append(" FIN")
-        if (isSYN) append(" SYN")
-        if (isRST) append(" RST")
-        if (isPSH) append(" PSH")
-        if (isACK) append(" ACK")
-        if (isURG) append(" URG")
+        if (isFin) append(" FIN")
+        if (isSyn) append(" SYN")
+        if (isRst) append(" RST")
+        if (isPsh) append(" PSH")
+        if (isAck) append(" ACK")
+        if (isUrg) append(" URG")
         append('}')
     }
 
