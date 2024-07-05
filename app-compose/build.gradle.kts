@@ -141,14 +141,17 @@ dependencies {
     testImplementation(projects.core.testing)
     testImplementation(libs.accompanist.testharness)
     testImplementation(libs.hilt.android.testing)
-    testImplementation(libs.work.testing)
+    testImplementation(projects.sync.syncTest)
+
     testFossImplementation(libs.robolectric)
     testFossImplementation(libs.roborazzi)
     testFossImplementation(projects.core.screenshotTesting)
 
+    androidTestImplementation(kotlin("test"))
     androidTestImplementation(projects.core.testing)
     androidTestImplementation(projects.core.dataTest)
     androidTestImplementation(projects.core.datastoreTest)
+    androidTestImplementation(libs.androidx.compose.ui.test)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.navigation.testing)
     androidTestImplementation(libs.accompanist.testharness)

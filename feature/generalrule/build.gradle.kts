@@ -35,4 +35,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
+    testFossImplementation(projects.core.screenshotTesting)
+
+    androidTestImplementation(libs.bundles.androidx.compose.ui.test)
 }

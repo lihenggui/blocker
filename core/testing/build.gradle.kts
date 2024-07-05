@@ -15,7 +15,6 @@
  */
 plugins {
     alias(libs.plugins.blocker.android.library)
-    alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.hilt)
 }
 
@@ -24,20 +23,15 @@ android {
 }
 
 dependencies {
-    api(kotlin("test"))
-    api(libs.androidx.compose.ui.test)
+    api(libs.kotlinx.coroutines.test)
     api(projects.core.analytics)
+    api(projects.core.common)
     api(projects.core.data)
     api(projects.core.model)
 
-    debugApi(libs.androidx.compose.ui.testManifest)
-
     implementation(libs.androidx.test.rules)
     implementation(libs.hilt.android.testing)
-    implementation(libs.kotlinx.coroutines.test)
     implementation(libs.kotlinx.datetime)
-    implementation(projects.core.common)
     implementation(projects.core.componentController)
     implementation(projects.core.domain)
-    implementation(projects.core.designsystem)
 }
