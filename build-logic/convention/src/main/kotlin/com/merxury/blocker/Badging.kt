@@ -104,13 +104,25 @@ abstract class CheckBadgingTask : DefaultTask() {
             "Generated badging is different from golden badging! " +
                 "If this change is intended, run ./gradlew ${updateBadgingTaskName.get()}",
         )
-            .that(generatedBadging.readText().dropFirstLine())
-            .isEqualTo(goldenBadging.readText().dropFirstLine())
+            .that(
+                generatedBadging.readText()
+                    .dropFirstLine()
+                    .trimSpaceForEachLine(),
+            )
+            .isEqualTo(
+                goldenBadging.readText()
+                    .dropFirstLine()
+                    .trimSpaceForEachLine(),
+            )
     }
 }
 
 private fun String.dropFirstLine(): String {
     return this.substringAfter('\n')
+}
+
+private fun String.trimSpaceForEachLine(): String {
+    return this.lines().joinToString("\n") { it.trim() }
 }
 
 fun Project.configureBadgingTasks(
