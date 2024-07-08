@@ -144,7 +144,6 @@ dependencies {
     testImplementation(projects.sync.syncTest)
 
     testFossImplementation(libs.robolectric)
-    testFossImplementation(libs.roborazzi)
     testFossImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(kotlin("test"))
