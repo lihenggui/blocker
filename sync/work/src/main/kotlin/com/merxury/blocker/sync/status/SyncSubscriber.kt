@@ -17,11 +17,9 @@
 
 package com.merxury.blocker.sync.status
 
-import timber.log.Timber
-import javax.inject.Inject
-
-class SyncSubscriber @Inject constructor() : ISyncSubscriber {
-    override suspend fun subscribe() {
-        Timber.d("Subscribing to sync")
-    }
+/**
+ * Subscribes to backend requested synchronization
+ */
+interface SyncSubscriber {
+    suspend fun subscribe()
 }

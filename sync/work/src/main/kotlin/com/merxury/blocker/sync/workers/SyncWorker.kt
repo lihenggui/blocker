@@ -42,7 +42,7 @@ import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.sync.initializers.SyncConstraints
 import com.merxury.blocker.sync.initializers.syncForegroundInfo
-import com.merxury.blocker.sync.status.ISyncSubscriber
+import com.merxury.blocker.sync.status.SyncSubscriber
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -72,7 +72,7 @@ internal class SyncWorker @AssistedInject constructor(
     private val blockerPreferences: BlockerPreferencesDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
-    private val syncSubscriber: ISyncSubscriber,
+    private val syncSubscriber: SyncSubscriber,
 ) : CoroutineWorker(appContext, workerParams),
     Synchronizer {
 

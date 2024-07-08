@@ -18,7 +18,7 @@
 package com.merxury.blocker.sync.di
 
 import com.merxury.blocker.core.data.util.SyncManager
-import com.merxury.blocker.sync.status.ISyncSubscriber
+import com.merxury.blocker.sync.status.StubSyncSubscriber
 import com.merxury.blocker.sync.status.SyncSubscriber
 import com.merxury.blocker.sync.status.WorkManagerSyncManager
 import dagger.Binds
@@ -36,6 +36,6 @@ abstract class SyncModule {
 
     @Binds
     internal abstract fun bindsSyncSubscriber(
-        syncSubscriber: SyncSubscriber,
-    ): ISyncSubscriber
+        syncSubscriber: StubSyncSubscriber,
+    ): SyncSubscriber
 }
