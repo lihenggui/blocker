@@ -48,6 +48,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("androidx.tracing.ktx").get())
 
                 add("testImplementation", project(":core:screenshot-testing"))
+                add("androidTestImplementation", libs.findBundle("androidx.compose.ui.test").get())
             }
         }
     }

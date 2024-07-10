@@ -35,6 +35,4 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
-
-    androidTestImplementation(libs.bundles.androidx.compose.ui.test)
 }
