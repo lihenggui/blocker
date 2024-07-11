@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="core_rule_copying_rules_to_internal_storage">Salin pengaturan ke penyimpanan lokal…</string>
+    <string name="core_rule_update_rules_notification">Membarui pengaturan notifikasi</string>
+    <string name="core_rule_reset_ifw_please_wait">Atur ulang IFW, harap tunggu…</string>
+    <string name="core_rule_backing_up_ifw_please_wait">Cadangkan pengaturan IFW, harap tunggu…</string>
+    <string name="core_rule_import_ifw_please_wait">Impor pengaturan IFW, harap tunggu…</string>
+    <string name="core_rule_import_mat_rule_please_wait">Impor pengaturan MAT, harap tunggu…</string>
+    <string name="core_rule_cancel">Batal</string>
+    <string name="core_rule_processing_please_wait">Memproses, harap tunggu…</string>
+    <string name="core_rule_done">Selesai</string>
+    <string name="core_rule_error_msg_folder_not_defined">Folder belum ditentukan, ke pengaturan untuk menetapkan folder.</string>
+    <string name="core_rule_error_msg_missing_root_permission">Tidak ada root akses, berikan akses root ke Blocker.</string>
+    <string name="core_rule_processing_progress_indicator">Indikator Progres Diproses</string>
+    <string name="core_rule_import_app_rules_please_wait">Impor pengaturan apl, harap tunggu…</string>
+    <string name="core_rule_backing_up_apps_please_wait">Cadangkan pengaturan apl, harap tunggu…</string>
+    <string name="core_rule_error_msg_unexpected_exception">Pengecualian baru, laporkan ke pengembang.</string>
+    <string name="core_rule_task_cancelled">Batalkan Tugas</string>
+</resources>
