@@ -31,10 +31,6 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 apply("io.github.takahirom.roborazzi")
             }
             extensions.configure<LibraryExtension> {
-                defaultConfig {
-                    testInstrumentationRunner =
-                        "com.merxury.blocker.core.testing.BlockerTestRunner"
-                }
                 testOptions.animationsDisabled = true
                 configureGradleManagedDevices(this)
             }
