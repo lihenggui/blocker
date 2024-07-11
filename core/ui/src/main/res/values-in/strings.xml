@@ -1,2 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="core_ui_application_with_count">Apl (%1$d)</string>
+    <string name="core_ui_component_with_count">Komponen (%1$d)</string>
+    <string name="core_ui_online_rule_with_count">Aturan daring (%1$d)</string>
+    <string name="core_ui_clear_cache">Bersihkan tembolok</string>
+    <string name="core_ui_clear_data">Bersihkan data</string>
+    <string name="core_ui_uninstall">Hapus</string>
+    <string name="core_ui_enable">Aktifkan</string>
+    <string name="core_ui_disable">Nonaktifkan</string>
+    <string name="core_ui_force_stop">Stop paksa</string>
+    <string name="core_ui_service_with_count">Layanan (%1$d)</string>
+    <string name="core_ui_no_components">Tidak ada komponen</string>
+    <string name="core_ui_disabled">Nonaktif</string>
+    <string name="core_ui_service_status_template" tools:ignore="PluralsCandidate">Layanan: %1$d beroperasi, %2$d diblokir, total %3$d.</string>
+    <string name="core_ui_copy_name">Salin nama</string>
+    <string name="core_ui_copy_full_name">Salin nama lengkap</string>
+    <string name="core_ui_launch_activity">Akses aktivitas</string>
+    <string name="core_ui_stop_service">Stop layanan</string>
+    <plurals name="core_ui_matched_component">
+        <item quantity="other">%1$d komponen cocok</item>
+    </plurals>
+    <plurals name="core_ui_matched_apps">
+        <item quantity="other">%1$d apl cocok</item>
+    </plurals>
+    <string name="core_ui_description">Keterangan</string>
+    <string name="core_ui_applicable_application">Apl berlaku</string>
+    <string name="core_ui_loading">Memuat</string>
+    <string name="core_ui_error">Galat</string>
+    <string name="core_ui_no_applicable_app">Tidak ada apl berlaku</string>
+    <string name="core_ui_app_info">Info Apl</string>
+    <string name="core_ui_activity_with_count">Aktivitas (%1$d)</string>
+    <string name="core_ui_receiver_with_count">Receiver (%1$d)</string>
+    <string name="core_ui_provider_with_count">Provider (%1$d)</string>
+    <string name="core_ui_running">Beroperasi</string>
+    <string name="core_ui_rule_icon_description">Ikon aturan</string>
+    <string name="core_ui_initializing_database">Inisialisasi basis data</string>
+    <string name="core_ui_more_menu">Menu tambahan</string>
+    <string name="core_ui_search_icon">Cari</string>
+    <string name="core_ui_block_all_components">Blokir semua komponen</string>
+    <string name="core_ui_enable_all_components">Aktifkan semua komponen</string>
+    <string name="core_ui_open_app_detail">Lihat detail apl</string>
+    <string name="core_ui_open_rule_detail">Lihat detail aturan</string>
+    <string name="core_ui_sort_options">Opsi sortir</string>
+    <string name="core_ui_collapse_list">Buka daftar</string>
+    <string name="core_ui_expand_list">Buka selanjutnya</string>
+    <string name="core_ui_close">Tutup</string>
+    <string name="core_ui_block_selected">Blokir pilihan</string>
+    <string name="core_ui_select_all">Pilih semua</string>
+    <string name="core_ui_enable_selected">Aktifkan pilihan</string>
+    <string name="core_ui_not_found_icon">Ikon tidak ditemukan</string>
+    <plurals name="core_ui_block_all">
+        <item quantity="other">Operasi ini akan menonaktifkan komponen %1$d, lanjutkan?</item>
+    </plurals>
+    <plurals name="core_ui_enable_all">
+        <item quantity="other">Operasi ini akan mengaktifkan komponen %1$d, lanjutkan?</item>
+    </plurals>
+    <plurals name="core_ui_selected_app_count">
+        <item quantity="other">%1$d apl dipilih</item>
+    </plurals>
+    <string name="core_ui_disabling_component_hint">Menonaktifkan, harap tunggu… (%1$d/%2$d)</string>
+    <string name="core_ui_enabling_component_hint">Mengaktifkan komponen, harap tunggu… (%1$d/%2$d)</string>
+    <string name="core_ui_operation_completed">Operasi selesai</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Hapus data apl ini?</string>
+    <string name="core_ui_do_you_want_to_uninstall_this_app">Hapus apl?</string>
+    <string name="core_ui_not_found">Tidak ditemukan</string>
+    <string name="core_ui_found">Ditemukan</string>
+</resources>
