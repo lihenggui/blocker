@@ -144,7 +144,6 @@ dependencies {
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.work.testing)
     testFossImplementation(libs.robolectric)
-    testFossImplementation(libs.roborazzi)
     testFossImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
