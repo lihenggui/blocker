@@ -49,4 +49,10 @@
     <string name="feature_settings_french">Perancis</string>
     <string name="feature_settings_failed_to_export_logs">Gagal mengekspor log, lapor masalah ini.</string>
     <string name="feature_settings_export_log_title">Membagi log Blocker</string>
+    <string name="feature_settings_provide_additional_details">Berikan detail tambahan atas permasalahan yang ditemukan.
+\n</string>
+    <string name="feature_settings_no_sharable_app_found">Tidak ada apl ditemukan.</string>
+    <string name="feature_settings_others">Lainnya</string>
+    <string name="feature_settings_anonymous_statistics">Data anonim</string>
+    <string name="feature_settings_anonymous_statistics_summary">Untuk meningkatkan fungsi dari Blocker, kami menggunakan Firebase Analytics untuk mengelola data perilaku pengguna dan fitur yang digunakan.</string>
 </resources>
