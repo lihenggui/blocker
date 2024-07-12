@@ -1,2 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_applist_sort_menu">Menu sortir</string>
+    <string name="feature_applist_settings">Pengaturan</string>
+    <string name="feature_applist_support_and_feedback">Saran dan Tanggapan</string>
+    <string name="feature_applist_no_applications_to_display">Tidak ada aplikasi tersedia</string>
+</resources>
