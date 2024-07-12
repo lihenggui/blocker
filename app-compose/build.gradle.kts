@@ -139,11 +139,11 @@ dependencies {
 
     testImplementation(projects.core.dataTest)
     testImplementation(projects.core.testing)
+    testImplementation(projects.uiTestHiltManifest)
     testImplementation(libs.accompanist.testharness)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.work.testing)
     testFossImplementation(libs.robolectric)
-    testFossImplementation(libs.roborazzi)
     testFossImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
