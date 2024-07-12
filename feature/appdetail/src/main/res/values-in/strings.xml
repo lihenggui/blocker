@@ -1,2 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_appdetail_import_rules">Pengaturan Impor</string>
+    <string name="feature_appdetail_export_rules">Pengaturan Ekspor</string>
+    <string name="feature_appdetail_blocker_rules">Pengaturan Blokir</string>
+    <string name="feature_appdetail_export_ifw_rules">Ekspor Pengaturan IFW</string>
+    <string name="feature_appdetail_import_ifw_rules">Impor Pengaturan IFW</string>
+    <string name="feature_appdetail_reset_ifw">Reset IFW</string>
+    <string name="feature_appdetail_target_sdk_version">Versi SDK Rujukan</string>
+    <string name="feature_appdetail_minimum_sdk_version">Versi SDK minimum</string>
+    <string name="feature_appdetail_last_update_time">Perbarui Terakhir</string>
+    <string name="feature_appdetail_data_dir">Direktori Data</string>
+    <string name="feature_appdetail_block_all_of_this_page">Blokir semua di laman ini</string>
+    <string name="feature_appdetail_enable_all_of_this_page">Aktifkan semua di laman ini</string>
+    <string name="feature_appdetail_blocking_effect">Efek pemblokiran</string>
+    <string name="feature_appdetail_recommended_blocking">Blokir terekomendasi</string>
+    <string name="feature_appdetail_belonging_sdk">Versi SDK</string>
+    <string name="feature_appdetail_save">Simpan</string>
+    <string name="feature_appdetail_search_components">Cari komponen</string>
+    <string name="feature_appdetail_add_description_hint">Tidak ada informasi untuk komponen ini. Jadilah kontributor yang pertama!</string>
+    <string name="feature_appdetail_how_to_contribute">Cara berkonribusi?</string>
+    <string name="feature_appdetail_unknown">Tidakk tahu</string>
+    <string name="feature_appdetail_select_mutiple">Pilih beberapa</string>
+    <plurals name="feature_appdetail_selected_component_count">
+        <item quantity="other">%1$d komponen dipilih</item>
+    </plurals>
+    <string name="feature_appdetail_share_your_rules">Bagikan pengaturanmu</string>
+    <string name="feature_appdetail_share_all_rules">Bagikan semua pengaturan</string>
+    <string name="feature_appdetail_share_rules_of_this_app">Bagikan pengaturan apl ini</string>
+    <string name="feature_appdetail_cannot_share_rule_report_issue">Tidak dapat membagikan, laporkan permasalahan ini.</string>
+    <string name="feature_appdetail_cannot_share_rule_no_apps_found">Tidak dapat membagikan, tidak ditemukan apl.</string>
+    <string name="feature_appdetail_rules_sharing_title">Pengaturan dibagikan: %1$s</string>
+    <string name="feature_appdetail_provide_additional_details">(Tambahkan detail tentang pengaturanmu.)
+\n</string>
+    <string name="feature_appdetail_all_rules">Semua pengaturan</string>
+    <string name="feature_appdetail_app_info">Info Apl</string>
+    <string name="feature_appdetail_app_info_with_libchecker_summary">Pakai LibChecker guna melihat detail apl</string>
+    <string name="feature_appdetail_cannot_launch_this_app">Tidak dapat menjalankan</string>
+    <string name="feature_appdetail_ifw_rules">Pengaturan IFW</string>
+</resources>
