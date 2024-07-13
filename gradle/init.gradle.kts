@@ -40,6 +40,10 @@ rootProject {
                     mapOf(
                         "android" to "true",
                     ),
+                ).customRuleSets(
+                    listOf(
+                        "io.nlopez.compose.rules:ktlint:0.4.5"
+                    )
                 )
 //                licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
             }
