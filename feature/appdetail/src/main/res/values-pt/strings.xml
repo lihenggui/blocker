@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_appdetail_minimum_sdk_version">Versão mínima do SDK</string>
+    <string name="feature_appdetail_target_sdk_version">Versão-alvo do SDK</string>
+    <string name="feature_appdetail_block_all_of_this_page">Bloquear toda a página</string>
+    <string name="feature_appdetail_enable_all_of_this_page">Permitir toda esta página</string>
+    <string name="feature_appdetail_save">Salvar</string>
+    <string name="feature_appdetail_search_components">Pesquisar componentes</string>
+    <string name="feature_appdetail_add_description_hint">Atualmente, não há informações disponíveis para este componente. Seja o primeiro a contribuir!</string>
+    <string name="feature_appdetail_how_to_contribute">Como contribuir?</string>
+    <string name="feature_appdetail_unknown">Desconhecido</string>
+    <string name="feature_appdetail_select_mutiple">Selecionar vários</string>
+    <plurals name="feature_appdetail_selected_component_count">
+        <item quantity="one">Zero, Um</item>
+        <item quantity="many">Um milhão, dois milhões</item>
+        <item quantity="other">Dois, Três, Quatro, Cinco, Seis, Sete, Oito, Nove, Dez, Onze</item>
+    </plurals>
+    <string name="feature_appdetail_share_your_rules">Compartilhe suas regras</string>
+    <string name="feature_appdetail_rules_sharing_title">Regras compartilhadas: %1$s</string>
+    <string name="feature_appdetail_provide_additional_details">(Por favor, forneça detalhes adicionais para suas regras.)
+\n</string>
+    <string name="feature_appdetail_cannot_launch_this_app">Não é possível iniciar este aplicativo</string>
+</resources>
