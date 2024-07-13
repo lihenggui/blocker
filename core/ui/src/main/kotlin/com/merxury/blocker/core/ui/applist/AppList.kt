@@ -63,7 +63,7 @@ fun AppList(
     TrackScrollJank(scrollableState = listState, stateName = "app:list")
     Box(modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = modifier,
+            modifier = Modifier,
             state = listState,
         ) {
             itemsIndexed(appList, key = { _, item -> item.packageName }) { _, item ->
@@ -106,7 +106,7 @@ fun AppList(
 
 @Composable
 @ThemePreviews
-fun AppListPreview(
+private fun AppListPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {

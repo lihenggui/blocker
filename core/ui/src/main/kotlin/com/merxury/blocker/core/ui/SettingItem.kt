@@ -45,6 +45,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 @Composable
 fun ItemHeader(
     title: String,
+    modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -65,9 +66,9 @@ fun ItemHeader(
 
 @Composable
 fun BlockerSettingItem(
+    title: String,
     modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
-    title: String,
     summary: String? = null,
     icon: Icon? = null,
     onItemClick: () -> Unit = {},
@@ -117,9 +118,9 @@ fun BlockerSettingItem(
 
 @Composable
 fun BlockerItem(
-    modifier: Modifier = Modifier,
     title: String,
     icon: Icon,
+    modifier: Modifier = Modifier,
     onItemClick: () -> Unit = {},
     iconColor: Color = MaterialTheme.colorScheme.primary,
 ) {
@@ -158,7 +159,7 @@ fun BlockerItem(
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun HeaderPreview() {
+private fun HeaderPreview() {
     BlockerTheme {
         Surface {
             ItemHeader(title = "Normal Header")
@@ -169,7 +170,7 @@ fun HeaderPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun HeaderWithPaddingPreview() {
+private fun HeaderWithPaddingPreview() {
     BlockerTheme {
         Surface {
             ItemHeader(
@@ -183,7 +184,7 @@ fun HeaderWithPaddingPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SingleLineSettingItemPreview() {
+private fun SingleLineSettingItemPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(title = "Single line item")
@@ -194,7 +195,7 @@ fun SingleLineSettingItemPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SingleLineSettingItemWithPaddingPreview() {
+private fun SingleLineSettingItemWithPaddingPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
@@ -208,7 +209,7 @@ fun SingleLineSettingItemWithPaddingPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemWithoutIconPreview() {
+private fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
@@ -222,7 +223,7 @@ fun SettingsItemWithoutIconPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemWithIconPreview() {
+private fun SettingsItemWithIconPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
@@ -237,7 +238,7 @@ fun SettingsItemWithIconPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemWithPaddingPreview() {
+private fun SettingsItemWithPaddingPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
@@ -252,7 +253,7 @@ fun SettingsItemWithPaddingPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemPreview() {
+private fun SettingsItemPreview() {
     BlockerTheme {
         Surface {
             BlockerItem(

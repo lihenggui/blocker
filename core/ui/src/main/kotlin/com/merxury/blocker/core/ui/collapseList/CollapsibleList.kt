@@ -61,8 +61,8 @@ import timber.log.Timber
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CollapsibleList(
-    modifier: Modifier = Modifier,
     list: List<MatchedItem>,
+    modifier: Modifier = Modifier,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -81,7 +81,7 @@ fun CollapsibleList(
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = modifier.testTag("rule:matchedAppList"),
+            modifier = Modifier.testTag("rule:matchedAppList"),
             state = listState,
         ) {
             list.forEachIndexed { index, ruleMatchedApp ->
@@ -97,10 +97,11 @@ fun CollapsibleList(
                         onBlockAllInItemClick = onBlockAllInItemClick,
                         onEnableAllInItemClick = onEnableAllInItemClick,
                         expanded = expanded,
-                        onCardArrowClicked = {
+                        onCardArrowClick = {
                             isExpandedMap[index] = !(isExpandedMap[index] ?: false)
                         },
                     )
+                    HorizontalDivider()
                 }
                 if (expanded) {
                     items(
@@ -108,7 +109,7 @@ fun CollapsibleList(
                         key = { item -> ruleMatchedApp.header.uniqueId + "/" + item.name },
                     ) {
                         ComponentListItem(
-                            modifier = modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItemPlacement(),
                             item = it,
                             enabled = it.enabled(),
                             type = it.type,
@@ -131,9 +132,7 @@ fun CollapsibleList(
                         )
                         // Add horizontal divider after last item
                         if (ruleMatchedApp.componentList.last() == it) {
-                            HorizontalDivider(
-                                modifier = modifier,
-                            )
+                            HorizontalDivider()
                         }
                     }
                 }
@@ -183,7 +182,7 @@ fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): 
 
 @Composable
 @Preview
-fun RuleMatchedAppListPreview() {
+private fun RuleMatchedAppListPreview() {
     val componentInfo = ComponentInfo(
         name = ".ui.component.ComponentListActivity",
         simpleName = "ComponentListItem",

@@ -36,7 +36,7 @@ import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.data.UiMessage
 
 @Composable
-fun ErrorScreen(error: UiMessage) {
+fun ErrorScreen(error: UiMessage, modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -57,7 +57,7 @@ fun ErrorScreen(error: UiMessage) {
 
 @Preview
 @Composable
-fun ErrorScreenPreview() {
+private fun ErrorScreenPreview() {
     BlockerTheme {
         Surface {
             ErrorScreen(UiMessage("RuntimeException"))

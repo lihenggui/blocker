@@ -68,9 +68,9 @@ fun ComponentList(
         itemsAvailable = components.size,
     )
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
-    Box(modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = modifier.testTag("component:list"),
+            modifier = Modifier.testTag("component:list"),
             state = listState,
         ) {
             itemsIndexed(
@@ -95,11 +95,11 @@ fun ComponentList(
                 )
             }
             item {
-                Spacer(modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
         listState.DraggableScrollbar(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
                 .align(Alignment.CenterEnd),
@@ -114,7 +114,7 @@ fun ComponentList(
 
 @Composable
 @ThemePreviews
-fun ComponentListPreview(
+private fun ComponentListPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,
@@ -130,7 +130,7 @@ fun ComponentListPreview(
 
 @Composable
 @ThemePreviews
-fun ComponentListSelectedModePreview(
+private fun ComponentListSelectedModePreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,

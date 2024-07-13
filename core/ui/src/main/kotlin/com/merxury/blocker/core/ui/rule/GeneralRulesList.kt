@@ -57,9 +57,9 @@ fun GeneralRulesList(
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = matchedRules.size + unmatchedRules.size,
     )
-    Box(modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = modifier.testTag("rule:list"),
+            modifier = Modifier.testTag("rule:list"),
             state = listState,
         ) {
             if (matchedRules.isNotEmpty()) {
@@ -110,7 +110,7 @@ fun GeneralRulesList(
 
 @Composable
 @ThemePreviews
-fun GeneralRuleScreenPreview(
+private fun GeneralRuleScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {

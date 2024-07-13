@@ -111,7 +111,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
-import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.component.ComponentList
@@ -902,7 +902,7 @@ fun AppDetailTabContent(
 }
 
 @Composable
-@DevicePreviews
+@PreviewDevices
 fun AppDetailScreenAppInfoPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
@@ -925,7 +925,7 @@ fun AppDetailScreenAppInfoPreview(
 }
 
 @Composable
-@DevicePreviews
+@PreviewDevices
 fun AppDetailScreenComponentPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,

@@ -43,7 +43,7 @@ import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.feature.settings.R
 
 @Composable
@@ -123,7 +123,7 @@ fun SwitchSettingsItemPreview() {
 }
 
 @Composable
-@DevicePreviews
+@PreviewDevices
 fun SwitchSettingsItemLongNamePreview() {
     BlockerTheme {
         Surface {

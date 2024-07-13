@@ -20,7 +20,6 @@ import android.content.pm.PackageInfo
 import android.view.MotionEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -89,53 +88,52 @@ fun AppListItem(
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
-    Box {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onClick = { onClick(packageName) },
-                    onLongClick = {
-                        expanded = true
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    },
-                )
-                .pointerInteropFilter {
-                    if (it.action == MotionEvent.ACTION_DOWN) {
-                        touchPoint = Offset(it.x, it.y)
-                    }
-                    false
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = { onClick(packageName) },
+                onLongClick = {
+                    expanded = true
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                },
+            )
+            .pointerInteropFilter {
+                if (it.action == MotionEvent.ACTION_DOWN) {
+                    touchPoint = Offset(it.x, it.y)
                 }
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            AppIcon(packageInfo, iconModifier.size(48.dp))
-            Spacer(modifier = Modifier.width(16.dp))
-            AppContent(
-                label = label,
-                versionName = versionName,
-                versionCode = versionCode,
-                isAppEnabled = isAppEnabled,
-                isAppRunning = isAppRunning,
-                serviceStatus = appServiceStatus,
-            )
-            val offset = with(density) {
-                DpOffset(touchPoint.x.toDp(), -touchPoint.y.toDp())
+                false
             }
-            AppListItemMenuList(
-                expanded = expanded,
-                offset = offset,
-                isAppRunning = isAppRunning,
-                isAppEnabled = isAppEnabled,
-                onClearCacheClick = { onClearCacheClick(packageName) },
-                onClearDataClick = { onClearDataClick(packageName) },
-                onForceStopClick = { onForceStopClick(packageName) },
-                onUninstallClick = { onUninstallClick(packageName) },
-                onEnableClick = { onEnableClick(packageName) },
-                onDisableClick = { onDisableClick(packageName) },
-                onDismissRequest = { expanded = false },
-            )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        AppIcon(packageInfo, iconModifier.size(48.dp))
+        Spacer(modifier = Modifier.width(16.dp))
+        AppContent(
+            label = label,
+            versionName = versionName,
+            versionCode = versionCode,
+            isAppEnabled = isAppEnabled,
+            isAppRunning = isAppRunning,
+            serviceStatus = appServiceStatus,
+        )
+        val offset = with(density) {
+            DpOffset(touchPoint.x.toDp(), -touchPoint.y.toDp())
         }
+        AppListItemMenuList(
+            expanded = expanded,
+            offset = offset,
+            isAppRunning = isAppRunning,
+            isAppEnabled = isAppEnabled,
+            onClearCacheClick = { onClearCacheClick(packageName) },
+            onClearDataClick = { onClearDataClick(packageName) },
+            onForceStopClick = { onForceStopClick(packageName) },
+            onUninstallClick = { onUninstallClick(packageName) },
+            onEnableClick = { onEnableClick(packageName) },
+            onDisableClick = { onDisableClick(packageName) },
+            onDismissRequest = { expanded = false },
+        )
     }
 }
 
@@ -202,7 +200,11 @@ private fun AppContent(
             }
         }
         BlockerBodyMediumText(
-            text = stringResource(id = string.core_ui_version_code_template, versionName, versionCode),
+            text = stringResource(
+                id = string.core_ui_version_code_template,
+                versionName,
+                versionCode,
+            ),
         )
         if (serviceStatus != null) {
             BlockerBodyMediumText(
@@ -219,7 +221,7 @@ private fun AppContent(
 
 @Composable
 @ThemePreviews
-fun AppListItemPreview(
+private fun AppListItemPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {
@@ -241,7 +243,7 @@ fun AppListItemPreview(
 
 @Composable
 @Preview
-fun AppListItemWithoutServiceInfoPreview(
+private fun AppListItemWithoutServiceInfoPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {
@@ -263,7 +265,7 @@ fun AppListItemWithoutServiceInfoPreview(
 
 @Composable
 @Preview
-fun AppListItemWithLongAppName(
+private fun AppListItemWithLongAppName(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {

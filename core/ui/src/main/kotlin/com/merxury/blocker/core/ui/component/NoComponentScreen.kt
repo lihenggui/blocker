@@ -33,7 +33,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R.string
 
 @Composable
-fun NoComponentScreen() {
+fun NoComponentScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -52,7 +52,7 @@ fun NoComponentScreen() {
 
 @Composable
 @ThemePreviews
-fun NoComponentScreenPreview() {
+private fun NoComponentScreenPreview() {
     BlockerTheme {
         Surface {
             NoComponentScreen()

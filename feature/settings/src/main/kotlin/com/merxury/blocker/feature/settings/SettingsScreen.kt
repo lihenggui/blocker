@@ -74,7 +74,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.ui.BlockerSettingItem
-import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.settings.R.string
@@ -368,7 +368,7 @@ fun SettingsContent(
 }
 
 @Composable
-@DevicePreviews
+@PreviewDevices
 fun SettingsScreenPreview() {
     BlockerTheme {
         Surface {

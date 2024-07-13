@@ -52,6 +52,7 @@ import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProv
 @Composable
 fun RuleItem(
     item: GeneralRule,
+    modifier: Modifier = Modifier,
     onClick: (String) -> Unit = { },
 ) {
     Row(
@@ -125,7 +126,7 @@ private fun MatchedAppIcon(matchedAppCount: Int) {
 
 @Composable
 @ThemePreviews
-fun RuleBasicInfoPreview(
+private fun RuleBasicInfoPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -138,7 +139,7 @@ fun RuleBasicInfoPreview(
 
 @Composable
 @ThemePreviews
-fun RulePreview(
+private fun RulePreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {

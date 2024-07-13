@@ -33,6 +33,7 @@ import com.merxury.blocker.core.ui.R.string.core_ui_not_found
 @Composable
 fun RuleItemHeader(
     title: String,
+    modifier: Modifier = Modifier,
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
         BlockerBodyMediumText(
@@ -45,7 +46,7 @@ fun RuleItemHeader(
 
 @Composable
 @ThemePreviews
-fun RuleItemHeaderPreview() {
+private fun RuleItemHeaderPreview() {
     BlockerTheme {
         Surface {
             RuleItemHeader(title = stringResource(core_ui_not_found))

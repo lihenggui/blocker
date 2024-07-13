@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +40,7 @@ fun SelectedAppTopBar(
     title: Int,
     selectedItemCount: Int,
     selectedComponentCount: Int,
+    modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit = {},
     onSelectAll: () -> Unit = {},
     onBlockAllSelectedComponents: () -> Unit = {},
@@ -111,7 +113,7 @@ fun SelectedAppTopBar(
 
 @Composable
 @Preview
-fun SelectedAppTopBarPreview() {
+private fun SelectedAppTopBarPreview() {
     BlockerTheme {
         Surface {
             SelectedAppTopBar(

@@ -66,7 +66,7 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
@@ -474,7 +474,7 @@ fun SearchScreenSelectedAppPreview() {
 }
 
 @Composable
-@DevicePreviews
+@PreviewDevices
 fun SearchScreenSelectedComponentPreview() {
     val tabState = SearchTabStatePreviewParameterProvider().values.first()
     val appList = AppListPreviewParameterProvider().values.first()
@@ -532,7 +532,7 @@ fun SearchScreenSelectedRule() {
 
 @Composable
 @ThemePreviews
-@DevicePreviews
+@PreviewDevices
 fun SearchScreenSelectedModePreview() {
     val tabState = SearchTabStatePreviewParameterProvider().values.first()
     val appList = AppListPreviewParameterProvider().values.first()

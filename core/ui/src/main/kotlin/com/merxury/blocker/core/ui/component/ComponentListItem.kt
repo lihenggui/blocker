@@ -186,7 +186,7 @@ fun ComponentListItem(
 
 @Composable
 @ThemePreviews
-fun ComponentItemPreview(
+private fun ComponentItemPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,
@@ -205,7 +205,7 @@ fun ComponentItemPreview(
 
 @Composable
 @ThemePreviews
-fun ComponentItemSelectedPreview(
+private fun ComponentItemSelectedPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,

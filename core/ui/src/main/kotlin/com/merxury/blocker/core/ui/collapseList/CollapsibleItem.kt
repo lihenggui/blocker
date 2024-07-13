@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -54,14 +53,14 @@ import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParamete
 
 @Composable
 fun CollapsibleItem(
-    modifier: Modifier = Modifier,
     matchedItem: MatchedItem,
+    modifier: Modifier = Modifier,
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
     navigation: () -> Unit = {},
     onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
     expanded: Boolean = false,
-    onCardArrowClicked: (String) -> Unit = {},
+    onCardArrowClick: (String) -> Unit = {},
 ) {
     val expandIcon = if (expanded) {
         BlockerIcons.ExpandLess
@@ -87,12 +86,12 @@ fun CollapsibleItem(
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCardArrowClicked(matchedItem.header.uniqueId) }
+            .clickable { onCardArrowClick(matchedItem.header.uniqueId) }
             .padding(vertical = 8.dp),
     ) {
-        IconButton(onClick = { onCardArrowClicked(matchedItem.header.uniqueId) }) {
+        IconButton(onClick = { onCardArrowClick(matchedItem.header.uniqueId) }) {
             Icon(
                 imageVector = expandIcon,
                 contentDescription = if (expanded) {
@@ -115,7 +114,7 @@ fun CollapsibleItem(
         MatchedAppInfo(
             label = matchedItem.header.title,
             matchedComponentCount = matchedItem.componentList.size,
-            modifier = modifier.fillMaxWidth(0.8f),
+            modifier = Modifier.fillMaxWidth(0.8f),
         )
         Spacer(modifier = Modifier.weight(1f))
         BlockerAppTopBarMenu(
@@ -124,14 +123,13 @@ fun CollapsibleItem(
             menuList = items,
         )
     }
-    HorizontalDivider(modifier = modifier)
 }
 
 @Composable
 private fun MatchedAppInfo(
-    modifier: Modifier = Modifier,
     label: String,
     matchedComponentCount: Int,
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
         BlockerBodyLargeText(
@@ -149,7 +147,7 @@ private fun MatchedAppInfo(
 
 @Composable
 @ThemePreviews
-fun CollapseAppItemPreview() {
+private fun CollapseAppItemPreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
     val matchedItem = MatchedItem(
@@ -170,7 +168,7 @@ fun CollapseAppItemPreview() {
 
 @Composable
 @ThemePreviews
-fun CollapseRuleItemPreview() {
+private fun CollapseRuleItemPreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
     val matchedItem = MatchedItem(
@@ -192,7 +190,7 @@ fun CollapseRuleItemPreview() {
 
 @Composable
 @ThemePreviews
-fun CollapseItemLongNamePreview() {
+private fun CollapseItemLongNamePreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
     val matchedItem = MatchedItem(
