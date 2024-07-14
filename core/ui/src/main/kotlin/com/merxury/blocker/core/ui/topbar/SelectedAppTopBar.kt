@@ -53,6 +53,7 @@ fun SelectedAppTopBar(
         mutableStateOf(false)
     }
     BlockerMediumTopAppBar(
+        modifier = modifier,
         title = pluralStringResource(
             id = title,
             count = selectedItemCount,

@@ -38,7 +38,7 @@ import com.merxury.blocker.core.ui.data.UiMessage
 @Composable
 fun ErrorScreen(error: UiMessage, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

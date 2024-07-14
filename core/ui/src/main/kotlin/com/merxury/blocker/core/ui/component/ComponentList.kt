@@ -68,7 +68,7 @@ fun ComponentList(
         itemsAvailable = components.size,
     )
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
-    Box(Modifier.fillMaxSize()) {
+    Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.testTag("component:list"),
             state = listState,

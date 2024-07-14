@@ -62,10 +62,7 @@ fun AppList(
     )
     TrackScrollJank(scrollableState = listState, stateName = "app:list")
     Box(modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier,
-            state = listState,
-        ) {
+        LazyColumn(state = listState) {
             itemsIndexed(appList, key = { _, item -> item.packageName }) { _, item ->
                 AppListItem(
                     label = item.label,

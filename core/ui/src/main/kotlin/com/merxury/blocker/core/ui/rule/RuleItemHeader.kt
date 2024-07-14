@@ -35,7 +35,7 @@ fun RuleItemHeader(
     title: String,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(modifier = modifier.fillMaxWidth()) {
         BlockerBodyMediumText(
             text = title,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

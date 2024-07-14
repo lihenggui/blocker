@@ -48,7 +48,7 @@ fun ItemHeader(
     modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
 ) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,

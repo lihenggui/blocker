@@ -57,7 +57,7 @@ fun RuleItem(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick(item.id.toString()) }
             .padding(horizontal = 16.dp, vertical = 8.dp),

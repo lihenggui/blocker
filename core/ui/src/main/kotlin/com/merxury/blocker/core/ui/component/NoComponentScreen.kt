@@ -35,7 +35,7 @@ import com.merxury.blocker.core.ui.R.string
 @Composable
 fun NoComponentScreen(modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

@@ -57,7 +57,7 @@ fun GeneralRulesList(
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = matchedRules.size + unmatchedRules.size,
     )
-    Box(Modifier.fillMaxSize()) {
+    Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.testTag("rule:list"),
             state = listState,

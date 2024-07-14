@@ -86,7 +86,7 @@ fun CollapsibleItem(
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onCardArrowClick(matchedItem.header.uniqueId) }
             .padding(vertical = 8.dp),

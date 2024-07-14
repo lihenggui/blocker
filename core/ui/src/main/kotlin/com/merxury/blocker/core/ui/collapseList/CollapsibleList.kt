@@ -79,7 +79,7 @@ fun CollapsibleList(
             .toMutableStateMap()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.testTag("rule:matchedAppList"),
             state = listState,
