@@ -32,8 +32,8 @@ import com.merxury.blocker.feature.search.R
 fun SearchBar(
     modifier: Modifier = Modifier,
     searchQuery: String = "",
-    onSearchQueryChanged: (String) -> Unit,
-    onSearchTriggered: (String) -> Unit,
+    onSearchQueryChange: (String) -> Unit = {},
+    onSearchTrigger: (String) -> Unit = {},
 ) {
     BlockerTopAppBar(
         title = stringResource(id = R.string.feature_search_searching),
@@ -48,8 +48,8 @@ fun SearchBar(
                     )
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                onSearchQueryChange = onSearchQueryChanged,
-                onSearchTrigger = onSearchTriggered,
+                onSearchQueryChange = onSearchQueryChange,
+                onSearchTrigger = onSearchTrigger,
                 modifier = modifier.fillMaxWidth(),
             )
         },

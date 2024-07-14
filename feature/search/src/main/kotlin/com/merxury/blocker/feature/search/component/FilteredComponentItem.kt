@@ -85,6 +85,10 @@ fun FilteredComponentItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .background(
+                color = animatedColor.value,
+                shape = RoundedCornerShape(cornerRadius.value),
+            )
             .combinedClickable(
                 onClick = {
                     if (!isSelectedMode) {
@@ -103,10 +107,6 @@ fun FilteredComponentItem(
                         onSelect(items)
                     }
                 },
-            )
-            .background(
-                color = animatedColor.value,
-                shape = RoundedCornerShape(cornerRadius.value),
             )
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
@@ -214,7 +214,7 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun AppListItemPreview() {
+private fun AppListItemPreview() {
     val componentInfo = ComponentInfo(
         name = "component",
         packageName = "blocker",
@@ -244,7 +244,7 @@ fun AppListItemPreview() {
 
 @Composable
 @Preview
-fun AppListItemWithoutServicePreview() {
+private fun AppListItemWithoutServicePreview() {
     val componentInfo = ComponentInfo(
         name = "component",
         packageName = "blocker",

@@ -75,11 +75,12 @@ fun GeneralRulesRoute(
 
 @Composable
 fun GeneralRulesScreen(
-    modifier: Modifier = Modifier,
     uiState: GeneralRuleUiState,
+    modifier: Modifier = Modifier,
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             BlockerTopAppBarWithProgress(
                 title = stringResource(id = R.string.feature_generalrule_sdk_trackers),
@@ -92,7 +93,7 @@ fun GeneralRulesScreen(
         },
     ) { padding ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .windowInsetsPadding(
