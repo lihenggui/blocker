@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -101,7 +101,7 @@ fun GeneralRulesList(
                 .testTag("rule:scrollbar"),
             state = scrollbarState,
             orientation = Vertical,
-            onThumbMoved = listState.rememberDraggableScroller(
+            onThumbMove = listState.rememberDraggableScroller(
                 itemsAvailable = matchedRules.size + unmatchedRules.size,
             ),
         )
@@ -109,7 +109,7 @@ fun GeneralRulesList(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun GeneralRuleScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,

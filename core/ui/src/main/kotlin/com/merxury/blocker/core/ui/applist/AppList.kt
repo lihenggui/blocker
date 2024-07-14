@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -97,7 +97,7 @@ fun AppList(
                 .testTag("appList:scrollbar"),
             state = scrollbarState,
             orientation = Orientation.Vertical,
-            onThumbMoved = listState.rememberDraggableScroller(
+            onThumbMove = listState.rememberDraggableScroller(
                 itemsAvailable = appList.size,
             ),
         )
@@ -105,7 +105,7 @@ fun AppList(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun AppListPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,

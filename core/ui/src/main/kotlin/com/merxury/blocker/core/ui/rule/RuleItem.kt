@@ -42,7 +42,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -125,7 +125,7 @@ private fun MatchedAppIcon(matchedAppCount: Int) {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun RuleBasicInfoPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
@@ -138,7 +138,7 @@ private fun RuleBasicInfoPreview(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun RulePreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,

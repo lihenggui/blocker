@@ -26,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -51,7 +51,7 @@ fun NoComponentScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun NoComponentScreenPreview() {
     BlockerTheme {
         Surface {

@@ -55,7 +55,7 @@ import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -385,7 +385,7 @@ fun ComponentSearchResultContent(
                 .align(Alignment.CenterEnd),
             state = scrollbarState,
             orientation = Vertical,
-            onThumbMoved = listState.rememberDraggableScroller(
+            onThumbMove = listState.rememberDraggableScroller(
                 itemsAvailable = componentTabUiState.list.size,
             ),
         )
@@ -449,7 +449,7 @@ fun RuleSearchResultContent(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun SearchScreenSelectedAppPreview() {
     val tabState = SearchTabStatePreviewParameterProvider().values.first()
     val appList = AppListPreviewParameterProvider().values.first()
@@ -506,7 +506,7 @@ fun SearchScreenSelectedComponentPreview() {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun SearchScreenSelectedRule() {
     val tabState = SearchTabStatePreviewParameterProvider().values.first()
     val ruleList = RuleListPreviewParameterProvider().values.first()
@@ -531,7 +531,7 @@ fun SearchScreenSelectedRule() {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 @PreviewDevices
 fun SearchScreenSelectedModePreview() {
     val tabState = SearchTabStatePreviewParameterProvider().values.first()

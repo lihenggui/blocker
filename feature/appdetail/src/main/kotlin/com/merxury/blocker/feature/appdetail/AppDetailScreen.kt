@@ -86,7 +86,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
@@ -649,8 +649,8 @@ fun AppDetailAppBarActions(
                 BlockerSearchTextField(
                     modifier = Modifier.weight(1f),
                     searchQuery = appBarUiState.keyword,
-                    onSearchQueryChanged = onSearchTextChanged,
-                    onSearchTriggered = onSearchTextChanged,
+                    onSearchQueryChange = onSearchTextChanged,
+                    onSearchTrigger = onSearchTextChanged,
                     placeholder = {
                         Text(
                             text = stringResource(id = string.feature_appdetail_search_components),
@@ -1136,7 +1136,7 @@ fun AppDetailScreenSdkErrorPreview(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun AppDetailScreenSearchModePreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
@@ -1167,7 +1167,7 @@ fun AppDetailScreenSearchModePreview(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun AppDetailScreenSelectedModePreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,

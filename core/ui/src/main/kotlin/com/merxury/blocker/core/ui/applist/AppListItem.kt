@@ -55,7 +55,7 @@ import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
@@ -220,7 +220,7 @@ private fun AppContent(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun AppListItemPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,

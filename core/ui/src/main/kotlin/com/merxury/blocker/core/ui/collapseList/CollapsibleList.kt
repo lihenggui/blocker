@@ -161,7 +161,7 @@ fun CollapsibleList(
                 .align(Alignment.CenterEnd),
             state = scrollbarState,
             orientation = Vertical,
-            onThumbMoved = listState.rememberDraggableScroller(
+            onThumbMove = listState.rememberDraggableScroller(
                 itemsAvailable = list.size,
             ),
         )

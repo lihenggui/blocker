@@ -29,9 +29,9 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerOutlinedCard(
-    modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     OutlinedCard(
         modifier = modifier
@@ -43,9 +43,9 @@ fun BlockerOutlinedCard(
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerOutlinedCardPreview() {
+private fun BlockerOutlinedCardPreview() {
     BlockerTheme {
         Surface {
             BlockerOutlinedCard(

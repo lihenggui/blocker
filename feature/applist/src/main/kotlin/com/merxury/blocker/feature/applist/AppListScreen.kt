@@ -48,7 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
@@ -206,7 +206,7 @@ fun AppListScreen(
     TrackScreenViewEvent(screenName = "AppListScreen")
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
 fun AppListScreenPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class) appList: List<AppItem>,
@@ -218,7 +218,7 @@ fun AppListScreenPreview(
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
 fun AppListScreenInitialPreview() {
     BlockerTheme {
@@ -228,7 +228,7 @@ fun AppListScreenInitialPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
 fun AppListScreenErrorPreview() {
     BlockerTheme {
@@ -238,7 +238,7 @@ fun AppListScreenErrorPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
 fun AppListScreenEmptyPreview() {
     BlockerTheme {

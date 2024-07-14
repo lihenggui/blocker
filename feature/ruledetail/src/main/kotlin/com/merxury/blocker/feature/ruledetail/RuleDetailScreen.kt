@@ -70,7 +70,7 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
@@ -543,7 +543,7 @@ fun RuleDetailTabContent(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun RuleDetailScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
@@ -581,7 +581,7 @@ fun RuleDetailScreenPreview(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun RuleDetailScreenSelectedDescriptionPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,

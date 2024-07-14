@@ -37,7 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
@@ -110,7 +110,7 @@ fun SwitchSettingItem(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun SwitchSettingsItemPreview() {
     BlockerTheme {
         Surface {
@@ -136,7 +136,7 @@ fun SwitchSettingsItemLongNamePreview() {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun SwitchSettingsItemWithSummaryPreview() {
     BlockerTheme {
         Surface {

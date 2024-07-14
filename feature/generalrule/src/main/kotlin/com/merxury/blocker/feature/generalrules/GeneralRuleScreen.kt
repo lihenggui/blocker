@@ -39,7 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBarWithProgress
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
@@ -127,7 +127,7 @@ fun GeneralRulesScreen(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun GeneralRuleScreenMatchProgressPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
@@ -178,7 +178,7 @@ fun GeneralRuleScreenMatchStartPreview(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun GeneralRuleScreenLoading() {
     BlockerTheme {
         Surface {
@@ -190,7 +190,7 @@ fun GeneralRuleScreenLoading() {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun GeneralRuleScreenError() {
     BlockerTheme {
         Surface {

@@ -48,8 +48,8 @@ fun SearchBar(
                     )
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                onSearchQueryChanged = onSearchQueryChanged,
-                onSearchTriggered = onSearchTriggered,
+                onSearchQueryChange = onSearchQueryChanged,
+                onSearchTrigger = onSearchTriggered,
                 modifier = modifier.fillMaxWidth(),
             )
         },

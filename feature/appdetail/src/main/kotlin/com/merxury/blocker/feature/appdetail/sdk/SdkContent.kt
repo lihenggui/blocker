@@ -21,7 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewParameter
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
@@ -78,7 +78,7 @@ fun SdkContent(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun SdkContentPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
@@ -104,7 +104,7 @@ fun SdkContentPreview(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun SdkContentLoadingPreview() {
     BlockerTheme {
         Surface {

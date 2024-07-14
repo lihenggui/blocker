@@ -41,7 +41,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
@@ -146,7 +146,7 @@ private fun MatchedAppInfo(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun CollapseAppItemPreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
@@ -167,7 +167,7 @@ private fun CollapseAppItemPreview() {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun CollapseRuleItemPreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()
@@ -189,7 +189,7 @@ private fun CollapseRuleItemPreview() {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun CollapseItemLongNamePreview() {
     val components = ComponentListPreviewParameterProvider().values
         .first()

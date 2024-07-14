@@ -26,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R.string.core_ui_not_found
 
@@ -45,7 +45,7 @@ fun RuleItemHeader(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 private fun RuleItemHeaderPreview() {
     BlockerTheme {
         Surface {

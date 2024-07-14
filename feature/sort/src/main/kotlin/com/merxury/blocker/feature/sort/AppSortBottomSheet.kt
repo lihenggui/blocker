@@ -37,7 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppSortInfo
@@ -160,7 +160,7 @@ fun AppSortOptionsContent(
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun AppSortOptionsBottomSheetPreview() {
     BlockerTheme {
         Surface {
@@ -172,7 +172,7 @@ fun AppSortOptionsBottomSheetPreview() {
 }
 
 @Composable
-@ThemePreviews
+@PreviewThemes
 fun AppSortOptionsBottomSheetLoadingPreview() {
     BlockerTheme {
         Surface {
