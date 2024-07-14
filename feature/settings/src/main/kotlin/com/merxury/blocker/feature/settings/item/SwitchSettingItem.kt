@@ -49,15 +49,16 @@ import com.merxury.blocker.feature.settings.R
 @Composable
 fun SwitchSettingItem(
     @StringRes itemRes: Int,
+    checked: Boolean,
+    modifier: Modifier = Modifier,
     @StringRes itemSummaryRes: Int? = null,
     icon: Icon? = null,
-    checked: Boolean,
     onCheckedChange: (Boolean) -> Unit = {},
     enabled: Boolean = true,
 ) {
     val disabledColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clickable(enabled = enabled) { onCheckedChange(!checked) }
             .padding(vertical = 12.dp)
             .padding(
@@ -111,7 +112,7 @@ fun SwitchSettingItem(
 
 @Composable
 @PreviewThemes
-fun SwitchSettingsItemPreview() {
+private fun SwitchSettingsItemPreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
@@ -124,7 +125,7 @@ fun SwitchSettingsItemPreview() {
 
 @Composable
 @PreviewDevices
-fun SwitchSettingsItemLongNamePreview() {
+private fun SwitchSettingsItemLongNamePreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
@@ -137,7 +138,7 @@ fun SwitchSettingsItemLongNamePreview() {
 
 @Composable
 @PreviewThemes
-fun SwitchSettingsItemWithSummaryPreview() {
+private fun SwitchSettingsItemWithSummaryPreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(

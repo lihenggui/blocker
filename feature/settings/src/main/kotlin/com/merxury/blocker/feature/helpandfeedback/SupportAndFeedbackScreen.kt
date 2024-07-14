@@ -133,6 +133,7 @@ private suspend fun shareFile(
 
 @Composable
 fun SupportAndFeedbackScreen(
+    modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit = {},
     onProjectHomeClick: () -> Unit = {},
     onRulesRepositoryClick: () -> Unit = {},
@@ -143,6 +144,7 @@ fun SupportAndFeedbackScreen(
     onOpenSourceLicenseClick: () -> Unit = {},
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             BlockerTopAppBar(
                 title = stringResource(id = string.feature_settings_support_and_feedback),
@@ -203,7 +205,7 @@ fun SupportAndFeedbackScreen(
 
 @Composable
 @PreviewDevices
-fun SupportAndFeedbackScreenPreview() {
+private fun SupportAndFeedbackScreenPreview() {
     BlockerTheme {
         Surface {
             SupportAndFeedbackScreen()
