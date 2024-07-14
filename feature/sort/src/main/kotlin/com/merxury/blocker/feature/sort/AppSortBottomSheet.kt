@@ -111,9 +111,9 @@ fun ComponentSortBottomSheet(
 fun AppSortOptionsContent(
     uiState: Success,
     modifier: Modifier = Modifier,
-    onSortByClick: (AppSorting) -> Unit,
-    onSortOrderClick: (SortingOrder) -> Unit,
-    onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
+    onSortByClick: (AppSorting) -> Unit = {},
+    onSortOrderClick: (SortingOrder) -> Unit = {},
+    onChangeShowRunningAppsOnTop: (Boolean) -> Unit = {},
 ) {
     val sortModeList = listOf(
         NAME to string.feature_sort_name,
@@ -134,7 +134,7 @@ fun AppSortOptionsContent(
             text = stringResource(id = string.feature_sort_sort_options),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
-            modifier = modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
         )
         ItemHeader(title = stringResource(id = string.feature_sort_sort_by))
         SegmentedButtons(
@@ -161,7 +161,7 @@ fun AppSortOptionsContent(
 
 @Composable
 @PreviewThemes
-fun AppSortOptionsBottomSheetPreview() {
+private fun AppSortOptionsBottomSheetPreview() {
     BlockerTheme {
         Surface {
             ComponentSortBottomSheet(
@@ -173,7 +173,7 @@ fun AppSortOptionsBottomSheetPreview() {
 
 @Composable
 @PreviewThemes
-fun AppSortOptionsBottomSheetLoadingPreview() {
+private fun AppSortOptionsBottomSheetLoadingPreview() {
     BlockerTheme {
         Surface {
             ComponentSortBottomSheet(

@@ -136,7 +136,7 @@ fun SortOptionsContent(
             text = stringResource(id = string.feature_sort_sort_options),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
-            modifier = modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
         )
         ItemHeader(title = stringResource(id = string.feature_sort_sort_by))
         SegmentedButtons(
@@ -162,7 +162,7 @@ fun SortOptionsContent(
 
 @Composable
 @PreviewThemes
-fun SortOptionsBottomSheetPreview() {
+private fun SortOptionsBottomSheetPreview() {
     BlockerTheme {
         Surface {
             ComponentSortBottomSheet(
@@ -174,7 +174,7 @@ fun SortOptionsBottomSheetPreview() {
 
 @Composable
 @PreviewThemes
-fun SortOptionsBottomSheetLoadingPreview() {
+private fun SortOptionsBottomSheetLoadingPreview() {
     BlockerTheme {
         Surface {
             ComponentSortBottomSheet(
