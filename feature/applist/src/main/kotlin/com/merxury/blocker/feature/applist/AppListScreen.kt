@@ -188,7 +188,7 @@ fun AppListScreen(
                                 onUninstallClick = onUninstallClick,
                                 onEnableClick = onEnableClick,
                                 onDisableClick = onDisableClick,
-                                modifier = modifier.testTag(appListTestTag),
+                                modifier = Modifier.testTag(appListTestTag),
                             )
                         }
                         PullRefreshIndicator(
@@ -209,7 +209,7 @@ fun AppListScreen(
 
 @PreviewThemes
 @Composable
-fun AppListScreenPreview(
+private fun AppListScreenPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class) appList: List<AppItem>,
 ) {
     BlockerTheme {
@@ -221,7 +221,7 @@ fun AppListScreenPreview(
 
 @PreviewThemes
 @Composable
-fun AppListScreenInitialPreview() {
+private fun AppListScreenInitialPreview() {
     BlockerTheme {
         Surface {
             AppListScreen(uiState = Initializing("Blocker"), appList = listOf())
@@ -231,7 +231,7 @@ fun AppListScreenInitialPreview() {
 
 @PreviewThemes
 @Composable
-fun AppListScreenErrorPreview() {
+private fun AppListScreenErrorPreview() {
     BlockerTheme {
         Surface {
             AppListScreen(uiState = Error(UiMessage("Error")), appList = listOf())
@@ -241,7 +241,7 @@ fun AppListScreenErrorPreview() {
 
 @PreviewThemes
 @Composable
-fun AppListScreenEmptyPreview() {
+private fun AppListScreenEmptyPreview() {
     BlockerTheme {
         Surface {
             AppListScreen(uiState = Success(), appList = listOf())
