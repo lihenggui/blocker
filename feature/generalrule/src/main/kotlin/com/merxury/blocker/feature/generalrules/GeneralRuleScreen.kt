@@ -117,7 +117,6 @@ fun GeneralRulesScreen(
                         navigateToRuleDetail(id)
                         analyticsHelper.logGeneralRuleClicked(id)
                     },
-                    modifier = modifier,
                 )
 
                 is Error -> ErrorScreen(error = uiState.error)
@@ -129,7 +128,7 @@ fun GeneralRulesScreen(
 
 @Composable
 @PreviewThemes
-fun GeneralRuleScreenMatchProgressPreview(
+private fun GeneralRuleScreenMatchProgressPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -146,7 +145,7 @@ fun GeneralRuleScreenMatchProgressPreview(
 
 @Composable
 @Preview
-fun GeneralRuleScreenMatchedCompletedPreview(
+private fun GeneralRuleScreenMatchedCompletedPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -163,7 +162,7 @@ fun GeneralRuleScreenMatchedCompletedPreview(
 
 @Composable
 @Preview
-fun GeneralRuleScreenMatchStartPreview(
+private fun GeneralRuleScreenMatchStartPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -180,7 +179,7 @@ fun GeneralRuleScreenMatchStartPreview(
 
 @Composable
 @PreviewThemes
-fun GeneralRuleScreenLoading() {
+private fun GeneralRuleScreenLoading() {
     BlockerTheme {
         Surface {
             GeneralRulesScreen(
@@ -192,7 +191,7 @@ fun GeneralRuleScreenLoading() {
 
 @Composable
 @PreviewThemes
-fun GeneralRuleScreenError() {
+private fun GeneralRuleScreenError() {
     BlockerTheme {
         Surface {
             GeneralRulesScreen(
