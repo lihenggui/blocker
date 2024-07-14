@@ -79,7 +79,7 @@ fun SdkContent(
 
 @Composable
 @PreviewThemes
-fun SdkContentPreview(
+private fun SdkContentPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,
@@ -105,7 +105,7 @@ fun SdkContentPreview(
 
 @Composable
 @PreviewThemes
-fun SdkContentLoadingPreview() {
+private fun SdkContentLoadingPreview() {
     BlockerTheme {
         Surface {
             SdkContent()

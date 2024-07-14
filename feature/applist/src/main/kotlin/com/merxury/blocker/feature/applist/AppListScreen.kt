@@ -151,10 +151,11 @@ fun AppListScreen(
                 },
             )
         },
+        modifier = modifier,
     ) { padding ->
 
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .windowInsetsPadding(
@@ -174,7 +175,7 @@ fun AppListScreen(
                         refreshing = uiState.isRefreshing,
                         onRefresh = onRefresh,
                     )
-                    Box(modifier = modifier.pullRefresh(refreshingState)) {
+                    Box(modifier = Modifier.pullRefresh(refreshingState)) {
                         if (appList.isEmpty()) {
                             EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
                         } else {
