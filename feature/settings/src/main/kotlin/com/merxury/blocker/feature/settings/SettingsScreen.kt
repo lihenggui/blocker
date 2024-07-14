@@ -74,8 +74,8 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.ui.BlockerSettingItem
-import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.core.ui.ItemHeader
+import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
@@ -199,6 +199,7 @@ fun SettingsScreen(
     importMatRules: (Uri?) -> Unit = { },
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             BlockerTopAppBar(
                 title = stringResource(id = string.feature_settings_settings),
@@ -208,7 +209,7 @@ fun SettingsScreen(
         },
     ) { padding ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .windowInsetsPadding(
@@ -301,7 +302,6 @@ fun SettingsContent(
         )
         HorizontalDivider()
         ThemeSettings(
-            modifier = modifier,
             settings = settings,
             supportDynamicColor = supportDynamicColor,
             onChangeDynamicColorPreference = onChangeDynamicColorPreference,
@@ -368,8 +368,8 @@ fun SettingsContent(
 }
 
 @Composable
-@DevicePreviews
-fun SettingsScreenPreview() {
+@PreviewDevices
+private fun SettingsScreenPreview() {
     BlockerTheme {
         Surface {
             SettingsScreen(

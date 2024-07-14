@@ -79,8 +79,8 @@ class TextFieldScreenshotTests {
     private fun BlockerTextFieldExample(keyword: String) {
         BlockerSearchTextField(
             searchQuery = keyword,
-            onSearchTriggered = {},
-            onSearchQueryChanged = {},
+            onSearchTrigger = {},
+            onSearchQueryChange = {},
         )
     }
 }

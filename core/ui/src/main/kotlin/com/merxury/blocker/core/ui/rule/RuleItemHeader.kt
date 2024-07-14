@@ -26,15 +26,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R.string.core_ui_not_found
 
 @Composable
 fun RuleItemHeader(
     title: String,
+    modifier: Modifier = Modifier,
 ) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(modifier = modifier.fillMaxWidth()) {
         BlockerBodyMediumText(
             text = title,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -44,8 +45,8 @@ fun RuleItemHeader(
 }
 
 @Composable
-@ThemePreviews
-fun RuleItemHeaderPreview() {
+@PreviewThemes
+private fun RuleItemHeaderPreview() {
     BlockerTheme {
         Surface {
             RuleItemHeader(title = stringResource(core_ui_not_found))

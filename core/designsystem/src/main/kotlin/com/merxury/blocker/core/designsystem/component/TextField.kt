@@ -52,10 +52,10 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerSearchTextField(
+    onSearchQueryChange: (String) -> Unit,
+    onSearchTrigger: (String) -> Unit,
     modifier: Modifier = Modifier,
-    onSearchQueryChanged: (String) -> Unit,
     searchQuery: String = "",
-    onSearchTriggered: (String) -> Unit,
     placeholder: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
 ) {
@@ -64,7 +64,7 @@ fun BlockerSearchTextField(
 
     val onSearchExplicitlyTriggered = {
         keyboardController?.hide()
-        onSearchTriggered(searchQuery)
+        onSearchTrigger(searchQuery)
     }
     TextField(
         value = searchQuery,
@@ -88,7 +88,7 @@ fun BlockerSearchTextField(
             ) {
                 IconButton(
                     onClick = {
-                        onSearchQueryChanged("")
+                        onSearchQueryChange("")
                     },
                 ) {
                     Icon(
@@ -101,7 +101,7 @@ fun BlockerSearchTextField(
         },
         onValueChange = {
             if (!it.contains("\n")) {
-                onSearchQueryChanged(it)
+                onSearchQueryChange(it)
             }
         },
         modifier = modifier
@@ -134,12 +134,12 @@ fun BlockerSearchTextField(
 
 @Composable
 @Preview
-fun BlockerTextFieldPreview() {
+private fun BlockerTextFieldPreview() {
     BlockerTheme {
         Surface {
             BlockerSearchTextField(
-                onSearchQueryChanged = {},
-                onSearchTriggered = {},
+                onSearchQueryChange = {},
+                onSearchTrigger = {},
                 placeholder = {
                     Text(text = "test")
                 },

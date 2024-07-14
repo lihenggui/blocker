@@ -26,7 +26,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -64,12 +63,12 @@ import com.merxury.blocker.feature.search.R.string
 fun FilteredComponentItem(
     items: FilteredComponent,
     isSelected: Boolean,
-    modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
-    switchSelectedMode: (Boolean) -> Unit,
-    onSelect: (FilteredComponent) -> Unit,
-    onDeselect: (FilteredComponent) -> Unit,
-    onComponentClick: (FilteredComponent) -> Unit,
+    modifier: Modifier = Modifier,
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onSelect: (FilteredComponent) -> Unit = {},
+    onDeselect: (FilteredComponent) -> Unit = {},
+    onComponentClick: (FilteredComponent) -> Unit = {},
 ) {
     val animatedColor = animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
@@ -82,68 +81,65 @@ fun FilteredComponentItem(
         0.dp
     }
     val cornerRadius = animateDpAsState(targetValue = radius, label = "shape")
-    Box(
-        modifier = modifier,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onClick = {
-                        if (!isSelectedMode) {
-                            onComponentClick(items)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = animatedColor.value,
+                shape = RoundedCornerShape(cornerRadius.value),
+            )
+            .combinedClickable(
+                onClick = {
+                    if (!isSelectedMode) {
+                        onComponentClick(items)
+                    } else {
+                        if (isSelected) {
+                            onDeselect(items)
                         } else {
-                            if (isSelected) {
-                                onDeselect(items)
-                            } else {
-                                onSelect(items)
-                            }
-                        }
-                    },
-                    onLongClick = {
-                        if (!isSelectedMode) {
-                            switchSelectedMode(true)
                             onSelect(items)
                         }
-                    },
-                )
-                .background(
-                    color = animatedColor.value,
-                    shape = RoundedCornerShape(cornerRadius.value),
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            SelectableAppIcon(
-                info = items.app.packageInfo,
-                isSelected = isSelected,
+                    }
+                },
+                onLongClick = {
+                    if (!isSelectedMode) {
+                        switchSelectedMode(true)
+                        onSelect(items)
+                    }
+                },
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            AppContent(appItem = items)
-        }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        SelectableAppIcon(
+            info = items.app.packageInfo,
+            isSelected = isSelected,
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        AppContent(appItem = items)
     }
 }
 
 @Composable
 private fun SelectableAppIcon(
     info: PackageInfo?,
-    modifier: Modifier = Modifier,
     isSelected: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     Crossfade(
         isSelected,
         animationSpec = tween(500),
         label = "icon",
+        modifier = modifier,
     ) { targetState ->
         if (targetState) {
             Icon(
                 imageVector = BlockerIcons.Check,
-                modifier = modifier.size(48.dp),
+                modifier = Modifier.size(48.dp),
                 contentDescription = stringResource(id = string.feature_search_check_icon),
             )
         } else {
             AsyncImage(
-                modifier = modifier
+                modifier = Modifier
                     .size(48.dp),
                 model = Builder(LocalContext.current)
                     .data(info)
@@ -218,7 +214,7 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun AppListItemPreview() {
+private fun AppListItemPreview() {
     val componentInfo = ComponentInfo(
         name = "component",
         packageName = "blocker",
@@ -240,10 +236,6 @@ fun AppListItemPreview() {
             FilteredComponentItem(
                 items = filterAppItem,
                 isSelectedMode = true,
-                switchSelectedMode = {},
-                onSelect = {},
-                onDeselect = {},
-                onComponentClick = {},
                 isSelected = true,
             )
         }
@@ -252,7 +244,7 @@ fun AppListItemPreview() {
 
 @Composable
 @Preview
-fun AppListItemWithoutServicePreview() {
+private fun AppListItemWithoutServicePreview() {
     val componentInfo = ComponentInfo(
         name = "component",
         packageName = "blocker",
@@ -273,11 +265,7 @@ fun AppListItemWithoutServicePreview() {
         FilteredComponentItem(
             items = filterAppItem,
             isSelectedMode = false,
-            switchSelectedMode = {},
-            onSelect = {},
-            onComponentClick = {},
             isSelected = false,
-            onDeselect = {},
         )
     }
 }

@@ -132,9 +132,9 @@ fun BlockerTabRow(
     )
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun TabsPreview() {
+private fun TabsPreview() {
     BlockerTheme {
         Surface {
             val titles = listOf("App info", "Activity")

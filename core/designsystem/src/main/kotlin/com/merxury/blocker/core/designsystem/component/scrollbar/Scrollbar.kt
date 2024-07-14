@@ -189,7 +189,7 @@ internal fun Orientation.valueOf(intOffset: IntOffset) = when (this) {
  * @param minThumbSize the minimum size of the scrollbar thumb
  * @param interactionSource allows for observing the state of the scroll bar
  * @param thumb a composable for drawing the scrollbar thumb
- * @param onThumbMoved an function for reacting to scroll bar displacements caused by direct
+ * @param onThumbMove an function for reacting to scroll bar displacements caused by direct
  * interactions on the scrollbar thumb by the user, for example implementing a fast scroll
  */
 @Composable
@@ -199,7 +199,7 @@ fun Scrollbar(
     modifier: Modifier = Modifier,
     interactionSource: MutableInteractionSource? = null,
     minThumbSize: Dp = 40.dp,
-    onThumbMoved: ((Float) -> Unit)? = null,
+    onThumbMove: ((Float) -> Unit)? = null,
     thumb: @Composable () -> Unit,
 ) {
     // Using Offset.Unspecified and Float.NaN instead of null
@@ -364,7 +364,7 @@ fun Scrollbar(
         }
     }
 
-    if (onThumbMoved == null) return
+    if (onThumbMove == null) return
 
     // Process presses
     LaunchedEffect(Unit) {
@@ -394,7 +394,7 @@ fun Scrollbar(
                         b = destinationThumbMovedPercent,
                     )
                 }
-                onThumbMoved(currentThumbMovedPercent)
+                onThumbMove(currentThumbMovedPercent)
                 interactionThumbTravelPercent = currentThumbMovedPercent
                 delay(SCROLLBAR_PRESS_DELAY_MS)
             }
@@ -411,7 +411,7 @@ fun Scrollbar(
             val currentTravel = track.thumbPosition(
                 dimension = orientation.valueOf(draggedOffset),
             )
-            onThumbMoved(currentTravel)
+            onThumbMove(currentTravel)
             interactionThumbTravelPercent = currentTravel
         }
     }

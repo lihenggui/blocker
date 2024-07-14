@@ -105,7 +105,7 @@ fun BackupSettings(
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun BackupSettingsPreview() {
+private fun BackupSettingsPreview() {
     BlockerTheme {
         Surface {
             BackupSettings(
