@@ -11,13 +11,32 @@
     <string name="feature_appdetail_unknown">Desconhecido</string>
     <string name="feature_appdetail_select_mutiple">Selecionar vários</string>
     <plurals name="feature_appdetail_selected_component_count">
-        <item quantity="one">Zero, Um</item>
-        <item quantity="many">Um milhão, dois milhões</item>
-        <item quantity="other">Dois, Três, Quatro, Cinco, Seis, Sete, Oito, Nove, Dez, Onze</item>
+        <item quantity="one">%1$d componente selecionado</item>
+        <item quantity="many">%1$d componentes selecionados</item>
+        <item quantity="other">%1$d componentes selecionados</item>
     </plurals>
     <string name="feature_appdetail_share_your_rules">Compartilhe suas regras</string>
     <string name="feature_appdetail_rules_sharing_title">Regras compartilhadas: %1$s</string>
     <string name="feature_appdetail_provide_additional_details">(Por favor, forneça detalhes adicionais para suas regras.)
 \n</string>
     <string name="feature_appdetail_cannot_launch_this_app">Não é possível iniciar este aplicativo</string>
+    <string name="feature_appdetail_blocker_rules">Bloquear regras</string>
+    <string name="feature_appdetail_export_rules">Exportar Regras</string>
+    <string name="feature_appdetail_import_rules">Importar Regras</string>
+    <string name="feature_appdetail_ifw_rules">Regras IFW</string>
+    <string name="feature_appdetail_export_ifw_rules">Exportar Regras IFW</string>
+    <string name="feature_appdetail_import_ifw_rules">Importar Regras IFW</string>
+    <string name="feature_appdetail_reset_ifw">Resetar IFW</string>
+    <string name="feature_appdetail_last_update_time">Última atualização</string>
+    <string name="feature_appdetail_data_dir">Diretório de dados</string>
+    <string name="feature_appdetail_blocking_effect">Efeito do bloqueio</string>
+    <string name="feature_appdetail_recommended_blocking">Recomenda-se bloquear</string>
+    <string name="feature_appdetail_belonging_sdk">SDK pertencente</string>
+    <string name="feature_appdetail_share_all_rules">Compartilhe todas as regras</string>
+    <string name="feature_appdetail_share_rules_of_this_app">\"Compartilhar regras deste aplicativo\"</string>
+    <string name="feature_appdetail_cannot_share_rule_report_issue">Não foi possível compartilhar as regras, por favor, reporte o problema para nós.</string>
+    <string name="feature_appdetail_cannot_share_rule_no_apps_found">Não é possível compartilhar regras, nenhum aplicativo compartilhável encontrado.</string>
+    <string name="feature_appdetail_all_rules">Todas as regras</string>
+    <string name="feature_appdetail_app_info">Informações do App</string>
+    <string name="feature_appdetail_app_info_with_libchecker_summary">Use LibChecker para ver detalhes do app</string>
 </resources>
