@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.ruledetail.component
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -40,63 +39,63 @@ import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
 fun RuleDescription(
-    modifier: Modifier = Modifier,
     rule: GeneralRule,
+    modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = modifier
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-                .testTag("ruleDetail:description"),
-        ) {
-            MarkdownText(
-                modifier = Modifier.padding(vertical = 6.dp),
-                markdown = if (rule.description.isNullOrBlank()) {
-                    stringResource(id = string.feature_ruledetail_no_description)
-                } else {
-                    rule.description.orEmpty()
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+            .testTag("ruleDetail:description"),
+    ) {
+        MarkdownText(
+            modifier = Modifier.padding(vertical = 6.dp),
+            markdown = if (rule.description.isNullOrBlank()) {
+                stringResource(id = string.feature_ruledetail_no_description)
+            } else {
+                rule.description.orEmpty()
+            },
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface,
+            ),
+            linkColor = MaterialTheme.colorScheme.tertiary,
+            isTextSelectable = true,
+        )
+        InfoItemHeading(
+            heading = stringResource(id = string.feature_ruledetail_safe_to_block),
+            description = listOf(
+                when (rule.safeToBlock) {
+                    null -> stringResource(id = string.feature_ruledetail_unknown)
+                    true -> stringResource(id = string.feature_ruledetail_yes)
+                    false -> stringResource(id = string.feature_ruledetail_no)
                 },
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
-                linkColor = MaterialTheme.colorScheme.tertiary,
-                isTextSelectable = true,
-            )
-            InfoItemHeading(
-                heading = stringResource(id = string.feature_ruledetail_safe_to_block),
-                description = listOf(
-                    when (rule.safeToBlock) {
-                        null -> stringResource(id = string.feature_ruledetail_unknown)
-                        true -> stringResource(id = string.feature_ruledetail_yes)
-                        false -> stringResource(id = string.feature_ruledetail_no)
-                    },
-                ),
-            )
-            InfoItemHeading(
-                heading = stringResource(id = string.feature_ruledetail_side_effect),
-                description = listOf(
-                    rule.sideEffect ?: stringResource(id = string.feature_ruledetail_unknown),
-                ),
-            )
-            InfoItemHeading(
-                heading = stringResource(id = string.feature_ruledetail_keywords),
-                description = rule.searchKeyword,
-            )
-            InfoItemHeading(
-                heading = stringResource(id = string.feature_ruledetail_contributors),
-                description = rule.contributors,
-            )
-        }
+            ),
+        )
+        InfoItemHeading(
+            heading = stringResource(id = string.feature_ruledetail_side_effect),
+            description = listOf(
+                rule.sideEffect ?: stringResource(id = string.feature_ruledetail_unknown),
+            ),
+        )
+        InfoItemHeading(
+            heading = stringResource(id = string.feature_ruledetail_keywords),
+            description = rule.searchKeyword,
+        )
+        InfoItemHeading(
+            heading = stringResource(id = string.feature_ruledetail_contributors),
+            description = rule.contributors,
+        )
     }
 }
 
 @Composable
 fun InfoItemHeading(
-    heading: String? = null,
     description: List<String?>,
+    modifier: Modifier = Modifier,
+    heading: String? = null,
 ) {
-    Column(modifier = Modifier.padding(vertical = 6.dp)) {
+    Column(modifier = modifier.padding(vertical = 6.dp)) {
         if (heading != null) {
             Text(
                 text = heading,
@@ -119,7 +118,7 @@ fun InfoItemHeading(
 
 @Composable
 @Preview
-fun RuleDescriptionPreview() {
+private fun RuleDescriptionPreview() {
     val item = GeneralRule(
         id = 2,
         name = "Android WorkerManager",

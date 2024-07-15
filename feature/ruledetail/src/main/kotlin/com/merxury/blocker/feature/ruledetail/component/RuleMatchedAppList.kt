@@ -44,8 +44,8 @@ import com.merxury.blocker.core.ui.screen.LoadingScreen
 
 @Composable
 fun RuleMatchedAppList(
-    modifier: Modifier = Modifier,
     ruleMatchedAppListUiState: Result<List<MatchedItem>>,
+    modifier: Modifier = Modifier,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -81,9 +81,11 @@ fun RuleMatchedAppList(
 }
 
 @Composable
-fun NoApplicableAppScreen() {
+fun NoApplicableAppScreen(
+    modifier: Modifier = Modifier,
+) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -96,7 +98,7 @@ fun NoApplicableAppScreen() {
 
 @Composable
 @Preview
-fun RuleMatchedAppListPreview() {
+private fun RuleMatchedAppListPreview() {
     val componentInfo = ComponentInfo(
         name = ".ui.component.ComponentListActivity",
         packageName = "com.merxury.blocker.test1",

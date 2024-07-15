@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerButtonAlertDialog
@@ -35,11 +36,13 @@ import com.merxury.blocker.feature.appdetail.R.string
 
 @Composable
 fun ShareAction(
+    modifier: Modifier = Modifier,
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
 ) {
     var isDialogVisible by remember { mutableStateOf(false) }
     IconButton(
+        modifier = modifier,
         onClick = { isDialogVisible = true },
     ) {
         BlockerActionIcon(
@@ -57,6 +60,7 @@ fun ShareAction(
 
 @Composable
 fun ShareRuleDialog(
+    modifier: Modifier = Modifier,
     isDialogVisible: Boolean = false,
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
@@ -64,6 +68,7 @@ fun ShareRuleDialog(
 ) {
     if (isDialogVisible) {
         BlockerButtonAlertDialog(
+            modifier = modifier,
             title = stringResource(id = string.feature_appdetail_share_your_rules),
             buttons = {
                 BlockerItem(
@@ -90,7 +95,7 @@ fun ShareRuleDialog(
 
 @Composable
 @Preview
-fun ShareRuleDialogPreview() {
+private fun ShareRuleDialogPreview() {
     BlockerTheme {
         Surface {
             ShareRuleDialog(

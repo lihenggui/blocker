@@ -45,9 +45,9 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 fun BlockerIconToggleButton(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
+    icon: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    icon: @Composable () -> Unit,
     checkedIcon: @Composable () -> Unit = icon,
 ) {
     // TODO: File bug
@@ -73,9 +73,9 @@ fun BlockerIconToggleButton(
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun IconButtonPreview() {
+private fun IconButtonPreview() {
     BlockerTheme {
         BlockerIconToggleButton(
             checked = true,
@@ -96,9 +96,9 @@ fun IconButtonPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun IconButtonPreviewUnchecked() {
+private fun IconButtonPreviewUnchecked() {
     BlockerTheme {
         Surface {
             BlockerIconToggleButton(

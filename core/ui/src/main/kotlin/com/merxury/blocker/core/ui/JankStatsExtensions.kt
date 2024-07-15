@@ -23,7 +23,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.DisposableEffectResult
 import androidx.compose.runtime.DisposableEffectScope
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalView
 import androidx.metrics.performance.PerformanceMetricsState
@@ -55,8 +57,9 @@ fun TrackJank(
     reportMetric: suspend CoroutineScope.(state: Holder) -> Unit,
 ) {
     val metrics = rememberMetricsStateHolder()
+    val latestReportMetric by rememberUpdatedState(reportMetric)
     LaunchedEffect(metrics, *keys) {
-        reportMetric(metrics)
+        latestReportMetric(metrics)
     }
 }
 
@@ -70,8 +73,9 @@ fun TrackDisposableJank(
     reportMetric: DisposableEffectScope.(state: Holder) -> DisposableEffectResult,
 ) {
     val metrics = rememberMetricsStateHolder()
+    val latestReportMetric by rememberUpdatedState(reportMetric)
     DisposableEffect(metrics, *keys) {
-        reportMetric(this, metrics)
+        latestReportMetric(this, metrics)
     }
 }
 

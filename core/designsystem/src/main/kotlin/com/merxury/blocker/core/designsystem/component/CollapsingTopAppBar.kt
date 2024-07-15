@@ -66,13 +66,13 @@ val MaxToolbarHeight = 188.dp
 
 @Composable
 fun BlockerCollapsingTopAppBar(
-    modifier: Modifier = Modifier,
     progress: Float,
-    onNavigationClick: () -> Unit = {},
     title: String,
-    actions: (@Composable RowScope.() -> Unit)? = {},
     subtitle: String,
     summary: String,
+    modifier: Modifier = Modifier,
+    onNavigationClick: () -> Unit = {},
+    actions: (@Composable RowScope.() -> Unit)? = {},
     iconSource: Any? = null,
     onIconClick: () -> Unit = {},
 ) {
@@ -85,7 +85,7 @@ fun BlockerCollapsingTopAppBar(
         modifier = modifier,
     ) {
         Box(
-            modifier = modifier
+            modifier = Modifier
                 .statusBarsPadding()
                 .padding(horizontal = contentPadding)
                 .fillMaxSize(),
@@ -159,7 +159,7 @@ fun BlockerCollapsingTopAppBar(
 private fun CollapsingToolbarLayout(
     progress: Float,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit = {},
 ) {
     Layout(
         modifier = modifier,
@@ -245,7 +245,7 @@ private fun CollapsingToolbarLayout(
 
 @Preview
 @Composable
-fun CollapsingToolbarCollapsedPreview() {
+private fun CollapsingToolbarCollapsedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0f,
@@ -283,7 +283,7 @@ fun CollapsingToolbarCollapsedPreview() {
 
 @Preview
 @Composable
-fun CollapsingToolbarHalfwayPreview() {
+private fun CollapsingToolbarHalfwayPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0.5f,
@@ -319,9 +319,9 @@ fun CollapsingToolbarHalfwayPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun CollapsingToolbarExpandedPreview() {
+private fun CollapsingToolbarExpandedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 1f,
@@ -329,8 +329,8 @@ fun CollapsingToolbarExpandedPreview() {
             actions = {
                 BlockerSearchTextField(
                     searchQuery = "blocker",
-                    onSearchQueryChanged = {},
-                    onSearchTriggered = {},
+                    onSearchQueryChange = {},
+                    onSearchTrigger = {},
                     modifier = Modifier.weight(1f),
                 )
                 BlockerAppTopBarMenu(

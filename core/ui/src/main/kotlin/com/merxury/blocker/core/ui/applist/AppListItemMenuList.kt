@@ -29,16 +29,16 @@ import com.merxury.blocker.core.ui.R
 @Composable
 fun AppListItemMenuList(
     expanded: Boolean,
-    offset: DpOffset = DpOffset(0.dp, 0.dp),
     isAppRunning: Boolean,
     isAppEnabled: Boolean,
-    onClearCacheClick: () -> Unit,
-    onClearDataClick: () -> Unit,
-    onForceStopClick: () -> Unit,
-    onUninstallClick: () -> Unit,
-    onEnableClick: () -> Unit,
-    onDisableClick: () -> Unit,
-    onDismissRequest: () -> Unit,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
+    onClearCacheClick: () -> Unit = {},
+    onClearDataClick: () -> Unit = {},
+    onForceStopClick: () -> Unit = {},
+    onUninstallClick: () -> Unit = {},
+    onEnableClick: () -> Unit = {},
+    onDisableClick: () -> Unit = {},
+    onDismissRequest: () -> Unit = {},
 ) {
     val items = buildList {
         if (isAppRunning) {
@@ -93,20 +93,13 @@ fun AppListItemMenuList(
 
 @Preview
 @Composable
-fun AppListItemMenuPreview() {
+private fun AppListItemMenuPreview() {
     BlockerTheme {
         Surface {
             AppListItemMenuList(
                 expanded = true,
                 isAppRunning = true,
                 isAppEnabled = false,
-                onClearCacheClick = { },
-                onClearDataClick = { },
-                onForceStopClick = { },
-                onUninstallClick = { },
-                onEnableClick = { },
-                onDisableClick = { },
-                onDismissRequest = { },
             )
         }
     }

@@ -46,7 +46,7 @@ fun LoadingScreen(
 
 @Preview
 @Composable
-fun LoadingScreenPreview() {
+private fun LoadingScreenPreview() {
     BlockerTheme {
         Surface {
             LoadingScreen()

@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.appdetail.ui
 
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
@@ -27,8 +28,12 @@ import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.core.ui.R as UiR
 
 @Composable
-fun SearchActionMenu(onSearchModeChange: (Boolean) -> Unit) {
+fun SearchActionMenu(
+    modifier: Modifier = Modifier,
+    onSearchModeChange: (Boolean) -> Unit = {},
+) {
     IconButton(
+        modifier = modifier,
         onClick = { onSearchModeChange(true) },
     ) {
         BlockerActionIcon(
@@ -40,8 +45,9 @@ fun SearchActionMenu(onSearchModeChange: (Boolean) -> Unit) {
 
 @Composable
 fun MoreActionMenu(
-    blockAllComponents: () -> Unit,
-    enableAllComponents: () -> Unit,
+    modifier: Modifier = Modifier,
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
     onAdvanceSortClick: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
 ) {
@@ -63,6 +69,7 @@ fun MoreActionMenu(
         ),
     )
     BlockerAppTopBarMenu(
+        modifier = modifier,
         menuIcon = BlockerIcons.MoreVert,
         menuIconDesc = UiR.string.core_ui_more_menu,
         menuList = items,
