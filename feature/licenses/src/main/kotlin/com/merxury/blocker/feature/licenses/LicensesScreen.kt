@@ -33,12 +33,16 @@ fun LicensesRoute(
     snackbarHostState: SnackbarHostState,
     viewModel: LicensesViewModel = hiltViewModel(),
 ) {
-    LicenseScreen()
+    LicenseScreen(
+        onNavigationClick = onNavigationClick,
+        snackbarHostState = snackbarHostState,
+    )
 }
 
 @Composable
 fun LicenseScreen(
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = SnackbarHostState(),
     onNavigationClick: () -> Unit = {},
 ) {
     Scaffold(
