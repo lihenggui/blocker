@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.helpandfeedback.navigation
+package com.merxury.blocker.feature.licenses.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackRoute
+import com.merxury.blocker.feature.licenses.LicensesRoute
 
-const val SUPPORT_AND_FEEDBACK_ROUTE = "support_and_feedback_route"
+const val LICENSES_ROUTE = "licenses_route"
 
-fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) =
-    navigate(SUPPORT_AND_FEEDBACK_ROUTE, navOptions)
+fun NavController.navigateToLicenses(navOptions: NavOptions? = null) =
+    navigate(LICENSES_ROUTE, navOptions)
 
-fun NavGraphBuilder.supportAndFeedbackScreen(
+fun NavGraphBuilder.licensesScreen(
     onBackClick: () -> Unit,
-    navigateToLicenses: () -> Unit,
     snackbarHostState: SnackbarHostState,
 ) {
-    composable(route = SUPPORT_AND_FEEDBACK_ROUTE) {
-        SupportAndFeedbackRoute(
+    composable(
+        route = LICENSES_ROUTE,
+    ) {
+        LicensesRoute(
             onNavigationClick = onBackClick,
-            navigateToLicenses = navigateToLicenses,
             snackbarHostState = snackbarHostState,
         )
     }
