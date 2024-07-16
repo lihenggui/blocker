@@ -38,6 +38,8 @@ import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
+import com.merxury.blocker.feature.licenses.navigation.licensesScreen
+import com.merxury.blocker.feature.licenses.navigation.navigateToLicenses
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
@@ -110,6 +112,7 @@ fun BlockerNavHost(
             )
             supportAndFeedbackScreen(
                 onBackClick = onBackClick,
+                navigateToLicenses = navController::navigateToLicenses,
                 snackbarHostState = snackbarHostState,
             )
             componentDetailScreen(
@@ -120,6 +123,10 @@ fun BlockerNavHost(
             )
             appSortScreen(
                 dismissHandler = dismissBottomSheet,
+            )
+            licensesScreen(
+                onBackClick = onBackClick,
+                snackbarHostState = snackbarHostState,
             )
         }
     }
