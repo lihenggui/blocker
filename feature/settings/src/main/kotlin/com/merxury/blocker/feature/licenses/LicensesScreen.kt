@@ -59,10 +59,10 @@ fun LicensesRoute(
 
 @Composable
 fun LicenseScreen(
+    uiState: LicensesUiState,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = SnackbarHostState(),
     onNavigationClick: () -> Unit = {},
-    uiState: LicensesUiState,
 ) {
     Scaffold(
         modifier = modifier,
