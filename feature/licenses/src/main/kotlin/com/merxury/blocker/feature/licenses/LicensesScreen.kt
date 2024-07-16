@@ -16,16 +16,31 @@
 
 package com.merxury.blocker.feature.licenses
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.PreviewDevices
+import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.feature.licenses.LicensesUiState.Loading
+import com.merxury.blocker.feature.licenses.LicensesUiState.Success
 
 @Composable
 fun LicensesRoute(
@@ -33,9 +48,11 @@ fun LicensesRoute(
     snackbarHostState: SnackbarHostState,
     viewModel: LicensesViewModel = hiltViewModel(),
 ) {
+    val uiState by viewModel.licensesUiState.collectAsStateWithLifecycle()
     LicenseScreen(
         onNavigationClick = onNavigationClick,
         snackbarHostState = snackbarHostState,
+        uiState = uiState,
     )
 }
 
@@ -44,6 +61,7 @@ fun LicenseScreen(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = SnackbarHostState(),
     onNavigationClick: () -> Unit = {},
+    uiState: LicensesUiState,
 ) {
     Scaffold(
         modifier = modifier,
@@ -55,15 +73,45 @@ fun LicenseScreen(
             )
         },
     ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding())
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Horizontal,
+                    ),
+                ),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            when (uiState) {
+                Loading -> {
+                    LoadingScreen()
+                }
+
+                is Success -> {
+                    LicenseContent(uiState)
+                }
+            }
+        }
     }
 }
 
 @Composable
+fun LicenseContent(
+    uiState: LicensesUiState,
+) {
+}
+
+@Composable
 @PreviewDevices
-private fun SettingsScreenPreview() {
+private fun LicensesScreenPreview() {
     BlockerTheme {
         Surface {
-            LicenseScreen()
+            LicenseScreen(
+                uiState = Loading,
+            )
         }
     }
 }

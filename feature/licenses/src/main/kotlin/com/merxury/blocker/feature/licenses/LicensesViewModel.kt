@@ -21,8 +21,12 @@ import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.licenses.LicenseItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,5 +35,20 @@ class LicensesViewModel @Inject constructor(
     private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-    // TODO
+    private val _licensesUiState = MutableStateFlow(LicensesUiState.Loading)
+    val licensesUiState: StateFlow<LicensesUiState> = _licensesUiState.asStateFlow()
 }
+
+sealed interface LicensesUiState {
+    data object Loading : LicensesUiState
+
+    data class Success(
+        val licenses: List<LicenseGroup> = emptyList(),
+        val eventSink: String,
+    ) : LicensesUiState
+}
+
+data class LicenseGroup(
+    val id: String,
+    val artifacts: List<LicenseItem>,
+)
