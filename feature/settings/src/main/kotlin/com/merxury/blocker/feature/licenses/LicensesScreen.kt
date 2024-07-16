@@ -41,6 +41,7 @@ import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.licenses.LicensesUiState.Loading
 import com.merxury.blocker.feature.licenses.LicensesUiState.Success
+import com.merxury.blocker.feature.settings.R
 
 @Composable
 fun LicensesRoute(
@@ -67,7 +68,7 @@ fun LicenseScreen(
         modifier = modifier,
         topBar = {
             BlockerTopAppBar(
-                title = stringResource(id = R.string.feature_licenses_open_source_licenses),
+                title = stringResource(id = R.string.feature_settings_open_source_licenses),
                 hasNavigationIcon = true,
                 onNavigationClick = onNavigationClick,
             )
