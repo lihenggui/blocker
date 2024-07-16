@@ -309,7 +309,7 @@ operator fun <T> ImmutableWrapper<T>.getValue(thisRef: Any?, property: KProperty
 @Preview(widthDp = 200, heightDp = 30)
 @Preview(widthDp = 60, heightDp = 30)
 @Composable
-fun AutoSizeTextPreview() {
+private fun AutoSizeTextPreview() {
     MaterialTheme {
         Surface {
             AutoSizeText(

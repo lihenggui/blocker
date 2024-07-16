@@ -255,7 +255,7 @@ jobs:
     timeout-minutes: 90
     strategy:
       matrix:
-        api-level: [ 26, 30, 34 ]
+        api-level: [ 26, 34 ]
 
     steps:
       - name: Delete unnecessary tools 🔧

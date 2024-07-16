@@ -124,9 +124,9 @@ sealed class Icon {
 
 @Composable
 fun BlockerActionIcon(
-    modifier: Modifier = Modifier,
     imageVector: ImageVector,
     contentDescription: String?,
+    modifier: Modifier = Modifier,
     tint: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     Icon(
@@ -141,10 +141,11 @@ fun BlockerActionIcon(
 fun BlockerDisplayIcon(
     imageVector: ImageVector,
     contentDescription: String?,
+    modifier: Modifier = Modifier,
     tint: Color = MaterialTheme.colorScheme.outline,
 ) {
     Icon(
-        modifier = Modifier
+        modifier = modifier
             .size(96.dp)
             .padding(8.dp),
         imageVector = imageVector,

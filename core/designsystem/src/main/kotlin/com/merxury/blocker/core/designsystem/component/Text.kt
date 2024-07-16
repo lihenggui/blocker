@@ -32,8 +32,8 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerBodySmallText(
-    modifier: Modifier = Modifier,
     text: String,
+    modifier: Modifier = Modifier,
     maxLines: Int = Int.MAX_VALUE,
     style: TextStyle = MaterialTheme.typography.bodySmall,
     color: Color = MaterialTheme.colorScheme.onSurface,
@@ -50,8 +50,8 @@ fun BlockerBodySmallText(
 
 @Composable
 fun BlockerBodyMediumText(
-    modifier: Modifier = Modifier,
     text: String,
+    modifier: Modifier = Modifier,
     fontSize: TextUnit = TextUnit.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
@@ -72,8 +72,8 @@ fun BlockerBodyMediumText(
 
 @Composable
 fun BlockerBodyLargeText(
-    modifier: Modifier = Modifier,
     text: String,
+    modifier: Modifier = Modifier,
     fontSize: TextUnit = TextUnit.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
@@ -92,8 +92,8 @@ fun BlockerBodyLargeText(
 
 @Composable
 fun BlockerLabelSmallText(
-    modifier: Modifier = Modifier,
     text: String,
+    modifier: Modifier = Modifier,
     maxLines: Int = Int.MAX_VALUE,
     style: TextStyle = MaterialTheme.typography.labelSmall,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -110,9 +110,9 @@ fun BlockerLabelSmallText(
     )
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerBodySmallTextPreview() {
+private fun BlockerBodySmallTextPreview() {
     BlockerTheme {
         Surface {
             Column {

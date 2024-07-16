@@ -36,9 +36,10 @@ import com.merxury.blocker.core.ui.R
 @Composable
 fun EmptyScreen(
     @StringRes textRes: Int,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -61,7 +62,7 @@ fun EmptyScreen(
 
 @Preview
 @Composable
-fun EmptyScreenPreview() {
+private fun EmptyScreenPreview() {
     BlockerTheme {
         Surface {
             EmptyScreen(textRes = R.string.core_ui_not_found_icon)
