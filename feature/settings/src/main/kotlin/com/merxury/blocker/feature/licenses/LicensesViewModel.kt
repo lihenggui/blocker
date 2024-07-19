@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.licenses.LicenseItem
+import com.merxury.blocker.core.model.data.LicenseGroup
 import com.merxury.blocker.feature.licenses.LicensesUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -45,11 +45,5 @@ sealed interface LicensesUiState {
 
     data class Success(
         val licenses: List<LicenseGroup> = emptyList(),
-        val eventSink: String,
     ) : LicensesUiState
 }
-
-data class LicenseGroup(
-    val id: String,
-    val artifacts: List<LicenseItem>,
-)
