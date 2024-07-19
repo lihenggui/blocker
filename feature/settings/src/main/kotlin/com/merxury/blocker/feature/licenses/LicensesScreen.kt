@@ -168,7 +168,6 @@ private fun LicensesScreenPreview(
     @PreviewParameter(LicensesPreviewParameterProvider::class)
     licenses: List<LicenseGroup>,
 ) {
-
     BlockerTheme {
         Surface {
             LicenseScreen(
