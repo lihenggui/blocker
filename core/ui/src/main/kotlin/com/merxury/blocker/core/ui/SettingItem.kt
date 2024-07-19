@@ -117,6 +117,66 @@ fun BlockerSettingItem(
 }
 
 @Composable
+fun BlockerSettingItem(
+    title: String,
+    modifier: Modifier = Modifier,
+    extraIconPadding: Boolean = false,
+    itemDes: String? = null,
+    itemDes1: String? = null,
+    icon: Icon? = null,
+    onItemClick: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onItemClick() }
+            .padding(
+                if (extraIconPadding && icon == null) {
+                    PaddingValues(vertical = 8.dp, horizontal = 56.dp)
+                } else {
+                    PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                },
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (icon != null) {
+            when (icon) {
+                is ImageVectorIcon -> Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = null,
+                )
+
+                is DrawableResourceIcon -> Icon(
+                    painter = painterResource(id = icon.id),
+                    contentDescription = null,
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+        }
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            if (itemDes != null) {
+                Text(
+                    text = itemDes,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (itemDes1 != null) {
+                Text(
+                    text = itemDes1,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun BlockerItem(
     title: String,
     icon: Icon,
@@ -259,6 +319,20 @@ private fun SettingsItemPreview() {
             BlockerItem(
                 title = "Item with icon and extra space",
                 icon = ImageVectorIcon(BlockerIcons.CheckList),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun SettingsItemWithDesPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerSettingItem(
+                title = "Item without icon",
+                itemDes = "description",
+                itemDes1 = "description1",
             )
         }
     }
