@@ -121,8 +121,8 @@ fun BlockerSettingItem(
     title: String,
     modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
-    itemDes: String? = null,
-    itemDes1: String? = null,
+    itemDesc: String? = null,
+    itemDesc1: String? = null,
     icon: Icon? = null,
     onItemClick: () -> Unit = {},
 ) {
@@ -158,16 +158,16 @@ fun BlockerSettingItem(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
             )
-            if (itemDes != null) {
+            if (itemDesc != null) {
                 Text(
-                    text = itemDes,
+                    text = itemDesc,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            if (itemDes1 != null) {
+            if (itemDesc1 != null) {
                 Text(
-                    text = itemDes1,
+                    text = itemDesc1,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -326,13 +326,13 @@ private fun SettingsItemPreview() {
 
 @Composable
 @Preview
-private fun SettingsItemWithDesPreview() {
+private fun SettingsItemWithDescPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
-                title = "Item without icon",
-                itemDes = "description",
-                itemDes1 = "description1",
+                title = "Setting item title",
+                itemDesc = "description",
+                itemDesc1 = "description1",
             )
         }
     }

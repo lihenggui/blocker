@@ -141,8 +141,8 @@ fun LicenseContent(
                 items(group.artifacts) { artifact ->
                     BlockerSettingItem(
                         title = (artifact.name ?: artifact.artifactId),
-                        itemDes = "${artifact.artifactId} v${artifact.version}",
-                        itemDes1 = artifact.spdxLicenses?.joinToString { it.name },
+                        itemDesc = "${artifact.artifactId} v${artifact.version}",
+                        itemDesc1 = artifact.spdxLicenses?.joinToString { it.name },
                     )
                 }
             }
