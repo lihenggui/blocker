@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 internal class LocalLicensesRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-): LicensesRepository {
+) : LicensesRepository {
 
     override fun getLicensesList(): Flow<List<LicenseItem>> {
         TODO()

@@ -49,7 +49,7 @@ class SettingItemScreenshotTests {
 
     @Test
     fun itemHeader_multipleThemes() {
-        composeTestRule.captureMultiTheme("SettingItem","ItemHeader") {
+        composeTestRule.captureMultiTheme("SettingItem", "ItemHeader") {
             Surface {
                 ItemHeaderExample()
             }
@@ -79,7 +79,7 @@ class SettingItemScreenshotTests {
 
     @Test
     fun headerWithPadding_multipleThemes() {
-        composeTestRule.captureMultiTheme("SettingItem","HeaderWithPadding") {
+        composeTestRule.captureMultiTheme("SettingItem", "HeaderWithPadding") {
             Surface {
                 ItemHeaderExample(extraIconPadding = true)
             }
@@ -109,7 +109,7 @@ class SettingItemScreenshotTests {
 
     @Test
     fun settingItem_singleLine_multipleThemes() {
-        composeTestRule.captureMultiTheme("SettingItem","SingleLine") {
+        composeTestRule.captureMultiTheme("SettingItem", "SingleLine") {
             Surface {
                 SettingItemExample()
             }
@@ -139,7 +139,7 @@ class SettingItemScreenshotTests {
 
     @Test
     fun settingItem_withSummaryPadding_multipleThemes() {
-        composeTestRule.captureMultiTheme("SettingItem","WithSummaryPadding") {
+        composeTestRule.captureMultiTheme("SettingItem", "WithSummaryPadding") {
             Surface {
                 SettingItemExample(hasSummary = true, extraIconPadding = true)
             }
@@ -172,7 +172,7 @@ class SettingItemScreenshotTests {
 
     @Test
     fun settingItem_withDesc_multipleThemes() {
-        composeTestRule.captureMultiTheme("SettingItem","WithDesc") {
+        composeTestRule.captureMultiTheme("SettingItem", "WithDesc") {
             Surface {
                 SettingItemWithDescExample()
             }
