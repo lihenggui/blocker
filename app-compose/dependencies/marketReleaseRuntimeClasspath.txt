@@ -174,10 +174,10 @@ com.google.android.gms:play-services-stats:17.0.2
 com.google.android.gms:play-services-tasks:18.2.0
 com.google.android.material:material:1.12.0
 com.google.code.findbugs:jsr305:3.0.2
-com.google.dagger:dagger-lint-aar:2.51.1
-com.google.dagger:dagger:2.51.1
-com.google.dagger:hilt-android:2.51.1
-com.google.dagger:hilt-core:2.51.1
+com.google.dagger:dagger-lint-aar:2.52
+com.google.dagger:dagger:2.52
+com.google.dagger:hilt-android:2.52
+com.google.dagger:hilt-core:2.52
 com.google.errorprone:error_prone_annotations:2.26.0
 com.google.firebase:firebase-analytics:22.0.2
 com.google.firebase:firebase-annotations:16.2.0
@@ -234,6 +234,7 @@ io.noties.markwon:ext-strikethrough:4.6.2
 io.noties.markwon:ext-tables:4.6.2
 io.noties.markwon:html:4.6.2
 io.noties.markwon:linkify:4.6.2
+jakarta.inject:jakarta.inject-api:2.0.1
 javax.inject:javax.inject:1
 me.zhanghai.android.appiconloader:appiconloader-coil:1.5.0
 me.zhanghai.android.appiconloader:appiconloader-iconloaderlib:1.5.0
