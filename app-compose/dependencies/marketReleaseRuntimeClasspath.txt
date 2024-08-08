@@ -140,8 +140,8 @@ androidx.versionedparcelable:versionedparcelable:1.1.1
 androidx.viewpager2:viewpager2:1.0.0
 androidx.viewpager:viewpager:1.0.0
 androidx.window:window:1.0.0
-androidx.work:work-runtime-ktx:2.9.0
-androidx.work:work-runtime:2.9.0
+androidx.work:work-runtime-ktx:2.9.1
+androidx.work:work-runtime:2.9.1
 com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0
 com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0
 com.atlassian.commonmark:commonmark:0.13.0
