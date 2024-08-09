@@ -56,6 +56,7 @@ import java.io.File
 @Composable
 fun SupportAndFeedbackRoute(
     onNavigationClick: () -> Unit,
+    navigateToLicenses: () -> Unit,
     snackbarHostState: SnackbarHostState,
     viewModel: SupportFeedbackViewModel = hiltViewModel(),
 ) {
@@ -81,7 +82,7 @@ fun SupportAndFeedbackRoute(
         },
         onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
         onDesignLinkClick = { viewModel.openDesignLink(context) },
-        onOpenSourceLicenseClick = { viewModel.openOpenSourceLicence(context) },
+        onOpenSourceLicenseClick = navigateToLicenses,
     )
 }
 
