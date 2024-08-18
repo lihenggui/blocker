@@ -40,7 +40,7 @@
         <item quantity="many">%1$d apps seleccionadas</item>
         <item quantity="other">%1$d apps seleccionadas</item>
     </plurals>
-    <string name="feature_search_search_hint">Aplicaciones, características y reglas</string>
+    <string name="feature_search_search_hint">Aplicaciones, características y términos</string>
     <string name="feature_search_no_search_result">Sin resultados en la búsqueda</string>
     <string name="feature_search_check_icon">Comprobar</string>
 </resources>
