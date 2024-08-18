@@ -13,19 +13,18 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-<resources>
+  --><resources>
     <string name="feature_settings_settings">Configuración</string>
     <string name="feature_settings_controller_type">Tipo de controlador</string>
-    <string name="feature_settings_online_rule_source">Fuente de las reglas en línea</string>
-    <string name="feature_settings_import_mat_rules">Importación de reglas de MyAndroidTools</string>
+    <string name="feature_settings_online_rule_source">Fuente de reglas en línea</string>
+    <string name="feature_settings_import_mat_rules">Importar reglas de MyAndroidTools</string>
     <string name="feature_settings_application_list">Lista de aplicaciones</string>
     <string name="feature_settings_show_system_apps">Mostrar aplicaciones del sistema</string>
-    <string name="feature_settings_show_service_info">Mostrar información de servicio</string>
-    <string name="feature_settings_export_ifw_rules">Exportación de reglas IFW</string>
-    <string name="feature_settings_import_ifw_rules">Importación de reglas IFW</string>
-    <string name="feature_settings_export_rules">Reglas de exportación</string>
-    <string name="feature_settings_import_rules">Reglas de importación</string>
+    <string name="feature_settings_show_service_info">Mostrar información de servicios</string>
+    <string name="feature_settings_export_ifw_rules">Exportar reglas de IFW</string>
+    <string name="feature_settings_import_ifw_rules">Importar reglas de IFW</string>
+    <string name="feature_settings_export_rules">Exportar reglas</string>
+    <string name="feature_settings_import_rules">Importar reglas</string>
     <string name="feature_settings_reset_ifw">Restablecer IFW</string>
     <string name="feature_settings_file_manager_required">Primero debe instalar un administrador de archivos desde la tienda.</string>
     <string name="feature_settings_backup">Copia de seguridad</string>
@@ -33,8 +32,8 @@
     <string name="feature_settings_directory_invalid_or_not_set">La carpeta no es válida o no está configurada</string>
     <string name="feature_settings_backup_system_apps">Copia de seguridad de las aplicaciones del sistema</string>
     <string name="feature_settings_restore_system_apps">Restaurar aplicaciones del sistema</string>
-    <string name="feature_settings_blocker_rules">Blocker de reglas</string>
-    <string name="feature_settings_ifw_rules">ReglasIFW</string>
+    <string name="feature_settings_blocker_rules">Reglas de Blocker</string>
+    <string name="feature_settings_ifw_rules">Reglas IFW</string>
     <string name="feature_settings_theme">Asunto</string>
     <string name="feature_settings_theme_default">Predeterminado</string>
     <string name="feature_settings_android">Android</string>
