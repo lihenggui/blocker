@@ -13,24 +13,23 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<resources xmlns:tools="http://schemas.android.com/tools">
+--><resources xmlns:tools="http://schemas.android.com/tools">
     <string name="core_ui_application_with_count">Aplicación (%1$d)</string>
     <string name="core_ui_component_with_count">Componente (%1$d)</string>
     <string name="core_ui_online_rule_with_count">Regla en línea (%1$d)</string>
     <string name="core_ui_clear_cache">Borrar caché</string>
-    <string name="core_ui_clear_data">Datos claros</string>
-    <string name="core_ui_force_stop">Parada forzada</string>
-    <string name="core_ui_uninstall">Borrar</string>
+    <string name="core_ui_clear_data">Borrar datos</string>
+    <string name="core_ui_force_stop">Forzar parada</string>
+    <string name="core_ui_uninstall">Desinstalar</string>
     <string name="core_ui_enable">Activar</string>
-    <string name="core_ui_disable">Prohibir</string>
-    <string name="core_ui_running">Corriendo</string>
-    <string name="core_ui_disabled">Defectuoso</string>
-    <string name="core_ui_service_status_template" tools:ignore="PluralsCandidate">Servicios: %1$d iniciado, %2$d bloqueado, %3$d total.</string>
+    <string name="core_ui_disable">Desabilitar</string>
+    <string name="core_ui_running">En ejecución</string>
+    <string name="core_ui_disabled">Desabilitado</string>
+    <string name="core_ui_service_status_template" tools:ignore="PluralsCandidate">Servicios: %1$d iniciados, %2$d bloqueados, %3$d en total.</string>
     <string name="core_ui_rule_icon_description">Icono de regla</string>
-    <string name="core_ui_copy_name">Copiar nombre completo</string>
+    <string name="core_ui_copy_name">Copiar nombre</string>
     <string name="core_ui_copy_full_name">Copiar el nombre del paquete</string>
-    <string name="core_ui_launch_activity">Inicio de una actividad</string>
+    <string name="core_ui_launch_activity">Iniciar actividad</string>
     <string name="core_ui_stop_service">Detener el servicio</string>
     <string name="core_ui_no_components">Sin componentes</string>
     <plurals name="core_ui_matched_component">
