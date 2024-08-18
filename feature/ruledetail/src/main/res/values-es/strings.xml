@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
      Copyright 2024 Blocker
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,16 +13,15 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<resources>
-    <string name="feature_ruledetail_safe_to_block">Seguro de bloquear</string>
+--><resources>
+    <string name="feature_ruledetail_safe_to_block">Bloqueo seguro</string>
     <string name="feature_ruledetail_side_effect">Efecto secundario</string>
     <string name="feature_ruledetail_contributors">Colaboradores</string>
     <string name="feature_ruledetail_yes">Sí</string>
     <string name="feature_ruledetail_no">No</string>
     <string name="feature_ruledetail_unknown">Desconocido</string>
     <string name="feature_ruledetail_no_description">Sin descripción</string>
-    <string name="feature_ruledetail_block_all_of_this_page">Bloquear toda esta página</string>
-    <string name="feature_ruledetail_enable_all_of_this_page">Incluya esta página completa</string>
+    <string name="feature_ruledetail_block_all_of_this_page">Bloquear la página</string>
+    <string name="feature_ruledetail_enable_all_of_this_page">Activar la página</string>
     <string name="feature_ruledetail_keywords">Palabras clave</string>
 </resources>
