@@ -15,17 +15,17 @@
   ~ limitations under the License.
   --><resources>
     <string name="core_rule_processing_progress_indicator">Indicador de progreso</string>
-    <string name="core_rule_update_rules_notification">Notificación de actualización de directivas</string>
+    <string name="core_rule_update_rules_notification">Notificación de actualización de terminos</string>
     <string name="core_rule_backing_up_apps_please_wait">Haciendo copia de seguridad de la aplicación, Por favor espere…</string>
     <string name="core_rule_backing_up_ifw_please_wait">Haciendo copia de seguridad de IFW, Por favor espere…</string>
     <string name="core_rule_import_ifw_please_wait">Importando reglas de IFW, por favor espere…</string>
     <string name="core_rule_reset_ifw_please_wait">Restableciendo IFW, por favor espere…</string>
     <string name="core_rule_import_mat_rule_please_wait">Importando reglas MAT, por favor espere…</string>
-    <string name="core_rule_import_app_rules_please_wait">Importando las reglas de la aplicación, por favor espere…</string>
+    <string name="core_rule_import_app_rules_please_wait">Importando reglas de la aplicación, por favor espere…</string>
     <string name="core_rule_cancel">Cancelar</string>
     <string name="core_rule_processing_please_wait">Procesando, por favor espere…</string>
     <string name="core_rule_done">Listo</string>
-    <string name="core_rule_error_msg_folder_not_defined">No se ha definid una carpeta para Backups, por favor vaya a configuraciones y asigne una.</string>
+    <string name="core_rule_error_msg_folder_not_defined">No se ha definido una carpeta para Backups, por favor seleccioneuna en configuración.</string>
     <string name="core_rule_error_msg_missing_root_permission">Sin permisos root, por favor conceda permisos a Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Error inesperado, por favor informe al programador.</string>
     <string name="core_rule_task_cancelled">Proceso cancelado</string>
