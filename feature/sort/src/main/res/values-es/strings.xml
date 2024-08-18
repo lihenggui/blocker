@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
      Copyright 2024 Blocker
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +13,22 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<resources>
-    <string name="feature_sort_sort_options">Opciones de clasificación</string>
+--><resources>
+    <string name="feature_sort_sort_options">Orden de clasificación</string>
     <string name="feature_sort_sort_by">Ordenar por</string>
     <string name="feature_sort_package_name">Nombre del paquete</string>
     <string name="feature_sort_component_name">Nombre del componente</string>
-    <string name="feature_sort_order">Eso está bien</string>
+    <string name="feature_sort_order">Pedido</string>
     <string name="feature_sort_ascending">Ascendente</string>
     <string name="feature_sort_descending">Descendente</string>
     <string name="feature_sort_priority">Prioridad</string>
-    <string name="feature_sort_disabled_first">Deshabilitado primero</string>
-    <string name="feature_sort_enabled_first">Incluido primero</string>
-    <string name="feature_sort_none">No</string>
+    <string name="feature_sort_disabled_first">Deshabilitados primero</string>
+    <string name="feature_sort_enabled_first">Abilitados primero</string>
+    <string name="feature_sort_none">Ninguno</string>
     <string name="feature_sort_name">Nombre</string>
     <string name="feature_sort_install_date">Fecha de instalación</string>
     <string name="feature_sort_last_updated">Última actualización</string>
-    <string name="feature_sort_show_running_apps_on_top">Mostrar aplicaciones en ejecución desde arriba</string>
-    <string name="feature_sort_on">Incluir</string>
-    <string name="feature_sort_off">cierre</string>
+    <string name="feature_sort_show_running_apps_on_top">Mostrar aplicaciones activas</string>
+    <string name="feature_sort_on">Encendidas</string>
+    <string name="feature_sort_off">Apagadas</string>
 </resources>
