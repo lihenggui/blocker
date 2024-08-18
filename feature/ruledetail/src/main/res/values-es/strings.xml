@@ -15,7 +15,7 @@
      limitations under the License.
 --><resources>
     <string name="feature_ruledetail_safe_to_block">Bloqueo seguro</string>
-    <string name="feature_ruledetail_side_effect">Efecto secundario</string>
+    <string name="feature_ruledetail_side_effect">Efecto de desplazamiento</string>
     <string name="feature_ruledetail_contributors">Colaboradores</string>
     <string name="feature_ruledetail_yes">Sí</string>
     <string name="feature_ruledetail_no">No</string>
