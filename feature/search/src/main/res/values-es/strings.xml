@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2024 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +13,8 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-<resources>
-    <string name="feature_search_searching">Buscar</string>
+  --><resources>
+    <string name="feature_search_searching">Buscando</string>
     <plurals name="feature_search_activity_count">
         <item quantity="one">%1$d Actividad</item>
         <item quantity="many">%1$d Actividades</item>
@@ -41,6 +41,6 @@
         <item quantity="other">%1$d apps seleccionadas</item>
     </plurals>
     <string name="feature_search_search_hint">Aplicaciones, características y reglas</string>
-    <string name="feature_search_no_search_result">Todavía no hay resultados de búsqueda</string>
+    <string name="feature_search_no_search_result">Sin resultados en la búsqueda</string>
     <string name="feature_search_check_icon">Comprobar</string>
 </resources>
