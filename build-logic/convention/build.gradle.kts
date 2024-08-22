@@ -42,6 +42,7 @@ dependencies {
     compileOnly(libs.firebase.crashlytics.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
+    compileOnly(libs.licensee.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
     implementation(libs.truth)
 }
@@ -110,6 +111,10 @@ gradlePlugin {
         register("jvmLibrary") {
             id = "blocker.jvm.library"
             implementationClass = "JvmLibraryConventionPlugin"
+        }
+        register("licensee") {
+            id = "blocker.licensee"
+            implementationClass = "LicenseeConventionPlugin"
         }
     }
 }
