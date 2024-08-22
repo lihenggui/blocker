@@ -13,10 +13,9 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-<resources>
-    <string name="feature_applist_sort_menu">Menú Ordenar</string>
+  --><resources>
+    <string name="feature_applist_sort_menu">Orden de menú</string>
     <string name="feature_applist_settings">Configuración</string>
     <string name="feature_applist_support_and_feedback">Soporte y comentarios</string>
-    <string name="feature_applist_no_applications_to_display">No hay aplicaciones que mostrar</string>
+    <string name="feature_applist_no_applications_to_display">No hay aplicaciones para mostrar</string>
 </resources>

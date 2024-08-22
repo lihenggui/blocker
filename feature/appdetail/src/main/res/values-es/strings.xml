@@ -13,27 +13,26 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<resources>
-    <string name="feature_appdetail_cannot_launch_this_app">No se pudo iniciar esta aplicación</string>
-    <string name="feature_appdetail_blocker_rules">Bloqueador de reglas</string>
-    <string name="feature_appdetail_export_rules">Reglas de exportación</string>
-    <string name="feature_appdetail_import_rules">Reglas de importación</string>
-    <string name="feature_appdetail_ifw_rules">ReglasIFW</string>
-    <string name="feature_appdetail_export_ifw_rules">Exportación de reglas IFW</string>
-    <string name="feature_appdetail_import_ifw_rules">Importación de reglas IFW</string>
+--><resources>
+    <string name="feature_appdetail_cannot_launch_this_app">No se pudo iniciar la aplicación</string>
+    <string name="feature_appdetail_blocker_rules">Reglas de Blocker</string>
+    <string name="feature_appdetail_export_rules">Exportar Reglas</string>
+    <string name="feature_appdetail_import_rules">Importar Reglas</string>
+    <string name="feature_appdetail_ifw_rules">Reglas IFW</string>
+    <string name="feature_appdetail_export_ifw_rules">Exportar reglas de IFW</string>
+    <string name="feature_appdetail_import_ifw_rules">Importar reglas de IFW</string>
     <string name="feature_appdetail_reset_ifw">Restablecer IFW</string>
-    <string name="feature_appdetail_target_sdk_version">Versión de destino del SDK</string>
+    <string name="feature_appdetail_target_sdk_version">Versión final de SDK</string>
     <string name="feature_appdetail_minimum_sdk_version">Versión mínima del SDK</string>
     <string name="feature_appdetail_last_update_time">Hora de la última actualización</string>
-    <string name="feature_appdetail_data_dir">Catálogo de datos</string>
-    <string name="feature_appdetail_block_all_of_this_page">Bloquear toda esta página</string>
-    <string name="feature_appdetail_enable_all_of_this_page">Incluya esta página completa</string>
+    <string name="feature_appdetail_data_dir">Directorio de datos</string>
+    <string name="feature_appdetail_block_all_of_this_page">Bloquear la página</string>
+    <string name="feature_appdetail_enable_all_of_this_page">Activar la página</string>
     <string name="feature_appdetail_blocking_effect">Efecto de bloqueo</string>
     <string name="feature_appdetail_recommended_blocking">Bloqueo recomendado</string>
     <string name="feature_appdetail_belonging_sdk">SDK propio</string>
-    <string name="feature_appdetail_save">Salvar</string>
-    <string name="feature_appdetail_search_components">Buscador de componentes</string>
+    <string name="feature_appdetail_save">Guardar</string>
+    <string name="feature_appdetail_search_components">Buscar componentes</string>
     <string name="feature_appdetail_add_description_hint">Actualmente no hay información disponible para este componente. ¡Sé el primero en contribuir!</string>
     <string name="feature_appdetail_how_to_contribute">¿Cómo puedo contribuir?</string>
     <string name="feature_appdetail_unknown">Desconocido</string>
