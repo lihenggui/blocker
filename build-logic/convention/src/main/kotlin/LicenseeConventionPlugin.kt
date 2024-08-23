@@ -16,12 +16,13 @@
 
 import app.cash.licensee.LicenseeExtension
 import app.cash.licensee.LicenseeTask
+import app.cash.licensee.UnusedAction
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
+import com.merxury.blocker.AssetCopyTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.Copy
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.utils.named
@@ -39,6 +40,7 @@ class LicenseeConventionPlugin : Plugin<Project> {
                 allowUrl("http://opensource.org/licenses/BSD-2-Clause")
                 allowUrl("https://opensource.org/licenses/MIT")
                 allowUrl("https://developer.android.com/studio/terms.html")
+                unusedAction(UnusedAction.IGNORE)
             }
             val isAndroidLibrary = plugins.hasPlugin(LibraryPlugin::class.java)
             val isAndroidApplication = plugins.hasPlugin(AppPlugin::class.java)
@@ -48,19 +50,23 @@ class LicenseeConventionPlugin : Plugin<Project> {
                 androidComponents.onVariants { variant ->
                     val capName = variant.name.replaceFirstChar { it.titlecase(Locale.ROOT) }
                     val licenseeTask = tasks.named<LicenseeTask>("licenseeAndroid$capName")
-                    val copyArtifactsTask = tasks.register<Copy>("copy${capName}Artifacts") {
+                    val copyArtifactsTask = tasks.register<AssetCopyTask>(
+                        "copy${capName}LicenseeOutputToAndroidAssets",
+                    ) {
+                        inputFile.set(
+                            layout.buildDirectory
+                                .file("reports/licensee/android$capName/artifacts.json"),
+                        )
+                        outputFilename.set("licenses.json")
+
                         dependsOn(licenseeTask)
-                        from(licenseeTask.map { it.jsonOutput })
-                        // Copy artifacts.json to a new directory.
-                        into(layout.buildDirectory.dir("generated/dependencyAssets/${variant.name}"))
                     }
-                    variant.sources.assets?.addGeneratedSourceDirectory(licenseeTask) {
-                        // Avoid using LicenseeTask::outputDir as it contains extra files that we don't need.
-                        objects.directoryProperty()
-                            .fileProvider(copyArtifactsTask.map { it.destinationDir })
-                    }
+
+                    variant.sources.assets
+                        ?.addGeneratedSourceDirectory(copyArtifactsTask, AssetCopyTask::outputDirectory)
                 }
             }
         }
     }
 }
+
