@@ -20,6 +20,6 @@ import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.model.licenses.LicenseItem
 import javax.inject.Inject
 
-class LicensesStoreImpl @Inject constructor(private val fetcher: LicensesFetcher) : LicensesStore {
+internal class LicensesStoreImpl @Inject constructor(private val fetcher: LicensesFetcher) : LicensesStore {
     override suspend fun getOpenSourceItemList(): List<LicenseItem> = fetcher.fetch()
 }

@@ -4,8 +4,10 @@
 package com.merxury.blocker.core.data.licenses.fetcher
 
 import android.app.Application
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.licenses.LicenseItem
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -14,11 +16,14 @@ import java.io.IOException
 import java.io.InputStream
 import javax.inject.Inject
 
-class AndroidLicensesFetcherImpl @Inject constructor(private val context: Application) : LicensesFetcher {
+internal class AndroidLicensesFetcherImpl @Inject constructor(
+    private val context: Application,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+) : LicensesFetcher {
     @ExperimentalSerializationApi
     override suspend fun fetch(): List<LicenseItem> {
         var licenseItemList: List<LicenseItem> = emptyList()
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             try {
                 val inputStream: InputStream = context.assets.open("artifacts.json")
                 val json = Json {

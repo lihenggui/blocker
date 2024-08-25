@@ -16,18 +16,23 @@
 
 package com.merxury.blocker.core.data.respository.licenses
 
+import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.licenses.LicenseItem
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 internal class LocalLicensesRepository @Inject constructor(
+    private val licensesFetcher: LicensesFetcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : LicensesRepository {
 
-    override fun getLicensesList(): Flow<List<LicenseItem>> {
-        TODO()
+    override fun getLicensesList(): Flow<List<LicenseItem>> = flow {
+        emit(licensesFetcher.fetch())
     }
+        .flowOn(ioDispatcher)
 }

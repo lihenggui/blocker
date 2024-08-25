@@ -28,6 +28,8 @@ import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSour
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.LocalGeneralRuleDataSource
 import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
+import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
+import com.merxury.blocker.core.data.respository.licenses.LocalLicensesRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalAppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
@@ -97,5 +99,10 @@ abstract class DataModule {
     ): IAppStateCache
 
     @Binds
-    internal abstract fun binds(impl: TimeZoneBroadcastMonitor): TimeZoneMonitor
+    internal abstract fun bindTimeZoneMonitor(impl: TimeZoneBroadcastMonitor): TimeZoneMonitor
+
+    @Binds
+    internal abstract fun bindLicensesRepository(
+        licensesRepository: LocalLicensesRepository,
+    ): LicensesRepository
 }
