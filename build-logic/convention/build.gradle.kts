@@ -112,9 +112,5 @@ gradlePlugin {
             id = "blocker.jvm.library"
             implementationClass = "JvmLibraryConventionPlugin"
         }
-        register("licensee") {
-            id = "blocker.licensee"
-            implementationClass = "LicenseeConventionPlugin"
-        }
     }
 }

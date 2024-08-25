@@ -221,4 +221,3 @@ blocker-android-lint = { id = "blocker.android.lint", version = "unspecified" }
 blocker-android-room = { id = "blocker.android.room", version = "unspecified" }
 blocker-android-test = { id = "blocker.android.test", version = "unspecified" }
 blocker-jvm-library = { id = "blocker.jvm.library", version = "unspecified" }
-blocker-licensee = { id = "blocker.licensee", version = "unspecified" }
