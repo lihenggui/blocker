@@ -20,7 +20,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.feature.licenses.LicensesRoute
 
 const val LICENSES_ROUTE = "licenses_route"

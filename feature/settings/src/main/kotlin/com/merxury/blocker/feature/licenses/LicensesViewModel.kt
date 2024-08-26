@@ -19,13 +19,10 @@ package com.merxury.blocker.feature.licenses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.LicenseGroup
 import com.merxury.blocker.core.model.licenses.LicenseItem
 import com.merxury.blocker.feature.licenses.LicensesUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map

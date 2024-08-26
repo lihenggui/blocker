@@ -41,7 +41,7 @@ internal class AndroidLicensesFetcherImpl @Inject constructor(
         try {
             assetManager.open("licenses.json").use { inputStream ->
                 val licenseItemList: List<LicenseItem> = json.decodeFromStream(inputStream)
-                Timber.d( "Fetched ${licenseItemList.size} licenses" )
+                Timber.d("Fetched ${licenseItemList.size} licenses")
                 return@withContext licenseItemList
             }
         } catch (ex: IOException) {
@@ -55,7 +55,7 @@ internal class AndroidLicensesFetcherImpl @Inject constructor(
     fun logAssetFiles() {
         try {
             val files = assetManager.list("")?.joinToString()
-            Timber.d( "Files in assets directory: $files" )
+            Timber.d("Files in assets directory: $files")
         } catch (ex: IOException) {
             Timber.e(ex, "Failed to list files in assets directory")
         }
