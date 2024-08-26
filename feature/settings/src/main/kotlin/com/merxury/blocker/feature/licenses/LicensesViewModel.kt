@@ -20,7 +20,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.model.data.LicenseGroup
-import com.merxury.blocker.core.model.licenses.LicenseItem
 import com.merxury.blocker.feature.licenses.LicensesUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,25 +33,15 @@ class LicensesViewModel @Inject constructor(
     licensesRepository: LicensesRepository,
 ) : ViewModel() {
     val licensesUiState: StateFlow<LicensesUiState> = licensesRepository.getLicensesList()
-        .map {
-            // Split to groups according to groupId
-            val groups = it.groupBy { licenseItem -> licenseItem.groupId }
+        .map { licenses ->
+            licenses.groupBy { it.groupId }
                 .map { (groupId, licenseItems) ->
                     LicenseGroup(
                         id = groupId,
-                        artifacts = licenseItems.map { licenseItem ->
-                            LicenseItem(
-                                groupId = licenseItem.groupId,
-                                artifactId = licenseItem.artifactId,
-                                version = licenseItem.version,
-                                spdxLicenses = licenseItem.spdxLicenses,
-                                name = licenseItem.name,
-                                scm = licenseItem.scm,
-                            )
-                        },
+                        artifacts = licenseItems,
                     )
                 }
-            LicensesUiState.Success(groups)
+                .let { LicensesUiState.Success(it) }
         }
         .stateIn(
             scope = viewModelScope,
