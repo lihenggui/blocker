@@ -16,28 +16,52 @@
 
 package com.merxury.blocker.feature.licenses
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
-import com.merxury.blocker.core.analytics.AnalyticsHelper
+import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.LicenseGroup
+import com.merxury.blocker.core.model.licenses.LicenseItem
 import com.merxury.blocker.feature.licenses.LicensesUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class LicensesViewModel @Inject constructor(
-    appContext: Application,
-    private val analyticsHelper: AnalyticsHelper,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    licensesRepository: LicensesRepository,
 ) : ViewModel() {
-    private val _licensesUiState = MutableStateFlow(Loading)
-    val licensesUiState: StateFlow<LicensesUiState> = _licensesUiState.asStateFlow()
+    val licensesUiState: StateFlow<LicensesUiState> = licensesRepository.getLicensesList()
+        .map {
+            // Split to groups according to groupId
+            val groups = it.groupBy { licenseItem -> licenseItem.groupId }
+                .map { (groupId, licenseItems) ->
+                    LicenseGroup(
+                        id = groupId,
+                        artifacts = licenseItems.map { licenseItem ->
+                            LicenseItem(
+                                groupId = licenseItem.groupId,
+                                artifactId = licenseItem.artifactId,
+                                version = licenseItem.version,
+                                spdxLicenses = licenseItem.spdxLicenses,
+                                name = licenseItem.name,
+                                scm = licenseItem.scm,
+                            )
+                        },
+                    )
+                }
+            LicensesUiState.Success(groups)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = Loading,
+        )
 }
 
 sealed interface LicensesUiState {

@@ -65,13 +65,11 @@ import com.merxury.blocker.feature.settings.R
 @Composable
 fun LicensesRoute(
     onNavigationClick: () -> Unit,
-    snackbarHostState: SnackbarHostState,
     viewModel: LicensesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.licensesUiState.collectAsStateWithLifecycle()
     LicenseScreen(
         onNavigationClick = onNavigationClick,
-        snackbarHostState = snackbarHostState,
         uiState = uiState,
     )
 }
@@ -80,7 +78,6 @@ fun LicensesRoute(
 fun LicenseScreen(
     uiState: LicensesUiState,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState = SnackbarHostState(),
     onNavigationClick: () -> Unit = {},
 ) {
     Scaffold(

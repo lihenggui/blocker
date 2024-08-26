@@ -126,7 +126,6 @@ fun BlockerNavHost(
             )
             licensesScreen(
                 onBackClick = onBackClick,
-                snackbarHostState = snackbarHostState,
             )
         }
     }

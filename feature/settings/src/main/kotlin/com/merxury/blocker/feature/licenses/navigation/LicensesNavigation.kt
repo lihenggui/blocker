@@ -30,14 +30,12 @@ fun NavController.navigateToLicenses(navOptions: NavOptions? = null) =
 
 fun NavGraphBuilder.licensesScreen(
     onBackClick: () -> Unit,
-    snackbarHostState: SnackbarHostState,
 ) {
     composable(
         route = LICENSES_ROUTE,
     ) {
         LicensesRoute(
             onNavigationClick = onBackClick,
-            snackbarHostState = snackbarHostState,
         )
     }
 }

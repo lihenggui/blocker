@@ -18,6 +18,8 @@ package com.merxury.blocker.core.data.di
 
 import com.merxury.blocker.core.data.appstate.AppStateCache
 import com.merxury.blocker.core.data.appstate.IAppStateCache
+import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
+import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -100,6 +102,9 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindTimeZoneMonitor(impl: TimeZoneBroadcastMonitor): TimeZoneMonitor
+
+    @Binds
+    internal abstract fun bindLicensesFetcher(impl: AndroidLicensesFetcherImpl): LicensesFetcher
 
     @Binds
     internal abstract fun bindLicensesRepository(
