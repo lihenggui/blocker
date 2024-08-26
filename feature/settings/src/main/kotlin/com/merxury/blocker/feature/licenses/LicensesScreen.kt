@@ -125,7 +125,7 @@ fun LicenseContent(
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = licenses.size,
     )
-    TrackScrollJank(scrollableState = listState, stateName = "app:list")
+    TrackScrollJank(scrollableState = listState, stateName = "licenses:list")
     Box(modifier.fillMaxSize()) {
         LazyColumn(state = listState) {
             licenses.forEach { group ->
