@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.licenses.fetcher
 
 import android.content.res.AssetManager
+import androidx.annotation.VisibleForTesting
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.licenses.LicenseItem
@@ -50,7 +51,8 @@ internal class AndroidLicensesFetcherImpl @Inject constructor(
         }
     }
 
-    private fun logAssetFiles() {
+    @VisibleForTesting
+    fun logAssetFiles() {
         try {
             val files = assetManager.list("")?.joinToString()
             Timber.d( "Files in assets directory: $files" )
