@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   --><resources>
-    <string name="apps">Programas</string>
+    <string name="apps">Aplicaciones</string>
     <string name="search">Buscar</string>
     <string name="sdk_trackers">SDK/Seguidores</string>
     <string name="no_permission_hint">No se pueden obtener permisos, puede que la aplicación no funcione correctamente.</string>
