@@ -19,11 +19,6 @@ buildscript {
         google()
         mavenCentral()
     }
-    dependencies {
-        classpath(libs.google.oss.licenses.plugin) {
-            exclude(group = "com.google.protobuf")
-        }
-    }
 }
 
 // Lists all plugins used throughout the project
