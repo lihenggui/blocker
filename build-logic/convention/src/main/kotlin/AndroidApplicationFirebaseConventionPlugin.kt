@@ -21,8 +21,10 @@ import com.merxury.blocker.BlockerFlavor
 import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.withType
 
 class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -52,6 +54,11 @@ class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
                             enabled = false
                         }
                     }
+                }
+            }
+            tasks.withType<Task>().configureEach {
+                if (name == "uploadCrashlyticsMappingFileMarketRelease") {
+                    mustRunAfter(tasks.named("updateMarketReleaseBadging"))
                 }
             }
         }

@@ -25,7 +25,6 @@ plugins {
     alias(libs.plugins.blocker.android.application.firebase)
     alias(libs.plugins.ksp)
     id("kotlin-parcelize")
-    id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.baselineprofile)
     alias(libs.plugins.roborazzi)
 }

@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.ui
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -48,7 +49,11 @@ fun ItemHeader(
     modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
 ) {
-    Row(modifier = modifier.fillMaxWidth()) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface),
+    ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
@@ -108,6 +113,66 @@ fun BlockerSettingItem(
             if (summary != null) {
                 Text(
                     text = summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BlockerSettingItem(
+    title: String,
+    modifier: Modifier = Modifier,
+    extraIconPadding: Boolean = false,
+    itemDesc: String? = null,
+    itemDesc1: String? = null,
+    icon: Icon? = null,
+    onItemClick: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onItemClick() }
+            .padding(
+                if (extraIconPadding && icon == null) {
+                    PaddingValues(vertical = 8.dp, horizontal = 56.dp)
+                } else {
+                    PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                },
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (icon != null) {
+            when (icon) {
+                is ImageVectorIcon -> Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = null,
+                )
+
+                is DrawableResourceIcon -> Icon(
+                    painter = painterResource(id = icon.id),
+                    contentDescription = null,
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+        }
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            if (itemDesc != null) {
+                Text(
+                    text = itemDesc,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (itemDesc1 != null) {
+                Text(
+                    text = itemDesc1,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -259,6 +324,20 @@ private fun SettingsItemPreview() {
             BlockerItem(
                 title = "Item with icon and extra space",
                 icon = ImageVectorIcon(BlockerIcons.CheckList),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun SettingsItemWithDescPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerSettingItem(
+                title = "Setting item title",
+                itemDesc = "description",
+                itemDesc1 = "description1",
             )
         }
     }
