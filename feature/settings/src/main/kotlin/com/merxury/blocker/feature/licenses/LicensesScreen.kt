@@ -122,7 +122,7 @@ fun LicenseContent(
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
-        itemsAvailable = licenses.size,
+        itemsAvailable = licenses.size + licenses.sumOf { it.artifacts.size },
     )
     TrackScrollJank(scrollableState = listState, stateName = "licenses:list")
     Box(modifier.fillMaxSize()) {
