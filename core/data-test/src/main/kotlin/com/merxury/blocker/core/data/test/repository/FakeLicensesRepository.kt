@@ -20,7 +20,8 @@ import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.model.licenses.LicenseItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import javax.inject.Inject
 
-class FakeLicensesRepository : LicensesRepository {
+class FakeLicensesRepository @Inject constructor() : LicensesRepository {
     override fun getLicensesList(): Flow<List<LicenseItem>> = flowOf()
 }
