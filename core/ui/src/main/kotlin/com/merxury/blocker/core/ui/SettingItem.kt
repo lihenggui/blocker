@@ -48,19 +48,21 @@ fun ItemHeader(
     modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
 ) {
-    Row(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(
-                if (extraIconPadding) {
-                    PaddingValues(vertical = 16.dp, horizontal = 56.dp)
-                } else {
-                    PaddingValues(16.dp)
-                },
-            ),
-        )
+    Surface {
+        Row(modifier = modifier.fillMaxWidth()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(
+                    if (extraIconPadding) {
+                        PaddingValues(vertical = 16.dp, horizontal = 56.dp)
+                    } else {
+                        PaddingValues(16.dp)
+                    },
+                ),
+            )
+        }
     }
 }
 
