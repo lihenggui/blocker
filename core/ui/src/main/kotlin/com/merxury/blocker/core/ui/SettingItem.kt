@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.ui
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -48,21 +49,23 @@ fun ItemHeader(
     modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
 ) {
-    Surface {
-        Row(modifier = modifier.fillMaxWidth()) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(
-                    if (extraIconPadding) {
-                        PaddingValues(vertical = 16.dp, horizontal = 56.dp)
-                    } else {
-                        PaddingValues(16.dp)
-                    },
-                ),
-            )
-        }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface),
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(
+                if (extraIconPadding) {
+                    PaddingValues(vertical = 16.dp, horizontal = 56.dp)
+                } else {
+                    PaddingValues(16.dp)
+                },
+            ),
+        )
     }
 }
 
