@@ -149,7 +149,7 @@ com.caverock:androidsvg-aar:1.4
 com.github.ajalt.colormath:colormath-jvm:3.5.0
 com.github.ajalt.colormath:colormath:3.5.0
 com.github.jeziellago:Markwon:58aa5aba6a
-com.github.jeziellago:compose-markdown:0.5.3
+com.github.jeziellago:compose-markdown:0.5.4
 com.github.topjohnwu.libsu:core:6.0.0
 com.github.topjohnwu.libsu:io:6.0.0
 com.github.topjohnwu.libsu:nio:6.0.0
@@ -230,6 +230,7 @@ io.github.pdvrieze.xmlutil:serialization-android:0.90.1
 io.noties.markwon:core:4.6.2
 io.noties.markwon:ext-strikethrough:4.6.2
 io.noties.markwon:ext-tables:4.6.2
+io.noties.markwon:ext-tasklist:4.6.2
 io.noties.markwon:html:4.6.2
 io.noties.markwon:linkify:4.6.2
 jakarta.inject:jakarta.inject-api:2.0.1
