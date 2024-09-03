@@ -41,13 +41,17 @@ class LicensesViewModel @Inject constructor(
                         artifacts = licenseItems,
                     )
                 }
-                .let { LicensesUiState.Success(it) }
+                .let { LicensesUiState.Success(licenses = it, licensesSize = countLicensesSize(it)) }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = Loading,
         )
+
+    private fun countLicensesSize(licenses: List<LicenseGroup>): Int {
+        return licenses.size + licenses.sumOf { it.artifacts.size }
+    }
 }
 
 sealed interface LicensesUiState {
@@ -55,5 +59,6 @@ sealed interface LicensesUiState {
 
     data class Success(
         val licenses: List<LicenseGroup> = emptyList(),
+        val licensesSize: Int = 0,
     ) : LicensesUiState
 }

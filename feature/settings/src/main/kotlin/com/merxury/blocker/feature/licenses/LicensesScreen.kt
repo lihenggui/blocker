@@ -107,7 +107,7 @@ fun LicenseScreen(
                 }
 
                 is Success -> {
-                    LicenseContent(uiState.licenses)
+                    LicenseContent(licenses = uiState.licenses, licensesSize = uiState.licensesSize)
                 }
             }
         }
@@ -118,11 +118,12 @@ fun LicenseScreen(
 @Composable
 fun LicenseContent(
     licenses: List<LicenseGroup>,
+    licensesSize: Int,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
-        itemsAvailable = licenses.size + licenses.sumOf { it.artifacts.size },
+        itemsAvailable = licensesSize,
     )
     TrackScrollJank(scrollableState = listState, stateName = "licenses:list")
     Box(modifier.fillMaxSize()) {
