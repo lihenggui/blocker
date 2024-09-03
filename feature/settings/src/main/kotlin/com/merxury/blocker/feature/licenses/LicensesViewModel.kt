@@ -49,9 +49,7 @@ class LicensesViewModel @Inject constructor(
             initialValue = Loading,
         )
 
-    private fun countLicensesSize(licenses: List<LicenseGroup>): Int {
-        return licenses.size + licenses.sumOf { it.artifacts.size }
-    }
+    private fun countLicensesSize(licenses: List<LicenseGroup>): Int = licenses.size + licenses.sumOf { it.artifacts.size }
 }
 
 sealed interface LicensesUiState {

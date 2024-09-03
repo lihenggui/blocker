@@ -149,11 +149,11 @@ fun LicenseContent(
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
                 .align(Alignment.CenterEnd)
-                .testTag("appList:scrollbar"),
+                .testTag("licenses:scrollbar"),
             state = scrollbarState,
             orientation = Orientation.Vertical,
             onThumbMove = listState.rememberDraggableScroller(
-                itemsAvailable = licenses.size,
+                itemsAvailable = licensesSize,
             ),
         )
     }
