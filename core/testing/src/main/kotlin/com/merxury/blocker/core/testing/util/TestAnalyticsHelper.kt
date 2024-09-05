@@ -26,5 +26,9 @@ class TestAnalyticsHelper : AnalyticsHelper {
         events.add(event)
     }
 
+    override fun setEnableStatistics(enable: Boolean) {
+        // Do nothing
+    }
+
     fun hasLogged(event: AnalyticsEvent) = event in events
 }

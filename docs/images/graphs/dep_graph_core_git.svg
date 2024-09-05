@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="107pt" height="44pt" viewBox="0 0 106.79 44">
+    <g class="graph">
+        <path fill="#fff" stroke="transparent" d="M0 44V0h106.79v44H0z"/>
+        <g class="node" transform="translate(4 40)">
+            <ellipse cx="49.4" cy="-18" fill="none" stroke="#000" rx="49.29" ry="18"/>
+            <text x="49.4" y="-14.3" font-family="Times,serif" font-size="14" text-anchor="middle">:core:git</text>
+        </g>
+    </g>
+</svg>

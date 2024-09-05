@@ -43,21 +43,19 @@ internal class LocalComponentDataSource @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDataSource {
 
-    override fun getComponent(packageName: String, componentName: String): Flow<ComponentInfo?> {
-        return flow {
-            val list = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
-            val component = list.activities?.find { it.name == componentName }
-                ?.let { toComponentInfo(it, ACTIVITY, packageName) }
-                ?: list.services?.find { it.name == componentName }
-                    ?.let { toComponentInfo(it, SERVICE, packageName) }
-                ?: list.receivers?.find { it.name == componentName }
-                    ?.let { toComponentInfo(it, RECEIVER, packageName) }
-                ?: list.providers?.find { it.name == componentName }
-                    ?.let { toComponentInfo(it, PROVIDER, packageName) }
-            emit(component)
-        }
-            .flowOn(ioDispatcher)
+    override fun getComponent(packageName: String, componentName: String): Flow<ComponentInfo?> = flow {
+        val list = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
+        val component = list.activities?.find { it.name == componentName }
+            ?.let { toComponentInfo(it, ACTIVITY, packageName) }
+            ?: list.services?.find { it.name == componentName }
+                ?.let { toComponentInfo(it, SERVICE, packageName) }
+            ?: list.receivers?.find { it.name == componentName }
+                ?.let { toComponentInfo(it, RECEIVER, packageName) }
+            ?: list.providers?.find { it.name == componentName }
+                ?.let { toComponentInfo(it, PROVIDER, packageName) }
+        emit(component)
     }
+        .flowOn(ioDispatcher)
 
     override fun getComponentList(
         packageName: String,

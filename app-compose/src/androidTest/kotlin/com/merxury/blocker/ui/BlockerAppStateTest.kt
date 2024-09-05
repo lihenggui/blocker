@@ -17,6 +17,7 @@
 
 package com.merxury.blocker.ui
 
+import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -31,8 +32,6 @@ import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.composable
 import androidx.navigation.createGraph
 import androidx.navigation.testing.TestNavHostController
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.testing.util.TestNetworkMonitor
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
@@ -54,7 +53,7 @@ import kotlin.test.assertTrue
  * Note: This could become an unit test if Robolectric is added to the project and the Context
  * is faked.
  */
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterialNavigationApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class BlockerAppStateTest {
 
     @get:Rule

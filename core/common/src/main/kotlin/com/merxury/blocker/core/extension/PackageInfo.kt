@@ -20,10 +20,8 @@ import android.content.pm.PackageInfo
 import android.os.Build
 
 @Suppress("DEPRECATION")
-fun PackageInfo.getVersionCode(): Long {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        longVersionCode
-    } else {
-        versionCode.toLong()
-    }
+fun PackageInfo.getVersionCode(): Long = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+    longVersionCode
+} else {
+    versionCode.toLong()
 }

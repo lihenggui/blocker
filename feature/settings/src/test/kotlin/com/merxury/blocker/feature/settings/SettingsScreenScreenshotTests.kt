@@ -90,6 +90,7 @@ class SettingsScreenScreenshotTests {
                             showServiceInfo = true,
                             darkThemeConfig = FOLLOW_SYSTEM,
                             useDynamicColor = false,
+                            enableStatistics = false,
                         ),
                     ),
                 )

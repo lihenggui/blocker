@@ -33,7 +33,9 @@ import org.jetbrains.uast.UQualifiedReferenceExpression
  * A detector that checks for incorrect usages of Compose Material APIs over equivalents in
  * the Blocker design system module.
  */
-class DesignSystemDetector : Detector(), Detector.UastScanner {
+class DesignSystemDetector :
+    Detector(),
+    Detector.UastScanner {
 
     override fun getApplicableUastTypes(): List<Class<out UElement>> = listOf(
         UCallExpression::class.java,

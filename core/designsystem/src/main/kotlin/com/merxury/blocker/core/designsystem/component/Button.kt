@@ -55,7 +55,7 @@ fun BlockerButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-    content: @Composable RowScope.() -> Unit,
+    content: @Composable RowScope.() -> Unit = {},
 ) {
     Button(
         onClick = onClick,
@@ -82,9 +82,9 @@ fun BlockerButton(
 @Composable
 fun BlockerButton(
     onClick: () -> Unit,
+    text: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
 ) {
     BlockerButton(
@@ -121,7 +121,7 @@ fun BlockerOutlinedButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-    content: @Composable RowScope.() -> Unit,
+    content: @Composable RowScope.() -> Unit = {},
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -157,10 +157,10 @@ fun BlockerOutlinedButton(
  */
 @Composable
 fun BlockerOutlinedButton(
+    text: @Composable () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
 ) {
     BlockerOutlinedButton(
@@ -194,7 +194,7 @@ fun BlockerTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    content: @Composable RowScope.() -> Unit,
+    content: @Composable RowScope.() -> Unit = {},
 ) {
     TextButton(
         onClick = onClick,
@@ -220,9 +220,9 @@ fun BlockerTextButton(
 @Composable
 fun BlockerTextButton(
     onClick: () -> Unit,
+    text: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
 ) {
     BlockerTextButton(
@@ -247,6 +247,7 @@ fun BlockerTextButton(
 private fun BlockerButtonContent(
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     if (leadingIcon != null) {
         Box(Modifier.sizeIn(maxHeight = ButtonDefaults.IconSize)) {
@@ -254,22 +255,21 @@ private fun BlockerButtonContent(
         }
     }
     Box(
-        Modifier
-            .padding(
-                start = if (leadingIcon != null) {
-                    ButtonDefaults.IconSpacing
-                } else {
-                    0.dp
-                },
-            ),
+        modifier.padding(
+            start = if (leadingIcon != null) {
+                ButtonDefaults.IconSpacing
+            } else {
+                0.dp
+            },
+        ),
     ) {
         text()
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerButtonPreview() {
+private fun BlockerButtonPreview() {
     BlockerTheme {
         BlockerBackground(modifier = Modifier.size(150.dp, 50.dp)) {
             BlockerButton(onClick = {}, text = { Text("Test button") })
@@ -277,9 +277,9 @@ fun BlockerButtonPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerOutlinedButtonPreview() {
+private fun BlockerOutlinedButtonPreview() {
     BlockerTheme {
         BlockerBackground(modifier = Modifier.size(150.dp, 50.dp)) {
             BlockerOutlinedButton(onClick = {}, text = { Text("Test button") })
@@ -287,9 +287,9 @@ fun BlockerOutlinedButtonPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerTextButtonPreview() {
+private fun BlockerTextButtonPreview() {
     BlockerTheme {
         BlockerBackground(modifier = Modifier.size(150.dp, 50.dp)) {
             BlockerTextButton(onClick = {}, text = { Text("Test button") })
@@ -297,9 +297,9 @@ fun BlockerTextButtonPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerButtonLeadingIconPreview() {
+private fun BlockerButtonLeadingIconPreview() {
     BlockerTheme {
         Surface {
             BlockerBackground(modifier = Modifier.size(150.dp, 50.dp)) {

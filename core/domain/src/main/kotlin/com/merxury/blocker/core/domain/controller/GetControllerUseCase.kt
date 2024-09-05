@@ -35,15 +35,13 @@ class GetControllerUseCase @Inject constructor(
     @IfwControl private val ifwController: IController,
     @ShizukuControl private val shizukuController: IController,
 ) {
-    operator fun invoke(): Flow<IController> {
-        return userDataRepository.userData
-            .distinctUntilChanged()
-            .map { userData ->
-                when (userData.controllerType) {
-                    IFW -> ifwController
-                    PM -> rootController
-                    SHIZUKU -> shizukuController
-                }
+    operator fun invoke(): Flow<IController> = userDataRepository.userData
+        .distinctUntilChanged()
+        .map { userData ->
+            when (userData.controllerType) {
+                IFW -> ifwController
+                PM -> rootController
+                SHIZUKU -> shizukuController
             }
-    }
+        }
 }

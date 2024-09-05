@@ -28,7 +28,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -54,7 +53,6 @@ internal object NetworkModule {
             .build()
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
     @Provides
     @Singleton
     fun providesNetworkJson(): Json = Json {
@@ -68,9 +66,7 @@ internal object NetworkModule {
     @Singleton
     fun provideBlockerNetworkDataSource(
         okHttpCallFactory: dagger.Lazy<Call.Factory>,
-    ): BlockerNetworkDataSource {
-        return RetrofitBlockerNetwork(okHttpCallFactory)
-    }
+    ): BlockerNetworkDataSource = RetrofitBlockerNetwork(okHttpCallFactory)
 
     @Provides
     @Singleton

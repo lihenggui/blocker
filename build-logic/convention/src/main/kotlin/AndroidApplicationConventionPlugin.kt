@@ -17,9 +17,11 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.BaseExtension
+import com.merxury.blocker.configureAndroidLicensesTasks
 import com.merxury.blocker.configureBadgingTasks
 import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
+import com.merxury.blocker.configureLicensee
 import com.merxury.blocker.configurePrintApksTask
 import com.merxury.blocker.configureRenameBuildOutputTask
 import org.gradle.api.Plugin
@@ -49,6 +51,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 configurePrintApksTask(this)
                 configureRenameBuildOutputTask(this)
                 configureBadgingTasks(extensions.getByType<BaseExtension>(), this)
+                configureLicensee()
+                configureAndroidLicensesTasks()
             }
             extensions.configure<JavaPluginExtension> {
                 toolchain {

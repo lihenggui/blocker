@@ -21,11 +21,7 @@ import com.merxury.blocker.core.model.data.AppServiceStatus
 import javax.inject.Inject
 
 internal class TestAppStateCache @Inject constructor() : IAppStateCache {
-    override fun getOrNull(packageName: String): AppServiceStatus? {
-        return null
-    }
+    override fun getOrNull(packageName: String): AppServiceStatus? = null
 
-    override suspend fun get(packageName: String): AppServiceStatus {
-        return AppServiceStatus(packageName = packageName)
-    }
+    override suspend fun get(packageName: String): AppServiceStatus = AppServiceStatus(packageName = packageName)
 }

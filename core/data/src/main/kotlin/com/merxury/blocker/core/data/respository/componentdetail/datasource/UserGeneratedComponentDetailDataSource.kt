@@ -153,8 +153,6 @@ internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     }
         .flowOn(ioDispatcher)
 
-    private suspend fun getWorkingDirWithLang(): File {
-        return filesDir.resolve(generatedRuleBaseFolder)
-            .resolve(userDataRepository.getLibDisplayLanguage())
-    }
+    private suspend fun getWorkingDirWithLang(): File = filesDir.resolve(generatedRuleBaseFolder)
+        .resolve(userDataRepository.getLibDisplayLanguage())
 }

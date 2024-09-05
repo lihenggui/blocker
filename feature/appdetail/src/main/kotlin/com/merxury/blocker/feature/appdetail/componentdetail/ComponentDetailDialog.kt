@@ -66,8 +66,8 @@ fun ComponentDetailDialogRoute(
 
 @Composable
 fun ComponentDetailDialog(
-    modifier: Modifier = Modifier,
     uiState: ComponentDetailUiState,
+    modifier: Modifier = Modifier,
     onDismiss: () -> Unit = {},
     onInfoChange: (ComponentDetail) -> Unit = {},
     onSaveDetailClick: (ComponentDetail) -> Unit = {},
@@ -75,7 +75,7 @@ fun ComponentDetailDialog(
     val configuration = LocalConfiguration.current
     AlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
-        modifier = Modifier.widthIn(max = configuration.screenWidthDp.dp - 80.dp),
+        modifier = modifier.widthIn(max = configuration.screenWidthDp.dp - 80.dp),
         onDismissRequest = { onDismiss() },
         title = {
             Text(
@@ -98,7 +98,6 @@ fun ComponentDetailDialog(
 
                 is Success -> {
                     ComponentDetailPanel(
-                        modifier = modifier,
                         componentDetailInfo = uiState.detail,
                         onInfoChange = onInfoChange,
                     )
@@ -139,11 +138,11 @@ fun ComponentDetailDialog(
 
 @Composable
 fun ComponentDetailPanel(
-    modifier: Modifier = Modifier,
     componentDetailInfo: ComponentDetail,
     onInfoChange: (ComponentDetail) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column {
+    Column(modifier = modifier) {
         OutlinedTextField(
             value = componentDetailInfo.description ?: "",
             label = {
@@ -153,7 +152,7 @@ fun ComponentDetailPanel(
                 onInfoChange.invoke(componentDetailInfo.copy(description = it))
             },
         )
-        Spacer(modifier = modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = componentDetailInfo.disableEffect ?: "",
             label = {
@@ -163,7 +162,7 @@ fun ComponentDetailPanel(
                 onInfoChange.invoke(componentDetailInfo.copy(disableEffect = it))
             },
         )
-        Spacer(modifier = modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
                 checked = componentDetailInfo.recommendToBlock,
@@ -171,7 +170,7 @@ fun ComponentDetailPanel(
                     onInfoChange.invoke(componentDetailInfo.copy(recommendToBlock = it))
                 },
             )
-            Spacer(modifier = modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(text = stringResource(id = string.feature_appdetail_recommended_blocking))
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -189,7 +188,7 @@ fun ComponentDetailPanel(
                     )
                 },
             )
-            Spacer(modifier = modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(text = stringResource(id = string.feature_appdetail_belonging_sdk))
         }
     }
@@ -197,7 +196,7 @@ fun ComponentDetailPanel(
 
 @Preview
 @Composable
-fun EditComponentDetailDialogPreview() {
+private fun EditComponentDetailDialogPreview() {
     val detail = ComponentDetail(
         name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
         description = "This is a test description",
@@ -212,7 +211,7 @@ fun EditComponentDetailDialogPreview() {
 
 @Preview
 @Composable
-fun LoadingComponentDetailDialogPreview() {
+private fun LoadingComponentDetailDialogPreview() {
     val uiState = Loading
     ComponentDetailDialog(uiState = uiState)
 }

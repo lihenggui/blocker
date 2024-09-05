@@ -16,18 +16,16 @@
 
 package com.merxury.blocker.feature.sort.navigation
 
+import androidx.compose.material.navigation.bottomSheet
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.bottomSheet
 import com.merxury.blocker.feature.sort.ComponentSortBottomSheetRoute
 
 const val COMPONENT_SORT_ROUTE = "component_sort_route"
 fun NavController.navigateToComponentSortScreen(navOptions: NavOptions? = null) =
     navigate(COMPONENT_SORT_ROUTE, navOptions)
 
-@OptIn(ExperimentalMaterialNavigationApi::class)
 fun NavGraphBuilder.componentSortScreen(
     dismissHandler: () -> Unit,
 ) {

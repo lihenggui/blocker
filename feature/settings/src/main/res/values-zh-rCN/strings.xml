@@ -66,4 +66,7 @@
     <string name="feature_settings_export_log_title">Blocker日志导出</string>
     <string name="feature_settings_provide_additional_details">请提供您遇到的问题的详细信息：\n</string>
     <string name="feature_settings_no_sharable_app_found">未找到可共享的应用程序。</string>
+    <string name="feature_settings_others">其他</string>
+    <string name="feature_settings_anonymous_statistics">匿名统计</string>
+    <string name="feature_settings_anonymous_statistics_summary">我们使用 Firebase Analytics 收集和分析关于用户行为和最常用功能的数据，以改进 Blocker 的功能。</string>
 </resources>

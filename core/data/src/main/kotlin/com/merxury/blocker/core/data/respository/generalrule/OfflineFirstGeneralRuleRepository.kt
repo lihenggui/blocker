@@ -43,54 +43,44 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GeneralRuleRepository {
 
-    override fun getGeneralRules(): Flow<List<GeneralRule>> {
-        return generalRuleDao.getGeneralRuleEntities()
-            .mapNotNull { it.map(GeneralRuleEntity::asExternalModel) }
-            .map {
-                // Fallback to rules in the data folder if the database is empty
-                it.ifEmpty {
-                    dataSource.getGeneralRules().first()
-                }
+    override fun getGeneralRules(): Flow<List<GeneralRule>> = generalRuleDao.getGeneralRuleEntities()
+        .mapNotNull { it.map(GeneralRuleEntity::asExternalModel) }
+        .map {
+            // Fallback to rules in the data folder if the database is empty
+            it.ifEmpty {
+                dataSource.getGeneralRules().first()
             }
-    }
+        }
 
-    override fun getGeneralRule(id: Int): Flow<GeneralRule> {
-        return generalRuleDao.getGeneralRuleEntity(id)
-            .mapNotNull { it?.asExternalModel() }
-    }
+    override fun getGeneralRule(id: Int): Flow<GeneralRule> = generalRuleDao.getGeneralRuleEntity(id)
+        .mapNotNull { it?.asExternalModel() }
 
-    override fun getRuleHash(): Flow<String> {
-        return dataSource.getGeneralRules()
-            .map { it.hashCode().toString() }
-    }
+    override fun getRuleHash(): Flow<String> = dataSource.getGeneralRules()
+        .map { it.hashCode().toString() }
 
-    override fun updateGeneralRule(): Flow<Result<Unit>> {
-        return dataSource.getGeneralRules()
-            .map { list ->
-                list.map { it.fromExternalModel() }
-            }
-            .flatMapConcat { list ->
-                compareAndUpdateCache(list)
-            }
-            .catch { e ->
-                Timber.e(e, "Failed to get the general rules.")
-                emit(Result.Error(e))
-            }
-            .onStart {
-                Timber.v("Start fetching general online rules.")
-                emit(Result.Loading)
-            }
-            .flowOn(ioDispatcher)
-    }
+    override fun updateGeneralRule(): Flow<Result<Unit>> = dataSource.getGeneralRules()
+        .map { list ->
+            list.map { it.fromExternalModel() }
+        }
+        .flatMapConcat { list ->
+            compareAndUpdateCache(list)
+        }
+        .catch { e ->
+            Timber.e(e, "Failed to get the general rules.")
+            emit(Result.Error(e))
+        }
+        .onStart {
+            Timber.v("Start fetching general online rules.")
+            emit(Result.Loading)
+        }
+        .flowOn(ioDispatcher)
 
     override suspend fun saveGeneralRule(rule: GeneralRule) {
         generalRuleDao.upsertGeneralRule(rule.fromExternalModel())
     }
 
-    override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> {
-        return generalRuleDao.searchGeneralRule(keyword)
-            .map { it.map(GeneralRuleEntity::asExternalModel) }
-    }
+    override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = generalRuleDao.searchGeneralRule(keyword)
+        .map { it.map(GeneralRuleEntity::asExternalModel) }
 
     private fun compareAndUpdateCache(
         latestRules: List<GeneralRuleEntity>,
@@ -126,14 +116,12 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
     }
         .flowOn(ioDispatcher)
 }
-private fun GeneralRuleEntity.equalsInData(other: GeneralRuleEntity): Boolean {
-    return this.name == other.name &&
-        this.iconUrl == other.iconUrl &&
-        this.company == other.company &&
-        this.searchKeyword == other.searchKeyword &&
-        this.useRegexSearch == other.useRegexSearch &&
-        this.description == other.description &&
-        this.safeToBlock == other.safeToBlock &&
-        this.sideEffect == other.sideEffect &&
-        this.contributors == other.contributors
-}
+private fun GeneralRuleEntity.equalsInData(other: GeneralRuleEntity): Boolean = this.name == other.name &&
+    this.iconUrl == other.iconUrl &&
+    this.company == other.company &&
+    this.searchKeyword == other.searchKeyword &&
+    this.useRegexSearch == other.useRegexSearch &&
+    this.description == other.description &&
+    this.safeToBlock == other.safeToBlock &&
+    this.sideEffect == other.sideEffect &&
+    this.contributors == other.contributors

@@ -56,12 +56,13 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.component.ComponentListItem
+import timber.log.Timber
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CollapsibleList(
-    modifier: Modifier = Modifier,
     list: List<MatchedItem>,
+    modifier: Modifier = Modifier,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -78,16 +79,16 @@ fun CollapsibleList(
             .toMutableStateMap()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = modifier.testTag("rule:matchedAppList"),
+            modifier = Modifier.testTag("rule:matchedAppList"),
             state = listState,
         ) {
             list.forEachIndexed { index, ruleMatchedApp ->
                 val expanded = isExpandedMap[index] ?: false
                 item(key = ruleMatchedApp.header.uniqueId) {
                     CollapsibleItem(
-                        modifier = Modifier.animateItemPlacement(),
+                        modifier = Modifier.animateItem(),
                         matchedItem = ruleMatchedApp,
                         navigationMenuItemDesc = navigationMenuItemDesc,
                         navigation = {
@@ -96,10 +97,11 @@ fun CollapsibleList(
                         onBlockAllInItemClick = onBlockAllInItemClick,
                         onEnableAllInItemClick = onEnableAllInItemClick,
                         expanded = expanded,
-                        onCardArrowClicked = {
+                        onCardArrowClick = {
                             isExpandedMap[index] = !(isExpandedMap[index] ?: false)
                         },
                     )
+                    HorizontalDivider()
                 }
                 if (expanded) {
                     items(
@@ -107,7 +109,7 @@ fun CollapsibleList(
                         key = { item -> ruleMatchedApp.header.uniqueId + "/" + item.name },
                     ) {
                         ComponentListItem(
-                            modifier = modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItem(),
                             item = it,
                             enabled = it.enabled(),
                             type = it.type,
@@ -130,9 +132,7 @@ fun CollapsibleList(
                         )
                         // Add horizontal divider after last item
                         if (ruleMatchedApp.componentList.last() == it) {
-                            HorizontalDivider(
-                                modifier = modifier,
-                            )
+                            HorizontalDivider()
                         }
                     }
                 }
@@ -143,7 +143,13 @@ fun CollapsibleList(
         }
         val expandItemCount = isExpandedMap.filterValues { it }
             .keys
-            .map { list[it] }
+            .mapNotNull {
+                val item = list.getOrNull(it)
+                if (item == null) {
+                    Timber.e("Item not found for index $it, map = $isExpandedMap, list = $list")
+                }
+                item
+            }
             .fastSumBy { it.componentList.size }
         val scrollbarState = listState.scrollbarState(
             itemsAvailable = list.size + expandItemCount,
@@ -155,7 +161,7 @@ fun CollapsibleList(
                 .align(Alignment.CenterEnd),
             state = scrollbarState,
             orientation = Vertical,
-            onThumbMoved = listState.rememberDraggableScroller(
+            onThumbMove = listState.rememberDraggableScroller(
                 itemsAvailable = list.size,
             ),
         )
@@ -176,7 +182,7 @@ fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): 
 
 @Composable
 @Preview
-fun RuleMatchedAppListPreview() {
+private fun RuleMatchedAppListPreview() {
     val componentInfo = ComponentInfo(
         name = ".ui.component.ComponentListActivity",
         simpleName = "ComponentListItem",

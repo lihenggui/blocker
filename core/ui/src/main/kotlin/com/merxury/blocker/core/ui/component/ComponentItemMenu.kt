@@ -29,14 +29,14 @@ import com.merxury.blocker.core.ui.R
 @Composable
 fun ComponentItemMenu(
     expanded: Boolean,
-    offset: DpOffset = DpOffset(0.dp, 0.dp),
     type: ComponentType,
     isServiceRunning: Boolean,
-    onStopServiceClick: () -> Unit,
-    onLaunchActivityClick: () -> Unit,
-    onCopyNameClick: () -> Unit,
-    onCopyPackageNameClick: () -> Unit,
-    onDismissRequest: () -> Unit,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
+    onStopServiceClick: () -> Unit = {},
+    onLaunchActivityClick: () -> Unit = {},
+    onCopyNameClick: () -> Unit = {},
+    onCopyPackageNameClick: () -> Unit = {},
+    onDismissRequest: () -> Unit = {},
 ) {
     val items = buildList {
         add(

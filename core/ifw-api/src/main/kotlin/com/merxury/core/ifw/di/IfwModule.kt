@@ -35,10 +35,8 @@ import javax.inject.Singleton
 object IfwModule {
 
     @Provides
-    fun providesXmlParser(): XML {
-        return XML {
-            indentString = "   "
-        }
+    fun providesXmlParser(): XML = XML {
+        indentString = "   "
     }
 
     @Singleton
@@ -48,7 +46,5 @@ object IfwModule {
         xmlParser: XML,
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
         @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
-    ): IIntentFirewall {
-        return IntentFirewall(pm, xmlParser, ioDispatcher, cpuDispatcher)
-    }
+    ): IIntentFirewall = IntentFirewall(pm, xmlParser, ioDispatcher, cpuDispatcher)
 }

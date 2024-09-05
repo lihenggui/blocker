@@ -34,13 +34,9 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
 
     override fun getGeneralRules(): Flow<List<GeneralRule>> = rulesFlow
 
-    override fun getGeneralRule(id: Int): Flow<GeneralRule> {
-        return rulesFlow.map { rules -> rules.find { it.id == id }!! }
-    }
+    override fun getGeneralRule(id: Int): Flow<GeneralRule> = rulesFlow.map { rules -> rules.find { it.id == id }!! }
 
-    override fun updateGeneralRule(): Flow<Result<Unit>> {
-        return flowOf(Result.Success(Unit))
-    }
+    override fun updateGeneralRule(): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
 
     override fun getRuleHash(): Flow<String> = flowOf("")
 
@@ -48,13 +44,12 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
         // no-op
     }
 
-    override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> {
-        return rulesFlow.map { rules ->
-            rules.filter { rule ->
-                rule.name.contains(keyword, ignoreCase = true) || rule.searchKeyword.contains(
+    override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = rulesFlow.map { rules ->
+        rules.filter { rule ->
+            rule.name.contains(keyword, ignoreCase = true) ||
+                rule.searchKeyword.contains(
                     keyword,
                 )
-            }
         }
     }
 

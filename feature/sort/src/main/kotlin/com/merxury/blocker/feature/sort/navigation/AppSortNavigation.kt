@@ -16,11 +16,10 @@
 
 package com.merxury.blocker.feature.sort.navigation
 
+import androidx.compose.material.navigation.bottomSheet
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.bottomSheet
 import com.merxury.blocker.feature.sort.AppSortBottomSheetRoute
 
 const val APP_SORT_ROUTE = "app_sort_route"
@@ -28,7 +27,6 @@ fun NavController.navigateToAppSortScreen(navOptions: NavOptions? = null) {
     navigate(APP_SORT_ROUTE, navOptions)
 }
 
-@OptIn(ExperimentalMaterialNavigationApi::class)
 fun NavGraphBuilder.appSortScreen(
     dismissHandler: () -> Unit,
 ) {

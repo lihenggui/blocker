@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="feature_search_activity_count">
+        <item quantity="other">%1$d Aktivitas</item>
+    </plurals>
+    <plurals name="feature_search_content_provider_count">
+        <item quantity="other">%1$d Provider konten</item>
+    </plurals>
+    <plurals name="feature_search_receiver_count">
+        <item quantity="other">%1$d Receiver</item>
+    </plurals>
+    <plurals name="feature_search_selected_app_count">
+        <item quantity="other">%1$d apl terpilih</item>
+    </plurals>
+    <string name="feature_search_search_hint">Apl, konten, dan aturan</string>
+    <string name="feature_search_no_search_result">Tidak ada hasil pencarian</string>
+    <string name="feature_search_check_icon">Cek</string>
+    <plurals name="feature_search_service_count">
+        <item quantity="other">%1$d Layanan</item>
+    </plurals>
+    <string name="feature_search_searching">Pencarian</string>
+</resources>
