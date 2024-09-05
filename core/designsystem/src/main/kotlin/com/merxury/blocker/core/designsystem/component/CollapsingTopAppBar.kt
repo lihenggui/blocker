@@ -29,11 +29,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -137,7 +137,7 @@ fun BlockerCollapsingTopAppBar(
                             .size(appIconSize)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
-                                indication = rememberRipple(bounded = false),
+                                indication = ripple(bounded = false),
                                 onClick = { onIconClick() },
                             )
                             .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
