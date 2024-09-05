@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.util
+package com.merxury.blocker.core.utils
 
 import android.content.ComponentName
 import android.content.pm.ActivityInfo
@@ -23,7 +23,6 @@ import android.content.pm.ServiceInfo
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -82,9 +82,9 @@
     <string name="core_ui_disabling_component_hint">Disabling components, please wait… (%1$d/%2$d)</string>
     <string name="core_ui_enabling_component_hint">Enabling components, please wait… (%1$d/%2$d)</string>
     <string name="core_ui_operation_completed">Operation completed</string>
-    <string name="core_ui_sdk_with_count" translatable="false">SDK</string>
+    <string name="core_ui_sdk" translatable="false">SDK</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Do you want to clear data of this app?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Do you want to uninstall this app?</string>
-    <string name="core_ui_matched_rules">Matched rules</string>
-    <string name="core_ui_unmatched_rules">Unmatched rules</string>
+    <string name="core_ui_found">Found</string>
+    <string name="core_ui_not_found">Not found</string>
 </resources>

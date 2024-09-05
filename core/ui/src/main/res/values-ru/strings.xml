@@ -92,6 +92,6 @@
     <string name="core_ui_operation_completed">Операция завершена</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
-    <string name="core_ui_matched_rules">Совпавшие правила</string>
-    <string name="core_ui_unmatched_rules">Несовпавшие правила</string>
+    <string name="core_ui_found">Совпадение</string>
+    <string name="core_ui_not_found">Не найдено</string>
 </resources>

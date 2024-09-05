@@ -46,12 +46,10 @@ class ComponentProvider : ContentProvider() {
         fun analyticsHelper(): AnalyticsHelper
     }
 
-    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
-        return when (method) {
-            "getComponents" -> getBlockedComponents(arg)
-            "blocks" -> controlComponent(arg, extras)
-            else -> null
-        }
+    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? = when (method) {
+        "getComponents" -> getBlockedComponents(arg)
+        "blocks" -> controlComponent(arg, extras)
+        else -> null
     }
 
     private fun getBlockedComponents(packageName: String?): Bundle? = runBlocking {
@@ -112,9 +110,7 @@ class ComponentProvider : ContentProvider() {
         }
     }
 
-    override fun onCreate(): Boolean {
-        return true
-    }
+    override fun onCreate(): Boolean = true
 
     override fun query(
         uri: Uri,
@@ -147,7 +143,5 @@ class ComponentProvider : ContentProvider() {
         return 0
     }
 
-    override fun getType(uri: Uri): String {
-        return "vnd.android.cursor.item/vnd.com.merxury.blocker.component"
-    }
+    override fun getType(uri: Uri): String = "vnd.android.cursor.item/vnd.com.merxury.blocker.component"
 }

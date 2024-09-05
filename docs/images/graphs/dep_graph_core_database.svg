@@ -1,23 +1,17 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="165pt" height="116pt" viewBox="0.00 0.00 165.29 116.00">
-  <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
-    <title>G</title>
-    <polygon fill="white" stroke="transparent" points="-4,4 -4,-112 161.29,-112 161.29,4 -4,4"/>
-    <g id="node1" class="node">
-      <title>:core:database</title>
-      <ellipse fill="none" stroke="black" cx="78.64" cy="-90" rx="78.79" ry="18"/>
-      <text text-anchor="middle" x="78.64" y="-86.3" font-family="Times,serif" font-size="14.00">:core:database</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="116pt" viewBox="0 0 165.29 116">
+    <g class="graph">
+        <path fill="#fff" stroke="transparent" d="M0 116V0h165.29v116H0z"/>
+        <g class="node" transform="translate(4 112)">
+            <ellipse cx="78.64" cy="-90" fill="none" stroke="#000" rx="78.79" ry="18"/>
+            <text x="78.64" y="-86.3" font-family="Times,serif" font-size="14" text-anchor="middle">:core:database</text>
+        </g>
+        <g class="node" transform="translate(4 112)">
+            <ellipse cx="78.64" cy="-18" fill="none" stroke="#000" rx="64.99" ry="18"/>
+            <text x="78.64" y="-14.3" font-family="Times,serif" font-size="14" text-anchor="middle">:core:model</text>
+        </g>
+        <g stroke="red" stroke-width="2" class="edge">
+            <path fill="none" d="M82.64 40.3v25.59"/>
+            <path fill="red" d="m86.14 65.9-3.5 10-3.5-10h7z"/>
+        </g>
     </g>
-    <g id="node2" class="node">
-      <title>:core:model</title>
-      <ellipse fill="none" stroke="black" cx="78.64" cy="-18" rx="64.99" ry="18"/>
-      <text text-anchor="middle" x="78.64" y="-14.3" font-family="Times,serif" font-size="14.00">:core:model</text>
-    </g>
-    <g id="edge1" class="edge">
-      <title>:core:database-&gt;:core:model</title>
-      <path fill="none" stroke="red" stroke-width="2" d="M78.64,-71.7C78.64,-63.98 78.64,-54.71 78.64,-46.11"/>
-      <polygon fill="red" stroke="red" stroke-width="2" points="82.14,-46.1 78.64,-36.1 75.14,-46.1 82.14,-46.1"/>
-    </g>
-  </g>
 </svg>

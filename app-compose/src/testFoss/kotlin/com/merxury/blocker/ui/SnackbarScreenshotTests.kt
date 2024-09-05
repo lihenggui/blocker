@@ -34,7 +34,6 @@ import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -190,7 +189,6 @@ class SnackbarScreenshotTests {
         }
     }
 
-    @OptIn(ExperimentalMaterialNavigationApi::class)
     private fun testSnackbarScreenshotWithSize(
         snackbarHostState: SnackbarHostState,
         width: Dp,

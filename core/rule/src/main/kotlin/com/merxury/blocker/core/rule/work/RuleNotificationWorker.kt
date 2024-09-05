@@ -27,14 +27,11 @@ import androidx.work.WorkerParameters
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.util.NotificationUtil
 
-abstract class RuleNotificationWorker(private val context: Context, params: WorkerParameters) :
-    CoroutineWorker(context, params) {
+abstract class RuleNotificationWorker(private val context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     abstract fun getNotificationTitle(): Int
 
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        return updateNotification("", 0, 0)
-    }
+    override suspend fun getForegroundInfo(): ForegroundInfo = updateNotification("", 0, 0)
 
     fun updateNotification(summary: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID

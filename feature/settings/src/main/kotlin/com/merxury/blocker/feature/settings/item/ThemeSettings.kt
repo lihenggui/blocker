@@ -36,11 +36,11 @@ import com.merxury.blocker.feature.settings.R.string
 
 @Composable
 fun ThemeSettings(
-    modifier: Modifier = Modifier,
     settings: UserEditableSettings,
     supportDynamicColor: Boolean,
-    onChangeDynamicColorPreference: (useDynamicColor: Boolean) -> Unit,
-    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
+    modifier: Modifier = Modifier,
+    onChangeDynamicColorPreference: (useDynamicColor: Boolean) -> Unit = {},
+    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -73,7 +73,7 @@ fun ThemeSettings(
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun ThemeSettingsSettingsPreview() {
+private fun ThemeSettingsSettingsPreview() {
     BlockerTheme {
         Surface {
             ThemeSettings(
@@ -82,8 +82,6 @@ fun ThemeSettingsSettingsPreview() {
                     useDynamicColor = true,
                 ),
                 supportDynamicColor = true,
-                onChangeDynamicColorPreference = {},
-                onChangeDarkThemeConfig = {},
             )
         }
     }

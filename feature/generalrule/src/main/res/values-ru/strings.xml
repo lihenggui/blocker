@@ -14,5 +14,5 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   --><resources>
-    <string name="feature_generalrule_rules">Правила</string>
+    <string name="feature_generalrule_sdk_trackers">SDK/Трекеры</string>
 </resources>

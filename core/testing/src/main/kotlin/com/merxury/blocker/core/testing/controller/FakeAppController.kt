@@ -21,33 +21,19 @@ import com.merxury.blocker.core.controllers.IAppController
 class FakeAppController(private val rootGranted: Boolean = false) : IAppController {
 
     private val runningApps = mutableSetOf<String>()
-    override suspend fun disable(packageName: String): Boolean {
-        return rootGranted
-    }
+    override suspend fun disable(packageName: String): Boolean = rootGranted
 
-    override suspend fun enable(packageName: String): Boolean {
-        return rootGranted
-    }
+    override suspend fun enable(packageName: String): Boolean = rootGranted
 
-    override suspend fun forceStop(packageName: String): Boolean {
-        return rootGranted
-    }
+    override suspend fun forceStop(packageName: String): Boolean = rootGranted
 
-    override suspend fun clearCache(packageName: String): Boolean {
-        return rootGranted
-    }
+    override suspend fun clearCache(packageName: String): Boolean = rootGranted
 
-    override suspend fun clearData(packageName: String): Boolean {
-        return rootGranted
-    }
+    override suspend fun clearData(packageName: String): Boolean = rootGranted
 
-    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean {
-        return rootGranted
-    }
+    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean = rootGranted
 
-    override fun isAppRunning(packageName: String): Boolean {
-        return runningApps.contains(packageName)
-    }
+    override fun isAppRunning(packageName: String): Boolean = runningApps.contains(packageName)
 
     fun setRunningApps(vararg packageName: String) {
         runningApps.addAll(packageName)

@@ -19,11 +19,6 @@ buildscript {
         google()
         mavenCentral()
     }
-    dependencies {
-        classpath(libs.google.oss.licenses.plugin) {
-            exclude(group = "com.google.protobuf")
-        }
-    }
 }
 
 // Lists all plugins used throughout the project
@@ -32,10 +27,12 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.baselineprofile) apply false
+    alias(libs.plugins.compose) apply false
     alias(libs.plugins.dependencyGuard) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.licensee) apply false
     alias(libs.plugins.firebase.crashlytics) apply false
     alias(libs.plugins.firebase.perf) apply false
     alias(libs.plugins.gms) apply false
@@ -43,16 +40,4 @@ plugins {
     alias(libs.plugins.roborazzi) apply false
     alias(libs.plugins.room) apply false
     alias(libs.plugins.module.graph) apply true // Plugin applied to allow module graph generation
-}
-
-// Task to print all the module paths in the project e.g. :core:data
-// Used by module graph generator script
-tasks.register("printModulePaths") {
-    doLast {
-        subprojects {
-            if (subprojects.size == 0) {
-                println(this.path)
-            }
-        }
-    }
 }

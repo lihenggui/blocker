@@ -40,12 +40,13 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerTopAppBar(
-    modifier: Modifier = Modifier,
     title: String,
+    modifier: Modifier = Modifier,
     hasNavigationIcon: Boolean = false,
     onNavigationClick: () -> Unit = {},
     actions: @Composable () -> Unit = {},
@@ -78,8 +79,8 @@ fun BlockerTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerTopAppBarWithProgress(
-    modifier: Modifier = Modifier,
     title: String,
+    modifier: Modifier = Modifier,
     progress: Float? = null,
 ) {
     TopAppBar(
@@ -97,7 +98,7 @@ fun BlockerTopAppBarWithProgress(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = String.format("%.0f%%", progress * 100),
+                        text = String.format(Locale.getDefault(), "%.0f%%", progress * 100),
                     )
                     BlockerLoadingWheel(
                         modifier = Modifier.size(36.dp),
@@ -111,10 +112,10 @@ fun BlockerTopAppBarWithProgress(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerLargeTopAppBar(
-    modifier: Modifier = Modifier,
     title: String,
     navigation: @Composable () -> Unit,
     actions: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LargeTopAppBar(
         title = {
@@ -145,10 +146,10 @@ fun BlockerLargeTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerMediumTopAppBar(
-    modifier: Modifier = Modifier,
     title: String,
     navigation: @Composable () -> Unit,
     actions: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     MediumTopAppBar(
         title = {
@@ -176,7 +177,7 @@ fun BlockerMediumTopAppBar(
 
 @Preview("Top App Bar with actions and navigation")
 @Composable
-fun BlockerTopAppBarNaviActionsPreview() {
+private fun BlockerTopAppBarNaviActionsPreview() {
     BlockerTheme {
         BlockerTopAppBar(
             title = stringResource(id = android.R.string.untitled),
@@ -196,7 +197,7 @@ fun BlockerTopAppBarNaviActionsPreview() {
 
 @Preview("Top App Bar with loading icon, 0%")
 @Composable
-fun BlockerTopAppBarLoadingStartPreview() {
+private fun BlockerTopAppBarLoadingStartPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
@@ -207,7 +208,7 @@ fun BlockerTopAppBarLoadingStartPreview() {
 
 @Preview("Top App Bar with loading icon, 50%")
 @Composable
-fun BlockerTopAppBarLoadingProgressPreview() {
+private fun BlockerTopAppBarLoadingProgressPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
@@ -218,7 +219,7 @@ fun BlockerTopAppBarLoadingProgressPreview() {
 
 @Preview("Top App Bar with loading icon, 100%")
 @Composable
-fun BlockerTopAppBarLoadingCompeletPreview() {
+private fun BlockerTopAppBarLoadingCompeletPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
@@ -229,7 +230,7 @@ fun BlockerTopAppBarLoadingCompeletPreview() {
 
 @Preview("Top App Bar without navigation and actions")
 @Composable
-fun BlockerHomeTopAppBarPreview() {
+private fun BlockerHomeTopAppBarPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
@@ -239,7 +240,7 @@ fun BlockerHomeTopAppBarPreview() {
 
 @Preview("Medium Top App Bar")
 @Composable
-fun BlockerMediumTopAppBarPreview() {
+private fun BlockerMediumTopAppBarPreview() {
     BlockerTheme {
         BlockerMediumTopAppBar(
             title = stringResource(id = android.R.string.untitled),

@@ -24,6 +24,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
 import android.system.Os
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.net.toFile
 import androidx.core.os.LocaleListCompat
@@ -35,6 +36,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
+import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.analytics.StubAnalyticsHelper
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -53,7 +56,7 @@ import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
-import com.merxury.blocker.core.rule.work.ListAllComponentsToStorageWorker
+import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
@@ -76,6 +79,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     appContext: Application,
     private val userDataRepository: UserDataRepository,
+    private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(appContext) {
     val settingsUiState: StateFlow<SettingsUiState> =
@@ -94,7 +98,9 @@ class SettingsViewModel @Inject constructor(
                         showServiceInfo = userData.showServiceInfo,
                         darkThemeConfig = userData.darkThemeConfig,
                         useDynamicColor = userData.useDynamicColor,
+                        enableStatistics = userData.enableStatistics,
                     ),
+                    allowStatistics = isAllowStatistics(),
                 )
             }
             .stateIn(
@@ -196,6 +202,12 @@ class SettingsViewModel @Inject constructor(
     fun updateRestoreSystemApp(shouldRestore: Boolean) {
         viewModelScope.launch {
             userDataRepository.setRestoreSystemApp(shouldRestore)
+        }
+    }
+
+    fun updateCheckedStatistics(checked: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setEnableStatistics(checked)
         }
     }
 
@@ -326,8 +338,10 @@ class SettingsViewModel @Inject constructor(
             enqueueUniqueWork(
                 "ImportMatRule",
                 ExistingWorkPolicy.KEEP,
-                ListAllComponentsToStorageWorker.listAppComponentsWork(
-                    folderPath = userData.ruleBackupFolder,
+                ImportMatRulesWorker.importWork(
+                    fileUri,
+                    userData.controllerType,
+                    userData.restoreSystemApp,
                 ),
             )
         }
@@ -344,10 +358,17 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setDynamicColorPreference(useDynamicColor)
         }
     }
+
+    // Only FOSS version provides StubAnalyticsHelper
+    @VisibleForTesting
+    fun isAllowStatistics(): Boolean = analyticsHelper !is StubAnalyticsHelper
 }
 
 sealed interface SettingsUiState {
     data object Loading : SettingsUiState
 
-    data class Success(val settings: UserEditableSettings) : SettingsUiState
+    data class Success(
+        val settings: UserEditableSettings,
+        val allowStatistics: Boolean = false,
+    ) : SettingsUiState
 }

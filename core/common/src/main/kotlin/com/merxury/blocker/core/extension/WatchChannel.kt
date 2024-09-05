@@ -27,7 +27,6 @@ import com.merxury.blocker.core.extension.KWatchEvent.Kind.Initialized
 import com.merxury.blocker.core.extension.KWatchEvent.Kind.Modified
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -76,7 +75,6 @@ fun File.asWatchChannel(
  * watching a single directory or watching directory tree recursively
  * @param [tag] - any kind of data that should be associated with this channel, optional
  */
-@OptIn(DelicateCoroutinesApi::class)
 @RequiresApi(VERSION_CODES.O)
 class KWatchChannel(
     val file: File,

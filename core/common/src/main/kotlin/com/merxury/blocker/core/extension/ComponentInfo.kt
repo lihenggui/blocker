@@ -18,6 +18,4 @@ package com.merxury.blocker.core.extension
 
 import android.content.pm.ComponentInfo
 
-fun ComponentInfo.getSimpleName(): String {
-    return name.split(".").last()
-}
+fun ComponentInfo.getSimpleName(): String = name.split(".").last()

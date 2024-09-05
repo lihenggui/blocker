@@ -24,6 +24,7 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
@@ -80,12 +81,17 @@ internal fun Project.configureJacoco(
                     }
                 )
                 reports {
-                    xml.required.set(true)
-                    html.required.set(true)
+                    xml.required = true
+                    html.required = true
                 }
 
                 // TODO: This is missing files in src/debug/, src/market, src/foss, src/fossDebug...
-                sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
+                sourceDirectories.setFrom(
+                    files(
+                        "$projectDir/src/main/java",
+                        "$projectDir/src/main/kotlin",
+                    )
+                )
 
                 executionData.setFrom(
                     project.fileTree("$buildDir/outputs/unit_test_code_coverage/${variant.name}UnitTest")

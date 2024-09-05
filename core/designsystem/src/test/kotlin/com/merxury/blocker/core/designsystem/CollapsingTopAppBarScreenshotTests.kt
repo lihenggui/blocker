@@ -232,8 +232,8 @@ class CollapsingTopAppBarScreenshotTests {
             actions = {
                 BlockerSearchTextField(
                     searchQuery = "blocker",
-                    onSearchQueryChanged = { },
-                    onSearchTriggered = { },
+                    onSearchQueryChange = { },
+                    onSearchTrigger = { },
                     modifier = Modifier.weight(1f),
                 )
                 BlockerAppTopBarMenu(

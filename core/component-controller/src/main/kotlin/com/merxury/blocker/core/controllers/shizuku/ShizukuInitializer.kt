@@ -134,12 +134,10 @@ internal class ShizukuInitializer @Inject constructor(
         return false
     }
 
-    override fun getUid(): Int {
-        return try {
-            Shizuku.getUid()
-        } catch (e: Throwable) {
-            Timber.e(e, "Get uid failed")
-            -1
-        }
+    override fun getUid(): Int = try {
+        Shizuku.getUid()
+    } catch (e: Throwable) {
+        Timber.e(e, "Get uid failed")
+        -1
     }
 }

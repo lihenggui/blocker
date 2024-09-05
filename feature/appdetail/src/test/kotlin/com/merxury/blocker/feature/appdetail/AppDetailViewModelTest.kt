@@ -301,28 +301,32 @@ class AppDetailViewModelTest {
                 ComponentSearchResult(
                     app = sampleAppList.first().toAppItem(),
                     activity = sampleComponentList.filter {
-                        it.type == ACTIVITY && it.name.contains(
-                            keyword,
-                            ignoreCase = true,
-                        )
+                        it.type == ACTIVITY &&
+                            it.name.contains(
+                                keyword,
+                                ignoreCase = true,
+                            )
                     },
                     service = sampleComponentList.filter {
-                        it.type == SERVICE && it.name.contains(
-                            keyword,
-                            ignoreCase = true,
-                        )
+                        it.type == SERVICE &&
+                            it.name.contains(
+                                keyword,
+                                ignoreCase = true,
+                            )
                     },
                     receiver = sampleComponentList.filter {
-                        it.type == RECEIVER && it.name.contains(
-                            keyword,
-                            ignoreCase = true,
-                        )
+                        it.type == RECEIVER &&
+                            it.name.contains(
+                                keyword,
+                                ignoreCase = true,
+                            )
                     },
                     provider = sampleComponentList.filter {
-                        it.type == PROVIDER && it.name.contains(
-                            keyword,
-                            ignoreCase = true,
-                        )
+                        it.type == PROVIDER &&
+                            it.name.contains(
+                                keyword,
+                                ignoreCase = true,
+                            )
                     },
                 ),
             ),

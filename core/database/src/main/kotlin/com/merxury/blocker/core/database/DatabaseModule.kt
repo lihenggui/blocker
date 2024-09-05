@@ -34,21 +34,17 @@ internal object DatabaseModule {
     @Singleton
     fun provideInstalledAppDatabase(
         @ApplicationContext context: Context,
-    ): InstalledAppDatabase {
-        return Room.databaseBuilder(
-            context,
-            InstalledAppDatabase::class.java,
-            "installed_app",
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-    }
+    ): InstalledAppDatabase = Room.databaseBuilder(
+        context,
+        InstalledAppDatabase::class.java,
+        "installed_app",
+    )
+        .fallbackToDestructiveMigration()
+        .build()
 
     @Provides
     @Singleton
-    fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase {
-        return Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
-            .fallbackToDestructiveMigration()
-            .build()
-    }
+    fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase = Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
+        .fallbackToDestructiveMigration()
+        .build()
 }

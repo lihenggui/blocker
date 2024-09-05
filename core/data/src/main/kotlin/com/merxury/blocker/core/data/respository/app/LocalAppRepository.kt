@@ -115,15 +115,11 @@ internal class LocalAppRepository @Inject constructor(
         }
         .flowOn(ioDispatcher)
 
-    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> {
-        return installedAppDao.getByPackageNameOrLabelContains(keyword)
-            .transform { list ->
-                emit(list.map { it.asExternalModel() })
-            }
-    }
+    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> = installedAppDao.getByPackageNameOrLabelContains(keyword)
+        .transform { list ->
+            emit(list.map { it.asExternalModel() })
+        }
 
-    override fun getApplication(packageName: String): Flow<InstalledApp?> {
-        return installedAppDao.getInstalledApp(packageName)
-            .map { it?.asExternalModel() }
-    }
+    override fun getApplication(packageName: String): Flow<InstalledApp?> = installedAppDao.getInstalledApp(packageName)
+        .map { it?.asExternalModel() }
 }

@@ -51,7 +51,7 @@ class ServiceHelper(private val packageName: String) {
         withContext(Dispatchers.IO) {
             serviceList.clear()
             serviceInfo = try {
-                if (PermissionUtils.isRootAvailable()) {
+                if (PermissionUtils.isRootAvailable(Dispatchers.IO)) {
                     "dumpsys activity services -p $packageName".exec().out
                         .joinToString("\n")
                 } else {

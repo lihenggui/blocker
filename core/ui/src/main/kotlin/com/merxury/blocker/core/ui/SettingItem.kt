@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.ui
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,9 +46,14 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 @Composable
 fun ItemHeader(
     title: String,
+    modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
 ) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface),
+    ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
@@ -65,9 +71,9 @@ fun ItemHeader(
 
 @Composable
 fun BlockerSettingItem(
+    title: String,
     modifier: Modifier = Modifier,
     extraIconPadding: Boolean = false,
-    title: String,
     summary: String? = null,
     icon: Icon? = null,
     onItemClick: () -> Unit = {},
@@ -116,10 +122,70 @@ fun BlockerSettingItem(
 }
 
 @Composable
-fun BlockerItem(
+fun BlockerSettingItem(
+    title: String,
     modifier: Modifier = Modifier,
+    extraIconPadding: Boolean = false,
+    itemDesc: String? = null,
+    itemDesc1: String? = null,
+    icon: Icon? = null,
+    onItemClick: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onItemClick() }
+            .padding(
+                if (extraIconPadding && icon == null) {
+                    PaddingValues(vertical = 8.dp, horizontal = 56.dp)
+                } else {
+                    PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                },
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (icon != null) {
+            when (icon) {
+                is ImageVectorIcon -> Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = null,
+                )
+
+                is DrawableResourceIcon -> Icon(
+                    painter = painterResource(id = icon.id),
+                    contentDescription = null,
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+        }
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            if (itemDesc != null) {
+                Text(
+                    text = itemDesc,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (itemDesc1 != null) {
+                Text(
+                    text = itemDesc1,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BlockerItem(
     title: String,
     icon: Icon,
+    modifier: Modifier = Modifier,
     onItemClick: () -> Unit = {},
     iconColor: Color = MaterialTheme.colorScheme.primary,
 ) {
@@ -158,7 +224,7 @@ fun BlockerItem(
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun HeaderPreview() {
+private fun HeaderPreview() {
     BlockerTheme {
         Surface {
             ItemHeader(title = "Normal Header")
@@ -169,7 +235,7 @@ fun HeaderPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun HeaderWithPaddingPreview() {
+private fun HeaderWithPaddingPreview() {
     BlockerTheme {
         Surface {
             ItemHeader(
@@ -183,7 +249,7 @@ fun HeaderWithPaddingPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SingleLineSettingItemPreview() {
+private fun SingleLineSettingItemPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(title = "Single line item")
@@ -194,7 +260,7 @@ fun SingleLineSettingItemPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SingleLineSettingItemWithPaddingPreview() {
+private fun SingleLineSettingItemWithPaddingPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
@@ -208,7 +274,7 @@ fun SingleLineSettingItemWithPaddingPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemWithoutIconPreview() {
+private fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
@@ -222,7 +288,7 @@ fun SettingsItemWithoutIconPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemWithIconPreview() {
+private fun SettingsItemWithIconPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
@@ -237,7 +303,7 @@ fun SettingsItemWithIconPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemWithPaddingPreview() {
+private fun SettingsItemWithPaddingPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
@@ -252,12 +318,26 @@ fun SettingsItemWithPaddingPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemPreview() {
+private fun SettingsItemPreview() {
     BlockerTheme {
         Surface {
             BlockerItem(
                 title = "Item with icon and extra space",
                 icon = ImageVectorIcon(BlockerIcons.CheckList),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun SettingsItemWithDescPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerSettingItem(
+                title = "Setting item title",
+                itemDesc = "description",
+                itemDesc1 = "description1",
             )
         }
     }

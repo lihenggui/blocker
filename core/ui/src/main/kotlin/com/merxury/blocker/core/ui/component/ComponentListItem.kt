@@ -55,7 +55,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
@@ -185,8 +185,8 @@ fun ComponentListItem(
 }
 
 @Composable
-@ThemePreviews
-fun ComponentItemPreview(
+@PreviewThemes
+private fun ComponentItemPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,
@@ -204,8 +204,8 @@ fun ComponentItemPreview(
 }
 
 @Composable
-@ThemePreviews
-fun ComponentItemSelectedPreview(
+@PreviewThemes
+private fun ComponentItemSelectedPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,

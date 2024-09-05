@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.ruledetail
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
@@ -123,7 +124,8 @@ class RuleDetailViewModel @Inject constructor(
         loadData()
     }
 
-    private fun loadData() {
+    @VisibleForTesting
+    fun loadData() {
         loadRuleDetailJob?.cancel()
         loadRuleDetailJob = viewModelScope.launch {
             val ruleId = ruleIdArgs.ruleId

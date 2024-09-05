@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="search">Ara</string>
-    <string name="rules">Kurallar</string>
+    <string name="sdk_trackers">SDK/Takipçiler</string>
     <string name="shell_permission_hint">Kabuk izni verildi. Kontrol bileşenleri düzgün çalışmayabilir.</string>
     <string name="close">Kapat</string>
     <string name="apps">Uygulamalar</string>

@@ -28,7 +28,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
@@ -245,7 +244,6 @@ class NavigationUiTest {
         composeTestRule.onNodeWithTag("BlockerBottomBar").assertDoesNotExist()
     }
 
-    @OptIn(ExperimentalMaterialNavigationApi::class)
     @Composable
     private fun fakeAppState(maxWidth: Dp, maxHeight: Dp) = rememberBlockerAppState(
         windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight)),

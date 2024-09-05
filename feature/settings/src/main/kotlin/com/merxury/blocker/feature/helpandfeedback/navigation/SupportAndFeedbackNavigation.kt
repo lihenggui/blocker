@@ -30,11 +30,13 @@ fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) =
 
 fun NavGraphBuilder.supportAndFeedbackScreen(
     onBackClick: () -> Unit,
+    navigateToLicenses: () -> Unit,
     snackbarHostState: SnackbarHostState,
 ) {
     composable(route = SUPPORT_AND_FEEDBACK_ROUTE) {
         SupportAndFeedbackRoute(
             onNavigationClick = onBackClick,
+            navigateToLicenses = navigateToLicenses,
             snackbarHostState = snackbarHostState,
         )
     }

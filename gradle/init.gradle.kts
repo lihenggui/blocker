@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-val ktlintVersion = "1.2.1"
+val ktlintVersion = "1.3.1"
 
 initscript {
     val spotlessVersion = "6.25.0"
@@ -40,6 +40,10 @@ rootProject {
                     mapOf(
                         "android" to "true",
                     ),
+                ).customRuleSets(
+                    listOf(
+                        "io.nlopez.compose.rules:ktlint:0.4.5"
+                    )
                 )
 //                licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
             }

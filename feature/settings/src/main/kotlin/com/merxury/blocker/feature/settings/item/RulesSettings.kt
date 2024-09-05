@@ -93,7 +93,7 @@ fun IfwRulesSettings(
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun BackupSectionPreview() {
+private fun BackupSectionPreview() {
     BlockerTheme {
         Surface {
             BlockerRulesSettings(exportRules = {}, importRules = {})
@@ -104,7 +104,7 @@ fun BackupSectionPreview() {
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun IfwSectionPreview() {
+private fun IfwSectionPreview() {
     BlockerTheme {
         Surface {
             IfwRulesSettings(

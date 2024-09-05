@@ -23,14 +23,10 @@ import kotlinx.serialization.json.Json
 
 internal class ListConverter {
     @TypeConverter
-    fun fromString(value: String): List<String> {
-        return Json.decodeFromString(value)
-    }
+    fun fromString(value: String): List<String> = Json.decodeFromString(value)
 
     @TypeConverter
-    fun fromArrayList(list: List<String>): String {
-        return Json.encodeToString(list)
-    }
+    fun fromArrayList(list: List<String>): String = Json.encodeToString(list)
 }
 
 internal class InstantConverter {
