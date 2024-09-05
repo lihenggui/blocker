@@ -20,13 +20,12 @@ package com.merxury.blocker.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.material.navigation.BottomSheetNavigator
+import androidx.compose.material.navigation.ModalBottomSheetLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.google.accompanist.navigation.material.BottomSheetNavigator
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
@@ -58,7 +57,6 @@ import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
  * within each route is handled using state and Back Handlers.
  */
 
-@OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun BlockerNavHost(
     bottomSheetNavigator: BottomSheetNavigator,
