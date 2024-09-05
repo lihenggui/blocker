@@ -88,7 +88,7 @@ fun CollapsibleList(
                 val expanded = isExpandedMap[index] ?: false
                 item(key = ruleMatchedApp.header.uniqueId) {
                     CollapsibleItem(
-                        modifier = Modifier.animateItemPlacement(),
+                        modifier = Modifier.animateItem(),
                         matchedItem = ruleMatchedApp,
                         navigationMenuItemDesc = navigationMenuItemDesc,
                         navigation = {
@@ -109,7 +109,7 @@ fun CollapsibleList(
                         key = { item -> ruleMatchedApp.header.uniqueId + "/" + item.name },
                     ) {
                         ComponentListItem(
-                            modifier = Modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItem(),
                             item = it,
                             enabled = it.enabled(),
                             type = it.type,
