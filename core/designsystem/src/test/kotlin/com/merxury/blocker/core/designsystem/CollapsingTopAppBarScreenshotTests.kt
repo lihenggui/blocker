@@ -29,11 +29,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.R.drawable
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
@@ -93,7 +94,9 @@ class CollapsingTopAppBarScreenshotTests {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
-                TestHarness(fontScale = 2f) {
+                DeviceConfigurationOverride(
+                    DeviceConfigurationOverride.FontScale(2f),
+                ) {
                     BlockerTheme {
                         CollapsingToolbarCollapsedExample()
                     }
@@ -113,7 +116,9 @@ class CollapsingTopAppBarScreenshotTests {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
-                TestHarness(fontScale = 2f) {
+                DeviceConfigurationOverride(
+                    DeviceConfigurationOverride.FontScale(2f),
+                ) {
                     BlockerTheme {
                         CollapsingToolbarHalfwayExample()
                     }
@@ -133,7 +138,9 @@ class CollapsingTopAppBarScreenshotTests {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
-                TestHarness(fontScale = 2f) {
+                DeviceConfigurationOverride(
+                    DeviceConfigurationOverride.FontScale(2f),
+                ) {
                     BlockerTheme {
                         CollapsingToolbarExpandedExample()
                     }

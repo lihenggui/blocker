@@ -69,12 +69,13 @@ import com.merxury.blocker.navigation.TopLevelDestination
 @Composable
 fun BlockerApp(
     appState: BlockerAppState,
+    modifier: Modifier = Modifier,
     updateIconBasedThemingState: (IconThemingState) -> Unit = {},
 ) {
     val shouldShowGradientBackground =
         appState.currentTopLevelDestination == TopLevelDestination.APP
 
-    BlockerBackground {
+    BlockerBackground(modifier = modifier) {
         BlockerGradientBackground(
             gradientColors = if (shouldShowGradientBackground) {
                 LocalGradientColors.current
