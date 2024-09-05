@@ -31,6 +31,7 @@ androidx.compose.material:material-icons-core-android:1.7.0
 androidx.compose.material:material-icons-core:1.7.0
 androidx.compose.material:material-icons-extended-android:1.7.0
 androidx.compose.material:material-icons-extended:1.7.0
+androidx.compose.material:material-navigation:1.7.0-beta01
 androidx.compose.material:material-ripple-android:1.7.0
 androidx.compose.material:material-ripple:1.7.0
 androidx.compose.material:material:1.7.0
@@ -156,7 +157,6 @@ com.github.topjohnwu.libsu:io:6.0.0
 com.github.topjohnwu.libsu:nio:6.0.0
 com.github.topjohnwu.libsu:service:6.0.0
 com.google.accompanist:accompanist-drawablepainter:0.32.0
-com.google.accompanist:accompanist-navigation-material:0.36.0
 com.google.accompanist:accompanist-permissions:0.36.0
 com.google.android.datatransport:transport-api:3.2.0
 com.google.android.datatransport:transport-backend-cct:3.3.0
