@@ -156,8 +156,8 @@ com.github.topjohnwu.libsu:io:6.0.0
 com.github.topjohnwu.libsu:nio:6.0.0
 com.github.topjohnwu.libsu:service:6.0.0
 com.google.accompanist:accompanist-drawablepainter:0.32.0
-com.google.accompanist:accompanist-navigation-material:0.34.0
-com.google.accompanist:accompanist-permissions:0.34.0
+com.google.accompanist:accompanist-navigation-material:0.36.0
+com.google.accompanist:accompanist-permissions:0.36.0
 com.google.android.datatransport:transport-api:3.2.0
 com.google.android.datatransport:transport-backend-cct:3.3.0
 com.google.android.datatransport:transport-runtime:3.3.0
