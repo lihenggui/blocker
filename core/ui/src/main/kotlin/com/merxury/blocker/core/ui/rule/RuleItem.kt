@@ -45,7 +45,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -55,6 +55,7 @@ import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProv
 @Composable
 fun RuleItem(
     item: GeneralRule,
+    modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     onClick: (String) -> Unit = { },
 ) {
@@ -65,7 +66,7 @@ fun RuleItem(
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(animatedColor.value)
             .clickable { onClick(item.id.toString()) }
@@ -134,8 +135,8 @@ private fun MatchedAppIcon(matchedAppCount: Int) {
 }
 
 @Composable
-@ThemePreviews
-fun RuleBasicInfoPreview(
+@PreviewThemes
+private fun RuleBasicInfoPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -147,8 +148,8 @@ fun RuleBasicInfoPreview(
 }
 
 @Composable
-@ThemePreviews
-fun RulePreview(
+@PreviewThemes
+private fun RulePreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {

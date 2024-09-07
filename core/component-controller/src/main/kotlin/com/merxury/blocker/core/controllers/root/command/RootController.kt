@@ -77,19 +77,15 @@ internal class RootController @Inject constructor(
         }
     }
 
-    override suspend fun enable(component: ComponentInfo): Boolean {
-        return switchComponent(
-            component,
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-        )
-    }
+    override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(
+        component,
+        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+    )
 
-    override suspend fun disable(component: ComponentInfo): Boolean {
-        return switchComponent(
-            component,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-        )
-    }
+    override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(
+        component,
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+    )
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
@@ -119,19 +115,15 @@ internal class RootController @Inject constructor(
         return succeededCount
     }
 
-    private fun removeEscapeCharacter(comm: String): String {
-        return comm.replace("$", "\\$")
-    }
+    private fun removeEscapeCharacter(comm: String): String = comm.replace("$", "\\$")
 
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
-    ): Boolean {
-        return ApplicationUtil.checkComponentIsEnabled(
-            context.packageManager,
-            ComponentName(packageName, componentName),
-        )
-    }
+    ): Boolean = ApplicationUtil.checkComponentIsEnabled(
+        context.packageManager,
+        ComponentName(packageName, componentName),
+    )
 
     companion object {
         private const val DISABLE_COMPONENT_TEMPLATE = "pm disable --user %s %s/%s"

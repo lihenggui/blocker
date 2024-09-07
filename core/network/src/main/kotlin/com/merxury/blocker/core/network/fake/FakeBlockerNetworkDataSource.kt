@@ -27,9 +27,7 @@ import javax.inject.Inject
  */
 class FakeBlockerNetworkDataSource @Inject constructor() : BlockerNetworkDataSource {
 
-    override suspend fun getRuleLatestCommitId(provider: RuleServerProvider): NetworkChangeList {
-        return NetworkChangeList("")
-    }
+    override suspend fun getRuleLatestCommitId(provider: RuleServerProvider): NetworkChangeList = NetworkChangeList("")
 
     override suspend fun downloadRules(provider: RuleServerProvider, writer: BinaryFileWriter): Long = 0
 }

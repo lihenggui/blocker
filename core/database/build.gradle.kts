@@ -23,9 +23,6 @@ plugins {
 }
 
 android {
-    defaultConfig {
-        testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
-    }
     namespace = "com.merxury.blocker.core.database"
 }
 
@@ -34,5 +31,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
 
-    androidTestImplementation(projects.core.testing)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }

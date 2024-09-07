@@ -17,6 +17,8 @@
 
 package com.merxury.blocker.ui
 
+import androidx.compose.material.navigation.BottomSheetNavigator
+import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -40,9 +42,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.get
 import androidx.navigation.navOptions
 import androidx.tracing.trace
-import com.google.accompanist.navigation.material.BottomSheetNavigator
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
@@ -60,7 +59,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.TimeZone
 
-@OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
@@ -94,7 +92,6 @@ fun rememberBlockerAppState(
 }
 
 @Stable
-@OptIn(ExperimentalMaterialNavigationApi::class)
 class BlockerAppState(
     val bottomSheetNavigator: BottomSheetNavigator,
     val navController: NavHostController,

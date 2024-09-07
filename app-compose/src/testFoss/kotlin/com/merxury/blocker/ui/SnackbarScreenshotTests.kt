@@ -22,6 +22,8 @@ import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.Dp
@@ -32,8 +34,6 @@ import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -189,7 +189,6 @@ class SnackbarScreenshotTests {
         }
     }
 
-    @OptIn(ExperimentalMaterialNavigationApi::class)
     private fun testSnackbarScreenshotWithSize(
         snackbarHostState: SnackbarHostState,
         width: Dp,
@@ -201,7 +200,9 @@ class SnackbarScreenshotTests {
         composeTestRule.setContent {
             scope = rememberCoroutineScope()
 
-            TestHarness(size = DpSize(width, height)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(width, height)),
+            ) {
                 BoxWithConstraints {
                     val appState = rememberBlockerAppState(
                         windowSizeClass = WindowSizeClass.calculateFromSize(
@@ -215,7 +216,7 @@ class SnackbarScreenshotTests {
                         BlockerApp(
                             appState = appState,
                             snackbarHostState = snackbarHostState,
-                            updateIconBasedThemingState = {},
+                            updateIconThemingState = {},
                         )
                     }
                 }

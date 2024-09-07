@@ -162,24 +162,24 @@ fun scrollbarStateValue(
  * Returns the value of [offset] along the axis specified by [this]
  */
 internal fun Orientation.valueOf(offset: Offset) = when (this) {
-    Orientation.Horizontal -> offset.x
-    Orientation.Vertical -> offset.y
+    Horizontal -> offset.x
+    Vertical -> offset.y
 }
 
 /**
  * Returns the value of [intSize] along the axis specified by [this]
  */
 internal fun Orientation.valueOf(intSize: IntSize) = when (this) {
-    Orientation.Horizontal -> intSize.width
-    Orientation.Vertical -> intSize.height
+    Horizontal -> intSize.width
+    Vertical -> intSize.height
 }
 
 /**
  * Returns the value of [intOffset] along the axis specified by [this]
  */
 internal fun Orientation.valueOf(intOffset: IntOffset) = when (this) {
-    Orientation.Horizontal -> intOffset.x
-    Orientation.Vertical -> intOffset.y
+    Horizontal -> intOffset.x
+    Vertical -> intOffset.y
 }
 
 /**
@@ -189,7 +189,7 @@ internal fun Orientation.valueOf(intOffset: IntOffset) = when (this) {
  * @param minThumbSize the minimum size of the scrollbar thumb
  * @param interactionSource allows for observing the state of the scroll bar
  * @param thumb a composable for drawing the scrollbar thumb
- * @param onThumbMoved an function for reacting to scroll bar displacements caused by direct
+ * @param onThumbMove an function for reacting to scroll bar displacements caused by direct
  * interactions on the scrollbar thumb by the user, for example implementing a fast scroll
  */
 @Composable
@@ -199,7 +199,7 @@ fun Scrollbar(
     modifier: Modifier = Modifier,
     interactionSource: MutableInteractionSource? = null,
     minThumbSize: Dp = 40.dp,
-    onThumbMoved: ((Float) -> Unit)? = null,
+    onThumbMove: ((Float) -> Unit)? = null,
     thumb: @Composable () -> Unit,
 ) {
     // Using Offset.Unspecified and Float.NaN instead of null
@@ -219,8 +219,8 @@ fun Scrollbar(
             .run {
                 val withHover = interactionSource?.let(::hoverable) ?: this
                 when (orientation) {
-                    Orientation.Vertical -> withHover.fillMaxHeight()
-                    Orientation.Horizontal -> withHover.fillMaxWidth()
+                    Vertical -> withHover.fillMaxHeight()
+                    Horizontal -> withHover.fillMaxWidth()
                 }
             }
             .onGloballyPositioned { coordinates ->
@@ -279,25 +279,25 @@ fun Scrollbar(
                     onDrag@{ _, delta ->
                         if (draggedOffset == Offset.Unspecified) return@onDrag
                         draggedOffset = when (orientation) {
-                            Orientation.Vertical -> draggedOffset.copy(
+                            Vertical -> draggedOffset.copy(
                                 y = draggedOffset.y + delta,
                             )
 
-                            Orientation.Horizontal -> draggedOffset.copy(
+                            Horizontal -> draggedOffset.copy(
                                 x = draggedOffset.x + delta,
                             )
                         }
                     }
 
                 when (orientation) {
-                    Orientation.Horizontal -> detectHorizontalDragGestures(
+                    Horizontal -> detectHorizontalDragGestures(
                         onDragStart = onDragStart,
                         onDragEnd = onDragEnd,
                         onDragCancel = onDragCancel,
                         onHorizontalDrag = onDrag,
                     )
 
-                    Orientation.Vertical -> detectVerticalDragGestures(
+                    Vertical -> detectVerticalDragGestures(
                         onDragStart = onDragStart,
                         onDragEnd = onDragEnd,
                         onDragCancel = onDragCancel,
@@ -364,7 +364,7 @@ fun Scrollbar(
         }
     }
 
-    if (onThumbMoved == null) return
+    if (onThumbMove == null) return
 
     // Process presses
     LaunchedEffect(Unit) {
@@ -394,7 +394,7 @@ fun Scrollbar(
                         b = destinationThumbMovedPercent,
                     )
                 }
-                onThumbMoved(currentThumbMovedPercent)
+                onThumbMove(currentThumbMovedPercent)
                 interactionThumbTravelPercent = currentThumbMovedPercent
                 delay(SCROLLBAR_PRESS_DELAY_MS)
             }
@@ -411,7 +411,7 @@ fun Scrollbar(
             val currentTravel = track.thumbPosition(
                 dimension = orientation.valueOf(draggedOffset),
             )
-            onThumbMoved(currentTravel)
+            onThumbMove(currentTravel)
             interactionThumbTravelPercent = currentTravel
         }
     }

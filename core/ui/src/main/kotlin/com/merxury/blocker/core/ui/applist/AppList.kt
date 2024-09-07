@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -64,10 +64,7 @@ fun AppList(
     )
     TrackScrollJank(scrollableState = listState, stateName = "app:list")
     Box(modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = modifier,
-            state = listState,
-        ) {
+        LazyColumn(state = listState) {
             itemsIndexed(appList, key = { _, item -> item.packageName }) { _, item ->
                 val isSelected = highlightSelectedApp && item.packageName == selectedPackageName
                 AppListItem(
@@ -101,7 +98,7 @@ fun AppList(
                 .testTag("appList:scrollbar"),
             state = scrollbarState,
             orientation = Orientation.Vertical,
-            onThumbMoved = listState.rememberDraggableScroller(
+            onThumbMove = listState.rememberDraggableScroller(
                 itemsAvailable = appList.size,
             ),
         )
@@ -109,8 +106,8 @@ fun AppList(
 }
 
 @Composable
-@ThemePreviews
-fun AppListPreview(
+@PreviewThemes
+private fun AppListPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {

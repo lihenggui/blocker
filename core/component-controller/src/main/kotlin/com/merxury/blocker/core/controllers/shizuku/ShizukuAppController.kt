@@ -218,9 +218,7 @@ internal class ShizukuAppController @Inject constructor(
         currentRunningProcess = am.runningAppProcesses ?: mutableListOf()
     }
 
-    override fun isAppRunning(packageName: String): Boolean {
-        return currentRunningProcess.any { packageName in it.pkgList }
-    }
+    override fun isAppRunning(packageName: String): Boolean = currentRunningProcess.any { packageName in it.pkgList }
 
     private fun openAppDetails(packageName: String) {
         Timber.i("Open app details for $packageName")

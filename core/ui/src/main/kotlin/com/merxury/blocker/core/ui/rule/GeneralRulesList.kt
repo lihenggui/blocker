@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -61,12 +61,12 @@ fun GeneralRulesList(
     )
     Box(modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = modifier.testTag("rule:list"),
+            modifier = Modifier.testTag("rule:list"),
             state = listState,
         ) {
             if (matchedRules.isNotEmpty()) {
                 item {
-                    RuleItemHeader(title = stringResource(id = R.string.core_ui_matched_rules))
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_found))
                 }
                 items(matchedRules, key = { it.id }) {
                     val isSelected = highlightSelectedRule && it.id.toString() == selectedRuleId
@@ -84,7 +84,7 @@ fun GeneralRulesList(
             }
             if (unmatchedRules.isNotEmpty()) {
                 item {
-                    RuleItemHeader(title = stringResource(id = R.string.core_ui_unmatched_rules))
+                    RuleItemHeader(title = stringResource(id = R.string.core_ui_not_found))
                 }
                 items(unmatchedRules, key = { it.id }) {
                     val isSelected = highlightSelectedRule && it.id.toString() == selectedRuleId
@@ -107,7 +107,7 @@ fun GeneralRulesList(
                 .testTag("rule:scrollbar"),
             state = scrollbarState,
             orientation = Vertical,
-            onThumbMoved = listState.rememberDraggableScroller(
+            onThumbMove = listState.rememberDraggableScroller(
                 itemsAvailable = matchedRules.size + unmatchedRules.size,
             ),
         )
@@ -115,8 +115,8 @@ fun GeneralRulesList(
 }
 
 @Composable
-@ThemePreviews
-fun GeneralRuleScreenPreview(
+@PreviewThemes
+private fun GeneralRuleScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {

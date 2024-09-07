@@ -159,17 +159,15 @@ class ImportMatRulesWorker @AssistedInject constructor(
             fileUri: Uri,
             controllerType: ControllerType,
             restoreSystemApps: Boolean,
-        ): OneTimeWorkRequest {
-            return OneTimeWorkRequestBuilder<ImportMatRulesWorker>()
-                .setInputData(
-                    workDataOf(
-                        PARAM_FILE_URI to fileUri.toString(),
-                        PARAM_CONTROLLER_TYPE to controllerType.ordinal,
-                        PARAM_RESTORE_SYS_APPS to restoreSystemApps,
-                    ),
-                )
-                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                .build()
-        }
+        ): OneTimeWorkRequest = OneTimeWorkRequestBuilder<ImportMatRulesWorker>()
+            .setInputData(
+                workDataOf(
+                    PARAM_FILE_URI to fileUri.toString(),
+                    PARAM_CONTROLLER_TYPE to controllerType.ordinal,
+                    PARAM_RESTORE_SYS_APPS to restoreSystemApps,
+                ),
+            )
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
     }
 }

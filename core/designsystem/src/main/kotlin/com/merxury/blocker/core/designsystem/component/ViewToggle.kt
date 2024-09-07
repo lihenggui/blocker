@@ -51,10 +51,10 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 fun BlockerViewToggleButton(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
     compactText: @Composable () -> Unit,
     expandedText: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     TextButton(
         onClick = { onExpandedChange(!expanded) },
@@ -88,16 +88,16 @@ fun BlockerViewToggleButton(
 private fun BlockerViewToggleButtonContent(
     text: @Composable () -> Unit,
     trailingIcon: @Composable (() -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     Box(
-        Modifier
-            .padding(
-                end = if (trailingIcon != null) {
-                    ButtonDefaults.IconSpacing
-                } else {
-                    0.dp
-                },
-            ),
+        modifier.padding(
+            end = if (trailingIcon != null) {
+                ButtonDefaults.IconSpacing
+            } else {
+                0.dp
+            },
+        ),
     ) {
         ProvideTextStyle(value = MaterialTheme.typography.labelSmall) {
             text()
@@ -110,9 +110,9 @@ private fun BlockerViewToggleButtonContent(
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun ViewTogglePreviewExpanded() {
+private fun ViewTogglePreviewExpanded() {
     BlockerTheme {
         Surface {
             BlockerViewToggleButton(
@@ -127,7 +127,7 @@ fun ViewTogglePreviewExpanded() {
 
 @Preview
 @Composable
-fun ViewTogglePreviewCompact() {
+private fun ViewTogglePreviewCompact() {
     BlockerTheme {
         Surface {
             BlockerViewToggleButton(

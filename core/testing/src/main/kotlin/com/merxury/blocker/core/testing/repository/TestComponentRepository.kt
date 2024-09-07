@@ -31,34 +31,24 @@ class TestComponentRepository : ComponentRepository {
     private val componentList: MutableSharedFlow<List<ComponentInfo>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
-    override fun getComponent(name: String): Flow<ComponentInfo?> {
-        return componentList.map {
-            it.find { componentInfo -> componentInfo.name == name }
-        }
+    override fun getComponent(name: String): Flow<ComponentInfo?> = componentList.map {
+        it.find { componentInfo -> componentInfo.name == name }
     }
 
-    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> {
-        return componentList.map {
-            it.filter { componentInfo -> componentInfo.packageName == packageName }
-        }
+    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = componentList.map {
+        it.filter { componentInfo -> componentInfo.packageName == packageName }
     }
 
     override fun getComponentList(
         packageName: String,
         type: ComponentType,
-    ): Flow<List<ComponentInfo>> {
-        return componentList.map {
-            it.filter { componentInfo -> componentInfo.packageName == packageName && componentInfo.type == type }
-        }
+    ): Flow<List<ComponentInfo>> = componentList.map {
+        it.filter { componentInfo -> componentInfo.packageName == packageName && componentInfo.type == type }
     }
 
-    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> {
-        return flowOf(Result.Success(Unit))
-    }
+    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
 
-    override fun updateComponentList(packageName: String): Flow<Result<Unit>> {
-        return flowOf(Result.Success(Unit))
-    }
+    override fun updateComponentList(packageName: String): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
 
     override fun controlComponent(
         component: ComponentInfo,
@@ -70,10 +60,8 @@ class TestComponentRepository : ComponentRepository {
         newState: Boolean,
     ): Flow<ComponentInfo> = flowOf(components.first())
 
-    override fun searchComponent(keyword: String): Flow<List<ComponentInfo>> {
-        return componentList.map {
-            it.filter { componentInfo -> componentInfo.name.contains(keyword) }
-        }
+    override fun searchComponent(keyword: String): Flow<List<ComponentInfo>> = componentList.map {
+        it.filter { componentInfo -> componentInfo.name.contains(keyword) }
     }
 
     override suspend fun saveComponents(components: List<ComponentInfo>) {

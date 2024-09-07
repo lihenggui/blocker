@@ -24,10 +24,13 @@ import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.PermissionUtils
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -38,12 +41,11 @@ internal class AppStateCache @Inject constructor(
     @RootApiControl private val rootController: IController,
     @RootApiServiceControl private val rootServiceController: IServiceController,
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IAppStateCache {
     private val cache = mutableMapOf<String, AppServiceStatus>()
 
-    override fun getOrNull(packageName: String): AppServiceStatus? {
-        return cache[packageName]
-    }
+    override fun getOrNull(packageName: String): AppServiceStatus? = cache[packageName]
 
     override suspend fun get(packageName: String): AppServiceStatus {
         val cachedResult = cache[packageName]
@@ -63,7 +65,7 @@ internal class AppStateCache @Inject constructor(
         var running = 0
         var blocked = 0
         for (service in services) {
-            val ifwState = if (PermissionUtils.isRootAvailable()) {
+            val ifwState = if (PermissionUtils.isRootAvailable(ioDispatcher)) {
                 ifwController.checkComponentEnableState(packageName, service.name)
             } else {
                 true

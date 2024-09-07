@@ -36,7 +36,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.process.ExecOperations
@@ -104,13 +104,25 @@ abstract class CheckBadgingTask : DefaultTask() {
             "Generated badging is different from golden badging! " +
                 "If this change is intended, run ./gradlew ${updateBadgingTaskName.get()}",
         )
-            .that(generatedBadging.readText().dropFirstLine())
-            .isEqualTo(goldenBadging.readText().dropFirstLine())
+            .that(
+                generatedBadging.readText()
+                    .dropFirstLine()
+                    .trimSpaceForEachLine(),
+            )
+            .isEqualTo(
+                goldenBadging.readText()
+                    .dropFirstLine()
+                    .trimSpaceForEachLine(),
+            )
     }
 }
 
 private fun String.dropFirstLine(): String {
     return this.substringAfter('\n')
+}
+
+private fun String.trimSpaceForEachLine(): String {
+    return this.lines().joinToString("\n") { it.trim() }
 }
 
 fun Project.configureBadgingTasks(
@@ -120,26 +132,20 @@ fun Project.configureBadgingTasks(
     // Registers a callback to be called, when a new variant is configured
     componentsExtension.onVariants { variant ->
         // Registers a new task to verify the app bundle.
-        val capitalizedVariantName = variant.name.capitalized()
+        val capitalizedVariantName = variant.name
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         val generateBadgingTaskName = "generate${capitalizedVariantName}Badging"
         val generateBadging = tasks.register<GenerateBadgingTask>(generateBadgingTaskName) {
-            apk.set(
-                variant.artifacts.get(SingleArtifact.APK_FROM_BUNDLE),
-            )
-            aapt2Executable.set(
-                File(
+            apk = variant.artifacts.get(SingleArtifact.APK_FROM_BUNDLE)
+            aapt2Executable = File(
                     baseExtension.sdkDirectory,
                     "${SdkConstants.FD_BUILD_TOOLS}/" +
                         "${baseExtension.buildToolsVersion}/" +
                         SdkConstants.FN_AAPT2,
-                ),
-            )
-
-            badging.set(
-                project.layout.buildDirectory.file(
+                )
+            badging = project.layout.buildDirectory.file(
                     "outputs/apk_from_bundle/${variant.name}/${variant.name}-badging.txt",
-                ),
-            )
+                )
         }
         val updateBadgingTaskName = "update${capitalizedVariantName}Badging"
         tasks.register<Copy>(updateBadgingTaskName) {
@@ -149,16 +155,10 @@ fun Project.configureBadgingTasks(
 
         val checkBadgingTaskName = "check${capitalizedVariantName}Badging"
         tasks.register<CheckBadgingTask>(checkBadgingTaskName) {
-            goldenBadging.set(
-                project.layout.projectDirectory.file("${variant.name}-badging.txt"),
-            )
-            generatedBadging.set(
-                generateBadging.get().badging,
-            )
+            goldenBadging = project.layout.projectDirectory.file("${variant.name}-badging.txt")
+            generatedBadging = generateBadging.get().badging
             this.updateBadgingTaskName.set(updateBadgingTaskName)
-            output.set(
-                project.layout.buildDirectory.dir("intermediates/$checkBadgingTaskName"),
-            )
+            output = project.layout.buildDirectory.dir("intermediates/$checkBadgingTaskName")
         }
     }
 }

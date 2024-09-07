@@ -20,21 +20,13 @@ import com.merxury.blocker.core.controllers.IServiceController
 
 class FakeServiceController : IServiceController {
     private val runningServices = mutableListOf<String>()
-    override suspend fun load(): Boolean {
-        return true
-    }
+    override suspend fun load(): Boolean = true
 
-    override fun isServiceRunning(packageName: String, serviceName: String): Boolean {
-        return runningServices.contains(serviceName)
-    }
+    override fun isServiceRunning(packageName: String, serviceName: String): Boolean = runningServices.contains(serviceName)
 
-    override suspend fun stopService(packageName: String, serviceName: String): Boolean {
-        return true
-    }
+    override suspend fun stopService(packageName: String, serviceName: String): Boolean = true
 
-    override suspend fun startService(packageName: String, serviceName: String): Boolean {
-        return true
-    }
+    override suspend fun startService(packageName: String, serviceName: String): Boolean = true
 
     fun sendRunningServices(vararg name: String) {
         runningServices.addAll(name)

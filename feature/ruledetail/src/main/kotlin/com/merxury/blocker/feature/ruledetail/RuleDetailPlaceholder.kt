@@ -65,7 +65,7 @@ fun RuleDetailPlaceholder(modifier: Modifier = Modifier) {
 
 @Preview(widthDp = 200, heightDp = 300)
 @Composable
-fun RuleDetailPlaceholderPreview() {
+private fun RuleDetailPlaceholderPreview() {
     BlockerTheme {
         RuleDetailPlaceholder()
     }

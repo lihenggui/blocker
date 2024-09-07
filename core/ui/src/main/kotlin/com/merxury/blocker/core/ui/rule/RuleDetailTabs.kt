@@ -22,9 +22,7 @@ sealed class RuleDetailTabs(val name: String, val title: Int = 0) {
     object Description : RuleDetailTabs(DESCRIPTION, title = R.string.core_ui_description)
     object Applicable : RuleDetailTabs(APPLICABLE, title = R.string.core_ui_applicable_application)
 
-    override fun toString(): String {
-        return "Screen name = $name"
-    }
+    override fun toString(): String = "Screen name = $name"
 
     companion object {
         private const val DESCRIPTION = "description"

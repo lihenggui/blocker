@@ -84,14 +84,13 @@ fun DynamicAsyncImage(
             painter = if (isError.not() && !isLocalInspection) imageLoader else placeholder,
             contentDescription = contentDescription,
             colorFilter = if (iconTint != Unspecified) ColorFilter.tint(iconTint) else null,
-            modifier = modifier,
         )
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun DynamicAsyncImagePreview() {
+private fun DynamicAsyncImagePreview() {
     BlockerTheme {
         Surface {
             DynamicAsyncImage(

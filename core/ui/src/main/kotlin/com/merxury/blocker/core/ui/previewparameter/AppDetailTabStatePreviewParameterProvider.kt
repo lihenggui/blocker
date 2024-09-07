@@ -26,8 +26,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 
-class AppDetailTabStatePreviewParameterProvider :
-    PreviewParameterProvider<List<TabState<AppDetailTabs>>> {
+class AppDetailTabStatePreviewParameterProvider : PreviewParameterProvider<List<TabState<AppDetailTabs>>> {
     override val values: Sequence<List<TabState<AppDetailTabs>>> = sequenceOf(
         listOf(
             TabState(

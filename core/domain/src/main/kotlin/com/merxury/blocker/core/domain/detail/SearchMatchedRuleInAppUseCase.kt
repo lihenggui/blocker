@@ -46,38 +46,36 @@ class SearchMatchedRuleInAppUseCase @Inject constructor(
     @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(DEFAULT) private val dispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(packageName: String): Flow<List<MatchedItem>> {
-        return combine(
-            ruleRepository.getGeneralRules(),
-            componentRepository.getComponentList(packageName),
-        ) { rules, components ->
-            rules.mapNotNull { rule ->
-                findMatchedComponents(rule, components)
-            }.map { (rule, matchedComponents) ->
-                val iconUrl = rule.iconUrl?.let { url ->
-                    filesDir
-                        .resolve(ruleBaseFolder)
-                        .resolve(url)
-                }
-                val componentsWithDescription = matchedComponents.map { component ->
-                    val desc = componentDetailRepository.getLocalComponentDetail(component.name)
-                        .first()
-                        ?.description
-                    if (desc != null) {
-                        component.copy(description = desc)
-                    } else {
-                        component
-                    }
-                }
-                MatchedItem(
-                    header = MatchedHeaderData(
-                        title = rule.name,
-                        uniqueId = rule.id.toString(),
-                        icon = iconUrl,
-                    ),
-                    componentList = componentsWithDescription,
-                )
+    operator fun invoke(packageName: String): Flow<List<MatchedItem>> = combine(
+        ruleRepository.getGeneralRules(),
+        componentRepository.getComponentList(packageName),
+    ) { rules, components ->
+        rules.mapNotNull { rule ->
+            findMatchedComponents(rule, components)
+        }.map { (rule, matchedComponents) ->
+            val iconUrl = rule.iconUrl?.let { url ->
+                filesDir
+                    .resolve(ruleBaseFolder)
+                    .resolve(url)
             }
+            val componentsWithDescription = matchedComponents.map { component ->
+                val desc = componentDetailRepository.getLocalComponentDetail(component.name)
+                    .first()
+                    ?.description
+                if (desc != null) {
+                    component.copy(description = desc)
+                } else {
+                    component
+                }
+            }
+            MatchedItem(
+                header = MatchedHeaderData(
+                    title = rule.name,
+                    uniqueId = rule.id.toString(),
+                    icon = iconUrl,
+                ),
+                componentList = componentsWithDescription,
+            )
         }
     }
 

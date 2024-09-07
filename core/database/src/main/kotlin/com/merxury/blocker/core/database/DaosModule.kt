@@ -31,18 +31,12 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 internal object DaosModule {
     @Provides
-    fun provideInstalledAppDao(database: InstalledAppDatabase): InstalledAppDao {
-        return database.installedAppDao()
-    }
+    fun provideInstalledAppDao(database: InstalledAppDatabase): InstalledAppDao = database.installedAppDao()
 
     @Provides
-    fun provideAppComponentDao(database: InstalledAppDatabase): AppComponentDao {
-        return database.appComponentDao()
-    }
+    fun provideAppComponentDao(database: InstalledAppDatabase): AppComponentDao = database.appComponentDao()
 
     @Provides
     @Singleton
-    fun provideGeneralRuleDao(database: GeneralRuleDatabase): GeneralRuleDao {
-        return database.generalRuleDao()
-    }
+    fun provideGeneralRuleDao(database: GeneralRuleDatabase): GeneralRuleDao = database.generalRuleDao()
 }

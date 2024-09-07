@@ -12,13 +12,12 @@ updates:
     registries: "*"
     labels: [ "version update" ]
     groups:
-      kotlin-ksp-compose:
+      kotlin-ksp:
         patterns:
           - "org.jetbrains.kotlin:*"
           - "org.jetbrains.kotlin.jvm"
           - "com.google.devtools.ksp"
           - "com.google.devtools.ksp.gradle.plugin"
-          - "androidx.compose.compiler:compiler"
       gradle-plugin-and-build-tools:
         patterns:
           - "com.android.tools.build:gradle"

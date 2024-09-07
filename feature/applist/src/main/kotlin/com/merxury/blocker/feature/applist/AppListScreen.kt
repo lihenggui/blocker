@@ -48,7 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
@@ -157,10 +157,11 @@ fun AppListScreen(
                 },
             )
         },
+        modifier = modifier,
     ) { padding ->
 
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .windowInsetsPadding(
@@ -180,7 +181,7 @@ fun AppListScreen(
                         refreshing = uiState.isRefreshing,
                         onRefresh = onRefresh,
                     )
-                    Box(modifier = modifier.pullRefresh(refreshingState)) {
+                    Box(modifier = Modifier.pullRefresh(refreshingState)) {
                         if (appList.isEmpty()) {
                             EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
                         } else {
@@ -195,7 +196,7 @@ fun AppListScreen(
                                 onUninstallClick = onUninstallClick,
                                 onEnableClick = onEnableClick,
                                 onDisableClick = onDisableClick,
-                                modifier = modifier.testTag(appListTestTag),
+                                modifier = Modifier.testTag(appListTestTag),
                             )
                         }
                         PullRefreshIndicator(
@@ -214,9 +215,9 @@ fun AppListScreen(
     TrackScreenViewEvent(screenName = "AppListScreen")
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun AppListScreenPreview(
+private fun AppListScreenPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class) appList: List<AppItem>,
 ) {
     BlockerTheme {
@@ -226,9 +227,9 @@ fun AppListScreenPreview(
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun AppListScreenInitialPreview() {
+private fun AppListScreenInitialPreview() {
     BlockerTheme {
         Surface {
             AppListScreen(uiState = Initializing("Blocker"), appList = listOf())
@@ -236,9 +237,9 @@ fun AppListScreenInitialPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun AppListScreenErrorPreview() {
+private fun AppListScreenErrorPreview() {
     BlockerTheme {
         Surface {
             AppListScreen(uiState = Error(UiMessage("Error")), appList = listOf())
@@ -246,9 +247,9 @@ fun AppListScreenErrorPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun AppListScreenEmptyPreview() {
+private fun AppListScreenEmptyPreview() {
     BlockerTheme {
         Surface {
             AppListScreen(uiState = Success(), appList = listOf())

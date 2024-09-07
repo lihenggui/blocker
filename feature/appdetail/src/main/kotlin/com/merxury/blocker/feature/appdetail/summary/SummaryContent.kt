@@ -88,15 +88,16 @@ fun AppSummary(
     minSdkVersion: Int,
     lastUpdateTime: Instant?,
     dataDir: String?,
+    modifier: Modifier = Modifier,
     isLibCheckerInstalled: Boolean = false,
     onShowAppInfoClick: () -> Unit = {},
-    onExportRules: () -> Unit,
-    onImportRules: () -> Unit,
-    onExportIfw: () -> Unit,
-    onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit,
+    onExportRules: () -> Unit = {},
+    onImportRules: () -> Unit = {},
+    onExportIfw: () -> Unit = {},
+    onImportIfw: () -> Unit = {},
+    onResetIfw: () -> Unit = {},
 ) {
-    Column {
+    Column(modifier = modifier) {
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_target_sdk_version),
             summary = stringResource(
@@ -146,13 +147,11 @@ fun AppSummary(
 
 @Composable
 fun BlockerRuleSection(
-    onExportRules: () -> Unit,
-    onImportRules: () -> Unit,
+    modifier: Modifier = Modifier,
+    onExportRules: () -> Unit = {},
+    onImportRules: () -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         ItemHeader(title = stringResource(id = string.feature_appdetail_blocker_rules))
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_export_rules),
@@ -167,14 +166,12 @@ fun BlockerRuleSection(
 
 @Composable
 fun IfwRuleSection(
-    onExportIfw: () -> Unit,
-    onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit,
+    modifier: Modifier = Modifier,
+    onExportIfw: () -> Unit = {},
+    onImportIfw: () -> Unit = {},
+    onResetIfw: () -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         ItemHeader(title = stringResource(id = string.feature_appdetail_ifw_rules))
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_export_ifw_rules),
@@ -193,7 +190,7 @@ fun IfwRuleSection(
 
 @Composable
 @Preview
-fun PreviewAppInfoTabContent() {
+private fun PreviewAppInfoTabContent() {
     val app = AppItem(
         label = "Blocker",
         packageName = "com.mercury.blocker",

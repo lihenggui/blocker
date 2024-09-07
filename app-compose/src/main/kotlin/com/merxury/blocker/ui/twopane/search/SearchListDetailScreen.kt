@@ -131,10 +131,10 @@ internal fun SearchListDetailScreen(
     selectedRuleId: String? = null,
     searchKeyword: List<String> = listOf(),
     onAppClick: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    onRuleClick: (String) -> Unit,
-    updateIconThemingState: (IconThemingState) -> Unit,
-    navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
+    onRuleClick: (String) -> Unit = {},
+    updateIconThemingState: (IconThemingState) -> Unit = {},
+    navigateToComponentDetail: (String) -> Unit = {},
+    navigateToComponentSortScreen: () -> Unit = {},
 ) {
     val listDetailNavigator = rememberListDetailPaneScaffoldNavigator()
     BackHandler(listDetailNavigator.canNavigateBack()) {

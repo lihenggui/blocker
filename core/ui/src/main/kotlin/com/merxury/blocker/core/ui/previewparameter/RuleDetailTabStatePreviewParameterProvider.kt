@@ -22,8 +22,7 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 
-class RuleDetailTabStatePreviewParameterProvider :
-    PreviewParameterProvider<List<TabState<RuleDetailTabs>>> {
+class RuleDetailTabStatePreviewParameterProvider : PreviewParameterProvider<List<TabState<RuleDetailTabs>>> {
     override val values: Sequence<List<TabState<RuleDetailTabs>>> = sequenceOf(
         listOf(
             TabState(

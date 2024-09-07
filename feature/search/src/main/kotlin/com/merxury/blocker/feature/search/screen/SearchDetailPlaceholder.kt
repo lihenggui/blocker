@@ -65,7 +65,7 @@ fun SearchDetailPlaceholder(modifier: Modifier = Modifier) {
 
 @Preview(widthDp = 200, heightDp = 300)
 @Composable
-fun AppDetailPlaceholderPreview() {
+private fun AppDetailPlaceholderPreview() {
     BlockerTheme {
         SearchDetailPlaceholder()
     }

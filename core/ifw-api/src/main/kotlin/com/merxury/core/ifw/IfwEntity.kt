@@ -51,9 +51,7 @@ data class Rules(
     val service: Service = Service(),
 ) {
     companion object {
-        fun decodeFromString(parser: StringFormat, content: String): Rules {
-            return parser.decodeFromString(content)
-        }
+        fun decodeFromString(parser: StringFormat, content: String): Rules = parser.decodeFromString(content)
     }
 }
 

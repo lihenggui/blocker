@@ -46,7 +46,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
@@ -69,12 +68,13 @@ import com.merxury.blocker.navigation.TopLevelDestination
 @Composable
 fun BlockerApp(
     appState: BlockerAppState,
+    modifier: Modifier = Modifier,
     updateIconThemingState: (IconThemingState) -> Unit = {},
 ) {
     val shouldShowGradientBackground =
         appState.currentTopLevelDestination == TopLevelDestination.APP
 
-    BlockerBackground {
+    BlockerBackground(modifier = modifier) {
         BlockerGradientBackground(
             gradientColors = if (shouldShowGradientBackground) {
                 LocalGradientColors.current
@@ -113,7 +113,7 @@ fun BlockerApp(
 }
 
 @Composable
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialNavigationApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 internal fun BlockerApp(
     appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,

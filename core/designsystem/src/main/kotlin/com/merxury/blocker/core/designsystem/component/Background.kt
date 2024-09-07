@@ -146,51 +146,51 @@ fun BlockerGradientBackground(
  */
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light theme")
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark theme")
-annotation class ThemePreviews
+annotation class PreviewThemes
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BackgroundDefault() {
+private fun BackgroundDefault() {
     BlockerTheme(useDynamicTheming = false) {
         BlockerBackground(Modifier.size(100.dp), content = {})
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BackgroundDynamic() {
+private fun BackgroundDynamic() {
     BlockerTheme {
         BlockerBackground(Modifier.size(100.dp), content = {})
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BackgroundAndroid() {
+private fun BackgroundAndroid() {
     BlockerTheme(blockerTheme = true) {
         BlockerBackground(Modifier.size(100.dp), content = {})
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun GradientBackgroundDefault() {
+private fun GradientBackgroundDefault() {
     BlockerTheme {
         BlockerGradientBackground(Modifier.size(100.dp), content = {})
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun GradientBackgroundDynamic() {
+private fun GradientBackgroundDynamic() {
     BlockerTheme {
         BlockerGradientBackground(Modifier.size(100.dp), content = {})
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun GradientBackgroundAndroid() {
+private fun GradientBackgroundAndroid() {
     BlockerTheme(blockerTheme = true) {
         BlockerGradientBackground(Modifier.size(100.dp), content = {})
     }

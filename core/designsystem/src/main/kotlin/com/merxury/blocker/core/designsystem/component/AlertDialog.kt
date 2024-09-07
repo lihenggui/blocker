@@ -39,8 +39,8 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 fun BlockerErrorAlertDialog(
     title: String,
     text: String,
-    onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
 ) {
     val scrollState = rememberScrollState(0)
     AlertDialog(
@@ -154,9 +154,11 @@ fun BlockerButtonAlertDialog(
     title: String,
     buttons: @Composable () -> Unit,
     onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
+        modifier = modifier,
     ) {
         Surface(
             shape = MaterialTheme.shapes.large,
@@ -180,7 +182,7 @@ fun BlockerButtonAlertDialog(
 
 @Preview
 @Composable
-fun BlockerButtonAlertDialogPreview() {
+private fun BlockerButtonAlertDialogPreview() {
     BlockerTheme {
         BlockerButtonAlertDialog(
             onDismissRequest = {},
@@ -202,9 +204,9 @@ fun BlockerButtonAlertDialogPreview() {
 }
 
 @Preview
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerErrorAlertDialogPreview() {
+private fun BlockerErrorAlertDialogPreview() {
     BlockerTheme {
         Surface {
             BlockerErrorAlertDialog(
@@ -216,9 +218,9 @@ fun BlockerErrorAlertDialogPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerWarningAlertDialogPreview() {
+private fun BlockerWarningAlertDialogPreview() {
     BlockerTheme {
         Surface {
             BlockerWarningAlertDialog(
@@ -231,9 +233,9 @@ fun BlockerWarningAlertDialogPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerConfirmAlertDialogPreview() {
+private fun BlockerConfirmAlertDialogPreview() {
     BlockerTheme {
         Surface {
             BlockerConfirmAlertDialog(

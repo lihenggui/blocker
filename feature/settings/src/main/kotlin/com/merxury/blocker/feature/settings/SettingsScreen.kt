@@ -56,6 +56,8 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.supportsDynamicTheming
 import com.merxury.blocker.core.model.data.ControllerType
@@ -72,7 +74,8 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.ui.BlockerSettingItem
-import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.ItemHeader
+import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
@@ -82,6 +85,7 @@ import com.merxury.blocker.feature.settings.item.BackupSettings
 import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
 import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
+import com.merxury.blocker.feature.settings.item.SwitchSettingItem
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -112,6 +116,7 @@ fun SettingsRoute(
         onChangeBackupSystemApp = viewModel::updateBackupSystemApp,
         onChangeRestoreSystemApp = viewModel::updateRestoreSystemApp,
         onChangeRuleBackupFolder = viewModel::updateRuleBackupFolder,
+        onChangeCheckedStatistics = viewModel::updateCheckedStatistics,
         importRules = viewModel::importBlockerRules,
         exportRules = viewModel::exportBlockerRules,
         importIfwRules = viewModel::importIfwRules,
@@ -185,6 +190,7 @@ fun SettingsScreen(
     onChangeBackupSystemApp: (Boolean) -> Unit = { },
     onChangeRestoreSystemApp: (Boolean) -> Unit = { },
     onChangeRuleBackupFolder: (Uri?) -> Unit = { },
+    onChangeCheckedStatistics: (Boolean) -> Unit = { },
     exportRules: () -> Unit = { },
     importRules: () -> Unit = { },
     exportIfwRules: () -> Unit = { },
@@ -193,6 +199,7 @@ fun SettingsScreen(
     importMatRules: (Uri?) -> Unit = { },
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             BlockerTopAppBar(
                 title = stringResource(id = string.feature_settings_settings),
@@ -202,7 +209,7 @@ fun SettingsScreen(
         },
     ) { padding ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .windowInsetsPadding(
@@ -221,6 +228,7 @@ fun SettingsScreen(
                 is Success -> {
                     SettingsContent(
                         settings = uiState.settings,
+                        allowStatistics = uiState.allowStatistics,
                         supportDynamicColor = supportsDynamicTheming(),
                         snackbarHostState = snackbarHostState,
                         onChangeControllerType = onChangeControllerType,
@@ -234,6 +242,7 @@ fun SettingsScreen(
                         onChangeBackupSystemApp = onChangeBackupSystemApp,
                         onChangeRestoreSystemApp = onChangeRestoreSystemApp,
                         onChangeRuleBackupFolder = onChangeRuleBackupFolder,
+                        onChangeCheckedStatistics = onChangeCheckedStatistics,
                         exportRules = exportRules,
                         importRules = importRules,
                         exportIfwRules = exportIfwRules,
@@ -250,6 +259,7 @@ fun SettingsScreen(
 @Composable
 fun SettingsContent(
     settings: UserEditableSettings,
+    allowStatistics: Boolean,
     supportDynamicColor: Boolean,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
@@ -264,6 +274,7 @@ fun SettingsContent(
     onChangeBackupSystemApp: (Boolean) -> Unit = { },
     onChangeRestoreSystemApp: (Boolean) -> Unit = { },
     onChangeRuleBackupFolder: (Uri?) -> Unit = { },
+    onChangeCheckedStatistics: (Boolean) -> Unit = { },
     exportRules: () -> Unit = { },
     importRules: () -> Unit = { },
     exportIfwRules: () -> Unit = { },
@@ -291,7 +302,6 @@ fun SettingsContent(
         )
         HorizontalDivider()
         ThemeSettings(
-            modifier = modifier,
             settings = settings,
             supportDynamicColor = supportDynamicColor,
             onChangeDynamicColorPreference = onChangeDynamicColorPreference,
@@ -323,6 +333,10 @@ fun SettingsContent(
             resetIfwRules = resetIfwRules,
         )
         HorizontalDivider()
+        ItemHeader(
+            title = stringResource(id = string.feature_settings_others),
+            extraIconPadding = true,
+        )
         BlockerSettingItem(
             title = stringResource(id = string.feature_settings_import_mat_rules),
             onItemClick = {
@@ -340,13 +354,22 @@ fun SettingsContent(
             },
             extraIconPadding = true,
         )
+
+        SwitchSettingItem(
+            itemRes = string.feature_settings_anonymous_statistics,
+            itemSummaryRes = string.feature_settings_anonymous_statistics_summary,
+            checked = settings.enableStatistics,
+            onCheckedChange = onChangeCheckedStatistics,
+            enabled = allowStatistics,
+            icon = ImageVectorIcon(BlockerIcons.Analytics),
+        )
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
     }
 }
 
 @Composable
-@DevicePreviews
-fun SettingsScreenPreview() {
+@PreviewDevices
+private fun SettingsScreenPreview() {
     BlockerTheme {
         Surface {
             SettingsScreen(
@@ -361,6 +384,7 @@ fun SettingsScreenPreview() {
                         showServiceInfo = true,
                         darkThemeConfig = FOLLOW_SYSTEM,
                         useDynamicColor = false,
+                        enableStatistics = true,
                     ),
                 ),
             )

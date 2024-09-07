@@ -39,7 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBarWithProgress
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
@@ -55,8 +55,8 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 
 @Composable
 fun GeneralRulesRoute(
-    highlightSelectedRule: Boolean = false,
     navigateToRuleDetail: (String) -> Unit,
+    highlightSelectedRule: Boolean = false,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -80,15 +80,16 @@ fun GeneralRulesRoute(
 
 @Composable
 fun GeneralRulesScreen(
+    uiState: GeneralRuleUiState,
     modifier: Modifier = Modifier,
     highlightSelectedRule: Boolean = false,
-    uiState: GeneralRuleUiState,
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             BlockerTopAppBarWithProgress(
-                title = stringResource(id = R.string.feature_generalrule_rules),
+                title = stringResource(id = R.string.feature_generalrule_sdk_trackers),
                 progress = if (uiState is Success) {
                     uiState.matchProgress
                 } else {
@@ -98,7 +99,7 @@ fun GeneralRulesScreen(
         },
     ) { padding ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .windowInsetsPadding(
@@ -124,7 +125,6 @@ fun GeneralRulesScreen(
                         navigateToRuleDetail(id)
                         analyticsHelper.logGeneralRuleClicked(id)
                     },
-                    modifier = modifier,
                 )
 
                 is Error -> ErrorScreen(error = uiState.error)
@@ -135,8 +135,8 @@ fun GeneralRulesScreen(
 }
 
 @Composable
-@ThemePreviews
-fun GeneralRuleScreenMatchProgressPreview(
+@PreviewThemes
+private fun GeneralRuleScreenMatchProgressPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -153,7 +153,7 @@ fun GeneralRuleScreenMatchProgressPreview(
 
 @Composable
 @Preview
-fun GeneralRuleScreenMatchedCompletedPreview(
+private fun GeneralRuleScreenMatchedCompletedPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -170,7 +170,7 @@ fun GeneralRuleScreenMatchedCompletedPreview(
 
 @Composable
 @Preview
-fun GeneralRuleScreenMatchStartPreview(
+private fun GeneralRuleScreenMatchStartPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -186,8 +186,8 @@ fun GeneralRuleScreenMatchStartPreview(
 }
 
 @Composable
-@ThemePreviews
-fun GeneralRuleScreenLoading() {
+@PreviewThemes
+private fun GeneralRuleScreenLoading() {
     BlockerTheme {
         Surface {
             GeneralRulesScreen(
@@ -198,8 +198,8 @@ fun GeneralRuleScreenLoading() {
 }
 
 @Composable
-@ThemePreviews
-fun GeneralRuleScreenError() {
+@PreviewThemes
+private fun GeneralRuleScreenError() {
     BlockerTheme {
         Surface {
             GeneralRulesScreen(

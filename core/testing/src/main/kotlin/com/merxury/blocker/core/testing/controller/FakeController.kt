@@ -33,13 +33,9 @@ class FakeController(private val rootGranted: Boolean = false) : IController {
         }
     }
 
-    override suspend fun enable(component: ComponentInfo): Boolean {
-        return switchComponent(component, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
-    }
+    override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(component, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
 
-    override suspend fun disable(component: ComponentInfo): Boolean {
-        return switchComponent(component, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
-    }
+    override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(component, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
@@ -66,7 +62,5 @@ class FakeController(private val rootGranted: Boolean = false) : IController {
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
-    ): Boolean {
-        return true
-    }
+    ): Boolean = true
 }

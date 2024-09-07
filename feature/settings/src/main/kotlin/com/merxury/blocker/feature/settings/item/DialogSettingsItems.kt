@@ -52,16 +52,17 @@ import com.merxury.blocker.feature.settings.R
 
 @Composable
 fun <T> DialogSettingsItems(
-    icon: Icon? = null,
     titleRes: Int,
     selectedItem: T,
     itemList: List<Pair<T, Int>>,
     onValueChange: (item: T) -> Unit,
+    modifier: Modifier = Modifier,
+    icon: Icon? = null,
 ) {
     var isShowDialog by remember { mutableStateOf(false) }
     val itemWithSummary = itemList.find { it.first == selectedItem }
         ?: throw RuntimeException("Can't find selectedValue in the list")
-    Column {
+    Column(modifier = modifier) {
         BlockerSettingItem(
             icon = icon,
             title = stringResource(id = titleRes),
@@ -88,9 +89,11 @@ fun <T> SettingDialog(
     items: List<Pair<T, Int>>,
     selectedValue: T,
     onValueChange: (item: T) -> Unit,
-    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit = {},
 ) {
     AlertDialog(
+        modifier = modifier,
         onDismissRequest = {
             onDismiss()
         },
@@ -130,11 +133,11 @@ fun <T> SettingDialog(
 fun <T> SettingsDialogChooserRow(
     item: Pair<T, Int>,
     selected: Boolean,
-    onClick: (item: Pair<T, Int>) -> Unit,
+    modifier: Modifier = Modifier,
+    onClick: (item: Pair<T, Int>) -> Unit = { _ -> },
 ) {
     Row(
-        Modifier
-            .fillMaxWidth()
+        modifier.fillMaxWidth()
             .selectable(
                 selected = selected,
                 role = Role.RadioButton,
@@ -155,7 +158,7 @@ fun <T> SettingsDialogChooserRow(
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun DialogSettingsItemPreview() {
+private fun DialogSettingsItemPreview() {
     BlockerTheme {
         Surface {
             SettingDialog(

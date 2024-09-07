@@ -20,14 +20,14 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
@@ -85,7 +85,9 @@ class NavigationUiTest {
     @Test
     fun compactWidth_compactHeight_showsNavigationBar() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(400.dp, 400.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(400.dp, 400.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -101,7 +103,9 @@ class NavigationUiTest {
     @Test
     fun mediumWidth_compactHeight_showsNavigationRail() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(610.dp, 400.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(610.dp, 400.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -117,7 +121,9 @@ class NavigationUiTest {
     @Test
     fun expandedWidth_compactHeight_showsNavigationRail() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(900.dp, 400.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(900.dp, 400.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -133,7 +139,9 @@ class NavigationUiTest {
     @Test
     fun compcatWidth_mediumHeight_showsNavigationBar() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(400.dp, 500.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(400.dp, 500.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -149,7 +157,9 @@ class NavigationUiTest {
     @Test
     fun mediumWidth_mediumHeight_showsNavigationRail() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(610.dp, 500.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(610.dp, 500.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -165,7 +175,9 @@ class NavigationUiTest {
     @Test
     fun expandedWidth_mediumHeight_showsNavigationRail() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(900.dp, 500.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(900.dp, 500.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -181,7 +193,9 @@ class NavigationUiTest {
     @Test
     fun compactWidth_expandedHeight_showsNavigationBar() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(400.dp, 1000.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(400.dp, 1000.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -197,7 +211,9 @@ class NavigationUiTest {
     @Test
     fun mediumWidth_expandedHeight_showsNavigationRail() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(610.dp, 1000.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(610.dp, 1000.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -213,7 +229,9 @@ class NavigationUiTest {
     @Test
     fun expandedWidth_expandedHeight_showsNavigationRail() {
         composeTestRule.setContent {
-            TestHarness(size = DpSize(900.dp, 1000.dp)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(900.dp, 1000.dp)),
+            ) {
                 BoxWithConstraints {
                     BlockerApp(
                         fakeAppState(maxWidth = maxWidth, maxHeight = maxHeight),
@@ -226,7 +244,6 @@ class NavigationUiTest {
         composeTestRule.onNodeWithTag("BlockerBottomBar").assertDoesNotExist()
     }
 
-    @OptIn(ExperimentalMaterialNavigationApi::class)
     @Composable
     private fun fakeAppState(maxWidth: Dp, maxHeight: Dp) = rememberBlockerAppState(
         windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight)),

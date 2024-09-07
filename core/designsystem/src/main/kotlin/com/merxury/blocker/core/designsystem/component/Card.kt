@@ -31,10 +31,10 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerOutlinedCard(
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = Color.Transparent,
-    onClick: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     OutlinedCard(
         modifier = modifier
@@ -43,7 +43,7 @@ fun BlockerOutlinedCard(
         onClick = onClick,
     ) {
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .background(color = color)
                 .fillMaxWidth(),
         ) {
@@ -52,9 +52,9 @@ fun BlockerOutlinedCard(
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerOutlinedCardPreview() {
+private fun BlockerOutlinedCardPreview() {
     BlockerTheme {
         Surface {
             BlockerOutlinedCard(
