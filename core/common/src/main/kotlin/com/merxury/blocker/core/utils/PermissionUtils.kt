@@ -63,8 +63,8 @@ object PermissionUtils {
         // This method looks for a file but su is not a real file in those
         return withContext(dispatcher) {
             try {
-                val result = Runtime.getRuntime().exec("su")
-                val exitValue = result.waitFor()
+                val process = Runtime.getRuntime().exec("su")
+                val exitValue = process.waitFor()
                 val isSuccess = exitValue == 0
                 if (isSuccess) {
                     Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
