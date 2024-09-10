@@ -53,19 +53,27 @@ object PermissionUtils {
         }
     }
 
-    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean = withContext(dispatcher) {
-        Shell.cmd("su").exec().isSuccess
-    }
+    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean =
+        withContext(dispatcher) {
+            Shell.cmd("su").exec().isSuccess
+        }
 
     private suspend fun requestRootInRuntime(dispatcher: CoroutineDispatcher): Boolean {
         // isAppGrantedRoot is always false on KernelSU and APatch.
         // This method looks for a file but su is not a real file in those
         return withContext(dispatcher) {
             try {
-                Runtime.getRuntime().exec("su --version")
-                return@withContext true
+                val result = Runtime.getRuntime().exec("su")
+                val exitValue = result.waitFor()
+                val isSuccess = exitValue == 0
+                if (isSuccess) {
+                    Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
+                } else {
+                    Timber.e("Root unavailable: exitValue of the su command is not 0")
+                }
+                return@withContext isSuccess
             } catch (e: IOException) {
-                Timber.e("Root not available: ${e.message}")
+                Timber.e("Root unavailable: ${e.message}")
                 return@withContext false
             }
         }
