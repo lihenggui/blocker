@@ -39,11 +39,12 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.timber)
 
-    testImplementation(libs.accompanist.testharness)
+    testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
     testImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
+    androidTestImplementation(libs.bundles.androidx.compose.ui.test)
 }

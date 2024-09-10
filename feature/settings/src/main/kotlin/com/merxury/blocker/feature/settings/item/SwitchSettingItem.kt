@@ -37,27 +37,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.feature.settings.R
 
 @Composable
 fun SwitchSettingItem(
     @StringRes itemRes: Int,
+    checked: Boolean,
+    modifier: Modifier = Modifier,
     @StringRes itemSummaryRes: Int? = null,
     icon: Icon? = null,
-    checked: Boolean,
     onCheckedChange: (Boolean) -> Unit = {},
     enabled: Boolean = true,
 ) {
     val disabledColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clickable(enabled = enabled) { onCheckedChange(!checked) }
             .padding(vertical = 12.dp)
             .padding(
@@ -110,8 +111,8 @@ fun SwitchSettingItem(
 }
 
 @Composable
-@ThemePreviews
-fun SwitchSettingsItemPreview() {
+@PreviewThemes
+private fun SwitchSettingsItemPreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
@@ -123,8 +124,8 @@ fun SwitchSettingsItemPreview() {
 }
 
 @Composable
-@DevicePreviews
-fun SwitchSettingsItemLongNamePreview() {
+@PreviewDevices
+private fun SwitchSettingsItemLongNamePreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
@@ -136,8 +137,8 @@ fun SwitchSettingsItemLongNamePreview() {
 }
 
 @Composable
-@ThemePreviews
-fun SwitchSettingsItemWithSummaryPreview() {
+@PreviewThemes
+private fun SwitchSettingsItemWithSummaryPreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(

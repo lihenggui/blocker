@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2024 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +13,21 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-
-<resources>
-    <string name="core_rule_processing_progress_indicator">Indicador de progreso de procesamiento</string>
-    <string name="core_rule_update_rules_notification">Notificación de actualización de directivas</string>
-    <string name="core_rule_backing_up_apps_please_wait">Haciendo una copia de seguridad de las reglas de la aplicación, espera…</string>
-    <string name="core_rule_backing_up_ifw_please_wait">Copia de seguridad de las reglas de IFW, espera…</string>
+  --><resources>
+    <string name="core_rule_processing_progress_indicator">Indicador de progreso</string>
+    <string name="core_rule_update_rules_notification">Notificación de actualización de terminos</string>
+    <string name="core_rule_backing_up_apps_please_wait">Haciendo copia de seguridad de la aplicación, Por favor espere…</string>
+    <string name="core_rule_backing_up_ifw_please_wait">Haciendo copia de seguridad de IFW, Por favor espere…</string>
     <string name="core_rule_import_ifw_please_wait">Importando reglas de IFW, por favor espere…</string>
-    <string name="core_rule_reset_ifw_please_wait">Restablecer IFW, espera…</string>
-    <string name="core_rule_import_mat_rule_please_wait">Importación de reglas MAT, espera…</string>
-    <string name="core_rule_import_app_rules_please_wait">Importando reglas de aplicaciones, espera…</string>
+    <string name="core_rule_reset_ifw_please_wait">Restableciendo IFW, por favor espere…</string>
+    <string name="core_rule_import_mat_rule_please_wait">Importando reglas MAT, por favor espere…</string>
+    <string name="core_rule_import_app_rules_please_wait">Importando reglas de la aplicación, por favor espere…</string>
     <string name="core_rule_cancel">Cancelar</string>
-    <string name="core_rule_processing_please_wait">Procesando, espera…</string>
+    <string name="core_rule_processing_please_wait">Procesando, por favor espere…</string>
     <string name="core_rule_done">Listo</string>
-    <string name="core_rule_error_msg_folder_not_defined">Error: Carpeta no definida</string>
-    <string name="core_rule_error_msg_missing_root_permission">Error: Faltan privilegios de root</string>
-    <string name="core_rule_error_msg_unexpected_exception">Error: Excepción inesperada</string>
-    <string name="core_rule_task_cancelled">Tarea cancelada</string>
-    <string name="core_rule_copying_rules_to_internal_storage">Copiar reglas en el almacenamiento interno…</string>
+    <string name="core_rule_error_msg_folder_not_defined">No se ha definido una carpeta para Backups, por favor seleccioneuna en configuración.</string>
+    <string name="core_rule_error_msg_missing_root_permission">Sin permisos root, por favor conceda permisos a Blocker.</string>
+    <string name="core_rule_error_msg_unexpected_exception">Error inesperado, por favor informe al programador.</string>
+    <string name="core_rule_task_cancelled">Proceso cancelado</string>
+    <string name="core_rule_copying_rules_to_internal_storage">Copiando reglas en el almacenamiento interno…</string>
 </resources>

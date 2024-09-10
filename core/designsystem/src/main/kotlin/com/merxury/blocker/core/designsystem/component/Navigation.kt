@@ -165,9 +165,9 @@ fun BlockerNavigationRail(
     )
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerNavigationBarPreview() {
+private fun BlockerNavigationBarPreview() {
     val items = listOf("Apps", "Rules", "Search")
     val icons = listOf(
         BlockerIcons.Apps,
@@ -207,9 +207,9 @@ fun BlockerNavigationBarPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun NiaNavigationRailPreview() {
+private fun NiaNavigationRailPreview() {
     val items = listOf("Apps", "Rules", "Search")
     val icons = listOf(
         BlockerIcons.Apps,

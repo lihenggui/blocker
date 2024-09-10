@@ -51,8 +51,6 @@ class SupportFeedbackViewModel @Inject constructor(
 
     fun openDesignLink(context: Context) = openUrl(context, DESIGN_LINK_URL)
 
-    fun openOpenSourceLicence() = Unit
-
     fun exportErrorLog() = zipLogFileUseCase()
 
     private fun openUrl(context: Context, url: String) {

@@ -24,6 +24,9 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
 import timber.log.Timber
 
+// The lint tool cannot recognize value 0 as a flag, so we need to suppress the warning
+
+@SuppressLint("WrongConstant")
 fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int): PackageInfo? = try {
     when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
@@ -36,6 +39,7 @@ fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int): Packag
     null
 }
 
+@SuppressLint("WrongConstant")
 fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): ApplicationInfo =
     when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
@@ -44,7 +48,7 @@ fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): Ap
         else -> getApplicationInfo(packageName, flags)
     }
 
-@SuppressLint("QueryPermissionsNeeded")
+@SuppressLint("QueryPermissionsNeeded", "WrongConstant")
 fun PackageManager.getInstalledPackagesCompat(flags: Int): List<PackageInfo> = when {
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
         getInstalledPackages(PackageManager.PackageInfoFlags.of(flags.toLong()))

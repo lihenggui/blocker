@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -70,7 +70,7 @@ fun ComponentList(
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
     Box(modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = modifier.testTag("component:list"),
+            modifier = Modifier.testTag("component:list"),
             state = listState,
         ) {
             itemsIndexed(
@@ -95,17 +95,17 @@ fun ComponentList(
                 )
             }
             item {
-                Spacer(modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
         listState.DraggableScrollbar(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
                 .align(Alignment.CenterEnd),
             state = scrollbarState,
             orientation = Vertical,
-            onThumbMoved = listState.rememberDraggableScroller(
+            onThumbMove = listState.rememberDraggableScroller(
                 itemsAvailable = components.size,
             ),
         )
@@ -113,8 +113,8 @@ fun ComponentList(
 }
 
 @Composable
-@ThemePreviews
-fun ComponentListPreview(
+@PreviewThemes
+private fun ComponentListPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,
@@ -129,8 +129,8 @@ fun ComponentListPreview(
 }
 
 @Composable
-@ThemePreviews
-fun ComponentListSelectedModePreview(
+@PreviewThemes
+private fun ComponentListSelectedModePreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
     ) components: List<ComponentInfo>,
