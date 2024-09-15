@@ -72,7 +72,7 @@ class AppPermissionMonitor @Inject constructor(
             if (!shizukuInitializer.hasPermission()) {
                 val result = shizukuInitializer.registerShizuku()
                 Timber.i("Shizuku register result: $result")
-                if (!result.success) {
+                if (result.success) {
                     updatePermissionStatusFromUid(result.uid)
                 } else {
                     controllerStatus[SHIZUKU] = NO_PERMISSION
