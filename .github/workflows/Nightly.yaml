@@ -61,7 +61,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2.11.1
+        uses: gradle/gradle-build-action@v3.5.0
 
       - name: Accept Android licenses
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
@@ -216,7 +216,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2.11.1
+        uses: gradle/gradle-build-action@v3.5.0
 
       - name: Build projects before running emulator
         run: ./gradlew packageFossDebug packageFossDebugAndroidTest
