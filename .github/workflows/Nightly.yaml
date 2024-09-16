@@ -144,7 +144,7 @@ jobs:
       - name: Get apk info
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
         id: apk-info
-        uses: zhaobozhen/apk-info-action@1.1.2
+        uses: zhaobozhen/apk-info-action@v1.1.3
         with:
           apk-path: ${{ steps.apk-path.outputs.foss_path }}
 
