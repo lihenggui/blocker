@@ -85,7 +85,7 @@ internal class LocalComponentDetailDataSource @Inject constructor(
 
     override fun getByComponentName(name: String): Flow<ComponentDetail?> = flow {
         if (!workingDir.exists()) {
-            Timber.w("Component folder not exist")
+            Timber.w("The component folder does not exist")
             emit(null)
             return@flow
         }
@@ -99,10 +99,12 @@ internal class LocalComponentDetailDataSource @Inject constructor(
                 val componentDetail = json.decodeFromString<ComponentDetail>(file.readText())
                 emit(componentDetail)
             } catch (e: SerializationException) {
-                Timber.e(e, "given JSON string is not a valid JSON input for the type")
+                Timber.e("Given JSON string is not a valid JSON input for the type")
+                Timber.e("File path: $file, error: ${e.message}")
                 emit(null)
             } catch (e: IllegalArgumentException) {
-                Timber.e(e, "decoded input cannot be represented as a valid instance of type")
+                Timber.e("Decoded input cannot be represented as a valid instance of type, file path: $file")
+                Timber.e("File path: $file, error: ${e.message}")
                 emit(null)
             }
         } else {

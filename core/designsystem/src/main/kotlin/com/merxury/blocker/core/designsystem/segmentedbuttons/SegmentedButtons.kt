@@ -282,6 +282,7 @@ object SegmentedButtonsDefaults {
     internal const val ITEM_ANIMATION_MILLIS: Int = 100
 }
 
+@ConsistentCopyVisibility
 @Stable
 data class SegmentedButtonColors internal constructor(
     val selectedTextColor: Color,
