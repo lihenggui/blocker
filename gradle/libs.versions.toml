@@ -202,17 +202,17 @@ roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 room = { id = "androidx.room", version.ref = "room" }
 
 # Plugins defined by this project
-blocker-android-application = { id = "blocker.android.application", version = "unspecified" }
-blocker-android-application-compose = { id = "blocker.android.application.compose", version = "unspecified" }
-blocker-android-application-firebase = { id = "blocker.android.application.firebase", version = "unspecified" }
-blocker-android-application-flavors = { id = "blocker.android.application.flavors", version = "unspecified" }
-blocker-android-application-jacoco = { id = "blocker.android.application.jacoco", version = "unspecified" }
-blocker-android-feature = { id = "blocker.android.feature", version = "unspecified" }
-blocker-android-hilt = { id = "blocker.android.hilt", version = "unspecified" }
-blocker-android-library = { id = "blocker.android.library", version = "unspecified" }
-blocker-android-library-compose = { id = "blocker.android.library.compose", version = "unspecified" }
-blocker-android-library-jacoco = { id = "blocker.android.library.jacoco", version = "unspecified" }
-blocker-android-lint = { id = "blocker.android.lint", version = "unspecified" }
-blocker-android-room = { id = "blocker.android.room", version = "unspecified" }
-blocker-android-test = { id = "blocker.android.test", version = "unspecified" }
-blocker-jvm-library = { id = "blocker.jvm.library", version = "unspecified" }
+blocker-android-application = { id = "blocker.android.application" }
+blocker-android-application-compose = { id = "blocker.android.application.compose" }
+blocker-android-application-firebase = { id = "blocker.android.application.firebase" }
+blocker-android-application-flavors = { id = "blocker.android.application.flavors" }
+blocker-android-application-jacoco = { id = "blocker.android.application.jacoco" }
+blocker-android-feature = { id = "blocker.android.feature" }
+blocker-android-hilt = { id = "blocker.android.hilt" }
+blocker-android-library = { id = "blocker.android.library" }
+blocker-android-library-compose = { id = "blocker.android.library.compose" }
+blocker-android-library-jacoco = { id = "blocker.android.library.jacoco" }
+blocker-android-lint = { id = "blocker.android.lint" }
+blocker-android-room = { id = "blocker.android.room" }
+blocker-android-test = { id = "blocker.android.test" }
+blocker-jvm-library = { id = "blocker.jvm.library" }
