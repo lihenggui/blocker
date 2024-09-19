@@ -145,19 +145,23 @@ jobs:
           commit_message: "🤖 Updates screenshots"
 
       # Run local tests after screenshot tests to avoid wrong UP-TO-DATE. TODO: Ignore screenshots.
-      - name: Run local tests and create report
+      - name: Run local tests
         if: always()
         run: ./gradlew testFossDebug :lint:test
 
-      # Replace task exclusions with `-Pandroidx.baselineprofile.skipgeneration` when
-      # https://android-review.googlesource.com/c/platform/frameworks/support/+/2602790 landed in a
-      # release build
+      - name: Setup GMD
+        run: ./gradlew :benchmarks:pixel6Api33Setup
+          --info
+          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
+          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
+
       - name: Build all build type and flavor permutations
-        run: ./gradlew :app-compose:assemble :benchmarks:assemble
-          -x pixel6Api33MarketNonMinifiedReleaseAndroidTest
-          -x pixel6Api33FossNonMinifiedReleaseAndroidTest
-          -x collectFossNonMinifiedReleaseBaselineProfile
-          -x collectMarketNonMinifiedReleaseBaselineProfile
+        run: ./gradlew :app-compose:assemble :benchmarks:assemble -Pandroidx.baselineprofile.skipgeneration
+          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
+          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
+          -Pandroid.experimental.androidTest.numManagedDeviceShards=1
+          -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1
+          -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=5
 
       - name: Upload Foss apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
