@@ -30,10 +30,6 @@ internal fun Project.configureAndroidCompose(
     commonExtension: CommonExtension<*, *, *, *, *, *>,
 ) {
     commonExtension.apply {
-        buildFeatures {
-            compose = true
-        }
-
         dependencies {
             val bom = libs.findLibrary("androidx-compose-bom").get()
             add("implementation", platform(bom))
@@ -62,7 +58,5 @@ internal fun Project.configureAndroidCompose(
             .let(reportsDestination::set)
 
         stabilityConfigurationFile = rootProject.layout.projectDirectory.file("compose_compiler_config.conf")
-
-        enableStrongSkippingMode = true
     }
 }

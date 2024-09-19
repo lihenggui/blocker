@@ -58,7 +58,7 @@ fun AppListSettings(
 
 @Composable
 @Preview
-fun AppListSettingsSectionPreview() {
+private fun AppListSettingsSectionPreview() {
     BlockerTheme {
         AppListSettings(
             showSystemApps = false,

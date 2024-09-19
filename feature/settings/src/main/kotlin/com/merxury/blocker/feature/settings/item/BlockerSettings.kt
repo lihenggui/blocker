@@ -20,6 +20,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
@@ -39,12 +40,13 @@ import java.util.Locale
 @Composable
 fun BlockerSettings(
     settings: UserEditableSettings,
+    modifier: Modifier = Modifier,
     onChangeControllerType: (ControllerType) -> Unit = {},
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit = {},
     onChangeAppDisplayLanguage: (String) -> Unit = {},
     onChangeLibDisplayLanguage: (String) -> Unit = {},
 ) {
-    Column {
+    Column(modifier = modifier) {
         DialogSettingsItems(
             icon = ImageVectorIcon(BlockerIcons.AutoFix),
             titleRes = string.feature_settings_controller_type,
@@ -99,7 +101,7 @@ fun BlockerSettings(
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun BlockerSettingsPreview() {
+private fun BlockerSettingsPreview() {
     BlockerTheme {
         Surface {
             BlockerSettings(

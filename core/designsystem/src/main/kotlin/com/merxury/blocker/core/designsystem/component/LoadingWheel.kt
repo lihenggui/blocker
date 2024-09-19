@@ -150,9 +150,9 @@ fun BlockerOverlayLoadingWheel(
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerLoadingWheelPreview() {
+private fun BlockerLoadingWheelPreview() {
     BlockerTheme {
         Surface {
             BlockerLoadingWheel(contentDesc = "LoadingWheel")
@@ -160,9 +160,9 @@ fun BlockerLoadingWheelPreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun BlockerOverlayLoadingWheelPreview() {
+private fun BlockerOverlayLoadingWheelPreview() {
     BlockerTheme {
         Surface {
             BlockerOverlayLoadingWheel(contentDesc = "LoadingWheel")

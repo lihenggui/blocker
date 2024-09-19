@@ -25,7 +25,6 @@ plugins {
     alias(libs.plugins.blocker.android.application.firebase)
     alias(libs.plugins.ksp)
     id("kotlin-parcelize")
-    id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.baselineprofile)
     alias(libs.plugins.roborazzi)
 }
@@ -117,12 +116,12 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.tracing.ktx)
     implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.material.navigation)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.compose.material3.windowSizeClass)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.work.ktx)
     implementation(libs.androidx.profileinstaller)
-    implementation(libs.accompanist.navigation.material)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)
     implementation(libs.hilt.ext.work)
@@ -139,11 +138,11 @@ dependencies {
 
     testImplementation(projects.core.dataTest)
     testImplementation(projects.core.testing)
-    testImplementation(libs.accompanist.testharness)
+    testImplementation(projects.uiTestHiltManifest)
+    testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.work.testing)
     testFossImplementation(libs.robolectric)
-    testFossImplementation(libs.roborazzi)
     testFossImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
@@ -151,7 +150,7 @@ dependencies {
     androidTestImplementation(projects.core.datastoreTest)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.navigation.testing)
-    androidTestImplementation(libs.accompanist.testharness)
+    androidTestImplementation(libs.androidx.compose.ui.test)
     androidTestImplementation(libs.hilt.android.testing)
 
     baselineProfile(projects.benchmarks)
@@ -161,6 +160,8 @@ baselineProfile {
     // Don't build on every iteration of a full assemble.
     // Instead enable generation directly for the release build variant.
     automaticGenerationDuringBuild = false
+    // Make use of Dex Layout Optimizations via Startup Profiles
+    dexLayoutOptimization = true
 }
 
 dependencyGuard {

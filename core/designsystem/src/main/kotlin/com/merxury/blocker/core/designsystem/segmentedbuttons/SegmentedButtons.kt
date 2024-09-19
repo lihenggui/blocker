@@ -58,7 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.R
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtonsDefaults.ITEM_ANIMATION_MILLIS
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtonsDefaults.minimumHeight
@@ -67,9 +67,9 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun <T> SegmentedButtons(
-    modifier: Modifier = Modifier,
     selectedValue: T,
     items: List<Pair<T, Int>>,
+    modifier: Modifier = Modifier,
     onItemSelection: (item: T) -> Unit = {},
 ) {
     val selectedItem = remember { mutableStateOf(selectedValue) }
@@ -282,6 +282,7 @@ object SegmentedButtonsDefaults {
     internal const val ITEM_ANIMATION_MILLIS: Int = 100
 }
 
+@ConsistentCopyVisibility
 @Stable
 data class SegmentedButtonColors internal constructor(
     val selectedTextColor: Color,
@@ -337,9 +338,9 @@ private enum class ButtonSlots {
     Divider,
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun SegmentedButtonThreePreview() {
+private fun SegmentedButtonThreePreview() {
     val list = listOf(
         0 to R.string.core_designsystem_back,
         1 to R.string.core_designsystem_clear_search_text_content_desc,
@@ -355,9 +356,9 @@ fun SegmentedButtonThreePreview() {
     }
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun SegmentedButtonTwoPreview() {
+private fun SegmentedButtonTwoPreview() {
     val list = listOf(
         0 to R.string.core_designsystem_back,
         1 to R.string.core_designsystem_clear_search_text_content_desc,

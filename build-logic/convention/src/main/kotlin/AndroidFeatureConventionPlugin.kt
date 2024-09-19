@@ -31,10 +31,6 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 apply("io.github.takahirom.roborazzi")
             }
             extensions.configure<LibraryExtension> {
-                defaultConfig {
-                    testInstrumentationRunner =
-                        "com.merxury.blocker.core.testing.BlockerTestRunner"
-                }
                 testOptions.animationsDisabled = true
                 configureGradleManagedDevices(this)
             }
@@ -48,6 +44,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("androidx.tracing.ktx").get())
 
                 add("testImplementation", project(":core:screenshot-testing"))
+                add("androidTestImplementation", libs.findBundle("androidx.compose.ui.test").get())
             }
         }
     }

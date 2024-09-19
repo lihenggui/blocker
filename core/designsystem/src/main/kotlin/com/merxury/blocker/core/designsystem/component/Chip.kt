@@ -108,9 +108,9 @@ fun BlockerFilterChip(
     )
 }
 
-@ThemePreviews
+@PreviewThemes
 @Composable
-fun ChipPreview() {
+private fun ChipPreview() {
     BlockerTheme {
         Surface {
             BlockerBackground(modifier = Modifier.size(80.dp, 20.dp)) {

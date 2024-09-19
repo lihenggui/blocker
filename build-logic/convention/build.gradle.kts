@@ -42,6 +42,7 @@ dependencies {
     compileOnly(libs.firebase.crashlytics.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
+    compileOnly(libs.licensee.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
     implementation(libs.truth)
 }

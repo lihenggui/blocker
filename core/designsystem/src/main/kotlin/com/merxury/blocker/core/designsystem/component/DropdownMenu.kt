@@ -50,9 +50,10 @@ fun BlockerAppTopBarMenu(
     menuIcon: ImageVector,
     menuIconDesc: Int,
     menuList: List<DropDownMenuItem>,
+    modifier: Modifier = Modifier,
 ) {
     val expanded = remember { mutableStateOf(false) }
-    Box(Modifier.wrapContentSize(Alignment.TopStart)) {
+    Box(modifier.wrapContentSize(Alignment.TopStart)) {
         IconButton(
             onClick = {
                 expanded.value = true
@@ -74,15 +75,17 @@ fun BlockerAppTopBarMenu(
 @Composable
 fun BlockerDropdownMenu(
     expanded: Boolean,
-    offset: DpOffset = DpOffset(0.dp, 0.dp),
     onDismissRequest: () -> Unit,
     menuList: List<DropDownMenuItem>,
+    modifier: Modifier = Modifier,
     dismissOnItemClick: Boolean = true,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
 ) {
     DropdownMenu(
         expanded = expanded,
         offset = offset,
         onDismissRequest = onDismissRequest,
+        modifier = modifier,
     ) {
         menuList.forEach { item ->
             DropdownMenuItem(
@@ -114,11 +117,11 @@ fun BlockerDropdownMenu(
 fun <T> BlockerDropdownMenuButton(
     items: List<T>,
     onItemClick: (item: T) -> Unit,
+    text: @Composable () -> Unit,
+    itemText: @Composable (item: T) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     dismissOnItemClick: Boolean = true,
-    text: @Composable () -> Unit,
-    itemText: @Composable (item: T) -> Unit,
     itemLeadingIcon: @Composable ((item: T) -> Unit)? = null,
     itemTrailingIcon: @Composable ((item: T) -> Unit)? = null,
 ) {
@@ -219,8 +222,9 @@ fun <T> BlockerDropdownMenu(
     onDismissRequest: () -> Unit,
     items: List<T>,
     onItemClick: (item: T) -> Unit,
-    dismissOnItemClick: Boolean = true,
     itemText: @Composable (item: T) -> Unit,
+    modifier: Modifier = Modifier,
+    dismissOnItemClick: Boolean = true,
     itemLeadingIcon: @Composable ((item: T) -> Unit)? = null,
     itemTrailingIcon: @Composable ((item: T) -> Unit)? = null,
 ) {
@@ -228,6 +232,7 @@ fun <T> BlockerDropdownMenu(
         offset = DpOffset(x = 56.dp, y = (-16).dp),
         expanded = expanded,
         onDismissRequest = onDismissRequest,
+        modifier = modifier,
     ) {
         DropdownMenu(
             expanded = expanded,

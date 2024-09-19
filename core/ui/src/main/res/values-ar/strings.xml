@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_ui_application_with_count">تطبيق (%1$d)</string>
+    <string name="core_ui_sort_options">خيارات الفرز</string>
+    <string name="core_ui_component_with_count">مكون (%1$d)</string>
+    <string name="core_ui_clear_cache">مسح ذاكرة التخزين المؤقت</string>
+    <string name="core_ui_clear_data">مسح البيانات</string>
+    <string name="core_ui_force_stop">فرض الايقاف</string>
+    <string name="core_ui_uninstall">إلغاء التثبيت</string>
+    <string name="core_ui_enable">تفعيل</string>
+    <string name="core_ui_disable">تعطيل</string>
+    <string name="core_ui_running">جار العمل</string>
+    <string name="core_ui_disabled">معطل</string>
+    <string name="core_ui_copy_name">نسخ الاسم</string>
+    <string name="core_ui_copy_full_name">نسخ الاسم بالكامل</string>
+    <string name="core_ui_launch_activity">تشغيل النشاط</string>
+    <string name="core_ui_description">الوصف</string>
+    <string name="core_ui_loading">جار التحميل</string>
+    <string name="core_ui_error">خطأ</string>
+    <string name="core_ui_app_info">معلومات التطبيق</string>
+    <string name="core_ui_stop_service">إيقاف الخدمة</string>
+    <string name="core_ui_no_components">لا مكونات</string>
+    <string name="core_ui_activity_with_count">النشاط (%1$d)</string>
+    <string name="core_ui_service_with_count">الخدمة (%1$d)</string>
+    <string name="core_ui_provider_with_count">مزود الخدمة (%1$d)</string>
+    <string name="core_ui_search_icon">البحث</string>
+    <string name="core_ui_block_all_components">حظر كل المكونات</string>
+    <string name="core_ui_enable_all_components">تمكين كل المكونات</string>
+    <string name="core_ui_open_app_detail">فتح تفاصيل البرنامج</string>
+    <string name="core_ui_close">اغلاق</string>
+    <string name="core_ui_select_all">تحديد الكل</string>
+    <string name="core_ui_enable_selected">تمكين الكل</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">هل تريد مسح بيانات هذا التطبيق؟</string>
+    <string name="core_ui_found">موجود</string>
+    <string name="core_ui_not_found">ليس موجودا</string>
+    <string name="core_ui_do_you_want_to_uninstall_this_app">هل تريد إلغاء تثبيت هذا التطبيق؟</string>
+</resources>

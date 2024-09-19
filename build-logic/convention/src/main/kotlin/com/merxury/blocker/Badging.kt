@@ -36,7 +36,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
 import org.gradle.language.base.plugins.LifecycleBasePlugin
@@ -105,13 +104,25 @@ abstract class CheckBadgingTask : DefaultTask() {
             "Generated badging is different from golden badging! " +
                 "If this change is intended, run ./gradlew ${updateBadgingTaskName.get()}",
         )
-            .that(generatedBadging.readText().dropFirstLine())
-            .isEqualTo(goldenBadging.readText().dropFirstLine())
+            .that(
+                generatedBadging.readText()
+                    .dropFirstLine()
+                    .trimSpaceForEachLine(),
+            )
+            .isEqualTo(
+                goldenBadging.readText()
+                    .dropFirstLine()
+                    .trimSpaceForEachLine(),
+            )
     }
 }
 
 private fun String.dropFirstLine(): String {
     return this.substringAfter('\n')
+}
+
+private fun String.trimSpaceForEachLine(): String {
+    return this.lines().joinToString("\n") { it.trim() }
 }
 
 fun Project.configureBadgingTasks(
@@ -121,7 +132,8 @@ fun Project.configureBadgingTasks(
     // Registers a callback to be called, when a new variant is configured
     componentsExtension.onVariants { variant ->
         // Registers a new task to verify the app bundle.
-        val capitalizedVariantName = variant.name.capitalized()
+        val capitalizedVariantName = variant.name
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         val generateBadgingTaskName = "generate${capitalizedVariantName}Badging"
         val generateBadging = tasks.register<GenerateBadgingTask>(generateBadgingTaskName) {
             apk = variant.artifacts.get(SingleArtifact.APK_FROM_BUNDLE)

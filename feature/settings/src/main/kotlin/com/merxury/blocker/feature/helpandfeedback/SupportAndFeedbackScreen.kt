@@ -47,7 +47,7 @@ import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.BlockerSettingItem
-import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.feature.settings.R.string
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -56,6 +56,7 @@ import java.io.File
 @Composable
 fun SupportAndFeedbackRoute(
     onNavigationClick: () -> Unit,
+    navigateToLicenses: () -> Unit,
     snackbarHostState: SnackbarHostState,
     viewModel: SupportFeedbackViewModel = hiltViewModel(),
 ) {
@@ -81,7 +82,7 @@ fun SupportAndFeedbackRoute(
         },
         onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
         onDesignLinkClick = { viewModel.openDesignLink(context) },
-        onOpenSourceLicenseClick = { viewModel.openOpenSourceLicence(context) },
+        onOpenSourceLicenseClick = navigateToLicenses,
     )
 }
 
@@ -133,6 +134,7 @@ private suspend fun shareFile(
 
 @Composable
 fun SupportAndFeedbackScreen(
+    modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit = {},
     onProjectHomeClick: () -> Unit = {},
     onRulesRepositoryClick: () -> Unit = {},
@@ -143,6 +145,7 @@ fun SupportAndFeedbackScreen(
     onOpenSourceLicenseClick: () -> Unit = {},
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             BlockerTopAppBar(
                 title = stringResource(id = string.feature_settings_support_and_feedback),
@@ -202,8 +205,8 @@ fun SupportAndFeedbackScreen(
 }
 
 @Composable
-@DevicePreviews
-fun SupportAndFeedbackScreenPreview() {
+@PreviewDevices
+private fun SupportAndFeedbackScreenPreview() {
     BlockerTheme {
         Surface {
             SupportAndFeedbackScreen()

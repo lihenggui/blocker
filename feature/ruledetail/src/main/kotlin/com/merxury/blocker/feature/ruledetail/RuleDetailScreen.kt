@@ -69,8 +69,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
@@ -266,9 +266,9 @@ private fun showDisableProgress(
 
 @Composable
 fun RuleDetailScreen(
-    modifier: Modifier = Modifier,
     ruleInfoUiState: RuleInfoUiState,
     tabState: TabState<RuleDetailTabs>,
+    modifier: Modifier = Modifier,
     appBarUiState: AppBarUiState = AppBarUiState(),
     onBackClick: () -> Unit = {},
     switchTab: (RuleDetailTabs) -> Unit = { _ -> },
@@ -321,13 +321,13 @@ fun RuleDetailScreen(
 
 @Composable
 fun RuleDetailContent(
-    modifier: Modifier = Modifier,
+    tabState: TabState<RuleDetailTabs>,
+    switchTab: (RuleDetailTabs) -> Unit,
     ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
     appBarUiState: AppBarUiState = AppBarUiState(),
-    tabState: TabState<RuleDetailTabs>,
-    switchTab: (RuleDetailTabs) -> Unit,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -426,12 +426,13 @@ fun RuleDetailContent(
 
 @Composable
 fun RuleDetailAppBarActions(
+    modifier: Modifier = Modifier,
     appBarUiState: AppBarUiState = AppBarUiState(),
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(end = 8.dp),
         horizontalArrangement = Arrangement.End,
@@ -450,8 +451,9 @@ fun RuleDetailAppBarActions(
 
 @Composable
 fun MoreActionMenu(
-    blockAllComponents: () -> Unit,
-    enableAllComponents: () -> Unit,
+    modifier: Modifier = Modifier,
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
 ) {
     val items = listOf(
         DropDownMenuItem(
@@ -464,6 +466,7 @@ fun MoreActionMenu(
         ),
     )
     BlockerAppTopBarMenu(
+        modifier = modifier,
         menuIcon = BlockerIcons.MoreVert,
         menuIconDesc = com.merxury.blocker.core.ui.R.string.core_ui_more_menu,
         menuList = items,
@@ -478,11 +481,11 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = r
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RuleDetailTabContent(
-    modifier: Modifier = Modifier,
     ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
+    modifier: Modifier = Modifier,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -543,8 +546,8 @@ fun RuleDetailTabContent(
 }
 
 @Composable
-@ThemePreviews
-fun RuleDetailScreenPreview(
+@PreviewThemes
+private fun RuleDetailScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -581,8 +584,8 @@ fun RuleDetailScreenPreview(
 }
 
 @Composable
-@ThemePreviews
-fun RuleDetailScreenSelectedDescriptionPreview(
+@PreviewThemes
+private fun RuleDetailScreenSelectedDescriptionPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -615,7 +618,7 @@ fun RuleDetailScreenSelectedDescriptionPreview(
 
 @Composable
 @Preview
-fun RuleDetailScreenWithApplicableLoadingPreview(
+private fun RuleDetailScreenWithApplicableLoadingPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -636,7 +639,7 @@ fun RuleDetailScreenWithApplicableLoadingPreview(
 
 @Composable
 @Preview
-fun RuleDetailScreenLoadingPreview() {
+private fun RuleDetailScreenLoadingPreview() {
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
@@ -650,7 +653,7 @@ fun RuleDetailScreenLoadingPreview() {
 
 @Composable
 @Preview
-fun RuleDetailScreenErrorPreview() {
+private fun RuleDetailScreenErrorPreview() {
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
