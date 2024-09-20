@@ -38,6 +38,7 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -68,6 +69,11 @@ class GeneralRulesViewModel @Inject constructor(
     val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
+    private val loadExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Timber.e(throwable, "Error occurred while loading general rules")
+        _errorState.value = throwable.toErrorMessage()
+        _uiState.value = (Error(throwable.toErrorMessage()))
+    }
     private var loadRuleJob: Job? = null
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
         RULE_ID_ARG,
@@ -99,7 +105,7 @@ class GeneralRulesViewModel @Inject constructor(
 
     private fun loadData() {
         loadRuleJob?.cancel()
-        loadRuleJob = viewModelScope.launch {
+        loadRuleJob = viewModelScope.launch(loadExceptionHandler) {
             if (!shouldRefreshList()) {
                 Timber.d("No need to refresh the list")
                 showGeneralRuleList(skipLoading = true)
