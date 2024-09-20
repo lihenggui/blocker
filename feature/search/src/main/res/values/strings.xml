@@ -39,5 +39,5 @@
     <string name="feature_search_search_hint">Apps, components and rules</string>
     <string name="feature_search_no_search_result">No search result yet</string>
     <string name="feature_search_check_icon">Check</string>
-    <string name="feature_search_selecte_an_app_or_a_rule">Select an App or a Rule</string>
+    <string name="feature_search_select_an_app_or_a_rule">Select an app or a rule</string>
 </resources>

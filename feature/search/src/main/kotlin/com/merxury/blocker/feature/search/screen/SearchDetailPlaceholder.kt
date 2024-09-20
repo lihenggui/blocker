@@ -56,7 +56,7 @@ fun SearchDetailPlaceholder(modifier: Modifier = Modifier) {
                 tint = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = stringResource(id = com.merxury.blocker.feature.search.R.string.feature_search_selecte_an_app_or_a_rule),
+                text = stringResource(id = com.merxury.blocker.feature.search.R.string.feature_search_select_an_app_or_a_rule),
                 style = MaterialTheme.typography.titleLarge,
             )
         }
