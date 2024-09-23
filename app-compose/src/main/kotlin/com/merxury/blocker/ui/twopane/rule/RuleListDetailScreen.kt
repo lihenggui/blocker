@@ -112,7 +112,7 @@ internal fun RuleListDetailScreen(
             ThreePaneScaffoldDestinationItem<Nothing>(ListDetailPaneScaffoldRole.Detail).takeIf {
                 selectedRuleId != null
             },
-        )
+        ),
     )
     BackHandler(listDetailNavigator.canNavigateBack()) {
         listDetailNavigator.navigateBack()
