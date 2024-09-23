@@ -20,8 +20,12 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,6 +82,7 @@ internal fun RuleListDetailRoute(
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToAppDetail: (String) -> Unit,
     viewModel: RuleList2PaneViewModel = hiltViewModel(),
+    windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
     val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
     RuleListDetailScreen(
@@ -86,6 +91,7 @@ internal fun RuleListDetailRoute(
         snackbarHostState = snackbarHostState,
         updateIconThemingState = updateIconThemingState,
         navigateToAppDetail = navigateToAppDetail,
+        windowAdaptiveInfo = windowAdaptiveInfo,
     )
 }
 
@@ -97,8 +103,17 @@ internal fun RuleListDetailScreen(
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToAppDetail: (String) -> Unit,
     onRuleClick: (String) -> Unit,
+    windowAdaptiveInfo: WindowAdaptiveInfo,
 ) {
-    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator()
+    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator(
+        scaffoldDirective = calculatePaneScaffoldDirective(windowAdaptiveInfo),
+        initialDestinationHistory = listOfNotNull(
+            ThreePaneScaffoldDestinationItem(ListDetailPaneScaffoldRole.List),
+            ThreePaneScaffoldDestinationItem<Nothing>(ListDetailPaneScaffoldRole.Detail).takeIf {
+                selectedRuleId != null
+            },
+        )
+    )
     BackHandler(listDetailNavigator.canNavigateBack()) {
         listDetailNavigator.navigateBack()
     }
