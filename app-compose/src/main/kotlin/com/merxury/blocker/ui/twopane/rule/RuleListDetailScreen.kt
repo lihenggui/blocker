@@ -17,6 +17,8 @@
 package com.merxury.blocker.ui.twopane.rule
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -24,6 +26,7 @@ import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaf
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -114,6 +117,7 @@ internal fun RuleListDetailScreen(
     }
 
     ListDetailPaneScaffold(
+        modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
         value = listDetailNavigator.scaffoldValue,
         directive = listDetailNavigator.scaffoldDirective,
         listPane = {
