@@ -49,7 +49,7 @@ class MainActivityViewModel @Inject constructor(
     )
     val iconThemingState = _iconThemingState.asStateFlow()
 
-    fun updateIconBasedThemingState(state: IconThemingState) {
+    fun updateIconThemingState(state: IconThemingState) {
         _iconThemingState.value = state
     }
 }

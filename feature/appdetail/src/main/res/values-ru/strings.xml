@@ -53,4 +53,5 @@
     <string name="feature_appdetail_all_rules">Все правила</string>
     <string name="feature_appdetail_app_info">Информация о приложении</string>
     <string name="feature_appdetail_app_info_with_libchecker_summary">Используйте LibChecker для просмотра сведений о приложении</string>
+    <string name="feature_appdetail_select_an_app">Выберите приложение</string>
 </resources>

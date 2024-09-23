@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +69,7 @@ import com.merxury.blocker.navigation.TopLevelDestination
 fun BlockerApp(
     appState: BlockerAppState,
     modifier: Modifier = Modifier,
-    updateIconBasedThemingState: (IconThemingState) -> Unit = {},
+    updateIconThemingState: (IconThemingState) -> Unit = {},
 ) {
     val shouldShowGradientBackground =
         appState.currentTopLevelDestination == TopLevelDestination.APP
@@ -107,7 +106,7 @@ fun BlockerApp(
             BlockerApp(
                 appState = appState,
                 snackbarHostState = snackbarHostState,
-                updateIconBasedThemingState = updateIconBasedThemingState,
+                updateIconThemingState = updateIconThemingState,
             )
         }
     }
@@ -118,7 +117,7 @@ fun BlockerApp(
 internal fun BlockerApp(
     appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,
-    updateIconBasedThemingState: (IconThemingState) -> Unit = {},
+    updateIconThemingState: (IconThemingState) -> Unit = {},
 ) {
     Scaffold(
         modifier = Modifier.semantics {
@@ -169,22 +168,19 @@ internal fun BlockerApp(
                     destinations = appState.topLevelDestinations,
                     onNavigateToDestination = appState::navigateToTopLevelDestination,
                     currentTopLevelDestination = appState.currentTopLevelDestination,
-                    modifier = Modifier
-                        .testTag("BlockerNavRail")
-                        .safeDrawingPadding(),
+                    modifier = Modifier.testTag("BlockerNavRail"),
                 )
             }
 
             Column(Modifier.fillMaxSize()) {
                 // TODO Show the top app bar on top level destinations.
-
                 BlockerNavHost(
                     bottomSheetNavigator = appState.bottomSheetNavigator,
                     navController = appState.navController,
                     onBackClick = appState::onBackClick,
                     dismissBottomSheet = appState::dismissBottomSheet,
                     snackbarHostState = snackbarHostState,
-                    updateIconBasedThemingState = updateIconBasedThemingState,
+                    updateIconThemingState = updateIconThemingState,
                 )
             }
 

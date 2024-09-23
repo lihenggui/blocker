@@ -56,13 +56,18 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 @Composable
 fun GeneralRulesRoute(
     navigateToRuleDetail: (String) -> Unit,
+    highlightSelectedRule: Boolean = false,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     GeneralRulesScreen(
+        highlightSelectedRule = highlightSelectedRule,
         uiState = uiState,
-        navigateToRuleDetail = navigateToRuleDetail,
+        navigateToRuleDetail = {
+            viewModel.onRuleClick(it)
+            navigateToRuleDetail(it)
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -77,6 +82,7 @@ fun GeneralRulesRoute(
 fun GeneralRulesScreen(
     uiState: GeneralRuleUiState,
     modifier: Modifier = Modifier,
+    highlightSelectedRule: Boolean = false,
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
     Scaffold(
@@ -113,6 +119,8 @@ fun GeneralRulesScreen(
                 is Success -> GeneralRulesList(
                     matchedRules = uiState.matchedRules,
                     unmatchedRules = uiState.unmatchedRules,
+                    highlightSelectedRule = highlightSelectedRule,
+                    selectedRuleId = uiState.selectedRuleId,
                     onClick = { id ->
                         navigateToRuleDetail(id)
                         analyticsHelper.logGeneralRuleClicked(id)

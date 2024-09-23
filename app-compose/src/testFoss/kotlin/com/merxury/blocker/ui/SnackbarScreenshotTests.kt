@@ -216,7 +216,7 @@ class SnackbarScreenshotTests {
                         BlockerApp(
                             appState = appState,
                             snackbarHostState = snackbarHostState,
-                            updateIconBasedThemingState = {},
+                            updateIconThemingState = {},
                         )
                     }
                 }

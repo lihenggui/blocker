@@ -72,6 +72,7 @@ fun AppListRoute(
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
     modifier: Modifier = Modifier,
+    highlightSelectedApp: Boolean = false,
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,7 +82,11 @@ fun AppListRoute(
     AppListScreen(
         uiState = uiState,
         appList = appList.value,
-        onAppItemClick = navigateToAppDetail,
+        onAppItemClick = {
+            viewModel.onAppClick(it)
+            navigateToAppDetail(it)
+        },
+        highlightSelectedApp = highlightSelectedApp,
         onClearCacheClick = viewModel::clearCache,
         onClearDataClick = viewModel::clearData,
         onForceStopClick = viewModel::forceStop,
@@ -120,6 +125,7 @@ fun AppListScreen(
     uiState: AppListUiState,
     appList: List<AppItem>,
     modifier: Modifier = Modifier,
+    highlightSelectedApp: Boolean = false,
     onAppItemClick: (String) -> Unit = {},
     onClearCacheClick: (String) -> Unit = {},
     onClearDataClick: (String) -> Unit = {},
@@ -181,6 +187,8 @@ fun AppListScreen(
                         } else {
                             AppList(
                                 appList = appList,
+                                highlightSelectedApp = highlightSelectedApp,
+                                selectedPackageName = uiState.selectedPackageName,
                                 onAppItemClick = onAppItemClick,
                                 onClearCacheClick = onClearCacheClick,
                                 onClearDataClick = onClearDataClick,
