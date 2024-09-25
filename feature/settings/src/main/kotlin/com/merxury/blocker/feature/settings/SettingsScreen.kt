@@ -26,17 +26,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -147,7 +141,7 @@ fun SettingsRoute(
             RuleWorkResult.FINISHED -> CoreRuleR.core_rule_done
             RuleWorkResult.FOLDER_NOT_DEFINED,
             RuleWorkResult.MISSING_STORAGE_PERMISSION,
-            -> CoreRuleR.core_rule_error_msg_folder_not_defined
+                -> CoreRuleR.core_rule_error_msg_folder_not_defined
 
             RuleWorkResult.MISSING_ROOT_PERMISSION -> CoreRuleR.core_rule_error_msg_missing_root_permission
             RuleWorkResult.UNEXPECTED_EXCEPTION -> CoreRuleR.core_rule_error_msg_unexpected_exception
@@ -198,59 +192,46 @@ fun SettingsScreen(
     resetIfwRules: () -> Unit = { },
     importMatRules: (Uri?) -> Unit = { },
 ) {
-    Scaffold(
+    Column(
         modifier = modifier,
-        topBar = {
-            BlockerTopAppBar(
-                title = stringResource(id = string.feature_settings_settings),
-                hasNavigationIcon = true,
-                onNavigationClick = onNavigationClick,
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-                .windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal,
-                    ),
-                ),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            when (uiState) {
-                Loading -> {
-                    LoadingScreen()
-                }
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        BlockerTopAppBar(
+            title = stringResource(id = string.feature_settings_settings),
+            hasNavigationIcon = true,
+            onNavigationClick = onNavigationClick,
+        )
+        when (uiState) {
+            Loading -> {
+                LoadingScreen()
+            }
 
-                is Success -> {
-                    SettingsContent(
-                        settings = uiState.settings,
-                        allowStatistics = uiState.allowStatistics,
-                        supportDynamicColor = supportsDynamicTheming(),
-                        snackbarHostState = snackbarHostState,
-                        onChangeControllerType = onChangeControllerType,
-                        onChangeRuleServerProvider = onChangeRuleServerProvider,
-                        onChangeAppDisplayLanguage = onChangeAppDisplayLanguage,
-                        onChangeLibDisplayLanguage = onChangeLibDisplayLanguage,
-                        onChangeDynamicColorPreference = onChangeDynamicColorPreference,
-                        onChangeDarkThemeConfig = onChangeDarkThemeConfig,
-                        onChangeShowSystemApps = onChangeShowSystemApps,
-                        onChangeShowServiceInfo = onChangeShowServiceInfo,
-                        onChangeBackupSystemApp = onChangeBackupSystemApp,
-                        onChangeRestoreSystemApp = onChangeRestoreSystemApp,
-                        onChangeRuleBackupFolder = onChangeRuleBackupFolder,
-                        onChangeCheckedStatistics = onChangeCheckedStatistics,
-                        exportRules = exportRules,
-                        importRules = importRules,
-                        exportIfwRules = exportIfwRules,
-                        importIfwRules = importIfwRules,
-                        resetIfwRules = resetIfwRules,
-                        importMatRules = importMatRules,
-                    )
-                }
+            is Success -> {
+                SettingsContent(
+                    settings = uiState.settings,
+                    allowStatistics = uiState.allowStatistics,
+                    supportDynamicColor = supportsDynamicTheming(),
+                    snackbarHostState = snackbarHostState,
+                    onChangeControllerType = onChangeControllerType,
+                    onChangeRuleServerProvider = onChangeRuleServerProvider,
+                    onChangeAppDisplayLanguage = onChangeAppDisplayLanguage,
+                    onChangeLibDisplayLanguage = onChangeLibDisplayLanguage,
+                    onChangeDynamicColorPreference = onChangeDynamicColorPreference,
+                    onChangeDarkThemeConfig = onChangeDarkThemeConfig,
+                    onChangeShowSystemApps = onChangeShowSystemApps,
+                    onChangeShowServiceInfo = onChangeShowServiceInfo,
+                    onChangeBackupSystemApp = onChangeBackupSystemApp,
+                    onChangeRestoreSystemApp = onChangeRestoreSystemApp,
+                    onChangeRuleBackupFolder = onChangeRuleBackupFolder,
+                    onChangeCheckedStatistics = onChangeCheckedStatistics,
+                    exportRules = exportRules,
+                    importRules = importRules,
+                    exportIfwRules = exportIfwRules,
+                    importIfwRules = importIfwRules,
+                    resetIfwRules = resetIfwRules,
+                    importMatRules = importMatRules,
+                )
             }
         }
     }
