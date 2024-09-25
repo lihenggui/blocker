@@ -116,7 +116,7 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun stateIsOfflineWhenNetworkMonitorIsOffline() = runTest(UnconfinedTestDispatcher()) {
+    fun blockerAppState_WhenNetworkMonitorIsOffline_StateIsOffline() = runTest(UnconfinedTestDispatcher()) {
         composeTestRule.setContent {
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
@@ -138,7 +138,7 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun stateIsNoPermissionWhenPermissionMonitorCantGetPermission() =
+    fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() =
         runTest(UnconfinedTestDispatcher()) {
             composeTestRule.setContent {
                 val bottomSheetNavigator = rememberBottomSheetNavigator()
