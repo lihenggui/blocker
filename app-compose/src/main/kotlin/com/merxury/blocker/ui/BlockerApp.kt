@@ -160,18 +160,16 @@ internal fun BlockerApp(
                     dismissBottomSheet = appState::dismissBottomSheet,
                     snackbarHostState = snackbarHostState,
                     updateIconThemingState = updateIconThemingState,
-                    modifier = modifier,
                 )
             }
         }
 
         // TODO: We may want to add padding or spacer when the snackbar is shown so that
         //  content doesn't display behind it.
-
     }
 }
 
-    private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) =
-        this?.hierarchy?.any {
-            it.route?.contains(destination.name, true) ?: false
-        } ?: false
+private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) =
+    this?.hierarchy?.any {
+        it.route?.contains(destination.name, true) ?: false
+    } ?: false
