@@ -135,7 +135,7 @@ internal fun BlockerApp(
         windowAdaptiveInfo = windowAdaptiveInfo,
     ) {
         Scaffold(
-            modifier = modifier.semantics {
+            modifier = Modifier.semantics {
                 testTagsAsResourceId = true
             },
             contentColor = MaterialTheme.colorScheme.onBackground,
