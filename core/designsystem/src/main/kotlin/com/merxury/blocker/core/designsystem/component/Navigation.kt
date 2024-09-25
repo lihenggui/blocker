@@ -176,7 +176,6 @@ fun BlockerNavigationRail(
     )
 }
 
-
 /**
  * Now in Android navigation suite scaffold with item and content slots.
  * Wraps Material 3 [NavigationSuiteScaffold].

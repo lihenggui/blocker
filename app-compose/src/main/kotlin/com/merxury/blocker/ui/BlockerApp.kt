@@ -100,8 +100,8 @@ fun BlockerApp(
 internal fun BlockerApp(
     appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,
-    updateIconThemingState: (IconThemingState) -> Unit = {},
     modifier: Modifier = Modifier,
+    updateIconThemingState: (IconThemingState) -> Unit = {},
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
     val currentDestination = appState.currentDestination

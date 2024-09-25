@@ -247,7 +247,7 @@ fun SearchScreen(
     onEnableClick: (String) -> Unit = { },
     onDisableClick: (String) -> Unit = { },
 ) {
-    Column(modifier =  modifier) {
+    Column(modifier = modifier) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
         TopBar(
             searchUiState = searchUiState,
