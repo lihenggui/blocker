@@ -51,10 +51,13 @@ fun NavController.navigateToRuleDetail(
     tab: RuleDetailTabs = Applicable,
     navOptions: NavOptionsBuilder.() -> Unit = {},
 ) {
-    val newRoute = "$RULE_DETAIL_ROUTE/$ruleId?$TAB_ARG=${tab.name}"
-    navigate(newRoute) {
+    navigate(createRuleDetailRoute(ruleId, tab)) {
         navOptions()
     }
+}
+
+fun createRuleDetailRoute(ruleId: String, tab: RuleDetailTabs = Applicable): String {
+    return "$RULE_DETAIL_ROUTE/$ruleId?$TAB_ARG=${tab.name}"
 }
 
 fun NavGraphBuilder.ruleDetailScreen(
