@@ -56,9 +56,7 @@ fun NavController.navigateToRuleDetail(
     }
 }
 
-fun createRuleDetailRoute(ruleId: String, tab: RuleDetailTabs = Applicable): String {
-    return "$RULE_DETAIL_ROUTE/$ruleId?$TAB_ARG=${tab.name}"
-}
+fun createRuleDetailRoute(ruleId: String, tab: RuleDetailTabs = Applicable): String = "$RULE_DETAIL_ROUTE/$ruleId?$TAB_ARG=${tab.name}"
 
 fun NavGraphBuilder.ruleDetailScreen(
     showBackButton: Boolean = true,
