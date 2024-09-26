@@ -99,7 +99,7 @@ fun BlockerScrollableTabRow(
         PrimaryScrollableTabRow(
             selectedTabIndex = selectedTabIndex,
             edgePadding = 16.dp,
-            modifier = modifier.wrapContentWidth(),
+            modifier = Modifier.wrapContentWidth(),
             tabs = tabs,
             containerColor = containerColor,
             contentColor = contentColor,
