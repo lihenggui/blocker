@@ -183,34 +183,34 @@ internal fun AppListDetailScreen(
         value = listDetailNavigator.scaffoldValue,
         directive = listDetailNavigator.scaffoldDirective,
         listPane = {
-                AppListRoute(
-                    navigateToAppDetail = ::onAppClickShowDetailPane,
-                    navigateToSettings = navigateToSettings,
-                    navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-                    navigateTooAppSortScreen = navigateTooAppSortScreen,
-                    highlightSelectedApp = listDetailNavigator.isDetailPaneVisible(),
-                )
+            AppListRoute(
+                navigateToAppDetail = ::onAppClickShowDetailPane,
+                navigateToSettings = navigateToSettings,
+                navigateToSupportAndFeedback = navigateToSupportAndFeedback,
+                navigateTooAppSortScreen = navigateTooAppSortScreen,
+                highlightSelectedApp = listDetailNavigator.isDetailPaneVisible(),
+            )
         },
         detailPane = {
-                key(nestedNavKey) {
-                    NavHost(
-                        navController = nestedNavController,
-                        startDestination = nestedNavHostStartDestination,
-                        route = APP_LIST_DETAIL_PANE_ROUTE,
-                    ) {
-                        appDetailScreen(
-                            onBackClick = listDetailNavigator::navigateBack,
-                            snackbarHostState = snackbarHostState,
-                            navigateToComponentDetail = navigateToComponentDetail,
-                            navigateToComponentSortScreen = navigateToComponentSortScreen,
-                            navigateToRuleDetail = navigateToRuleDetail,
-                            updateIconThemingState = updateIconThemingState,
-                            showBackButton = !listDetailNavigator.isListPaneVisible(),
-                        )
-                        composable(route = APP_DETAIL_ROUTE) {
-                            AppDetailPlaceholder()
-                        }
+            key(nestedNavKey) {
+                NavHost(
+                    navController = nestedNavController,
+                    startDestination = nestedNavHostStartDestination,
+                    route = APP_LIST_DETAIL_PANE_ROUTE,
+                ) {
+                    appDetailScreen(
+                        onBackClick = listDetailNavigator::navigateBack,
+                        snackbarHostState = snackbarHostState,
+                        navigateToComponentDetail = navigateToComponentDetail,
+                        navigateToComponentSortScreen = navigateToComponentSortScreen,
+                        navigateToRuleDetail = navigateToRuleDetail,
+                        updateIconThemingState = updateIconThemingState,
+                        showBackButton = !listDetailNavigator.isListPaneVisible(),
+                    )
+                    composable(route = APP_DETAIL_ROUTE) {
+                        AppDetailPlaceholder()
                     }
+                }
             }
         },
     )
