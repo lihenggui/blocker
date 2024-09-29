@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
@@ -157,31 +156,27 @@ internal fun RuleListDetailScreen(
         value = listDetailNavigator.scaffoldValue,
         directive = listDetailNavigator.scaffoldDirective,
         listPane = {
-            AnimatedPane {
-                GeneralRulesRoute(
-                    highlightSelectedRule = listDetailNavigator.isDetailPaneVisible(),
-                    navigateToRuleDetail = ::onRuleClickShowDetailPane,
-                )
-            }
+            GeneralRulesRoute(
+                highlightSelectedRule = listDetailNavigator.isDetailPaneVisible(),
+                navigateToRuleDetail = ::onRuleClickShowDetailPane,
+            )
         },
         detailPane = {
-            AnimatedPane {
-                key(nestedNavKey) {
-                    NavHost(
-                        navController = nestedNavController,
-                        startDestination = nestedNavHostStartDestination,
-                        route = RULE_LIST_DETAIL_PANE_ROUTE,
-                    ) {
-                        ruleDetailScreen(
-                            showBackButton = !listDetailNavigator.isListPaneVisible(),
-                            onBackClick = listDetailNavigator::navigateBack,
-                            snackbarHostState = snackbarHostState,
-                            navigateToAppDetail = navigateToAppDetail,
-                            updateIconThemingState = updateIconThemingState,
-                        )
-                        composable(route = RULE_DETAIL_ROUTE) {
-                            RuleDetailPlaceholder()
-                        }
+            key(nestedNavKey) {
+                NavHost(
+                    navController = nestedNavController,
+                    startDestination = nestedNavHostStartDestination,
+                    route = RULE_LIST_DETAIL_PANE_ROUTE,
+                ) {
+                    ruleDetailScreen(
+                        showBackButton = !listDetailNavigator.isListPaneVisible(),
+                        onBackClick = listDetailNavigator::navigateBack,
+                        snackbarHostState = snackbarHostState,
+                        navigateToAppDetail = navigateToAppDetail,
+                        updateIconThemingState = updateIconThemingState,
+                    )
+                    composable(route = RULE_DETAIL_ROUTE) {
+                        RuleDetailPlaceholder()
                     }
                 }
             }

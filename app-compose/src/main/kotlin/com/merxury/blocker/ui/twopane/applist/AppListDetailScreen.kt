@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
@@ -184,7 +183,6 @@ internal fun AppListDetailScreen(
         value = listDetailNavigator.scaffoldValue,
         directive = listDetailNavigator.scaffoldDirective,
         listPane = {
-            AnimatedPane {
                 AppListRoute(
                     navigateToAppDetail = ::onAppClickShowDetailPane,
                     navigateToSettings = navigateToSettings,
@@ -192,10 +190,8 @@ internal fun AppListDetailScreen(
                     navigateTooAppSortScreen = navigateTooAppSortScreen,
                     highlightSelectedApp = listDetailNavigator.isDetailPaneVisible(),
                 )
-            }
         },
         detailPane = {
-            AnimatedPane {
                 key(nestedNavKey) {
                     NavHost(
                         navController = nestedNavController,
@@ -215,7 +211,6 @@ internal fun AppListDetailScreen(
                             AppDetailPlaceholder()
                         }
                     }
-                }
             }
         },
     )
