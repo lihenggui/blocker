@@ -90,34 +90,32 @@ class NavigationScreenshotTests {
             "Rules" to BlockerIcons.GeneralRule,
             "Search Item" to BlockerIcons.Search,
         )
-        BlockerTheme {
-            BlockerNavigationSuiteScaffold(
-                navigationSuiteItems = {
-                    navigationItemsMap.forEach { destination ->
-                        val selected = destination.key == "Apps"
-                        item(
-                            selected = selected,
-                            onClick = { },
-                            icon = {
-                                Icon(
-                                    imageVector = destination.value,
-                                    contentDescription = null,
-                                )
-                            },
-                            selectedIcon = {
-                                Icon(
-                                    imageVector = destination.value,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = { Text(destination.key) },
-                        )
-                    }
-                },
-            ) {
-                Column {
-                    Text("Content")
+        BlockerNavigationSuiteScaffold(
+            navigationSuiteItems = {
+                navigationItemsMap.forEach { destination ->
+                    val selected = destination.key == "Apps"
+                    item(
+                        selected = selected,
+                        onClick = { },
+                        icon = {
+                            Icon(
+                                imageVector = destination.value,
+                                contentDescription = null,
+                            )
+                        },
+                        selectedIcon = {
+                            Icon(
+                                imageVector = destination.value,
+                                contentDescription = null,
+                            )
+                        },
+                        label = { Text(destination.key) },
+                    )
                 }
+            },
+        ) {
+            Column {
+                Text("Content")
             }
         }
     }
