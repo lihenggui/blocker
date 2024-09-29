@@ -40,7 +40,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 /**
- * Now in Android navigation suite scaffold with item and content slots.
+ * Blocker navigation suite scaffold with item and content slots.
  * Wraps Material 3 [NavigationSuiteScaffold].
  *
  * @param modifier Modifier to be applied to the navigation suite scaffold.
