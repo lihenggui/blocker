@@ -18,20 +18,16 @@ package com.merxury.blocker.core.designsystem
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationSuiteScaffold
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -74,7 +70,7 @@ class NavigationScreenshotTests {
                     DeviceConfigurationOverride.FontScale(2f),
                 ) {
                     BlockerTheme {
-                        BlockerNavigationBarExample("Looong item")
+                        BlockerNavigationBarExample()
                     }
                 }
             }
@@ -88,42 +84,39 @@ class NavigationScreenshotTests {
     }
 
     @Composable
-    private fun BlockerNavigationBarExample(label: String = "Item") {
+    private fun BlockerNavigationBarExample() {
         val navigationItemsMap = mapOf(
             "Apps" to BlockerIcons.Apps,
             "Rules" to BlockerIcons.GeneralRule,
-            "Search" to BlockerIcons.Search,
+            "Search Item" to BlockerIcons.Search,
         )
         BlockerTheme {
-            Surface {
-                BlockerNavigationSuiteScaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    navigationSuiteItems = {
-                        navigationItemsMap.forEach { destination ->
-                            val selected = destination.key == "Apps"
-                            item(
-                                selected = selected,
-                                onClick = { },
-                                icon = {
-                                    Icon(
-                                        imageVector = destination.value,
-                                        contentDescription = null,
-                                    )
-                                },
-                                selectedIcon = {
-                                    Icon(
-                                        imageVector = destination.value,
-                                        contentDescription = null,
-                                    )
-                                },
-                                label = { Text(destination.key) },
-                            )
-                        }
-                    },
-                ) {
-                    Column(modifier = Modifier.size(200.dp)) {
-                        Text("Content")
+            BlockerNavigationSuiteScaffold(
+                navigationSuiteItems = {
+                    navigationItemsMap.forEach { destination ->
+                        val selected = destination.key == "Apps"
+                        item(
+                            selected = selected,
+                            onClick = { },
+                            icon = {
+                                Icon(
+                                    imageVector = destination.value,
+                                    contentDescription = null,
+                                )
+                            },
+                            selectedIcon = {
+                                Icon(
+                                    imageVector = destination.value,
+                                    contentDescription = null,
+                                )
+                            },
+                            label = { Text(destination.key) },
+                        )
                     }
+                },
+            ) {
+                Column {
+                    Text("Content")
                 }
             }
         }
