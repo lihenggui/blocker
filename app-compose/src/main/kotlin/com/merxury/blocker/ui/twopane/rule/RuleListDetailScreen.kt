@@ -28,8 +28,13 @@ import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationIt
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,10 +51,12 @@ import com.merxury.blocker.feature.generalrules.navigation.GENERAL_RULE_ROUTE_BA
 import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
 import com.merxury.blocker.feature.ruledetail.RuleDetailPlaceholder
 import com.merxury.blocker.feature.ruledetail.navigation.RULE_DETAIL_ROUTE
+import com.merxury.blocker.feature.ruledetail.navigation.createRuleDetailRoute
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
+import java.util.UUID
 
 private const val RULE_LIST_DETAIL_PANE_ROUTE = "rule_list_detail_pane_route"
 
@@ -118,16 +125,29 @@ internal fun RuleListDetailScreen(
         listDetailNavigator.navigateBack()
     }
 
-    val nestedNavController = rememberNavController()
+    var nestedNavHostStartDestination by remember {
+        mutableStateOf(selectedRuleId?.let(::createRuleDetailRoute) ?: RULE_DETAIL_ROUTE)
+    }
+    var nestedNavKey by rememberSaveable(
+        stateSaver = Saver({ it.toString() }, UUID::fromString),
+    ) {
+        mutableStateOf(UUID.randomUUID())
+    }
+    val nestedNavController = key(nestedNavKey) { rememberNavController() }
 
     fun onRuleClickShowDetailPane(ruleId: String) {
         onRuleClick(ruleId)
-        nestedNavController.navigateToRuleDetail(
-            ruleId = ruleId,
-            navOptions = {
+        if (listDetailNavigator.isDetailPaneVisible()) {
+            // If the detail pane was visible, then use the nestedNavController navigate call
+            // directly
+            nestedNavController.navigateToRuleDetail(ruleId) {
                 popUpTo(RULE_LIST_DETAIL_PANE_ROUTE)
-            },
-        )
+            }
+        } else {
+            // Otherwise, recreate the NavHost entirely, and start at the new destination
+            nestedNavHostStartDestination = createRuleDetailRoute(ruleId)
+            nestedNavKey = UUID.randomUUID()
+        }
         listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
     }
 
@@ -142,28 +162,24 @@ internal fun RuleListDetailScreen(
             )
         },
         detailPane = {
-            NavHost(
-                navController = nestedNavController,
-                startDestination = RULE_DETAIL_ROUTE,
-                route = RULE_LIST_DETAIL_PANE_ROUTE,
-            ) {
-                ruleDetailScreen(
-                    showBackButton = !listDetailNavigator.isListPaneVisible(),
-                    onBackClick = listDetailNavigator::navigateBack,
-                    snackbarHostState = snackbarHostState,
-                    navigateToAppDetail = navigateToAppDetail,
-                    updateIconThemingState = updateIconThemingState,
-                )
-                composable(route = RULE_DETAIL_ROUTE) {
-                    RuleDetailPlaceholder()
+            key(nestedNavKey) {
+                NavHost(
+                    navController = nestedNavController,
+                    startDestination = nestedNavHostStartDestination,
+                    route = RULE_LIST_DETAIL_PANE_ROUTE,
+                ) {
+                    ruleDetailScreen(
+                        showBackButton = !listDetailNavigator.isListPaneVisible(),
+                        onBackClick = listDetailNavigator::navigateBack,
+                        snackbarHostState = snackbarHostState,
+                        navigateToAppDetail = navigateToAppDetail,
+                        updateIconThemingState = updateIconThemingState,
+                    )
+                    composable(route = RULE_DETAIL_ROUTE) {
+                        RuleDetailPlaceholder()
+                    }
                 }
             }
         },
     )
-    LaunchedEffect(Unit) {
-        if (selectedRuleId != null) {
-            // Initial ruleId was provided when navigating to RuleList, so show its details.
-            onRuleClickShowDetailPane(selectedRuleId)
-        }
-    }
 }

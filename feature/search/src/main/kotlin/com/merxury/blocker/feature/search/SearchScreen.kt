@@ -25,18 +25,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -250,62 +247,50 @@ fun SearchScreen(
     onEnableClick: (String) -> Unit = { },
     onDisableClick: (String) -> Unit = { },
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopBar(
-                searchUiState = searchUiState,
-                onSearchQueryChange = onSearchQueryChange,
-                onSearchTrigger = onSearchTrigger,
-                onNavigationClick = { switchSelectedMode(false) },
-                onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onEnableAll = onEnableAll,
-                modifier = Modifier.testTag("blockerTopAppBar"),
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-                .windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal,
-                    ),
-                ),
-        ) {
-            when (localSearchUiState) {
-                is Idle -> EmptyScreen(textRes = string.feature_search_no_search_result)
-                is Loading -> SearchingScreen()
-                is Error -> ErrorScreen(localSearchUiState.uiMessage)
-                is Initializing ->
-                    InitializingScreen(localSearchUiState.processingName)
+    Column(modifier = modifier) {
+        Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
+        TopBar(
+            searchUiState = searchUiState,
+            onSearchQueryChange = onSearchQueryChange,
+            onSearchTrigger = onSearchTrigger,
+            onNavigationClick = { switchSelectedMode(false) },
+            onSelectAll = onSelectAll,
+            onBlockAll = onBlockAll,
+            onEnableAll = onEnableAll,
+            modifier = Modifier.testTag("blockerTopAppBar"),
+        )
+        when (localSearchUiState) {
+            is Idle -> EmptyScreen(textRes = string.feature_search_no_search_result)
+            is Loading -> SearchingScreen()
+            is Error -> ErrorScreen(localSearchUiState.uiMessage)
+            is Initializing ->
+                InitializingScreen(localSearchUiState.processingName)
 
-                is Success -> SearchResultScreen(
-                    tabState = tabState,
-                    highlightSelectedItem = highlightSelectedItem,
-                    switchTab = switchTab,
-                    localSearchUiState = localSearchUiState,
-                    searchUiState = searchUiState,
-                    switchSelectedMode = switchSelectedMode,
-                    onSelect = onSelect,
-                    onDeselect = onDeselect,
-                    onAppClick = onAppClick,
-                    onComponentClick = onComponentClick,
-                    navigateToAppDetail = navigateToAppDetail,
-                    navigateToRuleDetail = navigateToRuleDetail,
-                    appList = localSearchUiState.appTabUiState.list,
-                    onClearCacheClick = onClearCacheClick,
-                    onClearDataClick = onClearDataClick,
-                    onForceStopClick = onForceStopClick,
-                    onUninstallClick = onUninstallClick,
-                    onEnableClick = onEnableClick,
-                    onDisableClick = onDisableClick,
-                )
-            }
+            is Success -> SearchResultScreen(
+                tabState = tabState,
+                highlightSelectedItem = highlightSelectedItem,
+                switchTab = switchTab,
+                localSearchUiState = localSearchUiState,
+                searchUiState = searchUiState,
+                switchSelectedMode = switchSelectedMode,
+                onSelect = onSelect,
+                onDeselect = onDeselect,
+                onAppClick = onAppClick,
+                onComponentClick = onComponentClick,
+                navigateToAppDetail = navigateToAppDetail,
+                navigateToRuleDetail = navigateToRuleDetail,
+                appList = localSearchUiState.appTabUiState.list,
+                onClearCacheClick = onClearCacheClick,
+                onClearDataClick = onClearDataClick,
+                onForceStopClick = onForceStopClick,
+                onUninstallClick = onUninstallClick,
+                onEnableClick = onEnableClick,
+                onDisableClick = onDisableClick,
+            )
         }
+        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
     }
+
     BackHandler(enabled = searchUiState.isSelectedMode) {
         switchSelectedMode(false)
     }
