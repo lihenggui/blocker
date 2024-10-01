@@ -20,6 +20,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
@@ -35,6 +36,8 @@ internal const val RULE_ID_ARG = "ruleId"
 @VisibleForTesting
 internal const val TAB_ARG = "tab"
 
+const val RULE_DETAIL_ROUTE = "rule_detail_route"
+
 internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Applicable) {
     constructor(savedStateHandle: SavedStateHandle) :
         this(
@@ -43,32 +46,38 @@ internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Applicable
         )
 }
 
-fun NavController.navigateToRuleDetail(ruleId: String, tab: RuleDetailTabs = Applicable) {
-    navigate("rule_detail_route/$ruleId?screen=${tab.name}") {
-        // Avoid multiple copies of the same destination when
-        // reselecting the same item
-        launchSingleTop = true
+fun NavController.navigateToRuleDetail(
+    ruleId: String,
+    tab: RuleDetailTabs = Applicable,
+    navOptions: NavOptionsBuilder.() -> Unit = {},
+) {
+    navigate(createRuleDetailRoute(ruleId, tab)) {
+        navOptions()
     }
 }
 
+fun createRuleDetailRoute(ruleId: String, tab: RuleDetailTabs = Applicable): String = "$RULE_DETAIL_ROUTE/$ruleId?$TAB_ARG=${tab.name}"
+
 fun NavGraphBuilder.ruleDetailScreen(
+    showBackButton: Boolean = true,
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
-    updateIconBasedThemingState: (IconThemingState) -> Unit,
+    updateIconThemingState: (IconThemingState) -> Unit,
 ) {
     composable(
-        route = "rule_detail_route/{$RULE_ID_ARG}?screen={$TAB_ARG}",
+        route = "$RULE_DETAIL_ROUTE/{$RULE_ID_ARG}?$TAB_ARG={$TAB_ARG}",
         arguments = listOf(
             navArgument(RULE_ID_ARG) { type = NavType.IntType },
             navArgument(TAB_ARG) { type = NavType.StringType },
         ),
     ) {
         RuleDetailRoute(
-            onBackClick,
-            snackbarHostState,
-            navigateToAppDetail,
-            updateIconBasedThemingState,
+            showBackButton = showBackButton,
+            onBackClick = onBackClick,
+            snackbarHostState = snackbarHostState,
+            navigateToAppDetail = navigateToAppDetail,
+            updateIconThemingState = updateIconThemingState,
         )
     }
 }

@@ -13,7 +13,8 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  --><resources>
+  -->
+<resources>
     <string name="feature_search_searching">Buscando</string>
     <plurals name="feature_search_activity_count">
         <item quantity="one">%1$d Actividad</item>
@@ -43,4 +44,5 @@
     <string name="feature_search_search_hint">Aplicaciones, características y términos</string>
     <string name="feature_search_no_search_result">Sin resultados en la búsqueda</string>
     <string name="feature_search_check_icon">Comprobar</string>
+    <string name="feature_search_select_an_app_or_a_rule">Seleccionar una aplicación o una regla</string>
 </resources>

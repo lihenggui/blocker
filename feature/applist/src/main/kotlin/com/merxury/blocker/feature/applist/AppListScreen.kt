@@ -19,13 +19,6 @@ package com.merxury.blocker.feature.applist
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -33,7 +26,6 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -72,6 +64,7 @@ fun AppListRoute(
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
     modifier: Modifier = Modifier,
+    highlightSelectedApp: Boolean = false,
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,7 +74,11 @@ fun AppListRoute(
     AppListScreen(
         uiState = uiState,
         appList = appList.value,
-        onAppItemClick = navigateToAppDetail,
+        onAppItemClick = {
+            viewModel.onAppClick(it)
+            navigateToAppDetail(it)
+        },
+        highlightSelectedApp = highlightSelectedApp,
         onClearCacheClick = viewModel::clearCache,
         onClearDataClick = viewModel::clearData,
         onForceStopClick = viewModel::forceStop,
@@ -120,6 +117,7 @@ fun AppListScreen(
     uiState: AppListUiState,
     appList: List<AppItem>,
     modifier: Modifier = Modifier,
+    highlightSelectedApp: Boolean = false,
     onAppItemClick: (String) -> Unit = {},
     onClearCacheClick: (String) -> Unit = {},
     onClearDataClick: (String) -> Unit = {},
@@ -132,76 +130,64 @@ fun AppListScreen(
     navigateToSupportAndFeedback: () -> Unit = {},
     onRefresh: () -> Unit = {},
 ) {
-    Scaffold(
-        topBar = {
-            BlockerTopAppBar(
-                title = stringResource(id = string.feature_applist_app_name),
-                actions = {
-                    IconButton(onClick = navigateTooAppSortScreen) {
-                        Icon(
-                            imageVector = BlockerIcons.Sort,
-                            contentDescription = stringResource(id = string.feature_applist_sort_menu),
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                    TopAppBarMoreMenu(
-                        navigateToSettings = navigateToSettings,
-                        navigateToFeedback = navigateToSupportAndFeedback,
-                    )
-                },
-            )
-        },
+    Column(
         modifier = modifier,
-    ) { padding ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-                .windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal,
-                    ),
-                ),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            val appListTestTag = "appList:applicationList"
-            when (uiState) {
-                is Initializing -> InitializingScreen(processingName = uiState.processingName)
-
-                is Success -> {
-                    val refreshingState = rememberPullRefreshState(
-                        refreshing = uiState.isRefreshing,
-                        onRefresh = onRefresh,
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        BlockerTopAppBar(
+            title = stringResource(id = string.feature_applist_app_name),
+            actions = {
+                IconButton(onClick = navigateTooAppSortScreen) {
+                    Icon(
+                        imageVector = BlockerIcons.Sort,
+                        contentDescription = stringResource(id = string.feature_applist_sort_menu),
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
-                    Box(modifier = Modifier.pullRefresh(refreshingState)) {
-                        if (appList.isEmpty()) {
-                            EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
-                        } else {
-                            AppList(
-                                appList = appList,
-                                onAppItemClick = onAppItemClick,
-                                onClearCacheClick = onClearCacheClick,
-                                onClearDataClick = onClearDataClick,
-                                onForceStopClick = onForceStopClick,
-                                onUninstallClick = onUninstallClick,
-                                onEnableClick = onEnableClick,
-                                onDisableClick = onDisableClick,
-                                modifier = Modifier.testTag(appListTestTag),
-                            )
-                        }
-                        PullRefreshIndicator(
-                            refreshing = uiState.isRefreshing,
-                            state = refreshingState,
-                            modifier = Modifier.align(Alignment.TopCenter),
-                            scale = true,
+                }
+                TopAppBarMoreMenu(
+                    navigateToSettings = navigateToSettings,
+                    navigateToFeedback = navigateToSupportAndFeedback,
+                )
+            },
+        )
+        val appListTestTag = "appList:applicationList"
+        when (uiState) {
+            is Initializing -> InitializingScreen(processingName = uiState.processingName)
+
+            is Success -> {
+                val refreshingState = rememberPullRefreshState(
+                    refreshing = uiState.isRefreshing,
+                    onRefresh = onRefresh,
+                )
+                Box(modifier = Modifier.pullRefresh(refreshingState)) {
+                    if (appList.isEmpty()) {
+                        EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
+                    } else {
+                        AppList(
+                            appList = appList,
+                            highlightSelectedApp = highlightSelectedApp,
+                            selectedPackageName = uiState.selectedPackageName,
+                            onAppItemClick = onAppItemClick,
+                            onClearCacheClick = onClearCacheClick,
+                            onClearDataClick = onClearDataClick,
+                            onForceStopClick = onForceStopClick,
+                            onUninstallClick = onUninstallClick,
+                            onEnableClick = onEnableClick,
+                            onDisableClick = onDisableClick,
+                            modifier = Modifier.testTag(appListTestTag),
                         )
                     }
+                    PullRefreshIndicator(
+                        refreshing = uiState.isRefreshing,
+                        state = refreshingState,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        scale = true,
+                    )
                 }
-
-                is Error -> ErrorScreen(uiState.error)
             }
+
+            is Error -> ErrorScreen(uiState.error)
         }
     }
     TrackScreenViewEvent(screenName = "AppListScreen")

@@ -16,6 +16,9 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -53,12 +56,19 @@ import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProv
 fun RuleItem(
     item: GeneralRule,
     modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
     onClick: (String) -> Unit = { },
 ) {
+    val animatedColor = animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
+        animationSpec = tween(300, 0, LinearEasing),
+        label = "color",
+    )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .background(animatedColor.value)
             .clickable { onClick(item.id.toString()) }
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {

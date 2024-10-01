@@ -18,14 +18,6 @@ package com.merxury.blocker.feature.generalrules
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,13 +48,18 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 @Composable
 fun GeneralRulesRoute(
     navigateToRuleDetail: (String) -> Unit,
+    highlightSelectedRule: Boolean = false,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     GeneralRulesScreen(
+        highlightSelectedRule = highlightSelectedRule,
         uiState = uiState,
-        navigateToRuleDetail = navigateToRuleDetail,
+        navigateToRuleDetail = {
+            viewModel.onRuleClick(it)
+            navigateToRuleDetail(it)
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -77,50 +74,40 @@ fun GeneralRulesRoute(
 fun GeneralRulesScreen(
     uiState: GeneralRuleUiState,
     modifier: Modifier = Modifier,
+    highlightSelectedRule: Boolean = false,
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
-    Scaffold(
+    Column(
         modifier = modifier,
-        topBar = {
-            BlockerTopAppBarWithProgress(
-                title = stringResource(id = R.string.feature_generalrule_sdk_trackers),
-                progress = if (uiState is Success) {
-                    uiState.matchProgress
-                } else {
-                    null
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        BlockerTopAppBarWithProgress(
+            title = stringResource(id = R.string.feature_generalrule_sdk_trackers),
+            progress = if (uiState is Success) {
+                uiState.matchProgress
+            } else {
+                null
+            },
+        )
+        val analyticsHelper = LocalAnalyticsHelper.current
+        when (uiState) {
+            Loading -> {
+                LoadingScreen()
+            }
+
+            is Success -> GeneralRulesList(
+                matchedRules = uiState.matchedRules,
+                unmatchedRules = uiState.unmatchedRules,
+                highlightSelectedRule = highlightSelectedRule,
+                selectedRuleId = uiState.selectedRuleId,
+                onClick = { id ->
+                    navigateToRuleDetail(id)
+                    analyticsHelper.logGeneralRuleClicked(id)
                 },
             )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-                .windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal,
-                    ),
-                ),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            val analyticsHelper = LocalAnalyticsHelper.current
-            when (uiState) {
-                Loading -> {
-                    LoadingScreen()
-                }
 
-                is Success -> GeneralRulesList(
-                    matchedRules = uiState.matchedRules,
-                    unmatchedRules = uiState.unmatchedRules,
-                    onClick = { id ->
-                        navigateToRuleDetail(id)
-                        analyticsHelper.logGeneralRuleClicked(id)
-                    },
-                )
-
-                is Error -> ErrorScreen(error = uiState.error)
-            }
+            is Error -> ErrorScreen(error = uiState.error)
         }
     }
     TrackScreenViewEvent(screenName = "GeneralRulesScreen")

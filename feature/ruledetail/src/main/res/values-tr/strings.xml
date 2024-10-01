@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_ruledetail_keywords">Anahtar kelimeler</string>
+    <string name="feature_ruledetail_safe_to_block">Güvenli Engellenebilir</string>
+    <string name="feature_ruledetail_side_effect">Yan Etki</string>
+    <string name="feature_ruledetail_contributors">Katkıda Bulunanlar</string>
+    <string name="feature_ruledetail_yes">Evet</string>
+    <string name="feature_ruledetail_no">Hayır</string>
+    <string name="feature_ruledetail_unknown">Bilinmiyor</string>
+    <string name="feature_ruledetail_no_description">Açıklama Yok</string>
+    <string name="feature_ruledetail_block_all_of_this_page">Bu Sayfadaki Tümünü Engelle</string>
+    <string name="feature_ruledetail_enable_all_of_this_page">Bu Sayfadaki Tümünü Etkinleştir</string>
+    <string name="feature_ruledetail_keywords">Anahtar Kelimeler</string>
+    <string name="feature_ruledetail_select_a_rule">Bir Kural Seçin</string>
 </resources>

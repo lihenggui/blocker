@@ -13,7 +13,8 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
---><resources>
+-->
+<resources>
     <string name="feature_ruledetail_safe_to_block">Bloqueo seguro</string>
     <string name="feature_ruledetail_side_effect">Efecto de desplazamiento</string>
     <string name="feature_ruledetail_contributors">Colaboradores</string>
@@ -24,4 +25,5 @@
     <string name="feature_ruledetail_block_all_of_this_page">Bloquear la página</string>
     <string name="feature_ruledetail_enable_all_of_this_page">Activar la página</string>
     <string name="feature_ruledetail_keywords">Palabras clave</string>
+    <string name="feature_ruledetail_select_a_rule">Seleccione una regla</string>
 </resources>

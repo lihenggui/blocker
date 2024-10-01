@@ -51,4 +51,5 @@
     <string name="feature_appdetail_all_rules">所有规则</string>
     <string name="feature_appdetail_app_info">应用详情</string>
     <string name="feature_appdetail_app_info_with_libchecker_summary">使用 LibChecker 查看应用程序详细信息</string>
+    <string name="feature_appdetail_select_an_app">选择一个应用</string>
 </resources>
