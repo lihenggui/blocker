@@ -1,4 +1,4 @@
-package: name='com.merxury.blocker' versionCode='4727' versionName='2.0.4727' platformBuildVersionName='14' platformBuildVersionCode='34' compileSdkVersion='34' compileSdkVersionCodename='14'
+package: name='com.merxury.blocker' versionCode='5067' versionName='2.0.5067' platformBuildVersionName='14' platformBuildVersionCode='34' compileSdkVersion='34' compileSdkVersionCodename='14'
 sdkVersion:'21'
 targetSdkVersion:'34'
 uses-permission: name='android.permission.INTERNET'
@@ -120,6 +120,7 @@ feature-group: label=''
   uses-feature: name='android.hardware.faketouch'
   uses-implied-feature: name='android.hardware.faketouch' reason='default feature for all apps'
 main
+other-activities
 other-receivers
 other-services
 supports-screens: 'small' 'normal' 'large' 'xlarge'
