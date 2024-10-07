@@ -17,9 +17,7 @@
     <string name="core_ui_copy_full_name">Salin nama lengkap</string>
     <string name="core_ui_launch_activity">Akses aktivitas</string>
     <string name="core_ui_stop_service">Stop layanan</string>
-    <plurals name="core_ui_matched_component">
-        <item quantity="other">%1$d komponen cocok</item>
-    </plurals>
+    <string name="core_ui_matched">%1$d cocok, %2$d diblokir, %3$d diaktifkan.</string>
     <plurals name="core_ui_matched_apps">
         <item quantity="other">%1$d apl cocok</item>
     </plurals>

@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.ui.collapseList
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -58,7 +57,6 @@ import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.component.ComponentListItem
 import timber.log.Timber
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CollapsibleList(
     list: List<MatchedItem>,

@@ -32,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -47,7 +46,6 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
@@ -113,7 +111,12 @@ fun CollapsibleItem(
         Spacer(modifier = Modifier.width(16.dp))
         MatchedAppInfo(
             label = matchedItem.header.title,
-            matchedComponentCount = matchedItem.componentList.size,
+            blockedCount = matchedItem.componentList
+                .filterNot { it.enabled() }
+                .size,
+            enabledCount = matchedItem.componentList
+                .filter { it.enabled() }
+                .size,
             modifier = Modifier.fillMaxWidth(0.8f),
         )
         Spacer(modifier = Modifier.weight(1f))
@@ -128,7 +131,8 @@ fun CollapsibleItem(
 @Composable
 private fun MatchedAppInfo(
     label: String,
-    matchedComponentCount: Int,
+    blockedCount: Int,
+    enabledCount: Int,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
@@ -136,10 +140,11 @@ private fun MatchedAppInfo(
             text = label,
         )
         BlockerBodyMediumText(
-            text = pluralStringResource(
-                id = plurals.core_ui_matched_component,
-                matchedComponentCount,
-                matchedComponentCount,
+            text = stringResource(
+                id = string.core_ui_matched,
+                blockedCount + enabledCount,
+                blockedCount,
+                enabledCount,
             ),
         )
     }
