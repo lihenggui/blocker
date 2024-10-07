@@ -16,7 +16,7 @@
 
 plugins {
     alias(libs.plugins.blocker.android.library)
-    id("kotlinx-serialization")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
