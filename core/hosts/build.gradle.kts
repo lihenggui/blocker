@@ -30,13 +30,12 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.ext.work)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.libsu.core)
-    implementation(libs.libsu.io)
 
     ksp(libs.hilt.compiler)
     ksp(libs.hilt.ext.compiler)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.mockito.kotlin)
 
     androidTestImplementation(projects.core.testing)
 }
