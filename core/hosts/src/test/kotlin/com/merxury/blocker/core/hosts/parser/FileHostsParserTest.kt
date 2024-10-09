@@ -17,19 +17,32 @@
 package com.merxury.blocker.core.hosts.parser
 
 import com.merxury.blocker.core.hosts.parser.model.HostEntry
-import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import org.junit.Rule
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import java.io.File
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class FileHostsParserTest {
 
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
-    private val testDispatcher = mainDispatcherRule.testDispatcher
+    private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun givenNonExistentFile_whenParse_thenReturnEmptyList() = runTest {

@@ -16,19 +16,16 @@
 
 package com.merxury.blocker.core.hosts.parser
 
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
-import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.hosts.parser.model.HostEntry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import java.io.File
-import javax.inject.Inject
 
-class FileHostsParser @Inject constructor(
+class FileHostsParser(
     private val hostsFile: File,
-    @Dispatcher(DEFAULT) private val dispatcher: CoroutineDispatcher,
+    private val dispatcher: CoroutineDispatcher,
 ) : HostsParser {
 
     override suspend fun parse(): List<HostEntry> = coroutineScope {

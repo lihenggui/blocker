@@ -15,27 +15,14 @@
  */
 
 plugins {
-    alias(libs.plugins.blocker.android.library)
-    alias(libs.plugins.blocker.android.library.jacoco)
-    alias(libs.plugins.blocker.android.hilt)
+    alias(libs.plugins.blocker.jvm.library)
     alias(libs.plugins.kotlin.serialization)
 }
 
-android {
-    namespace = "com.merxury.blocker.core.hosts"
-}
-
 dependencies {
-    implementation(projects.core.common)
-    implementation(libs.hilt.android)
-    implementation(libs.hilt.ext.work)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.android)
 
-    ksp(libs.hilt.compiler)
-    ksp(libs.hilt.ext.compiler)
-
-    testImplementation(projects.core.testing)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.kotlin)
-
-    androidTestImplementation(projects.core.testing)
 }
