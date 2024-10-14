@@ -146,6 +146,7 @@ dependencies {
     kspTest(libs.hilt.compiler)
 
     testImplementation(projects.core.dataTest)
+    testImplementation(projects.core.datastoreTest)
     testImplementation(projects.core.testing)
     testImplementation(projects.uiTestHiltManifest)
     testImplementation(libs.androidx.compose.ui.test)

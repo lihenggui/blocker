@@ -18,19 +18,15 @@
 package com.merxury.blocker.core.datastore.test
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.DataStoreFactory
 import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.AppPropertiesSerializer
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
 import com.merxury.blocker.core.datastore.di.DataStoreModule
-import com.merxury.blocker.core.di.ApplicationScope
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
-import kotlinx.coroutines.CoroutineScope
-import org.junit.rules.TemporaryFolder
 import javax.inject.Singleton
 
 @Module
