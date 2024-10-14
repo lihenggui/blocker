@@ -18,6 +18,8 @@ import com.merxury.blocker.configureKotlin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.kotlin
 
 class JvmLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -27,6 +29,9 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
                 apply("blocker.android.lint")
             }
             configureKotlin<KotlinJvmProjectExtension>()
+            dependencies {
+                add("testImplementation", kotlin("test"))
+            }
         }
     }
 }
