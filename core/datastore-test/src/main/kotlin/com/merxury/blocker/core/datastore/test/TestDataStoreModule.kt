@@ -43,44 +43,12 @@ internal object TestDataStoreModule {
     @Provides
     @Singleton
     fun providesUserPreferencesDataStore(
-        @ApplicationScope scope: CoroutineScope,
-        userPreferencesSerializer: UserPreferencesSerializer,
-        tmpFolder: TemporaryFolder,
-    ): DataStore<UserPreferences> =
-        tmpFolder.testUserPreferencesDataStore(
-            coroutineScope = scope,
-            userPreferencesSerializer = userPreferencesSerializer,
-        )
+        serializer: UserPreferencesSerializer,
+    ): DataStore<UserPreferences> = InMemoryDataStore(serializer.defaultValue)
 
     @Provides
     @Singleton
     fun providesAppPropertiesDataStore(
-        @ApplicationScope scope: CoroutineScope,
         appPropertiesSerializer: AppPropertiesSerializer,
-        tmpFolder: TemporaryFolder,
-    ): DataStore<AppProperties> =
-        tmpFolder.testAppPropertiesDataStore(
-            coroutineScope = scope,
-            appPropertiesSerializer = appPropertiesSerializer,
-        )
-}
-
-fun TemporaryFolder.testUserPreferencesDataStore(
-    coroutineScope: CoroutineScope,
-    userPreferencesSerializer: UserPreferencesSerializer = UserPreferencesSerializer(),
-) = DataStoreFactory.create(
-    serializer = userPreferencesSerializer,
-    scope = coroutineScope,
-) {
-    newFile("user_preferences_test.pb")
-}
-
-fun TemporaryFolder.testAppPropertiesDataStore(
-    coroutineScope: CoroutineScope,
-    appPropertiesSerializer: AppPropertiesSerializer = AppPropertiesSerializer(),
-) = DataStoreFactory.create(
-    serializer = appPropertiesSerializer,
-    scope = coroutineScope,
-) {
-    newFile("app_properties_test.pb")
+    ): DataStore<AppProperties> = InMemoryDataStore(appPropertiesSerializer.defaultValue)
 }
