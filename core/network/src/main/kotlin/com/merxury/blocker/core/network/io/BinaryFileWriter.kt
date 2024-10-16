@@ -16,6 +16,9 @@
 
 package com.merxury.blocker.core.network.io
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.IOException
@@ -26,26 +29,29 @@ private const val CHUNK_SIZE = 1024
 
 class BinaryFileWriter(
     private val outputStream: OutputStream,
-    private val onProgressUpdate: (Double) -> Unit = { _ -> },
 ) : AutoCloseable {
 
+    private val _progress = MutableStateFlow(0.0)
+    val progress: StateFlow<Double> = _progress.asStateFlow()
+
     @Throws(IOException::class)
-    fun write(inputStream: InputStream?, length: Long): Long {
+    suspend fun write(inputStream: InputStream?, length: Long) {
         if (length.toInt() == 0) {
             Timber.w("Nothing to write, file length is 0")
-            return 0
+            _progress.emit(0.0)
+            return
         }
         BufferedInputStream(inputStream).use { input ->
             val dataBuffer =
                 ByteArray(CHUNK_SIZE)
             var readBytes: Int
             var totalBytes: Long = 0
+            _progress.emit(0.0)
             while (input.read(dataBuffer).also { readBytes = it } != -1) {
                 totalBytes += readBytes.toLong()
                 outputStream.write(dataBuffer, 0, readBytes)
-                onProgressUpdate.invoke(totalBytes / length * 100.0)
+                _progress.emit(totalBytes.toDouble() / length)
             }
-            return totalBytes
         }
     }
 

@@ -17,6 +17,8 @@
 package com.merxury.blocker.core.network
 
 import com.merxury.blocker.core.network.io.BinaryFileWriter
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import okhttp3.Call
 import okhttp3.Request
 import okhttp3.ResponseBody
@@ -29,7 +31,7 @@ class FileDownloader @Inject constructor(
     private val okhttpCallFactory: dagger.Lazy<Call.Factory>,
 ) {
 
-    fun downloadFile(url: String, outputFilePath: String, onProgressUpdate: (Double) -> Unit) {
+    fun downloadFile(url: String, outputFilePath: String): Flow<Double> = flow {
         val request = Request.Builder().url(url).build()
         okhttpCallFactory.get()
             .newCall(request)
@@ -51,7 +53,7 @@ class FileDownloader @Inject constructor(
 
                 try {
                     FileOutputStream(outputFile).use { outputStream ->
-                        BinaryFileWriter(outputStream, onProgressUpdate).use { writer ->
+                        BinaryFileWriter(outputStream).use { writer ->
                             writer.write(inputStream, contentLength)
                         }
                     }

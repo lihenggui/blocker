@@ -86,7 +86,8 @@ internal class RetrofitBlockerNetwork @Inject constructor(
             return 0
         }
         Timber.v("Zip length: $contentLength")
-        return writer.write(responseBody.byteStream(), contentLength)
+        writer.write(responseBody.byteStream(), contentLength)
+        return contentLength
     }
 
     private fun getLatestCommitId(provider: RuleServerProvider, json: String): String {

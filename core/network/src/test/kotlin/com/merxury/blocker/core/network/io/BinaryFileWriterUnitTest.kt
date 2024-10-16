@@ -16,28 +16,45 @@
 
 package com.merxury.blocker.core.network.io
 
+import app.cash.turbine.test
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
+import kotlin.test.assertEquals
 
 class BinaryFileWriterUnitTest {
     private val inputStream = PipedInputStream()
     private val outputStream = PipedOutputStream(inputStream)
 
     @Test
-    fun givenInputStream_whenWrite_thenExpectWritten() {
+    fun givenInputStream_whenWrite_thenExpectWritten() = runTest {
         val content = "Hello"
-        BinaryFileWriter(outputStream).use {
-            it.write(content.byteInputStream(), content.length.toLong())
+        val writer = BinaryFileWriter(outputStream)
+
+        writer.progress.test {
+            writer.use {
+                it.write(content.byteInputStream(), content.length.toLong())
+            }
+            assertEquals(0.0, awaitItem())
+            assertEquals(1.0, awaitItem())
+            expectNoEvents()
         }
+
         assert(inputStream.readBytes().contentEquals(content.toByteArray()))
     }
 
     @Test
-    fun givenInputStreamEmpty_whenWrite_thenExpectNotWritten() {
+    fun givenInputStreamEmpty_whenWrite_thenExpectNotWritten() = runTest {
         val content = ""
-        BinaryFileWriter(outputStream).use {
-            it.write(content.byteInputStream(), content.length.toLong())
+        val writer = BinaryFileWriter(outputStream)
+
+        writer.progress.test {
+            writer.use {
+                it.write(content.byteInputStream(), content.length.toLong())
+            }
+            assertEquals(0.0, awaitItem())
+            expectNoEvents()
         }
         assert(inputStream.readBytes().contentEquals(content.toByteArray()))
     }

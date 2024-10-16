@@ -71,9 +71,7 @@ class FileDownloaderTest {
 
         val tempFile = tempFolder.newFile("test.tmp")
 
-        fileDownloader.downloadFile("http://example.com", tempFile.absolutePath) { progress ->
-            println("Progress: $progress")
-        }
+        fileDownloader.downloadFile("http://example.com", tempFile.absolutePath)
 
         // Verify the file content
         Assert.assertEquals("file content", tempFile.readText())
@@ -91,7 +89,7 @@ class FileDownloaderTest {
 
         whenever(call.execute()).thenReturn(response)
 
-        fileDownloader.downloadFile("http://example.com", "outputPath") { _ -> }
+        fileDownloader.downloadFile("http://example.com", "outputPath")
     }
 
     @Test(expected = IOException::class)
@@ -108,7 +106,7 @@ class FileDownloaderTest {
 
         whenever(call.execute()).thenReturn(response)
 
-        fileDownloader.downloadFile("http://example.com", "outputPath") { _ -> }
+        fileDownloader.downloadFile("http://example.com", "outputPath")
     }
 
     @Test(expected = IOException::class)
@@ -127,6 +125,6 @@ class FileDownloaderTest {
         whenever(call.execute()).thenReturn(response)
 
         // Use a path that is likely to be invalid to trigger a write error
-        fileDownloader.downloadFile("http://example.com", "/invalid/path") { _ -> }
+        fileDownloader.downloadFile("http://example.com", "/invalid/path")
     }
 }
