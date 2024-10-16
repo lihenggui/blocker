@@ -1,2 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_sort_sort_by">Ordenar por</string>
+    <string name="feature_sort_package_name">Nome do pacote</string>
+    <string name="feature_sort_component_name">Nome do componente</string>
+    <string name="feature_sort_order">Ordenar</string>
+    <string name="feature_sort_sort_options">Opções de classificação</string>
+    <string name="feature_sort_descending">Decrescente</string>
+    <string name="feature_sort_priority">Prioridade</string>
+    <string name="feature_sort_disabled_first">Desabilitado primeiro</string>
+    <string name="feature_sort_enabled_first">Habilitado primeiro</string>
+    <string name="feature_sort_none">Nenhum</string>
+    <string name="feature_sort_name">Nome</string>
+    <string name="feature_sort_install_date">Data de instalação</string>
+    <string name="feature_sort_last_updated">Ultima Atualização</string>
+    <string name="feature_sort_show_running_apps_on_top">Mostrar aplicativos em execução no topo</string>
+    <string name="feature_sort_on">Ligado</string>
+    <string name="feature_sort_off">Desligado</string>
+    <string name="feature_sort_ascending">Crescente</string>
+</resources>
