@@ -1,2 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="feature_applist_sort_menu">Opções de menu</string>
+    <string name="feature_applist_settings">Configurações</string>
+    <string name="feature_applist_support_and_feedback">Suporte e feedback</string>
+    <string name="feature_applist_no_applications_to_display">Sem aplicativos para exibir</string>
+</resources>
