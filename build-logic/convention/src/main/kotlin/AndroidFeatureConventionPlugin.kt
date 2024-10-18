@@ -29,6 +29,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 apply("blocker.android.library")
                 apply("blocker.android.hilt")
                 apply("io.github.takahirom.roborazzi")
+                apply("org.jetbrains.kotlin.plugin.serialization")
             }
             extensions.configure<LibraryExtension> {
                 testOptions.animationsDisabled = true
@@ -41,7 +42,9 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("androidx.hilt.navigation.compose").get())
                 add("implementation", libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
                 add("implementation", libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
+                add("implementation", libs.findLibrary("androidx.navigation.compose").get())
                 add("implementation", libs.findLibrary("androidx.tracing.ktx").get())
+                add("implementation", libs.findLibrary("kotlinx.serialization.json").get())
 
                 add("testImplementation", project(":core:screenshot-testing"))
                 add("androidTestImplementation", libs.findBundle("androidx.compose.ui.test").get())
