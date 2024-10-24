@@ -18,11 +18,8 @@ package com.merxury.blocker.ui.twopane.search
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
-import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
-import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
-import com.merxury.blocker.feature.search.navigation.TAB_ARG
+import androidx.navigation.toRoute
+import com.merxury.blocker.feature.search.navigation.SearchRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,31 +29,47 @@ import javax.inject.Inject
 class Search2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val selectedPackageName: StateFlow<String?> =
-        savedStateHandle.getStateFlow(PACKAGE_NAME_ARG, null)
-    val selectedAppTabs: StateFlow<String?> = savedStateHandle.getStateFlow(TAB_ARG, null)
-    val searchKeyword: StateFlow<String?> = savedStateHandle.getStateFlow(KEYWORD_ARG, null)
-    val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(RULE_ID_ARG, null)
+    private val selectedPackageNameKey = "selectedPackageNameKey"
+    private val selectedRuleIdKey = "selectedRuleIdKey"
+    private val selectedAppTabKey = "selectedTabKey"
+    private val searchKeywordKey = "searchKeywordKey"
+    private val searchRoute: SearchRoute = savedStateHandle.toRoute()
+     val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
+        key = selectedRuleIdKey,
+        initialValue = searchRoute.ruleId,
+    )
+     val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
+        key = selectedPackageNameKey,
+        initialValue = searchRoute.packageName,
+    )
+    val selectedAppTabs: StateFlow<String?> = savedStateHandle.getStateFlow(
+        key = selectedAppTabKey,
+        initialValue = searchRoute.tab,
+    )
+    val searchKeyword: StateFlow<String?> = savedStateHandle.getStateFlow(
+        key = searchKeywordKey,
+        initialValue = searchRoute.searchKeyword.joinToString(","),
+    )
     private val _isAppDetailPage: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isAppDetailPage: StateFlow<Boolean> = _isAppDetailPage
 
     fun onAppClick(
         packageName: String?,
-        tabs: AppDetailTabs?,
+        tabs: String?,
         keyword: List<String>?,
     ) {
         _isAppDetailPage.value = true
-        savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        savedStateHandle[selectedPackageNameKey] = packageName
         if (tabs != null) {
-            savedStateHandle[TAB_ARG] = tabs.name
+            savedStateHandle[selectedAppTabKey] = tabs
         }
         if (keyword != null) {
-            savedStateHandle[KEYWORD_ARG] = keyword.joinToString(",")
+            savedStateHandle[selectedPackageNameKey] = keyword.joinToString(",")
         }
     }
 
     fun onRuleClick(ruleId: String?) {
-        savedStateHandle[RULE_ID_ARG] = ruleId
+        savedStateHandle[selectedRuleIdKey] = ruleId
         _isAppDetailPage.value = false
     }
 }
