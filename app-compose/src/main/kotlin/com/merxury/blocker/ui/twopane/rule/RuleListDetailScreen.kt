@@ -45,7 +45,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
-import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
+import com.merxury.blocker.feature.generalrules.GeneralRulesScreen
 import com.merxury.blocker.feature.ruledetail.RuleDetailPlaceholder
 import com.merxury.blocker.feature.ruledetail.navigation.RuleDetailRoute
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
@@ -152,7 +152,7 @@ internal fun RuleListDetailScreen(
         value = listDetailNavigator.scaffoldValue,
         directive = listDetailNavigator.scaffoldDirective,
         listPane = {
-            GeneralRulesRoute(
+            GeneralRulesScreen(
                 highlightSelectedRule = listDetailNavigator.isDetailPaneVisible(),
                 navigateToRuleDetail = ::onRuleClickShowDetailPane,
             )
