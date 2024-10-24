@@ -20,7 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.merxury.blocker.feature.licenses.LicensesRoute
+import com.merxury.blocker.feature.licenses.LicensesScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,7 +33,7 @@ fun NavGraphBuilder.licensesScreen(
     onBackClick: () -> Unit,
 ) {
     composable<LicensesRoute> {
-        LicensesRoute(
+        LicensesScreen(
             onNavigationClick = onBackClick,
         )
     }

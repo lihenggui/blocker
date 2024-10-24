@@ -21,7 +21,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
-import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackRoute
+import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -36,7 +36,7 @@ fun NavGraphBuilder.supportAndFeedbackScreen(
     snackbarHostState: SnackbarHostState,
 ) {
     composable<SupportAndFeedbackRoute> {
-        SupportAndFeedbackRoute(
+        SupportAndFeedbackScreen(
             onNavigationClick = onBackClick,
             navigateToLicenses = navigateToLicenses,
             snackbarHostState = snackbarHostState,
