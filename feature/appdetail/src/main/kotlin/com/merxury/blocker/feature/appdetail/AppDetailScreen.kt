@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -266,7 +265,7 @@ fun AppDetailScreen(
             FINISHED -> rulestring.core_rule_done
             FOLDER_NOT_DEFINED,
             MISSING_STORAGE_PERMISSION,
-            -> rulestring.core_rule_error_msg_folder_not_defined
+                -> rulestring.core_rule_error_msg_folder_not_defined
 
             MISSING_ROOT_PERMISSION -> rulestring.core_rule_error_msg_missing_root_permission
             UNEXPECTED_EXCEPTION -> rulestring.core_rule_error_msg_unexpected_exception
@@ -527,7 +526,7 @@ fun AppDetailContent(
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
     showOpenInLibChecker: Boolean = false,
-    matchedGeneralRuleUiState: Result<List<MatchedItem>> = Result.Loading,
+    matchedGeneralRuleUiState: Result<List<MatchedItem>> = Loading,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -541,7 +540,7 @@ fun AppDetailContent(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 toolbarState.scrollTopLimitReached =
                     listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
+                        listState.firstVisibleItemScrollOffset == 0
                 toolbarState.scrollOffset -= available.y
                 return Offset(0f, toolbarState.consumed)
             }
@@ -556,7 +555,7 @@ fun AppDetailContent(
                         ) { value, _ ->
                             toolbarState.scrollTopLimitReached =
                                 listState.firstVisibleItemIndex == 0 &&
-                                listState.firstVisibleItemScrollOffset == 0
+                                    listState.firstVisibleItemScrollOffset == 0
                             toolbarState.scrollOffset -= (value - (toolbarState.height + toolbarState.offset))
                             if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
                         }
@@ -692,9 +691,10 @@ fun AppDetailAppBarActions(
 }
 
 @Composable
-private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
-    ExitUntilCollapsedState(heightRange = toolbarHeightRange)
-}
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState =
+    rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+        ExitUntilCollapsedState(heightRange = toolbarHeightRange)
+    }
 
 @Composable
 private fun TopAppBar(
@@ -770,7 +770,7 @@ private fun TopAppBar(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppDetailTabContent(
     app: AppItem,
@@ -800,7 +800,7 @@ fun AppDetailTabContent(
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     showOpenInLibChecker: Boolean = false,
-    matchedGeneralRuleUiState: Result<List<MatchedItem>> = Result.Loading,
+    matchedGeneralRuleUiState: Result<List<MatchedItem>> = Loading,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -865,12 +865,12 @@ fun AppDetailTabContent(
 
                 else -> {
                     when (componentListUiState) {
-                        is Result.Loading -> LoadingScreen()
-                        is Result.Error -> ErrorScreen(
+                        is Loading -> LoadingScreen()
+                        is Error -> ErrorScreen(
                             error = componentListUiState.exception.toErrorMessage(),
                         )
 
-                        is Result.Success -> {
+                        is Success -> {
                             val componentList = componentListUiState.data
                             val components = when (tabState.items[it]) {
                                 Receiver -> componentList.receiver
