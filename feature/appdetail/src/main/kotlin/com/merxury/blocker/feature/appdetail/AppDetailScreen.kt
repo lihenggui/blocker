@@ -97,6 +97,9 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.Result.Error
+import com.merxury.blocker.core.result.Result.Loading
+import com.merxury.blocker.core.result.Result.Success
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FINISHED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
@@ -144,7 +147,7 @@ import com.merxury.blocker.core.rule.R.string as rulestring
 import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
-fun AppDetailRoute(
+fun AppDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     onBackClick: () -> Unit,
@@ -925,7 +928,7 @@ private fun AppDetailScreenAppInfoPreview(
                 appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
                 ),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(appList[0]),
                 ),
                 tabState = tabState[0],
@@ -947,7 +950,7 @@ private fun AppDetailScreenComponentPreview(
         Surface {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState(appInfo = appList[0]),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(
                         app = appList[0],
                         activity = components.filter { it.type == ACTIVITY },
@@ -979,7 +982,7 @@ private fun AppDetailScreenComponentEmptyPreview(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
                 ),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(appList[0]),
                 ),
                 tabState = tabState[2],
@@ -1000,7 +1003,7 @@ private fun AppDetailScreenComponentLoadingPreview() {
                     appInfo = appList[0],
                     error = UiMessage("Error"),
                 ),
-                componentListUiState = Result.Loading,
+                componentListUiState = Loading,
                 tabState = tabState[1],
                 topAppBarUiState = AppBarUiState(),
             )
@@ -1020,7 +1023,7 @@ private fun AppDetailScreenComponentRefreshingPreview() {
                     appInfo = appList[0],
                     isRefreshing = true,
                 ),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(
                         app = appList[0],
                         activity = components.filter { it.type == ACTIVITY },
@@ -1047,7 +1050,7 @@ private fun AppDetailScreenComponentErrorPreview(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
                 ),
-                componentListUiState = Result.Error(
+                componentListUiState = Error(
                     Exception("Error"),
                 ),
                 tabState = tabState[1],
@@ -1072,7 +1075,7 @@ private fun AppDetailScreenSdkPreview(
                 appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
-                    matchedRuleUiState = Result.Success(
+                    matchedRuleUiState = Success(
                         data = listOf(
                             MatchedItem(
                                 header = MatchedHeaderData(
@@ -1084,7 +1087,7 @@ private fun AppDetailScreenSdkPreview(
                         ),
                     ),
                 ),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(appList[0]),
                 ),
                 tabState = tabState[3],
@@ -1107,9 +1110,9 @@ private fun AppDetailScreenSdkLoadingPreview(
                 appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
-                    matchedRuleUiState = Result.Loading,
+                    matchedRuleUiState = Loading,
                 ),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(appList[0]),
                 ),
                 tabState = tabState[3],
@@ -1132,11 +1135,11 @@ private fun AppDetailScreenSdkErrorPreview(
                 appInfoUiState = AppInfoUiState(
                     appInfo = appList[0],
                     showOpenInLibChecker = true,
-                    matchedRuleUiState = Result.Error(
+                    matchedRuleUiState = Error(
                         Exception("Error"),
                     ),
                 ),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(appList[0]),
                 ),
                 tabState = tabState[3],
@@ -1158,7 +1161,7 @@ private fun AppDetailScreenSearchModePreview(
         Surface {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState(appInfo = appList[0]),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(
                         app = appList[0],
                         activity = components.filter { it.type == ACTIVITY },
@@ -1190,7 +1193,7 @@ private fun AppDetailScreenSelectedModePreview(
         Surface {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState(appInfo = appList[0]),
-                componentListUiState = Result.Success(
+                componentListUiState = Success(
                     ComponentSearchResult(
                         app = appList[0],
                         activity = activityComponents,

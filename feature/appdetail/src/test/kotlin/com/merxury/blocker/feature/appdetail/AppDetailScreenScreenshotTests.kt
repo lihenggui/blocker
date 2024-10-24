@@ -26,6 +26,9 @@ import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.Result.Error
+import com.merxury.blocker.core.result.Result.Loading
+import com.merxury.blocker.core.result.Result.Success
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
@@ -297,7 +300,7 @@ class AppDetailScreenScreenshotTests {
                     appInfoUiState = AppInfoUiState(
                         appInfo = appList[0],
                     ),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(appList[0]),
                     ),
                     tabState = tabState[0],
@@ -313,7 +316,7 @@ class AppDetailScreenScreenshotTests {
             Surface {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState(appInfo = appList[0]),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(
                             app = appList[0],
                             activity = components.filter { it.type == ACTIVITY },
@@ -340,7 +343,7 @@ class AppDetailScreenScreenshotTests {
                         appInfo = appList[0],
                         showOpenInLibChecker = true,
                     ),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(appList[0]),
                     ),
                     tabState = tabState[2],
@@ -359,7 +362,7 @@ class AppDetailScreenScreenshotTests {
                         appInfo = PreviewParameterData.appList[0],
                         error = UiMessage("Error"),
                     ),
-                    componentListUiState = Result.Loading,
+                    componentListUiState = Loading,
                     tabState = tabState[1],
                     topAppBarUiState = AppBarUiState(),
                 )
@@ -376,7 +379,7 @@ class AppDetailScreenScreenshotTests {
                         appInfo = appList[0],
                         showOpenInLibChecker = true,
                     ),
-                    componentListUiState = Result.Error(
+                    componentListUiState = Error(
                         Exception("Error"),
                     ),
                     tabState = tabState[1],
@@ -395,7 +398,7 @@ class AppDetailScreenScreenshotTests {
                         appInfo = PreviewParameterData.appList[0],
                         isRefreshing = true,
                     ),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(
                             app = PreviewParameterData.appList[0],
                             activity = components.filter { it.type == ACTIVITY },
@@ -418,7 +421,7 @@ class AppDetailScreenScreenshotTests {
                         showOpenInLibChecker = true,
                         matchedRuleUiState = matchedRuleUiState,
                     ),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(appList[0]),
                     ),
                     tabState = tabState[3],
@@ -436,9 +439,9 @@ class AppDetailScreenScreenshotTests {
                     appInfoUiState = AppInfoUiState(
                         appInfo = appList[0],
                         showOpenInLibChecker = true,
-                        matchedRuleUiState = Result.Loading,
+                        matchedRuleUiState = Loading,
                     ),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(appList[0]),
                     ),
                     tabState = tabState[3],
@@ -456,11 +459,11 @@ class AppDetailScreenScreenshotTests {
                     appInfoUiState = AppInfoUiState(
                         appInfo = appList[0],
                         showOpenInLibChecker = true,
-                        matchedRuleUiState = Result.Error(
+                        matchedRuleUiState = Error(
                             Exception("Error"),
                         ),
                     ),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(appList[0]),
                     ),
                     tabState = tabState[3],
@@ -476,7 +479,7 @@ class AppDetailScreenScreenshotTests {
             Surface {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState(appInfo = appList[0]),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(
                             app = appList[0],
                             activity = components.filter { it.type == ACTIVITY },
@@ -501,7 +504,7 @@ class AppDetailScreenScreenshotTests {
             Surface {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState(appInfo = appList[0]),
-                    componentListUiState = Result.Success(
+                    componentListUiState = Success(
                         ComponentSearchResult(
                             app = appList[0],
                             activity = activityComponents,

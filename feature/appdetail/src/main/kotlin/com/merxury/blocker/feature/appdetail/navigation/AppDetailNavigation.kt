@@ -24,7 +24,7 @@ import androidx.navigation.compose.composable
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.appdetail.AppDetailRoute
+import com.merxury.blocker.feature.appdetail.AppDetailScreen
 import kotlinx.serialization.Serializable
 
 @VisibleForTesting
@@ -65,7 +65,7 @@ fun NavGraphBuilder.appDetailScreen(
     showBackButton: Boolean,
 ) {
     composable<AppDetailRoute> {
-        AppDetailRoute(
+        AppDetailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
