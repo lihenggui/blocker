@@ -65,7 +65,7 @@ class AppDetailScreenScreenshotTests {
     private val components = ComponentListPreviewParameterProvider().values.first()
     private val activityComponents = components.filter { it.type == ACTIVITY }
     private val rule = RuleListPreviewParameterProvider().values.first().first()
-    private val matchedRuleUiState: Result<List<MatchedItem>> = Result.Success(
+    private val matchedRuleUiState: Result<List<MatchedItem>> = Success(
         data = listOf(
             MatchedItem(
                 header = MatchedHeaderData(

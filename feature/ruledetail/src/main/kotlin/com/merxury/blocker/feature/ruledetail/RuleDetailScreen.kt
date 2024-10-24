@@ -319,7 +319,7 @@ fun RuleDetailScreen(
             )
         }
 
-        is RuleInfoUiState.Error -> {
+        is Error -> {
             ErrorScreen(error = ruleInfoUiState.error)
         }
     }

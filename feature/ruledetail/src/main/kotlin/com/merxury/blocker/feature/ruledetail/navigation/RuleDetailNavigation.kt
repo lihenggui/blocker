@@ -33,8 +33,6 @@ internal const val RULE_ID_ARG = "ruleId"
 @VisibleForTesting
 internal const val TAB_ARG = "tab"
 
-const val RULE_DETAIL_ROUTE = "rule_detail_route"
-
 @Serializable
 data class RuleDetailRoute(val ruleId: String, val tab: String = Applicable.name)
 
