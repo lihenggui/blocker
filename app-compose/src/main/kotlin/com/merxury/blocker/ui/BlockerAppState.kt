@@ -28,6 +28,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -95,6 +96,13 @@ class BlockerAppState(
         @Composable get() = navController
             .currentBackStackEntryAsState().value?.destination
 
+    val currentTopLevelDestination: TopLevelDestination?
+        @Composable get() {
+            return TopLevelDestination.entries.firstOrNull { topLevelDestination ->
+                currentDestination?.hasRoute(route = topLevelDestination.route) ?: false
+            }
+        }
+
     val isOffline = networkMonitor.isOnline
         .map(Boolean::not)
         .stateIn(
@@ -148,6 +156,7 @@ class BlockerAppState(
 
             when (topLevelDestination) {
                 APP -> navController.navigateToAppList(
+                    initialPackageName = null,
                     navOptions = topLevelNavOptions,
                 )
 

@@ -20,6 +20,9 @@ package com.merxury.blocker.navigation
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.merxury.blocker.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.feature.applist.navigation.AppListRoute
+import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
+import kotlin.reflect.KClass
 
 /**
  * Type for the top level destinations in the application. Each of these destinations
@@ -30,24 +33,24 @@ enum class TopLevelDestination(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
     val iconTextId: Int,
-    val titleTextId: Int,
+    val route: KClass<*>,
 ) {
     APP(
         selectedIcon = BlockerIcons.Apps,
         unselectedIcon = BlockerIcons.Apps,
         iconTextId = R.string.apps,
-        titleTextId = R.string.app_name,
+        route = AppListRoute::class,
     ),
     RULE(
         selectedIcon = BlockerIcons.GeneralRule,
         unselectedIcon = BlockerIcons.GeneralRule,
         iconTextId = R.string.sdk_trackers,
-        titleTextId = R.string.sdk_trackers,
+        route = GeneralRuleRoute::class,
     ),
     SEARCH(
         selectedIcon = BlockerIcons.Search,
         unselectedIcon = BlockerIcons.Search,
         iconTextId = R.string.search,
-        titleTextId = R.string.search,
+        route = AppListRoute::class,
     ),
 }

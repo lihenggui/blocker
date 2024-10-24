@@ -18,7 +18,8 @@ package com.merxury.blocker.ui.twopane.applist
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.merxury.blocker.feature.applist.navigation.PACKAGE_NAME_ARG
+import androidx.navigation.toRoute
+import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -27,9 +28,14 @@ import javax.inject.Inject
 class AppList2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(PACKAGE_NAME_ARG, savedStateHandle[PACKAGE_NAME_ARG])
+    private val selectedPackageKey = "selectedPackageKey"
+    private val appListRoute: AppListRoute = savedStateHandle.toRoute()
+    val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
+        key = selectedPackageKey,
+        initialValue = appListRoute.initialPackageName,
+    )
 
     fun onAppClick(packageName: String?) {
-        savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        savedStateHandle[selectedPackageKey] = packageName
     }
 }

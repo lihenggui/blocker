@@ -17,22 +17,15 @@
 package com.merxury.blocker.feature.appdetail.navigation
 
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
-import java.net.URLDecoder
-import java.net.URLEncoder
-import kotlin.text.Charsets.UTF_8
-
-private val URL_CHARACTER_ENCODING = UTF_8.name()
+import kotlinx.serialization.Serializable
 
 @VisibleForTesting
 internal const val PACKAGE_NAME_ARG = "packageName"
@@ -43,54 +36,24 @@ internal const val TAB_ARG = "tab"
 @VisibleForTesting
 internal const val KEYWORD_ARG = "keyword"
 
-const val APP_DETAIL_ROUTE = "app_detail_route"
-
-internal class AppDetailArgs(
+@Serializable
+data class AppDetailRoute(
     val packageName: String,
-    val tabs: String = AppDetailTabs.Info.name,
+    val tab: String = AppDetailTabs.Info.name,
     val searchKeyword: List<String> = listOf(),
-) {
-    constructor(savedStateHandle: SavedStateHandle) :
-        this(
-            URLDecoder.decode(
-                checkNotNull(savedStateHandle[PACKAGE_NAME_ARG]),
-                URL_CHARACTER_ENCODING,
-            ),
-            URLDecoder.decode(
-                checkNotNull(savedStateHandle[TAB_ARG]),
-                URL_CHARACTER_ENCODING,
-            ),
-            URLDecoder.decode(checkNotNull(savedStateHandle[KEYWORD_ARG]), URL_CHARACTER_ENCODING)
-                .split(","),
-        )
-}
+)
 
 fun NavController.navigateToAppDetail(
     packageName: String,
-    tab: AppDetailTabs = AppDetailTabs.Info,
+    tab: String = AppDetailTabs.Info.name,
     searchKeyword: List<String> = listOf(),
     navOptions: NavOptionsBuilder.() -> Unit = {},
 ) {
-    navigate(createAppDetailRoute(packageName, tab, searchKeyword)) {
+    navigate(route = AppDetailRoute(packageName, tab, searchKeyword)) {
         navOptions()
     }
 }
 
-fun createAppDetailRoute(
-    packageName: String,
-    tab: AppDetailTabs = AppDetailTabs.Info,
-    searchKeyword: List<String> = listOf(),
-): String {
-    val encodedPackageName = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
-    val encodedTab = URLEncoder.encode(tab.name, URL_CHARACTER_ENCODING)
-    val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
-    val newRoute = StringBuilder(APP_DETAIL_ROUTE).apply {
-        append("/$encodedPackageName")
-        append("?$TAB_ARG=$encodedTab")
-        append("?$KEYWORD_ARG=$keywords")
-    }.toString()
-    return newRoute
-}
 
 fun NavGraphBuilder.appDetailScreen(
     onBackClick: () -> Unit,
@@ -101,14 +64,7 @@ fun NavGraphBuilder.appDetailScreen(
     navigateToRuleDetail: (String) -> Unit,
     showBackButton: Boolean,
 ) {
-    composable(
-        route = "$APP_DETAIL_ROUTE/{$PACKAGE_NAME_ARG}?$TAB_ARG={$TAB_ARG}?$KEYWORD_ARG={$KEYWORD_ARG}",
-        arguments = listOf(
-            navArgument(PACKAGE_NAME_ARG) { type = NavType.StringType },
-            navArgument(TAB_ARG) { type = NavType.StringType },
-            navArgument(KEYWORD_ARG) { type = NavType.StringType },
-        ),
-    ) {
+    composable<AppDetailRoute> {
         AppDetailRoute(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,

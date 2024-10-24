@@ -24,7 +24,6 @@ import androidx.compose.material.navigation.BottomSheetNavigator
 import androidx.compose.material.navigation.ModalBottomSheetLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
@@ -32,7 +31,7 @@ import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
-import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE_BASIC
+import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.licenses.navigation.licensesScreen
@@ -46,6 +45,7 @@ import com.merxury.blocker.feature.sort.navigation.appSortScreen
 import com.merxury.blocker.feature.sort.navigation.componentSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
+import com.merxury.blocker.ui.BlockerAppState
 import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
 import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
 
@@ -60,18 +60,18 @@ import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
 @Composable
 fun BlockerNavHost(
     bottomSheetNavigator: BottomSheetNavigator,
-    navController: NavHostController,
+    appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     dismissBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
-    startDestination: String = APP_LIST_ROUTE_BASIC,
     updateIconThemingState: (IconThemingState) -> Unit = {},
 ) {
+    val navController = appState.navController
     ModalBottomSheetLayout(bottomSheetNavigator) {
         NavHost(
             navController = navController,
-            startDestination = startDestination,
+            startDestination = AppListRoute,
             modifier = modifier,
             enterTransition = { fadeIn(animationSpec = tween(300)) },
             exitTransition = { fadeOut(animationSpec = tween(300)) },
