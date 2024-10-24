@@ -18,7 +18,8 @@ package com.merxury.blocker.ui.twopane.rule
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
+import androidx.navigation.toRoute
+import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -27,9 +28,14 @@ import javax.inject.Inject
 class RuleList2PaneViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(RULE_ID_ARG, null)
+    private val generalRuleRoute: GeneralRuleRoute = savedStateHandle.toRoute()
+    private val selectedRuleIdKey = "selectedRuleIdKey"
+    val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
+        key = selectedRuleIdKey,
+        initialValue = generalRuleRoute.initialRuleId,
+    )
 
     fun onRuleClick(ruleId: String?) {
-        savedStateHandle[RULE_ID_ARG] = ruleId
+        savedStateHandle[selectedRuleIdKey] = ruleId
     }
 }

@@ -26,6 +26,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -59,7 +60,7 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
+import com.merxury.blocker.feature.ruledetail.navigation.RuleDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -92,7 +93,7 @@ class RuleDetailViewModel @Inject constructor(
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
 ) : ViewModel() {
-    private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
+    private val ruleInfo = savedStateHandle.toRoute<RuleDetailRoute>()
     private val _ruleInfoUiState: MutableStateFlow<RuleInfoUiState> =
         MutableStateFlow(RuleInfoUiState.Loading)
     val ruleInfoUiState: StateFlow<RuleInfoUiState> = _ruleInfoUiState
@@ -128,8 +129,8 @@ class RuleDetailViewModel @Inject constructor(
     fun loadData() {
         loadRuleDetailJob?.cancel()
         loadRuleDetailJob = viewModelScope.launch {
-            val ruleId = ruleIdArgs.ruleId
-            val rule = ruleRepository.getGeneralRule(ruleId)
+            val ruleId = ruleInfo.ruleId
+            val rule = ruleRepository.getGeneralRule(ruleId.toInt())
                 .first()
             val iconFile = withContext(ioDispatcher) {
                 val iconUrl = rule.iconUrl ?: return@withContext null
@@ -341,9 +342,9 @@ class RuleDetailViewModel @Inject constructor(
     }
 
     private fun loadTabInfo() {
-        val screen = ruleIdArgs.tabs
+        val screen = ruleInfo.tab
         Timber.v("Jump to tab: $screen")
-        _tabState.update { it.copy(selectedItem = screen) }
+        _tabState.update { it.copy(selectedItem = RuleDetailTabs.fromName(screen)) }
     }
 
     private suspend fun getSeedColor(icon: File?, context: Context): Color? =

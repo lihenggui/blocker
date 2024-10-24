@@ -152,6 +152,7 @@ class BlockerAppState(
                 )
 
                 RULE -> navController.navigateToGeneralRule(
+                    initialRuleId = null,
                     navOptions = topLevelNavOptions,
                 )
 
