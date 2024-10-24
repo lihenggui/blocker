@@ -62,7 +62,6 @@ fun BlockerNavHost(
     bottomSheetNavigator: BottomSheetNavigator,
     appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,
-    onBackClick: () -> Unit,
     dismissBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
     updateIconThemingState: (IconThemingState) -> Unit = {},
@@ -87,7 +86,7 @@ fun BlockerNavHost(
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
             appDetailScreen(
-                onBackClick = onBackClick,
+                onBackClick = navController::popBackStack,
                 showBackButton = true,
                 snackbarHostState = snackbarHostState,
                 updateIconThemingState = updateIconThemingState,
@@ -106,22 +105,22 @@ fun BlockerNavHost(
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
             ruleDetailScreen(
-                onBackClick = onBackClick,
+                onBackClick = navController::popBackStack,
                 snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
                 updateIconThemingState = updateIconThemingState,
             )
             settingsScreen(
-                onBackClick,
+                navController::popBackStack,
                 snackbarHostState = snackbarHostState,
             )
             supportAndFeedbackScreen(
-                onBackClick = onBackClick,
+                onBackClick = navController::popBackStack,
                 navigateToLicenses = navController::navigateToLicenses,
                 snackbarHostState = snackbarHostState,
             )
             componentDetailScreen(
-                dismissHandler = onBackClick,
+                dismissHandler = navController::popBackStack,
             )
             componentSortScreen(
                 dismissHandler = dismissBottomSheet,
@@ -130,7 +129,7 @@ fun BlockerNavHost(
                 dismissHandler = dismissBottomSheet,
             )
             licensesScreen(
-                onBackClick = onBackClick,
+                onBackClick = navController::popBackStack,
             )
         }
     }
