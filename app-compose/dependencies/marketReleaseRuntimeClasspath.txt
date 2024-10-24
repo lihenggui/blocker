@@ -194,7 +194,7 @@ com.google.dagger:hilt-core:2.52
 com.google.errorprone:error_prone_annotations:2.26.0
 com.google.firebase:firebase-analytics:22.1.2
 com.google.firebase:firebase-annotations:16.2.0
-com.google.firebase:firebase-bom:33.5.0
+com.google.firebase:firebase-bom:33.5.1
 com.google.firebase:firebase-common-ktx:21.0.0
 com.google.firebase:firebase-common:21.0.0
 com.google.firebase:firebase-components:18.0.0
