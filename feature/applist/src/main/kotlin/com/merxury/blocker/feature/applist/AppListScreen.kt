@@ -58,7 +58,7 @@ import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 
 @Composable
-fun AppListRoute(
+fun AppListScreen(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,

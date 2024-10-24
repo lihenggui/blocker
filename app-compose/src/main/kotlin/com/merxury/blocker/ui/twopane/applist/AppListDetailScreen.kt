@@ -49,7 +49,7 @@ import com.merxury.blocker.feature.appdetail.AppDetailPlaceholder
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailRoute
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
-import com.merxury.blocker.feature.applist.AppListRoute
+import com.merxury.blocker.feature.applist.AppListScreen
 import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
@@ -181,7 +181,7 @@ internal fun AppListDetailScreen(
         value = listDetailNavigator.scaffoldValue,
         directive = listDetailNavigator.scaffoldDirective,
         listPane = {
-            AppListRoute(
+            AppListScreen(
                 navigateToAppDetail = ::onAppClickShowDetailPane,
                 navigateToSettings = navigateToSettings,
                 navigateToSupportAndFeedback = navigateToSupportAndFeedback,
