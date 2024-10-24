@@ -23,7 +23,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.Result.Loading
+import com.merxury.blocker.core.result.Result.Success
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
@@ -34,6 +35,7 @@ import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewPar
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Error
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -167,7 +169,7 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        matchedAppsUiState = Result.Success(
+                        matchedAppsUiState = Success(
                             listOf(
                                 MatchedItem(
                                     header = MatchedHeaderData(
@@ -197,7 +199,7 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        matchedAppsUiState = Result.Success(
+                        matchedAppsUiState = Success(
                             listOf(
                                 MatchedItem(
                                     header = MatchedHeaderData(
@@ -222,7 +224,7 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        matchedAppsUiState = Result.Loading,
+                        matchedAppsUiState = Loading,
                     ),
                     tabState = tabState[1],
                 )
@@ -247,7 +249,7 @@ class RuleDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 RuleDetailScreen(
-                    ruleInfoUiState = RuleInfoUiState.Error(
+                    ruleInfoUiState = Error(
                         error = UiMessage("Error"),
                     ),
                     tabState = tabState[0],

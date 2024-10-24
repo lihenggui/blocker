@@ -24,7 +24,7 @@ import androidx.navigation.compose.composable
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
-import com.merxury.blocker.feature.ruledetail.RuleDetailRoute
+import com.merxury.blocker.feature.ruledetail.RuleDetailScreen
 import kotlinx.serialization.Serializable
 
 @VisibleForTesting
@@ -56,7 +56,7 @@ fun NavGraphBuilder.ruleDetailScreen(
     updateIconThemingState: (IconThemingState) -> Unit,
 ) {
     composable<RuleDetailRoute> {
-        RuleDetailRoute(
+        RuleDetailScreen(
             showBackButton = showBackButton,
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
