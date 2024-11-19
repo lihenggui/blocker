@@ -332,7 +332,7 @@ class AppDetailViewModel @Inject constructor(
 
     @VisibleForTesting
     fun loadTabInfo() = viewModelScope.launch {
-        val screen = appDetailArgs.tabs
+        val screen = AppDetailTabs.fromName(appDetailArgs.tabs)
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
         _appBarUiState.update {

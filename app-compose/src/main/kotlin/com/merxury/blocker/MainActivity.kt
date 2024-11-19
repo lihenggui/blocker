@@ -38,7 +38,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.metrics.performance.JankStats
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.MainActivityUiState.Loading
 import com.merxury.blocker.MainActivityUiState.Success
 import com.merxury.blocker.core.analytics.AnalyticsHelper
@@ -58,7 +57,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterialNavigationApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -169,7 +168,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     BlockerApp(
                         appState,
-                        updateIconBasedThemingState = viewModel::updateIconBasedThemingState,
+                        updateIconThemingState = viewModel::updateIconThemingState,
                     )
                 }
             }

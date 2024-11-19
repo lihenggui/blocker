@@ -43,10 +43,6 @@ internal fun Project.configureKotlinAndroid(
         }
 
         compileOptions {
-            // Up to Java 11 APIs are available through desugaring
-            // https://developer.android.com/studio/write/java11-minimal-support-table
-            sourceCompatibility = JavaVersion.VERSION_11
-            targetCompatibility = JavaVersion.VERSION_11
             isCoreLibraryDesugaringEnabled = true
         }
     }
@@ -59,23 +55,9 @@ internal fun Project.configureKotlinAndroid(
 }
 
 /**
- * Configure base Kotlin options for JVM (non-Android)
- */
-internal fun Project.configureKotlinJvm() {
-    extensions.configure<JavaPluginExtension> {
-        // Up to Java 11 APIs are available through desugaring
-        // https://developer.android.com/studio/write/java11-minimal-support-table
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    configureKotlin<KotlinJvmProjectExtension>()
-}
-
-/**
  * Configure base Kotlin options
  */
-private inline fun <reified T : KotlinTopLevelExtension> Project.configureKotlin() = configure<T> {
+inline fun <reified T : KotlinTopLevelExtension> Project.configureKotlin() = configure<T> {
     // Treat all Kotlin warnings as errors (disabled by default)
     // Override by setting warningsAsErrors=true in your ~/.gradle/gradle.properties
     val warningsAsErrors: String? by project
@@ -84,7 +66,7 @@ private inline fun <reified T : KotlinTopLevelExtension> Project.configureKotlin
         is KotlinJvmProjectExtension -> compilerOptions
         else -> TODO("Unsupported project extension $this ${T::class}")
     }.apply {
-        jvmTarget = JvmTarget.JVM_11
+        jvmToolchain(17)
         allWarningsAsErrors = warningsAsErrors.toBoolean()
         freeCompilerArgs.add(
             // Enable experimental coroutines APIs, including Flow

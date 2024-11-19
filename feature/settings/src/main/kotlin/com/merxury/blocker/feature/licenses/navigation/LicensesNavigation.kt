@@ -21,18 +21,18 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.merxury.blocker.feature.licenses.LicensesRoute
+import kotlinx.serialization.Serializable
 
-const val LICENSES_ROUTE = "licenses_route"
+@Serializable
+data object LicensesRoute
 
 fun NavController.navigateToLicenses(navOptions: NavOptions? = null) =
-    navigate(LICENSES_ROUTE, navOptions)
+    navigate(route = LicensesRoute, navOptions)
 
 fun NavGraphBuilder.licensesScreen(
     onBackClick: () -> Unit,
 ) {
-    composable(
-        route = LICENSES_ROUTE,
-    ) {
+    composable<LicensesRoute> {
         LicensesRoute(
             onNavigationClick = onBackClick,
         )

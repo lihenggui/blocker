@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_rule_update_rules_notification">Notificação de Regras de Atualização</string>
+    <string name="core_rule_backing_up_ifw_please_wait">Fazendo backup das regras IFW, por favor, aguarde…</string>
+    <string name="core_rule_reset_ifw_please_wait">Redefinindo o IFW, por favor, aguarde…</string>
+    <string name="core_rule_import_mat_rule_please_wait">Importando regras MAT, por favor, aguarde…</string>
+    <string name="core_rule_import_ifw_please_wait">Importando regras do IFW, por favor, aguarde…</string>
+    <string name="core_rule_import_app_rules_please_wait">Importando as regras do aplicativo, por favor, aguarde…</string>
+    <string name="core_rule_cancel">Cancelar</string>
+    <string name="core_rule_processing_please_wait">Processando, por favor, aguarde…</string>
+    <string name="core_rule_done">Feito</string>
+    <string name="core_rule_error_msg_folder_not_defined">A pasta de backup não está definida, por favor vá para configurações para atribuir um.</string>
+    <string name="core_rule_error_msg_missing_root_permission">Permissão de root ausente, por favor, conceda permissão ao Blocker.</string>
+    <string name="core_rule_error_msg_unexpected_exception">Exceção inesperada, por favor informe o desenvolvedor.</string>
+    <string name="core_rule_task_cancelled">Tarefa cancelada</string>
+    <string name="core_rule_copying_rules_to_internal_storage">Copiando regras para o armazenamento interno…</string>
+    <string name="core_rule_processing_progress_indicator">Indicador de Progresso de Processamento</string>
+    <string name="core_rule_backing_up_apps_please_wait">Fazendo backup das regras do aplicativo, por favor, aguarde…</string>
+</resources>

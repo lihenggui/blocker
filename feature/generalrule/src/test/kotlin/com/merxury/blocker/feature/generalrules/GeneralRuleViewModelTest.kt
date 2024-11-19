@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.generalrules
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkManager
 import app.cash.turbine.test
@@ -71,7 +72,7 @@ class GeneralRuleViewModelTest {
     private val workManager = mock<WorkManager> {
         on { getWorkInfosByTagFlow(any()) } doReturn emptyFlow()
     }
-
+    private val savedStateHandle = SavedStateHandle()
     private lateinit var viewModel: GeneralRulesViewModel
 
     @Before
@@ -104,6 +105,7 @@ class GeneralRuleViewModelTest {
             initGeneralRuleUseCase = initGeneralRuleUseCase,
             searchRule = searchRule,
             updateRule = updateRule,
+            savedStateHandle = savedStateHandle,
             ioDispatcher = dispatcher,
         )
     }

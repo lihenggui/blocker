@@ -17,6 +17,7 @@
 
 package com.merxury.blocker.ui
 
+import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -31,8 +32,6 @@ import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.composable
 import androidx.navigation.createGraph
 import androidx.navigation.testing.TestNavHostController
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.testing.util.TestNetworkMonitor
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
@@ -45,7 +44,6 @@ import kotlinx.datetime.TimeZone
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -54,7 +52,7 @@ import kotlin.test.assertTrue
  * Note: This could become an unit test if Robolectric is added to the project and the Context
  * is faked.
  */
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterialNavigationApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class BlockerAppStateTest {
 
     @get:Rule
@@ -79,7 +77,6 @@ class BlockerAppStateTest {
             val navController = rememberTestNavController()
             state = remember(navController) {
                 return@remember BlockerAppState(
-                    windowSizeClass = getCompactWindowClass(),
                     bottomSheetNavigator = bottomSheetNavigator,
                     navController = navController,
                     networkMonitor = networkMonitor,
@@ -119,68 +116,10 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun blockerAppState_showBottomBar_compact() = runTest {
+    fun blockerAppState_WhenNetworkMonitorIsOffline_StateIsOffline() = runTest(UnconfinedTestDispatcher()) {
         composeTestRule.setContent {
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
-                windowSizeClass = getCompactWindowClass(),
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = NavHostController(LocalContext.current),
-                networkMonitor = networkMonitor,
-                permissionMonitor = permissionMonitor,
-                coroutineScope = backgroundScope,
-                timeZoneMonitor = timeZoneMonitor,
-            )
-        }
-
-        assertTrue(state.shouldShowBottomBar)
-        assertFalse(state.shouldShowNavRail)
-    }
-
-    @Test
-    fun blockerAppState_showNavRail_medium() = runTest {
-        composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            state = BlockerAppState(
-                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(800.dp, 800.dp)),
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = NavHostController(LocalContext.current),
-                networkMonitor = networkMonitor,
-                permissionMonitor = permissionMonitor,
-                coroutineScope = backgroundScope,
-                timeZoneMonitor = timeZoneMonitor,
-            )
-        }
-
-        assertTrue(state.shouldShowNavRail)
-        assertFalse(state.shouldShowBottomBar)
-    }
-
-    @Test
-    fun blockerAppState_showNavRail_large() = runTest {
-        composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            state = BlockerAppState(
-                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = NavHostController(LocalContext.current),
-                networkMonitor = networkMonitor,
-                permissionMonitor = permissionMonitor,
-                coroutineScope = backgroundScope,
-                timeZoneMonitor = timeZoneMonitor,
-            )
-        }
-
-        assertTrue(state.shouldShowNavRail)
-        assertFalse(state.shouldShowBottomBar)
-    }
-
-    @Test
-    fun stateIsOfflineWhenNetworkMonitorIsOffline() = runTest(UnconfinedTestDispatcher()) {
-        composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            state = BlockerAppState(
-                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
@@ -199,12 +138,11 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun stateIsNoPermissionWhenPermissionMonitorCantGetPermission() =
+    fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() =
         runTest(UnconfinedTestDispatcher()) {
             composeTestRule.setContent {
                 val bottomSheetNavigator = rememberBottomSheetNavigator()
                 state = BlockerAppState(
-                    windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
                     bottomSheetNavigator = bottomSheetNavigator,
                     navController = NavHostController(LocalContext.current),
                     networkMonitor = networkMonitor,
@@ -229,7 +167,6 @@ class BlockerAppStateTest {
                 bottomSheetNavigator = rememberBottomSheetNavigator(),
                 navController = NavHostController(LocalContext.current),
                 coroutineScope = backgroundScope,
-                windowSizeClass = getCompactWindowClass(),
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 timeZoneMonitor = timeZoneMonitor,

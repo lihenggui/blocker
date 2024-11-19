@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.applist
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
@@ -82,6 +83,7 @@ class AppListViewModelTest {
             )
         } doReturn packageInfo
     }
+    private val savedStateHandle = SavedStateHandle()
     private lateinit var viewModel: AppListViewModel
 
     @Before
@@ -122,6 +124,7 @@ class AppListViewModelTest {
             cpuDispatcher = dispatcher,
             mainDispatcher = dispatcher,
             appRepository = appRepository,
+            savedStateHandle = savedStateHandle,
         )
     }
 

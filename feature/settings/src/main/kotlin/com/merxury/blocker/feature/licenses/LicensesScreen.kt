@@ -17,22 +17,18 @@
 package com.merxury.blocker.feature.licenses
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,36 +75,24 @@ fun LicenseScreen(
     modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit = {},
 ) {
-    Scaffold(
+    Column(
         modifier = modifier,
-        topBar = {
-            BlockerTopAppBar(
-                title = stringResource(id = R.string.feature_settings_open_source_licenses),
-                hasNavigationIcon = true,
-                onNavigationClick = onNavigationClick,
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-                .windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal,
-                    ),
-                ),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            when (uiState) {
-                Loading -> {
-                    LoadingScreen()
-                }
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        BlockerTopAppBar(
+            title = stringResource(id = R.string.feature_settings_open_source_licenses),
+            hasNavigationIcon = true,
+            onNavigationClick = onNavigationClick,
+        )
 
-                is Success -> {
-                    LicenseContent(uiState.licenses)
-                }
+        when (uiState) {
+            Loading -> {
+                LoadingScreen()
+            }
+
+            is Success -> {
+                LicenseContent(licenses = uiState.licenses, licensesSize = uiState.licensesSize)
             }
         }
     }
@@ -118,11 +102,12 @@ fun LicenseScreen(
 @Composable
 fun LicenseContent(
     licenses: List<LicenseGroup>,
+    licensesSize: Int,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
-        itemsAvailable = licenses.size + licenses.sumOf { it.artifacts.size },
+        itemsAvailable = licensesSize,
     )
     TrackScrollJank(scrollableState = listState, stateName = "licenses:list")
     Box(modifier.fillMaxSize()) {
@@ -131,7 +116,9 @@ fun LicenseContent(
                 stickyHeader {
                     ItemHeader(
                         title = group.id,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface),
                     )
                 }
                 items(group.artifacts) { artifact ->
@@ -148,11 +135,11 @@ fun LicenseContent(
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
                 .align(Alignment.CenterEnd)
-                .testTag("appList:scrollbar"),
+                .testTag("licenses:scrollbar"),
             state = scrollbarState,
             orientation = Orientation.Vertical,
             onThumbMove = listState.rememberDraggableScroller(
-                itemsAvailable = licenses.size,
+                itemsAvailable = licensesSize,
             ),
         )
     }

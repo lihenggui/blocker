@@ -20,22 +20,19 @@ package com.merxury.blocker.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.material.navigation.BottomSheetNavigator
+import androidx.compose.material.navigation.ModalBottomSheetLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.google.accompanist.navigation.material.BottomSheetNavigator
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
+import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
-import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
-import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE
-import com.merxury.blocker.feature.applist.navigation.appListScreen
-import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
+import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE_BASIC
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.licenses.navigation.licensesScreen
@@ -49,6 +46,8 @@ import com.merxury.blocker.feature.sort.navigation.appSortScreen
 import com.merxury.blocker.feature.sort.navigation.componentSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
+import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
+import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
@@ -58,7 +57,6 @@ import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
  * within each route is handled using state and Back Handlers.
  */
 
-@OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun BlockerNavHost(
     bottomSheetNavigator: BottomSheetNavigator,
@@ -67,8 +65,8 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     dismissBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
-    startDestination: String = APP_LIST_ROUTE,
-    updateIconBasedThemingState: (IconThemingState) -> Unit = {},
+    startDestination: String = APP_LIST_ROUTE_BASIC,
+    updateIconThemingState: (IconThemingState) -> Unit = {},
 ) {
     ModalBottomSheetLayout(bottomSheetNavigator) {
         NavHost(
@@ -78,33 +76,40 @@ fun BlockerNavHost(
             enterTransition = { fadeIn(animationSpec = tween(300)) },
             exitTransition = { fadeOut(animationSpec = tween(300)) },
         ) {
-            appListScreen(
-                navigateToAppDetail = navController::navigateToAppDetail,
+            appListDetailScreen(
                 navigateToSettings = navController::navigateToSettings,
                 navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
                 navigateTooAppSortScreen = navController::navigateToAppSortScreen,
-            )
-            detailScreen(
-                onBackClick = onBackClick,
                 snackbarHostState = snackbarHostState,
+                updateIconThemingState = updateIconThemingState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
                 navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
-                updateIconBasedThemingState = updateIconBasedThemingState,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
-            generalRuleScreen(
+            appDetailScreen(
+                onBackClick = onBackClick,
+                showBackButton = true,
+                snackbarHostState = snackbarHostState,
+                updateIconThemingState = updateIconThemingState,
+                navigateToComponentDetail = navController::navigateToComponentDetail,
+                navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
+                navigateToRuleDetail = navController::navigateToRuleDetail,
+            )
+            ruleListDetailScreen(
+                snackbarHostState = snackbarHostState,
+                navigateToAppDetail = navController::navigateToAppDetail,
+                updateIconThemingState = updateIconThemingState,
+            )
+            searchScreen(
+                snackbarHostState = snackbarHostState,
+                navigateToAppDetail = navController::navigateToAppDetail,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
             ruleDetailScreen(
                 onBackClick = onBackClick,
                 snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
-                updateIconBasedThemingState = updateIconBasedThemingState,
-            )
-            searchScreen(
-                snackbarHostState = snackbarHostState,
-                navigateToAppDetail = navController::navigateToAppDetail,
-                navigateToRuleDetail = navController::navigateToRuleDetail,
+                updateIconThemingState = updateIconThemingState,
             )
             settingsScreen(
                 onBackClick,

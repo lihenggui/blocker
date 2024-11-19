@@ -14,10 +14,12 @@
  *   limitations under the License.
  */
 
-
-import com.merxury.blocker.configureKotlinJvm
+import com.merxury.blocker.configureKotlin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.kotlin
 
 class JvmLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -26,7 +28,10 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
                 apply("org.jetbrains.kotlin.jvm")
                 apply("blocker.android.lint")
             }
-            configureKotlinJvm()
+            configureKotlin<KotlinJvmProjectExtension>()
+            dependencies {
+                add("testImplementation", kotlin("test"))
+            }
         }
     }
 }

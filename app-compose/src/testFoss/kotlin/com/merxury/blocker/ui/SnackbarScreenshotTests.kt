@@ -22,6 +22,8 @@ import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.Dp
@@ -32,8 +34,6 @@ import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -42,7 +42,6 @@ import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
-import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
@@ -52,7 +51,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -80,17 +78,9 @@ class SnackbarScreenshotTests {
     val hiltRule = HiltAndroidRule(this)
 
     /**
-     * Create a temporary folder used to create a Data Store file. This guarantees that
-     * the file is removed in between each test, preventing a crash.
-     */
-    @BindValue
-    @get:Rule(order = 1)
-    val tmpFolder: TemporaryFolder = TemporaryFolder.builder().assureDeletion().build()
-
-    /**
      * Use a test activity to set the content on.
      */
-    @get:Rule(order = 2)
+    @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
 
     @Inject
@@ -189,7 +179,6 @@ class SnackbarScreenshotTests {
         }
     }
 
-    @OptIn(ExperimentalMaterialNavigationApi::class)
     private fun testSnackbarScreenshotWithSize(
         snackbarHostState: SnackbarHostState,
         width: Dp,
@@ -201,7 +190,9 @@ class SnackbarScreenshotTests {
         composeTestRule.setContent {
             scope = rememberCoroutineScope()
 
-            TestHarness(size = DpSize(width, height)) {
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.ForcedSize(DpSize(width, height)),
+            ) {
                 BoxWithConstraints {
                     val appState = rememberBlockerAppState(
                         windowSizeClass = WindowSizeClass.calculateFromSize(
@@ -215,7 +206,7 @@ class SnackbarScreenshotTests {
                         BlockerApp(
                             appState = appState,
                             snackbarHostState = snackbarHostState,
-                            updateIconBasedThemingState = {},
+                            updateIconThemingState = {},
                         )
                     }
                 }

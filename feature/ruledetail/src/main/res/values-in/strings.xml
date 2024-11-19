@@ -10,4 +10,5 @@
     <string name="feature_ruledetail_block_all_of_this_page">Blokir semua di laman ini</string>
     <string name="feature_ruledetail_enable_all_of_this_page">Aktifkan semua di laman ini</string>
     <string name="feature_ruledetail_keywords">Kata kunci</string>
+    <string name="feature_ruledetail_select_a_rule">Pilih aturan</string>
 </resources>

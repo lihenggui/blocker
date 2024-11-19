@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.ui.collapseList
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -58,7 +57,6 @@ import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.component.ComponentListItem
 import timber.log.Timber
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CollapsibleList(
     list: List<MatchedItem>,
@@ -88,7 +86,7 @@ fun CollapsibleList(
                 val expanded = isExpandedMap[index] ?: false
                 item(key = ruleMatchedApp.header.uniqueId) {
                     CollapsibleItem(
-                        modifier = Modifier.animateItemPlacement(),
+                        modifier = Modifier.animateItem(),
                         matchedItem = ruleMatchedApp,
                         navigationMenuItemDesc = navigationMenuItemDesc,
                         navigation = {
@@ -109,7 +107,7 @@ fun CollapsibleList(
                         key = { item -> ruleMatchedApp.header.uniqueId + "/" + item.name },
                     ) {
                         ComponentListItem(
-                            modifier = Modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItem(),
                             item = it,
                             enabled = it.enabled(),
                             type = it.type,

@@ -22,18 +22,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -60,6 +62,7 @@ private val appIconSize = 80.dp
 private val collapsedTitleSize = 22.sp
 private val expandedTitleSize = 28.sp
 private val padding = 4.dp
+private val minNavWidth = 1.dp
 
 val MinToolbarHeight = 64.dp
 val MaxToolbarHeight = 188.dp
@@ -71,6 +74,7 @@ fun BlockerCollapsingTopAppBar(
     subtitle: String,
     summary: String,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     onNavigationClick: () -> Unit = {},
     actions: (@Composable RowScope.() -> Unit)? = {},
     iconSource: Any? = null,
@@ -91,15 +95,19 @@ fun BlockerCollapsingTopAppBar(
                 .fillMaxSize(),
         ) {
             CollapsingToolbarLayout(progress = progress) {
-                IconButton(
-                    onClick = onNavigationClick,
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.Back,
-                        contentDescription = stringResource(id = R.string.core_designsystem_back),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
+                if (showBackButton) {
+                    IconButton(
+                        onClick = onNavigationClick,
+                        modifier = Modifier.then(Modifier.size(24.dp)),
+                    ) {
+                        Icon(
+                            imageVector = BlockerIcons.Back,
+                            contentDescription = stringResource(id = R.string.core_designsystem_back),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                } else {
+                    Spacer(modifier = Modifier.width(minNavWidth))
                 }
                 BlockerBodyLargeText(
                     text = title,
@@ -137,7 +145,7 @@ fun BlockerCollapsingTopAppBar(
                             .size(appIconSize)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
-                                indication = rememberRipple(bounded = false),
+                                indication = ripple(bounded = false),
                                 onClick = { onIconClick() },
                             )
                             .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
@@ -187,9 +195,15 @@ private fun CollapsingToolbarLayout(
                 x = 0,
                 y = MinToolbarHeight.roundToPx() / 2 - navigationIcon.height / 2,
             )
+            val navWidth = navigationIcon.width
+            val space = if (navWidth == minNavWidth.roundToPx()) {
+                0
+            } else {
+                contentPadding.roundToPx()
+            }
             title.placeRelative(
                 x = lerp(
-                    start = navigationIcon.width + contentPadding.roundToPx(),
+                    start = navWidth + space,
                     stop = 0,
                     fraction = progress,
                 ),
@@ -288,6 +302,7 @@ private fun CollapsingToolbarHalfwayPreview() {
         BlockerCollapsingTopAppBar(
             progress = 0.5f,
             title = "Title with long name 0123456789",
+            showBackButton = false,
             actions = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
