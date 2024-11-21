@@ -21,6 +21,8 @@ import com.merxury.blocker.core.database.app.InstalledAppDao
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
+import com.merxury.blocker.core.database.traffic.TrafficDataDao
+import com.merxury.blocker.core.database.traffic.TrafficDataDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,4 +41,8 @@ internal object DaosModule {
     @Provides
     @Singleton
     fun provideGeneralRuleDao(database: GeneralRuleDatabase): GeneralRuleDao = database.generalRuleDao()
+
+    @Provides
+    @Singleton
+    fun provideTrafficDataDao(database: TrafficDataDatabase): TrafficDataDao = database.trafficDataDao()
 }
