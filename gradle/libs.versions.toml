@@ -49,6 +49,7 @@ kotlinxCoroutines = "1.9.0"
 kotlinxDatetime = "0.6.1"
 kotlinxSerializationJson = "1.7.3"
 ksp = "2.0.21-1.0.28"
+kxml = "2.3.0"
 libsu = "6.0.0"
 licensee = "1.12.0"
 logbackClassic = "1.5.12"
@@ -64,7 +65,7 @@ roborazzi = "1.34.0"
 room = "2.6.1"
 shizuku = "13.1.5"
 timber = "5.0.1"
-xmlutil = "0.90.1"
+xmlutil = "0.90.3"
 turbine = "1.2.0"
 truth = "1.4.4"
 material = "1.12.0"
@@ -147,6 +148,7 @@ kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-co
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+kxml = { group = "net.sf.kxml", name = "kxml2", version.ref = "kxml" }
 libsu-core = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "libsu" }
 libsu-io = { group = "com.github.topjohnwu.libsu", name = "io", version.ref = "libsu" }
 libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", version.ref = "libsu" }
