@@ -187,10 +187,10 @@ com.google.android.gms:play-services-stats:17.0.2
 com.google.android.gms:play-services-tasks:18.2.0
 com.google.android.material:material:1.12.0
 com.google.code.findbugs:jsr305:3.0.2
-com.google.dagger:dagger-lint-aar:2.52
-com.google.dagger:dagger:2.52
-com.google.dagger:hilt-android:2.52
-com.google.dagger:hilt-core:2.52
+com.google.dagger:dagger-lint-aar:2.53
+com.google.dagger:dagger:2.53
+com.google.dagger:hilt-android:2.53
+com.google.dagger:hilt-core:2.53
 com.google.errorprone:error_prone_annotations:2.26.0
 com.google.firebase:firebase-analytics:22.1.2
 com.google.firebase:firebase-annotations:16.2.0
@@ -279,5 +279,6 @@ org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3
 org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.3
 org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3
 org.jetbrains:annotations:23.0.0
+org.jspecify:jspecify:1.0.0
 org.lsposed.hiddenapibypass:hiddenapibypass:4.3
 org.slf4j:slf4j-api:1.7.36
