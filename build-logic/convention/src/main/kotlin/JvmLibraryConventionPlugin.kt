@@ -15,6 +15,7 @@
  */
 
 import com.merxury.blocker.configureKotlin
+import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
@@ -30,7 +31,7 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
             }
             configureKotlin<KotlinJvmProjectExtension>()
             dependencies {
-                add("testImplementation", kotlin("test"))
+                add("testImplementation", libs.findLibrary("kotlin.test").get())
             }
         }
     }
