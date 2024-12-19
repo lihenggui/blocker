@@ -31,12 +31,11 @@ class RuleBaselineProfile {
     @get:Rule val baselineProfileRule = BaselineProfileRule()
 
     @Test
-    fun generate() =
-        baselineProfileRule.collect(PACKAGE_NAME) {
-            startActivityAndAllowNotifications()
+    fun generate() = baselineProfileRule.collect(PACKAGE_NAME) {
+        startActivityAndAllowNotifications()
 
-            // Navigate to the rules screen
-            goToRulesScreen()
-            rulesScrollListDownUp()
-        }
+        // Navigate to the rules screen
+        goToRulesScreen()
+        rulesScrollListDownUp()
+    }
 }

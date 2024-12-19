@@ -40,13 +40,12 @@ fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int): Packag
 }
 
 @SuppressLint("WrongConstant")
-fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): ApplicationInfo =
-    when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
-            getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(flags.toLong()))
+fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): ApplicationInfo = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
+        getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(flags.toLong()))
 
-        else -> getApplicationInfo(packageName, flags)
-    }
+    else -> getApplicationInfo(packageName, flags)
+}
 
 @SuppressLint("QueryPermissionsNeeded", "WrongConstant")
 fun PackageManager.getInstalledPackagesCompat(flags: Int): List<PackageInfo> = when {

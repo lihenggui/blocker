@@ -868,13 +868,12 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getSeedColor(packageInfo: PackageInfo?): Color? =
-        withContext(ioDispatcher) {
-            val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
-            return@withContext icon?.toBitmap()
-                ?.asImageBitmap()
-                ?.themeColorOrNull()
-        }
+    private suspend fun getSeedColor(packageInfo: PackageInfo?): Color? = withContext(ioDispatcher) {
+        val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+        return@withContext icon?.toBitmap()
+            ?.asImageBitmap()
+            ?.themeColorOrNull()
+    }
 
     fun zipAllRule() = zipAllRuleUseCase()
 

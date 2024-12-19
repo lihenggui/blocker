@@ -47,13 +47,12 @@ object DataStoreModule {
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
         @ApplicationScope scope: CoroutineScope,
         userPreferencesSerializer: UserPreferencesSerializer,
-    ): DataStore<UserPreferences> =
-        DataStoreFactory.create(
-            serializer = userPreferencesSerializer,
-            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
-        ) {
-            context.dataStoreFile("user_preferences.pb")
-        }
+    ): DataStore<UserPreferences> = DataStoreFactory.create(
+        serializer = userPreferencesSerializer,
+        scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+    ) {
+        context.dataStoreFile("user_preferences.pb")
+    }
 
     @Provides
     @Singleton
@@ -62,11 +61,10 @@ object DataStoreModule {
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
         @ApplicationScope scope: CoroutineScope,
         appPropertiesSerializer: AppPropertiesSerializer,
-    ): DataStore<AppProperties> =
-        DataStoreFactory.create(
-            serializer = appPropertiesSerializer,
-            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
-        ) {
-            context.dataStoreFile("app_properties.pb")
-        }
+    ): DataStore<AppProperties> = DataStoreFactory.create(
+        serializer = appPropertiesSerializer,
+        scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+    ) {
+        context.dataStoreFile("app_properties.pb")
+    }
 }

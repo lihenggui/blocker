@@ -167,8 +167,7 @@ class BlockerAppState(
      *
      * This is used to de-duplicate navigation events.
      */
-    private fun NavBackStackEntry.lifecycleIsResumed() =
-        this.lifecycle.currentState == Lifecycle.State.RESUMED
+    private fun NavBackStackEntry.lifecycleIsResumed() = this.lifecycle.currentState == Lifecycle.State.RESUMED
 
     fun onBackClick() {
         if (navController.currentBackStackEntry?.lifecycleIsResumed() == true) {

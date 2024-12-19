@@ -138,27 +138,26 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() =
-        runTest(UnconfinedTestDispatcher()) {
-            composeTestRule.setContent {
-                val bottomSheetNavigator = rememberBottomSheetNavigator()
-                state = BlockerAppState(
-                    bottomSheetNavigator = bottomSheetNavigator,
-                    navController = NavHostController(LocalContext.current),
-                    networkMonitor = networkMonitor,
-                    permissionMonitor = permissionMonitor,
-                    coroutineScope = backgroundScope,
-                    timeZoneMonitor = timeZoneMonitor,
-                )
-            }
-
-            backgroundScope.launch { state.currentPermission.collect() }
-            permissionMonitor.setPermission(NO_PERMISSION)
-            assertEquals(
-                NO_PERMISSION,
-                state.currentPermission.value,
+    fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() = runTest(UnconfinedTestDispatcher()) {
+        composeTestRule.setContent {
+            val bottomSheetNavigator = rememberBottomSheetNavigator()
+            state = BlockerAppState(
+                bottomSheetNavigator = bottomSheetNavigator,
+                navController = NavHostController(LocalContext.current),
+                networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
+                coroutineScope = backgroundScope,
+                timeZoneMonitor = timeZoneMonitor,
             )
         }
+
+        backgroundScope.launch { state.currentPermission.collect() }
+        permissionMonitor.setPermission(NO_PERMISSION)
+        assertEquals(
+            NO_PERMISSION,
+            state.currentPermission.value,
+        )
+    }
 
     @Test
     fun blockerAppState_differentTZ_withTimeZoneMonitorChange() = runTest(UnconfinedTestDispatcher()) {

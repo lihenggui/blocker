@@ -53,10 +53,9 @@ object PermissionUtils {
         }
     }
 
-    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean =
-        withContext(dispatcher) {
-            Shell.cmd("su").exec().isSuccess
-        }
+    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean = withContext(dispatcher) {
+        Shell.cmd("su").exec().isSuccess
+    }
 
     private suspend fun requestRootInRuntime(dispatcher: CoroutineDispatcher): Boolean {
         // isAppGrantedRoot is always false on KernelSU and APatch.

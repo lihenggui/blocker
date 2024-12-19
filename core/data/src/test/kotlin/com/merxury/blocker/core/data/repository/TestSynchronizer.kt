@@ -27,8 +27,7 @@ import com.merxury.blocker.core.datastore.ChangeListVersions
 class TestSynchronizer(
     private val blockerPreferences: BlockerPreferencesDataSource,
 ) : Synchronizer {
-    override suspend fun getChangeListVersions(): ChangeListVersions =
-        blockerPreferences.getChangeListVersions()
+    override suspend fun getChangeListVersions(): ChangeListVersions = blockerPreferences.getChangeListVersions()
 
     override suspend fun updateChangeListVersions(
         update: ChangeListVersions.() -> ChangeListVersions,

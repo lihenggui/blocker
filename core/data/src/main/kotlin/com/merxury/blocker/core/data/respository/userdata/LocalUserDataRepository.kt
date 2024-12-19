@@ -80,8 +80,7 @@ class LocalUserDataRepository @Inject constructor(
         analyticsHelper.logRuleServerProviderChanged(serverProvider.name)
     }
 
-    override suspend fun setRuleBackupFolder(folder: String) =
-        blockerPreferenceDataSource.setRuleBackupFolder(folder)
+    override suspend fun setRuleBackupFolder(folder: String) = blockerPreferenceDataSource.setRuleBackupFolder(folder)
 
     override suspend fun setBackupSystemApp(shouldBackup: Boolean) {
         blockerPreferenceDataSource.setBackupSystemApp(shouldBackup)

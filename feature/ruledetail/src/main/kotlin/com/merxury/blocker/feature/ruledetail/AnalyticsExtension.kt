@@ -20,45 +20,40 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logControlAllInPageClicked(newState: Boolean) =
-    logEvent(
-        AnalyticsEvent(
-            type = "rule_detail_control_all_in_page_clicked",
-            extras = listOf(
-                Param(key = "new_state", value = newState.toString()),
-            ),
+internal fun AnalyticsHelper.logControlAllInPageClicked(newState: Boolean) = logEvent(
+    AnalyticsEvent(
+        type = "rule_detail_control_all_in_page_clicked",
+        extras = listOf(
+            Param(key = "new_state", value = newState.toString()),
         ),
-    )
-internal fun AnalyticsHelper.logControlAllComponentsClicked(newState: Boolean) =
-    logEvent(
-        AnalyticsEvent(
-            type = "rule_detail_control_all_components_clicked",
-            extras = listOf(
-                Param(key = "new_state", value = newState.toString()),
-            ),
+    ),
+)
+internal fun AnalyticsHelper.logControlAllComponentsClicked(newState: Boolean) = logEvent(
+    AnalyticsEvent(
+        type = "rule_detail_control_all_components_clicked",
+        extras = listOf(
+            Param(key = "new_state", value = newState.toString()),
         ),
-    )
+    ),
+)
 
-internal fun AnalyticsHelper.logSwitchComponentStateClicked(newState: Boolean) =
-    logEvent(
-        AnalyticsEvent(
-            type = "rule_detail_switch_component_state_clicked",
-            extras = listOf(
-                Param(key = "new_state", value = newState.toString()),
-            ),
+internal fun AnalyticsHelper.logSwitchComponentStateClicked(newState: Boolean) = logEvent(
+    AnalyticsEvent(
+        type = "rule_detail_switch_component_state_clicked",
+        extras = listOf(
+            Param(key = "new_state", value = newState.toString()),
         ),
-    )
+    ),
+)
 
-internal fun AnalyticsHelper.logStopServiceClicked() =
-    logEvent(
-        AnalyticsEvent(
-            type = "rule_detail_stop_service_clicked",
-        ),
-    )
+internal fun AnalyticsHelper.logStopServiceClicked() = logEvent(
+    AnalyticsEvent(
+        type = "rule_detail_stop_service_clicked",
+    ),
+)
 
-internal fun AnalyticsHelper.logLaunchActivityClicked() =
-    logEvent(
-        AnalyticsEvent(
-            type = "rule_detail_launch_activity_clicked",
-        ),
-    )
+internal fun AnalyticsHelper.logLaunchActivityClicked() = logEvent(
+    AnalyticsEvent(
+        type = "rule_detail_launch_activity_clicked",
+    ),
+)
