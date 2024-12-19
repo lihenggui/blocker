@@ -29,18 +29,16 @@ import javax.inject.Inject
 class FakeComponentRepository @Inject constructor() : ComponentRepository {
     override fun getComponent(name: String): Flow<ComponentInfo?> = flowOf()
 
-    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =
-        flowOf(emptyList())
+    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = flowOf(emptyList())
 
     override fun getComponentList(
         packageName: String,
         type: ComponentType,
     ): Flow<List<ComponentInfo>> = flowOf(emptyList())
 
-    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> =
-        flowOf(
-            Success(Unit),
-        )
+    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> = flowOf(
+        Success(Unit),
+    )
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> = flowOf(
         Success(Unit),

@@ -54,23 +54,22 @@ internal class RootAppController @Inject constructor(
         return result.isSuccess
     }
 
-    override suspend fun clearCache(packageName: String): Boolean =
-        withContext(ioDispatcher) {
-            val cacheFolder = filesDir.parentFile
-                ?.parentFile
-                ?.resolve(packageName)
-                ?.resolve("cache")
-                ?: run {
-                    Timber.e("Can't resolve cache path for $packageName")
-                    return@withContext false
-                }
-            Timber.d("Delete cache folder: $cacheFolder")
-            return@withContext FileUtils.delete(
-                cacheFolder.absolutePath,
-                recursively = true,
-                ioDispatcher,
-            )
-        }
+    override suspend fun clearCache(packageName: String): Boolean = withContext(ioDispatcher) {
+        val cacheFolder = filesDir.parentFile
+            ?.parentFile
+            ?.resolve(packageName)
+            ?.resolve("cache")
+            ?: run {
+                Timber.e("Can't resolve cache path for $packageName")
+                return@withContext false
+            }
+        Timber.d("Delete cache folder: $cacheFolder")
+        return@withContext FileUtils.delete(
+            cacheFolder.absolutePath,
+            recursively = true,
+            ioDispatcher,
+        )
+    }
 
     override suspend fun clearData(packageName: String): Boolean {
         Timber.i("Clearing data for $packageName")

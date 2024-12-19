@@ -135,15 +135,14 @@ class ListAllComponentsToStorageWorker @AssistedInject constructor(
 
     companion object {
         private const val PARAM_FOLDER_PATH = "param_folder_path"
-        fun listAppComponentsWork(folderPath: String?) =
-            OneTimeWorkRequestBuilder<ListAllComponentsToStorageWorker>()
-                .setInputData(
-                    workDataOf(
-                        PARAM_FOLDER_PATH to folderPath,
-                    ),
-                )
-                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                .build()
+        fun listAppComponentsWork(folderPath: String?) = OneTimeWorkRequestBuilder<ListAllComponentsToStorageWorker>()
+            .setInputData(
+                workDataOf(
+                    PARAM_FOLDER_PATH to folderPath,
+                ),
+            )
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
     }
 }
 

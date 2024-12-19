@@ -26,8 +26,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object LicensesRoute
 
-fun NavController.navigateToLicenses(navOptions: NavOptions? = null) =
-    navigate(route = LicensesRoute, navOptions)
+fun NavController.navigateToLicenses(navOptions: NavOptions? = null) = navigate(route = LicensesRoute, navOptions)
 
 fun NavGraphBuilder.licensesScreen(
     onBackClick: () -> Unit,
