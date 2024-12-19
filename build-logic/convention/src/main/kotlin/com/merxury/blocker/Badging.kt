@@ -137,12 +137,17 @@ fun Project.configureBadgingTasks(
         val generateBadgingTaskName = "generate${capitalizedVariantName}Badging"
         val generateBadging = tasks.register<GenerateBadgingTask>(generateBadgingTaskName) {
             apk = variant.artifacts.get(SingleArtifact.APK_FROM_BUNDLE)
-            aapt2Executable = File(
-                    baseExtension.sdkDirectory,
-                    "${SdkConstants.FD_BUILD_TOOLS}/" +
-                        "${baseExtension.buildToolsVersion}/" +
-                        SdkConstants.FN_AAPT2,
-                )
+            aapt2Executable.set(
+                // TODO: Replace with `sdkComponents.aapt2` when it's available in AGP
+                //       https://issuetracker.google.com/issues/376815836
+                componentsExtension.sdkComponents.sdkDirectory.map { directory ->
+                    directory.file(
+                        "${SdkConstants.FD_BUILD_TOOLS}/" +
+                            "${baseExtension.buildToolsVersion}/" +
+                            SdkConstants.FN_AAPT2,
+                    )
+                }
+            )
             badging = project.layout.buildDirectory.file(
                     "outputs/apk_from_bundle/${variant.name}/${variant.name}-badging.txt",
                 )
