@@ -150,8 +150,7 @@ class ThemeTest {
         else -> DarkBlockerColorScheme
     }
 
-    private fun emptyGradientColors(colorScheme: ColorScheme): GradientColors =
-        GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
+    private fun emptyGradientColors(colorScheme: ColorScheme): GradientColors = GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
 
     private fun defaultGradientColors(colorScheme: ColorScheme): GradientColors = GradientColors(
         top = colorScheme.inverseOnSurface,

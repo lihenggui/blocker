@@ -26,13 +26,11 @@ import javax.inject.Inject
 class FakeAppRepository @Inject constructor() : AppRepository {
     override fun getApplicationList(): Flow<List<InstalledApp>> = flowOf(emptyList())
 
-    override fun updateApplication(packageName: String): Flow<Result<Unit>> =
-        flowOf(Result.Success(Unit))
+    override fun updateApplication(packageName: String): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
 
     override fun updateApplicationList(): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
 
-    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> =
-        flowOf(emptyList())
+    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> = flowOf(emptyList())
 
     override fun getApplication(packageName: String): Flow<InstalledApp?> = flowOf(null)
 }

@@ -74,28 +74,26 @@ internal class LocalGeneralRuleDataSource @Inject constructor(
         .flowOn(ioDispatcher)
 
     @OptIn(ExperimentalSerializationApi::class)
-    private fun readContentFromStream(inputStream: InputStream) =
-        if (VERSION.SDK_INT <= VERSION_CODES.M) {
-            // https://github.com/Kotlin/kotlinx.serialization/issues/2457
-            // Use decodeFromString instead of decodeFromStream to avoid the issue
-            val text = inputStream.bufferedReader().use { it.readText() }
-            json.decodeFromString<List<NetworkGeneralRule>>(text)
-                .map { it.asExternalModel() }
-        } else {
-            json.decodeFromStream<List<NetworkGeneralRule>>(inputStream)
-                .map { it.asExternalModel() }
-        }
+    private fun readContentFromStream(inputStream: InputStream) = if (VERSION.SDK_INT <= VERSION_CODES.M) {
+        // https://github.com/Kotlin/kotlinx.serialization/issues/2457
+        // Use decodeFromString instead of decodeFromStream to avoid the issue
+        val text = inputStream.bufferedReader().use { it.readText() }
+        json.decodeFromString<List<NetworkGeneralRule>>(text)
+            .map { it.asExternalModel() }
+    } else {
+        json.decodeFromStream<List<NetworkGeneralRule>>(inputStream)
+            .map { it.asExternalModel() }
+    }
 
-    private suspend fun getRuleFileFromAssets(language: String): InputStream? =
-        withContext(ioDispatcher) {
-            Timber.d("Get rule file from assets, language: $language")
-            try {
-                return@withContext assetManager.open("$ruleBaseFolder/$RULES_FOLDER/$language/$RULE_NAME")
-            } catch (e: IOException) {
-                Timber.e(e, "Failed to get rule file from assets")
-                return@withContext null
-            }
+    private suspend fun getRuleFileFromAssets(language: String): InputStream? = withContext(ioDispatcher) {
+        Timber.d("Get rule file from assets, language: $language")
+        try {
+            return@withContext assetManager.open("$ruleBaseFolder/$RULES_FOLDER/$language/$RULE_NAME")
+        } catch (e: IOException) {
+            Timber.e(e, "Failed to get rule file from assets")
+            return@withContext null
         }
+    }
 
     private suspend fun getRuleFile(language: String): InputStream? = withContext(ioDispatcher) {
         val ruleFile = filesDir.resolve(ruleBaseFolder)

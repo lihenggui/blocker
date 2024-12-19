@@ -22,9 +22,7 @@ import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-internal fun <T> ThreePaneScaffoldNavigator<T>.isListPaneVisible(): Boolean =
-    scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
+internal fun <T> ThreePaneScaffoldNavigator<T>.isListPaneVisible(): Boolean = scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-internal fun <T> ThreePaneScaffoldNavigator<T>.isDetailPaneVisible(): Boolean =
-    scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
+internal fun <T> ThreePaneScaffoldNavigator<T>.isDetailPaneVisible(): Boolean = scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded

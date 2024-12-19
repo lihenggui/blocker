@@ -76,8 +76,7 @@ internal class SyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams),
     Synchronizer {
 
-    override suspend fun getForegroundInfo(): ForegroundInfo =
-        appContext.syncForegroundInfo()
+    override suspend fun getForegroundInfo(): ForegroundInfo = appContext.syncForegroundInfo()
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         if (!shouldRunTask()) {
@@ -102,8 +101,7 @@ internal class SyncWorker @AssistedInject constructor(
         }
     }
 
-    override suspend fun getChangeListVersions(): ChangeListVersions =
-        blockerPreferences.getChangeListVersions()
+    override suspend fun getChangeListVersions(): ChangeListVersions = blockerPreferences.getChangeListVersions()
 
     override suspend fun updateChangeListVersions(
         update: ChangeListVersions.() -> ChangeListVersions,

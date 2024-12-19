@@ -48,7 +48,6 @@ internal class CacheComponentDataSource @Inject constructor(
     override fun getComponentType(
         packageName: String,
         componentName: String,
-    ): Flow<ComponentType?> =
-        componentDao.getByPackageNameAndComponentName(packageName, componentName)
-            .map { it?.type }
+    ): Flow<ComponentType?> = componentDao.getByPackageNameAndComponentName(packageName, componentName)
+        .map { it?.type }
 }
