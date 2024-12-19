@@ -40,7 +40,6 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.process.ExecOperations
-import java.io.File
 import javax.inject.Inject
 
 @CacheableTask
@@ -146,11 +145,11 @@ fun Project.configureBadgingTasks(
                             "${baseExtension.buildToolsVersion}/" +
                             SdkConstants.FN_AAPT2,
                     )
-                }
+                },
             )
             badging = project.layout.buildDirectory.file(
-                    "outputs/apk_from_bundle/${variant.name}/${variant.name}-badging.txt",
-                )
+                "outputs/apk_from_bundle/${variant.name}/${variant.name}-badging.txt",
+            )
         }
         val updateBadgingTaskName = "update${capitalizedVariantName}Badging"
         tasks.register<Copy>(updateBadgingTaskName) {
