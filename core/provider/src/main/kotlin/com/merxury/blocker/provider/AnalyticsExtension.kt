@@ -20,12 +20,11 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logControlComponentViaProvider(newState: Boolean) =
-    logEvent(
-        AnalyticsEvent(
-            type = "control_component_via_provider_activated",
-            extras = listOf(
-                Param(key = "new_state", value = newState.toString()),
-            ),
+internal fun AnalyticsHelper.logControlComponentViaProvider(newState: Boolean) = logEvent(
+    AnalyticsEvent(
+        type = "control_component_via_provider_activated",
+        extras = listOf(
+            Param(key = "new_state", value = newState.toString()),
         ),
-    )
+    ),
+)

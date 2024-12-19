@@ -36,11 +36,12 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.model)
-    testImplementation(projects.core.testing)
-
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
     implementation(libs.xmlutil.core.android)
     implementation(libs.xmlutil.serialization.android)
+
+    testImplementation(projects.core.testing)
+    testImplementation(libs.kxml)
 }

@@ -38,12 +38,10 @@ internal class LocalComponentDetailRepository @Inject constructor(
     override val updatedComponent: Flow<ComponentDetail>
         get() = userGeneratedDataSource.eventFlow
 
-    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> =
-        userGeneratedDataSource.getByPackageName(packageName)
-            .map { it.isNotEmpty() }
+    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = userGeneratedDataSource.getByPackageName(packageName)
+        .map { it.isNotEmpty() }
 
-    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
-        userGeneratedDataSource.getByComponentName(name)
+    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = userGeneratedDataSource.getByComponentName(name)
 
     override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         // Priority: user generated > db
@@ -63,6 +61,5 @@ internal class LocalComponentDetailRepository @Inject constructor(
     }
         .flowOn(ioDispatcher)
 
-    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> =
-        userGeneratedDataSource.saveComponentData(componentDetail)
+    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = userGeneratedDataSource.saveComponentData(componentDetail)
 }
