@@ -52,59 +52,59 @@ tasks {
 gradlePlugin {
     plugins {
         register("androidApplicationCompose") {
-            id = "blocker.android.application.compose"
+            id = libs.plugins.blocker.android.application.compose.get().pluginId
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
         register("androidApplication") {
-            id = "blocker.android.application"
+            id = libs.plugins.blocker.android.application.asProvider().get().pluginId
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidApplicationJacoco") {
-            id = "blocker.android.application.jacoco"
+            id = libs.plugins.blocker.android.application.jacoco.get().pluginId
             implementationClass = "AndroidApplicationJacocoConventionPlugin"
         }
         register("androidLibraryCompose") {
-            id = "blocker.android.library.compose"
+            id = libs.plugins.blocker.android.library.compose.get().pluginId
             implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
         register("androidLibrary") {
-            id = "blocker.android.library"
+            id = libs.plugins.blocker.android.library.asProvider().get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
         }
         register("androidFeature") {
-            id = "blocker.android.feature"
+            id = libs.plugins.blocker.android.feature.get().pluginId
             implementationClass = "AndroidFeatureConventionPlugin"
         }
         register("androidLibraryJacoco") {
-            id = "blocker.android.library.jacoco"
+            id = libs.plugins.blocker.android.library.jacoco.get().pluginId
             implementationClass = "AndroidLibraryJacocoConventionPlugin"
         }
         register("androidTest") {
-            id = "blocker.android.test"
+            id = libs.plugins.blocker.android.test.get().pluginId
             implementationClass = "AndroidTestConventionPlugin"
         }
         register("androidHilt") {
-            id = "blocker.android.hilt"
+            id = libs.plugins.blocker.android.hilt.get().pluginId
             implementationClass = "AndroidHiltConventionPlugin"
         }
         register("androidRoom") {
-            id = "blocker.android.room"
+            id = libs.plugins.blocker.android.room.get().pluginId
             implementationClass = "AndroidRoomConventionPlugin"
         }
         register("firebase") {
-            id = "blocker.android.application.firebase"
+            id = libs.plugins.blocker.android.application.firebase.get().pluginId
             implementationClass = "AndroidApplicationFirebaseConventionPlugin"
         }
         register("androidFlavors") {
-            id = "blocker.android.application.flavors"
+            id = libs.plugins.blocker.android.application.flavors.get().pluginId
             implementationClass = "AndroidApplicationFlavorsConventionPlugin"
         }
         register("androidLint") {
-            id = "blocker.android.lint"
+            id = libs.plugins.blocker.android.lint.get().pluginId
             implementationClass = "AndroidLintConventionPlugin"
         }
         register("jvmLibrary") {
-            id = "blocker.jvm.library"
+            id = libs.plugins.blocker.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
         }
     }
