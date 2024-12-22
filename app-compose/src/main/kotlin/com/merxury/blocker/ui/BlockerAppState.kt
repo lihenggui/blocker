@@ -183,19 +183,6 @@ class BlockerAppState(
         }
     }
 
-    /**
-     * If the lifecycle is not resumed it means this NavBackStackEntry already processed a nav event.
-     *
-     * This is used to de-duplicate navigation events.
-     */
-    private fun NavBackStackEntry.lifecycleIsResumed() = this.lifecycle.currentState == Lifecycle.State.RESUMED
-
-    fun onBackClick() {
-        if (navController.currentBackStackEntry?.lifecycleIsResumed() == true) {
-            navController.popBackStack()
-        }
-    }
-
     fun dismissBottomSheet() {
         navController.popBackStack()
     }
