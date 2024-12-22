@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -105,13 +104,6 @@ class BlockerAppState(
                     previousDestination.value = destination
                 }
             } ?: previousDestination.value
-        }
-
-    val currentTopLevelDestination: TopLevelDestination?
-        @Composable get() {
-            return TopLevelDestination.entries.firstOrNull { topLevelDestination ->
-                currentDestination?.hasRoute(route = topLevelDestination.route) ?: false
-            }
         }
 
     val isOffline = networkMonitor.isOnline
