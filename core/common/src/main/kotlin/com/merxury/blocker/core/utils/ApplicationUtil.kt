@@ -86,7 +86,7 @@ object ApplicationUtil {
                 pm.getInstalledPackages(0)
             }
             installedPackages
-                .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
+                .filter { (it.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == blockerName }
                 .map { async { it.toApplication(pm) } }
                 .awaitAll()
@@ -107,7 +107,7 @@ object ApplicationUtil {
         return withContext(dispatcher) {
             val installedPackages = pm.getInstalledPackagesCompat(0)
             installedPackages
-                .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
+                .filter { (it.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM != 0 }
                 .map { async { it.toApplication(pm) } }
                 .awaitAll()
         }
