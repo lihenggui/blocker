@@ -31,11 +31,10 @@ class AppListBaselineProfile {
     @get:Rule val baselineProfileRule = BaselineProfileRule()
 
     @Test
-    fun generate() =
-        baselineProfileRule.collect(PACKAGE_NAME) {
-            startActivityAndAllowNotifications()
+    fun generate() = baselineProfileRule.collect(PACKAGE_NAME) {
+        startActivityAndAllowNotifications()
 
-            appListWaitForContent()
-            appListScrollDownUp()
-        }
+        appListWaitForContent()
+        appListScrollDownUp()
+    }
 }

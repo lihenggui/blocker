@@ -27,8 +27,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object SettingsRoute
 
-fun NavController.navigateToSettings(navOptions: NavOptions? = null) =
-    navigate(route = SettingsRoute, navOptions)
+fun NavController.navigateToSettings(navOptions: NavOptions? = null) = navigate(route = SettingsRoute, navOptions)
 
 fun NavGraphBuilder.settingsScreen(
     onBackClick: () -> Unit,

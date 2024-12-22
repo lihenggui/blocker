@@ -29,12 +29,11 @@ import javax.inject.Inject
 class AppPropertiesSerializer @Inject constructor() : Serializer<AppProperties> {
     override val defaultValue: AppProperties = AppProperties.getDefaultInstance()
 
-    override suspend fun readFrom(input: InputStream): AppProperties =
-        try {
-            AppProperties.parseFrom(input)
-        } catch (exception: InvalidProtocolBufferException) {
-            throw CorruptionException("Cannot read proto.", exception)
-        }
+    override suspend fun readFrom(input: InputStream): AppProperties = try {
+        AppProperties.parseFrom(input)
+    } catch (exception: InvalidProtocolBufferException) {
+        throw CorruptionException("Cannot read proto.", exception)
+    }
 
     override suspend fun writeTo(t: AppProperties, output: OutputStream) {
         t.writeTo(output)

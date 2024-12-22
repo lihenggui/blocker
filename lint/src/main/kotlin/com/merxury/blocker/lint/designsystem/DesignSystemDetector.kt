@@ -42,20 +42,19 @@ class DesignSystemDetector :
         UQualifiedReferenceExpression::class.java,
     )
 
-    override fun createUastHandler(context: JavaContext): UElementHandler =
-        object : UElementHandler() {
-            override fun visitCallExpression(node: UCallExpression) {
-                val name = node.methodName ?: return
-                val preferredName = METHOD_NAMES[name] ?: return
-                reportIssue(context, node, name, preferredName)
-            }
-
-            override fun visitQualifiedReferenceExpression(node: UQualifiedReferenceExpression) {
-                val name = node.receiver.asRenderString()
-                val preferredName = RECEIVER_NAMES[name] ?: return
-                reportIssue(context, node, name, preferredName)
-            }
+    override fun createUastHandler(context: JavaContext): UElementHandler = object : UElementHandler() {
+        override fun visitCallExpression(node: UCallExpression) {
+            val name = node.methodName ?: return
+            val preferredName = METHOD_NAMES[name] ?: return
+            reportIssue(context, node, name, preferredName)
         }
+
+        override fun visitQualifiedReferenceExpression(node: UQualifiedReferenceExpression) {
+            val name = node.receiver.asRenderString()
+            val preferredName = RECEIVER_NAMES[name] ?: return
+            reportIssue(context, node, name, preferredName)
+        }
+    }
 
     companion object {
         @JvmField

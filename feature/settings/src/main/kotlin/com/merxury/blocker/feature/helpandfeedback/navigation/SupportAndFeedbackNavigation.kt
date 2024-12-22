@@ -27,8 +27,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object SupportAndFeedbackRoute
 
-fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) =
-    navigate(route = SupportAndFeedbackRoute, navOptions)
+fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) = navigate(route = SupportAndFeedbackRoute, navOptions)
 
 fun NavGraphBuilder.supportAndFeedbackScreen(
     onBackClick: () -> Unit,

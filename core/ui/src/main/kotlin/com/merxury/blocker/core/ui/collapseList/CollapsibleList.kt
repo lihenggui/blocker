@@ -175,8 +175,7 @@ fun <K, V> snapshotStateMapSaver() = Saver<SnapshotStateMap<K, V>, Any>(
 )
 
 @Composable
-fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): SnapshotStateMap<K, V> =
-    rememberSaveable(saver = snapshotStateMapSaver(), init = init)
+fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): SnapshotStateMap<K, V> = rememberSaveable(saver = snapshotStateMapSaver(), init = init)
 
 @Composable
 @Preview

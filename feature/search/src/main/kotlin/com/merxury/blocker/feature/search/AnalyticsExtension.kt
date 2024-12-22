@@ -20,29 +20,26 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logAppSearchResultClicked() =
-    logEvent(
-        AnalyticsEvent(
-            type = "search_screen_app_result_clicked",
-        ),
-    )
+internal fun AnalyticsHelper.logAppSearchResultClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_app_result_clicked",
+    ),
+)
 
-internal fun AnalyticsHelper.logComponentSearchResultClicked() =
-    logEvent(
-        AnalyticsEvent(
-            type = "search_screen_component_result_clicked",
-        ),
-    )
+internal fun AnalyticsHelper.logComponentSearchResultClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_component_result_clicked",
+    ),
+)
 
-internal fun AnalyticsHelper.logRuleSearchResultClicked(id: String) =
-    logEvent(
-        AnalyticsEvent(
-            type = "search_screen_rule_result_clicked",
-            extras = listOf(
-                Param(key = "id", value = id),
-            ),
+internal fun AnalyticsHelper.logRuleSearchResultClicked(id: String) = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_rule_result_clicked",
+        extras = listOf(
+            Param(key = "id", value = id),
         ),
-    )
+    ),
+)
 
 internal fun AnalyticsHelper.logUninstallAppClicked() = logEvent(
     AnalyticsEvent(

@@ -55,37 +55,36 @@ internal class ShizukuInitializer @Inject constructor(
             }
         }
 
-    override suspend fun registerShizuku(): RegisterShizukuResult =
-        suspendCancellableCoroutine { cont ->
-            binderReceivedListener = Shizuku.OnBinderReceivedListener {
-                Timber.d("Shizuku binder received")
-                if (hasPermission()) {
-                    cont.resume(RegisterShizukuResult(true, Shizuku.getUid()))
-                } else {
-                    checkAndAskForPermission()
-                }
+    override suspend fun registerShizuku(): RegisterShizukuResult = suspendCancellableCoroutine { cont ->
+        binderReceivedListener = Shizuku.OnBinderReceivedListener {
+            Timber.d("Shizuku binder received")
+            if (hasPermission()) {
+                cont.resume(RegisterShizukuResult(true, Shizuku.getUid()))
+            } else {
+                checkAndAskForPermission()
             }
-            requestPermissionResultListener =
-                Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
-                    if (requestCode == REQUEST_CODE_PERMISSION) {
-                        val result = if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                            RegisterShizukuResult(true, Shizuku.getUid())
-                        } else {
-                            Timber.e("Shizuku permission denied")
-                            RegisterShizukuResult(false, -1)
-                        }
-                        if (!cont.isCompleted) {
-                            cont.resume(result)
-                        } else {
-                            Timber.w("Permission result received but coroutine is already completed")
-                        }
+        }
+        requestPermissionResultListener =
+            Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+                if (requestCode == REQUEST_CODE_PERMISSION) {
+                    val result = if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                        RegisterShizukuResult(true, Shizuku.getUid())
+                    } else {
+                        Timber.e("Shizuku permission denied")
+                        RegisterShizukuResult(false, -1)
+                    }
+                    if (!cont.isCompleted) {
+                        cont.resume(result)
+                    } else {
+                        Timber.w("Permission result received but coroutine is already completed")
                     }
                 }
-            Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
-            Shizuku.addBinderDeadListener(binderDeadListener)
-            Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
-            Timber.d("Register Shizuku finished")
-        }
+            }
+        Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
+        Shizuku.addBinderDeadListener(binderDeadListener)
+        Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
+        Timber.d("Register Shizuku finished")
+    }
 
     override fun unregisterShizuku() {
         Shizuku.removeBinderReceivedListener(binderReceivedListener)

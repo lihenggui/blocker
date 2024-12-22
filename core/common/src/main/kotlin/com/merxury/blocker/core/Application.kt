@@ -101,14 +101,13 @@ suspend fun ApplicationInfo.minSdkVersionCompat(): Int = if (Build.VERSION.SDK_I
     ApkParser.getMinSdkVersion(File(publicSourceDir))
 }
 
-inline fun <reified T : Parcelable> Parcel.readParcelableCompat(classLoader: ClassLoader?): T? =
-    when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> readParcelable(
-            classLoader,
-            T::class.java,
-        )
+inline fun <reified T : Parcelable> Parcel.readParcelableCompat(classLoader: ClassLoader?): T? = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> readParcelable(
+        classLoader,
+        T::class.java,
+    )
 
-        else ->
-            @Suppress("DEPRECATION")
-            readParcelable(classLoader)
-    }
+    else ->
+        @Suppress("DEPRECATION")
+        readParcelable(classLoader)
+}
