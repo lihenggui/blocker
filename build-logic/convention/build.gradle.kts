@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `kotlin-dsl`
+    alias(libs.plugins.android.lint)
 }
 
 group = "com.merxury.blocker.buildlogic"
@@ -40,6 +41,7 @@ dependencies {
     compileOnly(libs.licensee.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
     implementation(libs.truth)
+    lintChecks(libs.androidx.lint.gradle)
 }
 
 tasks {
