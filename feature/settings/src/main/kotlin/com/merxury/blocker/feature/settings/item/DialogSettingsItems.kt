@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.settings.item
 
 import android.R.string
 import android.content.res.Configuration
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
