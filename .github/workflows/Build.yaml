@@ -201,7 +201,7 @@ jobs:
           apk-path: ${{ steps.apk-path.outputs.foss_path }}
 
       - name: Upload JVM local results (XML)
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: local-test-results
@@ -211,14 +211,14 @@ jobs:
         run: ./gradlew :app-compose:lintMarketRelease :lint:lint
 
       - name: Upload lint reports (HTML)
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: lint-reports
           path: '**/build/reports/lint-results-*.html'
 
       - name: Upload lint reports (SARIF)
-        if: success()
+        if: ${{ !cancelled() }}
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: './'
@@ -338,7 +338,7 @@ jobs:
         run: ./gradlew createFossDebugCombinedCoverageReport
 
       - name: Upload test reports
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: test-reports-${{ matrix.api-level }}
