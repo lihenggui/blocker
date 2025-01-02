@@ -55,12 +55,11 @@ internal fun Project.configureAndroidCompose(
                 .dir(projectDir.toRelativeString(rootDir))
         }.map { it.dir(dir) }
 
-        project.providers.gradleProperty("enableComposeCompilerMetrics")
-            .onlyIfTrue().flatMap { rootProject.layout.buildDirectory.dir("compose-metrics") }
+        project.providers.gradleProperty("enableComposeCompilerMetrics").onlyIfTrue()
+            .relativeToRootProject("compose-metrics")
             .let(metricsDestination::set)
-
-        project.providers.gradleProperty("enableComposeCompilerReports")
-            .onlyIfTrue().flatMap { rootProject.layout.buildDirectory.dir("compose-reports") }
+        project.providers.gradleProperty("enableComposeCompilerReports").onlyIfTrue()
+            .relativeToRootProject("compose-reports")
             .let(reportsDestination::set)
 
         stabilityConfigurationFile =
