@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# Copyright 2024 Blocker
+# Copyright 2025 Blocker
 # Copyright 2022 The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
