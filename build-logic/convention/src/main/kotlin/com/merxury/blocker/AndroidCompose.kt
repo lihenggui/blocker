@@ -18,11 +18,11 @@ package com.merxury.blocker
 
 import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.dependencies
 import org.gradle.api.provider.Provider
-import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.dependencies
 import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension
+
 /**
  * Configure Compose-specific options
  */
@@ -62,7 +62,8 @@ internal fun Project.configureAndroidCompose(
             .relativeToRootProject("compose-reports")
             .let(reportsDestination::set)
 
-        stabilityConfigurationFile =
-            isolated.rootProject.projectDirectory.file("compose_compiler_config.conf")
+        stabilityConfigurationFiles.add(
+            isolated.rootProject.projectDirectory.file("compose_compiler_config.conf"),
+        )
     }
 }
