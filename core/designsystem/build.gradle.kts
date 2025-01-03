@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.material.kolor)
 
     testImplementation(libs.androidx.compose.ui.test)
+    testImplementation(libs.androidx.compose.ui.testManifest)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)
     testImplementation(projects.core.screenshotTesting)
