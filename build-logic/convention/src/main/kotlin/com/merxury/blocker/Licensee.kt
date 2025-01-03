@@ -7,9 +7,9 @@ import app.cash.licensee.LicenseeExtension
 import app.cash.licensee.UnusedAction
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import org.gradle.api.Project
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.register
+import java.util.Locale
 
 fun Project.configureLicensee() {
     with(pluginManager) {
@@ -36,7 +36,11 @@ fun Project.configureLicensee() {
 fun Project.configureAndroidLicensesTasks() {
     androidComponents {
         onVariants { variant ->
-            val capitalizedVariantName = variant.name.capitalized()
+            val capitalizedVariantName = variant.name.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(
+                    Locale.getDefault(),
+                ) else it.toString()
+            }
 
             val copyArtifactsTask = tasks.register<AssetCopyTask>(
                 "copy${capitalizedVariantName}LicenseeOutputToAndroidAssets",
