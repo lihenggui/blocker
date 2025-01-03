@@ -36,18 +36,18 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 configureGradleManagedDevices(this)
             }
             dependencies {
-                add("implementation", project(":core:ui"))
-                add("implementation", project(":core:designsystem"))
+                "implementation"(project(":core:ui"))
+                "implementation"(project(":core:designsystem"))
 
-                add("implementation", libs.findLibrary("androidx.hilt.navigation.compose").get())
-                add("implementation", libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
-                add("implementation", libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
-                add("implementation", libs.findLibrary("androidx.navigation.compose").get())
-                add("implementation", libs.findLibrary("androidx.tracing.ktx").get())
-                add("implementation", libs.findLibrary("kotlinx.serialization.json").get())
+                "implementation"(libs.findLibrary("androidx.hilt.navigation.compose").get())
+                "implementation"(libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
+                "implementation"(libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
+                "implementation"(libs.findLibrary("androidx.navigation.compose").get())
+                "implementation"(libs.findLibrary("androidx.tracing.ktx").get())
+                "implementation"(libs.findLibrary("kotlinx.serialization.json").get())
 
-                add("testImplementation", project(":core:screenshot-testing"))
-                add("androidTestImplementation", libs.findBundle("androidx.compose.ui.test").get())
+                "testImplementation"(project(":core:screenshot-testing"))
+                "androidTestImplementation"(libs.findBundle("androidx.compose.ui.test").get())
             }
         }
     }
