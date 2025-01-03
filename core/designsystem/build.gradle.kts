@@ -21,9 +21,6 @@ plugins {
 }
 
 android {
-    defaultConfig {
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
     namespace = "com.merxury.blocker.core.designsystem"
 }
 
@@ -48,6 +45,4 @@ dependencies {
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)
     testImplementation(projects.core.screenshotTesting)
-
-    androidTestImplementation(libs.bundles.androidx.compose.ui.test)
 }
