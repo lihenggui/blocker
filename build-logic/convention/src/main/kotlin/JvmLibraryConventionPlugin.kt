@@ -31,7 +31,7 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
             }
             configureKotlin<KotlinJvmProjectExtension>()
             dependencies {
-                add("testImplementation", libs.findLibrary("kotlin.test").get())
+                "testImplementation"(libs.findLibrary("kotlin.test").get())
             }
         }
     }

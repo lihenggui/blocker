@@ -63,9 +63,9 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 }
             }
             dependencies {
-                add("implementation", libs.findLibrary("androidx.tracing.ktx").get())
-                add("testImplementation", libs.findLibrary("kotlin.test").get())
-                add("androidTestImplementation", kotlin("test"))
+                "implementation"(libs.findLibrary("androidx.tracing.ktx").get())
+                "testImplementation"(libs.findLibrary("kotlin.test").get())
+                "androidTestImplementation"(libs.findLibrary("kotlin.test").get())
             }
         }
     }
