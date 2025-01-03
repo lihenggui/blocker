@@ -152,8 +152,11 @@ dependencies {
     testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.work.testing)
+
+    testFossImplementation(libs.androidx.navigation.testing)
     testFossImplementation(libs.robolectric)
     testFossImplementation(projects.core.screenshotTesting)
+    testFossImplementation(projects.core.testing)
 
     androidTestImplementation(projects.core.testing)
     androidTestImplementation(projects.core.dataTest)
