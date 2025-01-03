@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.settings.item
 
 import android.R.string
 import android.content.res.Configuration
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.BlockerSettingItem
@@ -117,14 +117,16 @@ fun <T> SettingDialog(
             }
         },
         confirmButton = {
-            Text(
-                text = stringResource(string.ok),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .clickable { onDismiss() },
-            )
+            BlockerTextButton(
+                onClick = onDismiss,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            ) {
+                Text(
+                    text = stringResource(string.ok),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         },
     )
 }
