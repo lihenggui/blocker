@@ -165,7 +165,7 @@ com.caverock:androidsvg-aar:1.4
 com.github.ajalt.colormath:colormath-jvm:3.6.0
 com.github.ajalt.colormath:colormath:3.6.0
 com.github.jeziellago:Markwon:58aa5aba6a
-com.github.jeziellago:compose-markdown:0.5.4
+com.github.jeziellago:compose-markdown:0.5.6
 com.github.topjohnwu.libsu:core:6.0.0
 com.github.topjohnwu.libsu:io:6.0.0
 com.github.topjohnwu.libsu:nio:6.0.0
@@ -237,6 +237,7 @@ dev.rikka.shizuku:shared:13.1.5
 io.coil-kt:coil-base:2.7.0
 io.coil-kt:coil-compose-base:2.7.0
 io.coil-kt:coil-compose:2.7.0
+io.coil-kt:coil-gif:2.6.0
 io.coil-kt:coil-svg:2.7.0
 io.coil-kt:coil:2.7.0
 io.github.pdvrieze.xmlutil:core-android:0.90.3
