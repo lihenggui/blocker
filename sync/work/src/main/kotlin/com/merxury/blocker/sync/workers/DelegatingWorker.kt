@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,10 +44,9 @@ private const val WORKER_CLASS_NAME = "RouterWorkerDelegateClassName"
  * Adds metadata to a WorkRequest to identify what [CoroutineWorker] the [DelegatingWorker] should
  * delegate to
  */
-internal fun KClass<out CoroutineWorker>.delegatedData() =
-    Data.Builder()
-        .putString(WORKER_CLASS_NAME, qualifiedName)
-        .build()
+internal fun KClass<out CoroutineWorker>.delegatedData() = Data.Builder()
+    .putString(WORKER_CLASS_NAME, qualifiedName)
+    .build()
 
 /**
  * A worker that delegates sync to another [CoroutineWorker] constructed with a [HiltWorkerFactory].
@@ -73,9 +72,7 @@ class DelegatingWorker(
             as? CoroutineWorker
             ?: throw IllegalArgumentException("Unable to find appropriate worker")
 
-    override suspend fun getForegroundInfo(): ForegroundInfo =
-        delegateWorker.getForegroundInfo()
+    override suspend fun getForegroundInfo(): ForegroundInfo = delegateWorker.getForegroundInfo()
 
-    override suspend fun doWork(): Result =
-        delegateWorker.doWork()
+    override suspend fun doWork(): Result = delegateWorker.doWork()
 }

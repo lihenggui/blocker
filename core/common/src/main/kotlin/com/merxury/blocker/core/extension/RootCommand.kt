@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,19 @@ import kotlinx.coroutines.withContext
 /**
  * Created by Mercury on 2018/2/4.
  */
-suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): ShellResult =
-    withContext(dispatcher) {
-        val rootGranted = PermissionUtils.isRootAvailable(dispatcher)
-        if (!rootGranted) {
-            throw RuntimeException("Root unavailable")
-        }
-        val result = Shell.cmd(this@exec).exec()
-        return@withContext ShellResult(
-            result.out,
-            result.err,
-            result.code,
-            result.isSuccess,
-        )
+suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): ShellResult = withContext(dispatcher) {
+    val rootGranted = PermissionUtils.isRootAvailable(dispatcher)
+    if (!rootGranted) {
+        throw RuntimeException("Root unavailable")
     }
+    val result = Shell.cmd(this@exec).exec()
+    return@withContext ShellResult(
+        result.out,
+        result.err,
+        result.code,
+        result.isSuccess,
+    )
+}
 
 data class ShellResult(
     /**

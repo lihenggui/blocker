@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,18 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.feature.settings.SettingsRoute
+import kotlinx.serialization.Serializable
 
-const val SETTINGS_ROUTE = "settings_route"
+@Serializable
+data object SettingsRoute
 
-fun NavController.navigateToSettings(navOptions: NavOptions? = null) =
-    navigate(SETTINGS_ROUTE, navOptions)
+fun NavController.navigateToSettings(navOptions: NavOptions? = null) = navigate(route = SettingsRoute, navOptions)
 
 fun NavGraphBuilder.settingsScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
 ) {
-    composable(
-        route = SETTINGS_ROUTE,
-    ) {
+    composable<SettingsRoute> {
         SettingsRoute(
             onNavigationClick = onBackClick,
             snackbarHostState = snackbarHostState,

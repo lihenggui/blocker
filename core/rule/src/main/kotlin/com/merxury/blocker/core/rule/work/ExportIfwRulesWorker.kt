@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,15 +131,14 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_BACKUP_PACKAGE_NAME = "param_backup_package_name"
 
-        fun exportWork(folderPath: String?, backupPackageName: String? = null) =
-            OneTimeWorkRequestBuilder<ExportIfwRulesWorker>()
-                .setInputData(
-                    workDataOf(
-                        PARAM_FOLDER_PATH to folderPath,
-                        PARAM_BACKUP_PACKAGE_NAME to backupPackageName,
-                    ),
-                )
-                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                .build()
+        fun exportWork(folderPath: String?, backupPackageName: String? = null) = OneTimeWorkRequestBuilder<ExportIfwRulesWorker>()
+            .setInputData(
+                workDataOf(
+                    PARAM_FOLDER_PATH to folderPath,
+                    PARAM_BACKUP_PACKAGE_NAME to backupPackageName,
+                ),
+            )
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
     }
 }

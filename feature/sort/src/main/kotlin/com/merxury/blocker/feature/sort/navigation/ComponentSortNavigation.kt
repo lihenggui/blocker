@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@ import androidx.navigation.NavOptions
 import com.merxury.blocker.feature.sort.ComponentSortBottomSheetRoute
 
 const val COMPONENT_SORT_ROUTE = "component_sort_route"
-fun NavController.navigateToComponentSortScreen(navOptions: NavOptions? = null) =
-    navigate(COMPONENT_SORT_ROUTE, navOptions)
+fun NavController.navigateToComponentSortScreen(navOptions: NavOptions? = null) = navigate(COMPONENT_SORT_ROUTE, navOptions)
 
 fun NavGraphBuilder.componentSortScreen(
     dismissHandler: () -> Unit,

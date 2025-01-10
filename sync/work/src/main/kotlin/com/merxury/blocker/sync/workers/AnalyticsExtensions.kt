@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,10 +20,9 @@ package com.merxury.blocker.sync.workers
 import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logSyncStarted() =
-    logEvent(
-        AnalyticsEvent(type = "network_sync_started"),
-    )
+internal fun AnalyticsHelper.logSyncStarted() = logEvent(
+    AnalyticsEvent(type = "network_sync_started"),
+)
 
 internal fun AnalyticsHelper.logSyncFinished(syncedSuccessfully: Boolean) {
     val eventType = if (syncedSuccessfully) "network_sync_successful" else "network_sync_failed"

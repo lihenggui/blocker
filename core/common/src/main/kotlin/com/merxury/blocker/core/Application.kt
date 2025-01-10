@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ suspend fun PackageInfo.toApplication(pm: PackageManager): Application = Applica
     versionCode = getVersionCode(),
     isEnabled = applicationInfo?.enabled ?: false,
     label = applicationInfo?.loadLabel(pm).toString(),
-    minSdkVersion = applicationInfo.minSdkVersionCompat(),
+    minSdkVersion = applicationInfo?.minSdkVersionCompat() ?: 0,
     targetSdkVersion = applicationInfo?.targetSdkVersion ?: 0,
     firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
     lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
@@ -101,14 +101,13 @@ suspend fun ApplicationInfo.minSdkVersionCompat(): Int = if (Build.VERSION.SDK_I
     ApkParser.getMinSdkVersion(File(publicSourceDir))
 }
 
-inline fun <reified T : Parcelable> Parcel.readParcelableCompat(classLoader: ClassLoader?): T? =
-    when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> readParcelable(
-            classLoader,
-            T::class.java,
-        )
+inline fun <reified T : Parcelable> Parcel.readParcelableCompat(classLoader: ClassLoader?): T? = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> readParcelable(
+        classLoader,
+        T::class.java,
+    )
 
-        else ->
-            @Suppress("DEPRECATION")
-            readParcelable(classLoader)
-    }
+    else ->
+        @Suppress("DEPRECATION")
+        readParcelable(classLoader)
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,15 +135,14 @@ class ListAllComponentsToStorageWorker @AssistedInject constructor(
 
     companion object {
         private const val PARAM_FOLDER_PATH = "param_folder_path"
-        fun listAppComponentsWork(folderPath: String?) =
-            OneTimeWorkRequestBuilder<ListAllComponentsToStorageWorker>()
-                .setInputData(
-                    workDataOf(
-                        PARAM_FOLDER_PATH to folderPath,
-                    ),
-                )
-                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                .build()
+        fun listAppComponentsWork(folderPath: String?) = OneTimeWorkRequestBuilder<ListAllComponentsToStorageWorker>()
+            .setInputData(
+                workDataOf(
+                    PARAM_FOLDER_PATH to folderPath,
+                ),
+            )
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
     }
 }
 

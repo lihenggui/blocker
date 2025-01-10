@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -332,7 +332,7 @@ class AppDetailViewModel @Inject constructor(
 
     @VisibleForTesting
     fun loadTabInfo() = viewModelScope.launch {
-        val screen = appDetailArgs.tabs
+        val screen = AppDetailTabs.fromName(appDetailArgs.tabs)
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
         _appBarUiState.update {
@@ -868,13 +868,12 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getSeedColor(packageInfo: PackageInfo?): Color? =
-        withContext(ioDispatcher) {
-            val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
-            return@withContext icon?.toBitmap()
-                ?.asImageBitmap()
-                ?.themeColorOrNull()
-        }
+    private suspend fun getSeedColor(packageInfo: PackageInfo?): Color? = withContext(ioDispatcher) {
+        val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+        return@withContext icon?.toBitmap()
+            ?.asImageBitmap()
+            ?.themeColorOrNull()
+    }
 
     fun zipAllRule() = zipAllRuleUseCase()
 

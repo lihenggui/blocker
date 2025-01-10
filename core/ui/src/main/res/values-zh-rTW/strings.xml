@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-  ~ Copyright 2024 Blocker
+  ~ Copyright 2025 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -37,9 +37,7 @@
     <string name="core_ui_block_selected">禁用選中</string>
     <string name="core_ui_select_all">全選</string>
     <string name="core_ui_enable_selected">啟用選中</string>
-    <plurals name="core_ui_matched_component">
-        <item quantity="other">%1$d個組件</item>
-    </plurals>
+    <string name="core_ui_matched">%1$d 匹配，%2$d 阻擋，%3$d 啟用。</string>
     <plurals name="core_ui_matched_apps">
         <item quantity="other">匹配%1$d個應用</item>
     </plurals>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.search
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
@@ -93,6 +94,7 @@ class SearchViewModelTest {
             )
         } doReturn packageInfo
     }
+    private val savedStateHandle = SavedStateHandle()
     private lateinit var viewModel: SearchViewModel
 
     @Before
@@ -137,6 +139,7 @@ class SearchViewModelTest {
             searchAppList = searchAppList,
             searchRule = searchGeneralRuleUseCase,
             getAppController = getAppControllerUseCase,
+            savedStateHandle = savedStateHandle,
             ioDispatcher = dispatcher,
         )
     }

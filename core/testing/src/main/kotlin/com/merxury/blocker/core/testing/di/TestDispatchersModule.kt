@@ -38,8 +38,7 @@ internal object TestDispatchersModule {
 
     @Provides
     @Dispatcher(BlockerDispatchers.DEFAULT)
-    fun providesDefaultDispatcher(testDispatcher: TestDispatcher): CoroutineDispatcher =
-        testDispatcher
+    fun providesDefaultDispatcher(testDispatcher: TestDispatcher): CoroutineDispatcher = testDispatcher
 
     @Provides
     @Dispatcher(BlockerDispatchers.MAIN)

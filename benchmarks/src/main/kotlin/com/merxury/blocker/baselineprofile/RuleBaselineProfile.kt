@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,11 @@ class RuleBaselineProfile {
     @get:Rule val baselineProfileRule = BaselineProfileRule()
 
     @Test
-    fun generate() =
-        baselineProfileRule.collect(PACKAGE_NAME) {
-            startActivityAndAllowNotifications()
+    fun generate() = baselineProfileRule.collect(PACKAGE_NAME) {
+        startActivityAndAllowNotifications()
 
-            // Navigate to the rules screen
-            goToRulesScreen()
-            rulesScrollListDownUp()
-        }
+        // Navigate to the rules screen
+        goToRulesScreen()
+        rulesScrollListDownUp()
+    }
 }

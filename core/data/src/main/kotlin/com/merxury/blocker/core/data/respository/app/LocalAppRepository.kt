@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,11 +45,10 @@ internal class LocalAppRepository @Inject constructor(
     private val installedAppDao: InstalledAppDao,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AppRepository {
-    override fun getApplicationList(): Flow<List<InstalledApp>> =
-        installedAppDao.getInstalledApps()
-            .transform { list ->
-                emit(list.map { it.asExternalModel() })
-            }
+    override fun getApplicationList(): Flow<List<InstalledApp>> = installedAppDao.getInstalledApps()
+        .transform { list ->
+            emit(list.map { it.asExternalModel() })
+        }
 
     override fun updateApplication(packageName: String): Flow<Result<Unit>> = flow<Result<Unit>> {
         val app = localAppDataSource.getApplication(packageName)

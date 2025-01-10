@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.designsystem
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,8 +29,7 @@ import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.merxury.blocker.core.designsystem.component.BlockerNavigationBar
-import com.merxury.blocker.core.designsystem.component.BlockerNavigationBarItem
+import com.merxury.blocker.core.designsystem.component.BlockerNavigationSuiteScaffold
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
@@ -70,7 +70,7 @@ class NavigationScreenshotTests {
                     DeviceConfigurationOverride.FontScale(2f),
                 ) {
                     BlockerTheme {
-                        BlockerNavigationBarExample("Looong item")
+                        BlockerNavigationBarExample()
                     }
                 }
             }
@@ -84,26 +84,38 @@ class NavigationScreenshotTests {
     }
 
     @Composable
-    private fun BlockerNavigationBarExample(label: String = "Item") {
-        BlockerNavigationBar {
-            (0..2).forEach { index ->
-                BlockerNavigationBarItem(
-                    icon = {
-                        Icon(
-                            imageVector = BlockerIcons.Apps,
-                            contentDescription = "",
-                        )
-                    },
-                    selectedIcon = {
-                        Icon(
-                            imageVector = BlockerIcons.GeneralRule,
-                            contentDescription = "",
-                        )
-                    },
-                    label = { Text(label) },
-                    selected = index == 0,
-                    onClick = { },
-                )
+    private fun BlockerNavigationBarExample() {
+        val navigationItemsMap = mapOf(
+            "Apps" to BlockerIcons.Apps,
+            "Rules" to BlockerIcons.GeneralRule,
+            "Search Item" to BlockerIcons.Search,
+        )
+        BlockerNavigationSuiteScaffold(
+            navigationSuiteItems = {
+                navigationItemsMap.forEach { destination ->
+                    val selected = destination.key == "Apps"
+                    item(
+                        selected = selected,
+                        onClick = { },
+                        icon = {
+                            Icon(
+                                imageVector = destination.value,
+                                contentDescription = null,
+                            )
+                        },
+                        selectedIcon = {
+                            Icon(
+                                imageVector = destination.value,
+                                contentDescription = null,
+                            )
+                        },
+                        label = { Text(destination.key) },
+                    )
+                }
+            },
+        ) {
+            Column {
+                Text("Content")
             }
         }
     }

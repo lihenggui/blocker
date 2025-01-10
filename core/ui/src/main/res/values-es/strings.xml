@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     Copyright 2024 Blocker
+     Copyright 2025 Blocker
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -32,11 +32,7 @@
     <string name="core_ui_launch_activity">Iniciar actividad</string>
     <string name="core_ui_stop_service">Detener el servicio</string>
     <string name="core_ui_no_components">Sin componentes</string>
-    <plurals name="core_ui_matched_component">
-        <item quantity="one">%1$d componente coincidente</item>
-        <item quantity="many">%1$d componentes coincidentes</item>
-        <item quantity="other">%1$d componentes coincidentes</item>
-    </plurals>
+    <string name="core_ui_matched">%1$d coinciden, %2$d bloqueados, %3$d habilitados.</string>
     <plurals name="core_ui_matched_apps">
         <item quantity="one">%1$d aplicación coincidente</item>
         <item quantity="many">%1$d aplicaciones coincidentes</item>

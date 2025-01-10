@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.search.screen
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,17 +48,19 @@ import com.merxury.blocker.feature.search.SearchUiState
 import kotlinx.coroutines.launch
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
 fun SearchResultScreen(
     tabState: TabState<SearchScreenTabs>,
     switchTab: (SearchScreenTabs) -> Unit,
     localSearchUiState: Success,
     searchUiState: SearchUiState,
+    highlightSelectedItem: Boolean,
     modifier: Modifier = Modifier,
     switchSelectedMode: (Boolean) -> Unit = { _ -> },
     onSelect: (FilteredComponent) -> Unit = { _ -> },
     onDeselect: (FilteredComponent) -> Unit = { _ -> },
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
+    onAppClick: (String) -> Unit = { },
+    onComponentClick: (String) -> Unit = { },
     navigateToRuleDetail: (String) -> Unit = { },
     appList: List<AppItem> = emptyList(),
     onClearCacheClick: (String) -> Unit = { },
@@ -104,7 +105,10 @@ fun SearchResultScreen(
             when (it) {
                 0 -> AppSearchResultContent(
                     appList = appList,
+                    highlightSelectedApp = highlightSelectedItem,
+                    selectedPackageName = localSearchUiState.appTabUiState.selectedPackageName,
                     onClick = { packageName ->
+                        onAppClick(packageName)
                         navigateToAppDetail(packageName, Info, listOf())
                         keyboardController?.hide()
                     },
@@ -122,7 +126,9 @@ fun SearchResultScreen(
                     searchUiState = searchUiState,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
+                    highlightSelectedApp = highlightSelectedItem,
                     onComponentClick = { filterResult ->
+                        onComponentClick(filterResult.app.packageName)
                         val searchKeyword = localSearchUiState.searchKeyword
                         val firstTab = if (filterResult.receiver.isNotEmpty()) {
                             Receiver
@@ -142,6 +148,8 @@ fun SearchResultScreen(
                 2 -> RuleSearchResultContent(
                     matchedRules = localSearchUiState.ruleTabUiState.matchedRules,
                     unmatchedRules = localSearchUiState.ruleTabUiState.unmatchedRules,
+                    highlightSelectedRule = highlightSelectedItem,
+                    selectedRuleId = localSearchUiState.ruleTabUiState.selectedRuleId,
                     onClick = navigateToRuleDetail,
                 )
             }

@@ -1,4 +1,4 @@
-/* Copyright 2024 Blocker
+/* Copyright 2025 Blocker
  * Copyright 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -230,5 +230,4 @@ fun LazyStaggeredGridState.scrollbarState(
     return state
 }
 
-private inline fun <T> List<T>.floatSumOf(selector: (T) -> Float): Float =
-    fold(initial = 0f) { accumulator, listItem -> accumulator + selector(listItem) }
+private inline fun <T> List<T>.floatSumOf(selector: (T) -> Float): Float = fold(initial = 0f) { accumulator, listItem -> accumulator + selector(listItem) }

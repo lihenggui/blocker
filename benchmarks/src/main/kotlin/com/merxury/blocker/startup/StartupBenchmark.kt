@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,9 @@ import androidx.benchmark.macro.BaselineProfileMode.Disable
 import androidx.benchmark.macro.BaselineProfileMode.Require
 import androidx.benchmark.macro.CompilationMode
 import androidx.benchmark.macro.StartupMode.COLD
-import androidx.benchmark.macro.StartupTimingMetric
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
+import com.merxury.blocker.BaselineProfileMetrics
 import com.merxury.blocker.PACKAGE_NAME
 import com.merxury.blocker.allowNotifications
 import com.merxury.blocker.applist.appListWaitForContent
@@ -51,15 +51,14 @@ class StartupBenchmark {
     )
 
     @Test
-    fun startupPrecompiledWithBaselineProfile() =
-        startup(CompilationMode.Partial(baselineProfileMode = Require))
+    fun startupPrecompiledWithBaselineProfile() = startup(CompilationMode.Partial(baselineProfileMode = Require))
 
     @Test
     fun startupFullyPrecompiled() = startup(CompilationMode.Full())
 
     private fun startup(compilationMode: CompilationMode) = benchmarkRule.measureRepeated(
         packageName = PACKAGE_NAME,
-        metrics = listOf(StartupTimingMetric()),
+        metrics = BaselineProfileMetrics.allMetrics,
         compilationMode = compilationMode,
         // More iterations result in higher statistical significance.
         iterations = 20,

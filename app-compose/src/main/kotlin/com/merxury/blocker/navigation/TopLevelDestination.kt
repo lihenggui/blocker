@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +17,9 @@
 
 package com.merxury.blocker.navigation
 
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.merxury.blocker.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
-import com.merxury.blocker.core.designsystem.icon.Icon
-import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 
 /**
  * Type for the top level destinations in the application. Each of these destinations
@@ -28,26 +27,26 @@ import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
  * next within a single destination will be handled directly in composables.
  */
 enum class TopLevelDestination(
-    val selectedIcon: Icon,
-    val unselectedIcon: Icon,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
     val iconTextId: Int,
     val titleTextId: Int,
 ) {
     APP(
-        selectedIcon = ImageVectorIcon(BlockerIcons.Apps),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.Apps),
+        selectedIcon = BlockerIcons.Apps,
+        unselectedIcon = BlockerIcons.Apps,
         iconTextId = R.string.apps,
         titleTextId = R.string.app_name,
     ),
     RULE(
-        selectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
+        selectedIcon = BlockerIcons.GeneralRule,
+        unselectedIcon = BlockerIcons.GeneralRule,
         iconTextId = R.string.sdk_trackers,
         titleTextId = R.string.sdk_trackers,
     ),
     SEARCH(
-        selectedIcon = ImageVectorIcon(BlockerIcons.Search),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
+        selectedIcon = BlockerIcons.Search,
+        unselectedIcon = BlockerIcons.Search,
         iconTextId = R.string.search,
         titleTextId = R.string.search,
     ),

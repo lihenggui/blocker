@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -287,16 +287,15 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
             folderPath: String?,
             backupSystemApps: Boolean,
             backupPackageName: String? = null,
-        ) =
-            OneTimeWorkRequestBuilder<ExportBlockerRulesWorker>()
-                .setInputData(
-                    workDataOf(
-                        PARAM_FOLDER_PATH to folderPath,
-                        PARAM_BACKUP_SYSTEM_APPS to backupSystemApps,
-                        PARAM_BACKUP_APP_PACKAGE_NAME to backupPackageName,
-                    ),
-                )
-                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                .build()
+        ) = OneTimeWorkRequestBuilder<ExportBlockerRulesWorker>()
+            .setInputData(
+                workDataOf(
+                    PARAM_FOLDER_PATH to folderPath,
+                    PARAM_BACKUP_SYSTEM_APPS to backupSystemApps,
+                    PARAM_BACKUP_APP_PACKAGE_NAME to backupPackageName,
+                ),
+            )
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
     }
 }

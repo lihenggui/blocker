@@ -1,6 +1,5 @@
 /*
- * Copyright 2024 Blocker
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +42,8 @@ import com.merxury.blocker.core.designsystem.theme.LocalTintTheme
 import com.merxury.blocker.core.designsystem.theme.TintTheme
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import kotlin.test.assertEquals
 
 /**
@@ -53,6 +54,7 @@ import kotlin.test.assertEquals
  * [LocalBackgroundTheme] — have the expected values for a given theme mode, as specified by the
  * design system.
  */
+@RunWith(RobolectricTestRunner::class)
 class ThemeTest {
 
     @get:Rule
@@ -150,8 +152,7 @@ class ThemeTest {
         else -> DarkBlockerColorScheme
     }
 
-    private fun emptyGradientColors(colorScheme: ColorScheme): GradientColors =
-        GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
+    private fun emptyGradientColors(colorScheme: ColorScheme): GradientColors = GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
 
     private fun defaultGradientColors(colorScheme: ColorScheme): GradientColors = GradientColors(
         top = colorScheme.inverseOnSurface,

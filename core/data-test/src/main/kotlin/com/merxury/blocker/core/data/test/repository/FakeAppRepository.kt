@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,11 @@ import javax.inject.Inject
 class FakeAppRepository @Inject constructor() : AppRepository {
     override fun getApplicationList(): Flow<List<InstalledApp>> = flowOf(emptyList())
 
-    override fun updateApplication(packageName: String): Flow<Result<Unit>> =
-        flowOf(Result.Success(Unit))
+    override fun updateApplication(packageName: String): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
 
     override fun updateApplicationList(): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
 
-    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> =
-        flowOf(emptyList())
+    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> = flowOf(emptyList())
 
     override fun getApplication(packageName: String): Flow<InstalledApp?> = flowOf(null)
 }

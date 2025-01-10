@@ -40,7 +40,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             }
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
-                defaultConfig.targetSdk = 34
+                defaultConfig.targetSdk = 35
                 defaultConfig.testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
                 testOptions.animationsDisabled = true
                 configureFlavors(this)
@@ -63,9 +63,9 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 }
             }
             dependencies {
-                add("implementation", libs.findLibrary("androidx.tracing.ktx").get())
-                add("testImplementation", kotlin("test"))
-                add("androidTestImplementation", kotlin("test"))
+                "implementation"(libs.findLibrary("androidx.tracing.ktx").get())
+                "testImplementation"(libs.findLibrary("kotlin.test").get())
+                "androidTestImplementation"(libs.findLibrary("kotlin.test").get())
             }
         }
     }

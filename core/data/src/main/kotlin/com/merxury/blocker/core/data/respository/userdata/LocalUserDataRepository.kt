@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,8 +80,7 @@ class LocalUserDataRepository @Inject constructor(
         analyticsHelper.logRuleServerProviderChanged(serverProvider.name)
     }
 
-    override suspend fun setRuleBackupFolder(folder: String) =
-        blockerPreferenceDataSource.setRuleBackupFolder(folder)
+    override suspend fun setRuleBackupFolder(folder: String) = blockerPreferenceDataSource.setRuleBackupFolder(folder)
 
     override suspend fun setBackupSystemApp(shouldBackup: Boolean) {
         blockerPreferenceDataSource.setBackupSystemApp(shouldBackup)

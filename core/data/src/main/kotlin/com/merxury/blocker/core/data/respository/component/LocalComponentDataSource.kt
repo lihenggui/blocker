@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,33 +96,32 @@ internal class LocalComponentDataSource @Inject constructor(
     override fun getComponentType(
         packageName: String,
         componentName: String,
-    ): Flow<ComponentType?> =
-        flow {
-            val components = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
-            val isProvider = components.providers?.any { it.name == componentName } ?: false
-            if (isProvider) {
-                emit(PROVIDER)
-                return@flow
-            }
-            val isReceiver = components.receivers?.any { it.name == componentName } ?: false
-            if (isReceiver) {
-                emit(RECEIVER)
-                return@flow
-            }
-            val isService = components.services?.any { it.name == componentName } ?: false
-            if (isService) {
-                emit(SERVICE)
-                return@flow
-            }
-            val isActivity = components.activities?.any { it.name == componentName } ?: false
-            if (isActivity) {
-                emit(ACTIVITY)
-                return@flow
-            }
-            // If not found, emit null
-            emit(null)
+    ): Flow<ComponentType?> = flow {
+        val components = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
+        val isProvider = components.providers?.any { it.name == componentName } ?: false
+        if (isProvider) {
+            emit(PROVIDER)
+            return@flow
         }
-            .flowOn(ioDispatcher)
+        val isReceiver = components.receivers?.any { it.name == componentName } ?: false
+        if (isReceiver) {
+            emit(RECEIVER)
+            return@flow
+        }
+        val isService = components.services?.any { it.name == componentName } ?: false
+        if (isService) {
+            emit(SERVICE)
+            return@flow
+        }
+        val isActivity = components.activities?.any { it.name == componentName } ?: false
+        if (isActivity) {
+            emit(ACTIVITY)
+            return@flow
+        }
+        // If not found, emit null
+        emit(null)
+    }
+        .flowOn(ioDispatcher)
 
     private suspend fun toComponentInfo(
         info: android.content.pm.ComponentInfo,

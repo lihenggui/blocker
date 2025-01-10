@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2024 Blocker
+  ~ Copyright 2025 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -32,9 +32,7 @@
     <string name="core_ui_launch_activity">启动活动</string>
     <string name="core_ui_stop_service">停止服务</string>
     <string name="core_ui_no_components">无组件</string>
-    <plurals name="core_ui_matched_component">
-        <item quantity="other">%1$d 个组件</item>
-    </plurals>
+    <string name="core_ui_matched">%1$d 匹配，%2$d 阻止，%3$d 启用。</string>
     <plurals name="core_ui_matched_apps">
         <item quantity="other">匹配 %1$d 个应用</item>
     </plurals>

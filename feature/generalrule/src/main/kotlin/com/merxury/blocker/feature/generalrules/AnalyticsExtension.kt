@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logGeneralRuleClicked(id: String) =
-    logEvent(
-        AnalyticsEvent(
-            type = "general_rule_clicked",
-            extras = listOf(
-                Param(key = "id", value = id),
-            ),
+internal fun AnalyticsHelper.logGeneralRuleClicked(id: String) = logEvent(
+    AnalyticsEvent(
+        type = "general_rule_clicked",
+        extras = listOf(
+            Param(key = "id", value = id),
         ),
-    )
+    ),
+)

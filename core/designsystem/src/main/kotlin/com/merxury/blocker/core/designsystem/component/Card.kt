@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
@@ -31,6 +33,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 fun BlockerOutlinedCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    color: Color = Color.Transparent,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     OutlinedCard(
@@ -39,7 +42,13 @@ fun BlockerOutlinedCard(
             .padding(8.dp),
         onClick = onClick,
     ) {
-        content()
+        Column(
+            modifier = Modifier
+                .background(color = color)
+                .fillMaxWidth(),
+        ) {
+            content()
+        }
     }
 }
 

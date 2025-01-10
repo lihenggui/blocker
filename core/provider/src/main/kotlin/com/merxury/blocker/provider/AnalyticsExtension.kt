@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logControlComponentViaProvider(newState: Boolean) =
-    logEvent(
-        AnalyticsEvent(
-            type = "control_component_via_provider_activated",
-            extras = listOf(
-                Param(key = "new_state", value = newState.toString()),
-            ),
+internal fun AnalyticsHelper.logControlComponentViaProvider(newState: Boolean) = logEvent(
+    AnalyticsEvent(
+        type = "control_component_via_provider_activated",
+        extras = listOf(
+            Param(key = "new_state", value = newState.toString()),
         ),
-    )
+    ),
+)

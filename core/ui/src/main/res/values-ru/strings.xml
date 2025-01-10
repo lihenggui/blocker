@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2024 Blocker
+  ~ Copyright 2025 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -36,12 +36,7 @@
     <string name="core_ui_block_selected">Отключить выбранное</string>
     <string name="core_ui_select_all">Выбрать все</string>
     <string name="core_ui_enable_selected">Включить выбранное</string>
-    <plurals name="core_ui_matched_component" tools:ignore="MissingQuantity">
-        <item quantity="one">Обнаружен %1$d компонент</item>
-        <item quantity="few">Обнаружено %1$d компонента</item>
-        <item quantity="many">Обнаружено %1$d компонентов</item>
-        <item quantity="other">Обнаружено %1$d компонентов</item>
-    </plurals>
+    <string name="core_ui_matched">%1$d совпадает, %2$d заблокировано, %3$d включено.</string>
     <plurals name="core_ui_matched_apps">
         <item quantity="one">Обнаружено в %1$d пр.</item>
         <item quantity="few">Обнаружено в %1$d пр.</item>

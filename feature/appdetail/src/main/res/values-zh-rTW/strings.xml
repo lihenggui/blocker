@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     Copyright 2024 Blocker
+     Copyright 2025 Blocker
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -50,4 +50,5 @@
     <string name="feature_appdetail_import_rules">導入規則</string>
     <string name="feature_appdetail_app_info">應用詳情</string>
     <string name="feature_appdetail_app_info_with_libchecker_summary">使用LibChecker查看應用程序詳細信息</string>
+    <string name="feature_appdetail_select_an_app">選擇一個應用</string>
 </resources>

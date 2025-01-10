@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
             ACTIVITY -> Activity
             PROVIDER -> Provider
             SDK -> Sdk
-            else -> throw IllegalArgumentException("Invalid screen name in detail page")
+            else -> throw IllegalArgumentException("Invalid screen $name in detail page")
         }
 
         fun toComponentType(name: String?): ComponentType = when (name) {
@@ -56,7 +56,7 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
             SERVICE -> ComponentType.SERVICE
             ACTIVITY -> ComponentType.ACTIVITY
             PROVIDER -> ComponentType.PROVIDER
-            else -> throw IllegalArgumentException("Invalid screen name in detail page")
+            else -> throw IllegalArgumentException("Invalid screen $name in detail page")
         }
     }
 }

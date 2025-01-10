@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2024 Blocker
+  ~ Copyright 2025 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -48,4 +48,5 @@
     <string name="feature_search_search_hint">Приложения, компоненты и правила</string>
     <string name="feature_search_no_search_result">Ничего не найдено</string>
     <string name="feature_search_check_icon">Проверка</string>
+    <string name="feature_search_select_an_app_or_a_rule">Выберите приложение или правило</string>
 </resources>

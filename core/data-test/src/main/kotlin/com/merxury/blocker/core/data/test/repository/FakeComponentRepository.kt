@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,18 +29,16 @@ import javax.inject.Inject
 class FakeComponentRepository @Inject constructor() : ComponentRepository {
     override fun getComponent(name: String): Flow<ComponentInfo?> = flowOf()
 
-    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =
-        flowOf(emptyList())
+    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = flowOf(emptyList())
 
     override fun getComponentList(
         packageName: String,
         type: ComponentType,
     ): Flow<List<ComponentInfo>> = flowOf(emptyList())
 
-    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> =
-        flowOf(
-            Success(Unit),
-        )
+    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> = flowOf(
+        Success(Unit),
+    )
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> = flowOf(
         Success(Unit),

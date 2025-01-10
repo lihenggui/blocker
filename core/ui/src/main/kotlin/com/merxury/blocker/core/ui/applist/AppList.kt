@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvi
 fun AppList(
     appList: List<AppItem>,
     modifier: Modifier = Modifier,
+    highlightSelectedApp: Boolean = false,
+    selectedPackageName: String? = null,
     onAppItemClick: (String) -> Unit = {},
     onClearCacheClick: (String) -> Unit = {},
     onClearDataClick: (String) -> Unit = {},
@@ -64,6 +66,7 @@ fun AppList(
     Box(modifier.fillMaxSize()) {
         LazyColumn(state = listState) {
             itemsIndexed(appList, key = { _, item -> item.packageName }) { _, item ->
+                val isSelected = highlightSelectedApp && item.packageName == selectedPackageName
                 AppListItem(
                     label = item.label,
                     packageName = item.packageName,
@@ -80,6 +83,7 @@ fun AppList(
                     onUninstallClick = onUninstallClick,
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
+                    isSelected = isSelected,
                 )
             }
             item {

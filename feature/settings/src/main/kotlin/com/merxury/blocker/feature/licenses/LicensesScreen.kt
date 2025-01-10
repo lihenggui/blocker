@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,18 @@
 package com.merxury.blocker.feature.licenses
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,36 +75,24 @@ fun LicenseScreen(
     modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit = {},
 ) {
-    Scaffold(
+    Column(
         modifier = modifier,
-        topBar = {
-            BlockerTopAppBar(
-                title = stringResource(id = R.string.feature_settings_open_source_licenses),
-                hasNavigationIcon = true,
-                onNavigationClick = onNavigationClick,
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-                .windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal,
-                    ),
-                ),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            when (uiState) {
-                Loading -> {
-                    LoadingScreen()
-                }
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        BlockerTopAppBar(
+            title = stringResource(id = R.string.feature_settings_open_source_licenses),
+            hasNavigationIcon = true,
+            onNavigationClick = onNavigationClick,
+        )
 
-                is Success -> {
-                    LicenseContent(licenses = uiState.licenses, licensesSize = uiState.licensesSize)
-                }
+        when (uiState) {
+            Loading -> {
+                LoadingScreen()
+            }
+
+            is Success -> {
+                LicenseContent(licenses = uiState.licenses, licensesSize = uiState.licensesSize)
             }
         }
     }
@@ -132,7 +116,9 @@ fun LicenseContent(
                 stickyHeader {
                     ItemHeader(
                         title = group.id,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface),
                     )
                 }
                 items(group.artifacts) { artifact ->

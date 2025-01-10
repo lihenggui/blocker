@@ -19,4 +19,5 @@
         <item quantity="other">%1$d Layanan</item>
     </plurals>
     <string name="feature_search_searching">Pencarian</string>
+    <string name="feature_search_select_an_app_or_a_rule">Pilih apl atau aturan</string>
 </resources>

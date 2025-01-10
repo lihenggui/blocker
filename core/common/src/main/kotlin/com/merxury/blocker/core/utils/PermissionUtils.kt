@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,10 +53,9 @@ object PermissionUtils {
         }
     }
 
-    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean =
-        withContext(dispatcher) {
-            Shell.cmd("su").exec().isSuccess
-        }
+    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean = withContext(dispatcher) {
+        Shell.cmd("su").exec().isSuccess
+    }
 
     private suspend fun requestRootInRuntime(dispatcher: CoroutineDispatcher): Boolean {
         // isAppGrantedRoot is always false on KernelSU and APatch.

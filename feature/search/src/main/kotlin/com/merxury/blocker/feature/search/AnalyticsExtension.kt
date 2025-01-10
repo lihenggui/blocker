@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,26 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logAppSearchResultClicked() =
-    logEvent(
-        AnalyticsEvent(
-            type = "search_screen_app_result_clicked",
-        ),
-    )
+internal fun AnalyticsHelper.logAppSearchResultClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_app_result_clicked",
+    ),
+)
 
-internal fun AnalyticsHelper.logComponentSearchResultClicked() =
-    logEvent(
-        AnalyticsEvent(
-            type = "search_screen_component_result_clicked",
-        ),
-    )
+internal fun AnalyticsHelper.logComponentSearchResultClicked() = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_component_result_clicked",
+    ),
+)
 
-internal fun AnalyticsHelper.logRuleSearchResultClicked(id: String) =
-    logEvent(
-        AnalyticsEvent(
-            type = "search_screen_rule_result_clicked",
-            extras = listOf(
-                Param(key = "id", value = id),
-            ),
+internal fun AnalyticsHelper.logRuleSearchResultClicked(id: String) = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_rule_result_clicked",
+        extras = listOf(
+            Param(key = "id", value = id),
         ),
-    )
+    ),
+)
 
 internal fun AnalyticsHelper.logUninstallAppClicked() = logEvent(
     AnalyticsEvent(

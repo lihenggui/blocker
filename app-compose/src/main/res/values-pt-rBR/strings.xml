@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search">Pesquisar</string>
+    <string name="sdk_trackers">SDK/Rastreadores</string>
+    <string name="close">Fechar</string>
+    <string name="apps">Apps</string>
+    <string name="no_permission_hint">Não é possível obter permissão, o aplicativo pode não funcionar corretamente.</string>
+    <string name="shell_permission_hint">Permissão de shell concedida. Componentes de controle podem não funcionar corretamente.</string>
+</resources>

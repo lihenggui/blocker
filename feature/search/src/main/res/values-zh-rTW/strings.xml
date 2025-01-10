@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-  ~ Copyright 2024 Blocker
+  ~ Copyright 2025 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -33,4 +33,5 @@
     <string name="feature_search_search_hint">應用程式、元件和規則</string>
     <string name="feature_search_no_search_result">尚未有搜尋結果</string>
     <string name="feature_search_check_icon">選中</string>
+    <string name="feature_search_select_an_app_or_a_rule">選擇一個應用程式或規則</string>
 </resources>

@@ -28,4 +28,5 @@
         <item quantity="other">%1$d apps sélectionnées</item>
     </plurals>
     <string name="feature_search_check_icon">Vérifier</string>
+    <string name="feature_search_select_an_app_or_a_rule">Sélectionner une application ou une règle</string>
 </resources>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-     Copyright 2024 Blocker
+     Copyright 2025 Blocker
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -24,4 +24,5 @@
     <string name="feature_ruledetail_block_all_of_this_page">Block all of this page</string>
     <string name="feature_ruledetail_enable_all_of_this_page">Enable all of this page</string>
     <string name="feature_ruledetail_keywords">Keywords</string>
+    <string name="feature_ruledetail_select_a_rule">Select a rule</string>
 </resources>

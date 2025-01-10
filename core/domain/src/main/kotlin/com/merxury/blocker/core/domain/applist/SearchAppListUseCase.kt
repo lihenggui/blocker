@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,18 +116,17 @@ class SearchAppListUseCase @Inject constructor(
     }
         .flowOn(cpuDispatcher)
 
-    private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =
-        if (sortOrder == SortingOrder.ASCENDING) {
-            when (sortType) {
-                NAME -> compareBy { it.label.lowercase() }
-                FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
-                LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
-            }
-        } else {
-            when (sortType) {
-                NAME -> compareByDescending { it.label.lowercase() }
-                FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
-                LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
-            }
+    private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> = if (sortOrder == SortingOrder.ASCENDING) {
+        when (sortType) {
+            NAME -> compareBy { it.label.lowercase() }
+            FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
+            LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
         }
+    } else {
+        when (sortType) {
+            NAME -> compareByDescending { it.label.lowercase() }
+            FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
+            LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
+        }
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,9 +91,9 @@ dependencies {
     implementation(projects.feature.appdetail)
     implementation(projects.feature.applist)
     implementation(projects.feature.generalrule)
+    implementation(projects.feature.ruledetail)
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
-    implementation(projects.feature.ruledetail)
     implementation(projects.feature.sort)
 
     implementation(projects.core.analytics)
@@ -108,14 +108,21 @@ dependencies {
     implementation(projects.sync.work)
 
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.material3.adaptive)
+    implementation(libs.androidx.compose.material3.adaptive.layout)
+    implementation(libs.androidx.compose.material3.adaptive.navigation)
+    implementation(libs.androidx.compose.material3.windowSizeClass)
+    implementation(libs.androidx.compose.runtime.tracing)
+    implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.tracing.ktx)
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.material.navigation)
+    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
-    implementation(libs.androidx.compose.material3.windowSizeClass)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.window.core)
     implementation(libs.androidx.work.ktx)
     implementation(libs.androidx.profileinstaller)
     implementation(libs.coil.kt)
@@ -127,19 +134,25 @@ dependencies {
     implementation(libs.libsu.core)
     implementation(libs.timber)
 
+    ksp(libs.hilt.compiler)
+
     debugImplementation(libs.androidx.compose.ui.testManifest)
     debugImplementation(projects.uiTestHiltManifest)
 
     kspTest(libs.hilt.compiler)
 
     testImplementation(projects.core.dataTest)
+    testImplementation(projects.core.datastoreTest)
     testImplementation(projects.core.testing)
     testImplementation(projects.uiTestHiltManifest)
     testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.work.testing)
+
+    testFossImplementation(libs.androidx.navigation.testing)
     testFossImplementation(libs.robolectric)
     testFossImplementation(projects.core.screenshotTesting)
+    testFossImplementation(projects.core.testing)
 
     androidTestImplementation(projects.core.testing)
     androidTestImplementation(projects.core.dataTest)
@@ -156,6 +169,8 @@ baselineProfile {
     // Don't build on every iteration of a full assemble.
     // Instead enable generation directly for the release build variant.
     automaticGenerationDuringBuild = false
+    // Make use of Dex Layout Optimizations via Startup Profiles
+    dexLayoutOptimization = true
 }
 
 dependencyGuard {

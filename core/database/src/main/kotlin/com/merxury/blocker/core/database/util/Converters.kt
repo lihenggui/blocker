@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,8 @@ internal class ListConverter {
 
 internal class InstantConverter {
     @TypeConverter
-    fun longToInstant(value: Long?): Instant? =
-        value?.let(Instant::fromEpochMilliseconds)
+    fun longToInstant(value: Long?): Instant? = value?.let(Instant::fromEpochMilliseconds)
 
     @TypeConverter
-    fun instantToLong(instant: Instant?): Long? =
-        instant?.toEpochMilliseconds()
+    fun instantToLong(instant: Instant?): Long? = instant?.toEpochMilliseconds()
 }

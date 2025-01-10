@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,15 +28,11 @@ class FakeAppPropertiesRepository @Inject constructor(
     override val appProperties: Flow<AppPropertiesData>
         get() = appPropertiesDataSource.appPropertiesData
 
-    override suspend fun markComponentDatabaseInitialized() =
-        appPropertiesDataSource.markComponentDatabaseInitialized()
+    override suspend fun markComponentDatabaseInitialized() = appPropertiesDataSource.markComponentDatabaseInitialized()
 
-    override suspend fun markGeneralRuleDatabaseInitialized() =
-        appPropertiesDataSource.markGeneralRuleDatabaseInitialized()
+    override suspend fun markGeneralRuleDatabaseInitialized() = appPropertiesDataSource.markGeneralRuleDatabaseInitialized()
 
-    override suspend fun updateLastOpenedAppListHash(hash: String) =
-        appPropertiesDataSource.updateLastOpenedAppListHash(hash)
+    override suspend fun updateLastOpenedAppListHash(hash: String) = appPropertiesDataSource.updateLastOpenedAppListHash(hash)
 
-    override suspend fun updateLastOpenedRuleHash(hash: String) =
-        appPropertiesDataSource.updateLastOpenedRuleHash(hash)
+    override suspend fun updateLastOpenedRuleHash(hash: String) = appPropertiesDataSource.updateLastOpenedRuleHash(hash)
 }

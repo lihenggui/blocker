@@ -108,8 +108,7 @@ class SnackbarHostState {
         withDismissAction: Boolean = false,
         duration: SnackbarDuration =
             if (actionLabel == null) SnackbarDuration.Short else SnackbarDuration.Indefinite,
-    ): SnackbarResult =
-        showSnackbar(SnackbarVisualsImpl(message, actionLabel, withDismissAction, duration))
+    ): SnackbarResult = showSnackbar(SnackbarVisualsImpl(message, actionLabel, withDismissAction, duration))
 
     /**
      * Shows or queues to be shown a [Snackbar] at the bottom of the [androidx.compose.material3.Scaffold]
@@ -141,15 +140,14 @@ class SnackbarHostState {
         withDismissAction: Boolean = false,
         duration: SnackbarDuration =
             if (actionLabel == null) SnackbarDuration.Short else SnackbarDuration.Indefinite,
-    ): SnackbarResult =
-        showSnackbarWithoutQueue(
-            SnackbarVisualsImpl(
-                message,
-                actionLabel,
-                withDismissAction,
-                duration,
-            ),
-        )
+    ): SnackbarResult = showSnackbarWithoutQueue(
+        SnackbarVisualsImpl(
+            message,
+            actionLabel,
+            withDismissAction,
+            duration,
+        ),
+    )
 
     /**
      * Shows a [Snackbar] at the bottom of the [androidx.compose.material3.Scaffold] to which
