@@ -1,5 +1,5 @@
-package: name='com.merxury.blocker' versionCode='2' versionName='2.0.2' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
-sdkVersion:'21'
+package: name='com.merxury.blocker' versionCode='5322' versionName='2.0.5322' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
+minSdkVersion:'21'
 targetSdkVersion:'35'
 uses-permission: name='android.permission.INTERNET'
 uses-permission: name='android.permission.FOREGROUND_SERVICE'
