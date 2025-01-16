@@ -62,7 +62,7 @@ androidx.compose.ui:ui-unit:1.7.6
 androidx.compose.ui:ui-util-android:1.7.6
 androidx.compose.ui:ui-util:1.7.6
 androidx.compose.ui:ui:1.7.6
-androidx.compose:compose-bom:2024.12.01
+androidx.compose:compose-bom:2025.01.00
 androidx.concurrent:concurrent-futures-ktx:1.1.0
 androidx.concurrent:concurrent-futures:1.1.0
 androidx.constraintlayout:constraintlayout-solver:2.0.1
