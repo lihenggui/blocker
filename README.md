@@ -35,16 +35,16 @@ has the potential to be extended in the future.
 
 The Android system provides a tool called PackageManager, which is used for managing installed
 applications or obtaining information about them. One of its
-methods, ```setComponentEnabledSetting(ComponentName, int, int)```, allows an application to control
+methods, `setComponentEnabledSetting(ComponentName, int, int)`, allows an application to control
 the state of its own components. If attempting to use this method to control components in other
 applications, a signature permission is required, or the call will fail.  
-Fortunately, Android provides another tool called "pm" that allows users to control component states in command-line mode. However, the "pm" tool requires root permission to run. The following command can be used to disable a specific package or component:
+Fortunately, Android provides another tool called `pm` that allows users to control component states in command-line mode. However, the `pm` tool requires root permission to run. The following command can be used to disable a specific package or component:
 
 ```
-pm disable [PackageName/ComponmentName]
+pm disable [PackageName/ComponentName]
 ```
 
-Whether using PackageManager in the code or "pm" in command-line mode, the configurations will be written to ```/data/system/users/0/package_restrictions.xml```.
+Whether using PackageManager in the code or `pm` in command-line mode, the configurations will be written to ```/data/system/users/0/package_restrictions.xml```.
 
 ### Intent Firewall Mode
 Intent Firewall was introduced in Android 4.4.2 (API 19) and is still effective in the latest Android systems. It is integrated into the Android Framework to filter the intents sent by applications or systems. 
