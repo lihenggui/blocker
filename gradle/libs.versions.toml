@@ -178,7 +178,7 @@ shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref
 xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-android", version.ref = "xmlutil" }
 xmlutil-serialization-android = { group = "io.github.pdvrieze.xmlutil", name = "serialization-android", version.ref = "xmlutil" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
-hiddenapibypass = "org.lsposed.hiddenapibypass:hiddenapibypass:4.3"
+hiddenapibypass = "org.lsposed.hiddenapibypass:hiddenapibypass:6.1"
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
