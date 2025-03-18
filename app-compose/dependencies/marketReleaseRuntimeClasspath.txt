@@ -39,7 +39,6 @@ androidx.compose.material:material-icons-core-android:1.7.8
 androidx.compose.material:material-icons-core:1.7.8
 androidx.compose.material:material-icons-extended-android:1.7.8
 androidx.compose.material:material-icons-extended:1.7.8
-androidx.compose.material:material-navigation:1.7.8
 androidx.compose.material:material-ripple-android:1.7.8
 androidx.compose.material:material-ripple:1.7.8
 androidx.compose.material:material:1.7.8
