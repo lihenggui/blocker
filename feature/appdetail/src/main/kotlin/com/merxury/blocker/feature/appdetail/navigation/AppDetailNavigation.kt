@@ -97,7 +97,6 @@ fun NavGraphBuilder.appDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
     showBackButton: Boolean,
 ) {
@@ -113,7 +112,6 @@ fun NavGraphBuilder.appDetailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
-            navigateToComponentSortScreen = navigateToComponentSortScreen,
             navigateToRuleDetail = navigateToRuleDetail,
             updateIconThemingState = updateIconThemingState,
             showBackButton = showBackButton,

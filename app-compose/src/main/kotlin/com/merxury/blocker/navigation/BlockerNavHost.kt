@@ -42,8 +42,6 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
-import com.merxury.blocker.feature.sort.navigation.componentSortScreen
-import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
 import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
 
@@ -80,7 +78,6 @@ fun BlockerNavHost(
                 snackbarHostState = snackbarHostState,
                 updateIconThemingState = updateIconThemingState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
-                navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
             appDetailScreen(
@@ -89,7 +86,6 @@ fun BlockerNavHost(
                 snackbarHostState = snackbarHostState,
                 updateIconThemingState = updateIconThemingState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
-                navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
             ruleListDetailScreen(
@@ -119,9 +115,6 @@ fun BlockerNavHost(
             )
             componentDetailScreen(
                 dismissHandler = onBackClick,
-            )
-            componentSortScreen(
-                dismissHandler = dismissBottomSheet,
             )
             licensesScreen(
                 onBackClick = onBackClick,

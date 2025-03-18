@@ -66,7 +66,6 @@ fun NavGraphBuilder.appListDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
 ) {
     composable(
@@ -84,7 +83,6 @@ fun NavGraphBuilder.appListDetailScreen(
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
-            navigateToComponentSortScreen = navigateToComponentSortScreen,
             navigateToRuleDetail = navigateToRuleDetail,
             updateIconThemingState = updateIconThemingState,
         )
@@ -98,7 +96,6 @@ internal fun AppListDetailRoute(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
     viewModel: AppList2PaneViewModel = hiltViewModel(),
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
@@ -111,7 +108,6 @@ internal fun AppListDetailRoute(
         onAppClick = viewModel::onAppClick,
         snackbarHostState = snackbarHostState,
         navigateToComponentDetail = navigateToComponentDetail,
-        navigateToComponentSortScreen = navigateToComponentSortScreen,
         navigateToRuleDetail = navigateToRuleDetail,
         updateIconThemingState = updateIconThemingState,
         windowAdaptiveInfo = windowAdaptiveInfo,
@@ -127,7 +123,6 @@ internal fun AppListDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
     onAppClick: (String) -> Unit,
     windowAdaptiveInfo: WindowAdaptiveInfo,
@@ -196,7 +191,6 @@ internal fun AppListDetailScreen(
                         onBackClick = listDetailNavigator::navigateBack,
                         snackbarHostState = snackbarHostState,
                         navigateToComponentDetail = navigateToComponentDetail,
-                        navigateToComponentSortScreen = navigateToComponentSortScreen,
                         navigateToRuleDetail = navigateToRuleDetail,
                         updateIconThemingState = updateIconThemingState,
                         showBackButton = !listDetailNavigator.isListPaneVisible(),
