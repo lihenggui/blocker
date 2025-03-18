@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.sort
+package com.merxury.blocker.feature.appdetail
 
 import com.merxury.blocker.core.model.data.ComponentSortInfo
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
@@ -24,7 +24,9 @@ import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -85,42 +87,44 @@ class ComponentSortViewModelTest {
     }
 
     @Test
-    fun componentSortInfoUiState_whenUpdateComponentSortingOrder_thenUpdateComponentSortingOrder() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentSortInfoUiState.collect()
+    fun componentSortInfoUiState_whenUpdateComponentSortingOrder_thenUpdateComponentSortingOrder() =
+        runTest {
+            val collectJob = launch(UnconfinedTestDispatcher()) {
+                viewModel.componentSortInfoUiState.collect()
+            }
+
+            userDataRepository.sendUserData(defaultUserData)
+            viewModel.updateComponentSortingOrder(SortingOrder.DESCENDING)
+            viewModel.loadComponentSortInfo()
+            val updatedUserData =
+                defaultUserData.copy(componentSortingOrder = SortingOrder.DESCENDING)
+            assertEquals(
+                Success(updatedUserData.toComponentSortInfo()),
+                viewModel.componentSortInfoUiState.value,
+            )
+
+            collectJob.cancel()
         }
-
-        userDataRepository.sendUserData(defaultUserData)
-        viewModel.updateComponentSortingOrder(SortingOrder.DESCENDING)
-        viewModel.loadComponentSortInfo()
-        val updatedUserData =
-            defaultUserData.copy(componentSortingOrder = SortingOrder.DESCENDING)
-        assertEquals(
-            Success(updatedUserData.toComponentSortInfo()),
-            viewModel.componentSortInfoUiState.value,
-        )
-
-        collectJob.cancel()
-    }
 
     @Test
-    fun componentSortInfoUiState_whenUpdateComponentShowPriority_thenUpdateComponentShowPriority() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentSortInfoUiState.collect()
+    fun componentSortInfoUiState_whenUpdateComponentShowPriority_thenUpdateComponentShowPriority() =
+        runTest {
+            val collectJob = launch(UnconfinedTestDispatcher()) {
+                viewModel.componentSortInfoUiState.collect()
+            }
+
+            userDataRepository.sendUserData(defaultUserData)
+            viewModel.updateComponentShowPriority(ComponentShowPriority.ENABLED_COMPONENTS_FIRST)
+            viewModel.loadComponentSortInfo()
+            val updatedUserData =
+                defaultUserData.copy(componentShowPriority = ComponentShowPriority.ENABLED_COMPONENTS_FIRST)
+            assertEquals(
+                Success(updatedUserData.toComponentSortInfo()),
+                viewModel.componentSortInfoUiState.value,
+            )
+
+            collectJob.cancel()
         }
-
-        userDataRepository.sendUserData(defaultUserData)
-        viewModel.updateComponentShowPriority(ComponentShowPriority.ENABLED_COMPONENTS_FIRST)
-        viewModel.loadComponentSortInfo()
-        val updatedUserData =
-            defaultUserData.copy(componentShowPriority = ComponentShowPriority.ENABLED_COMPONENTS_FIRST)
-        assertEquals(
-            Success(updatedUserData.toComponentSortInfo()),
-            viewModel.componentSortInfoUiState.value,
-        )
-
-        collectJob.cancel()
-    }
 }
 
 private fun UserPreferenceData.toComponentSortInfo() = ComponentSortInfo(
