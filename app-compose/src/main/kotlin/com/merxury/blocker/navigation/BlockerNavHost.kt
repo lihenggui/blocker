@@ -42,7 +42,6 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
-import com.merxury.blocker.feature.sort.navigation.appSortScreen
 import com.merxury.blocker.feature.sort.navigation.componentSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
@@ -122,9 +121,6 @@ fun BlockerNavHost(
                 dismissHandler = onBackClick,
             )
             componentSortScreen(
-                dismissHandler = dismissBottomSheet,
-            )
-            appSortScreen(
                 dismissHandler = dismissBottomSheet,
             )
             licensesScreen(
