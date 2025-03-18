@@ -60,7 +60,7 @@ fun NavGraphBuilder.appListScreen(
             navigateToAppDetail = navigateToAppDetail,
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-            navigateTooAppSortScreen = navigateTooAppSortScreen,
+            showAppSortBottomSheet = navigateTooAppSortScreen,
         )
     }
 }

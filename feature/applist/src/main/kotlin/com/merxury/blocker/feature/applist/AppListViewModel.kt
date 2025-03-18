@@ -171,6 +171,16 @@ class AppListViewModel @Inject constructor(
         loadSelectedApp()
     }
 
+    fun showAppSortBottomSheet(showAppSortBottomSheet: Boolean) {
+        _uiState.update {
+            if (it is Success) {
+                it.copy(showAppSortBottomSheet = showAppSortBottomSheet)
+            } else {
+                it
+            }
+        }
+    }
+
     private fun loadSelectedApp() {
         _uiState.update {
             if (it is Success) {
@@ -381,5 +391,6 @@ sealed interface AppListUiState {
     data class Success(
         val isRefreshing: Boolean = false,
         val selectedPackageName: String? = null,
+        val showAppSortBottomSheet: Boolean = false,
     ) : AppListUiState
 }

@@ -19,4 +19,16 @@
     <string name="feature_applist_settings">设置</string>
     <string name="feature_applist_support_and_feedback">帮助与反馈</string>
     <string name="feature_applist_no_applications_to_display">没有可显示的应用程序</string>
+    <string name="feature_applist_sort_options">排序选项</string>
+    <string name="feature_applist_sort_by">排序依据</string>
+    <string name="feature_applist_order">顺序</string>
+    <string name="feature_applist_ascending">升序</string>
+    <string name="feature_applist_descending">降序</string>
+    <string name="feature_applist_priority">优先级</string>
+    <string name="feature_applist_name">名称</string>
+    <string name="feature_applist_install_date">安装日期</string>
+    <string name="feature_applist_last_updated">最后更新</string>
+    <string name="feature_applist_show_running_apps_on_top">置顶运行中应用</string>
+    <string name="feature_applist_on">开启</string>
+    <string name="feature_applist_off">关闭</string>
 </resources>

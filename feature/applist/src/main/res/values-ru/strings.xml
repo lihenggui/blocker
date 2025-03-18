@@ -18,4 +18,16 @@
     <string name="feature_applist_settings">Настройки</string>
     <string name="feature_applist_support_and_feedback">Поддержка и обратная связь</string>
     <string name="feature_applist_no_applications_to_display">Нет приложений для отображения</string>
+    <string name="feature_applist_sort_options">Параметры сортировки</string>
+    <string name="feature_applist_sort_by">Сортировать по</string>
+    <string name="feature_applist_order">Порядок</string>
+    <string name="feature_applist_ascending">По возрастанию</string>
+    <string name="feature_applist_descending">По убыванию</string>
+    <string name="feature_applist_priority">Приоритет</string>
+    <string name="feature_applist_name">Имя</string>
+    <string name="feature_applist_install_date">Дата установки</string>
+    <string name="feature_applist_last_updated">Последнее обновление</string>
+    <string name="feature_applist_show_running_apps_on_top">Показывать работающие приложения сверху</string>
+    <string name="feature_applist_on">Вкл.</string>
+    <string name="feature_applist_off">Выкл.</string>
 </resources>

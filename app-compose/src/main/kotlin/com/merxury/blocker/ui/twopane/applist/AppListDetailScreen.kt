@@ -187,7 +187,7 @@ internal fun AppListDetailScreen(
                 navigateToAppDetail = ::onAppClickShowDetailPane,
                 navigateToSettings = navigateToSettings,
                 navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-                navigateTooAppSortScreen = navigateTooAppSortScreen,
+                showAppSortBottomSheet = navigateTooAppSortScreen,
                 highlightSelectedApp = listDetailNavigator.isDetailPaneVisible(),
             )
         },
