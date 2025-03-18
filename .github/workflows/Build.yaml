@@ -86,12 +86,14 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Accept Android licenses
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Check build-logic
-        run: ./gradlew check -p build-logic
+        run: ./gradlew :build-logic:convention:check
 
       - name: Check spotless
         run: ./gradlew spotlessCheck --init-script gradle/init.gradle.kts --no-configuration-cache
@@ -155,19 +157,8 @@ jobs:
         if: always()
         run: ./gradlew testFossDebug :lint:test
 
-      - name: Setup GMD
-        run: ./gradlew :benchmarks:pixel6Api33Setup
-          --info
-          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
-          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
-
       - name: Build all build type and flavor permutations
-        run: ./gradlew :app-compose:assemble :benchmarks:assemble -Pandroidx.baselineprofile.skipgeneration
-          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
-          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
-          -Pandroid.experimental.androidTest.numManagedDeviceShards=1
-          -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1
-          -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=5
+        run: ./gradlew :app:assemble
 
       - name: Upload Foss apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
@@ -212,7 +203,7 @@ jobs:
           apk-path: ${{ steps.apk-path.outputs.foss_path }}
 
       - name: Upload JVM local results (XML)
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: local-test-results
@@ -222,14 +213,14 @@ jobs:
         run: ./gradlew :app-compose:lintMarketRelease :lint:lint
 
       - name: Upload lint reports (HTML)
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: lint-reports
           path: '**/build/reports/lint-results-*.html'
 
       - name: Upload lint reports (SARIF)
-        if: success()
+        if: ${{ !cancelled() && hashFiles('**/*.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: './'
@@ -265,7 +256,7 @@ jobs:
     timeout-minutes: 90
     strategy:
       matrix:
-        api-level: [ 26, 34 ]
+        api-level: [ 26, 35 ]
 
     steps:
       - name: Delete unnecessary tools 🔧
@@ -303,6 +294,8 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       # Cache AVD. See https://github.com/ReactiveCircus/android-emulator-runner
       - name: AVD cache
@@ -349,7 +342,7 @@ jobs:
         run: ./gradlew createFossDebugCombinedCoverageReport
 
       - name: Upload test reports
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: test-reports-${{ matrix.api-level }}

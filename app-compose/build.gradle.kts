@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,8 +154,11 @@ dependencies {
     testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.work.testing)
+
+    testFossImplementation(libs.androidx.navigation.testing)
     testFossImplementation(libs.robolectric)
     testFossImplementation(projects.core.screenshotTesting)
+    testFossImplementation(projects.core.testing)
 
     androidTestImplementation(projects.core.testing)
     androidTestImplementation(projects.core.dataTest)

@@ -1,9 +1,11 @@
 Blocker是一款操作Android应用程序四大组件的程序。它支持多种不同的控制器控制组件，目前支持的有使用软件包管理器方式（PackageManager）和意图防火墙模式（Intent Firewall）。支持无缝切换使用模式，导入导出Blocker规则，导入导出纯IFW规则，兼容MyAndroidTools规则导入，或是将其转换为Intent Firewall规则导入。
 
 <h3>优点</h3>
-1. 轻量级程序，不会给系统增加负担。
-2. 易于使用，界面直观。
-3. 兼容多种方法禁用。
+<ol>
+<li>轻量级程序，不会给系统增加负担。</li>
+<li>易于使用，界面直观。</li>
+<li>兼容多种方法禁用。</li>
+</ol>
 
 <h3>控制模式介绍</h3>
 <h4>PM模式</h4>
@@ -11,12 +13,11 @@ PM是Package Manager的简写，译为软件包管理器。其由Android操作�
 
 所幸Android在Shell下提供了一个pm工具，用户可以在命令行下对应用的组件进行操作。不过成功运行此命令需要有Root权限。
 
-```
-pm disable [PackageName/ComponmentName]
-```
+<blockquote>
+pm disable [PackageName/ComponentName]
+</blockquote>
 
-无论是调用系统API还是在命令行调用PM工具，应用组件状态变化最终写入```/data/system/users/0/package
-restrictions.xml```文件下。
+无论是调用系统API还是在命令行调用PM工具，应用组件状态变化最终写入<em>/data/system/users/0/package_restrictions.xml</em>文件下。
 
 <h4>IFW模式 （默认模式）</h4>
 Intent Firewall（IFW， 意图防火墙）自Android 4.4.2(API 19)版本后被引入，在目前的最新版本中仍然有效。Intent Firewall被集成在Android Framework中，用于过滤应用程序的启动意图(Intent)。
@@ -37,7 +38,7 @@ Package Manager是直接禁用了对应组件。若是试图启动被禁用的�
 <h3>UI</h3>
 本应用遵循Material 3 界面规范(https://m3.material.io/)开发。
 
-非常感谢我们的UI设计师: @COPtimer (https://github.com/COPtimer)
+非常感谢我们的UI设计师: <a href="https://github.com/COPtimer">@COPtimer</a>
 
 UI元素完全使用Jetpack Compose进行构建。
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ object ApplicationUtil {
                 pm.getInstalledPackages(0)
             }
             installedPackages
-                .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
+                .filter { (it.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == blockerName }
                 .map { async { it.toApplication(pm) } }
                 .awaitAll()
@@ -107,7 +107,7 @@ object ApplicationUtil {
         return withContext(dispatcher) {
             val installedPackages = pm.getInstalledPackagesCompat(0)
             installedPackages
-                .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
+                .filter { (it.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM != 0 }
                 .map { async { it.toApplication(pm) } }
                 .awaitAll()
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ internal class LocalAppDataSource @Inject constructor(
         packageName = packageName,
         versionName = versionName.orEmpty(),
         versionCode = getVersionCode(),
-        minSdkVersion = applicationInfo.minSdkVersionCompat(),
+        minSdkVersion = applicationInfo?.minSdkVersionCompat() ?: 0,
         targetSdkVersion = applicationInfo?.targetSdkVersion ?: 0,
         firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
         lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),

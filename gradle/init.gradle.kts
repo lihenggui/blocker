@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 val ktlintVersion = "1.5.0"
 
 initscript {
-    val spotlessVersion = "6.25.0"
+    val spotlessVersion = "7.0.2"
 
     repositories {
         mavenCentral()

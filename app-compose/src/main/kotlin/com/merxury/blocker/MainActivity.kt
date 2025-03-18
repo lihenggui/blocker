@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,15 +23,14 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.util.trace
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,12 +46,14 @@ import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
-import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.ui.LocalTimeZone
 import com.merxury.blocker.ui.BlockerApp
 import com.merxury.blocker.ui.rememberBlockerAppState
+import com.merxury.blocker.util.isSystemInDarkTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -85,15 +86,52 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        // We keep this as a mutable state, so that we can track changes inside the composition.
+        // This allows us to react to dark/light mode changes.
+        var themeSettings by mutableStateOf(
+            ThemeSettings(
+                darkTheme = resources.configuration.isSystemInDarkTheme,
+                useDynamicTheming = Loading.shouldUseDynamicTheming,
+            ),
+        )
+
         var uiState: MainActivityUiState by mutableStateOf(Loading)
         var iconThemingState: IconThemingState by mutableStateOf(IconThemingState())
 
         // Update the uiState
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState
-                    .onEach { uiState = it }
-                    .collect()
+                combine(
+                    isSystemInDarkTheme(),
+                    viewModel.uiState,
+                ) { systemDark, uiState ->
+                    ThemeSettings(
+                        darkTheme = uiState.shouldUseDarkTheme(systemDark),
+                        useDynamicTheming = uiState.shouldUseDynamicTheming,
+                    )
+                }
+                    .onEach { themeSettings = it }
+                    .map { it.darkTheme }
+                    .distinctUntilChanged()
+                    .collect { darkTheme ->
+                        trace("blockerEdgeToEdge") {
+                            // Turn off the decor fitting system windows, which allows us to handle insets,
+                            // including IME animations, and go edge-to-edge.
+                            // This is the same parameters as the default enableEdgeToEdge call, but we manually
+                            // resolve whether or not to show dark theme using uiState, since it can be different
+                            // than the configuration's dark theme value based on the user preference.
+                            enableEdgeToEdge(
+                                statusBarStyle = SystemBarStyle.auto(
+                                    lightScrim = android.graphics.Color.TRANSPARENT,
+                                    darkScrim = android.graphics.Color.TRANSPARENT,
+                                ) { darkTheme },
+                                navigationBarStyle = SystemBarStyle.auto(
+                                    lightScrim = android.graphics.Color.TRANSPARENT,
+                                    darkScrim = android.graphics.Color.TRANSPARENT,
+                                ) { darkTheme },
+                            )
+                        }
+                    }
             }
         }
         // observe theming based icon state
@@ -109,45 +147,9 @@ class MainActivity : ComponentActivity() {
         // Keep the splash screen on-screen until the UI state is loaded. This condition is
         // evaluated each time the app needs to be redrawn so it should be fast to avoid blocking
         // the UI.
-        splashScreen.setKeepOnScreenCondition {
-            when (uiState) {
-                Loading -> true
-                is Success -> false
-            }
-        }
-
-        // Turn off the decor fitting system windows, which allows us to handle insets,
-        // including IME animations, and go edge-to-edge
-        // This also sets up the initial system bar style based on the platform theme
-        enableEdgeToEdge()
+        splashScreen.setKeepOnScreenCondition { viewModel.uiState.value.shouldKeepSplashScreen() }
 
         setContent {
-            val darkTheme = shouldUseDarkTheme(uiState)
-
-            // Update the edge to edge configuration to match the theme
-            // This is the same parameters as the default enableEdgeToEdge call, but we manually
-            // resolve whether or not to show dark theme using uiState, since it can be different
-            // than the configuration's dark theme value based on the user preference.
-            DisposableEffect(darkTheme) {
-                enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(
-                        android.graphics.Color.TRANSPARENT,
-                        android.graphics.Color.TRANSPARENT,
-                    ) { darkTheme },
-                    navigationBarStyle = if (darkTheme) {
-                        SystemBarStyle.dark(
-                            android.graphics.Color.TRANSPARENT,
-                        )
-                    } else {
-                        SystemBarStyle.light(
-                            android.graphics.Color.TRANSPARENT,
-                            android.graphics.Color.TRANSPARENT,
-                        )
-                    },
-                )
-                onDispose {}
-            }
-
             val appState = rememberBlockerAppState(
                 windowSizeClass = calculateWindowSizeClass(this),
                 networkMonitor = networkMonitor,
@@ -162,8 +164,8 @@ class MainActivity : ComponentActivity() {
                 LocalTimeZone provides currentTimeZone,
             ) {
                 BlockerDynamicTheme(
-                    darkTheme = darkTheme,
-                    useDynamicTheming = shouldUseDynamicTheming(uiState),
+                    darkTheme = themeSettings.darkTheme,
+                    useDynamicTheming = themeSettings.useDynamicTheming,
                     iconThemingState = iconThemingState,
                 ) {
                     BlockerApp(
@@ -198,17 +200,10 @@ private fun shouldUseDynamicTheming(
 }
 
 /**
- * Returns `true` if dark theme should be used, as a function of the [uiState] and the
- * current system context.
+ * Class for the system theme settings.
+ * This wrapping class allows us to combine all the changes and prevent unnecessary recompositions.
  */
-@Composable
-private fun shouldUseDarkTheme(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
-    Loading -> isSystemInDarkTheme()
-    is Success -> when (uiState.userData.darkThemeConfig) {
-        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-        DarkThemeConfig.LIGHT -> false
-        DarkThemeConfig.DARK -> true
-    }
-}
+data class ThemeSettings(
+    val darkTheme: Boolean,
+    val useDynamicTheming: Boolean,
+)

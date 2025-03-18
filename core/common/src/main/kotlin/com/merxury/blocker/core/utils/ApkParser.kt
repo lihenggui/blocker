@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,8 @@ internal object ApkParser {
         val activities = mutableListOf<ActivityInfo>()
         try {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0) ?: return activities
-            val parser = getParserForManifest(File(packageInfo.applicationInfo.sourceDir))
+            val sourceDir = packageInfo.applicationInfo?.sourceDir ?: throw IOException("Cannot get sourceDir")
+            val parser = getParserForManifest(File(sourceDir))
             while (parser.next() != XmlPullParser.END_DOCUMENT) {
                 if (parser.eventType == XmlPullParser.START_TAG && parser.name == "activity") {
                     for (i in 0 until parser.attributeCount) {
@@ -119,7 +120,8 @@ internal object ApkParser {
         val services = mutableListOf<ServiceInfo>()
         try {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0) ?: return services
-            val parser = getParserForManifest(File(packageInfo.applicationInfo.sourceDir))
+            val sourceDir = packageInfo.applicationInfo?.sourceDir ?: throw IOException("Cannot get sourceDir")
+            val parser = getParserForManifest(File(sourceDir))
             while (parser.next() != XmlPullParser.END_DOCUMENT) {
                 if (parser.eventType == XmlPullParser.START_TAG && parser.name == "service") {
                     for (i in 0 until parser.attributeCount) {

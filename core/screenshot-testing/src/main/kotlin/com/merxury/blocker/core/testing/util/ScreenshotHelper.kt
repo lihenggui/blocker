@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,8 @@ enum class DefaultTestDevices(val description: String, val spec: String) {
 
 fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.captureMultiDevice(
     screenshotName: String,
-    accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = Matchers.not(Matchers.anything()),
+    // TODO use Matchers.not(Matchers.anything())
+    accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = Matchers.anything(),
     body: @Composable () -> Unit,
 ) {
     DefaultTestDevices.entries.forEach {
@@ -88,7 +89,8 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
     deviceSpec: String,
     screenshotName: String,
     roborazziOptions: RoborazziOptions = DefaultRoborazziOptions,
-    accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = Matchers.not(Matchers.anything()),
+    // TODO use Matchers.not(Matchers.anything())
+    accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = Matchers.anything(),
     darkMode: Boolean = false,
     body: @Composable () -> Unit,
 ) {

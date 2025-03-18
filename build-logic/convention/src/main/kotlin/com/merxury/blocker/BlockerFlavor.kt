@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Blocker
+ * Copyright 2025 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,23 +30,25 @@ enum class FlavorDimension {
 @Suppress("EnumEntryName")
 enum class BlockerFlavor(val dimension: FlavorDimension, val applicationIdSuffix: String? = null) {
     foss(FlavorDimension.contentType),
-    market(FlavorDimension.contentType)
+    market(FlavorDimension.contentType),
 }
 
 fun configureFlavors(
     commonExtension: CommonExtension<*, *, *, *, *, *>,
-    flavorConfigurationBlock: ProductFlavor.(flavor: BlockerFlavor) -> Unit = {}
+    flavorConfigurationBlock: ProductFlavor.(flavor: BlockerFlavor) -> Unit = {},
 ) {
     commonExtension.apply {
-        flavorDimensions += FlavorDimension.contentType.name
+        FlavorDimension.values().forEach { flavorDimension ->
+            flavorDimensions += flavorDimension.name
+        }
         productFlavors {
-            BlockerFlavor.values().forEach {
-                create(it.name) {
-                    dimension = it.dimension.name
-                    flavorConfigurationBlock(this, it)
+            BlockerFlavor.values().forEach { blockerFlavor ->
+                register(blockerFlavor.name) {
+                    dimension = blockerFlavor.dimension.name
+                    flavorConfigurationBlock(this, blockerFlavor)
                     if (this@apply is ApplicationExtension && this is ApplicationProductFlavor) {
-                        if (it.applicationIdSuffix != null) {
-                            this.applicationIdSuffix = it.applicationIdSuffix
+                        if (blockerFlavor.applicationIdSuffix != null) {
+                            this.applicationIdSuffix = blockerFlavor.applicationIdSuffix
                         }
                     }
                 }
