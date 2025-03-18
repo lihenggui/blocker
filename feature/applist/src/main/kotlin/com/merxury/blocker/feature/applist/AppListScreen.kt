@@ -63,7 +63,6 @@ fun AppListRoute(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    showAppSortBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
     highlightSelectedApp: Boolean = false,
     viewModel: AppListViewModel = hiltViewModel(),

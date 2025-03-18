@@ -63,7 +63,6 @@ private const val APP_LIST_DETAIL_PANE_ROUTE = "app_list_detail_pane_route"
 fun NavGraphBuilder.appListDetailScreen(
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
@@ -83,7 +82,6 @@ fun NavGraphBuilder.appListDetailScreen(
         AppListDetailRoute(
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-            navigateTooAppSortScreen = navigateTooAppSortScreen,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
             navigateToComponentSortScreen = navigateToComponentSortScreen,
@@ -97,7 +95,6 @@ fun NavGraphBuilder.appListDetailScreen(
 internal fun AppListDetailRoute(
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
@@ -110,7 +107,6 @@ internal fun AppListDetailRoute(
     AppListDetailScreen(
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-        navigateTooAppSortScreen = navigateTooAppSortScreen,
         selectedPackageName = selectedPackageName,
         onAppClick = viewModel::onAppClick,
         snackbarHostState = snackbarHostState,
@@ -127,7 +123,6 @@ internal fun AppListDetailRoute(
 internal fun AppListDetailScreen(
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     selectedPackageName: String?,
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
@@ -187,7 +182,6 @@ internal fun AppListDetailScreen(
                 navigateToAppDetail = ::onAppClickShowDetailPane,
                 navigateToSettings = navigateToSettings,
                 navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-                showAppSortBottomSheet = navigateTooAppSortScreen,
                 highlightSelectedApp = listDetailNavigator.isDetailPaneVisible(),
             )
         },

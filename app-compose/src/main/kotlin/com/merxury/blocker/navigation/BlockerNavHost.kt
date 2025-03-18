@@ -44,7 +44,6 @@ import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
 import com.merxury.blocker.feature.sort.navigation.appSortScreen
 import com.merxury.blocker.feature.sort.navigation.componentSortScreen
-import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
 import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
@@ -79,7 +78,6 @@ fun BlockerNavHost(
             appListDetailScreen(
                 navigateToSettings = navController::navigateToSettings,
                 navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
-                navigateTooAppSortScreen = navController::navigateToAppSortScreen,
                 snackbarHostState = snackbarHostState,
                 updateIconThemingState = updateIconThemingState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
