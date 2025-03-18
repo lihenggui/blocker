@@ -138,7 +138,7 @@ fun AppListScreen(
         BlockerTopAppBar(
             title = stringResource(id = string.feature_applist_app_name),
             actions = {
-                IconButton(onClick = {showAppSortBottomSheet(true)}) {
+                IconButton(onClick = { showAppSortBottomSheet(true) }) {
                     Icon(
                         imageVector = BlockerIcons.Sort,
                         contentDescription = stringResource(id = string.feature_applist_sort_menu),
@@ -179,7 +179,7 @@ fun AppListScreen(
                         )
                         if (uiState.showAppSortBottomSheet) {
                             AppSortBottomSheetRoute(
-                                dismissHandler = {showAppSortBottomSheet(false)}
+                                dismissHandler = { showAppSortBottomSheet(false) },
                             )
                         }
                     }
