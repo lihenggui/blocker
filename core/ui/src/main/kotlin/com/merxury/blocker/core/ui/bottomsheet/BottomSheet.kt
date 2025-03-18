@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.ui.bottomsheet
 
-@Co
-class BottomSheet {
+import androidx.compose.runtime.Composable
+
+@Composable
+fun BottomSheet() {
 }
