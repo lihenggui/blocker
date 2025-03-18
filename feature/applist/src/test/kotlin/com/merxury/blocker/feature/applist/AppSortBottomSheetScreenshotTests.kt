@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.sort
+package com.merxury.blocker.feature.applist
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
@@ -22,11 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppSortInfo
-import com.merxury.blocker.core.testing.util.DefaultTestDevices
+import com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.feature.sort.AppSortInfoUiState.Loading
-import com.merxury.blocker.feature.sort.AppSortInfoUiState.Success
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -35,13 +33,15 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.annotation.GraphicsMode.Mode.NATIVE
 import org.robolectric.annotation.LooperMode
+import org.robolectric.annotation.LooperMode.Mode.PAUSED
 import java.util.TimeZone
 
 @RunWith(RobolectricTestRunner::class)
-@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@GraphicsMode(NATIVE)
 @Config(application = HiltTestApplication::class)
-@LooperMode(LooperMode.Mode.PAUSED)
+@LooperMode(PAUSED)
 class AppSortBottomSheetScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
@@ -63,7 +63,7 @@ class AppSortBottomSheetScreenshotTests {
     fun appSortBottomSheet_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = PHONE.spec,
             screenshotName = "AppSortBottomSheet",
             darkMode = true,
         ) {
@@ -82,7 +82,7 @@ class AppSortBottomSheetScreenshotTests {
     fun appSortBottomSheetLoading_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
+            deviceSpec = PHONE.spec,
             screenshotName = "AppSortBottomSheetLoading",
             darkMode = true,
         ) {
