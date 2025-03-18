@@ -25,6 +25,9 @@ import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.testing.util.DefaultTestDevices.PHONE
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
+import com.merxury.blocker.feature.applist.AppSortInfoUiState.Loading
+import com.merxury.blocker.feature.applist.AppSortInfoUiState.Success
+import com.merxury.blocker.feature.applist.component.ComponentSortBottomSheet
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
