@@ -98,7 +98,7 @@ class AppListViewModel @Inject constructor(
         PACKAGE_NAME_ARG,
         null,
     )
-    private var _showAppSortBottomSheet = false
+    private var showAppSortBottomSheetStatus = false
 
     // Internal list for storing the displayed app list (data storing)
     private var appList = listOf<AppItem>()
@@ -161,7 +161,7 @@ class AppListViewModel @Inject constructor(
                         Success(
                             selectedPackageName = selectedPackageName.value,
                             isRefreshing = false,
-                            showAppSortBottomSheet = _showAppSortBottomSheet,
+                            showAppSortBottomSheet = showAppSortBottomSheetStatus,
                         ),
                     )
                 }
@@ -174,7 +174,7 @@ class AppListViewModel @Inject constructor(
     }
 
     fun showAppSortBottomSheet(showAppSortBottomSheet: Boolean) {
-        _showAppSortBottomSheet = showAppSortBottomSheet
+        showAppSortBottomSheetStatus = showAppSortBottomSheet
         _uiState.update {
             if (it is Success) {
                 it.copy(showAppSortBottomSheet = showAppSortBottomSheet)
