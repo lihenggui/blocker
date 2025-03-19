@@ -138,12 +138,14 @@ fun AppListScreen(
         BlockerTopAppBar(
             title = stringResource(id = string.feature_applist_app_name),
             actions = {
-                IconButton(onClick = { showAppSortBottomSheet(true) }) {
-                    Icon(
-                        imageVector = BlockerIcons.Sort,
-                        contentDescription = stringResource(id = string.feature_applist_sort_menu),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
+                if (uiState is Success) {
+                    IconButton(onClick = { showAppSortBottomSheet(true) }) {
+                        Icon(
+                            imageVector = BlockerIcons.Sort,
+                            contentDescription = stringResource(id = string.feature_applist_sort_menu),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
                 TopAppBarMoreMenu(
                     navigateToSettings = navigateToSettings,
