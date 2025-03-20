@@ -155,8 +155,6 @@ internal fun BlockerApp(
                     ),
             ) {
                 BlockerNavHost(
-                    bottomSheetNavigator = appState.bottomSheetNavigator,
-                    dismissBottomSheet = appState::dismissBottomSheet,
                     snackbarHostState = snackbarHostState,
                     updateIconThemingState = updateIconThemingState,
                     appState = appState,

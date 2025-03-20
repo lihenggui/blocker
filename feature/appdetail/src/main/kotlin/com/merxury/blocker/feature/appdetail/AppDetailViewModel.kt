@@ -903,6 +903,12 @@ class AppDetailViewModel @Inject constructor(
             Timber.e(e, "LibChecker is not installed")
         }
     }
+
+    fun showComponentSortBottomSheet(showComponentSortBottomSheet: Boolean) {
+        _appInfoUiState.update {
+            it.copy(showComponentSortBottomSheet = showComponentSortBottomSheet)
+        }
+    }
 }
 
 data class AppInfoUiState(
@@ -913,4 +919,5 @@ data class AppInfoUiState(
     val matchedRuleUiState: Result<List<MatchedItem>> = Result.Loading,
     val seedColor: Color? = null,
     val showOpenInLibChecker: Boolean = false,
+    val showComponentSortBottomSheet: Boolean = false,
 )

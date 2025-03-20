@@ -55,6 +55,7 @@ import com.merxury.blocker.feature.applist.AppListUiState.Error
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
 import com.merxury.blocker.feature.applist.R.string
+import com.merxury.blocker.feature.applist.component.AppSortBottomSheetRoute
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 
 @Composable
@@ -62,7 +63,6 @@ fun AppListScreen(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     modifier: Modifier = Modifier,
     highlightSelectedApp: Boolean = false,
     viewModel: AppListViewModel = hiltViewModel(),
@@ -87,7 +87,7 @@ fun AppListScreen(
         onDisableClick = viewModel::disable,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-        navigateTooAppSortScreen = navigateTooAppSortScreen,
+        showAppSortBottomSheet = viewModel::showAppSortBottomSheet,
         modifier = modifier,
         onRefresh = {
             viewModel.loadData()
@@ -125,7 +125,7 @@ fun AppListScreen(
     onUninstallClick: (String) -> Unit = {},
     onEnableClick: (String) -> Unit = {},
     onDisableClick: (String) -> Unit = {},
-    navigateTooAppSortScreen: () -> Unit = {},
+    showAppSortBottomSheet: (Boolean) -> Unit = {},
     navigateToSettings: () -> Unit = {},
     navigateToSupportAndFeedback: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -138,12 +138,14 @@ fun AppListScreen(
         BlockerTopAppBar(
             title = stringResource(id = string.feature_applist_app_name),
             actions = {
-                IconButton(onClick = navigateTooAppSortScreen) {
-                    Icon(
-                        imageVector = BlockerIcons.Sort,
-                        contentDescription = stringResource(id = string.feature_applist_sort_menu),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
+                if (uiState is Success) {
+                    IconButton(onClick = { showAppSortBottomSheet(true) }) {
+                        Icon(
+                            imageVector = BlockerIcons.Sort,
+                            contentDescription = stringResource(id = string.feature_applist_sort_menu),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
                 TopAppBarMoreMenu(
                     navigateToSettings = navigateToSettings,
@@ -177,6 +179,11 @@ fun AppListScreen(
                             onDisableClick = onDisableClick,
                             modifier = Modifier.testTag(appListTestTag),
                         )
+                        if (uiState.showAppSortBottomSheet) {
+                            AppSortBottomSheetRoute(
+                                dismissHandler = { showAppSortBottomSheet(false) },
+                            )
+                        }
                     }
                     PullRefreshIndicator(
                         refreshing = uiState.isRefreshing,

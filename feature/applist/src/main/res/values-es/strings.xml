@@ -18,4 +18,15 @@
     <string name="feature_applist_settings">Configuración</string>
     <string name="feature_applist_support_and_feedback">Soporte y comentarios</string>
     <string name="feature_applist_no_applications_to_display">No hay aplicaciones para mostrar</string>
+    <string name="feature_applist_sort_options">Opciones de orden</string>
+    <string name="feature_applist_sort_by">Ordenar por</string>
+    <string name="feature_applist_order">Orden</string>
+    <string name="feature_applist_ascending">Ascendente</string>
+    <string name="feature_applist_descending">Descendente</string>
+    <string name="feature_applist_name">Nombre</string>
+    <string name="feature_applist_install_date">Fecha de instalación</string>
+    <string name="feature_applist_last_updated">Última actualización</string>
+    <string name="feature_applist_show_running_apps_on_top">Mostrar aplicaciones activas</string>
+    <string name="feature_applist_on">Activa</string>
+    <string name="feature_applist_off">Apagadas</string>
 </resources>

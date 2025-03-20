@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.sort
+package com.merxury.blocker.feature.appdetail
 
 import com.merxury.blocker.core.model.data.ComponentSortInfo
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
@@ -24,7 +24,9 @@ import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.sort
+package com.merxury.blocker.feature.applist
 
 import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -23,7 +23,7 @@ import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.feature.sort.AppSortInfoUiState.Success
+import com.merxury.blocker.feature.applist.AppSortInfoUiState.Success
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

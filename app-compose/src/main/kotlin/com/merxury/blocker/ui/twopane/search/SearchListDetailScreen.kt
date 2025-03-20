@@ -56,7 +56,6 @@ import com.merxury.blocker.feature.search.SearchScreen
 import com.merxury.blocker.feature.search.navigation.SearchRoute
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
-import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable
@@ -70,14 +69,12 @@ fun NavGraphBuilder.searchListDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
 ) {
     composable<SearchRoute> {
         SearchListDetailScreen(
             snackbarHostState = snackbarHostState,
             updateIconThemingState = updateIconThemingState,
             navigateToComponentDetail = navigateToComponentDetail,
-            navigateToComponentSortScreen = navigateToComponentSortScreen,
         )
     }
 }
@@ -87,7 +84,6 @@ internal fun SearchListDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     viewModel: Search2PaneViewModel = hiltViewModel(),
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
@@ -107,7 +103,6 @@ internal fun SearchListDetailScreen(
         onRuleClick = viewModel::onRuleClick,
         updateIconThemingState = updateIconThemingState,
         navigateToComponentDetail = navigateToComponentDetail,
-        navigateToComponentSortScreen = navigateToComponentSortScreen,
         windowAdaptiveInfo = windowAdaptiveInfo,
     )
 }
@@ -126,7 +121,6 @@ internal fun SearchListDetailScreen(
     onRuleClick: (String) -> Unit = {},
     updateIconThemingState: (IconThemingState) -> Unit = {},
     navigateToComponentDetail: (String) -> Unit = {},
-    navigateToComponentSortScreen: () -> Unit = {},
 ) {
     val listDetailNavigator = rememberListDetailPaneScaffoldNavigator(
         scaffoldDirective = calculatePaneScaffoldDirective(windowAdaptiveInfo),
@@ -227,8 +221,7 @@ internal fun SearchListDetailScreen(
                             onBackClick = listDetailNavigator::navigateBack,
                             snackbarHostState = snackbarHostState,
                             navigateToComponentDetail = navigateToComponentDetail,
-                            navigateToComponentSortScreen = navigateToComponentSortScreen,
-                            navigateToRuleDetail = ::onRuleClickShowDetailPane,
+                           navigateToRuleDetail = ::onRuleClickShowDetailPane,
                             updateIconThemingState = updateIconThemingState,
                             showBackButton = !listDetailNavigator.isListPaneVisible(),
                         )

@@ -17,8 +17,6 @@
 
 package com.merxury.blocker.ui
 
-import androidx.compose.material.navigation.BottomSheetNavigator
-import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -57,12 +55,10 @@ fun rememberBlockerAppState(
     permissionMonitor: PermissionMonitor,
     timeZoneMonitor: TimeZoneMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
-    navController: NavHostController = rememberNavController(bottomSheetNavigator),
+    navController: NavHostController = rememberNavController(),
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
     return remember(
-        bottomSheetNavigator,
         navController,
         coroutineScope,
         windowSizeClass,
@@ -71,7 +67,6 @@ fun rememberBlockerAppState(
         timeZoneMonitor,
     ) {
         BlockerAppState(
-            bottomSheetNavigator = bottomSheetNavigator,
             navController = navController,
             coroutineScope = coroutineScope,
             networkMonitor = networkMonitor,
@@ -83,7 +78,6 @@ fun rememberBlockerAppState(
 
 @Stable
 class BlockerAppState(
-    val bottomSheetNavigator: BottomSheetNavigator,
     val navController: NavHostController,
     coroutineScope: CoroutineScope,
     networkMonitor: NetworkMonitor,
@@ -173,10 +167,6 @@ class BlockerAppState(
                 )
             }
         }
-    }
-
-    fun dismissBottomSheet() {
-        navController.popBackStack()
     }
 }
 

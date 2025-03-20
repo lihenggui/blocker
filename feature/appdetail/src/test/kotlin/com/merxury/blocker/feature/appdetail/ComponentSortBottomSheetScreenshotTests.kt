@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.sort
+package com.merxury.blocker.feature.appdetail
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
@@ -25,8 +25,9 @@ import com.merxury.blocker.core.model.data.ComponentSortInfo
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Loading
-import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortBottomSheet
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState.Success
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -55,7 +56,7 @@ class ComponentSortBottomSheetScreenshotTests {
     @Test
     fun componentSortBottomSheet() {
         composeTestRule.captureMultiDevice("ComponentSortBottomSheet") {
-            ComponentSortBottomSheet()
+            ComponentSortBottomSheetUI()
         }
     }
 
@@ -67,7 +68,7 @@ class ComponentSortBottomSheetScreenshotTests {
             screenshotName = "ComponentSortBottomSheet",
             darkMode = true,
         ) {
-            ComponentSortBottomSheet()
+            ComponentSortBottomSheetUI()
         }
     }
 
@@ -91,7 +92,7 @@ class ComponentSortBottomSheetScreenshotTests {
     }
 
     @Composable
-    private fun ComponentSortBottomSheet() {
+    private fun ComponentSortBottomSheetUI() {
         BlockerTheme {
             Surface {
                 ComponentSortBottomSheet(

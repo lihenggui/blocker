@@ -17,7 +17,6 @@
 
 package com.merxury.blocker.ui
 
-import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -77,11 +76,9 @@ class BlockerAppStateTest {
         var currentDestination: String? = null
 
         composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
             val navController = rememberTestNavController()
             state = remember(navController) {
                 return@remember BlockerAppState(
-                    bottomSheetNavigator = bottomSheetNavigator,
                     navController = navController,
                     networkMonitor = networkMonitor,
                     permissionMonitor = permissionMonitor,
@@ -122,9 +119,7 @@ class BlockerAppStateTest {
     @Test
     fun blockerAppState_WhenNetworkMonitorIsOffline_StateIsOffline() = runTest(UnconfinedTestDispatcher()) {
         composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
-                bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
@@ -144,9 +139,7 @@ class BlockerAppStateTest {
     @Test
     fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() = runTest(UnconfinedTestDispatcher()) {
         composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
-                bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
@@ -167,7 +160,6 @@ class BlockerAppStateTest {
     fun blockerAppState_differentTZ_withTimeZoneMonitorChange() = runTest(UnconfinedTestDispatcher()) {
         composeTestRule.setContent {
             state = BlockerAppState(
-                bottomSheetNavigator = rememberBottomSheetNavigator(),
                 navController = NavHostController(LocalContext.current),
                 coroutineScope = backgroundScope,
                 networkMonitor = networkMonitor,
