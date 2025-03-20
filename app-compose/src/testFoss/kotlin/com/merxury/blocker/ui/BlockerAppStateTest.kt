@@ -17,7 +17,6 @@
 
 package com.merxury.blocker.ui
 
-import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -77,11 +76,9 @@ class BlockerAppStateTest {
         var currentDestination: String? = null
 
         composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
             val navController = rememberTestNavController()
             state = remember(navController) {
                 return@remember BlockerAppState(
-                    bottomSheetNavigator = bottomSheetNavigator,
                     navController = navController,
                     networkMonitor = networkMonitor,
                     permissionMonitor = permissionMonitor,
@@ -120,69 +117,67 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun blockerAppState_WhenNetworkMonitorIsOffline_StateIsOffline() = runTest(UnconfinedTestDispatcher()) {
-        composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            state = BlockerAppState(
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = NavHostController(LocalContext.current),
-                networkMonitor = networkMonitor,
-                permissionMonitor = permissionMonitor,
-                coroutineScope = backgroundScope,
-                timeZoneMonitor = timeZoneMonitor,
+    fun blockerAppState_WhenNetworkMonitorIsOffline_StateIsOffline() =
+        runTest(UnconfinedTestDispatcher()) {
+            composeTestRule.setContent {
+                state = BlockerAppState(
+                    navController = NavHostController(LocalContext.current),
+                    networkMonitor = networkMonitor,
+                    permissionMonitor = permissionMonitor,
+                    coroutineScope = backgroundScope,
+                    timeZoneMonitor = timeZoneMonitor,
+                )
+            }
+
+            backgroundScope.launch { state.isOffline.collect() }
+            networkMonitor.setConnected(false)
+            assertEquals(
+                true,
+                state.isOffline.value,
             )
         }
-
-        backgroundScope.launch { state.isOffline.collect() }
-        networkMonitor.setConnected(false)
-        assertEquals(
-            true,
-            state.isOffline.value,
-        )
-    }
 
     @Test
-    fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() = runTest(UnconfinedTestDispatcher()) {
-        composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            state = BlockerAppState(
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = NavHostController(LocalContext.current),
-                networkMonitor = networkMonitor,
-                permissionMonitor = permissionMonitor,
-                coroutineScope = backgroundScope,
-                timeZoneMonitor = timeZoneMonitor,
+    fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() =
+        runTest(UnconfinedTestDispatcher()) {
+            composeTestRule.setContent {
+                state = BlockerAppState(
+                    navController = NavHostController(LocalContext.current),
+                    networkMonitor = networkMonitor,
+                    permissionMonitor = permissionMonitor,
+                    coroutineScope = backgroundScope,
+                    timeZoneMonitor = timeZoneMonitor,
+                )
+            }
+
+            backgroundScope.launch { state.currentPermission.collect() }
+            permissionMonitor.setPermission(NO_PERMISSION)
+            assertEquals(
+                NO_PERMISSION,
+                state.currentPermission.value,
             )
         }
-
-        backgroundScope.launch { state.currentPermission.collect() }
-        permissionMonitor.setPermission(NO_PERMISSION)
-        assertEquals(
-            NO_PERMISSION,
-            state.currentPermission.value,
-        )
-    }
 
     @Test
-    fun blockerAppState_differentTZ_withTimeZoneMonitorChange() = runTest(UnconfinedTestDispatcher()) {
-        composeTestRule.setContent {
-            state = BlockerAppState(
-                bottomSheetNavigator = rememberBottomSheetNavigator(),
-                navController = NavHostController(LocalContext.current),
-                coroutineScope = backgroundScope,
-                networkMonitor = networkMonitor,
-                permissionMonitor = permissionMonitor,
-                timeZoneMonitor = timeZoneMonitor,
+    fun blockerAppState_differentTZ_withTimeZoneMonitorChange() =
+        runTest(UnconfinedTestDispatcher()) {
+            composeTestRule.setContent {
+                state = BlockerAppState(
+                    navController = NavHostController(LocalContext.current),
+                    coroutineScope = backgroundScope,
+                    networkMonitor = networkMonitor,
+                    permissionMonitor = permissionMonitor,
+                    timeZoneMonitor = timeZoneMonitor,
+                )
+            }
+            val changedTz = TimeZone.of("Europe/Prague")
+            backgroundScope.launch { state.currentTimeZone.collect() }
+            timeZoneMonitor.setTimeZone(changedTz)
+            assertEquals(
+                changedTz,
+                state.currentTimeZone.value,
             )
         }
-        val changedTz = TimeZone.of("Europe/Prague")
-        backgroundScope.launch { state.currentTimeZone.collect() }
-        timeZoneMonitor.setTimeZone(changedTz)
-        assertEquals(
-            changedTz,
-            state.currentTimeZone.value,
-        )
-    }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     private fun getCompactWindowClass() = WindowSizeClass.calculateFromSize(DpSize(500.dp, 300.dp))
