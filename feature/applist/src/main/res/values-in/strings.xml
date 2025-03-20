@@ -12,7 +12,6 @@
     <string name="feature_applist_order">Urutan</string>
     <string name="feature_applist_ascending">Naik</string>
     <string name="feature_applist_descending">Turun</string>
-    <string name="feature_applist_priority">Prioritas</string>
     <string name="feature_applist_name">Nama</string>
     <string name="feature_applist_install_date">Waktu Instal</string>
     <string name="feature_applist_off">Mati</string>

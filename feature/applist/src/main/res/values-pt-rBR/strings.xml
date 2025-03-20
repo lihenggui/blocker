@@ -8,7 +8,6 @@
     <string name="feature_applist_order">Ordenar</string>
     <string name="feature_applist_sort_options">Opções de classificação</string>
     <string name="feature_applist_descending">Decrescente</string>
-    <string name="feature_applist_priority">Prioridade</string>
     <string name="feature_applist_name">Nome</string>
     <string name="feature_applist_install_date">Data de instalação</string>
     <string name="feature_applist_last_updated">Ultima Atualização</string>

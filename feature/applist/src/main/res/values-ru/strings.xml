@@ -23,7 +23,6 @@
     <string name="feature_applist_order">Порядок</string>
     <string name="feature_applist_ascending">По возрастанию</string>
     <string name="feature_applist_descending">По убыванию</string>
-    <string name="feature_applist_priority">Приоритет</string>
     <string name="feature_applist_name">Имя</string>
     <string name="feature_applist_install_date">Дата установки</string>
     <string name="feature_applist_last_updated">Последнее обновление</string>

@@ -25,7 +25,6 @@
     <string name="feature_applist_order">Order</string>
     <string name="feature_applist_ascending">Ascending</string>
     <string name="feature_applist_descending">Descending</string>
-    <string name="feature_applist_priority">Priority</string>
     <string name="feature_applist_name">Name</string>
     <string name="feature_applist_install_date">Install Date</string>
     <string name="feature_applist_last_updated">Last Updated</string>

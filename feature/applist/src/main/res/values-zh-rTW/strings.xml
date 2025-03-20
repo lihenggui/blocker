@@ -24,7 +24,6 @@
     <string name="feature_applist_order">順序</string>
     <string name="feature_applist_ascending">升序</string>
     <string name="feature_applist_descending">降序</string>
-    <string name="feature_applist_priority">優先級</string>
     <string name="feature_applist_name">姓名</string>
     <string name="feature_applist_install_date">安裝日期</string>
     <string name="feature_applist_last_updated">最後更新</string>
