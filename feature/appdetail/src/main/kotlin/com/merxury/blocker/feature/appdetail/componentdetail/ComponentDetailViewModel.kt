@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.appdetail.componentdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -26,7 +27,7 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Loading
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
-import com.merxury.blocker.feature.appdetail.navigation.ComponentDetailArgs
+import com.merxury.blocker.feature.appdetail.navigation.ComponentDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,8 +43,7 @@ class ComponentDetailViewModel @Inject constructor(
     private val componentDetailRepository: ComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-    private val componentDetailArg = ComponentDetailArgs(savedStateHandle)
-
+    private val componentDetailInfo = savedStateHandle.toRoute<ComponentDetailRoute>()
     private val _uiState = MutableStateFlow<ComponentDetailUiState>(Loading)
     val uiState = _uiState.asStateFlow()
 
@@ -53,7 +53,7 @@ class ComponentDetailViewModel @Inject constructor(
 
     private fun load() = viewModelScope.launch(ioDispatcher) {
         val userGeneratedDetail = componentDetailRepository
-            .getUserGeneratedDetail(componentDetailArg.name)
+            .getUserGeneratedDetail(componentDetailInfo.componentName)
             .first()
         if (userGeneratedDetail != null) {
             _uiState.value = Success(
@@ -63,7 +63,7 @@ class ComponentDetailViewModel @Inject constructor(
             return@launch
         }
         val localDetail = componentDetailRepository
-            .getLocalComponentDetail(componentDetailArg.name)
+            .getLocalComponentDetail(componentDetailInfo.componentName)
             .first()
         if (localDetail != null) {
             _uiState.value = Success(
@@ -74,7 +74,7 @@ class ComponentDetailViewModel @Inject constructor(
         // No matching found in the network, emit the default value
         // Dismiss the loading progress bar
         _uiState.value = Success(
-            detail = ComponentDetail(name = componentDetailArg.name),
+            detail = ComponentDetail(name = componentDetailInfo.componentName),
         )
     }
 

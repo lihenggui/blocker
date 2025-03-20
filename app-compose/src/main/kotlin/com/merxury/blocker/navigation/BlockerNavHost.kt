@@ -61,7 +61,7 @@ fun BlockerNavHost(
     val navController = appState.navController
     NavHost(
         navController = navController,
-        startDestination = AppListRoute,
+        startDestination = AppListRoute(),
         modifier = modifier,
         enterTransition = { fadeIn(animationSpec = tween(300)) },
         exitTransition = { fadeOut(animationSpec = tween(300)) },
