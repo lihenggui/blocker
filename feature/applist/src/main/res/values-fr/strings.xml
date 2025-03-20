@@ -10,6 +10,7 @@
     <string name="feature_applist_ascending">Ascendant</string>
     <string name="feature_applist_order">Ordre</string>
     <string name="feature_applist_sort_options">Options de tri</string>
+    <string name="feature_applist_name">Nom</string>
     <string name="feature_applist_off">Off</string>
     <string name="feature_applist_sort_by">Trier par</string>
     <string name="feature_applist_install_date">Date d\'installation</string>
