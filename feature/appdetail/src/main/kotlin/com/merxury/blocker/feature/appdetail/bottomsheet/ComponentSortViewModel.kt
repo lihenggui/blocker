@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.sort
+package com.merxury.blocker.feature.appdetail.bottomsheet
 
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
@@ -24,8 +24,8 @@ import com.merxury.blocker.core.model.data.ComponentSortInfo
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
-import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Loading
-import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

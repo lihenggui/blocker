@@ -57,7 +57,6 @@ fun NavGraphBuilder.searchListDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
 ) {
     composable(
         route = SEARCH_ROUTE_BASIC,
@@ -88,7 +87,6 @@ fun NavGraphBuilder.searchListDetailScreen(
             snackbarHostState = snackbarHostState,
             updateIconThemingState = updateIconThemingState,
             navigateToComponentDetail = navigateToComponentDetail,
-            navigateToComponentSortScreen = navigateToComponentSortScreen,
         )
     }
 }
@@ -98,7 +96,6 @@ internal fun SearchListDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     viewModel: Search2PaneViewModel = hiltViewModel(),
 ) {
     val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
@@ -117,7 +114,6 @@ internal fun SearchListDetailScreen(
         onRuleClick = viewModel::onRuleClick,
         updateIconThemingState = updateIconThemingState,
         navigateToComponentDetail = navigateToComponentDetail,
-        navigateToComponentSortScreen = navigateToComponentSortScreen,
     )
 }
 
@@ -134,7 +130,6 @@ internal fun SearchListDetailScreen(
     onRuleClick: (String) -> Unit = {},
     updateIconThemingState: (IconThemingState) -> Unit = {},
     navigateToComponentDetail: (String) -> Unit = {},
-    navigateToComponentSortScreen: () -> Unit = {},
 ) {
     val listDetailNavigator = rememberListDetailPaneScaffoldNavigator()
     BackHandler(listDetailNavigator.canNavigateBack()) {
@@ -208,7 +203,6 @@ internal fun SearchListDetailScreen(
                         onBackClick = listDetailNavigator::navigateBack,
                         snackbarHostState = snackbarHostState,
                         navigateToComponentDetail = navigateToComponentDetail,
-                        navigateToComponentSortScreen = navigateToComponentSortScreen,
                         navigateToRuleDetail = ::onRuleClickShowDetailPane,
                         updateIconThemingState = updateIconThemingState,
                         showBackButton = !listDetailNavigator.isListPaneVisible(),

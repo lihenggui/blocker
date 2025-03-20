@@ -20,8 +20,6 @@ package com.merxury.blocker.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.material.navigation.BottomSheetNavigator
-import androidx.compose.material.navigation.ModalBottomSheetLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -42,10 +40,6 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
-import com.merxury.blocker.feature.sort.navigation.appSortScreen
-import com.merxury.blocker.feature.sort.navigation.componentSortScreen
-import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
-import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
 import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
 
@@ -59,79 +53,66 @@ import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
 
 @Composable
 fun BlockerNavHost(
-    bottomSheetNavigator: BottomSheetNavigator,
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
-    dismissBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = APP_LIST_ROUTE_BASIC,
     updateIconThemingState: (IconThemingState) -> Unit = {},
 ) {
-    ModalBottomSheetLayout(bottomSheetNavigator) {
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = modifier,
-            enterTransition = { fadeIn(animationSpec = tween(300)) },
-            exitTransition = { fadeOut(animationSpec = tween(300)) },
-        ) {
-            appListDetailScreen(
-                navigateToSettings = navController::navigateToSettings,
-                navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
-                navigateTooAppSortScreen = navController::navigateToAppSortScreen,
-                snackbarHostState = snackbarHostState,
-                updateIconThemingState = updateIconThemingState,
-                navigateToComponentDetail = navController::navigateToComponentDetail,
-                navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
-                navigateToRuleDetail = navController::navigateToRuleDetail,
-            )
-            appDetailScreen(
-                onBackClick = onBackClick,
-                showBackButton = true,
-                snackbarHostState = snackbarHostState,
-                updateIconThemingState = updateIconThemingState,
-                navigateToComponentDetail = navController::navigateToComponentDetail,
-                navigateToComponentSortScreen = navController::navigateToComponentSortScreen,
-                navigateToRuleDetail = navController::navigateToRuleDetail,
-            )
-            ruleListDetailScreen(
-                snackbarHostState = snackbarHostState,
-                navigateToAppDetail = navController::navigateToAppDetail,
-                updateIconThemingState = updateIconThemingState,
-            )
-            searchScreen(
-                snackbarHostState = snackbarHostState,
-                navigateToAppDetail = navController::navigateToAppDetail,
-                navigateToRuleDetail = navController::navigateToRuleDetail,
-            )
-            ruleDetailScreen(
-                onBackClick = onBackClick,
-                snackbarHostState = snackbarHostState,
-                navigateToAppDetail = navController::navigateToAppDetail,
-                updateIconThemingState = updateIconThemingState,
-            )
-            settingsScreen(
-                onBackClick,
-                snackbarHostState = snackbarHostState,
-            )
-            supportAndFeedbackScreen(
-                onBackClick = onBackClick,
-                navigateToLicenses = navController::navigateToLicenses,
-                snackbarHostState = snackbarHostState,
-            )
-            componentDetailScreen(
-                dismissHandler = onBackClick,
-            )
-            componentSortScreen(
-                dismissHandler = dismissBottomSheet,
-            )
-            appSortScreen(
-                dismissHandler = dismissBottomSheet,
-            )
-            licensesScreen(
-                onBackClick = onBackClick,
-            )
-        }
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier,
+        enterTransition = { fadeIn(animationSpec = tween(300)) },
+        exitTransition = { fadeOut(animationSpec = tween(300)) },
+    ) {
+        appListDetailScreen(
+            navigateToSettings = navController::navigateToSettings,
+            navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
+            snackbarHostState = snackbarHostState,
+            updateIconThemingState = updateIconThemingState,
+            navigateToComponentDetail = navController::navigateToComponentDetail,
+            navigateToRuleDetail = navController::navigateToRuleDetail,
+        )
+        appDetailScreen(
+            onBackClick = onBackClick,
+            showBackButton = true,
+            snackbarHostState = snackbarHostState,
+            updateIconThemingState = updateIconThemingState,
+            navigateToComponentDetail = navController::navigateToComponentDetail,
+            navigateToRuleDetail = navController::navigateToRuleDetail,
+        )
+        ruleListDetailScreen(
+            snackbarHostState = snackbarHostState,
+            navigateToAppDetail = navController::navigateToAppDetail,
+            updateIconThemingState = updateIconThemingState,
+        )
+        searchScreen(
+            snackbarHostState = snackbarHostState,
+            navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToRuleDetail = navController::navigateToRuleDetail,
+        )
+        ruleDetailScreen(
+            onBackClick = onBackClick,
+            snackbarHostState = snackbarHostState,
+            navigateToAppDetail = navController::navigateToAppDetail,
+            updateIconThemingState = updateIconThemingState,
+        )
+        settingsScreen(
+            onBackClick,
+            snackbarHostState = snackbarHostState,
+        )
+        supportAndFeedbackScreen(
+            onBackClick = onBackClick,
+            navigateToLicenses = navController::navigateToLicenses,
+            snackbarHostState = snackbarHostState,
+        )
+        componentDetailScreen(
+            dismissHandler = onBackClick,
+        )
+        licensesScreen(
+            onBackClick = onBackClick,
+        )
     }
 }

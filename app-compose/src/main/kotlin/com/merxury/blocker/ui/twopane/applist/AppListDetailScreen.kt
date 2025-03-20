@@ -63,11 +63,9 @@ private const val APP_LIST_DETAIL_PANE_ROUTE = "app_list_detail_pane_route"
 fun NavGraphBuilder.appListDetailScreen(
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
 ) {
     composable(
@@ -83,10 +81,8 @@ fun NavGraphBuilder.appListDetailScreen(
         AppListDetailRoute(
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-            navigateTooAppSortScreen = navigateTooAppSortScreen,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
-            navigateToComponentSortScreen = navigateToComponentSortScreen,
             navigateToRuleDetail = navigateToRuleDetail,
             updateIconThemingState = updateIconThemingState,
         )
@@ -97,11 +93,9 @@ fun NavGraphBuilder.appListDetailScreen(
 internal fun AppListDetailRoute(
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
     viewModel: AppList2PaneViewModel = hiltViewModel(),
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
@@ -110,12 +104,10 @@ internal fun AppListDetailRoute(
     AppListDetailScreen(
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-        navigateTooAppSortScreen = navigateTooAppSortScreen,
         selectedPackageName = selectedPackageName,
         onAppClick = viewModel::onAppClick,
         snackbarHostState = snackbarHostState,
         navigateToComponentDetail = navigateToComponentDetail,
-        navigateToComponentSortScreen = navigateToComponentSortScreen,
         navigateToRuleDetail = navigateToRuleDetail,
         updateIconThemingState = updateIconThemingState,
         windowAdaptiveInfo = windowAdaptiveInfo,
@@ -127,12 +119,10 @@ internal fun AppListDetailRoute(
 internal fun AppListDetailScreen(
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     selectedPackageName: String?,
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     navigateToRuleDetail: (String) -> Unit,
     onAppClick: (String) -> Unit,
     windowAdaptiveInfo: WindowAdaptiveInfo,
@@ -187,7 +177,6 @@ internal fun AppListDetailScreen(
                 navigateToAppDetail = ::onAppClickShowDetailPane,
                 navigateToSettings = navigateToSettings,
                 navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-                navigateTooAppSortScreen = navigateTooAppSortScreen,
                 highlightSelectedApp = listDetailNavigator.isDetailPaneVisible(),
             )
         },
@@ -202,7 +191,6 @@ internal fun AppListDetailScreen(
                         onBackClick = listDetailNavigator::navigateBack,
                         snackbarHostState = snackbarHostState,
                         navigateToComponentDetail = navigateToComponentDetail,
-                        navigateToComponentSortScreen = navigateToComponentSortScreen,
                         navigateToRuleDetail = navigateToRuleDetail,
                         updateIconThemingState = updateIconThemingState,
                         showBackButton = !listDetailNavigator.isListPaneVisible(),

@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,7 +58,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -132,6 +130,7 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortBottomSheetRoute
 import com.merxury.blocker.feature.appdetail.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
@@ -149,7 +148,6 @@ fun AppDetailRoute(
     updateIconThemingState: (IconThemingState) -> Unit,
     onBackClick: () -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
     modifier: Modifier = Modifier,
     navigateToRuleDetail: (String) -> Unit = {},
     showBackButton: Boolean = true,
@@ -169,7 +167,7 @@ fun AppDetailRoute(
         tabState = tabState,
         navigateToComponentDetail = navigateToComponentDetail,
         navigateToRuleDetail = navigateToRuleDetail,
-        navigateToComponentSortScreen = navigateToComponentSortScreen,
+        showComponentSortBottomSheet = viewModel::showComponentSortBottomSheet,
         modifier = modifier.fillMaxSize(),
         onLaunchAppClick = { packageName ->
             val result = viewModel.launchApp(context, packageName)
@@ -418,7 +416,7 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigateToComponentSortScreen: () -> Unit = {},
+    showComponentSortBottomSheet: (Boolean) -> Unit = {},
     updateIconThemingState: (IconThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
@@ -433,16 +431,14 @@ fun AppDetailScreen(
     onRefresh: () -> Unit = {},
 ) {
     AppDetailContent(
-        app = appInfoUiState.appInfo,
-        isRefreshing = appInfoUiState.isRefreshing,
-        seedColor = appInfoUiState.seedColor,
+        appInfoUiState = appInfoUiState,
         topAppBarUiState = topAppBarUiState,
         componentListUiState = componentListUiState,
         tabState = tabState,
         onBackClick = onBackClick,
         navigateToComponentDetail = navigateToComponentDetail,
         navigateToRuleDetail = navigateToRuleDetail,
-        navigateToComponentSortScreen = navigateToComponentSortScreen,
+        showComponentSortBottomSheet = showComponentSortBottomSheet,
         onLaunchAppClick = onLaunchAppClick,
         switchTab = switchTab,
         modifier = modifier,
@@ -482,18 +478,16 @@ fun AppDetailScreen(
 
 @Composable
 fun AppDetailContent(
-    app: AppItem,
+    appInfoUiState: AppInfoUiState,
     tabState: TabState<AppDetailTabs>,
     componentListUiState: Result<ComponentSearchResult>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
-    navigateToComponentSortScreen: () -> Unit,
+    showComponentSortBottomSheet: (Boolean) -> Unit,
     updateIconThemingState: (IconThemingState) -> Unit,
     topAppBarUiState: AppBarUiState,
     modifier: Modifier = Modifier,
-    seedColor: Color? = null,
-    isRefreshing: Boolean = false,
     showBackButton: Boolean = true,
     navigateToComponentDetail: (String) -> Unit = {},
     navigateToRuleDetail: (String) -> Unit = {},
@@ -563,20 +557,20 @@ fun AppDetailContent(
             }
         }
     }
-    updateIconThemingState(IconThemingState(seedColor = seedColor))
+    updateIconThemingState(IconThemingState(seedColor = appInfoUiState.seedColor))
     Scaffold(
         topBar = {
             TopAppBar(
                 isSelectedMode = topAppBarUiState.isSelectedMode,
                 isSearchMode = topAppBarUiState.isSearchMode,
-                app = app,
+                app = appInfoUiState.appInfo,
                 topAppBarUiState = topAppBarUiState,
                 toolbarState = toolbarState,
                 onSearchTextChange = onSearchTextChange,
                 onSearchModeChange = onSearchModeChange,
                 blockAllComponentsInPage = blockAllComponentsInPage,
                 enableAllComponentsInPage = enableAllComponentsInPage,
-                navigateToComponentSortScreen = navigateToComponentSortScreen,
+                showComponentSortBottomSheet = showComponentSortBottomSheet,
                 onLaunchAppClick = onLaunchAppClick,
                 onSelectAll = onSelectAll,
                 blockAllSelectedComponents = blockAllSelectedComponents,
@@ -591,7 +585,7 @@ fun AppDetailContent(
         modifier = modifier.nestedScroll(nestedScrollConnection),
     ) { innerPadding ->
         AppDetailTabContent(
-            app = app,
+            app = appInfoUiState.appInfo,
             componentListUiState = componentListUiState,
             selectedComponentList = topAppBarUiState.selectedComponentList,
             isSelectedMode = topAppBarUiState.isSelectedMode,
@@ -623,10 +617,15 @@ fun AppDetailContent(
             onSelect = onSelect,
             onDeselect = onDeselect,
             onRefresh = onRefresh,
-            isRefreshing = isRefreshing,
+            isRefreshing = appInfoUiState.isRefreshing,
             showOpenInLibChecker = showOpenInLibChecker,
             matchedGeneralRuleUiState = matchedGeneralRuleUiState,
         )
+        if (appInfoUiState.showComponentSortBottomSheet) {
+            ComponentSortBottomSheetRoute(
+                dismissHandler = { showComponentSortBottomSheet(false) },
+            )
+        }
     }
 }
 
@@ -638,7 +637,7 @@ fun AppDetailAppBarActions(
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponentsInPage: () -> Unit = {},
     enableAllComponentsInPage: () -> Unit = {},
-    navigateToComponentSortScreen: () -> Unit = {},
+    showComponentSortBottomSheet: (Boolean) -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
@@ -681,7 +680,7 @@ fun AppDetailAppBarActions(
             MoreActionMenu(
                 blockAllComponents = blockAllComponentsInPage,
                 enableAllComponents = enableAllComponentsInPage,
-                onAdvanceSortClick = navigateToComponentSortScreen,
+                onAdvanceSortClick = { showComponentSortBottomSheet(true) },
                 switchSelectedMode = switchSelectedMode,
             )
         }
@@ -707,7 +706,7 @@ private fun TopAppBar(
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponentsInPage: () -> Unit = {},
     enableAllComponentsInPage: () -> Unit = {},
-    navigateToComponentSortScreen: () -> Unit = {},
+    showComponentSortBottomSheet: (Boolean) -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
@@ -735,7 +734,7 @@ private fun TopAppBar(
                     onSearchModeChange = onSearchModeChange,
                     blockAllComponentsInPage = blockAllComponentsInPage,
                     enableAllComponentsInPage = enableAllComponentsInPage,
-                    navigateToComponentSortScreen = navigateToComponentSortScreen,
+                    showComponentSortBottomSheet = showComponentSortBottomSheet,
                     switchSelectedMode = switchSelectedMode,
                     shareAppRule = shareAppRule,
                     shareAllRules = shareAllRules,
@@ -767,7 +766,7 @@ private fun TopAppBar(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppDetailTabContent(
     app: AppItem,

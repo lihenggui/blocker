@@ -98,7 +98,6 @@ dependencies {
     implementation(projects.feature.ruledetail)
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
-    implementation(projects.feature.sort)
 
     implementation(projects.core.analytics)
     implementation(projects.core.common)
@@ -122,7 +121,6 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.tracing.ktx)
     implementation(libs.androidx.compose.animation)
-    implementation(libs.androidx.compose.material.navigation)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.navigation.compose)

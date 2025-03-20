@@ -98,6 +98,7 @@ class AppListViewModel @Inject constructor(
         PACKAGE_NAME_ARG,
         null,
     )
+    private var showAppSortBottomSheetStatus = false
 
     // Internal list for storing the displayed app list (data storing)
     private var appList = listOf<AppItem>()
@@ -160,6 +161,7 @@ class AppListViewModel @Inject constructor(
                         Success(
                             selectedPackageName = selectedPackageName.value,
                             isRefreshing = false,
+                            showAppSortBottomSheet = showAppSortBottomSheetStatus,
                         ),
                     )
                 }
@@ -169,6 +171,17 @@ class AppListViewModel @Inject constructor(
     fun onAppClick(packageName: String?) {
         savedStateHandle[PACKAGE_NAME_ARG] = packageName
         loadSelectedApp()
+    }
+
+    fun showAppSortBottomSheet(showAppSortBottomSheet: Boolean) {
+        showAppSortBottomSheetStatus = showAppSortBottomSheet
+        _uiState.update {
+            if (it is Success) {
+                it.copy(showAppSortBottomSheet = showAppSortBottomSheet)
+            } else {
+                it
+            }
+        }
     }
 
     private fun loadSelectedApp() {
@@ -381,5 +394,6 @@ sealed interface AppListUiState {
     data class Success(
         val isRefreshing: Boolean = false,
         val selectedPackageName: String? = null,
+        val showAppSortBottomSheet: Boolean = false,
     ) : AppListUiState
 }
