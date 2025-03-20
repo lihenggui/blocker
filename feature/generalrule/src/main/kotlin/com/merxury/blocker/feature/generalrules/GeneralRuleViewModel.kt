@@ -77,6 +77,7 @@ class GeneralRulesViewModel @Inject constructor(
     }
     private var loadRuleJob: Job? = null
     private val generalRuleRoute: GeneralRuleRoute = savedStateHandle.toRoute()
+
     // Key used to save and retrieve the currently selected topic id from saved state.
     private val selectedRuleIdKey = "selectedRuleIdKey"
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(

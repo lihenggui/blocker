@@ -56,7 +56,7 @@ fun NavGraphBuilder.searchScreen(
     navigateToAppDetail: (String, String, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit = {},
 ) {
-    composable<SearchRoute>{
+    composable<SearchRoute> {
         SearchScreen(
             snackbarHostState = snackbarHostState,
             navigateToAppDetail = navigateToAppDetail,

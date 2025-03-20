@@ -54,7 +54,6 @@ fun NavController.navigateToAppDetail(
     }
 }
 
-
 fun NavGraphBuilder.appDetailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,

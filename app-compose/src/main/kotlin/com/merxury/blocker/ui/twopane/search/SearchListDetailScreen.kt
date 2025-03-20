@@ -138,7 +138,13 @@ internal fun SearchListDetailScreen(
 
     var nestedNavHostStartRoute by remember {
         val route =
-            if (selectedRuleId != null) RuleDetailRoute(ruleId = selectedRuleId) else if (selectedPackageName != null) SearchPlaceholderRoute else SearchPlaceholderRoute
+            if (selectedRuleId != null) {
+                RuleDetailRoute(ruleId = selectedRuleId)
+            } else if (selectedPackageName != null) {
+                SearchPlaceholderRoute
+            } else {
+                SearchPlaceholderRoute
+            }
         mutableStateOf(route)
     }
     var nestedNavKey by rememberSaveable(
@@ -217,12 +223,11 @@ internal fun SearchListDetailScreen(
                         startDestination = nestedNavHostStartRoute,
                         route = SearchPaneNavHostRoute::class,
                     ) {
-
                         appDetailScreen(
                             onBackClick = listDetailNavigator::navigateBack,
                             snackbarHostState = snackbarHostState,
                             navigateToComponentDetail = navigateToComponentDetail,
-                           navigateToRuleDetail = ::onRuleClickShowDetailPane,
+                            navigateToRuleDetail = ::onRuleClickShowDetailPane,
                             updateIconThemingState = updateIconThemingState,
                             showBackButton = !listDetailNavigator.isListPaneVisible(),
                         )

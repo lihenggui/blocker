@@ -264,7 +264,7 @@ fun AppDetailScreen(
             FINISHED -> rulestring.core_rule_done
             FOLDER_NOT_DEFINED,
             MISSING_STORAGE_PERMISSION,
-                -> rulestring.core_rule_error_msg_folder_not_defined
+            -> rulestring.core_rule_error_msg_folder_not_defined
 
             MISSING_ROOT_PERMISSION -> rulestring.core_rule_error_msg_missing_root_permission
             UNEXPECTED_EXCEPTION -> rulestring.core_rule_error_msg_unexpected_exception
@@ -535,7 +535,7 @@ fun AppDetailContent(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 toolbarState.scrollTopLimitReached =
                     listState.firstVisibleItemIndex == 0 &&
-                        listState.firstVisibleItemScrollOffset == 0
+                    listState.firstVisibleItemScrollOffset == 0
                 toolbarState.scrollOffset -= available.y
                 return Offset(0f, toolbarState.consumed)
             }
@@ -550,7 +550,7 @@ fun AppDetailContent(
                         ) { value, _ ->
                             toolbarState.scrollTopLimitReached =
                                 listState.firstVisibleItemIndex == 0 &&
-                                    listState.firstVisibleItemScrollOffset == 0
+                                listState.firstVisibleItemScrollOffset == 0
                             toolbarState.scrollOffset -= (value - (toolbarState.height + toolbarState.offset))
                             if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
                         }
@@ -691,10 +691,9 @@ fun AppDetailAppBarActions(
 }
 
 @Composable
-private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState =
-    rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
-        ExitUntilCollapsedState(heightRange = toolbarHeightRange)
-    }
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+    ExitUntilCollapsedState(heightRange = toolbarHeightRange)
+}
 
 @Composable
 private fun TopAppBar(

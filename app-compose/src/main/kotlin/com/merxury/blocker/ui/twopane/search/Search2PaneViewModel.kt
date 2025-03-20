@@ -34,11 +34,11 @@ class Search2PaneViewModel @Inject constructor(
     private val selectedAppTabKey = "selectedTabKey"
     private val searchKeywordKey = "searchKeywordKey"
     private val searchRoute: SearchRoute = savedStateHandle.toRoute()
-     val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
+    val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
         key = selectedRuleIdKey,
         initialValue = searchRoute.ruleId,
     )
-     val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
+    val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
         key = selectedPackageNameKey,
         initialValue = searchRoute.packageName,
     )
