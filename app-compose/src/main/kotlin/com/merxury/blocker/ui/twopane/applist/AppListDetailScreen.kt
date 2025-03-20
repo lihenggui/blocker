@@ -53,6 +53,7 @@ import com.merxury.blocker.feature.applist.AppListScreen
 import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable

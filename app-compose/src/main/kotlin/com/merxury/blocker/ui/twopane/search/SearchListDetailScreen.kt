@@ -56,6 +56,7 @@ import com.merxury.blocker.feature.search.SearchScreen
 import com.merxury.blocker.feature.search.navigation.SearchRoute
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable
