@@ -46,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.feature.generalrules.GeneralRulesScreen
+import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
 import com.merxury.blocker.feature.ruledetail.RuleDetailPlaceholder
 import com.merxury.blocker.feature.ruledetail.navigation.RuleDetailRoute
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
@@ -68,7 +69,7 @@ fun NavGraphBuilder.ruleListDetailScreen(
     navigateToAppDetail: (String) -> Unit,
     updateIconThemingState: (IconThemingState) -> Unit,
 ) {
-    composable<RuleListDetailPaneNavHostRoute> {
+    composable<GeneralRuleRoute> {
         RuleListDetailRoute(
             snackbarHostState = snackbarHostState,
             updateIconThemingState = updateIconThemingState,

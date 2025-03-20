@@ -17,10 +17,7 @@
 package com.merxury.blocker.feature.generalrules.navigation
 
 import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import com.merxury.blocker.feature.generalrules.GeneralRulesScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -31,16 +28,4 @@ fun NavController.navigateToGeneralRule(
     navOptions: NavOptions? = null,
 ) {
     navigate(route = GeneralRuleRoute(initialRuleId), navOptions)
-}
-
-fun NavGraphBuilder.generalRuleScreen(
-    navigateToRuleDetail: (String) -> Unit,
-    highlightSelectedRule: Boolean = false,
-) {
-    composable<GeneralRuleRoute> {
-        GeneralRulesScreen(
-           navigateToRuleDetail = navigateToRuleDetail,
-            highlightSelectedRule = highlightSelectedRule,
-        )
-    }
 }
