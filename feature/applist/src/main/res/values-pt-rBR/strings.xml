@@ -10,7 +10,7 @@
     <string name="feature_applist_descending">Decrescente</string>
     <string name="feature_applist_name">Nome</string>
     <string name="feature_applist_install_date">Data de instalação</string>
-    <string name="feature_applist_last_updated">Ultima Atualização</string>
+    <string name="feature_applist_last_updated">Última Atualização</string>
     <string name="feature_applist_show_running_apps_on_top">Mostrar aplicativos em execução no topo</string>
     <string name="feature_applist_on">Ligado</string>
     <string name="feature_applist_off">Desligado</string>
