@@ -39,7 +39,7 @@ internal class AndroidLicensesFetcherImpl @Inject constructor(
     @ExperimentalSerializationApi
     override suspend fun fetch(): List<LicenseItem> = withContext(ioDispatcher) {
         try {
-            assetManager.open("licenses.json").use { inputStream ->
+            assetManager.open("app/cash/licensee/artifacts.json").use { inputStream ->
                 val licenseItemList: List<LicenseItem> = json.decodeFromStream(inputStream)
                 Timber.d("Fetched ${licenseItemList.size} licenses")
                 return@withContext licenseItemList
