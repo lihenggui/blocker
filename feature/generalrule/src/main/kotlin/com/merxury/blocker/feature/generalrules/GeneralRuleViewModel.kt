@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.generalrules
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
@@ -35,7 +36,7 @@ import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
-import com.merxury.blocker.feature.generalrules.navigation.RULE_ID_ARG
+import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -75,9 +76,13 @@ class GeneralRulesViewModel @Inject constructor(
         _uiState.value = (Error(throwable.toErrorMessage()))
     }
     private var loadRuleJob: Job? = null
+    private val generalRuleRoute: GeneralRuleRoute = savedStateHandle.toRoute()
+
+    // Key used to save and retrieve the currently selected topic id from saved state.
+    private val selectedRuleIdKey = "selectedRuleIdKey"
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
-        RULE_ID_ARG,
-        null,
+        key = selectedRuleIdKey,
+        initialValue = generalRuleRoute.initialRuleId,
     )
 
     init {
@@ -89,7 +94,7 @@ class GeneralRulesViewModel @Inject constructor(
     }
 
     fun onRuleClick(ruleId: String?) {
-        savedStateHandle[RULE_ID_ARG] = ruleId
+        savedStateHandle[selectedRuleIdKey] = ruleId
         loadSelectedRule()
     }
 

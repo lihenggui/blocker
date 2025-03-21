@@ -49,7 +49,7 @@ import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiSt
 import com.merxury.blocker.core.ui.R.string as UiString
 
 @Composable
-fun ComponentDetailDialogRoute(
+fun ComponentDetailDialog(
     dismissHandler: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ComponentDetailViewModel = hiltViewModel(),

@@ -62,7 +62,6 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
@@ -93,10 +92,10 @@ import kotlinx.coroutines.launch
 import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
-fun SearchRoute(
+fun SearchScreen(
     snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean = false,
-    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
+    navigateToAppDetail: (String, String, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit = { _ -> },
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
@@ -238,7 +237,7 @@ fun SearchScreen(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (FilteredComponent) -> Unit = {},
     onDeselect: (FilteredComponent) -> Unit = {},
-    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
+    navigateToAppDetail: (String, String, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (String) -> Unit = { },
     onClearCacheClick: (String) -> Unit = { },
     onClearDataClick: (String) -> Unit = { },

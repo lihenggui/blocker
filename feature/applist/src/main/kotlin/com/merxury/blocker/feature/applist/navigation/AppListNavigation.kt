@@ -17,48 +17,17 @@
 package com.merxury.blocker.feature.applist.navigation
 
 import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.NavType
-import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
-import com.merxury.blocker.feature.applist.AppListRoute
+import kotlinx.serialization.Serializable
 
-const val APP_LIST_ROUTE_BASIC = "app_list_route"
-const val PACKAGE_NAME_ARG = "packageName"
-const val APP_LIST_ROUTE = "$APP_LIST_ROUTE_BASIC?$PACKAGE_NAME_ARG={$PACKAGE_NAME_ARG}"
+@Serializable
+data class AppListRoute(
+    val initialPackageName: String? = null,
+)
 
 fun NavController.navigateToAppList(
-    packageName: String? = null,
+    initialPackageName: String? = null,
     navOptions: NavOptions? = null,
 ) {
-    val route = if (packageName != null) {
-        "$APP_LIST_ROUTE_BASIC?${PACKAGE_NAME_ARG}=$packageName"
-    } else {
-        APP_LIST_ROUTE_BASIC
-    }
-    navigate(route, navOptions)
-}
-
-fun NavGraphBuilder.appListScreen(
-    navigateToAppDetail: (String) -> Unit,
-    navigateToSettings: () -> Unit,
-    navigateToSupportAndFeedback: () -> Unit,
-) {
-    composable(
-        route = APP_LIST_ROUTE,
-        arguments = listOf(
-            navArgument(PACKAGE_NAME_ARG) {
-                defaultValue = null
-                nullable = true
-                type = NavType.StringType
-            },
-        ),
-    ) {
-        AppListRoute(
-            navigateToAppDetail = navigateToAppDetail,
-            navigateToSettings = navigateToSettings,
-            navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-        )
-    }
+    navigate(route = AppListRoute(initialPackageName), navOptions)
 }

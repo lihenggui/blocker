@@ -46,7 +46,7 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 
 @Composable
-fun GeneralRulesRoute(
+fun GeneralRulesScreen(
     navigateToRuleDetail: (String) -> Unit,
     highlightSelectedRule: Boolean = false,
     viewModel: GeneralRulesViewModel = hiltViewModel(),

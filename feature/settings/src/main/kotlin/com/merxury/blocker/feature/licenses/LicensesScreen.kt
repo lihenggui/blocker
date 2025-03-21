@@ -58,7 +58,7 @@ import com.merxury.blocker.feature.licenses.LicensesUiState.Success
 import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun LicensesRoute(
+fun LicensesScreen(
     onNavigationClick: () -> Unit,
     viewModel: LicensesViewModel = hiltViewModel(),
 ) {

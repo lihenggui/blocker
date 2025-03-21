@@ -47,6 +47,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 "implementation"(libs.findLibrary("kotlinx.serialization.json").get())
 
                 "testImplementation"(project(":core:screenshot-testing"))
+                "testImplementation"(libs.findLibrary("androidx.navigation.testing").get())
                 "androidTestImplementation"(libs.findBundle("androidx.compose.ui.test").get())
             }
         }

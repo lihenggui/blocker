@@ -27,6 +27,7 @@ plugins {
     id("kotlin-parcelize")
     alias(libs.plugins.baselineprofile)
     alias(libs.plugins.roborazzi)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -133,6 +134,7 @@ dependencies {
     implementation(libs.hiddenapibypass)
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.timber)
 

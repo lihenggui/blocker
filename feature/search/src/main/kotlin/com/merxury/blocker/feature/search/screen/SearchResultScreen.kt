@@ -32,7 +32,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.FilteredComponent
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
@@ -58,7 +57,7 @@ fun SearchResultScreen(
     switchSelectedMode: (Boolean) -> Unit = { _ -> },
     onSelect: (FilteredComponent) -> Unit = { _ -> },
     onDeselect: (FilteredComponent) -> Unit = { _ -> },
-    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
+    navigateToAppDetail: (String, String, List<String>) -> Unit = { _, _, _ -> },
     onAppClick: (String) -> Unit = { },
     onComponentClick: (String) -> Unit = { },
     navigateToRuleDetail: (String) -> Unit = { },
@@ -109,7 +108,7 @@ fun SearchResultScreen(
                     selectedPackageName = localSearchUiState.appTabUiState.selectedPackageName,
                     onClick = { packageName ->
                         onAppClick(packageName)
-                        navigateToAppDetail(packageName, Info, listOf())
+                        navigateToAppDetail(packageName, Info.name, listOf())
                         keyboardController?.hide()
                     },
                     onClearCacheClick = onClearCacheClick,
@@ -141,7 +140,11 @@ fun SearchResultScreen(
                         } else {
                             Info
                         }
-                        navigateToAppDetail(filterResult.app.packageName, firstTab, searchKeyword)
+                        navigateToAppDetail(
+                            filterResult.app.packageName,
+                            firstTab.name,
+                            searchKeyword,
+                        )
                     },
                 )
 

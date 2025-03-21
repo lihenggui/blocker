@@ -24,8 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.lifecycle.Lifecycle
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -155,10 +153,12 @@ class BlockerAppState(
 
             when (topLevelDestination) {
                 APP -> navController.navigateToAppList(
+                    initialPackageName = null,
                     navOptions = topLevelNavOptions,
                 )
 
                 RULE -> navController.navigateToGeneralRule(
+                    initialRuleId = null,
                     navOptions = topLevelNavOptions,
                 )
 
@@ -166,19 +166,6 @@ class BlockerAppState(
                     navOptions = topLevelNavOptions,
                 )
             }
-        }
-    }
-
-    /**
-     * If the lifecycle is not resumed it means this NavBackStackEntry already processed a nav event.
-     *
-     * This is used to de-duplicate navigation events.
-     */
-    private fun NavBackStackEntry.lifecycleIsResumed() = this.lifecycle.currentState == Lifecycle.State.RESUMED
-
-    fun onBackClick() {
-        if (navController.currentBackStackEntry?.lifecycleIsResumed() == true) {
-            navController.popBackStack()
         }
     }
 }

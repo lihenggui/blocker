@@ -20,6 +20,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import androidx.lifecycle.SavedStateHandle
+import androidx.navigation.testing.invoke
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
@@ -54,9 +55,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.appdetail.navigation.KEYWORD_ARG
-import com.merxury.blocker.feature.appdetail.navigation.PACKAGE_NAME_ARG
-import com.merxury.blocker.feature.appdetail.navigation.TAB_ARG
+import com.merxury.blocker.feature.appdetail.navigation.AppDetailRoute
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -66,11 +65,24 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.robolectric.RobolectricTestRunner
 import kotlin.test.assertEquals
 
+/**
+ * To learn more about how this test handles Flows created with stateIn, see
+ * https://developer.android.com/kotlin/flow/test#statein
+ *
+ * These tests use Robolectric because the subject under test (the ViewModel) uses
+ * `SavedStateHandle.toRoute` which has a dependency on `android.os.Bundle`.
+ *
+ * TODO: Remove Robolectric if/when AndroidX Navigation API is updated to remove Android dependency.
+ *  *  See b/340966212.
+ */
+@RunWith(RobolectricTestRunner::class)
 class AppDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -89,10 +101,10 @@ class AppDetailViewModelTest {
     private val serviceController = FakeServiceController()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val savedStateHandle = SavedStateHandle(
-        mapOf(
-            PACKAGE_NAME_ARG to sampleAppList.first().packageName,
-            TAB_ARG to AppDetailTabs.INFO,
-            KEYWORD_ARG to "",
+        route = AppDetailRoute(
+            packageName = sampleAppList.first().packageName,
+            tab = AppDetailTabs.INFO,
+            searchKeyword = emptyList(),
         ),
     )
     private val packageInfo = mock<PackageInfo> {

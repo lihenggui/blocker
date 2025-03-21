@@ -21,6 +21,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -54,8 +55,7 @@ import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
 import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
 import com.merxury.blocker.feature.search.LocalSearchUiState.Loading
 import com.merxury.blocker.feature.search.LocalSearchUiState.Success
-import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
-import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
+import com.merxury.blocker.feature.search.navigation.SearchRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -108,13 +108,16 @@ class SearchViewModel @Inject constructor(
     }
     private var searchJob: Job? = null
     private var loadAppJob: Job? = null
+    private val selectedPackageNameKey = "selectedPackageNameKey"
+    private val selectedRuleIdKey = "selectedRuleIdKey"
+    private val searchRoute: SearchRoute = savedStateHandle.toRoute()
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
-        RULE_ID_ARG,
-        null,
+        key = selectedRuleIdKey,
+        initialValue = searchRoute.ruleId,
     )
     private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
-        PACKAGE_NAME_ARG,
-        null,
+        key = selectedPackageNameKey,
+        initialValue = searchRoute.packageName,
     )
 
     private val _tabState = MutableStateFlow(
@@ -148,17 +151,17 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onAppClick(packageName: String?) {
-        savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        savedStateHandle[selectedPackageNameKey] = packageName
         loadSelectedItem()
     }
 
     fun onComponentClick(packageName: String?) {
-        savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        savedStateHandle[selectedPackageNameKey] = packageName
         loadSelectedItem()
     }
 
     fun onRuleClick(ruleId: String?) {
-        savedStateHandle[RULE_ID_ARG] = ruleId
+        savedStateHandle[selectedRuleIdKey] = ruleId
         loadSelectedItem()
     }
 

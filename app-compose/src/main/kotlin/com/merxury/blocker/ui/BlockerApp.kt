@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
@@ -55,7 +56,7 @@ import com.merxury.blocker.core.designsystem.component.SnackbarHost
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.navigation.BlockerNavHost
-import com.merxury.blocker.navigation.TopLevelDestination
+import kotlin.reflect.KClass
 
 @Composable
 fun BlockerApp(
@@ -109,7 +110,7 @@ internal fun BlockerApp(
     BlockerNavigationSuiteScaffold(
         navigationSuiteItems = {
             appState.topLevelDestinations.forEach { destination ->
-                val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
+                val selected = currentDestination.isRouteInHierarchy(destination.route)
                 item(
                     selected = selected,
                     onClick = { appState.navigateToTopLevelDestination(destination) },
@@ -154,10 +155,9 @@ internal fun BlockerApp(
                     ),
             ) {
                 BlockerNavHost(
-                    navController = appState.navController,
-                    onBackClick = appState::onBackClick,
                     snackbarHostState = snackbarHostState,
                     updateIconThemingState = updateIconThemingState,
+                    appState = appState,
                 )
             }
         }
@@ -167,6 +167,6 @@ internal fun BlockerApp(
     }
 }
 
-private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) = this?.hierarchy?.any {
-    it.route?.contains(destination.name, true) ?: false
+private fun NavDestination?.isRouteInHierarchy(route: KClass<*>) = this?.hierarchy?.any {
+    it.hasRoute(route)
 } ?: false

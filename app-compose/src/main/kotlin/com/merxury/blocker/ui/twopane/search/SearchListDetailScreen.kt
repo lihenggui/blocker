@@ -17,72 +17,61 @@
 package com.merxury.blocker.ui.twopane.search
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.Keep
+import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
+import com.merxury.blocker.feature.appdetail.navigation.AppDetailRoute
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
-import com.merxury.blocker.feature.ruledetail.navigation.RULE_DETAIL_ROUTE
+import com.merxury.blocker.feature.ruledetail.navigation.RuleDetailRoute
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
-import com.merxury.blocker.feature.search.SearchRoute
-import com.merxury.blocker.feature.search.navigation.KEYWORD_ARG
-import com.merxury.blocker.feature.search.navigation.PACKAGE_NAME_ARG
-import com.merxury.blocker.feature.search.navigation.RULE_ID_ARG
-import com.merxury.blocker.feature.search.navigation.SEARCH_ROUTE_BASIC
-import com.merxury.blocker.feature.search.navigation.TAB_ARG
-import com.merxury.blocker.feature.search.screen.SearchDetailPlaceholder
+import com.merxury.blocker.feature.search.SearchScreen
+import com.merxury.blocker.feature.search.navigation.SearchRoute
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
+import kotlinx.serialization.Serializable
+import java.util.UUID
 
-private const val SEARCH_PANE_ROUTE = "search_pane_route"
+@Serializable
+internal object SearchPlaceholderRoute
+
+@Keep
+@Serializable
+internal object SearchPaneNavHostRoute
 
 fun NavGraphBuilder.searchListDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
 ) {
-    composable(
-        route = SEARCH_ROUTE_BASIC,
-        arguments = listOf(
-            navArgument(PACKAGE_NAME_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-            navArgument(KEYWORD_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-            navArgument(TAB_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-            navArgument(RULE_ID_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-        ),
-    ) {
+    composable<SearchRoute> {
         SearchListDetailScreen(
             snackbarHostState = snackbarHostState,
             updateIconThemingState = updateIconThemingState,
@@ -97,6 +86,7 @@ internal fun SearchListDetailScreen(
     updateIconThemingState: (IconThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     viewModel: Search2PaneViewModel = hiltViewModel(),
+    windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
     val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
     val selectedAppTabs by viewModel.selectedAppTabs.collectAsStateWithLifecycle()
@@ -114,6 +104,7 @@ internal fun SearchListDetailScreen(
         onRuleClick = viewModel::onRuleClick,
         updateIconThemingState = updateIconThemingState,
         navigateToComponentDetail = navigateToComponentDetail,
+        windowAdaptiveInfo = windowAdaptiveInfo,
     )
 }
 
@@ -122,60 +113,92 @@ internal fun SearchListDetailScreen(
 internal fun SearchListDetailScreen(
     snackbarHostState: SnackbarHostState,
     isAppDetailPage: Boolean,
+    windowAdaptiveInfo: WindowAdaptiveInfo,
     selectedPackageName: String? = null,
     selectedTab: AppDetailTabs? = null,
     selectedRuleId: String? = null,
     searchKeyword: List<String> = listOf(),
-    onAppClick: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
+    onAppClick: (String, String, List<String>) -> Unit = { _, _, _ -> },
     onRuleClick: (String) -> Unit = {},
     updateIconThemingState: (IconThemingState) -> Unit = {},
     navigateToComponentDetail: (String) -> Unit = {},
 ) {
-    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator()
+    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator(
+        scaffoldDirective = calculatePaneScaffoldDirective(windowAdaptiveInfo),
+        initialDestinationHistory = listOfNotNull(
+            ThreePaneScaffoldDestinationItem(ListDetailPaneScaffoldRole.List),
+            ThreePaneScaffoldDestinationItem<Nothing>(ListDetailPaneScaffoldRole.Detail).takeIf {
+                selectedRuleId != null || selectedPackageName != null
+            },
+        ),
+    )
     BackHandler(listDetailNavigator.canNavigateBack()) {
         listDetailNavigator.navigateBack()
     }
 
-    val nestedNavController = rememberNavController()
+    var nestedNavHostStartRoute by remember {
+        val route =
+            if (selectedRuleId != null) {
+                RuleDetailRoute(ruleId = selectedRuleId)
+            } else if (selectedPackageName != null) {
+                SearchPlaceholderRoute
+            } else {
+                SearchPlaceholderRoute
+            }
+        mutableStateOf(route)
+    }
+    var nestedNavKey by rememberSaveable(
+        stateSaver = Saver({ it.toString() }, UUID::fromString),
+    ) {
+        mutableStateOf(UUID.randomUUID())
+    }
+    val nestedNavController = key(nestedNavKey) {
+        rememberNavController()
+    }
 
-    fun onAppClickShowDetailPane(
+    fun onPackageNameClickShowDetailPane(
         packageName: String,
-        tab: AppDetailTabs,
+        tab: String,
         searchKeyword: List<String> = listOf(),
     ) {
         onAppClick(packageName, tab, searchKeyword)
-        nestedNavController.navigateToAppDetail(
-            packageName = packageName,
-            tab = tab,
-            searchKeyword = searchKeyword,
-            navOptions = {
-                popUpTo(SEARCH_PANE_ROUTE)
-            },
-        )
-        listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
-    }
-
-    fun onAppClickShowDetailPane(
-        packageName: String,
-    ) {
-        onAppClick(packageName, AppDetailTabs.Info, listOf())
-        nestedNavController.navigateToAppDetail(
-            packageName = packageName,
-            navOptions = {
-                popUpTo(SEARCH_PANE_ROUTE)
-            },
-        )
+        if (listDetailNavigator.isDetailPaneVisible()) {
+            // If the detail pane was visible, then use the nestedNavController navigate call
+            // directly
+            nestedNavController.navigateToAppDetail(
+                packageName = packageName,
+                tab = tab,
+                searchKeyword = searchKeyword,
+            ) {
+                popUpTo<SearchPlaceholderRoute>()
+            }
+        } else {
+            // Otherwise, recreate the NavHost entirely, and start at the new destination
+            nestedNavHostStartRoute = AppDetailRoute(
+                packageName = packageName,
+                tab = AppDetailTabs.Info.name,
+                searchKeyword = searchKeyword,
+            )
+            nestedNavKey = UUID.randomUUID()
+        }
         listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
     }
 
     fun onRuleClickShowDetailPane(ruleId: String) {
         onRuleClick(ruleId)
-        nestedNavController.navigateToRuleDetail(
-            ruleId = ruleId,
-            navOptions = {
-                popUpTo(SEARCH_PANE_ROUTE)
-            },
-        )
+        if (listDetailNavigator.isDetailPaneVisible()) {
+            // If the detail pane was visible, then use the nestedNavController navigate call
+            // directly
+            nestedNavController.navigateToRuleDetail(
+                ruleId = ruleId,
+            ) {
+                popUpTo<SearchPlaceholderRoute>()
+            }
+        } else {
+            // Otherwise, recreate the NavHost entirely, and start at the new destination
+            nestedNavHostStartRoute = RuleDetailRoute(ruleId = ruleId)
+            nestedNavKey = UUID.randomUUID()
+        }
         listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
     }
 
@@ -183,44 +206,42 @@ internal fun SearchListDetailScreen(
         value = listDetailNavigator.scaffoldValue,
         directive = listDetailNavigator.scaffoldDirective,
         listPane = {
-            SearchRoute(
-                snackbarHostState = snackbarHostState,
-                navigateToAppDetail = ::onAppClickShowDetailPane,
-                navigateToRuleDetail = ::onRuleClickShowDetailPane,
-                highlightSelectedItem = listDetailNavigator.isDetailPaneVisible(),
-            )
+            AnimatedPane {
+                SearchScreen(
+                    snackbarHostState = snackbarHostState,
+                    navigateToAppDetail = ::onPackageNameClickShowDetailPane,
+                    navigateToRuleDetail = ::onRuleClickShowDetailPane,
+                    highlightSelectedItem = listDetailNavigator.isDetailPaneVisible(),
+                )
+            }
         },
         detailPane = {
-            if (selectedPackageName.isNullOrEmpty() && selectedRuleId.isNullOrBlank() && !isAppDetailPage) {
-                SearchDetailPlaceholder()
-            } else if (isAppDetailPage) {
-                NavHost(
-                    navController = nestedNavController,
-                    startDestination = APP_DETAIL_ROUTE,
-                    route = SEARCH_PANE_ROUTE,
-                ) {
-                    appDetailScreen(
-                        onBackClick = listDetailNavigator::navigateBack,
-                        snackbarHostState = snackbarHostState,
-                        navigateToComponentDetail = navigateToComponentDetail,
-                        navigateToRuleDetail = ::onRuleClickShowDetailPane,
-                        updateIconThemingState = updateIconThemingState,
-                        showBackButton = !listDetailNavigator.isListPaneVisible(),
-                    )
-                }
-            } else if (selectedRuleId != null) {
-                NavHost(
-                    navController = nestedNavController,
-                    startDestination = RULE_DETAIL_ROUTE,
-                    route = SEARCH_PANE_ROUTE,
-                ) {
-                    ruleDetailScreen(
-                        showBackButton = !listDetailNavigator.isListPaneVisible(),
-                        onBackClick = listDetailNavigator::navigateBack,
-                        snackbarHostState = snackbarHostState,
-                        navigateToAppDetail = ::onAppClickShowDetailPane,
-                        updateIconThemingState = updateIconThemingState,
-                    )
+            AnimatedPane {
+                key(nestedNavKey) {
+                    NavHost(
+                        navController = nestedNavController,
+                        startDestination = nestedNavHostStartRoute,
+                        route = SearchPaneNavHostRoute::class,
+                    ) {
+                        appDetailScreen(
+                            onBackClick = listDetailNavigator::navigateBack,
+                            snackbarHostState = snackbarHostState,
+                            navigateToComponentDetail = navigateToComponentDetail,
+                            navigateToRuleDetail = ::onRuleClickShowDetailPane,
+                            updateIconThemingState = updateIconThemingState,
+                            showBackButton = !listDetailNavigator.isListPaneVisible(),
+                        )
+                        ruleDetailScreen(
+                            showBackButton = !listDetailNavigator.isListPaneVisible(),
+                            onBackClick = listDetailNavigator::navigateBack,
+                            snackbarHostState = snackbarHostState,
+                            navigateToAppDetail = ::onRuleClickShowDetailPane,
+                            updateIconThemingState = updateIconThemingState,
+                        )
+                        composable<SearchPlaceholderRoute> {
+                            Text("Search Placeholder")
+                        }
+                    }
                 }
             }
         },
@@ -228,9 +249,9 @@ internal fun SearchListDetailScreen(
     LaunchedEffect(Unit) {
         if (!selectedPackageName.isNullOrEmpty()) {
             // Initial packageName was provided when navigating to AppList, so show its details.
-            onAppClickShowDetailPane(
+            onPackageNameClickShowDetailPane(
                 packageName = selectedPackageName,
-                tab = selectedTab ?: AppDetailTabs.Info,
+                tab = selectedTab?.name ?: AppDetailTabs.Info.name,
                 searchKeyword = searchKeyword,
             )
         } else if (selectedRuleId != null) {

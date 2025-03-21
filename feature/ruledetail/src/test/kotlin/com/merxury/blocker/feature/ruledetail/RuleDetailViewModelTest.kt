@@ -21,6 +21,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import androidx.lifecycle.SavedStateHandle
+import androidx.navigation.testing.invoke
 import app.cash.turbine.test
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
@@ -44,8 +45,7 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Loading
-import com.merxury.blocker.feature.ruledetail.navigation.RULE_ID_ARG
-import com.merxury.blocker.feature.ruledetail.navigation.TAB_ARG
+import com.merxury.blocker.feature.ruledetail.navigation.RuleDetailRoute
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -55,11 +55,24 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.robolectric.RobolectricTestRunner
 import kotlin.test.assertEquals
 
+/**
+ * To learn more about how this test handles Flows created with stateIn, see
+ * https://developer.android.com/kotlin/flow/test#statein
+ *
+ * These tests use Robolectric because the subject under test (the ViewModel) uses
+ * `SavedStateHandle.toRoute` which has a dependency on `android.os.Bundle`.
+ *
+ * TODO: Remove Robolectric if/when AndroidX Navigation API is updated to remove Android dependency.
+ *  *  See b/340966212.
+ */
+@RunWith(RobolectricTestRunner::class)
 class RuleDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -77,9 +90,9 @@ class RuleDetailViewModelTest {
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val appContext = mock<Application>()
     private val savedStateHandle = SavedStateHandle(
-        mapOf(
-            RULE_ID_ARG to sampleRuleList.first().id,
-            TAB_ARG to RuleDetailTabs.Applicable.name,
+        route = RuleDetailRoute(
+            ruleId = sampleRuleList.first().id.toString(),
+            tab = RuleDetailTabs.APPLICABLE,
         ),
     )
     private val packageInfo = mock<PackageInfo> {

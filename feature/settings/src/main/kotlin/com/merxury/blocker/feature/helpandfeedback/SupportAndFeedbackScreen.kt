@@ -45,7 +45,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 @Composable
-fun SupportAndFeedbackRoute(
+fun SupportAndFeedbackScreen(
     onNavigationClick: () -> Unit,
     navigateToLicenses: () -> Unit,
     snackbarHostState: SnackbarHostState,
