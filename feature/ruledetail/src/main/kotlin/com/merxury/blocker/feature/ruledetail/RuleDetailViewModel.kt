@@ -341,32 +341,34 @@ class RuleDetailViewModel @Inject constructor(
             }
     }
 
-    private fun loadTabInfo() {
-        val screen = ruleInfo.tab
+    @VisibleForTesting
+    fun loadTabInfo() = viewModelScope.launch {
+        val screen = RuleDetailTabs.fromName(ruleInfo.tab)
         Timber.v("Jump to tab: $screen")
-        _tabState.update { it.copy(selectedItem = RuleDetailTabs.fromName(screen)) }
+        _tabState.update { it.copy(selectedItem = screen) }
     }
 
-    private suspend fun getSeedColor(icon: File?, context: Context): Color? = withContext(ioDispatcher) {
-        val useDynamicColor = userDataRepository.userData.first().useDynamicColor
-        if (!useDynamicColor) return@withContext null
-        val request = ImageRequest.Builder(context)
-            .data(icon)
-            // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
-            .size(128).scale(Scale.FILL)
-            // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
-            .allowHardware(false)
-            // Set a custom memory cache key to avoid overwriting the displayed image in the cache
-            .memoryCacheKey("$icon.palette")
-            .build()
+    private suspend fun getSeedColor(icon: File?, context: Context): Color? =
+        withContext(ioDispatcher) {
+            val useDynamicColor = userDataRepository.userData.first().useDynamicColor
+            if (!useDynamicColor) return@withContext null
+            val request = ImageRequest.Builder(context)
+                .data(icon)
+                // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
+                .size(128).scale(Scale.FILL)
+                // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
+                .allowHardware(false)
+                // Set a custom memory cache key to avoid overwriting the displayed image in the cache
+                .memoryCacheKey("$icon.palette")
+                .build()
 
-        val bitmap = when (val result = context.imageLoader.execute(request)) {
-            is SuccessResult -> result.drawable.toBitmap()
-            else -> null
+            val bitmap = when (val result = context.imageLoader.execute(request)) {
+                is SuccessResult -> result.drawable.toBitmap()
+                else -> null
+            }
+            return@withContext bitmap?.asImageBitmap()
+                ?.themeColorOrNull()
         }
-        return@withContext bitmap?.asImageBitmap()
-            ?.themeColorOrNull()
-    }
 }
 
 sealed interface RuleInfoUiState {

@@ -23,11 +23,6 @@ plugins {
 }
 android {
     namespace = "com.merxury.blocker.feature.appdetail"
-    testOptions {
-        unitTests{
-            isReturnDefaultValues = true
-        }
-    }
 }
 dependencies {
     implementation(projects.core.componentController)
