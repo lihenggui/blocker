@@ -17,7 +17,6 @@
 package com.merxury.blocker.ui.twopane.rule
 
 import androidx.activity.compose.BackHandler
-import androidx.annotation.Keep
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -59,8 +58,6 @@ import java.util.UUID
 @Serializable
 internal object RuleDetailPlaceholderRoute
 
-// TODO: Remove @Keep when https://issuetracker.google.com/353898971 is fixed
-@Keep
 @Serializable
 internal object RuleListDetailPaneNavHostRoute
 
