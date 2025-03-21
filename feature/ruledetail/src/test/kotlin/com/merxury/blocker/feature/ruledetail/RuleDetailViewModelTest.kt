@@ -21,6 +21,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import androidx.lifecycle.SavedStateHandle
+import androidx.navigation.testing.invoke
 import app.cash.turbine.test
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
@@ -44,8 +45,7 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Loading
-import com.merxury.blocker.feature.ruledetail.navigation.RULE_ID_ARG
-import com.merxury.blocker.feature.ruledetail.navigation.TAB_ARG
+import com.merxury.blocker.feature.ruledetail.navigation.RuleDetailRoute
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -77,9 +77,9 @@ class RuleDetailViewModelTest {
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val appContext = mock<Application>()
     private val savedStateHandle = SavedStateHandle(
-        mapOf(
-            RULE_ID_ARG to sampleRuleList.first().id,
-            TAB_ARG to RuleDetailTabs.Applicable.name,
+        route = RuleDetailRoute(
+            ruleId = sampleRuleList.first().id.toString(),
+            tab = RuleDetailTabs.Applicable.name,
         ),
     )
     private val packageInfo = mock<PackageInfo> {

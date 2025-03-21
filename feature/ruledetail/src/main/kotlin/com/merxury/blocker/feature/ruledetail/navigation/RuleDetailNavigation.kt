@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.ruledetail.navigation
 
-import androidx.annotation.VisibleForTesting
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
@@ -26,12 +25,6 @@ import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.feature.ruledetail.RuleDetailScreen
 import kotlinx.serialization.Serializable
-
-@VisibleForTesting
-internal const val RULE_ID_ARG = "ruleId"
-
-@VisibleForTesting
-internal const val TAB_ARG = "tab"
 
 @Serializable
 data class RuleDetailRoute(val ruleId: String, val tab: String = Applicable.name)

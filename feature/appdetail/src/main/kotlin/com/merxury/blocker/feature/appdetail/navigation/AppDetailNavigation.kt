@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.navigation
 
-import androidx.annotation.VisibleForTesting
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
@@ -26,15 +25,6 @@ import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailScreen
 import kotlinx.serialization.Serializable
-
-@VisibleForTesting
-internal const val PACKAGE_NAME_ARG = "packageName"
-
-@VisibleForTesting
-internal const val TAB_ARG = "tab"
-
-@VisibleForTesting
-internal const val KEYWORD_ARG = "keyword"
 
 @Serializable
 data class AppDetailRoute(
