@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui
 
+import androidx.annotation.VisibleForTesting
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.R.string
 
@@ -34,12 +35,13 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
     override fun toString(): String = "Screen name = $name"
 
     companion object {
-        const val INFO = "info"
-        const val RECEIVER = "receiver"
-        const val SERVICE = "service"
-        const val ACTIVITY = "activity"
-        const val PROVIDER = "provider"
-        const val SDK = "sdks"
+        @VisibleForTesting
+        private const val INFO = "info"
+        private const val RECEIVER = "receiver"
+        private const val SERVICE = "service"
+        private const val ACTIVITY = "activity"
+        private const val PROVIDER = "provider"
+        private const val SDK = "sdks"
 
         fun fromName(name: String?): AppDetailTabs = when (name) {
             INFO -> Info
