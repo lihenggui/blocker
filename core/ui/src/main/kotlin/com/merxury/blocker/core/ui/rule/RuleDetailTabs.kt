@@ -27,6 +27,7 @@ sealed class RuleDetailTabs(val name: String, val title: Int = 0) {
 
     companion object {
         const val DESCRIPTION = "description"
+
         @VisibleForTesting
         const val APPLICABLE = "applicable_app"
 
