@@ -94,7 +94,7 @@ class AndroidLicensesFetcherImplTest {
             ]
         """.trimIndent()
         val inputStream = ByteArrayInputStream(licensesJson.toByteArray())
-        `when`(assetManager.open("licenses.json")).thenReturn(inputStream)
+        `when`(assetManager.open("app/cash/licensee/artifacts.json")).thenReturn(inputStream)
 
         val result = fetcher.fetch()
 
@@ -105,7 +105,7 @@ class AndroidLicensesFetcherImplTest {
 
     @Test
     fun givenIOException_whenFetch_thenReturnsEmptyList() = runTest {
-        `when`(assetManager.open("licenses.json")).thenThrow(IOException::class.java)
+        `when`(assetManager.open("app/cash/licensee/artifacts.json")).thenThrow(IOException::class.java)
 
         val result = fetcher.fetch()
 
