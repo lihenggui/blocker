@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.annotation.VisibleForTesting
 import com.merxury.blocker.core.ui.R
 
 sealed class RuleDetailTabs(val name: String, val title: Int = 0) {
@@ -26,6 +27,7 @@ sealed class RuleDetailTabs(val name: String, val title: Int = 0) {
 
     companion object {
         const val DESCRIPTION = "description"
+        @VisibleForTesting
         const val APPLICABLE = "applicable_app"
 
         fun fromName(name: String?): RuleDetailTabs = when (name) {
