@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.annotation.VisibleForTesting
 import com.merxury.blocker.core.ui.R
 
 sealed class RuleDetailTabs(val name: String, val title: Int = 0) {
@@ -25,13 +26,15 @@ sealed class RuleDetailTabs(val name: String, val title: Int = 0) {
     override fun toString(): String = "Screen name = $name"
 
     companion object {
-        private const val DESCRIPTION = "description"
-        private const val APPLICABLE = "applicable app"
+        const val DESCRIPTION = "description"
+
+        @VisibleForTesting
+        const val APPLICABLE = "applicable_app"
 
         fun fromName(name: String?): RuleDetailTabs = when (name) {
             DESCRIPTION -> Description
             APPLICABLE -> Applicable
-            else -> throw IllegalArgumentException("Invalid screen name in rule detail page")
+            else -> throw IllegalArgumentException("Invalid screen name: $name in rule detail page")
         }
     }
 }

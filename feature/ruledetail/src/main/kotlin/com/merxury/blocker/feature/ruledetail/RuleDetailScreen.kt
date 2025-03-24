@@ -79,6 +79,8 @@ import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.Result.Loading
+import com.merxury.blocker.core.result.Result.Success
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -94,6 +96,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.ruledetail.R.string
+import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Error
 import com.merxury.blocker.feature.ruledetail.component.RuleDescription
 import com.merxury.blocker.feature.ruledetail.component.RuleMatchedAppList
 import kotlinx.coroutines.CoroutineScope
@@ -102,7 +105,7 @@ import kotlinx.coroutines.launch
 import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
-fun RuleDetailRoute(
+fun RuleDetailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
@@ -316,7 +319,7 @@ fun RuleDetailScreen(
             )
         }
 
-        is RuleInfoUiState.Error -> {
+        is Error -> {
             ErrorScreen(error = ruleInfoUiState.error)
         }
     }
@@ -567,7 +570,7 @@ private fun RuleDetailScreenPreview(
                 showBackButton = false,
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
-                    matchedAppsUiState = Result.Success(
+                    matchedAppsUiState = Success(
                         listOf(
                             MatchedItem(
                                 header = MatchedHeaderData(
@@ -605,7 +608,7 @@ private fun RuleDetailScreenSelectedDescriptionPreview(
             RuleDetailScreen(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
-                    matchedAppsUiState = Result.Success(
+                    matchedAppsUiState = Success(
                         listOf(
                             MatchedItem(
                                 header = MatchedHeaderData(
@@ -636,7 +639,7 @@ private fun RuleDetailScreenWithApplicableLoadingPreview(
             RuleDetailScreen(
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
-                    matchedAppsUiState = Result.Loading,
+                    matchedAppsUiState = Loading,
                 ),
                 tabState = tabState[0],
             )
@@ -665,7 +668,7 @@ private fun RuleDetailScreenErrorPreview() {
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleInfoUiState = RuleInfoUiState.Error(
+                ruleInfoUiState = Error(
                     error = UiMessage("Error"),
                 ),
                 tabState = tabState[0],

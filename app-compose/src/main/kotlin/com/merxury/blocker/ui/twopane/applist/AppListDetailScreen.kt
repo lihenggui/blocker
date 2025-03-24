@@ -39,26 +39,27 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.feature.appdetail.AppDetailPlaceholder
-import com.merxury.blocker.feature.appdetail.navigation.APP_DETAIL_ROUTE
+import com.merxury.blocker.feature.appdetail.navigation.AppDetailRoute
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
-import com.merxury.blocker.feature.appdetail.navigation.createAppDetailRoute
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
-import com.merxury.blocker.feature.applist.AppListRoute
-import com.merxury.blocker.feature.applist.navigation.APP_LIST_ROUTE_BASIC
-import com.merxury.blocker.feature.applist.navigation.PACKAGE_NAME_ARG
+import com.merxury.blocker.feature.applist.AppListScreen
+import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
-private const val APP_LIST_DETAIL_PANE_ROUTE = "app_list_detail_pane_route"
+@Serializable
+internal object AppDetailPlaceholderRoute
+
+@Serializable
+internal object AppListDetailNavHostRoute
 
 fun NavGraphBuilder.appListDetailScreen(
     navigateToSettings: () -> Unit,
@@ -68,16 +69,7 @@ fun NavGraphBuilder.appListDetailScreen(
     navigateToComponentDetail: (String) -> Unit,
     navigateToRuleDetail: (String) -> Unit,
 ) {
-    composable(
-        route = APP_LIST_ROUTE_BASIC,
-        arguments = listOf(
-            navArgument(PACKAGE_NAME_ARG) {
-                type = NavType.StringType
-                defaultValue = null
-                nullable = true
-            },
-        ),
-    ) {
+    composable<AppListRoute> {
         AppListDetailRoute(
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
@@ -140,8 +132,11 @@ internal fun AppListDetailScreen(
         listDetailNavigator.navigateBack()
     }
 
-    var nestedNavHostStartDestination by remember {
-        mutableStateOf(selectedPackageName?.let(::createAppDetailRoute) ?: APP_DETAIL_ROUTE)
+    var nestedNavHostStartRoute by remember {
+        val route =
+            selectedPackageName?.let { AppDetailRoute(packageName = it) }
+                ?: AppDetailPlaceholderRoute
+        mutableStateOf(route)
     }
     var nestedNavKey by rememberSaveable(
         stateSaver = Saver({ it.toString() }, UUID::fromString),
@@ -158,11 +153,11 @@ internal fun AppListDetailScreen(
             // If the detail pane was visible, then use the nestedNavController navigate call
             // directly
             nestedNavController.navigateToAppDetail(packageName) {
-                popUpTo(APP_LIST_DETAIL_PANE_ROUTE)
+                popUpTo<AppListDetailNavHostRoute>()
             }
         } else {
             // Otherwise, recreate the NavHost entirely, and start at the new destination
-            nestedNavHostStartDestination = createAppDetailRoute(packageName)
+            nestedNavHostStartRoute = AppDetailRoute(packageName = packageName)
             nestedNavKey = UUID.randomUUID()
         }
         listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
@@ -173,7 +168,7 @@ internal fun AppListDetailScreen(
         value = listDetailNavigator.scaffoldValue,
         directive = listDetailNavigator.scaffoldDirective,
         listPane = {
-            AppListRoute(
+            AppListScreen(
                 navigateToAppDetail = ::onAppClickShowDetailPane,
                 navigateToSettings = navigateToSettings,
                 navigateToSupportAndFeedback = navigateToSupportAndFeedback,
@@ -184,8 +179,8 @@ internal fun AppListDetailScreen(
             key(nestedNavKey) {
                 NavHost(
                     navController = nestedNavController,
-                    startDestination = nestedNavHostStartDestination,
-                    route = APP_LIST_DETAIL_PANE_ROUTE,
+                    startDestination = nestedNavHostStartRoute,
+                    route = AppListDetailNavHostRoute::class,
                 ) {
                     appDetailScreen(
                         onBackClick = listDetailNavigator::navigateBack,
@@ -195,7 +190,7 @@ internal fun AppListDetailScreen(
                         updateIconThemingState = updateIconThemingState,
                         showBackButton = !listDetailNavigator.isListPaneVisible(),
                     )
-                    composable(route = APP_DETAIL_ROUTE) {
+                    composable<AppDetailPlaceholderRoute> {
                         AppDetailPlaceholder()
                     }
                 }
