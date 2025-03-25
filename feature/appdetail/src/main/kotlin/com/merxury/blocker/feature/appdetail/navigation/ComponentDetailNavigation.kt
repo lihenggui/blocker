@@ -16,52 +16,32 @@
 
 package com.merxury.blocker.feature.appdetail.navigation
 
-import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.dialog
-import androidx.navigation.navArgument
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailDialogRoute
-import java.net.URLDecoder
-import java.net.URLEncoder
-import kotlin.text.Charsets.UTF_8
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailDialog
+import kotlinx.serialization.Serializable
 
-private val URL_CHARACTER_ENCODING = UTF_8.name()
-
-@VisibleForTesting
-internal const val COMPONENT_ARG_NAME = "componentName"
-
-internal class ComponentDetailArgs(
-    val name: String,
-) {
-    constructor(savedStateHandle: SavedStateHandle) :
-        this(
-            URLDecoder.decode(
-                checkNotNull(savedStateHandle[COMPONENT_ARG_NAME]),
-                URL_CHARACTER_ENCODING,
-            ),
-        )
-}
+@Serializable
+data class ComponentDetailRoute(
+    val componentName: String,
+)
 
 fun NavController.navigateToComponentDetail(
-    name: String,
+    componentName: String,
+    navOptions: NavOptionsBuilder.() -> Unit = {},
 ) {
-    val encodedId = URLEncoder.encode(name, URL_CHARACTER_ENCODING)
-    navigate("app_component_detail_route/$encodedId")
+    navigate(route = ComponentDetailRoute(componentName)) {
+        navOptions()
+    }
 }
 
 fun NavGraphBuilder.componentDetailScreen(
     dismissHandler: () -> Unit,
 ) {
-    dialog(
-        route = "app_component_detail_route/{$COMPONENT_ARG_NAME}",
-        arguments = listOf(
-            navArgument(COMPONENT_ARG_NAME) { type = NavType.StringType },
-        ),
-    ) {
-        ComponentDetailDialogRoute(
+    dialog<ComponentDetailRoute> {
+        ComponentDetailDialog(
             dismissHandler = dismissHandler,
         )
     }

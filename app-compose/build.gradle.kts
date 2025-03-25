@@ -27,6 +27,7 @@ plugins {
     id("kotlin-parcelize")
     alias(libs.plugins.baselineprofile)
     alias(libs.plugins.roborazzi)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -98,7 +99,6 @@ dependencies {
     implementation(projects.feature.ruledetail)
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
-    implementation(projects.feature.sort)
 
     implementation(projects.core.analytics)
     implementation(projects.core.common)
@@ -123,7 +123,6 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.tracing.ktx)
     implementation(libs.androidx.compose.animation)
-    implementation(libs.androidx.compose.material.navigation)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.navigation.compose)
@@ -136,6 +135,7 @@ dependencies {
     implementation(libs.hiddenapibypass)
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.timber)
 

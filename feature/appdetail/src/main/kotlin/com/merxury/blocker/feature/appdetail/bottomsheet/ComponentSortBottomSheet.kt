@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.sort
+package com.merxury.blocker.feature.appdetail.bottomsheet
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,7 +31,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,9 +52,9 @@ import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Loading
-import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Success
-import com.merxury.blocker.feature.sort.R.string
+import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.bottomsheet.ComponentSortInfoUiState.Success
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +72,6 @@ fun ComponentSortBottomSheetRoute(
         onDismissRequest = { dismissHandler() },
         sheetState = bottomSheetState,
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        scrimColor = Color.Transparent,
     ) {
         ComponentSortBottomSheet(
             uiState = uiState,
@@ -119,38 +117,38 @@ fun SortOptionsContent(
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
     val sortModeList = listOf(
-        COMPONENT_NAME to string.feature_sort_component_name,
-        PACKAGE_NAME to string.feature_sort_package_name,
+        COMPONENT_NAME to string.feature_appdetail_component_name,
+        PACKAGE_NAME to string.feature_appdetail_package_name,
     )
     val sortByRuleList = listOf(
-        ASCENDING to string.feature_sort_ascending,
-        DESCENDING to string.feature_sort_descending,
+        ASCENDING to string.feature_appdetail_ascending,
+        DESCENDING to string.feature_appdetail_descending,
     )
     val priorityList = listOf(
-        NONE to string.feature_sort_none,
-        DISABLED_COMPONENTS_FIRST to string.feature_sort_disabled_first,
-        ENABLED_COMPONENTS_FIRST to string.feature_sort_enabled_first,
+        NONE to string.feature_appdetail_none,
+        DISABLED_COMPONENTS_FIRST to string.feature_appdetail_disabled_first,
+        ENABLED_COMPONENTS_FIRST to string.feature_appdetail_enabled_first,
     )
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(id = string.feature_sort_sort_options),
+            text = stringResource(id = string.feature_appdetail_sort_options),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
-        ItemHeader(title = stringResource(id = string.feature_sort_sort_by))
+        ItemHeader(title = stringResource(id = string.feature_appdetail_sort_by))
         SegmentedButtons(
             items = sortModeList,
             selectedValue = uiState.componentSortInfo.sorting,
             onItemSelection = onSortByClick,
         )
-        ItemHeader(title = stringResource(id = string.feature_sort_order))
+        ItemHeader(title = stringResource(id = string.feature_appdetail_order))
         SegmentedButtons(
             items = sortByRuleList,
             selectedValue = uiState.componentSortInfo.order,
             onItemSelection = onSortOrderClick,
         )
-        ItemHeader(title = stringResource(id = string.feature_sort_priority))
+        ItemHeader(title = stringResource(id = string.feature_appdetail_priority))
         SegmentedButtons(
             items = priorityList,
             selectedValue = uiState.componentSortInfo.priority,

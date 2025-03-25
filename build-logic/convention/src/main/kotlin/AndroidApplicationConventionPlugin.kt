@@ -17,7 +17,6 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.BaseExtension
-import com.merxury.blocker.configureAndroidLicensesTasks
 import com.merxury.blocker.configureBadgingTasks
 import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
@@ -52,7 +51,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 configureRenameBuildOutputTask(this)
                 configureBadgingTasks(extensions.getByType<BaseExtension>(), this)
                 configureLicensee()
-                configureAndroidLicensesTasks()
             }
             extensions.configure<JavaPluginExtension> {
                 toolchain {

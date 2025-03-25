@@ -22,6 +22,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -49,7 +50,7 @@ import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
-import com.merxury.blocker.feature.applist.navigation.PACKAGE_NAME_ARG
+import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -94,10 +95,14 @@ class AppListViewModel @Inject constructor(
     val errorState = _errorState.asStateFlow()
     private val _warningState = MutableStateFlow<WarningDialogData?>(null)
     val warningState = _warningState.asStateFlow()
+
+    private val selectedPackageKey = "selectedPackageKey"
+    private val appListRoute: AppListRoute = savedStateHandle.toRoute()
     private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
-        PACKAGE_NAME_ARG,
-        null,
+        key = selectedPackageKey,
+        initialValue = appListRoute.initialPackageName,
     )
+    private var showAppSortBottomSheetStatus = false
 
     // Internal list for storing the displayed app list (data storing)
     private var appList = listOf<AppItem>()
@@ -160,6 +165,7 @@ class AppListViewModel @Inject constructor(
                         Success(
                             selectedPackageName = selectedPackageName.value,
                             isRefreshing = false,
+                            showAppSortBottomSheet = showAppSortBottomSheetStatus,
                         ),
                     )
                 }
@@ -167,8 +173,19 @@ class AppListViewModel @Inject constructor(
     }
 
     fun onAppClick(packageName: String?) {
-        savedStateHandle[PACKAGE_NAME_ARG] = packageName
+        savedStateHandle[selectedPackageKey] = packageName
         loadSelectedApp()
+    }
+
+    fun showAppSortBottomSheet(showAppSortBottomSheet: Boolean) {
+        showAppSortBottomSheetStatus = showAppSortBottomSheet
+        _uiState.update {
+            if (it is Success) {
+                it.copy(showAppSortBottomSheet = showAppSortBottomSheet)
+            } else {
+                it
+            }
+        }
     }
 
     private fun loadSelectedApp() {
@@ -381,5 +398,6 @@ sealed interface AppListUiState {
     data class Success(
         val isRefreshing: Boolean = false,
         val selectedPackageName: String? = null,
+        val showAppSortBottomSheet: Boolean = false,
     ) : AppListUiState
 }

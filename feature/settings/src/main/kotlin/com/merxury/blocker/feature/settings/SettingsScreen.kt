@@ -87,7 +87,7 @@ import com.merxury.blocker.core.rule.R.string as CoreRuleR
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun SettingsRoute(
+fun SettingsScreen(
     onNavigationClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     viewModel: SettingsViewModel = hiltViewModel(),
