@@ -27,11 +27,9 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
@@ -92,7 +90,6 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.feature.appdetail.navigation.AppDetailRoute
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -115,7 +112,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import javax.inject.Inject
 
 private const val LIBCHECKER_PACKAGE_NAME = "com.absinthe.libchecker"
 
@@ -136,8 +132,8 @@ class AppDetailViewModel @AssistedInject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
-    @Assisted val packageName: String,
-    @Assisted val tab: String = Info.name,
+    @Assisted("packageName") val packageName: String,
+    @Assisted("tab") val tab: String = Info.name,
     @Assisted val searchKeyword: List<String> = listOf(),
 ) : ViewModel() {
     private val _appInfoUiState: MutableStateFlow<AppInfoUiState> =
@@ -918,8 +914,8 @@ class AppDetailViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(
-            packageName: String,
-            tab: String = Info.name,
+            @Assisted("packageName") packageName: String,
+            @Assisted("tab") tab: String = Info.name,
             searchKeyword: List<String> = listOf(),
         ): AppDetailViewModel
     }
