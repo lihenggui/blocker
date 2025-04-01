@@ -18,7 +18,6 @@
 package com.merxury.blocker.ui
 
 import android.util.Log
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.CompositionLocalProvider
@@ -38,6 +37,7 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -118,10 +118,10 @@ class BlockerAppScreenSizesScreenshotTests {
                 DeviceConfigurationOverride(
                     override = DeviceConfigurationOverride.ForcedSize(DpSize(width, height)),
                 ) {
-                    BoxWithConstraints {
+                    BlockerTheme {
                         val appState = rememberBlockerAppState(
                             windowSizeClass = WindowSizeClass.calculateFromSize(
-                                DpSize(maxWidth, maxHeight),
+                                DpSize(width, height),
                             ),
                             networkMonitor = networkMonitor,
                             permissionMonitor = permissionMonitor,
