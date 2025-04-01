@@ -21,6 +21,7 @@ import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.ForcedSize
@@ -188,6 +189,7 @@ class SnackbarScreenshotTests {
     ) {
         lateinit var scope: CoroutineScope
         composeTestRule.setContent {
+            scope = rememberCoroutineScope()
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
