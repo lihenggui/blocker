@@ -348,7 +348,7 @@ class AppDetailViewModel @AssistedInject constructor(
 
     fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch {
         if (newTab != tabState.value.selectedItem) {
-            Timber.d("Switch tab to ${newTab.name}, screen = ${packageName}")
+            Timber.d("Switch tab to ${newTab.name}, screen = $packageName")
             _tabState.update {
                 it.copy(selectedItem = newTab)
             }
@@ -874,13 +874,12 @@ class AppDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun getSeedColor(packageInfo: PackageInfo?): Color? =
-        withContext(ioDispatcher) {
-            val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
-            return@withContext icon?.toBitmap()
-                ?.asImageBitmap()
-                ?.themeColorOrNull()
-        }
+    private suspend fun getSeedColor(packageInfo: PackageInfo?): Color? = withContext(ioDispatcher) {
+        val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+        return@withContext icon?.toBitmap()
+            ?.asImageBitmap()
+            ?.themeColorOrNull()
+    }
 
     fun zipAllRule() = zipAllRuleUseCase()
 

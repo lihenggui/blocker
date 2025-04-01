@@ -142,7 +142,7 @@ internal fun AppListDetailScreen(
             PaneExpansionAnchor.Proportion(0.5f),
             PaneExpansionAnchor.Proportion(1f),
 
-            ),
+        ),
     )
 
     ThreePaneScaffoldPredictiveBackHandler(
@@ -212,7 +212,6 @@ internal fun AppListDetailScreen(
                         highlightSelectedApp = listDetailNavigator.isDetailPaneVisible(),
                     )
                 }
-
             }
         },
         detailPane = {
