@@ -213,8 +213,6 @@ class SnackbarScreenshotTests {
                     }
                 }
             }
-
-
         }
 
         scope.launch {
