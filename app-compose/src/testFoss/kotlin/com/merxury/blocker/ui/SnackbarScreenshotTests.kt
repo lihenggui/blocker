@@ -17,9 +17,11 @@
 package com.merxury.blocker.ui
 
 import android.util.Log
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.SnackbarDuration.Indefinite
+import androidx.compose.material3.adaptive.Posture
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.window.core.layout.WindowSizeClass
 import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
@@ -189,27 +192,32 @@ class SnackbarScreenshotTests {
     ) {
         lateinit var scope: CoroutineScope
         composeTestRule.setContent {
-            scope = rememberCoroutineScope()
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
+                scope = rememberCoroutineScope()
+
                 DeviceConfigurationOverride(
                     DeviceConfigurationOverride.ForcedSize(DpSize(width, height)),
                 ) {
-                    BlockerTheme {
-                        val fakeAppState = rememberBlockerAppState(
-                            windowSizeClass = WindowSizeClass.calculateFromSize(
-                                DpSize(width, height),
-                            ),
-                            networkMonitor = networkMonitor,
-                            timeZoneMonitor = timeZoneMonitor,
-                            permissionMonitor = permissionMonitor,
-                        )
+                    BoxWithConstraints {
                         BlockerTheme {
+                            val fakeAppState = rememberBlockerAppState(
+                                networkMonitor = networkMonitor,
+                                timeZoneMonitor = timeZoneMonitor,
+                                permissionMonitor = permissionMonitor,
+                            )
                             BlockerApp(
                                 appState = fakeAppState,
                                 snackbarHostState = snackbarHostState,
                                 updateIconThemingState = {},
+                                windowAdaptiveInfo = WindowAdaptiveInfo(
+                                    windowSizeClass = WindowSizeClass.compute(
+                                        maxWidth.value,
+                                        maxHeight.value,
+                                    ),
+                                    windowPosture = Posture(),
+                                ),
                             )
                         }
                     }

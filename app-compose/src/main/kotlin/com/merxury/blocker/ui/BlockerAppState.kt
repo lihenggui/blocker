@@ -17,7 +17,6 @@
 
 package com.merxury.blocker.ui
 
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -50,7 +49,6 @@ import kotlinx.datetime.TimeZone
 
 @Composable
 fun rememberBlockerAppState(
-    windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
     permissionMonitor: PermissionMonitor,
     timeZoneMonitor: TimeZoneMonitor,
@@ -61,7 +59,6 @@ fun rememberBlockerAppState(
     return remember(
         navController,
         coroutineScope,
-        windowSizeClass,
         networkMonitor,
         permissionMonitor,
         timeZoneMonitor,
