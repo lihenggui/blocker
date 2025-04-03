@@ -24,8 +24,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +36,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.metrics.performance.JankStats
 import com.merxury.blocker.MainActivityUiState.Loading
-import com.merxury.blocker.MainActivityUiState.Success
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.util.NetworkMonitor
@@ -95,7 +92,6 @@ class MainActivity : ComponentActivity() {
             ),
         )
 
-        var uiState: MainActivityUiState by mutableStateOf(Loading)
         var iconThemingState: IconThemingState by mutableStateOf(IconThemingState())
 
         // Update the uiState
@@ -151,7 +147,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val appState = rememberBlockerAppState(
-                windowSizeClass = calculateWindowSizeClass(this),
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 timeZoneMonitor = timeZoneMonitor,
@@ -186,17 +181,6 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         lazyStats.get().isTrackingEnabled = false
     }
-}
-
-/**
- * Returns `true` if the dynamic color is used, as a function of the [uiState].
- */
-@Composable
-private fun shouldUseDynamicTheming(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
-    Loading -> false
-    is Success -> uiState.userData.useDynamicColor
 }
 
 /**

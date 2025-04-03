@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.ruledetail
 
+import android.content.ClipData
 import android.content.Context
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
@@ -50,11 +51,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
@@ -117,7 +118,7 @@ fun RuleDetailScreen(
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val appBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
-    val clipboardManager = LocalClipboardManager.current
+    val clipboardManager = LocalClipboard.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     RuleDetailScreen(
@@ -129,8 +130,16 @@ fun RuleDetailScreen(
         appBarUiState = appBarUiState,
         onStopServiceClick = viewModel::stopService,
         onLaunchActivityClick = viewModel::launchActivity,
-        onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onCopyNameClick = {
+            scope.launch {
+                clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
+            }
+        },
+        onCopyFullNameClick = {
+            scope.launch {
+                clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
+            }
+        },
         onBlockAllInItemClick = {
             handleBlockAllInItemClick(context, viewModel, it, scope, snackbarHostState)
         },

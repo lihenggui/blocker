@@ -7,7 +7,7 @@ androidTools = "31.9.1"
 androidxActivity = "1.10.1"
 androidxAppCompat = "1.7.0"
 androidxBrowser = "1.8.0"
-androidxComposeBom = "2025.02.00"
+androidxComposeBom = "2025.03.01"
 androidxComposeRuntimeTracing = "1.7.8"
 androidxCore = "1.15.0"
 androidxCoreSplashscreen = "1.0.1"
@@ -79,7 +79,7 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
 androidx-benchmark-macro = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "androidxMacroBenchmark" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
-androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom-alpha", version.ref = "androidxComposeBom" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout" }

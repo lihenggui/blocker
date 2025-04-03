@@ -27,11 +27,9 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
@@ -92,7 +90,9 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.feature.appdetail.navigation.AppDetailRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -112,13 +112,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import javax.inject.Inject
 
 private const val LIBCHECKER_PACKAGE_NAME = "com.absinthe.libchecker"
 
-@HiltViewModel
-class AppDetailViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+@HiltViewModel(assistedFactory = AppDetailViewModel.Factory::class)
+class AppDetailViewModel @AssistedInject constructor(
     private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
     private val workerManager: WorkManager,
@@ -134,8 +132,10 @@ class AppDetailViewModel @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
+    @Assisted("packageName") val packageName: String,
+    @Assisted("tab") val tab: String = Info.name,
+    @Assisted val searchKeyword: List<String> = listOf(),
 ) : ViewModel() {
-    private val appDetailRouteInfo = savedStateHandle.toRoute<AppDetailRoute>()
     private val _appInfoUiState: MutableStateFlow<AppInfoUiState> =
         MutableStateFlow(AppInfoUiState(AppItem("")))
     val appInfoUiState = _appInfoUiState.asStateFlow()
@@ -187,7 +187,7 @@ class AppDetailViewModel @Inject constructor(
         loadComponentListJob?.cancel()
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             Timber.v("Start filtering component list with keyword: $keyword")
-            searchComponents(appDetailRouteInfo.packageName, keyword).collect { result ->
+            searchComponents(packageName, keyword).collect { result ->
                 updateTabs(result, updateComponentTabs = true)
                 _appInfoUiState.update {
                     it.copy(
@@ -256,7 +256,7 @@ class AppDetailViewModel @Inject constructor(
             searchJob?.cancel()
             loadComponentListJob?.cancel()
             loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-                val packageName = appDetailRouteInfo.packageName
+                val packageName = packageName
                 Timber.v("Start loading component: $packageName")
                 searchComponents(packageName).collect { result ->
                     updateTabs(result, updateComponentTabs = true)
@@ -275,7 +275,7 @@ class AppDetailViewModel @Inject constructor(
     fun loadMatchedRule() {
         searchMatchedRuleJob?.cancel()
         searchMatchedRuleJob = viewModelScope.launch(exceptionHandler) {
-            val packageName = appDetailRouteInfo.packageName
+            val packageName = packageName
             searchMatchedRuleInAppUseCase(packageName)
                 .asResult()
                 .collect { result ->
@@ -309,7 +309,7 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun updateComponentList() = viewModelScope.launch {
-        val packageName = appDetailRouteInfo.packageName
+        val packageName = packageName
         componentRepository.updateComponentList(packageName)
             .catch { error ->
                 _appInfoUiState.update {
@@ -320,7 +320,7 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun updateSearchKeyword() = viewModelScope.launch(mainDispatcher) {
-        val keyword = appDetailRouteInfo.searchKeyword
+        val keyword = searchKeyword
             .map { it.trim() }
             .filterNot { it.isEmpty() }
         if (keyword.isEmpty()) return@launch
@@ -338,7 +338,7 @@ class AppDetailViewModel @Inject constructor(
 
     @VisibleForTesting
     fun loadTabInfo() = viewModelScope.launch {
-        val screen = AppDetailTabs.fromName(appDetailRouteInfo.tab)
+        val screen = AppDetailTabs.fromName(tab)
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
         _appBarUiState.update {
@@ -348,7 +348,7 @@ class AppDetailViewModel @Inject constructor(
 
     fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch {
         if (newTab != tabState.value.selectedItem) {
-            Timber.d("Switch tab to ${newTab.name}, screen = ${appDetailRouteInfo.packageName}")
+            Timber.d("Switch tab to ${newTab.name}, screen = $packageName")
             _tabState.update {
                 it.copy(selectedItem = newTab)
             }
@@ -373,7 +373,7 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private suspend fun hasCustomizedRule(): Boolean {
-        val packageName = appDetailRouteInfo.packageName
+        val packageName = packageName
         return withContext(ioDispatcher) {
             componentDetailRepository.hasUserGeneratedDetail(packageName)
                 .first()
@@ -823,7 +823,7 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun loadAppInfo() = viewModelScope.launch {
-        val packageName = appDetailRouteInfo.packageName
+        val packageName = packageName
         val app = appRepository.getApplication(packageName).first()
         val isLibCheckerInstalled = ApplicationUtil.isAppInstalled(
             pm = pm,
@@ -851,7 +851,7 @@ class AppDetailViewModel @Inject constructor(
         if (!useDynamicColor) {
             return@launch
         }
-        val packageName = appDetailRouteInfo.packageName
+        val packageName = packageName
         val packageInfo = pm.getPackageInfoCompat(packageName, PackageManager.GET_META_DATA)
         val seedColor = getSeedColor(packageInfo)
         _appInfoUiState.update {
@@ -883,7 +883,7 @@ class AppDetailViewModel @Inject constructor(
 
     fun zipAllRule() = zipAllRuleUseCase()
 
-    fun zipAppRule() = zipAppRuleUseCase(appDetailRouteInfo.packageName)
+    fun zipAppRule() = zipAppRuleUseCase(packageName)
 
     fun showAppInfo(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -891,7 +891,7 @@ class AppDetailViewModel @Inject constructor(
             return
         }
         val destinationPackage = LIBCHECKER_PACKAGE_NAME
-        val packageName = appDetailRouteInfo.packageName
+        val packageName = packageName
         val intent = Intent(Intent.ACTION_SHOW_APP_INFO).apply {
             putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
             setPackage(destinationPackage)
@@ -908,6 +908,15 @@ class AppDetailViewModel @Inject constructor(
         _appInfoUiState.update {
             it.copy(showComponentSortBottomSheet = showComponentSortBottomSheet)
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            @Assisted("packageName") packageName: String,
+            @Assisted("tab") tab: String = Info.name,
+            searchKeyword: List<String> = listOf(),
+        ): AppDetailViewModel
     }
 }
 

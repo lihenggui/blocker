@@ -62,11 +62,11 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -161,7 +161,7 @@ fun AppDetailScreen(
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val event by viewModel.eventFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
-    val clipboardManager = LocalClipboardManager.current
+    val clipboardManager = LocalClipboard.current
     val context = LocalContext.current
     AppDetailScreen(
         appInfoUiState = appInfoUiState,
@@ -206,8 +206,16 @@ fun AppDetailScreen(
         onSwitchClick = viewModel::controlComponent,
         onStopServiceClick = viewModel::stopService,
         onLaunchActivityClick = viewModel::launchActivity,
-        onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onCopyNameClick = {
+            scope.launch {
+                clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
+            }
+        },
+        onCopyFullNameClick = {
+            scope.launch {
+                clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
+            }
+        },
         updateIconThemingState = updateIconThemingState,
         onSelectAll = viewModel::selectAll,
         blockAllSelectedComponents = { viewModel.controlAllSelectedComponents(false) },

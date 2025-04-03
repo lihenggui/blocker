@@ -17,49 +17,55 @@
 package com.merxury.blocker.ui.twopane.rule
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.PaneExpansionAnchor
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
+import androidx.compose.material3.adaptive.layout.defaultDragHandleSemantics
+import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
+import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
+import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldPredictiveBackHandler
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.feature.generalrules.GeneralRulesScreen
 import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
 import com.merxury.blocker.feature.ruledetail.RuleDetailPlaceholder
+import com.merxury.blocker.feature.ruledetail.RuleDetailScreen
+import com.merxury.blocker.feature.ruledetail.RuleDetailViewModel
 import com.merxury.blocker.feature.ruledetail.navigation.RuleDetailRoute
-import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
-import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import java.util.UUID
+import kotlin.math.max
 
 @Serializable
 internal object RuleDetailPlaceholderRoute
-
-@Serializable
-internal object RuleListDetailPaneNavHostRoute
 
 fun NavGraphBuilder.ruleListDetailScreen(
     snackbarHostState: SnackbarHostState,
@@ -113,67 +119,144 @@ internal fun RuleListDetailScreen(
             },
         ),
     )
-    BackHandler(listDetailNavigator.canNavigateBack()) {
-        listDetailNavigator.navigateBack()
+    val coroutineScope = rememberCoroutineScope()
+
+    val paneExpansionState = rememberPaneExpansionState(
+        anchors = listOf(
+            PaneExpansionAnchor.Proportion(0f),
+            PaneExpansionAnchor.Proportion(0.5f),
+            PaneExpansionAnchor.Proportion(1f),
+        ),
+    )
+
+    ThreePaneScaffoldPredictiveBackHandler(
+        listDetailNavigator,
+        BackNavigationBehavior.PopUntilScaffoldValueChange,
+    )
+    BackHandler(
+        paneExpansionState.currentAnchor == PaneExpansionAnchor.Proportion(0f) &&
+            listDetailNavigator.isListPaneVisible() &&
+            listDetailNavigator.isDetailPaneVisible(),
+    ) {
+        coroutineScope.launch {
+            paneExpansionState.animateTo(PaneExpansionAnchor.Proportion(1f))
+        }
     }
 
-    var nestedNavHostStartRoute by remember {
+    var ruleDetailRoute by remember {
         val route =
             selectedRuleId?.let { RuleDetailRoute(ruleId = it) } ?: RuleDetailPlaceholderRoute
         mutableStateOf(route)
     }
-    var nestedNavKey by rememberSaveable(
-        stateSaver = Saver({ it.toString() }, UUID::fromString),
-    ) {
-        mutableStateOf(UUID.randomUUID())
-    }
-    val nestedNavController = key(nestedNavKey) { rememberNavController() }
 
     fun onRuleClickShowDetailPane(ruleId: String) {
         onRuleClick(ruleId)
-        if (listDetailNavigator.isDetailPaneVisible()) {
-            // If the detail pane was visible, then use the nestedNavController navigate call
-            // directly
-            nestedNavController.navigateToRuleDetail(ruleId) {
-                popUpTo<RuleListDetailPaneNavHostRoute>()
-            }
-        } else {
-            // Otherwise, recreate the NavHost entirely, and start at the new destination
-            nestedNavHostStartRoute = RuleDetailRoute(ruleId = ruleId)
-            nestedNavKey = UUID.randomUUID()
+        ruleDetailRoute = RuleDetailRoute(ruleId = ruleId)
+        coroutineScope.launch {
+            listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
         }
-        listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
+        if (paneExpansionState.currentAnchor == PaneExpansionAnchor.Proportion(1f)) {
+            coroutineScope.launch {
+                paneExpansionState.animateTo(PaneExpansionAnchor.Proportion(0f))
+            }
+        }
     }
 
-    ListDetailPaneScaffold(
-        modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
-        value = listDetailNavigator.scaffoldValue,
-        directive = listDetailNavigator.scaffoldDirective,
+    val mutableInteractionSource = remember { MutableInteractionSource() }
+    val minPaneWidth = 300.dp
+
+    NavigableListDetailPaneScaffold(
+        navigator = listDetailNavigator,
         listPane = {
-            GeneralRulesScreen(
-                highlightSelectedRule = listDetailNavigator.isDetailPaneVisible(),
-                navigateToRuleDetail = ::onRuleClickShowDetailPane,
-            )
+            AnimatedPane {
+                Box(
+                    modifier = Modifier
+                        .clipToBounds()
+                        .layout { measurable, constraints ->
+                            val width = max(minPaneWidth.roundToPx(), constraints.maxWidth)
+                            val placeable = measurable.measure(
+                                constraints.copy(
+                                    minWidth = minPaneWidth.roundToPx(),
+                                    maxWidth = width,
+                                ),
+                            )
+                            layout(constraints.maxWidth, placeable.height) {
+                                placeable.placeRelative(
+                                    x = 0,
+                                    y = 0,
+                                )
+                            }
+                        },
+                ) {
+                    GeneralRulesScreen(
+                        highlightSelectedRule = listDetailNavigator.isDetailPaneVisible(),
+                        navigateToRuleDetail = ::onRuleClickShowDetailPane,
+                    )
+                }
+            }
         },
         detailPane = {
-            key(nestedNavKey) {
-                NavHost(
-                    navController = nestedNavController,
-                    startDestination = nestedNavHostStartRoute,
-                    route = RuleListDetailPaneNavHostRoute::class,
+            AnimatedPane {
+                Box(
+                    modifier = Modifier
+                        .clipToBounds()
+                        .layout { measurable, constraints ->
+                            val width = max(minPaneWidth.roundToPx(), constraints.maxWidth)
+                            val placeable = measurable.measure(
+                                constraints.copy(
+                                    minWidth = minPaneWidth.roundToPx(),
+                                    maxWidth = width,
+                                ),
+                            )
+                            layout(constraints.maxWidth, placeable.height) {
+                                placeable.placeRelative(
+                                    x = constraints.maxWidth -
+                                        max(constraints.maxWidth, placeable.width),
+                                    y = 0,
+                                )
+                            }
+                        },
                 ) {
-                    ruleDetailScreen(
-                        showBackButton = !listDetailNavigator.isListPaneVisible(),
-                        onBackClick = listDetailNavigator::navigateBack,
-                        snackbarHostState = snackbarHostState,
-                        navigateToAppDetail = navigateToAppDetail,
-                        updateIconThemingState = updateIconThemingState,
-                    )
-                    composable<RuleDetailPlaceholderRoute> {
-                        RuleDetailPlaceholder()
+                    AnimatedContent(ruleDetailRoute) { route ->
+                        when (route) {
+                            is RuleDetailRoute -> {
+                                RuleDetailScreen(
+                                    showBackButton = !listDetailNavigator.isListPaneVisible(),
+                                    onBackClick = {
+                                        coroutineScope.launch {
+                                            listDetailNavigator.navigateBack()
+                                        }
+                                    },
+                                    snackbarHostState = snackbarHostState,
+                                    navigateToAppDetail = navigateToAppDetail,
+                                    updateIconThemingState = updateIconThemingState,
+                                    viewModel = hiltViewModel<RuleDetailViewModel, RuleDetailViewModel.Factory>(
+                                        key = route.ruleId,
+                                    ) { factory ->
+                                        factory.create(route.ruleId, route.tab)
+                                    },
+                                )
+                            }
+
+                            is RuleDetailPlaceholderRoute -> {
+                                RuleDetailPlaceholder()
+                            }
+                        }
                     }
                 }
             }
+        },
+        paneExpansionState = paneExpansionState,
+        paneExpansionDragHandle = {
+            VerticalDragHandle(
+                modifier = Modifier.paneExpansionDraggable(
+                    state = paneExpansionState,
+                    minTouchTargetSize = LocalMinimumInteractiveComponentSize.current,
+                    interactionSource = mutableInteractionSource,
+                    semanticsProperties = paneExpansionState.defaultDragHandleSemantics(),
+                ),
+                interactionSource = mutableInteractionSource,
+            )
         },
     )
 }

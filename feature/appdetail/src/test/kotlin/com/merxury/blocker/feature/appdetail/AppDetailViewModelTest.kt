@@ -19,8 +19,6 @@ package com.merxury.blocker.feature.appdetail
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
-import androidx.lifecycle.SavedStateHandle
-import androidx.navigation.testing.invoke
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
@@ -55,7 +53,6 @@ import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.appdetail.navigation.AppDetailRoute
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -100,13 +97,7 @@ class AppDetailViewModelTest {
     private val componentDetailRepository = TestComponentDetailRepository()
     private val serviceController = FakeServiceController()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
-    private val savedStateHandle = SavedStateHandle(
-        route = AppDetailRoute(
-            packageName = sampleAppList.first().packageName,
-            tab = AppDetailTabs.INFO,
-            searchKeyword = emptyList(),
-        ),
-    )
+
     private val packageInfo = mock<PackageInfo> {
         on { toString() } doReturn "MockedPackageInfo"
     }
@@ -163,7 +154,6 @@ class AppDetailViewModelTest {
         )
 
         viewModel = AppDetailViewModel(
-            savedStateHandle = savedStateHandle,
             pm = pm,
             userDataRepository = userDataRepository,
             appRepository = appRepository,
@@ -179,6 +169,9 @@ class AppDetailViewModelTest {
             cpuDispatcher = dispatcher,
             mainDispatcher = dispatcher,
             searchComponents = searchComponents,
+            packageName = sampleAppList.first().packageName,
+            tab = AppDetailTabs.INFO,
+            searchKeyword = emptyList(),
         )
     }
 
