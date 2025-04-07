@@ -136,7 +136,7 @@ fun BlockerLargeTopAppBar(
         actions = {
             actions()
         },
-        colors = TopAppBarDefaults.largeTopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
@@ -168,7 +168,7 @@ fun BlockerMediumTopAppBar(
         actions = {
             actions()
         },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),

@@ -16,14 +16,17 @@
 
 package com.merxury.blocker.feature.appdetail.navigation
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailScreen
+import com.merxury.blocker.feature.appdetail.AppDetailViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -52,7 +55,10 @@ fun NavGraphBuilder.appDetailScreen(
     navigateToRuleDetail: (String) -> Unit,
     showBackButton: Boolean,
 ) {
-    composable<AppDetailRoute> {
+    composable<AppDetailRoute> { entry ->
+        val packageName = entry.toRoute<AppDetailRoute>().packageName
+        val tab = entry.toRoute<AppDetailRoute>().tab
+        val searchKeyword = entry.toRoute<AppDetailRoute>().searchKeyword
         AppDetailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
@@ -60,6 +66,11 @@ fun NavGraphBuilder.appDetailScreen(
             navigateToRuleDetail = navigateToRuleDetail,
             updateIconThemingState = updateIconThemingState,
             showBackButton = showBackButton,
+            viewModel = hiltViewModel<AppDetailViewModel, AppDetailViewModel.Factory>(
+                key = packageName,
+            ) { factory ->
+                factory.create(packageName, tab, searchKeyword)
+            },
         )
     }
 }

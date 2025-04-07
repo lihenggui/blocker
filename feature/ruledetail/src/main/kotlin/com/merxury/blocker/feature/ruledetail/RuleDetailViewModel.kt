@@ -23,10 +23,8 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -60,7 +58,9 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.ruledetail.navigation.RuleDetailRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -76,12 +76,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import javax.inject.Inject
 
-@HiltViewModel
-class RuleDetailViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = RuleDetailViewModel.Factory::class)
+class RuleDetailViewModel @AssistedInject constructor(
     private val appContext: Application,
-    savedStateHandle: SavedStateHandle,
     private val pm: PackageManager,
     @FilesDir private val filesDir: File,
     @RuleBaseFolder private val ruleBaseFolder: String,
@@ -92,8 +90,9 @@ class RuleDetailViewModel @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
+    @Assisted("ruleId") val ruleId: String,
+    @Assisted("tab") val tab: String = Applicable.name,
 ) : ViewModel() {
-    private val ruleInfo = savedStateHandle.toRoute<RuleDetailRoute>()
     private val _ruleInfoUiState: MutableStateFlow<RuleInfoUiState> =
         MutableStateFlow(RuleInfoUiState.Loading)
     val ruleInfoUiState: StateFlow<RuleInfoUiState> = _ruleInfoUiState
@@ -129,7 +128,7 @@ class RuleDetailViewModel @Inject constructor(
     fun loadData() {
         loadRuleDetailJob?.cancel()
         loadRuleDetailJob = viewModelScope.launch {
-            val ruleId = ruleInfo.ruleId
+            val ruleId = ruleId
             val rule = ruleRepository.getGeneralRule(ruleId.toInt())
                 .first()
             val iconFile = withContext(ioDispatcher) {
@@ -343,7 +342,7 @@ class RuleDetailViewModel @Inject constructor(
 
     @VisibleForTesting
     fun loadTabInfo() = viewModelScope.launch {
-        val screen = RuleDetailTabs.fromName(ruleInfo.tab)
+        val screen = RuleDetailTabs.fromName(tab)
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
     }
@@ -367,6 +366,14 @@ class RuleDetailViewModel @Inject constructor(
         }
         return@withContext bitmap?.asImageBitmap()
             ?.themeColorOrNull()
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            @Assisted("ruleId") ruleId: String,
+            @Assisted("tab") tab: String = Applicable.name,
+        ): RuleDetailViewModel
     }
 }
 

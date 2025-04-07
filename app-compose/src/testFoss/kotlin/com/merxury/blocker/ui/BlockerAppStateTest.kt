@@ -17,15 +17,11 @@
 
 package com.merxury.blocker.ui
 
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.composable
@@ -103,7 +99,6 @@ class BlockerAppStateTest {
     fun blockerAppState_destinations() = runTest {
         composeTestRule.setContent {
             state = rememberBlockerAppState(
-                windowSizeClass = getCompactWindowClass(),
                 networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 timeZoneMonitor = timeZoneMonitor,
@@ -175,9 +170,6 @@ class BlockerAppStateTest {
             state.currentTimeZone.value,
         )
     }
-
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-    private fun getCompactWindowClass() = WindowSizeClass.calculateFromSize(DpSize(500.dp, 300.dp))
 }
 
 @Composable
