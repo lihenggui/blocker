@@ -88,7 +88,7 @@ androidx.datastore:datastore-preferences-external-protobuf:1.1.5
 androidx.datastore:datastore-preferences-proto:1.1.5
 androidx.datastore:datastore-preferences:1.1.5
 androidx.datastore:datastore:1.1.5
-androidx.documentfile:documentfile:1.0.1
+androidx.documentfile:documentfile:1.1.0
 androidx.drawerlayout:drawerlayout:1.1.1
 androidx.dynamicanimation:dynamicanimation:1.0.0
 androidx.emoji2:emoji2-views-helper:1.4.0
