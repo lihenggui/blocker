@@ -270,7 +270,7 @@ me.zhanghai.android.appiconloader:appiconloader-coil:1.5.0
 me.zhanghai.android.appiconloader:appiconloader-iconloaderlib:1.5.0
 me.zhanghai.android.appiconloader:appiconloader:1.5.0
 org.checkerframework:checker-qual:3.12.0
-org.eclipse.jgit:org.eclipse.jgit:7.2.0.202503040940-r
+org.eclipse.jgit:org.eclipse.jgit:7.2.1.202505142326-r
 org.jetbrains.androidx.lifecycle:lifecycle-common:2.8.4
 org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.4
 org.jetbrains.androidx.lifecycle:lifecycle-runtime:2.8.4
