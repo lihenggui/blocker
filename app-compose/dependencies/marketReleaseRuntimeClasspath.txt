@@ -168,9 +168,9 @@ androidx.vectordrawable:vectordrawable:1.1.0
 androidx.versionedparcelable:versionedparcelable:1.1.1
 androidx.viewpager2:viewpager2:1.0.0
 androidx.viewpager:viewpager:1.0.0
-androidx.window:window-core-android:1.4.0-rc01
-androidx.window:window-core:1.4.0-rc01
-androidx.window:window:1.4.0-rc01
+androidx.window:window-core-android:1.4.0
+androidx.window:window-core:1.4.0
+androidx.window:window:1.4.0
 androidx.work:work-runtime-ktx:2.10.1
 androidx.work:work-runtime:2.10.1
 com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0
