@@ -4,8 +4,8 @@ androidx.activity:activity:1.10.1
 androidx.annotation:annotation-experimental:1.4.1
 androidx.annotation:annotation-jvm:1.9.1
 androidx.annotation:annotation:1.9.1
-androidx.appcompat:appcompat-resources:1.7.0
-androidx.appcompat:appcompat:1.7.0
+androidx.appcompat:appcompat-resources:1.7.1
+androidx.appcompat:appcompat:1.7.1
 androidx.arch.core:core-common:2.2.0
 androidx.arch.core:core-runtime:2.2.0
 androidx.autofill:autofill:1.0.0
