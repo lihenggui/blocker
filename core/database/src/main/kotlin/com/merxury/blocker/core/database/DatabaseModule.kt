@@ -39,12 +39,12 @@ internal object DatabaseModule {
         InstalledAppDatabase::class.java,
         "installed_app",
     )
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration(true)
         .build()
 
     @Provides
     @Singleton
     fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase = Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration(true)
         .build()
 }
