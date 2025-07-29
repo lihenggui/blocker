@@ -21,7 +21,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.merxury.blocker.core.model.data.InstalledApp
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 @Entity(tableName = "installed_app", indices = [Index(value = ["package_name"])])
 data class InstalledAppEntity(

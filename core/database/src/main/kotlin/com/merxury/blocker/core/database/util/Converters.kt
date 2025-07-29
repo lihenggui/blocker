@@ -17,9 +17,9 @@
 package com.merxury.blocker.core.database.util
 
 import androidx.room.TypeConverter
-import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Instant
 
 internal class ListConverter {
     @TypeConverter

@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.model.data
 
 import android.content.pm.PackageInfo
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * Data representation for the installed application.

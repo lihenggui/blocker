@@ -26,10 +26,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.datetime.Clock
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+import kotlin.time.Clock
 
 class ZipLogFileUseCase @Inject constructor(
     @CacheDir private val cacheDir: File,

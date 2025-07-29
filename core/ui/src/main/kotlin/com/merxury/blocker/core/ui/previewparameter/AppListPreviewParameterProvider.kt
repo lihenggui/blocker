@@ -20,7 +20,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.ui.previewparameter.PreviewParameterData.appList
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class AppListPreviewParameterProvider : PreviewParameterProvider<List<AppItem>> {
     override val values: Sequence<List<AppItem>> = sequenceOf(appList)

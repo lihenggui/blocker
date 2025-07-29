@@ -35,13 +35,13 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.feature.appdetail.R.string
-import kotlinx.datetime.Clock.System
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle.LONG
 import java.util.Locale
+import kotlin.time.Clock.System
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 @Composable
 fun SummaryContent(

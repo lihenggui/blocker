@@ -23,11 +23,11 @@ import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import com.merxury.blocker.core.utils.ApkParser
-import kotlinx.datetime.Instant
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 import java.io.File
+import kotlin.time.Instant
 
 /**
  * Created by Mercury on 2017/12/30.

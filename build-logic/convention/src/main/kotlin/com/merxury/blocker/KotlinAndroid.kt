@@ -66,8 +66,13 @@ inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() = configu
         jvmToolchain(17)
         allWarningsAsErrors = warningsAsErrors.toBoolean()
         freeCompilerArgs.add(
-            // Enable experimental coroutines APIs, including Flow
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            //  Suppress warning: This annotation is currently applied to the value parameter only,
+            //  but in the future it will also be applied to field.
+            "-Xannotation-default-target=param-property",
+        )
+        optIn.addAll(
+            "kotlin.time.ExperimentalTime",
+            "kotlinx.coroutines.ExperimentalCoroutinesApi",
         )
     }
 }
