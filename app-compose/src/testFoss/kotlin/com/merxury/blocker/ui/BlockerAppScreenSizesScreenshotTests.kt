@@ -31,7 +31,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowSizeClass.Companion.BREAKPOINTS_V1
+import androidx.window.core.layout.computeWindowSizeClass
 import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
@@ -129,9 +130,9 @@ class BlockerAppScreenSizesScreenshotTests {
                         BlockerApp(
                             appState,
                             windowAdaptiveInfo = WindowAdaptiveInfo(
-                                windowSizeClass = WindowSizeClass.compute(
-                                    width.value,
-                                    height.value,
+                                windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(
+                                    widthDp = width.value,
+                                    heightDp = height.value,
                                 ),
                                 windowPosture = Posture(),
                             ),
