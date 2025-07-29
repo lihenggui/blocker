@@ -64,7 +64,7 @@ roborazzi = "1.46.1"
 room = "2.7.2"
 shizuku = "13.1.5"
 timber = "5.0.1"
-xmlutil = "0.90.3"
+xmlutil = "0.91.2"
 turbine = "1.2.1"
 truth = "1.4.4"
 material = "1.12.0"
@@ -175,8 +175,8 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
-xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-android", version.ref = "xmlutil" }
-xmlutil-serialization-android = { group = "io.github.pdvrieze.xmlutil", name = "serialization-android", version.ref = "xmlutil" }
+xmlutil-core = { group = "io.github.pdvrieze.xmlutil", name = "core", version.ref = "xmlutil" }
+xmlutil-serialization-jvm = { group = "io.github.pdvrieze.xmlutil", name = "serialization-jvm", version.ref = "xmlutil" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 hiddenapibypass = "org.lsposed.hiddenapibypass:hiddenapibypass:6.1"
 

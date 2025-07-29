@@ -37,8 +37,8 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.ext.work)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.xmlutil.core.android)
-    implementation(libs.xmlutil.serialization.android)
+    implementation(libs.xmlutil.core)
+    implementation(libs.xmlutil.serialization.jvm)
 
     ksp(libs.hilt.compiler)
     ksp(libs.hilt.ext.compiler)

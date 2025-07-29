@@ -39,8 +39,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
-    implementation(libs.xmlutil.core.android)
-    implementation(libs.xmlutil.serialization.android)
+    implementation(libs.xmlutil.core)
+    implementation(libs.xmlutil.serialization.jvm)
 
     testImplementation(projects.core.testing)
     testImplementation(libs.kxml)
