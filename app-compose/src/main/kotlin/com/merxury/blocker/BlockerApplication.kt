@@ -96,7 +96,6 @@ class BlockerApplication :
                         detectCustomSlowCalls()
                         detectNetwork()
                         penaltyLog()
-                        penaltyDeath()
                     }
                     .build(),
             )
