@@ -45,7 +45,7 @@ fun BlockerDynamicTheme(
     }
     DynamicMaterialTheme(
         seedColor = seedColor,
-        useDarkTheme = darkTheme,
+        isDark = darkTheme,
         animate = true,
         content = content,
     )
