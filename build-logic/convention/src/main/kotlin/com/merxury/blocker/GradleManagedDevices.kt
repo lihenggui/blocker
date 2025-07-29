@@ -32,13 +32,13 @@ internal fun configureGradleManagedDevices(
     val pixel6 = DeviceConfig("Pixel 6", 31, "aosp")
     val pixelC = DeviceConfig("Pixel C", 30, "aosp-atd")
 
-    val allDevices = listOf(pixel4, pixel6, pixelC)
-    val ciDevices = listOf(pixel4, pixelC)
+    val allDevicesList = listOf(pixel4, pixel6, pixelC)
+    val ciDevicesList = listOf(pixel4, pixelC)
 
     commonExtension.testOptions {
         managedDevices {
             allDevices {
-                allDevices.forEach { deviceConfig ->
+                allDevicesList.forEach { deviceConfig ->
                     maybeCreate(deviceConfig.taskName, ManagedVirtualDevice::class.java).apply {
                         device = deviceConfig.device
                         apiLevel = deviceConfig.apiLevel
@@ -48,8 +48,8 @@ internal fun configureGradleManagedDevices(
             }
             groups {
                 maybeCreate("ci").apply {
-                    ciDevices.forEach { deviceConfig ->
-                        targetDevices.add(devices[deviceConfig.taskName])
+                    ciDevicesList.forEach { deviceConfig ->
+                        targetDevices.add(allDevices[deviceConfig.taskName])
                     }
                 }
             }
