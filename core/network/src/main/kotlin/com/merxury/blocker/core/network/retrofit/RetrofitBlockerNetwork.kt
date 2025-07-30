@@ -51,7 +51,7 @@ internal class RetrofitBlockerNetwork @Inject constructor(
                 .newCall(request)
                 .await()
                 .body
-                ?.string() ?: ""
+                .string()
             val commitId = getLatestCommitId(provider, json)
             NetworkChangeList(commitId)
         } catch (e: Exception) {
@@ -76,10 +76,6 @@ internal class RetrofitBlockerNetwork @Inject constructor(
             return 0
         }
         val responseBody = response.body
-        if (responseBody == null) {
-            Timber.e("Response body is null.")
-            return 0
-        }
         val contentLength = responseBody.contentLength()
         if (contentLength == 0L) {
             Timber.e("Response body is empty.")
@@ -112,10 +108,10 @@ internal class RetrofitBlockerNetwork @Inject constructor(
             }
             return commitId
         } catch (e: SerializationException) {
-            Timber.e("The given string is not a valid JSON", e)
+            Timber.e(e, "The given string is not a valid JSON")
             return ""
         } catch (e: IllegalArgumentException) {
-            Timber.e("Malformed JSON string", e)
+            Timber.e(e, "Malformed JSON string")
             return ""
         }
     }

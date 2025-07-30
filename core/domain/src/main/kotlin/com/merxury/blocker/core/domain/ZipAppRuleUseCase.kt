@@ -30,12 +30,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.datetime.Clock
 import timber.log.Timber
 import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
+import kotlin.time.Clock
 
 class ZipAppRuleUseCase @Inject constructor(
     private val componentRepository: ComponentRepository,

@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.core.model.data
 
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Serializable
 data class ComponentDetail(

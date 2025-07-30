@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.model.data
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * External data layer representation of the installed app in the device
