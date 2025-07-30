@@ -9,7 +9,7 @@ androidx.appcompat:appcompat:1.7.1
 androidx.arch.core:core-common:2.2.0
 androidx.arch.core:core-runtime:2.2.0
 androidx.autofill:autofill:1.0.0
-androidx.browser:browser:1.8.0
+androidx.browser:browser:1.9.0
 androidx.cardview:cardview:1.0.0
 androidx.collection:collection-jvm:1.5.0
 androidx.collection:collection-ktx:1.5.0
