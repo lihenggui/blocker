@@ -219,11 +219,19 @@ jobs:
           name: lint-reports
           path: '**/build/reports/lint-results-*.html'
 
-      - name: Upload lint reports (SARIF)
-        if: ${{ !cancelled() && hashFiles('**/*.sarif') != '' }}
+      - name: Upload lint reports (SARIF) for app module
+        if: ${{ !cancelled() && hashFiles('app-compose/**/*.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: './'
+          sarif_file: './app-compose/'
+          category: app-compose
+
+      - name: Upload lint reports (SARIF) for lint module
+        if: ${{ !cancelled() && hashFiles('lint/**/*.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: './lint/'
+          category: lint
 
       - name: Check badging
         id: check_badging
