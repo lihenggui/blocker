@@ -116,7 +116,7 @@ jobs:
         run: |
           ./gradlew dependencyGuardBaseline
       - name: Push new Dependency Guard baselines if available
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         if: steps.dependencyguard_baseline.outcome == 'success'
         with:
           file_pattern: '**/dependencies/*.txt'
@@ -145,7 +145,7 @@ jobs:
           ./gradlew recordRoborazziFossDebug
 
       - name: Push new screenshots if available
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         if: steps.screenshotsrecord.outcome == 'success'
         with:
           file_pattern: '*/*.png'
@@ -252,7 +252,7 @@ jobs:
           ./gradlew updateMarketReleaseBadging
 
       - name: Push new badging if available
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         if: steps.update_badging.outcome == 'success'
         with:
           file_pattern: '*/*-badging.txt'
