@@ -210,7 +210,7 @@ com.google.dagger:hilt-core:2.57
 com.google.errorprone:error_prone_annotations:2.26.0
 com.google.firebase:firebase-analytics:23.0.0
 com.google.firebase:firebase-annotations:17.0.0
-com.google.firebase:firebase-bom:34.0.0
+com.google.firebase:firebase-bom:34.1.0
 com.google.firebase:firebase-common:22.0.0
 com.google.firebase:firebase-components:19.0.0
 com.google.firebase:firebase-config-interop:16.0.1
