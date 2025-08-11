@@ -26,11 +26,7 @@ android {
         consumerProguardFiles("consumer-proguard-rules.pro")
     }
     namespace = "com.merxury.blocker.core.controller"
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
-    }
+    testOptions.unitTests.isIncludeAndroidResources = true
     buildFeatures {
         aidl = true
     }

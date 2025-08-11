@@ -23,11 +23,7 @@ plugins {
 
 android {
     namespace = "com.merxury.blocker.core.data"
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
-    }
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 dependencies {
     api(projects.core.common)

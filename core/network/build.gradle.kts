@@ -29,11 +29,7 @@ android {
         buildConfig = true
     }
     namespace = "com.merxury.blocker.core.network"
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
-    }
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 dependencies {

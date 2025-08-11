@@ -23,11 +23,7 @@ plugins {
 
 android {
     namespace = "com.merxury.blocker.core.ifw"
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
-    }
+    testOptions.unitTests.isIncludeAndroidResources = true
     defaultConfig {
         consumerProguardFiles("proguard-rules.pro")
     }
