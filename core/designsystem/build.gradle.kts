@@ -22,6 +22,7 @@ plugins {
 
 android {
     namespace = "com.merxury.blocker.core.designsystem"
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 dependencies {
