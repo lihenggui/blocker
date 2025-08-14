@@ -22,6 +22,7 @@ plugins {
 }
 android {
     namespace = "com.merxury.blocker.feature.search"
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 dependencies {
     implementation(projects.core.componentController)
