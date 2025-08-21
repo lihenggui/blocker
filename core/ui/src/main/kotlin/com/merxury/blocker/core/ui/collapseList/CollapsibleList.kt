@@ -19,6 +19,7 @@ package com.merxury.blocker.core.ui.collapseList
 import androidx.annotation.StringRes
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -85,21 +86,23 @@ fun CollapsibleList(
             list.forEachIndexed { index, ruleMatchedApp ->
                 val expanded = isExpandedMap[index] ?: false
                 item(key = ruleMatchedApp.header.uniqueId) {
-                    CollapsibleItem(
-                        modifier = Modifier.animateItem(),
-                        matchedItem = ruleMatchedApp,
-                        navigationMenuItemDesc = navigationMenuItemDesc,
-                        navigation = {
-                            navigateToDetail(ruleMatchedApp.header.uniqueId)
-                        },
-                        onBlockAllInItemClick = onBlockAllInItemClick,
-                        onEnableAllInItemClick = onEnableAllInItemClick,
-                        expanded = expanded,
-                        onCardArrowClick = {
-                            isExpandedMap[index] = !(isExpandedMap[index] ?: false)
-                        },
-                    )
-                    HorizontalDivider()
+                    Column {
+                        CollapsibleItem(
+                            modifier = Modifier.animateItem(),
+                            matchedItem = ruleMatchedApp,
+                            navigationMenuItemDesc = navigationMenuItemDesc,
+                            navigation = {
+                                navigateToDetail(ruleMatchedApp.header.uniqueId)
+                            },
+                            onBlockAllInItemClick = onBlockAllInItemClick,
+                            onEnableAllInItemClick = onEnableAllInItemClick,
+                            expanded = expanded,
+                            onCardArrowClick = {
+                                isExpandedMap[index] = !(isExpandedMap[index] ?: false)
+                            },
+                        )
+                        HorizontalDivider()
+                    }
                 }
                 if (expanded) {
                     items(
