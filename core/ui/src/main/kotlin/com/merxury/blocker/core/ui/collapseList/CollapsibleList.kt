@@ -86,9 +86,10 @@ fun CollapsibleList(
             list.forEachIndexed { index, ruleMatchedApp ->
                 val expanded = isExpandedMap[index] ?: false
                 item(key = ruleMatchedApp.header.uniqueId) {
-                    Column {
+                    Column(
+                        modifier = Modifier.animateItem(),
+                    ) {
                         CollapsibleItem(
-                            modifier = Modifier.animateItem(),
                             matchedItem = ruleMatchedApp,
                             navigationMenuItemDesc = navigationMenuItemDesc,
                             navigation = {
@@ -109,31 +110,34 @@ fun CollapsibleList(
                         items = ruleMatchedApp.componentList,
                         key = { item -> ruleMatchedApp.header.uniqueId + "/" + item.name },
                     ) {
-                        ComponentListItem(
+                        Column(
                             modifier = Modifier.animateItem(),
-                            item = it,
-                            enabled = it.enabled(),
-                            type = it.type,
-                            isServiceRunning = it.isRunning,
-                            onStopServiceClick = {
-                                onStopServiceClick(
-                                    it.packageName,
-                                    it.name,
-                                )
-                            },
-                            onLaunchActivityClick = {
-                                onLaunchActivityClick(
-                                    it.packageName,
-                                    it.name,
-                                )
-                            },
-                            onCopyNameClick = { onCopyNameClick(it.simpleName) },
-                            onCopyFullNameClick = { onCopyFullNameClick(it.name) },
-                            onSwitchClick = onSwitch,
-                        )
-                        // Add horizontal divider after last item
-                        if (ruleMatchedApp.componentList.last() == it) {
-                            HorizontalDivider()
+                        ) {
+                            ComponentListItem(
+                                item = it,
+                                enabled = it.enabled(),
+                                type = it.type,
+                                isServiceRunning = it.isRunning,
+                                onStopServiceClick = {
+                                    onStopServiceClick(
+                                        it.packageName,
+                                        it.name,
+                                    )
+                                },
+                                onLaunchActivityClick = {
+                                    onLaunchActivityClick(
+                                        it.packageName,
+                                        it.name,
+                                    )
+                                },
+                                onCopyNameClick = { onCopyNameClick(it.simpleName) },
+                                onCopyFullNameClick = { onCopyFullNameClick(it.name) },
+                                onSwitchClick = onSwitch,
+                            )
+                            // Add horizontal divider after last item
+                            if (ruleMatchedApp.componentList.last() == it) {
+                                HorizontalDivider()
+                            }
                         }
                     }
                 }
@@ -152,8 +156,9 @@ fun CollapsibleList(
                 item
             }
             .fastSumBy { it.componentList.size }
+        val totalItems = list.size + expandItemCount
         val scrollbarState = listState.scrollbarState(
-            itemsAvailable = list.size + expandItemCount,
+            itemsAvailable = totalItems,
         )
         listState.DraggableScrollbar(
             modifier = Modifier
@@ -163,7 +168,7 @@ fun CollapsibleList(
             state = scrollbarState,
             orientation = Vertical,
             onThumbMove = listState.rememberDraggableScroller(
-                itemsAvailable = list.size,
+                itemsAvailable = totalItems,
             ),
         )
     }
