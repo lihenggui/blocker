@@ -66,8 +66,8 @@ androidx.compose.ui:ui:1.9.0
 androidx.compose:compose-bom-alpha:2025.07.01
 androidx.concurrent:concurrent-futures-ktx:1.1.0
 androidx.concurrent:concurrent-futures:1.1.0
-androidx.constraintlayout:constraintlayout-solver:2.0.1
-androidx.constraintlayout:constraintlayout:2.0.1
+androidx.constraintlayout:constraintlayout-core:1.0.0
+androidx.constraintlayout:constraintlayout:2.1.0
 androidx.coordinatorlayout:coordinatorlayout:1.1.0
 androidx.core:core-ktx:1.16.0
 androidx.core:core-splashscreen:1.0.1
@@ -90,7 +90,7 @@ androidx.datastore:datastore-preferences:1.1.7
 androidx.datastore:datastore:1.1.7
 androidx.documentfile:documentfile:1.1.0
 androidx.drawerlayout:drawerlayout:1.1.1
-androidx.dynamicanimation:dynamicanimation:1.0.0
+androidx.dynamicanimation:dynamicanimation:1.1.0
 androidx.emoji2:emoji2-views-helper:1.4.0
 androidx.emoji2:emoji2:1.4.0
 androidx.exifinterface:exifinterface:1.3.7
@@ -141,7 +141,7 @@ androidx.print:print:1.0.0
 androidx.privacysandbox.ads:ads-adservices-java:1.1.0-beta11
 androidx.privacysandbox.ads:ads-adservices:1.1.0-beta11
 androidx.profileinstaller:profileinstaller:1.4.1
-androidx.recyclerview:recyclerview:1.1.0
+androidx.recyclerview:recyclerview:1.2.1
 androidx.resourceinspection:resourceinspection-annotation:1.0.1
 androidx.room:room-common-jvm:2.7.2
 androidx.room:room-common:2.7.2
@@ -201,7 +201,7 @@ com.google.android.gms:play-services-measurement-sdk:23.0.0
 com.google.android.gms:play-services-measurement:23.0.0
 com.google.android.gms:play-services-stats:17.0.2
 com.google.android.gms:play-services-tasks:18.2.0
-com.google.android.material:material:1.12.0
+com.google.android.material:material:1.13.0
 com.google.code.findbugs:jsr305:3.0.2
 com.google.dagger:dagger-lint-aar:2.57
 com.google.dagger:dagger:2.57
