@@ -38,7 +38,7 @@ firebaseBom = "34.1.0"
 firebaseCrashlyticsPlugin = "3.0.6"
 firebasePerfPlugin = "2.0.1"
 gmsPlugin = "4.4.3"
-googleAndroidMaterial = "1.12.0"
+googleAndroidMaterial = "1.13.0"
 hilt = "2.57"
 hiltExt = "1.2.0"
 jacoco = "0.8.7"
@@ -67,7 +67,7 @@ timber = "5.0.1"
 xmlutil = "0.91.2"
 turbine = "1.2.1"
 truth = "1.4.4"
-material = "1.12.0"
+material = "1.13.0"
 
 [bundles]
 androidx-compose-ui-test = ["androidx-compose-ui-test", "androidx-compose-ui-testManifest"]
