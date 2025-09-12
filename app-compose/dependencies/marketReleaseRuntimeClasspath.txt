@@ -297,13 +297,12 @@ org.jetbrains.compose.ui:ui-text:1.9.0-beta01
 org.jetbrains.compose.ui:ui-unit:1.9.0-beta01
 org.jetbrains.compose.ui:ui-util:1.9.0-beta01
 org.jetbrains.compose.ui:ui:1.9.0-beta01
-org.jetbrains.kotlin:kotlin-android-extensions-runtime:2.2.10
 org.jetbrains.kotlin:kotlin-bom:1.8.22
-org.jetbrains.kotlin:kotlin-parcelize-runtime:2.2.10
-org.jetbrains.kotlin:kotlin-stdlib-common:2.2.10
+org.jetbrains.kotlin:kotlin-parcelize-runtime:2.2.20
+org.jetbrains.kotlin:kotlin-stdlib-common:2.2.20
 org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0
 org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0
-org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+org.jetbrains.kotlin:kotlin-stdlib:2.2.20
 org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2
 org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.10.2
 org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2
