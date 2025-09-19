@@ -53,7 +53,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             }
             extensions.configure<JavaPluginExtension> {
                 toolchain {
-                    languageVersion.set(JavaLanguageVersion.of(17))
+                    languageVersion.set(JavaLanguageVersion.of(21))
                 }
             }
         }
