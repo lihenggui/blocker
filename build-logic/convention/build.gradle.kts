@@ -26,7 +26,7 @@ group = "com.merxury.blocker.buildlogic"
 
 kotlin {
     compilerOptions {
-        jvmToolchain(17)
+        jvmToolchain(21)
     }
 }
 

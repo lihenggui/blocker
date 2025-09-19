@@ -30,7 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
