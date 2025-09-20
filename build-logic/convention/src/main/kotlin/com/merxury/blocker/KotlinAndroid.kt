@@ -32,10 +32,10 @@ internal fun Project.configureKotlinAndroid(
     commonExtension: CommonExtension<*, *, *, *, *, *>,
 ) {
     commonExtension.apply {
-        compileSdk = 35
+        compileSdk = 36
 
         defaultConfig {
-            minSdk = 21
+            minSdk = 23
         }
 
         compileOptions {
@@ -64,7 +64,7 @@ inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() = configu
         is KotlinJvmProjectExtension -> compilerOptions
         else -> TODO("Unsupported project extension $this ${T::class}")
     }.apply {
-        jvmToolchain(17)
+        jvmToolchain(21)
         allWarningsAsErrors = warningsAsErrors
         freeCompilerArgs.add(
             //  Suppress warning: This annotation is currently applied to the value parameter only,
