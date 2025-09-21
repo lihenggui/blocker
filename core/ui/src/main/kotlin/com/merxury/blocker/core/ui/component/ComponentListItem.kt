@@ -117,7 +117,7 @@ fun ComponentListItem(
                 if (it.action == MotionEvent.ACTION_DOWN) {
                     touchPoint = Offset(it.x, it.y)
                 }
-                true
+                false
             }
             .background(
                 color = animatedColor.value,
