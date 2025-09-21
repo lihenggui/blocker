@@ -158,7 +158,7 @@ jobs:
         run: ./gradlew testFossDebug :lint:test
 
       - name: Build all build type and flavor permutations
-        run: ./gradlew :app:assemble
+        run: ./gradlew :app-compose:assemble -PminifyWithR8=false
 
       - name: Upload Foss apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
