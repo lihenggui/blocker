@@ -54,7 +54,8 @@ android {
             applicationIdSuffix = BlockerBuildType.DEBUG.applicationIdSuffix
         }
         getByName("release") {
-            isMinifyEnabled = true
+            isMinifyEnabled = providers.gradleProperty("minifyWithR8")
+                .map(String::toBooleanStrict).getOrElse(true)
             applicationIdSuffix = BlockerBuildType.RELEASE.applicationIdSuffix
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
