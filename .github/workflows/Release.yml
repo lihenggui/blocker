@@ -90,9 +90,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
       - name: Write whats new info
+        env:
+          CHANGELOG: ${{ steps.build_changelog.outputs.changelog }}
         run: |
           mkdir -p ${{ github.workspace }}/distribution/whatsnew/
-          echo '${{ steps.build_changelog.outputs.changelog }}' | head -c 490 >> ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US
+          printf '%s' "$CHANGELOG" | head -c 490 > ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US
 
       - name: Upload built Market apk
         if: success()
