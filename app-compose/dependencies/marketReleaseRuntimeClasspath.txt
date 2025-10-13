@@ -245,7 +245,7 @@ com.squareup.okio:okio-jvm:3.16.0
 com.squareup.okio:okio:3.16.0
 com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0
 com.squareup.retrofit2:retrofit:3.0.0
-commons-codec:commons-codec:1.18.0
+commons-codec:commons-codec:1.19.0
 dev.drewhamilton.poko:poko-annotations-jvm:0.19.2
 dev.drewhamilton.poko:poko-annotations:0.19.2
 dev.rikka.shizuku:aidl:13.1.5
@@ -273,7 +273,7 @@ me.zhanghai.android.appiconloader:appiconloader-coil:1.5.0
 me.zhanghai.android.appiconloader:appiconloader-iconloaderlib:1.5.0
 me.zhanghai.android.appiconloader:appiconloader:1.5.0
 org.checkerframework:checker-qual:3.12.0
-org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r
+org.eclipse.jgit:org.eclipse.jgit:7.4.0.202509020913-r
 org.jetbrains.androidx.graphics:graphics-shapes:1.0.0-alpha09
 org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.1
 org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.1
