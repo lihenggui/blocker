@@ -269,6 +269,7 @@ fun SettingsContent(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { importMatRules(it) },
     )
+    val fileManagerRequiredMsg = stringResource(id = string.feature_settings_file_manager_required)
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -327,7 +328,7 @@ fun SettingsContent(
                     Timber.e(e, "No activity found to handle the OpenDocument() intent")
                     scope.launch {
                         snackbarHostState.showSnackbar(
-                            message = context.getString(string.feature_settings_file_manager_required),
+                            message = fileManagerRequiredMsg,
                             duration = SnackbarDuration.Short,
                         )
                     }
