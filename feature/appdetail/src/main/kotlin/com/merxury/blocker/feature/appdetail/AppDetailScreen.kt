@@ -54,6 +54,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -163,6 +164,7 @@ fun AppDetailScreen(
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboard.current
     val context = LocalContext.current
+    val cannotLaunchAppMessage = stringResource(string.feature_appdetail_cannot_launch_this_app)
     AppDetailScreen(
         appInfoUiState = appInfoUiState,
         topAppBarUiState = topAppBarUiState,
@@ -177,7 +179,7 @@ fun AppDetailScreen(
             if (!result) {
                 scope.launch {
                     snackbarHostState.showSnackbar(
-                        message = context.getString(string.feature_appdetail_cannot_launch_this_app),
+                        message = cannotLaunchAppMessage,
                         duration = Short,
                         withDismissAction = true,
                     )

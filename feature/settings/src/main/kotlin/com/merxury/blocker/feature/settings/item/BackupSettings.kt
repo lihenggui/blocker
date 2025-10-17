@@ -61,6 +61,7 @@ fun BackupSettings(
             onChangeRuleBackupFolder(uri)
         },
     )
+    val fileManagerRequiredMsg = stringResource(id = string.feature_settings_file_manager_required)
     Column(
         modifier = modifier
             .padding(vertical = 4.dp),
@@ -82,7 +83,7 @@ fun BackupSettings(
                     Timber.e(e, "No activity found to handle picking a directory.")
                     scope.launch {
                         snackbarHostState.showSnackbar(
-                            message = context.getString(string.feature_settings_file_manager_required),
+                            message = fileManagerRequiredMsg,
                             duration = Short,
                         )
                     }
