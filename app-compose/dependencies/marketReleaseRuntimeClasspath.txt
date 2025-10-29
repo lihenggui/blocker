@@ -258,9 +258,9 @@ io.coil-kt:coil-compose:2.7.0
 io.coil-kt:coil-gif:2.6.0
 io.coil-kt:coil-svg:2.7.0
 io.coil-kt:coil:2.7.0
-io.github.pdvrieze.xmlutil:core-jvmcommon:0.91.2
-io.github.pdvrieze.xmlutil:core:0.91.2
-io.github.pdvrieze.xmlutil:serialization-jvm:0.91.2
+io.github.pdvrieze.xmlutil:core-jvmcommon:v0.91.3
+io.github.pdvrieze.xmlutil:core:v0.91.3
+io.github.pdvrieze.xmlutil:serialization-jvm:v0.91.3
 io.noties.markwon:core:4.6.2
 io.noties.markwon:ext-strikethrough:4.6.2
 io.noties.markwon:ext-tables:4.6.2
