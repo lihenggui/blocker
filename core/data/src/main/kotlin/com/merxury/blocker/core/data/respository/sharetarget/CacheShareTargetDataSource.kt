@@ -16,9 +16,13 @@
 
 package com.merxury.blocker.core.data.respository.sharetarget
 
+import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityDao
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-internal interface ShareTargetDataSource {
-    fun getShareTargetActivities(): Flow<List<ShareTargetActivityEntity>>
+internal class CacheShareTargetDataSource @Inject constructor(
+    private val shareTargetActivityDao: ShareTargetActivityDao,
+) : ShareTargetDataSource {
+    override fun getShareTargetActivities(): Flow<List<ShareTargetActivityEntity>> = shareTargetActivityDao.getAll()
 }

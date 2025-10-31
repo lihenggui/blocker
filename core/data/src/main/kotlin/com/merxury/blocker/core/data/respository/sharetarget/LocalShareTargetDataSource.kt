@@ -21,11 +21,10 @@ import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
+import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getSimpleName
-import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -39,7 +38,7 @@ internal class LocalShareTargetDataSource @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ShareTargetDataSource {
 
-    override fun getShareTargetActivities(): Flow<List<ComponentInfo>> = flow {
+    override fun getShareTargetActivities(): Flow<List<ShareTargetActivityEntity>> = flow {
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
             type = "*/*"
         }
@@ -54,22 +53,23 @@ internal class LocalShareTargetDataSource @Inject constructor(
         val allResolveInfoList = (sendResolveInfoList + sendMultipleResolveInfoList)
             .distinctBy { it.activityInfo.packageName + it.activityInfo.name }
 
-        val componentList = allResolveInfoList.mapNotNull { resolveInfo ->
+        val entityList = allResolveInfoList.mapNotNull { resolveInfo ->
             val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
             val packageName = activityInfo.packageName
             val componentName = activityInfo.name
+            val displayName = resolveInfo.loadLabel(pm).toString()
 
-            ComponentInfo(
-                name = componentName,
-                simpleName = activityInfo.getSimpleName(),
+            ShareTargetActivityEntity(
                 packageName = packageName,
-                type = ComponentType.ACTIVITY,
-                exported = activityInfo.exported,
-                pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
+                componentName = componentName,
+                simpleName = activityInfo.getSimpleName(),
+                displayName = displayName,
                 ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
+                pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
+                exported = activityInfo.exported,
             )
         }
 
-        emit(componentList)
+        emit(entityList)
     }.flowOn(ioDispatcher)
 }

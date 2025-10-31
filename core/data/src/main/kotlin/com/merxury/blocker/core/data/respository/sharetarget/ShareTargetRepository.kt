@@ -17,8 +17,10 @@
 package com.merxury.blocker.core.data.respository.sharetarget
 
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
 interface ShareTargetRepository {
     fun getShareTargetActivities(): Flow<List<ComponentInfo>>
+    fun updateShareTargetActivities(): Flow<Result<Unit>>
 }
