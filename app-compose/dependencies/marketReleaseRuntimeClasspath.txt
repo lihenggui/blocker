@@ -238,11 +238,11 @@ com.materialkolor:material-color-utilities-android:3.0.1
 com.materialkolor:material-color-utilities:3.0.1
 com.materialkolor:material-kolor-android:3.0.1
 com.materialkolor:material-kolor:3.0.1
-com.squareup.okhttp3:logging-interceptor:5.2.1
-com.squareup.okhttp3:okhttp-android:5.2.1
-com.squareup.okhttp3:okhttp:5.2.1
-com.squareup.okio:okio-jvm:3.16.1
-com.squareup.okio:okio:3.16.1
+com.squareup.okhttp3:logging-interceptor:5.3.0
+com.squareup.okhttp3:okhttp-android:5.3.0
+com.squareup.okhttp3:okhttp:5.3.0
+com.squareup.okio:okio-jvm:3.16.2
+com.squareup.okio:okio:3.16.2
 com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0
 com.squareup.retrofit2:retrofit:3.0.0
 commons-codec:commons-codec:1.19.0
