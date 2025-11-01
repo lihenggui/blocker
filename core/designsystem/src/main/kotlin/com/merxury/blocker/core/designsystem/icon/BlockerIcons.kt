@@ -109,6 +109,7 @@ object BlockerIcons {
     val Android = R.drawable.core_designsystem_ic_android
     val GitHub = R.drawable.core_designsystem_ic_github
     val Telegram = R.drawable.core_designsystem_ic_telegram
+    val ShareOff = R.drawable.core_designsystem_ic_share_off
 
     val ArrowDropDown = Icons.Rounded.ArrowDropDown
     val ArrowDropUp = Icons.Rounded.ArrowDropUp

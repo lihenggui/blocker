@@ -17,9 +17,9 @@
 
 package com.merxury.blocker.navigation
 
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.merxury.blocker.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
 import com.merxury.blocker.feature.search.navigation.SearchRoute
@@ -32,32 +32,32 @@ import kotlin.reflect.KClass
  * next within a single destination will be handled directly in composables.
  */
 enum class TopLevelDestination(
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
+    val selectedIcon: Icon,
+    val unselectedIcon: Icon,
     val iconTextId: Int,
     val route: KClass<*>,
 ) {
     APP(
-        selectedIcon = BlockerIcons.Apps,
-        unselectedIcon = BlockerIcons.Apps,
+        selectedIcon = Icon.ImageVectorIcon(BlockerIcons.Apps),
+        unselectedIcon = Icon.ImageVectorIcon(BlockerIcons.Apps),
         iconTextId = R.string.apps,
         route = AppListRoute::class,
     ),
     RULE(
-        selectedIcon = BlockerIcons.GeneralRule,
-        unselectedIcon = BlockerIcons.GeneralRule,
+        selectedIcon = Icon.ImageVectorIcon(BlockerIcons.GeneralRule),
+        unselectedIcon = Icon.ImageVectorIcon(BlockerIcons.GeneralRule),
         iconTextId = R.string.sdk_trackers,
         route = GeneralRuleRoute::class,
     ),
     SHARE_FILTER(
-        selectedIcon = BlockerIcons.FilterList,
-        unselectedIcon = BlockerIcons.FilterList,
+        selectedIcon = Icon.DrawableResourceIcon(BlockerIcons.ShareOff),
+        unselectedIcon = Icon.DrawableResourceIcon(BlockerIcons.ShareOff),
         iconTextId = R.string.feature_sharefilter_title,
         route = ShareFilterRoute::class,
     ),
     SEARCH(
-        selectedIcon = BlockerIcons.Search,
-        unselectedIcon = BlockerIcons.Search,
+        selectedIcon = Icon.ImageVectorIcon(BlockerIcons.Search),
+        unselectedIcon = Icon.ImageVectorIcon(BlockerIcons.Search),
         iconTextId = R.string.search,
         route = SearchRoute::class,
     ),
