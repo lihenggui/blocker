@@ -19,7 +19,7 @@ package com.google.samples.merxury.blocker.core.database
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.merxury.blocker.core.database.app.BlockerDatabase
+import com.merxury.blocker.core.database.sharetarget.ShareTargetDatabase
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityDao
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import kotlinx.coroutines.flow.first
@@ -31,14 +31,14 @@ import kotlin.test.assertTrue
 
 class ShareTargetActivityDaoTest {
     private lateinit var shareTargetActivityDao: ShareTargetActivityDao
-    private lateinit var db: BlockerDatabase
+    private lateinit var db: ShareTargetDatabase
 
     @Before
     fun createDb() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(
             context,
-            BlockerDatabase::class.java,
+            ShareTargetDatabase::class.java,
         ).build()
         shareTargetActivityDao = db.shareTargetActivityDao()
     }
