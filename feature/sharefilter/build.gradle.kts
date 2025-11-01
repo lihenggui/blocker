@@ -29,6 +29,8 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(libs.androidx.compose.material)
+    implementation(libs.coil.kt)
+    implementation(libs.coil.kt.compose)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)

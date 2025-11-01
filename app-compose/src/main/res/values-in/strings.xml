@@ -3,6 +3,7 @@
     <string name="search">Cari</string>
     <string name="apps">Apl</string>
     <string name="sdk_trackers">SDK/Tracker</string>
+    <string name="feature_sharefilter_title">Filter Berbagi</string>
     <string name="close">Tutup</string>
     <string name="no_permission_hint">Tidak mendapat izin akses, aplikasi tidak berfungsi normal.</string>
     <string name="shell_permission_hint">Berikan akses shell. Kontrol ke komponen aplikasi tidak berfungsi normal.</string>

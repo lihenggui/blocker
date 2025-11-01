@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.sharetarget
+package com.merxury.blocker.feature.sharefilter
 
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
-import com.merxury.blocker.core.result.Result
-import kotlinx.coroutines.flow.Flow
+import com.merxury.blocker.core.domain.model.MatchedHeaderData
 
-interface ShareTargetRepository {
-    fun getShareTargetActivities(): Flow<List<ShareTargetActivityEntity>>
-    fun updateShareTargetActivities(): Flow<Result<Unit>>
-}
+/**
+ * Represents a group of share target activities matched for a specific app
+ *
+ * @param header The header information for the matched app
+ * @param shareTargets The list of share target activities belonging to this app
+ */
+data class MatchedShareTarget(
+    val header: MatchedHeaderData,
+    val shareTargets: List<ShareTargetActivityEntity>,
+)

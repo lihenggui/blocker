@@ -19,9 +19,9 @@ package com.merxury.blocker.core.data.respository.sharetarget
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityDao
+import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
@@ -44,17 +43,16 @@ internal class LocalShareTargetRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ShareTargetRepository {
 
-    override fun getShareTargetActivities(): Flow<List<ComponentInfo>> = cacheDataSource.getShareTargetActivities()
+    override fun getShareTargetActivities(): Flow<List<ShareTargetActivityEntity>> = cacheDataSource.getShareTargetActivities()
         .onStart {
             val latestActivities = localDataSource.getShareTargetActivities().first()
             shareTargetActivityDao.upsertAll(latestActivities)
         }
         .combine(userDataRepository.userData) { activities, userData ->
-            val componentList = activities.map { it.toComponentInfo() }
             if (userData.showSystemApps) {
-                componentList
+                activities
             } else {
-                componentList.filter { activity ->
+                activities.filter { activity ->
                     !ApplicationUtil.isSystemApp(pm, activity.packageName)
                 }
             }

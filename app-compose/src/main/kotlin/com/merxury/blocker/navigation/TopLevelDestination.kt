@@ -23,6 +23,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
 import com.merxury.blocker.feature.search.navigation.SearchRoute
+import com.merxury.blocker.feature.sharefilter.navigation.ShareFilterRoute
 import kotlin.reflect.KClass
 
 /**
@@ -47,6 +48,12 @@ enum class TopLevelDestination(
         unselectedIcon = BlockerIcons.GeneralRule,
         iconTextId = R.string.sdk_trackers,
         route = GeneralRuleRoute::class,
+    ),
+    SHARE_FILTER(
+        selectedIcon = BlockerIcons.FilterList,
+        unselectedIcon = BlockerIcons.FilterList,
+        iconTextId = R.string.feature_sharefilter_title,
+        route = ShareFilterRoute::class,
     ),
     SEARCH(
         selectedIcon = BlockerIcons.Search,

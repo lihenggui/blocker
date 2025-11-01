@@ -37,7 +37,7 @@ data class ShareTargetActivityEntity(
     val exported: Boolean,
 )
 
-internal fun ShareTargetActivityEntity.toComponentInfo() = ComponentInfo(
+fun ShareTargetActivityEntity.toComponentInfo() = ComponentInfo(
     packageName = packageName,
     name = componentName,
     simpleName = simpleName,

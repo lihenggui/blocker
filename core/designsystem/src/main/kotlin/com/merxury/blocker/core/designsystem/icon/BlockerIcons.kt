@@ -47,9 +47,11 @@ import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FilePresent
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.IosShare
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.SubdirectoryArrowRight
@@ -82,6 +84,7 @@ object BlockerIcons {
     val CheckCircle = Icons.Outlined.CheckCircle
     val Folder = Icons.Outlined.Folder
     val Search = Icons.Outlined.Search
+    val FilterList = Icons.Outlined.FilterList
     val BugReport = Icons.Outlined.BugReport
     val Log = Icons.Outlined.FilePresent
     val List = Icons.AutoMirrored.Outlined.List
@@ -95,6 +98,7 @@ object BlockerIcons {
     val DesignService = Icons.Outlined.DesignServices
     val DocumentScanner = Icons.Outlined.DocumentScanner
     val Share = Icons.Outlined.IosShare
+    val PlayArrow = Icons.Outlined.PlayArrow
     val CheckList = Icons.Outlined.Checklist
     val CheckSmall = Icons.Outlined.Check
     val Language = Icons.Default.Language
