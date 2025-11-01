@@ -125,7 +125,7 @@ private fun ShareFilterScreenContent(
             Spacer(modifier = Modifier.width(8.dp))
             FilledTonalIconButton(onClick = onTestShareClick) {
                 Icon(
-                    imageVector = BlockerIcons.PlayArrow,
+                    imageVector = BlockerIcons.Share,
                     contentDescription = stringResource(R.string.feature_sharefilter_test_share),
                 )
             }
