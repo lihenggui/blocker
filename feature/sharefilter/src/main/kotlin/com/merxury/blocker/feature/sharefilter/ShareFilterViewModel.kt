@@ -31,9 +31,9 @@ import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.database.sharetarget.toComponentInfo
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.asResult
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -49,7 +49,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -216,7 +215,7 @@ class ShareFilterViewModel @Inject constructor(
         val sendIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, "Test share from Blocker Share Filter")
-            type = "text/plain"
+            type = "*/*"
         }
         val shareIntent = Intent.createChooser(sendIntent, null)
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
