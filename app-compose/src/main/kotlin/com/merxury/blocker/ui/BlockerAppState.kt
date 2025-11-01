@@ -37,10 +37,12 @@ import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
 import com.merxury.blocker.feature.search.navigation.navigateToSearch
+import com.merxury.blocker.feature.sharefilter.navigation.navigateToShareFilter
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP
 import com.merxury.blocker.navigation.TopLevelDestination.RULE
 import com.merxury.blocker.navigation.TopLevelDestination.SEARCH
+import com.merxury.blocker.navigation.TopLevelDestination.SHARE_FILTER
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -156,6 +158,10 @@ class BlockerAppState(
 
                 RULE -> navController.navigateToGeneralRule(
                     initialRuleId = null,
+                    navOptions = topLevelNavOptions,
+                )
+
+                SHARE_FILTER -> navController.navigateToShareFilter(
                     navOptions = topLevelNavOptions,
                 )
 

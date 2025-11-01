@@ -52,7 +52,6 @@ import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
-import androidx.compose.material.icons.outlined.SubdirectoryArrowRight
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material.icons.rounded.Check
@@ -90,7 +89,6 @@ object BlockerIcons {
     val Close = Icons.Outlined.Close
     val Rule = Icons.AutoMirrored.Outlined.Rule
     val Deselect = Icons.Outlined.Deselect
-    val SubdirectoryArrowRight = Icons.Outlined.SubdirectoryArrowRight
     val Error = Icons.Outlined.Error
     val DesignService = Icons.Outlined.DesignServices
     val DocumentScanner = Icons.Outlined.DocumentScanner
@@ -105,6 +103,7 @@ object BlockerIcons {
     val Android = R.drawable.core_designsystem_ic_android
     val GitHub = R.drawable.core_designsystem_ic_github
     val Telegram = R.drawable.core_designsystem_ic_telegram
+    val ShareOff = R.drawable.core_designsystem_ic_share_off
 
     val ArrowDropDown = Icons.Rounded.ArrowDropDown
     val ArrowDropUp = Icons.Rounded.ArrowDropUp

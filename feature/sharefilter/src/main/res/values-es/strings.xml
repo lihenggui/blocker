@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_sharefilter_title">Filtro de compartir</string>
+    <string name="feature_sharefilter_search_hint">Escribir para buscar</string>
+    <string name="feature_sharefilter_no_root_permission">Se requiere permiso de root para habilitar o deshabilitar componentes</string>
+    <string name="feature_sharefilter_test_share">Probar compartir</string>
+</resources>

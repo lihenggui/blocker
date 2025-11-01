@@ -3,6 +3,7 @@
     <string name="apps">التطبيقات</string>
     <string name="search">البحث</string>
     <string name="sdk_trackers">حزم SDK\\المتعقبين</string>
+    <string name="feature_sharefilter_title">تصفية المشاركة</string>
     <string name="no_permission_hint">تعذر الحصول على الإذن اللازم، مما قد يؤثر على أداء التطبيق.</string>
     <string name="shell_permission_hint">تم منح صلاحية الوصول إلى القشرة(Shell). قد يؤثر ذلك على أداء المكونات التحكمية.</string>
     <string name="close">إغلاق</string>

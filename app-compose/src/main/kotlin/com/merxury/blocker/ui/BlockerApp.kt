@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -54,6 +55,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationSuiteScaffold
 import com.merxury.blocker.core.designsystem.component.SnackbarHost
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
+import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
+import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.navigation.BlockerNavHost
 import kotlin.reflect.KClass
@@ -115,16 +118,36 @@ internal fun BlockerApp(
                     selected = selected,
                     onClick = { appState.navigateToTopLevelDestination(destination) },
                     icon = {
-                        Icon(
-                            imageVector = destination.unselectedIcon,
-                            contentDescription = null,
-                        )
+                        when (val icon = destination.unselectedIcon) {
+                            is ImageVectorIcon -> {
+                                Icon(
+                                    imageVector = icon.imageVector,
+                                    contentDescription = null,
+                                )
+                            }
+                            is DrawableResourceIcon -> {
+                                Icon(
+                                    painter = painterResource(icon.id),
+                                    contentDescription = null,
+                                )
+                            }
+                        }
                     },
                     selectedIcon = {
-                        Icon(
-                            imageVector = destination.selectedIcon,
-                            contentDescription = null,
-                        )
+                        when (val icon = destination.selectedIcon) {
+                            is ImageVectorIcon -> {
+                                Icon(
+                                    imageVector = icon.imageVector,
+                                    contentDescription = null,
+                                )
+                            }
+                            is DrawableResourceIcon -> {
+                                Icon(
+                                    painter = painterResource(icon.id),
+                                    contentDescription = null,
+                                )
+                            }
+                        }
                     },
                     label = { Text(stringResource(destination.iconTextId)) },
                     modifier =

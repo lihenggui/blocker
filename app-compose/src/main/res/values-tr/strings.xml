@@ -2,6 +2,7 @@
 <resources>
     <string name="search">Ara</string>
     <string name="sdk_trackers">SDK/Takipçiler</string>
+    <string name="feature_sharefilter_title">Paylaşım filtresi</string>
     <string name="shell_permission_hint">Kabuk izni verildi. Kontrol bileşenleri düzgün çalışmayabilir.</string>
     <string name="close">Kapat</string>
     <string name="apps">Uygulamalar</string>
