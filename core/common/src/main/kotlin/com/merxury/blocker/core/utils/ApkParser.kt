@@ -167,6 +167,183 @@ internal object ApkParser {
     }
 
     /**
+     * Extracts activities with specific intent filters from an APK file
+     *
+     * Filters activities that have intent-filter containing any of:
+     * - action: android.intent.action.VIEW
+     * - action: android.intent.action.SEND
+     * - category: android.intent.category.BROWSABLE
+     *
+     * @param apkFile the APK file to parse
+     * @param dispatcher the coroutine dispatcher for I/O operations
+     * @return list of activities matching the filter criteria with complete intent filter information
+     */
+    suspend fun getActivitiesWithIntentFilters(
+        apkFile: File,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ): MutableList<ActivityIntentFilterInfo> {
+        val results = mutableListOf<ActivityIntentFilterInfo>()
+        return withContext(dispatcher) {
+            try {
+                val packageName = getPackageName(apkFile)
+                if (packageName.isEmpty()) return@withContext results
+
+                val parser = getParserForManifest(apkFile, dispatcher)
+                var currentActivityName: String? = null
+                var currentActivityExported: Boolean? = null
+                var currentActivityLabel: String? = null
+                val currentActivityIntentFilters = mutableListOf<IntentFilterInfo>()
+
+                var currentFilterActions = mutableListOf<String>()
+                var currentFilterCategories = mutableListOf<String>()
+                var currentFilterData = mutableListOf<IntentFilterDataInfo>()
+
+                var insideActivity = false
+                var insideIntentFilter = false
+                var activityDepth = 0
+                var currentDepth = 0
+
+                while (parser.next() != XmlPullParser.END_DOCUMENT) {
+                    when (parser.eventType) {
+                        XmlPullParser.START_TAG -> {
+                            currentDepth++
+                            when (parser.name) {
+                                "activity" -> {
+                                    insideActivity = true
+                                    activityDepth = currentDepth
+                                    currentActivityName = null
+                                    currentActivityExported = null
+                                    currentActivityLabel = null
+                                    currentActivityIntentFilters.clear()
+
+                                    for (i in 0 until parser.attributeCount) {
+                                        when (parser.getAttributeName(i)) {
+                                            "name" -> currentActivityName = parser.getAttributeValue(i)
+                                            "exported" -> currentActivityExported = parser.getAttributeBooleanValue(i, false)
+                                            "label" -> currentActivityLabel = parser.getAttributeValue(i)
+                                        }
+                                    }
+                                }
+                                "intent-filter" -> {
+                                    if (insideActivity) {
+                                        insideIntentFilter = true
+                                        currentFilterActions.clear()
+                                        currentFilterCategories.clear()
+                                        currentFilterData.clear()
+                                    }
+                                }
+                                "action" -> {
+                                    if (insideIntentFilter) {
+                                        for (i in 0 until parser.attributeCount) {
+                                            if (parser.getAttributeName(i) == "name") {
+                                                currentFilterActions.add(parser.getAttributeValue(i))
+                                            }
+                                        }
+                                    }
+                                }
+                                "category" -> {
+                                    if (insideIntentFilter) {
+                                        for (i in 0 until parser.attributeCount) {
+                                            if (parser.getAttributeName(i) == "name") {
+                                                currentFilterCategories.add(parser.getAttributeValue(i))
+                                            }
+                                        }
+                                    }
+                                }
+                                "data" -> {
+                                    if (insideIntentFilter) {
+                                        var scheme: String? = null
+                                        var host: String? = null
+                                        var port: String? = null
+                                        var path: String? = null
+                                        var pathPrefix: String? = null
+                                        var pathPattern: String? = null
+                                        var mimeType: String? = null
+
+                                        for (i in 0 until parser.attributeCount) {
+                                            when (parser.getAttributeName(i)) {
+                                                "scheme" -> scheme = parser.getAttributeValue(i)
+                                                "host" -> host = parser.getAttributeValue(i)
+                                                "port" -> port = parser.getAttributeValue(i)
+                                                "path" -> path = parser.getAttributeValue(i)
+                                                "pathPrefix" -> pathPrefix = parser.getAttributeValue(i)
+                                                "pathPattern" -> pathPattern = parser.getAttributeValue(i)
+                                                "mimeType" -> mimeType = parser.getAttributeValue(i)
+                                            }
+                                        }
+
+                                        currentFilterData.add(
+                                            IntentFilterDataInfo(
+                                                scheme = scheme,
+                                                host = host,
+                                                port = port,
+                                                path = path,
+                                                pathPrefix = pathPrefix,
+                                                pathPattern = pathPattern,
+                                                mimeType = mimeType,
+                                            ),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        XmlPullParser.END_TAG -> {
+                            when (parser.name) {
+                                "intent-filter" -> {
+                                    if (insideIntentFilter) {
+                                        currentActivityIntentFilters.add(
+                                            IntentFilterInfo(
+                                                actions = currentFilterActions.toList(),
+                                                categories = currentFilterCategories.toList(),
+                                                data = currentFilterData.toList(),
+                                            ),
+                                        )
+                                        insideIntentFilter = false
+                                    }
+                                }
+                                "activity" -> {
+                                    if (insideActivity && currentDepth == activityDepth) {
+                                        val shouldInclude = currentActivityIntentFilters.any { filter ->
+                                            filter.actions.any {
+                                                it == "android.intent.action.VIEW" ||
+                                                    it == "android.intent.action.SEND"
+                                            } ||
+                                                filter.categories.any { it == "android.intent.category.BROWSABLE" }
+                                        }
+
+                                        if (shouldInclude && currentActivityName != null) {
+                                            val exported = currentActivityExported
+                                                ?: currentActivityIntentFilters.isNotEmpty()
+
+                                            results.add(
+                                                ActivityIntentFilterInfo(
+                                                    name = currentActivityName,
+                                                    packageName = packageName,
+                                                    exported = exported,
+                                                    label = currentActivityLabel,
+                                                    intentFilters = currentActivityIntentFilters.toList(),
+                                                ),
+                                            )
+                                        }
+
+                                        insideActivity = false
+                                    }
+                                }
+                            }
+                            currentDepth--
+                        }
+                    }
+                }
+            } catch (e: XmlPullParserException) {
+                Timber.e(e, "Cannot parse activities with intent filters from xml")
+            } catch (e: IOException) {
+                Timber.e(e, "Cannot parse activities with intent filters from xml")
+            }
+            return@withContext results
+        }
+    }
+
+    /**
      * Tries to get the parser for the given apkFile from [AssetManager]
      * using undocumented API which is marked as
      * "not to be used by applications"
