@@ -19,7 +19,6 @@ package com.merxury.blocker.core.data.respository.sharetarget
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import app.cash.turbine.test
-import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityDao
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
@@ -46,7 +45,6 @@ class LocalShareTargetRepositoryTest {
 
     private val localDataSource: LocalShareTargetDataSource = mock()
     private val cacheDataSource: CacheShareTargetDataSource = mock()
-    private val shareTargetActivityDao: ShareTargetActivityDao = mock()
     private val userDataRepository = TestUserDataRepository()
     private val pm: PackageManager = mock()
 
@@ -78,7 +76,6 @@ class LocalShareTargetRepositoryTest {
         repository = LocalShareTargetRepository(
             localDataSource = localDataSource,
             cacheDataSource = cacheDataSource,
-            shareTargetActivityDao = shareTargetActivityDao,
             userDataRepository = userDataRepository,
             pm = pm,
             ioDispatcher = mainDispatcherRule.testDispatcher,
@@ -111,7 +108,7 @@ class LocalShareTargetRepositoryTest {
             assertEquals(1, firstEmission.size)
             assertEquals("com.android.system", firstEmission.first().packageName)
 
-            verify(shareTargetActivityDao).upsertAll(latestEntities)
+            verify(cacheDataSource).updateActivities(latestEntities)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -192,7 +189,7 @@ class LocalShareTargetRepositoryTest {
         val result = repository.updateShareTargetActivities().first()
 
         assertTrue(result is Result.Success)
-        verify(shareTargetActivityDao).upsertAll(latestEntities)
+        verify(cacheDataSource).updateActivities(latestEntities)
     }
 
     @Test
@@ -206,6 +203,6 @@ class LocalShareTargetRepositoryTest {
             awaitComplete()
         }
 
-        verify(shareTargetActivityDao).upsertAll(latestEntities)
+        verify(cacheDataSource).updateActivities(latestEntities)
     }
 }

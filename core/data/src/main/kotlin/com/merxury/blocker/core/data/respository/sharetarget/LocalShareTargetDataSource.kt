@@ -81,76 +81,22 @@ internal class LocalShareTargetDataSource @Inject constructor(
     }.flowOn(ioDispatcher)
 
     /**
-     * Resolves the display label for an activity from its manifest label string.
+     * Resolves the display label for an activity.
      *
-     * Handles resource references (e.g., "@string/app_name") by loading the app's
-     * resources and resolving the string. Falls back to the application label if
-     * resolution fails.
+     * Uses PackageManager to load the activity's label. Falls back to the simple name
+     * if resolution fails.
      *
-     * @param activity the activity information containing the raw label
-     * @return the resolved display name
+     * @param activity the activity information
+     * @return the resolved display name or simple name
      */
     private fun resolveActivityLabel(activity: ActivityIntentFilterInfo): String {
-        val label = activity.label
-
-        if (label.isNullOrEmpty()) {
-            return getApplicationLabel(activity.packageName)
-        }
-
-        if (!label.startsWith("@")) {
-            return label
-        }
-
         return try {
-            val resources = pm.getResourcesForApplication(activity.packageName)
-            val resourceId = label.substring(1).toIntOrNull()
-
-            if (resourceId != null) {
-                resources.getString(resourceId)
-            } else {
-                val (type, name) = parseResourceReference(label)
-                val id = resources.getIdentifier(name, type, activity.packageName)
-                if (id != 0) {
-                    resources.getString(id)
-                } else {
-                    getApplicationLabel(activity.packageName)
-                }
-            }
+            val componentName = android.content.ComponentName(activity.packageName, activity.name)
+            val activityInfo = pm.getActivityInfo(componentName, 0)
+            activityInfo.loadLabel(pm).toString()
         } catch (e: Exception) {
             Timber.w(e, "Failed to resolve label for ${activity.name}")
-            getApplicationLabel(activity.packageName)
-        }
-    }
-
-    /**
-     * Parses a resource reference string (e.g., "@string/app_name") into type and name.
-     *
-     * @param reference the resource reference string
-     * @return a pair of resource type and resource name
-     */
-    private fun parseResourceReference(reference: String): Pair<String, String> {
-        val withoutAt = reference.removePrefix("@")
-        val parts = withoutAt.split("/", limit = 2)
-        return if (parts.size == 2) {
-            Pair(parts[0], parts[1])
-        } else {
-            Pair("string", withoutAt)
-        }
-    }
-
-    /**
-     * Gets the application label as a fallback when activity label cannot be resolved.
-     *
-     * @param packageName the package name
-     * @return the application label
-     */
-    private fun getApplicationLabel(packageName: String): String {
-        return try {
-            val appInfo = pm.getApplicationInfo(packageName, 0)
-            appInfo.loadLabel(pm).toString()
-        } catch (e: Exception) {
-            Timber.w(e, "Failed to get application label for $packageName")
-            packageName
+            activity.name.substringAfterLast('.')
         }
     }
 }

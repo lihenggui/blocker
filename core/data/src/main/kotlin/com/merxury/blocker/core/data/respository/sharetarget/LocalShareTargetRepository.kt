@@ -18,7 +18,6 @@ package com.merxury.blocker.core.data.respository.sharetarget
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityDao
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -37,7 +36,6 @@ import javax.inject.Inject
 internal class LocalShareTargetRepository @Inject constructor(
     private val localDataSource: LocalShareTargetDataSource,
     private val cacheDataSource: CacheShareTargetDataSource,
-    private val shareTargetActivityDao: ShareTargetActivityDao,
     private val userDataRepository: UserDataRepository,
     private val pm: PackageManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -46,7 +44,7 @@ internal class LocalShareTargetRepository @Inject constructor(
     override fun getShareTargetActivities(): Flow<List<ShareTargetActivityEntity>> = cacheDataSource.getShareTargetActivities()
         .onStart {
             val latestActivities = localDataSource.getShareTargetActivities().first()
-            shareTargetActivityDao.upsertAll(latestActivities)
+            cacheDataSource.updateActivities(latestActivities)
         }
         .combine(userDataRepository.userData) { activities, userData ->
             if (userData.showSystemApps) {
@@ -61,7 +59,7 @@ internal class LocalShareTargetRepository @Inject constructor(
 
     override fun updateShareTargetActivities(): Flow<Result<Unit>> = flow {
         val latestActivities = localDataSource.getShareTargetActivities().first()
-        shareTargetActivityDao.upsertAll(latestActivities)
+        cacheDataSource.updateActivities(latestActivities)
         emit(Success(Unit))
     }.flowOn(ioDispatcher)
 }

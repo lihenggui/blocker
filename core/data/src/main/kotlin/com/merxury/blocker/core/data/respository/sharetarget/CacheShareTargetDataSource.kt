@@ -25,4 +25,13 @@ internal class CacheShareTargetDataSource @Inject constructor(
     private val shareTargetActivityDao: ShareTargetActivityDao,
 ) : ShareTargetDataSource {
     override fun getShareTargetActivities(): Flow<List<ShareTargetActivityEntity>> = shareTargetActivityDao.getAll()
+
+    /**
+     * Updates the cache with the latest share target activities.
+     *
+     * @param activities the list of activities to insert or update
+     */
+    suspend fun updateActivities(activities: List<ShareTargetActivityEntity>) {
+        shareTargetActivityDao.upsertAll(activities)
+    }
 }
