@@ -22,11 +22,14 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +43,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ShareTargetItem(
     item: ShareTargetUiItem,
@@ -76,17 +80,72 @@ fun ShareTargetItem(
                 text = item.entity.componentName,
                 style = MaterialTheme.typography.bodyMedium.condensedRegular(),
             )
-            if (item.isShareableComponent) {
+
+            // Display chips for different activity types
+            val hasAnyChip = item.isExplicitLaunch || item.isLauncherEntry ||
+                item.isDeeplinkEntry || item.isShareableComponent
+            if (hasAnyChip) {
                 Spacer(modifier = Modifier.padding(top = 4.dp))
-                AssistChip(
-                    onClick = { },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.feature_sharefilter_share_component),
-                            style = MaterialTheme.typography.labelSmall,
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    // Display in detection order
+                    if (item.isExplicitLaunch) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_sharefilter_explicit_launch),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            modifier = Modifier.padding(end = 4.dp),
                         )
-                    },
-                )
+                    }
+
+                    if (item.isLauncherEntry) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_sharefilter_launcher_entry),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                labelColor = MaterialTheme.colorScheme.onErrorContainer,
+                            ),
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+
+                    if (item.isDeeplinkEntry) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_sharefilter_deeplink_entry),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+
+                    if (item.isShareableComponent) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_sharefilter_share_component),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                }
             }
         }
         Spacer(modifier = Modifier.weight(1f))

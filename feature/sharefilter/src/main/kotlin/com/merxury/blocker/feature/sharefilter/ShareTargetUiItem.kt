@@ -23,10 +23,16 @@ import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
  *
  * @param entity the underlying database entity
  * @param isShareableComponent whether this activity qualifies as a shareable component
+ * @param isExplicitLaunch whether this activity can be explicitly launched (exported=true)
+ * @param isLauncherEntry whether this activity is a launcher entry (has MAIN+LAUNCHER intent filter)
+ * @param isDeeplinkEntry whether this activity handles deeplinks (has VIEW+BROWSABLE intent filter with data)
  */
 data class ShareTargetUiItem(
     val entity: ShareTargetActivityEntity,
     val isShareableComponent: Boolean = false,
+    val isExplicitLaunch: Boolean = false,
+    val isLauncherEntry: Boolean = false,
+    val isDeeplinkEntry: Boolean = false,
 )
 
 /**
@@ -40,14 +46,60 @@ data class ShareTargetUiItem(
  * @param entity the activity entity to check
  * @return true if the activity is a shareable component, false otherwise
  */
-fun isShareableComponent(entity: ShareTargetActivityEntity): Boolean {
-    return entity.intentFilters.any { filter ->
-        val hasSendAction = filter.actions.any {
-            it == "android.intent.action.SEND" || it == "android.intent.action.SEND_MULTIPLE"
-        }
-        val hasDefaultCategory = filter.categories.contains("android.intent.category.DEFAULT")
-        val hasMimeType = filter.data.any { it.mimeType != null }
-
-        hasSendAction && hasDefaultCategory && hasMimeType
+fun isShareableComponent(entity: ShareTargetActivityEntity): Boolean = entity.intentFilters.any { filter ->
+    val hasSendAction = filter.actions.any {
+        it == "android.intent.action.SEND" || it == "android.intent.action.SEND_MULTIPLE"
     }
+    val hasDefaultCategory = filter.categories.contains("android.intent.category.DEFAULT")
+    val hasMimeType = filter.data.any { it.mimeType != null }
+
+    hasSendAction && hasDefaultCategory && hasMimeType
+}
+
+/**
+ * Determines if an activity can be explicitly launched via setComponent.
+ *
+ * An explicitly launchable activity must have:
+ * - exported: true
+ *
+ * @param entity the activity entity to check
+ * @return true if the activity is exported, false otherwise
+ */
+fun isExplicitLaunch(entity: ShareTargetActivityEntity): Boolean = entity.exported
+
+/**
+ * Determines if an activity is a launcher entry (can be launched from home screen).
+ *
+ * A launcher entry must have an intent filter with:
+ * - action: android.intent.action.MAIN
+ * - category: android.intent.category.LAUNCHER
+ *
+ * @param entity the activity entity to check
+ * @return true if the activity is a launcher entry, false otherwise
+ */
+fun isLauncherEntry(entity: ShareTargetActivityEntity): Boolean = entity.intentFilters.any { filter ->
+    val hasMainAction = filter.actions.contains("android.intent.action.MAIN")
+    val hasLauncherCategory = filter.categories.contains("android.intent.category.LAUNCHER")
+    hasMainAction && hasLauncherCategory
+}
+
+/**
+ * Determines if an activity handles deeplinks (custom scheme or App Links).
+ *
+ * A deeplink handler must have an intent filter with:
+ * - action: android.intent.action.VIEW
+ * - category: android.intent.category.DEFAULT
+ * - category: android.intent.category.BROWSABLE
+ * - data: at least one data element with scheme/host configuration
+ *
+ * @param entity the activity entity to check
+ * @return true if the activity handles deeplinks, false otherwise
+ */
+fun isDeeplinkEntry(entity: ShareTargetActivityEntity): Boolean = entity.intentFilters.any { filter ->
+    val hasViewAction = filter.actions.contains("android.intent.action.VIEW")
+    val hasDefaultCategory = filter.categories.contains("android.intent.category.DEFAULT")
+    val hasBrowsableCategory = filter.categories.contains("android.intent.category.BROWSABLE")
+    val hasDataConfig = filter.data.isNotEmpty()
+
+    hasViewAction && hasDefaultCategory && hasBrowsableCategory && hasDataConfig
 }

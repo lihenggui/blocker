@@ -253,6 +253,9 @@ class ShareFilterViewModel @Inject constructor(
                     ShareTargetUiItem(
                         entity = entity,
                         isShareableComponent = isShareableComponent(entity),
+                        isExplicitLaunch = isExplicitLaunch(entity),
+                        isLauncherEntry = isLauncherEntry(entity),
+                        isDeeplinkEntry = isDeeplinkEntry(entity),
                     )
                 }
                 MatchedShareTarget(

@@ -5,4 +5,7 @@
     <string name="feature_sharefilter_no_root_permission">Bileşenleri etkinleştirmek veya devre dışı bırakmak için root izni gerekiyor</string>
     <string name="feature_sharefilter_test_share">Paylaşımı test et</string>
     <string name="feature_sharefilter_share_component">Paylaş</string>
+    <string name="feature_sharefilter_explicit_launch">Açık</string>
+    <string name="feature_sharefilter_launcher_entry">Başlatıcı</string>
+    <string name="feature_sharefilter_deeplink_entry">Deeplink</string>
 </resources>
