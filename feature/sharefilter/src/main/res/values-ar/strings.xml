@@ -19,4 +19,5 @@
     <string name="feature_sharefilter_search_hint">اكتب للبحث</string>
     <string name="feature_sharefilter_no_root_permission">مطلوب إذن الجذر لتمكين أو تعطيل المكونات</string>
     <string name="feature_sharefilter_test_share">اختبار المشاركة</string>
+    <string name="feature_sharefilter_share_component">مشاركة</string>
 </resources>

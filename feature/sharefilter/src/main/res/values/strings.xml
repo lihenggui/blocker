@@ -19,5 +19,5 @@
     <string name="feature_sharefilter_search_hint">Type to search</string>
     <string name="feature_sharefilter_no_root_permission">Root permission is required to enable or disable components</string>
     <string name="feature_sharefilter_test_share">Test share</string>
-    <string name="feature_sharefilter_share_component">Share Component</string>
+    <string name="feature_sharefilter_share_component">Share</string>
 </resources>

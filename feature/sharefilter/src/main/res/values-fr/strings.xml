@@ -4,4 +4,5 @@
     <string name="feature_sharefilter_search_hint">Saisir pour rechercher</string>
     <string name="feature_sharefilter_no_root_permission">La permission root est requise pour activer ou désactiver les composants</string>
     <string name="feature_sharefilter_test_share">Tester le partage</string>
+    <string name="feature_sharefilter_share_component">Partager</string>
 </resources>
