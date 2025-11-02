@@ -16,18 +16,16 @@
 
 package com.merxury.blocker.feature.sharefilter
 
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -43,46 +41,73 @@ import java.util.TimeZone
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class)
 @LooperMode(LooperMode.Mode.PAUSED)
-@HiltAndroidTest
 class ShareFilterScreenScreenshotTest {
 
-    @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
-
-    @get:Rule(order = 1)
-    val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
+    @get:Rule
+    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Before
-    fun setup() {
-        hiltRule.inject()
+    fun setTimeZone() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
     }
 
     @Test
-    fun givenShareFilterScreen_thenCaptureScreenshot() {
-        composeTestRule.captureMultiDevice("ShareFilterScreen") {
-            ShareFilterScreenContent()
+    fun shareFilterScreenLoading() {
+        composeTestRule.captureMultiDevice("ShareFilterScreenLoading") {
+            ShareFilterScreenLoading()
         }
     }
 
     @Test
-    fun givenShareFilterScreenDark_thenCaptureScreenshot() {
+    fun shareFilterScreenLoading_dark() {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = DefaultTestDevices.PHONE.spec,
+            screenshotName = "ShareFilterScreenLoading",
+            darkMode = true,
+        ) {
+            ShareFilterScreenLoading()
+        }
+    }
+
+    @Test
+    fun shareFilterScreen() {
+        composeTestRule.captureMultiDevice("ShareFilterScreen") {
+            ShareFilterScreenEmpty()
+        }
+    }
+
+    @Test
+    fun shareFilterScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "ShareFilterScreen",
             darkMode = true,
         ) {
-            ShareFilterScreenContent()
+            ShareFilterScreenEmpty()
         }
     }
 
     @Composable
-    private fun ShareFilterScreenContent() {
+    private fun ShareFilterScreenLoading() {
         BlockerTheme {
             Surface {
-                ShareFilterScreen(
+                ShareFilterScreenContent(
                     snackbarHostState = SnackbarHostState(),
+                    shareTargetsUiState = Result.Loading,
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ShareFilterScreenEmpty() {
+        BlockerTheme {
+            Surface {
+                ShareFilterScreenContent(
+                    snackbarHostState = SnackbarHostState(),
+                    shareTargetsUiState = Result.Success(emptyList()),
                 )
             }
         }

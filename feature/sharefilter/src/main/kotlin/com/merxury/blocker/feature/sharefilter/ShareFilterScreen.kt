@@ -93,7 +93,7 @@ fun ShareFilterScreen(
 }
 
 @Composable
-private fun ShareFilterScreenContent(
+internal fun ShareFilterScreenContent(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     shareTargetsUiState: Result<List<MatchedShareTarget>> = Result.Loading,
