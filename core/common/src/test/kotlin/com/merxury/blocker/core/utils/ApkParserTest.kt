@@ -43,21 +43,6 @@ class ApkParserTest {
     fun givenValidApk_whenGetActivitiesWithIntentFilters_thenReturnNonEmptyList() = runTest {
         val result = ApkParser.getActivitiesWithIntentFilters(testApkFile)
 
-        println("=== Test Results ===")
-        println("Total activities found: ${result.size}")
-        result.forEach { activity ->
-            println("Activity: ${activity.name}")
-            println("  Package: ${activity.packageName}")
-            println("  Exported: ${activity.exported}")
-            println("  Label: ${activity.label}")
-            println("  Intent Filters: ${activity.intentFilters.size}")
-            activity.intentFilters.forEach { filter ->
-                println("    Actions: ${filter.actions}")
-                println("    Categories: ${filter.categories}")
-                println("    Data: ${filter.data}")
-            }
-        }
-
         assertTrue(result.isNotEmpty(), "Should return activities with matching intent filters")
     }
 
