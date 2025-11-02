@@ -16,16 +16,15 @@
 
 package com.merxury.blocker.feature.sharefilter
 
-import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 
 /**
  * Represents a group of share target activities matched for a specific app
  *
  * @param header The header information for the matched app
- * @param shareTargets The list of share target activities belonging to this app
+ * @param shareTargets The list of share target UI items belonging to this app
  */
 data class MatchedShareTarget(
     val header: MatchedHeaderData,
-    val shareTargets: List<ShareTargetActivityEntity>,
+    val shareTargets: List<ShareTargetUiItem>,
 )

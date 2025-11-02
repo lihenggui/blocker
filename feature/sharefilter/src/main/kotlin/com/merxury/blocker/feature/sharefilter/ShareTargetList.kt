@@ -35,8 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastSumBy
-import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
-import com.merxury.blocker.core.database.sharetarget.toComponentInfo
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -47,9 +45,9 @@ import timber.log.Timber
 fun ShareTargetList(
     list: List<MatchedShareTarget>,
     modifier: Modifier = Modifier,
-    onBlockAllInItemClick: (List<ShareTargetActivityEntity>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ShareTargetActivityEntity>) -> Unit = { _ -> },
-    onSwitch: (ShareTargetActivityEntity, Boolean) -> Unit = { _, _ -> },
+    onBlockAllInItemClick: (List<ShareTargetUiItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ShareTargetUiItem>) -> Unit = { _ -> },
+    onSwitch: (ShareTargetUiItem, Boolean) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
     val isExpandedMap = rememberSavableSnapshotStateMap {
@@ -81,15 +79,15 @@ fun ShareTargetList(
                     items(
                         count = matchedShareTarget.shareTargets.size,
                         key = { itemIndex ->
-                            val entity = matchedShareTarget.shareTargets[itemIndex]
-                            "${matchedShareTarget.header.uniqueId}/${entity.componentName}"
+                            val uiItem = matchedShareTarget.shareTargets[itemIndex]
+                            "${matchedShareTarget.header.uniqueId}/${uiItem.entity.componentName}"
                         },
                     ) { itemIndex ->
-                        val entity = matchedShareTarget.shareTargets[itemIndex]
+                        val uiItem = matchedShareTarget.shareTargets[itemIndex]
                         ShareTargetItem(
                             modifier = Modifier.animateItem(),
-                            item = entity,
-                            enabled = !entity.pmBlocked && !entity.ifwBlocked,
+                            item = uiItem,
+                            enabled = !uiItem.entity.pmBlocked && !uiItem.entity.ifwBlocked,
                             onSwitchClick = onSwitch,
                         )
                         // Add horizontal divider after last item

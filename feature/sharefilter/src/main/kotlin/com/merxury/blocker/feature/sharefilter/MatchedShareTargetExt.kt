@@ -33,19 +33,20 @@ fun Result<List<MatchedShareTarget>>.updateShareTargetSwitchState(
     }
 
     val updatedList = data.map { matchedShareTarget ->
-        val updatedTargets = matchedShareTarget.shareTargets.map { entity ->
+        val updatedTargets = matchedShareTarget.shareTargets.map { uiItem ->
             val shouldUpdate = changed.any { changedEntity ->
-                changedEntity.packageName == entity.packageName &&
-                    changedEntity.componentName == entity.componentName
+                changedEntity.packageName == uiItem.entity.packageName &&
+                    changedEntity.componentName == uiItem.entity.componentName
             }
             if (shouldUpdate) {
-                if (controllerType == IFW) {
-                    entity.copy(ifwBlocked = !enabled)
+                val updatedEntity = if (controllerType == IFW) {
+                    uiItem.entity.copy(ifwBlocked = !enabled)
                 } else {
-                    entity.copy(pmBlocked = !enabled)
+                    uiItem.entity.copy(pmBlocked = !enabled)
                 }
+                uiItem.copy(entity = updatedEntity)
             } else {
-                entity
+                uiItem
             }
         }
         matchedShareTarget.copy(shareTargets = updatedTargets)

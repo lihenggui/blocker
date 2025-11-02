@@ -249,13 +249,19 @@ class ShareFilterViewModel @Inject constructor(
             }
 
             if (filteredTargets.isNotEmpty()) {
+                val uiItems = filteredTargets.map { entity ->
+                    ShareTargetUiItem(
+                        entity = entity,
+                        isShareableComponent = isShareableComponent(entity),
+                    )
+                }
                 MatchedShareTarget(
                     header = MatchedHeaderData(
                         title = appLabel,
                         uniqueId = packageName,
                         icon = packageInfo,
                     ),
-                    shareTargets = filteredTargets,
+                    shareTargets = uiItems,
                 )
             } else {
                 null

@@ -39,7 +39,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
@@ -77,12 +76,14 @@ fun ShareFilterScreen(
         searchQuery = searchQuery,
         errorState = errorState,
         onSearchQueryChange = viewModel::updateSearchQuery,
-        onSwitchClick = viewModel::controlComponent,
-        onBlockAllInItemClick = { entities ->
-            viewModel.controlAllComponents(entities, enable = false)
+        onSwitchClick = { uiItem, enabled ->
+            viewModel.controlComponent(uiItem.entity, enabled)
         },
-        onEnableAllInItemClick = { entities ->
-            viewModel.controlAllComponents(entities, enable = true)
+        onBlockAllInItemClick = { uiItems ->
+            viewModel.controlAllComponents(uiItems.map { it.entity }, enable = false)
+        },
+        onEnableAllInItemClick = { uiItems ->
+            viewModel.controlAllComponents(uiItems.map { it.entity }, enable = true)
         },
         onDismissError = viewModel::dismissError,
         onTestShareClick = {
@@ -99,9 +100,9 @@ private fun ShareFilterScreenContent(
     searchQuery: String = "",
     errorState: UiMessage? = null,
     onSearchQueryChange: (String) -> Unit = {},
-    onSwitchClick: (ShareTargetActivityEntity, Boolean) -> Unit = { _, _ -> },
-    onBlockAllInItemClick: (List<ShareTargetActivityEntity>) -> Unit = {},
-    onEnableAllInItemClick: (List<ShareTargetActivityEntity>) -> Unit = {},
+    onSwitchClick: (ShareTargetUiItem, Boolean) -> Unit = { _, _ -> },
+    onBlockAllInItemClick: (List<ShareTargetUiItem>) -> Unit = {},
+    onEnableAllInItemClick: (List<ShareTargetUiItem>) -> Unit = {},
     onDismissError: () -> Unit = {},
     onTestShareClick: () -> Unit = {},
 ) {

@@ -34,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
-import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
@@ -46,8 +45,8 @@ import com.merxury.blocker.core.ui.R.string
 fun ShareTargetCollapsibleItem(
     matchedShareTarget: MatchedShareTarget,
     modifier: Modifier = Modifier,
-    onBlockAllInItemClick: (List<ShareTargetActivityEntity>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ShareTargetActivityEntity>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (List<ShareTargetUiItem>) -> Unit = { _ -> },
+    onEnableAllInItemClick: (List<ShareTargetUiItem>) -> Unit = { _ -> },
     expanded: Boolean = false,
     onCardArrowClick: (String) -> Unit = {},
 ) {
@@ -98,9 +97,9 @@ fun ShareTargetCollapsibleItem(
         ShareTargetAppInfo(
             label = matchedShareTarget.header.title,
             blockedCount = matchedShareTarget.shareTargets
-                .count { it.pmBlocked || it.ifwBlocked },
+                .count { it.entity.pmBlocked || it.entity.ifwBlocked },
             enabledCount = matchedShareTarget.shareTargets
-                .count { !it.pmBlocked && !it.ifwBlocked },
+                .count { !it.entity.pmBlocked && !it.entity.ifwBlocked },
             modifier = Modifier.fillMaxWidth(0.8f),
         )
         Spacer(modifier = Modifier.weight(1f))
