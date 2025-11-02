@@ -18,8 +18,11 @@ package com.merxury.blocker.core.database.sharetarget
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.merxury.blocker.core.database.util.IntentFilterInfoConverter
 
-@Database(entities = [ShareTargetActivityEntity::class], version = 1)
+@Database(entities = [ShareTargetActivityEntity::class], version = 2)
+@TypeConverters(IntentFilterInfoConverter::class)
 internal abstract class ShareTargetDatabase : RoomDatabase() {
     abstract fun shareTargetActivityDao(): ShareTargetActivityDao
 }

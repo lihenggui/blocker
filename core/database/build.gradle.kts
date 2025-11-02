@@ -28,6 +28,7 @@ android {
 
 dependencies {
     api(projects.core.model)
+    implementation(projects.core.common)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
 

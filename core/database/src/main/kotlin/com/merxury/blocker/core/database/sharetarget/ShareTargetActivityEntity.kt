@@ -19,14 +19,18 @@ package com.merxury.blocker.core.database.sharetarget
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
+import androidx.room.TypeConverters
+import com.merxury.blocker.core.database.util.IntentFilterInfoConverter
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.utils.IntentFilterInfo
 
 @Entity(
     primaryKeys = ["package_name", "component_name"],
     tableName = "share_target_activity",
     indices = [Index(value = ["package_name", "component_name"])],
 )
+@TypeConverters(IntentFilterInfoConverter::class)
 data class ShareTargetActivityEntity(
     @ColumnInfo(name = "package_name") val packageName: String,
     @ColumnInfo(name = "component_name") val componentName: String,
@@ -35,6 +39,8 @@ data class ShareTargetActivityEntity(
     @ColumnInfo(name = "ifw_blocked") var ifwBlocked: Boolean,
     @ColumnInfo(name = "pm_blocked") var pmBlocked: Boolean,
     val exported: Boolean,
+    val label: String? = null,
+    val intentFilters: List<IntentFilterInfo> = emptyList(),
 )
 
 fun ShareTargetActivityEntity.toComponentInfo() = ComponentInfo(

@@ -59,6 +59,8 @@ class LocalShareTargetRepositoryTest {
             ifwBlocked = false,
             pmBlocked = false,
             exported = true,
+            label = null,
+            intentFilters = emptyList(),
         ),
         ShareTargetActivityEntity(
             packageName = "com.example.userapp",
@@ -68,6 +70,8 @@ class LocalShareTargetRepositoryTest {
             ifwBlocked = false,
             pmBlocked = false,
             exported = true,
+            label = null,
+            intentFilters = emptyList(),
         ),
     )
 

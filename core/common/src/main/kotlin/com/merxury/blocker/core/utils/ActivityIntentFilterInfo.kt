@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.utils
 
+import kotlinx.serialization.Serializable
+
 /**
  * Represents an Activity with its intent filters
  *
@@ -25,6 +27,7 @@ package com.merxury.blocker.core.utils
  * @param label the activity label, with @string resource resolution attempted
  * @param intentFilters list of intent filters defined for this activity
  */
+@Serializable
 data class ActivityIntentFilterInfo(
     val name: String,
     val packageName: String,
@@ -40,6 +43,7 @@ data class ActivityIntentFilterInfo(
  * @param categories list of category names from <category android:name="..." /> tags
  * @param data list of data specifications from <data ... /> tags
  */
+@Serializable
 data class IntentFilterInfo(
     val actions: List<String>,
     val categories: List<String>,
@@ -57,6 +61,7 @@ data class IntentFilterInfo(
  * @param pathPattern the URI path pattern (android:pathPattern attribute)
  * @param mimeType the MIME type (android:mimeType attribute)
  */
+@Serializable
 data class IntentFilterDataInfo(
     val scheme: String? = null,
     val host: String? = null,

@@ -19,9 +19,9 @@ package com.google.samples.merxury.blocker.core.database
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.merxury.blocker.core.database.sharetarget.ShareTargetDatabase
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityDao
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
+import com.merxury.blocker.core.database.sharetarget.ShareTargetDatabase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before

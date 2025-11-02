@@ -69,6 +69,8 @@ internal class LocalShareTargetDataSource @Inject constructor(
                         ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
                         pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
                         exported = activity.exported,
+                        label = activity.label,
+                        intentFilters = activity.intentFilters,
                     )
                     entityList.add(entity)
                 }
@@ -89,14 +91,12 @@ internal class LocalShareTargetDataSource @Inject constructor(
      * @param activity the activity information
      * @return the resolved display name or simple name
      */
-    private fun resolveActivityLabel(activity: ActivityIntentFilterInfo): String {
-        return try {
-            val componentName = android.content.ComponentName(activity.packageName, activity.name)
-            val activityInfo = pm.getActivityInfo(componentName, 0)
-            activityInfo.loadLabel(pm).toString()
-        } catch (e: Exception) {
-            Timber.w(e, "Failed to resolve label for ${activity.name}")
-            activity.name.substringAfterLast('.')
-        }
+    private fun resolveActivityLabel(activity: ActivityIntentFilterInfo): String = try {
+        val componentName = android.content.ComponentName(activity.packageName, activity.name)
+        val activityInfo = pm.getActivityInfo(componentName, 0)
+        activityInfo.loadLabel(pm).toString()
+    } catch (e: Exception) {
+        Timber.w(e, "Failed to resolve label for ${activity.name}")
+        activity.name.substringAfterLast('.')
     }
 }
