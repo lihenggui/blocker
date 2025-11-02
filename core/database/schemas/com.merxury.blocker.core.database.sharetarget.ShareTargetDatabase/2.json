@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "27416c8c11efaa6ce415c34db2b4685c",
+    "identityHash": "294be308c375d08010d5601026d80745",
     "entities": [
       {
         "tableName": "share_target_activity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `component_name` TEXT NOT NULL, `simple_name` TEXT NOT NULL, `display_name` TEXT NOT NULL, `ifw_blocked` INTEGER NOT NULL, `pm_blocked` INTEGER NOT NULL, `exported` INTEGER NOT NULL, `label` TEXT, `intentFilters` TEXT NOT NULL, PRIMARY KEY(`package_name`, `component_name`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `component_name` TEXT NOT NULL, `simple_name` TEXT NOT NULL, `display_name` TEXT NOT NULL, `ifw_blocked` INTEGER NOT NULL, `pm_blocked` INTEGER NOT NULL, `exported` INTEGER NOT NULL, `label` TEXT, `intent_filters` TEXT NOT NULL, PRIMARY KEY(`package_name`, `component_name`))",
         "fields": [
           {
             "fieldPath": "packageName",
@@ -57,7 +57,7 @@
           },
           {
             "fieldPath": "intentFilters",
-            "columnName": "intentFilters",
+            "columnName": "intent_filters",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -85,7 +85,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '27416c8c11efaa6ce415c34db2b4685c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '294be308c375d08010d5601026d80745')"
     ]
   }
 }

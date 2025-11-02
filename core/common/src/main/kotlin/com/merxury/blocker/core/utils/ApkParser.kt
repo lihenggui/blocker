@@ -23,6 +23,9 @@ import android.content.pm.ServiceInfo
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.data.ActivityIntentFilterInfo
+import com.merxury.blocker.core.model.data.IntentFilterDataInfo
+import com.merxury.blocker.core.model.data.IntentFilterInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

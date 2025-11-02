@@ -25,7 +25,7 @@ import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
-import com.merxury.blocker.core.utils.ActivityIntentFilterInfo
+import com.merxury.blocker.core.model.data.ActivityIntentFilterInfo
 import com.merxury.blocker.core.utils.ApkParser
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher

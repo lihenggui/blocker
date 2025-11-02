@@ -27,6 +27,7 @@ android {
 }
 
 dependencies {
+    api(projects.core.model)
     api(libs.timber)
     api(libs.kotlinx.datetime)
     api(libs.kotlinx.serialization.json)

@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.database.util
 
 import androidx.room.TypeConverter
-import com.merxury.blocker.core.utils.IntentFilterInfo
+import com.merxury.blocker.core.model.data.IntentFilterInfo
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Instant
