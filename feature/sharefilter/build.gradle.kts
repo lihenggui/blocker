@@ -36,6 +36,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(projects.core.testing)
+    testImplementation(projects.uiTestHiltManifest)
 
     androidTestImplementation(projects.core.testing)
 }
