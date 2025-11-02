@@ -34,6 +34,9 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.ext)
+    testImplementation(kotlin("test"))
 }
 
 java {
