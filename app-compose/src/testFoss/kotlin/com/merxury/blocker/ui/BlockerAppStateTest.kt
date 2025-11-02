@@ -105,10 +105,11 @@ class BlockerAppStateTest {
             )
         }
 
-        assertEquals(3, state.topLevelDestinations.size)
+        assertEquals(4, state.topLevelDestinations.size)
         assertTrue(state.topLevelDestinations[0].name.contains("APP", true))
         assertTrue(state.topLevelDestinations[1].name.contains("RULE", true))
-        assertTrue(state.topLevelDestinations[2].name.contains("SEARCH", true))
+        assertTrue(state.topLevelDestinations[2].name.contains("SHARE_FILTER", true))
+        assertTrue(state.topLevelDestinations[3].name.contains("SEARCH", true))
     }
 
     @Test
