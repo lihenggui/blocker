@@ -198,9 +198,9 @@ object ApkParser {
                 var currentActivityLabel: String? = null
                 val currentActivityIntentFilters = mutableListOf<IntentFilterInfo>()
 
-                var currentFilterActions = mutableListOf<String>()
-                var currentFilterCategories = mutableListOf<String>()
-                var currentFilterData = mutableListOf<IntentFilterDataInfo>()
+                val currentFilterActions = mutableListOf<String>()
+                val currentFilterCategories = mutableListOf<String>()
+                val currentFilterData = mutableListOf<IntentFilterDataInfo>()
 
                 var insideActivity = false
                 var insideIntentFilter = false

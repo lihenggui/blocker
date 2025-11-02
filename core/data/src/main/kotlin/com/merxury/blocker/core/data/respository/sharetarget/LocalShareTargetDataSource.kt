@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.respository.sharetarget
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
@@ -57,7 +58,11 @@ internal class LocalShareTargetDataSource @Inject constructor(
                 val activities = ApkParser.getActivitiesWithIntentFilters(apkFile, ioDispatcher)
 
                 for (activity in activities) {
-                    val componentName = activity.name
+                    val componentName = if (activity.name.startsWith(".")) {
+                        activity.packageName + activity.name
+                    } else {
+                        activity.name
+                    }
                     val simpleName = componentName.substringAfterLast('.')
                     val displayName = resolveActivityLabel(activity)
 
@@ -92,7 +97,12 @@ internal class LocalShareTargetDataSource @Inject constructor(
      * @return the resolved display name or simple name
      */
     private fun resolveActivityLabel(activity: ActivityIntentFilterInfo): String = try {
-        val componentName = android.content.ComponentName(activity.packageName, activity.name)
+        val fullName = if (activity.name.startsWith(".")) {
+            activity.packageName + activity.name
+        } else {
+            activity.name
+        }
+        val componentName = ComponentName(activity.packageName, fullName)
         val activityInfo = pm.getActivityInfo(componentName, 0)
         activityInfo.loadLabel(pm).toString()
     } catch (e: Exception) {
