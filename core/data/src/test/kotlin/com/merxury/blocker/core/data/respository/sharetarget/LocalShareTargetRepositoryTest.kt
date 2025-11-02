@@ -157,7 +157,7 @@ class LocalShareTargetRepositoryTest {
             val result = awaitItem()
             assertEquals(1, result.size)
             assertEquals("com.android.system", result.first().packageName)
-            assertEquals("com.android.system.ShareActivity", result.first().name)
+            assertEquals("com.android.system.ShareActivity", result.first().componentName)
             assertEquals("ShareActivity", result.first().simpleName)
             cancelAndIgnoreRemainingEvents()
         }

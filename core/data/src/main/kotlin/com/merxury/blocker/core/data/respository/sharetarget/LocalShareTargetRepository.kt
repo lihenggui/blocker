@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
-class LocalShareTargetRepository @Inject constructor(
+internal class LocalShareTargetRepository @Inject constructor(
     private val localDataSource: LocalShareTargetDataSource,
     private val cacheDataSource: CacheShareTargetDataSource,
     private val shareTargetActivityDao: ShareTargetActivityDao,

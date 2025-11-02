@@ -32,7 +32,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
-internal object ApkParser {
+object ApkParser {
 
     /**
      * Get [AssetManager] using reflection
@@ -172,6 +172,7 @@ internal object ApkParser {
      * Filters activities that have intent-filter containing any of:
      * - action: android.intent.action.VIEW
      * - action: android.intent.action.SEND
+     * - action: android.intent.action.SEND_MULTIPLE
      * - category: android.intent.category.BROWSABLE
      *
      * @param apkFile the APK file to parse
@@ -306,7 +307,8 @@ internal object ApkParser {
                                         val shouldInclude = currentActivityIntentFilters.any { filter ->
                                             filter.actions.any {
                                                 it == "android.intent.action.VIEW" ||
-                                                    it == "android.intent.action.SEND"
+                                                    it == "android.intent.action.SEND" ||
+                                                    it == "android.intent.action.SEND_MULTIPLE"
                                             } ||
                                                 filter.categories.any { it == "android.intent.category.BROWSABLE" }
                                         }
