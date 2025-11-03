@@ -35,6 +35,9 @@ proguard/
 # Android Studio captures folder
 captures/
 
+# Claude Code local settings
+.claude/
+
 # IDEA/Android Studio project files, because
 # the project can be imported from settings.gradle.kts
 *.iml
