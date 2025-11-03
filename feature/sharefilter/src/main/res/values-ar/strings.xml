@@ -15,9 +15,11 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_sharefilter_apppurification_title">تنقية التطبيق</string>
     <string name="feature_sharefilter_search_hint">اكتب للبحث</string>
     <string name="feature_sharefilter_no_root_permission">مطلوب إذن الجذر لتمكين أو تعطيل المكونات</string>
     <string name="feature_sharefilter_test_share">اختبار المشاركة</string>
     <string name="feature_sharefilter_share_component">مشاركة</string>
+    <string name="feature_sharefilter_explicit_launch">صريح</string>
+    <string name="feature_sharefilter_launcher_entry">المشغل</string>
+    <string name="feature_sharefilter_deeplink_entry">رابط عميق</string>
 </resources>

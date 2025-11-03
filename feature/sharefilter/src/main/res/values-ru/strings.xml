@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_sharefilter_apppurification_title">Очистка приложения</string>
     <string name="feature_sharefilter_search_hint">Введите для поиска</string>
     <string name="feature_sharefilter_no_root_permission">Требуется root-доступ для включения или отключения компонентов</string>
     <string name="feature_sharefilter_test_share">Тестировать отправку</string>
