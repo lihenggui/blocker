@@ -35,7 +35,9 @@ dependencies {
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(projects.core.testing)
+    testImplementation(projects.core.dataTest)
 
     androidTestImplementation(projects.core.testing)
 }

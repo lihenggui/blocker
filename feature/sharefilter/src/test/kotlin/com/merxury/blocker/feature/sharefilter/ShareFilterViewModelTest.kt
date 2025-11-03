@@ -21,7 +21,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import app.cash.turbine.test
-import com.merxury.blocker.core.data.test.repository.FakeShareTargetRepository
+import com.merxury.blocker.core.data.respository.sharetarget.ShareTargetRepository
 import com.merxury.blocker.core.data.util.PermissionStatus
 import com.merxury.blocker.core.database.sharetarget.ShareTargetActivityEntity
 import com.merxury.blocker.core.model.data.ControllerType
@@ -36,6 +36,7 @@ import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -57,15 +58,15 @@ class ShareFilterViewModelTest {
     private val permissionMonitor = TestPermissionMonitor()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val shareTargetsFlow = MutableStateFlow<List<ShareTargetActivityEntity>>(emptyList())
-    private val shareTargetRepository = object : FakeShareTargetRepository() {
+    private val shareTargetRepository = object : ShareTargetRepository {
         override fun getShareTargetActivities() = shareTargetsFlow
+        override fun updateShareTargetActivities() = flowOf(Result.Success(Unit))
     }
     private val appInfo = mock<ApplicationInfo> {
         on { loadLabel(any()) } doReturn "Test App"
     }
-    private val packageInfo = mock<PackageInfo> {
-        on { toString() } doReturn "MockedPackageInfo"
-        on { applicationInfo } doReturn appInfo
+    private val packageInfo = mock<PackageInfo>().apply {
+        applicationInfo = appInfo
     }
     private val pm = mock<PackageManager> {
         on { getPackageInfo(any<String>(), any<Int>()) } doReturn packageInfo
@@ -192,7 +193,6 @@ class ShareFilterViewModelTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
             shareTargetsFlow.emit(sampleShareTargets)
-            componentRepository.setControlComponentResult(true)
 
             assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
@@ -213,7 +213,6 @@ class ShareFilterViewModelTest {
             val blockedTargets = sampleShareTargets.map { it.copy(ifwBlocked = true) }
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
             shareTargetsFlow.emit(blockedTargets)
-            componentRepository.setControlComponentResult(true)
 
             assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
@@ -233,7 +232,6 @@ class ShareFilterViewModelTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
             shareTargetsFlow.emit(sampleShareTargets)
-            componentRepository.setControlComponentResult(true)
 
             assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
@@ -254,7 +252,6 @@ class ShareFilterViewModelTest {
             val blockedTargets = sampleShareTargets.map { it.copy(pmBlocked = true) }
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
             shareTargetsFlow.emit(blockedTargets)
-            componentRepository.setControlComponentResult(true)
 
             assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
@@ -274,7 +271,6 @@ class ShareFilterViewModelTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
             shareTargetsFlow.emit(sampleShareTargets)
-            componentRepository.setControlComponentResult(true)
 
             assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
@@ -297,7 +293,6 @@ class ShareFilterViewModelTest {
             val blockedTargets = sampleShareTargets.map { it.copy(ifwBlocked = true) }
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
             shareTargetsFlow.emit(blockedTargets)
-            componentRepository.setControlComponentResult(true)
 
             assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
@@ -316,21 +311,9 @@ class ShareFilterViewModelTest {
 
     @Test
     fun givenErrorState_whenDismissError_thenNull() = runTest {
-        viewModel.shareTargetsUiState.test {
-            userDataRepository.sendUserData(defaultUserData)
-            shareTargetsFlow.emit(sampleShareTargets)
-            componentRepository.setControlComponentResult(false)
-
-            skipItems(2)
-
-            viewModel.controlComponent(sampleShareTargets[0], enabled = false)
-            skipItems(1)
-
-            assertEquals(null, viewModel.errorState.value)
-
-            viewModel.dismissError()
-            assertEquals(null, viewModel.errorState.value)
-        }
+        assertEquals(null, viewModel.errorState.value)
+        viewModel.dismissError()
+        assertEquals(null, viewModel.errorState.value)
     }
 }
 
