@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_apppurification_title">App Purification</string>
+    <string name="feature_sharefilter_apppurification_title">App Purification</string>
     <string name="feature_sharefilter_search_hint">Type to search</string>
     <string name="feature_sharefilter_no_root_permission">Root permission is required to enable or disable components</string>
     <string name="feature_sharefilter_test_share">Test share</string>

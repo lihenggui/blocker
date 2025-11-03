@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_apppurification_title">Pemurnian Aplikasi</string>
+    <string name="feature_sharefilter_apppurification_title">Pemurnian Aplikasi</string>
     <string name="feature_sharefilter_search_hint">Ketik untuk mencari</string>
     <string name="feature_sharefilter_no_root_permission">Izin root diperlukan untuk mengaktifkan atau menonaktifkan komponen</string>
     <string name="feature_sharefilter_test_share">Uji berbagi</string>
