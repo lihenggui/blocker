@@ -27,14 +27,12 @@ android {
 }
 
 dependencies {
-    implementation(projects.core.model)
     api(libs.timber)
     api(libs.kotlinx.datetime)
-    api(libs.kotlinx.serialization.json)
+    implementation(projects.core.model)
     implementation(libs.hiddenapibypass)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
-
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.robolectric)
