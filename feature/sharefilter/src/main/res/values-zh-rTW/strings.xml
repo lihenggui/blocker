@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_sharefilter_title">分享淨化</string>
+    <string name="feature_apppurification_title">應用淨化</string>
     <string name="feature_sharefilter_search_hint">輸入進行搜尋</string>
     <string name="feature_sharefilter_no_root_permission">需要 Root 權限才能啟用或停用元件</string>
     <string name="feature_sharefilter_test_share">測試分享</string>

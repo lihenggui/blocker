@@ -52,7 +52,7 @@ enum class TopLevelDestination(
     SHARE_FILTER(
         selectedIcon = Icon.DrawableResourceIcon(BlockerIcons.ShareOff),
         unselectedIcon = Icon.DrawableResourceIcon(BlockerIcons.ShareOff),
-        iconTextId = R.string.feature_sharefilter_title,
+        iconTextId = R.string.feature_apppurification_title,
         route = ShareFilterRoute::class,
     ),
     SEARCH(

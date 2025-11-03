@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_sharefilter_title">Paylaşım filtresi</string>
+    <string name="feature_apppurification_title">Uygulama Arındırma</string>
     <string name="feature_sharefilter_search_hint">Aramak için yazın</string>
     <string name="feature_sharefilter_no_root_permission">Bileşenleri etkinleştirmek veya devre dışı bırakmak için root izni gerekiyor</string>
     <string name="feature_sharefilter_test_share">Paylaşımı test et</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_sharefilter_title">Filtro de compartilhamento</string>
+    <string name="feature_apppurification_title">Purificação de aplicativos</string>
     <string name="feature_sharefilter_search_hint">Digite para pesquisar</string>
     <string name="feature_sharefilter_no_root_permission">Permissão root é necessária para ativar ou desativar componentes</string>
     <string name="feature_sharefilter_test_share">Testar compartilhamento</string>

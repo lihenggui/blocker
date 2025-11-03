@@ -17,7 +17,7 @@
     <string name="apps">Aplicaciones</string>
     <string name="search">Buscar</string>
     <string name="sdk_trackers">SDK/Seguidores</string>
-    <string name="feature_sharefilter_title">Filtro de compartir</string>
+    <string name="feature_apppurification_title">Purificación de aplicaciones</string>
     <string name="no_permission_hint">No se pueden obtener permisos, puede que la aplicación no funcione correctamente.</string>
     <string name="shell_permission_hint">Permiso de shell concedido. Los componentes de control pueden no funcionar correctamente.</string>
     <string name="close">Cerrar</string>
