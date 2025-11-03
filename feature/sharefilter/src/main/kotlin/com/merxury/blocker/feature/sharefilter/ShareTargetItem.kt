@@ -33,7 +33,6 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -89,20 +88,6 @@ fun ShareTargetItem(
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    // Display in detection order
-                    if (item.isExplicitLaunch) {
-                        AssistChip(
-                            onClick = { },
-                            label = {
-                                Text(
-                                    text = stringResource(R.string.feature_sharefilter_explicit_launch),
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            },
-                            modifier = Modifier.padding(end = 4.dp),
-                        )
-                    }
-
                     if (item.isLauncherEntry) {
                         AssistChip(
                             onClick = { },
@@ -119,7 +104,18 @@ fun ShareTargetItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-
+                    if (item.isShareableComponent) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_sharefilter_share_component),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
                     if (item.isDeeplinkEntry) {
                         AssistChip(
                             onClick = { },
@@ -132,13 +128,12 @@ fun ShareTargetItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-
-                    if (item.isShareableComponent) {
+                    if (item.isExplicitLaunch) {
                         AssistChip(
                             onClick = { },
                             label = {
                                 Text(
-                                    text = stringResource(R.string.feature_sharefilter_share_component),
+                                    text = stringResource(R.string.feature_sharefilter_explicit_launch),
                                     style = MaterialTheme.typography.labelSmall,
                                 )
                             },
