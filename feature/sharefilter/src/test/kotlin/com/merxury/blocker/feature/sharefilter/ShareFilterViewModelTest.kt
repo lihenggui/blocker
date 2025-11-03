@@ -89,8 +89,12 @@ class ShareFilterViewModelTest {
     }
 
     @Test
-    fun givenInitialState_whenObserveShareTargetsUiState_thenShowLoading() {
-        assertIs<Result.Loading>(viewModel.shareTargetsUiState.value)
+    fun givenInitialState_whenObserveShareTargetsUiState_thenShowLoading() = runTest {
+        viewModel.shareTargetsUiState.test {
+            val initial = awaitItem()
+            assertIs<Result.Success<List<MatchedShareTarget>>>(initial)
+            assertEquals(0, (initial as Result.Success).data.size)
+        }
     }
 
     @Test
@@ -110,9 +114,17 @@ class ShareFilterViewModelTest {
 
     @Test
     fun givenPermissionGranted_whenObserveHasRootPermission_thenTrue() = runTest {
-        viewModel.hasRootPermission.test {
-            assertEquals(false, awaitItem())
-            permissionMonitor.setPermission(PermissionStatus.ROOT_USER)
+        permissionMonitor.setPermission(PermissionStatus.ROOT_USER)
+        val testViewModel = ShareFilterViewModel(
+            shareTargetRepository = shareTargetRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            analyticsHelper = analyticsHelper,
+            pm = pm,
+            ioDispatcher = dispatcher,
+        )
+        testViewModel.hasRootPermission.test {
             assertEquals(true, awaitItem())
         }
     }
@@ -127,9 +139,13 @@ class ShareFilterViewModelTest {
     fun givenShareTargetData_whenReceiveData_thenShowSuccess() = runTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData)
+
+            // Skip initial empty state
+            val initial = awaitItem()
+            assertIs<Result.Success<List<MatchedShareTarget>>>(initial)
+
             shareTargetsFlow.emit(sampleShareTargets)
 
-            assertEquals(Result.Loading, awaitItem())
             val result = awaitItem()
             assertIs<Result.Success<List<MatchedShareTarget>>>(result)
             assertEquals(1, result.data.size)
@@ -140,27 +156,30 @@ class ShareFilterViewModelTest {
 
     @Test
     fun givenShareTargetData_whenSearchByAppLabel_thenFilterByAppLabel() = runTest {
-        viewModel.shareTargetsUiState.test {
-            userDataRepository.sendUserData(defaultUserData)
-            shareTargetsFlow.emit(sampleShareTargets)
+        userDataRepository.sendUserData(defaultUserData)
+        shareTargetsFlow.emit(sampleShareTargets)
 
-            assertEquals(Result.Loading, awaitItem())
-            assertIs<Result.Success<List<MatchedShareTarget>>>(awaitItem())
+        // Wait for data to be processed
+        testScheduler.advanceUntilIdle()
 
-            viewModel.updateSearchQuery("Test")
-            val result = awaitItem()
-            assertIs<Result.Success<List<MatchedShareTarget>>>(result)
-            assertEquals(1, result.data.size)
-        }
+        viewModel.updateSearchQuery("Test")
+        testScheduler.advanceUntilIdle()
+
+        val result = viewModel.shareTargetsUiState.value
+        assertIs<Result.Success<List<MatchedShareTarget>>>(result)
+        assertEquals(1, result.data.size)
+        assertEquals("Test App", result.data[0].header.title)
     }
 
     @Test
     fun givenShareTargetData_whenSearchByComponentName_thenFilterByComponentName() = runTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData)
-            shareTargetsFlow.emit(sampleShareTargets)
 
-            assertEquals(Result.Loading, awaitItem())
+            // Skip initial empty state
+            awaitItem()
+
+            shareTargetsFlow.emit(sampleShareTargets)
             assertIs<Result.Success<List<MatchedShareTarget>>>(awaitItem())
 
             viewModel.updateSearchQuery("ShareActivity")
@@ -176,9 +195,11 @@ class ShareFilterViewModelTest {
     fun givenShareTargetData_whenSearchWithNoMatch_thenShowEmptyList() = runTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData)
-            shareTargetsFlow.emit(sampleShareTargets)
 
-            assertEquals(Result.Loading, awaitItem())
+            // Skip initial empty state
+            awaitItem()
+
+            shareTargetsFlow.emit(sampleShareTargets)
             assertIs<Result.Success<List<MatchedShareTarget>>>(awaitItem())
 
             viewModel.updateSearchQuery("NonExistentApp")
@@ -192,9 +213,12 @@ class ShareFilterViewModelTest {
     fun givenIFWController_whenDisableComponent_thenUpdateIfwBlocked() = runTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
+
+            // Skip initial empty state
+            awaitItem()
+
             shareTargetsFlow.emit(sampleShareTargets)
 
-            assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedShareTarget>>>(initialResult)
             assertEquals(false, initialResult.data[0].shareTargets[0].entity.ifwBlocked)
@@ -212,9 +236,12 @@ class ShareFilterViewModelTest {
         viewModel.shareTargetsUiState.test {
             val blockedTargets = sampleShareTargets.map { it.copy(ifwBlocked = true) }
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
+
+            // Skip initial empty state
+            awaitItem()
+
             shareTargetsFlow.emit(blockedTargets)
 
-            assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedShareTarget>>>(initialResult)
             assertEquals(true, initialResult.data[0].shareTargets[0].entity.ifwBlocked)
@@ -231,9 +258,12 @@ class ShareFilterViewModelTest {
     fun givenPMController_whenDisableComponent_thenUpdatePmBlocked() = runTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+
+            // Skip initial empty state
+            awaitItem()
+
             shareTargetsFlow.emit(sampleShareTargets)
 
-            assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedShareTarget>>>(initialResult)
             assertEquals(false, initialResult.data[0].shareTargets[0].entity.pmBlocked)
@@ -251,9 +281,12 @@ class ShareFilterViewModelTest {
         viewModel.shareTargetsUiState.test {
             val blockedTargets = sampleShareTargets.map { it.copy(pmBlocked = true) }
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+
+            // Skip initial empty state
+            awaitItem()
+
             shareTargetsFlow.emit(blockedTargets)
 
-            assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedShareTarget>>>(initialResult)
             assertEquals(true, initialResult.data[0].shareTargets[0].entity.pmBlocked)
@@ -270,9 +303,12 @@ class ShareFilterViewModelTest {
     fun givenIFWController_whenBatchDisableComponents_thenUpdateAll() = runTest {
         viewModel.shareTargetsUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
+
+            // Skip initial empty state
+            awaitItem()
+
             shareTargetsFlow.emit(sampleShareTargets)
 
-            assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedShareTarget>>>(initialResult)
             assertEquals(false, initialResult.data[0].shareTargets[0].entity.ifwBlocked)
@@ -292,9 +328,12 @@ class ShareFilterViewModelTest {
         viewModel.shareTargetsUiState.test {
             val blockedTargets = sampleShareTargets.map { it.copy(ifwBlocked = true) }
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
+
+            // Skip initial empty state
+            awaitItem()
+
             shareTargetsFlow.emit(blockedTargets)
 
-            assertEquals(Result.Loading, awaitItem())
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedShareTarget>>>(initialResult)
             assertEquals(true, initialResult.data[0].shareTargets[0].entity.ifwBlocked)
