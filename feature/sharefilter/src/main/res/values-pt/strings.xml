@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_sharefilter_search_hint">Digite para pesquisar</string>
+    <string name="feature_sharefilter_no_root_permission">Permissão root é necessária para ativar ou desativar componentes</string>
+    <string name="feature_sharefilter_test_share">Testar compartilhamento</string>
+    <string name="feature_sharefilter_share_component">Partilhar</string>
+    <string name="feature_sharefilter_explicit_launch">Explícito</string>
+    <string name="feature_sharefilter_launcher_entry">Iniciador</string>
+    <string name="feature_sharefilter_deeplink_entry">Link profundo</string>
+</resources>

@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.database.util
 
 import androidx.room.TypeConverter
+import com.merxury.blocker.core.model.data.IntentFilterInfo
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Instant
@@ -27,6 +28,14 @@ internal class ListConverter {
 
     @TypeConverter
     fun fromArrayList(list: List<String>): String = Json.encodeToString(list)
+}
+
+internal class IntentFilterInfoConverter {
+    @TypeConverter
+    fun fromString(value: String): List<IntentFilterInfo> = Json.decodeFromString(value)
+
+    @TypeConverter
+    fun fromList(list: List<IntentFilterInfo>): String = Json.encodeToString(list)
 }
 
 internal class InstantConverter {

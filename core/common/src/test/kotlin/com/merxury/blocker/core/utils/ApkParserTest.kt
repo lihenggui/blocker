@@ -74,6 +74,21 @@ class ApkParserTest {
     }
 
     @Test
+    fun givenApkWithSendMultipleAction_whenGetActivitiesWithIntentFilters_thenReturnActivity() = runTest {
+        val result = ApkParser.getActivitiesWithIntentFilters(testApkFile)
+
+        val activityWithSendMultiple = result.find { activity ->
+            activity.intentFilters.any { filter ->
+                filter.actions.contains("android.intent.action.SEND_MULTIPLE")
+            }
+        }
+        if (activityWithSendMultiple != null) {
+            assertTrue(activityWithSendMultiple.exported, "Activity with SEND_MULTIPLE should be exported")
+            assertEquals("com.merxury.blocker.test", activityWithSendMultiple.packageName)
+        }
+    }
+
+    @Test
     fun givenApkWithBrowsableCategory_whenGetActivitiesWithIntentFilters_thenReturnActivity() = runTest {
         val result = ApkParser.getActivitiesWithIntentFilters(testApkFile)
 

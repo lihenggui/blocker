@@ -19,6 +19,7 @@
     <string name="apps">Apps</string>
     <string name="search">Search</string>
     <string name="sdk_trackers">SDK/Trackers</string>
+    <string name="feature_apppurification_title">App Purification</string>
     <string name="no_permission_hint">Unable to obtain permission, the application may not function properly.</string>
     <string name="shell_permission_hint">Granted shell permission. Controlling components may not function properly.</string>
     <string name="close">Close</string>

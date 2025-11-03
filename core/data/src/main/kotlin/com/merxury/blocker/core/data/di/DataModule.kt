@@ -32,6 +32,8 @@ import com.merxury.blocker.core.data.respository.generalrule.LocalGeneralRuleDat
 import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.data.respository.licenses.LocalLicensesRepository
+import com.merxury.blocker.core.data.respository.sharetarget.LocalShareTargetRepository
+import com.merxury.blocker.core.data.respository.sharetarget.ShareTargetRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalAppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
@@ -110,4 +112,9 @@ abstract class DataModule {
     internal abstract fun bindLicensesRepository(
         licensesRepository: LocalLicensesRepository,
     ): LicensesRepository
+
+    @Binds
+    internal abstract fun bindShareTargetRepository(
+        shareTargetRepository: LocalShareTargetRepository,
+    ): ShareTargetRepository
 }

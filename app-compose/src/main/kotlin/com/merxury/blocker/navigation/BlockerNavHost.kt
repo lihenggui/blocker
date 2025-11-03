@@ -39,6 +39,7 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
+import com.merxury.blocker.feature.sharefilter.navigation.shareFilterScreen
 import com.merxury.blocker.ui.BlockerAppState
 import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
 import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
@@ -91,6 +92,9 @@ fun BlockerNavHost(
             snackbarHostState = snackbarHostState,
             navigateToAppDetail = navController::navigateToAppDetail,
             navigateToRuleDetail = navController::navigateToRuleDetail,
+        )
+        shareFilterScreen(
+            snackbarHostState = snackbarHostState,
         )
         ruleDetailScreen(
             onBackClick = navController::popBackStack,

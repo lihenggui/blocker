@@ -23,6 +23,9 @@ import android.content.pm.ServiceInfo
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.data.ActivityIntentFilterInfo
+import com.merxury.blocker.core.model.data.IntentFilterDataInfo
+import com.merxury.blocker.core.model.data.IntentFilterInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,7 +35,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
-internal object ApkParser {
+object ApkParser {
 
     /**
      * Get [AssetManager] using reflection
@@ -172,6 +175,7 @@ internal object ApkParser {
      * Filters activities that have intent-filter containing any of:
      * - action: android.intent.action.VIEW
      * - action: android.intent.action.SEND
+     * - action: android.intent.action.SEND_MULTIPLE
      * - category: android.intent.category.BROWSABLE
      *
      * @param apkFile the APK file to parse
@@ -194,9 +198,9 @@ internal object ApkParser {
                 var currentActivityLabel: String? = null
                 val currentActivityIntentFilters = mutableListOf<IntentFilterInfo>()
 
-                var currentFilterActions = mutableListOf<String>()
-                var currentFilterCategories = mutableListOf<String>()
-                var currentFilterData = mutableListOf<IntentFilterDataInfo>()
+                val currentFilterActions = mutableListOf<String>()
+                val currentFilterCategories = mutableListOf<String>()
+                val currentFilterData = mutableListOf<IntentFilterDataInfo>()
 
                 var insideActivity = false
                 var insideIntentFilter = false
@@ -306,7 +310,8 @@ internal object ApkParser {
                                         val shouldInclude = currentActivityIntentFilters.any { filter ->
                                             filter.actions.any {
                                                 it == "android.intent.action.VIEW" ||
-                                                    it == "android.intent.action.SEND"
+                                                    it == "android.intent.action.SEND" ||
+                                                    it == "android.intent.action.SEND_MULTIPLE"
                                             } ||
                                                 filter.categories.any { it == "android.intent.category.BROWSABLE" }
                                         }
