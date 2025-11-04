@@ -18,6 +18,7 @@ package com.merxury.blocker.core.domain.controller
 
 import app.cash.turbine.test
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.IFW_PLUS_PM
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.testing.controller.FakeController
@@ -37,12 +38,14 @@ class GetControllerUseCaseTest {
     private val rootController = FakeController()
     private val ifwController = FakeController()
     private val shizukuController = FakeController()
+    private val combinedController = FakeController()
 
     private val getControllerUseCase = GetControllerUseCase(
         userDataRepository,
         rootController,
         ifwController,
         shizukuController,
+        combinedController,
     )
 
     @Test
@@ -67,6 +70,13 @@ class GetControllerUseCaseTest {
     }
 
     @Test
+    fun whenSetIfwPlusPmType_getCombinedController() = runTest {
+        userDataRepository.setControllerType(IFW_PLUS_PM)
+        val controller = getControllerUseCase().first()
+        assert(controller === combinedController)
+    }
+
+    @Test
     fun whenSetTypeSequentially_receiveCorrectControllersInFlow() = runTest {
         getControllerUseCase().test {
             userDataRepository.setControllerType(IFW)
@@ -75,6 +85,8 @@ class GetControllerUseCaseTest {
             assertEquals(rootController, awaitItem())
             userDataRepository.setControllerType(SHIZUKU)
             assertEquals(shizukuController, awaitItem())
+            userDataRepository.setControllerType(IFW_PLUS_PM)
+            assertEquals(combinedController, awaitItem())
         }
     }
 }
