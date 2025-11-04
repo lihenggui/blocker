@@ -33,7 +33,6 @@ import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.result.asResult
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,20 +44,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class DebloaterViewModel @Inject constructor(
-    debloatableComponentRepository: DebloatableComponentRepository,
+    private val debloatableComponentRepository: DebloatableComponentRepository,
     permissionMonitor: PermissionMonitor,
     private val componentRepository: ComponentRepository,
     private val userDataRepository: UserDataRepository,
@@ -86,31 +84,34 @@ class DebloaterViewModel @Inject constructor(
         )
 
     private var controlComponentJob: Job? = null
-
-    private val debloatableComponentsFromRepository: StateFlow<Result<List<MatchedTarget>>> =
-        combine(
-            debloatableComponentRepository.getDebloatableComponent(),
-            _searchQuery,
-        ) { entities, query ->
-            Timber.d("Received ${entities.size} debloatable components, query: $query")
-            withContext(ioDispatcher) {
-                groupAndFilterDebloatableComponents(entities, query)
-            }
-        }
-            .asResult()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = Result.Loading,
-            )
+    private var loadDataJob: Job? = null
 
     private val _debloatableUiState = MutableStateFlow<Result<List<MatchedTarget>>>(Result.Loading)
     val debloatableUiState = _debloatableUiState.asStateFlow()
 
     init {
+        loadData()
         viewModelScope.launch {
-            debloatableComponentsFromRepository.collect { result ->
-                _debloatableUiState.value = result
+            _searchQuery
+                .drop(1)
+                .collect {
+                    loadData()
+                }
+        }
+    }
+
+    private fun loadData() {
+        loadDataJob?.cancel()
+        loadDataJob = viewModelScope.launch(ioDispatcher) {
+            try {
+                val entities = debloatableComponentRepository.getDebloatableComponent().first()
+                val query = _searchQuery.value
+                Timber.d("Received ${entities.size} debloatable components, query: $query")
+                val result = groupAndFilterDebloatableComponents(entities, query)
+                _debloatableUiState.value = Result.Success(result)
+            } catch (e: Exception) {
+                Timber.e(e, "Error loading debloatable components")
+                _debloatableUiState.value = Result.Error(e)
             }
         }
     }

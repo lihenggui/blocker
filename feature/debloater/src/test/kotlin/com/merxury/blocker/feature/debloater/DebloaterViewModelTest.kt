@@ -76,6 +76,7 @@ class DebloaterViewModelTest {
 
     @Before
     fun setup() {
+        debloatableFlow.value = sampleDebloatableComponents
         viewModel = DebloaterViewModel(
             debloatableComponentRepository = debloatableComponentRepository,
             componentRepository = componentRepository,
@@ -91,7 +92,7 @@ class DebloaterViewModelTest {
         viewModel.debloatableUiState.test {
             val initial = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initial)
-            assertEquals(0, initial.data.size)
+            assertEquals(1, initial.data.size)
         }
     }
 
@@ -137,12 +138,6 @@ class DebloaterViewModelTest {
         viewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData)
 
-            // Skip initial empty state
-            val initial = awaitItem()
-            assertIs<Result.Success<List<MatchedTarget>>>(initial)
-
-            debloatableFlow.emit(sampleDebloatableComponents)
-
             val result = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(result)
             assertEquals(1, result.data.size)
@@ -154,9 +149,6 @@ class DebloaterViewModelTest {
     @Test
     fun givenDebloatableComponentData_whenSearchByAppLabel_thenFilterByAppLabel() = runTest {
         userDataRepository.sendUserData(defaultUserData)
-        debloatableFlow.emit(sampleDebloatableComponents)
-
-        // Wait for data to be processed
         testScheduler.advanceUntilIdle()
 
         viewModel.updateSearchQuery("Test")
@@ -173,11 +165,7 @@ class DebloaterViewModelTest {
         viewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData)
 
-            // Skip initial empty state
             awaitItem()
-
-            debloatableFlow.emit(sampleDebloatableComponents)
-            assertIs<Result.Success<List<MatchedTarget>>>(awaitItem())
 
             viewModel.updateSearchQuery("ShareActivity")
             val result = awaitItem()
@@ -193,11 +181,7 @@ class DebloaterViewModelTest {
         viewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData)
 
-            // Skip initial empty state
             awaitItem()
-
-            debloatableFlow.emit(sampleDebloatableComponents)
-            assertIs<Result.Success<List<MatchedTarget>>>(awaitItem())
 
             viewModel.updateSearchQuery("NonExistentApp")
             val result = awaitItem()
@@ -210,11 +194,6 @@ class DebloaterViewModelTest {
     fun givenIFWController_whenDisableComponent_thenUpdateIfwBlocked() = runTest {
         viewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
-
-            // Skip initial empty state
-            awaitItem()
-
-            debloatableFlow.emit(sampleDebloatableComponents)
 
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
@@ -230,20 +209,25 @@ class DebloaterViewModelTest {
 
     @Test
     fun givenIFWControllerWithBlockedComponent_whenEnableComponent_thenUpdateIfwBlocked() = runTest {
-        viewModel.debloatableUiState.test {
-            val blockedTargets = sampleDebloatableComponents.map { it.copy(ifwBlocked = true) }
+        val blockedTargets = sampleDebloatableComponents.map { it.copy(ifwBlocked = true) }
+        debloatableFlow.value = blockedTargets
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
-
-            // Skip initial empty state
-            awaitItem()
-
-            debloatableFlow.emit(blockedTargets)
 
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
             assertEquals(true, initialResult.data[0].targets[0].entity.ifwBlocked)
 
-            viewModel.controlComponent(blockedTargets[0], enabled = true)
+            testViewModel.controlComponent(blockedTargets[0], enabled = true)
 
             val updatedResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(updatedResult)
@@ -255,11 +239,6 @@ class DebloaterViewModelTest {
     fun givenPMController_whenDisableComponent_thenUpdatePmBlocked() = runTest {
         viewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
-
-            // Skip initial empty state
-            awaitItem()
-
-            debloatableFlow.emit(sampleDebloatableComponents)
 
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
@@ -275,20 +254,25 @@ class DebloaterViewModelTest {
 
     @Test
     fun givenPMControllerWithBlockedComponent_whenEnableComponent_thenUpdatePmBlocked() = runTest {
-        viewModel.debloatableUiState.test {
-            val blockedTargets = sampleDebloatableComponents.map { it.copy(pmBlocked = true) }
+        val blockedTargets = sampleDebloatableComponents.map { it.copy(pmBlocked = true) }
+        debloatableFlow.value = blockedTargets
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
-
-            // Skip initial empty state
-            awaitItem()
-
-            debloatableFlow.emit(blockedTargets)
 
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
             assertEquals(true, initialResult.data[0].targets[0].entity.pmBlocked)
 
-            viewModel.controlComponent(blockedTargets[0], enabled = true)
+            testViewModel.controlComponent(blockedTargets[0], enabled = true)
 
             val updatedResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(updatedResult)
@@ -300,11 +284,6 @@ class DebloaterViewModelTest {
     fun givenIFWController_whenBatchDisableComponents_thenUpdateAll() = runTest {
         viewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
-
-            // Skip initial empty state
-            awaitItem()
-
-            debloatableFlow.emit(sampleDebloatableComponents)
 
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
@@ -322,21 +301,26 @@ class DebloaterViewModelTest {
 
     @Test
     fun givenIFWControllerWithBlockedComponents_whenBatchEnableComponents_thenUpdateAll() = runTest {
-        viewModel.debloatableUiState.test {
-            val blockedTargets = sampleDebloatableComponents.map { it.copy(ifwBlocked = true) }
+        val blockedTargets = sampleDebloatableComponents.map { it.copy(ifwBlocked = true) }
+        debloatableFlow.value = blockedTargets
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
             userDataRepository.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
-
-            // Skip initial empty state
-            awaitItem()
-
-            debloatableFlow.emit(blockedTargets)
 
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
             assertEquals(true, initialResult.data[0].targets[0].entity.ifwBlocked)
             assertEquals(true, initialResult.data[0].targets[1].entity.ifwBlocked)
 
-            viewModel.controlAllComponents(blockedTargets, enable = true)
+            testViewModel.controlAllComponents(blockedTargets, enable = true)
 
             val updatedResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(updatedResult)
