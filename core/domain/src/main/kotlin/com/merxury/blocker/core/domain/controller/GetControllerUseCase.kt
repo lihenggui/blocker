@@ -17,11 +17,13 @@
 package com.merxury.blocker.core.domain.controller
 
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.CombinedControl
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.ShizukuControl
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.IFW_PLUS_PM
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +36,7 @@ class GetControllerUseCase @Inject constructor(
     @RootApiControl private val rootController: IController,
     @IfwControl private val ifwController: IController,
     @ShizukuControl private val shizukuController: IController,
+    @CombinedControl private val combinedController: IController,
 ) {
     operator fun invoke(): Flow<IController> = userDataRepository.userData
         .distinctUntilChanged()
@@ -42,6 +45,7 @@ class GetControllerUseCase @Inject constructor(
                 IFW -> ifwController
                 PM -> rootController
                 SHIZUKU -> shizukuController
+                IFW_PLUS_PM -> combinedController
             }
         }
 }

@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.controllers.di
 
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.combined.CombinedController
 import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.controllers.root.api.RootApiController
 import com.merxury.blocker.core.controllers.root.command.RootController
@@ -46,6 +47,10 @@ internal interface ControllerModule {
     @Binds
     @RootApiControl
     fun bindsRootApiController(rootApiController: RootApiController): IController
+
+    @Binds
+    @CombinedControl
+    fun bindsCombinedController(combinedController: CombinedController): IController
 
     @Binds
     fun bindsShizukuInitializer(shizukuInitializer: ShizukuInitializer): IShizukuInitializer

@@ -20,4 +20,5 @@ enum class ControllerType {
     IFW,
     PM,
     SHIZUKU,
+    IFW_PLUS_PM,
 }

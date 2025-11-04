@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository.component
 
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.CombinedControl
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.ShizukuControl
@@ -29,6 +30,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.IFW_PLUS_PM
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.result.Result
@@ -51,6 +53,7 @@ internal class LocalComponentRepository @Inject constructor(
     @RootApiControl private val pmController: IController,
     @IfwControl private val ifwController: IController,
     @ShizukuControl private val shizukuController: IController,
+    @CombinedControl private val combinedController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentRepository {
 
@@ -134,6 +137,7 @@ internal class LocalComponentRepository @Inject constructor(
             IFW -> controlInIfwMode(component, newState)
             PM -> controlInPmMode(component, newState)
             SHIZUKU -> controlInShizukuMode(component, newState)
+            IFW_PLUS_PM -> controlInCombinedMode(component, newState)
         }
         updateComponentStatus(packageName, componentName)
         emit(result)
@@ -149,6 +153,7 @@ internal class LocalComponentRepository @Inject constructor(
             IFW -> ifwController
             PM -> pmController
             SHIZUKU -> shizukuController
+            IFW_PLUS_PM -> combinedController
         }
         // Filter providers first in the list if preferred controller is IFW
         if (userData.controllerType == IFW) {
@@ -256,6 +261,15 @@ internal class LocalComponentRepository @Inject constructor(
         } else {
             shizukuController.disable(component)
         }
+    }
+
+    private suspend fun controlInCombinedMode(
+        component: ComponentInfo,
+        newState: Boolean,
+    ): Boolean = if (newState) {
+        combinedController.enable(component)
+    } else {
+        combinedController.disable(component)
     }
 
     private suspend fun updateComponentStatus(

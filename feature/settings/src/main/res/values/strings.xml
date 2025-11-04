@@ -50,6 +50,7 @@
     <string name="feature_settings_intent_firewall">Intent Firewall</string>
     <string name="feature_settings_package_manager">Package Manager</string>
     <string name="feature_settings_shizuku" translatable="false">Shizuku/Sui</string>
+    <string name="feature_settings_ifw_plus_pm" translatable="false">IFW + PM</string>
     <string name="feature_settings_telegram_group">Telegram group</string>
     <string name="feature_settings_export_error_log">Export error log</string>
     <string name="feature_settings_dynamic_color">Dynamic Color</string>

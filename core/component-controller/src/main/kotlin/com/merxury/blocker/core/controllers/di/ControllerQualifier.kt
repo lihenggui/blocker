@@ -33,3 +33,7 @@ annotation class ShizukuControl
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class RootApiControl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class CombinedControl
