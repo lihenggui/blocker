@@ -25,6 +25,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.CombinedControl
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.ShizukuControl
@@ -34,6 +35,7 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.IFW_PLUS_PM
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.rule.R
@@ -56,6 +58,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
     @IfwControl private val ifwController: IController,
     @RootApiControl private val rootController: IController,
     @ShizukuControl private val shizukuController: IController,
+    @CombinedControl private val combinedController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -76,6 +79,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
             IFW -> ifwController
             PM -> rootController
             SHIZUKU -> shizukuController
+            IFW_PLUS_PM -> combinedController
         }
         val shouldRestoreSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
         val uninstalledAppList = mutableListOf<String>()

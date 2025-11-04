@@ -23,4 +23,5 @@ enum ControllerTypeProto {
   IFW = 0;
   PM = 1;
   SHIZUKU = 2;
+  IFW_PLUS_PM = 3;
 }

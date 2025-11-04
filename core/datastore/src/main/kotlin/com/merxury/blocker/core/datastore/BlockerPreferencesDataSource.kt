@@ -64,6 +64,7 @@ class BlockerPreferencesDataSource @Inject constructor(
 
                 ControllerTypeProto.PM -> ControllerType.PM
                 ControllerTypeProto.SHIZUKU -> ControllerType.SHIZUKU
+                ControllerTypeProto.IFW_PLUS_PM -> ControllerType.IFW_PLUS_PM
             },
             ruleServerProvider = when (it.ruleServerProvider) {
                 null,
@@ -163,6 +164,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                     ControllerType.IFW -> ControllerTypeProto.IFW
                     ControllerType.PM -> ControllerTypeProto.PM
                     ControllerType.SHIZUKU -> ControllerTypeProto.SHIZUKU
+                    ControllerType.IFW_PLUS_PM -> ControllerTypeProto.IFW_PLUS_PM
                 }
             }
         }

@@ -27,6 +27,7 @@ import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.IFW_PLUS_PM
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.UserEditableSettings
@@ -55,6 +56,7 @@ fun BlockerSettings(
                 IFW to string.feature_settings_intent_firewall,
                 PM to string.feature_settings_package_manager,
                 SHIZUKU to string.feature_settings_shizuku,
+                IFW_PLUS_PM to string.feature_settings_ifw_plus_pm,
             ),
             onValueChange = onChangeControllerType,
         )
