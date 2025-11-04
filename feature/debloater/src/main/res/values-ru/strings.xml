@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_debloater_search_hint">Введите для поиска</string>
+    <string name="feature_debloater_no_root_permission">Требуется root-доступ для включения или отключения компонентов</string>
+    <string name="feature_debloater_test_share">Тестировать отправку</string>
+    <string name="feature_debloater_share_component">Поделиться</string>
+    <string name="feature_debloater_explicit_launch">Явный</string>
+    <string name="feature_debloater_launcher_entry">Launcher</string>
+    <string name="feature_debloater_deeplink_entry">Deeplink</string>
+</resources>

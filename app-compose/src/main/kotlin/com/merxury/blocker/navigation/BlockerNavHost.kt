@@ -30,6 +30,7 @@ import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.AppListRoute
+import com.merxury.blocker.feature.debloater.navigation.debloaterScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.licenses.navigation.licensesScreen
@@ -39,7 +40,6 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
-import com.merxury.blocker.feature.sharefilter.navigation.shareFilterScreen
 import com.merxury.blocker.ui.BlockerAppState
 import com.merxury.blocker.ui.twopane.applist.appListDetailScreen
 import com.merxury.blocker.ui.twopane.rule.ruleListDetailScreen
@@ -93,7 +93,7 @@ fun BlockerNavHost(
             navigateToAppDetail = navController::navigateToAppDetail,
             navigateToRuleDetail = navController::navigateToRuleDetail,
         )
-        shareFilterScreen(
+        this.debloaterScreen(
             snackbarHostState = snackbarHostState,
         )
         ruleDetailScreen(

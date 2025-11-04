@@ -21,9 +21,9 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.feature.applist.navigation.AppListRoute
+import com.merxury.blocker.feature.debloater.navigation.DebloaterRoute
 import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
 import com.merxury.blocker.feature.search.navigation.SearchRoute
-import com.merxury.blocker.feature.sharefilter.navigation.ShareFilterRoute
 import kotlin.reflect.KClass
 
 /**
@@ -53,7 +53,7 @@ enum class TopLevelDestination(
         selectedIcon = Icon.DrawableResourceIcon(BlockerIcons.ShareOff),
         unselectedIcon = Icon.DrawableResourceIcon(BlockerIcons.ShareOff),
         iconTextId = R.string.feature_apppurification_title,
-        route = ShareFilterRoute::class,
+        route = DebloaterRoute::class,
     ),
     SEARCH(
         selectedIcon = Icon.ImageVectorIcon(BlockerIcons.Search),
