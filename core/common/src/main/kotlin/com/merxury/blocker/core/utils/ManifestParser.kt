@@ -60,7 +60,7 @@ object ManifestParser {
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Result<AndroidManifest> = withContext(dispatcher) {
         try {
-            val parser = getParserForManifest(apkFile)
+            val parser = getParserForManifest(apkFile, dispatcher)
             val manifest = parseManifestXml(parser)
             Result.success(manifest)
         } catch (e: XmlPullParserException) {
@@ -428,14 +428,17 @@ object ManifestParser {
         }
 
     @Throws(IOException::class)
-    private fun getParserForManifest(apkFile: File): XmlResourceParser {
+    private suspend fun getParserForManifest(
+        apkFile: File,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ): XmlResourceParser = withContext(dispatcher) {
         val assetManagerInstance = assetManager
             ?: throw IOException("Failed to create AssetManager")
         val cookie = addAssets(apkFile, assetManagerInstance)
         if (cookie == -1) {
             throw IOException("Failed to add assets for ${apkFile.absolutePath}")
         }
-        return (assetManagerInstance as AssetManager).openXmlResourceParser(
+        return@withContext (assetManagerInstance as AssetManager).openXmlResourceParser(
             cookie,
             "AndroidManifest.xml",
         )
