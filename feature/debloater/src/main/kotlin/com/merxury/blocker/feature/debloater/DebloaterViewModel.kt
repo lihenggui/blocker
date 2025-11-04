@@ -124,7 +124,11 @@ class DebloaterViewModel @Inject constructor(
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val componentInfo = entity.toComponentInfo()
             val controllerType = userDataRepository.userData.first().controllerType
-            componentRepository.controlComponent(componentInfo, enabled)
+            componentRepository.controlComponent(
+                component = componentInfo,
+                newState = enabled,
+                controllerType = ControllerType.IFW_PLUS_PM,
+            )
                 .onStart {
                     changeDebloatableComponentUiStatus(
                         changed = listOf(entity),
@@ -166,6 +170,7 @@ class DebloaterViewModel @Inject constructor(
             componentRepository.batchControlComponent(
                 components = components,
                 newState = enable,
+                controllerType = ControllerType.IFW_PLUS_PM,
             )
                 .onStart {
                     changeDebloatableComponentUiStatus(
