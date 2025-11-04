@@ -20,6 +20,7 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
 import kotlinx.coroutines.flow.Flow
@@ -47,11 +48,13 @@ class FakeComponentRepository @Inject constructor() : ComponentRepository {
     override fun controlComponent(
         component: ComponentInfo,
         newState: Boolean,
+        controllerType: ControllerType?,
     ): Flow<Boolean> = flowOf(false)
 
     override fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
+        controllerType: ControllerType?,
     ): Flow<ComponentInfo> = flowOf(
         ComponentInfo(
             name = "",
