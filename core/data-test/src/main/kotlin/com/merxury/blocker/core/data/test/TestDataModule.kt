@@ -21,18 +21,18 @@ import com.merxury.blocker.core.data.di.DataModule
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
-import com.merxury.blocker.core.data.respository.sharetarget.ShareTargetRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.test.repository.FakeAppPropertiesRepository
 import com.merxury.blocker.core.data.test.repository.FakeAppRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentRepository
+import com.merxury.blocker.core.data.test.repository.FakeDebloatableComponentRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.test.repository.FakeLicensesRepository
-import com.merxury.blocker.core.data.test.repository.FakeShareTargetRepository
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -102,7 +102,7 @@ internal interface TestDataModule {
     ): LicensesRepository
 
     @Binds
-    fun bindsShareTargetRepository(
-        shareTargetRepository: FakeShareTargetRepository,
-    ): ShareTargetRepository
+    fun bindsDebloatableComponentRepository(
+        debloatableRepository: FakeDebloatableComponentRepository,
+    ): DebloatableComponentRepository
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_debloater_search_hint">Ketik untuk mencari</string>
+    <string name="feature_debloater_no_root_permission">Izin root diperlukan untuk mengaktifkan atau menonaktifkan komponen</string>
+    <string name="feature_debloater_test_share">Uji berbagi</string>
+    <string name="feature_debloater_share_component">Berbagi</string>
+    <string name="feature_debloater_explicit_launch">Eksplisit</string>
+    <string name="feature_debloater_launcher_entry">Peluncur</string>
+    <string name="feature_debloater_deeplink_entry">Tautan dalam</string>
+</resources>

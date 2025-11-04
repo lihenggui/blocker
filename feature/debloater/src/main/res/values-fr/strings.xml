@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_debloater_search_hint">Saisir pour rechercher</string>
+    <string name="feature_debloater_no_root_permission">La permission root est requise pour activer ou désactiver les composants</string>
+    <string name="feature_debloater_test_share">Tester le partage</string>
+    <string name="feature_debloater_share_component">Partager</string>
+    <string name="feature_debloater_explicit_launch">Explicite</string>
+    <string name="feature_debloater_launcher_entry">Lanceur</string>
+    <string name="feature_debloater_deeplink_entry">Lien profond</string>
+</resources>

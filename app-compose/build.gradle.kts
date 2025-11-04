@@ -92,11 +92,11 @@ android {
 dependencies {
     implementation(projects.feature.appdetail)
     implementation(projects.feature.applist)
+    implementation(projects.feature.debloater)
     implementation(projects.feature.generalrule)
     implementation(projects.feature.ruledetail)
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
-    implementation(projects.feature.sharefilter)
 
     implementation(projects.core.analytics)
     implementation(projects.core.common)

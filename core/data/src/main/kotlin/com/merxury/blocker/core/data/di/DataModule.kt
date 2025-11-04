@@ -26,14 +26,14 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.LocalComponentDetailRepository
+import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
+import com.merxury.blocker.core.data.respository.debloater.LocalDebloatableComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSource
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.LocalGeneralRuleDataSource
 import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.data.respository.licenses.LocalLicensesRepository
-import com.merxury.blocker.core.data.respository.sharetarget.LocalShareTargetRepository
-import com.merxury.blocker.core.data.respository.sharetarget.ShareTargetRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalAppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
@@ -114,7 +114,7 @@ abstract class DataModule {
     ): LicensesRepository
 
     @Binds
-    internal abstract fun bindShareTargetRepository(
-        shareTargetRepository: LocalShareTargetRepository,
-    ): ShareTargetRepository
+    internal abstract fun bindDebloatableComponentRepository(
+        debloatableComponentRepository: LocalDebloatableComponentRepository,
+    ): DebloatableComponentRepository
 }

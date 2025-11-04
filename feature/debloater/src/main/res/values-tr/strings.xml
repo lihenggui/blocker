@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_debloater_search_hint">Aramak için yazın</string>
+    <string name="feature_debloater_no_root_permission">Bileşenleri etkinleştirmek veya devre dışı bırakmak için root izni gerekiyor</string>
+    <string name="feature_debloater_test_share">Paylaşımı test et</string>
+    <string name="feature_debloater_share_component">Paylaş</string>
+    <string name="feature_debloater_explicit_launch">Açık</string>
+    <string name="feature_debloater_launcher_entry">Başlatıcı</string>
+    <string name="feature_debloater_deeplink_entry">Deeplink</string>
+</resources>
