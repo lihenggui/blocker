@@ -27,7 +27,9 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ActivityIntentFilterInfo
-import com.merxury.blocker.core.utils.ApkParser
+import com.merxury.blocker.core.model.data.IntentFilterDataInfo
+import com.merxury.blocker.core.model.data.IntentFilterInfo
+import com.merxury.blocker.core.utils.ManifestParser
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -52,17 +54,49 @@ internal class LocalDebloatableComponentDataSource @Inject constructor(
             val sourceDir = packageInfo.applicationInfo?.sourceDir ?: continue
             val apkFile = File(sourceDir)
 
-            try {
-                val activities = ApkParser.getActivitiesWithIntentFilters(apkFile, ioDispatcher)
+            val manifestResult = ManifestParser.parseManifest(apkFile, ioDispatcher)
+            manifestResult.onSuccess { manifest ->
+                val activities = manifest.application.activities.filter { activity ->
+                    activity.intentFilters.any { filter ->
+                        filter.actions.any {
+                            it == "android.intent.action.VIEW" ||
+                                it == "android.intent.action.SEND" ||
+                                it == "android.intent.action.SEND_MULTIPLE"
+                        } || filter.categories.any { it == "android.intent.category.BROWSABLE" }
+                    }
+                }
 
-                for (activity in activities) {
-                    val componentName = if (activity.name.startsWith(".")) {
-                        activity.packageName + activity.name
+                for (manifestActivity in activities) {
+                    val componentName = if (manifestActivity.name.startsWith(".")) {
+                        manifest.packageName + manifestActivity.name
                     } else {
-                        activity.name
+                        manifestActivity.name
                     }
                     val simpleName = componentName.substringAfterLast('.')
-                    val displayName = resolveActivityLabel(activity)
+                    val activityInfo = ActivityIntentFilterInfo(
+                        name = manifestActivity.name,
+                        packageName = manifest.packageName,
+                        exported = manifestActivity.exported,
+                        label = manifestActivity.label,
+                        intentFilters = manifestActivity.intentFilters.map { filter ->
+                            IntentFilterInfo(
+                                actions = filter.actions,
+                                categories = filter.categories,
+                                data = filter.data.map { data ->
+                                    IntentFilterDataInfo(
+                                        scheme = data.scheme,
+                                        host = data.host,
+                                        port = data.port,
+                                        path = data.path,
+                                        pathPrefix = data.pathPrefix,
+                                        pathPattern = data.pathPattern,
+                                        mimeType = data.mimeType,
+                                    )
+                                },
+                            )
+                        },
+                    )
+                    val displayName = resolveActivityLabel(activityInfo)
 
                     val entity = DebloatableComponentEntity(
                         packageName = packageName,
@@ -71,14 +105,14 @@ internal class LocalDebloatableComponentDataSource @Inject constructor(
                         displayName = displayName,
                         ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
                         pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
-                        exported = activity.exported,
-                        label = activity.label,
+                        exported = manifestActivity.exported,
+                        label = manifestActivity.label,
                         type = ComponentType.ACTIVITY,
-                        intentFilters = activity.intentFilters,
+                        intentFilters = activityInfo.intentFilters,
                     )
                     entityList.add(entity)
                 }
-            } catch (e: Exception) {
+            }.onFailure { e ->
                 Timber.w(e, "Failed to parse activities for package: $packageName")
             }
         }
