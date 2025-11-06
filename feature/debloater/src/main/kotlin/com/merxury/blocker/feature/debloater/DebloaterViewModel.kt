@@ -74,6 +74,9 @@ class DebloaterViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
+    private val _componentTypeFilter = MutableStateFlow<Set<ComponentClassification>>(emptySet())
+    val componentTypeFilter = _componentTypeFilter.asStateFlow()
+
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
 
@@ -100,6 +103,13 @@ class DebloaterViewModel @Inject constructor(
                     loadData()
                 }
         }
+        viewModelScope.launch {
+            _componentTypeFilter
+                .drop(1)
+                .collect {
+                    loadData()
+                }
+        }
     }
 
     private fun loadData() {
@@ -108,8 +118,9 @@ class DebloaterViewModel @Inject constructor(
             try {
                 val entities = debloatableComponentRepository.getDebloatableComponent().first()
                 val query = _searchQuery.value
-                Timber.d("Received ${entities.size} debloatable components, query: $query")
-                val result = groupAndFilterDebloatableComponents(entities, query)
+                val typeFilter = _componentTypeFilter.value
+                Timber.d("Received ${entities.size} debloatable components, query: $query, typeFilter: $typeFilter")
+                val result = groupAndFilterDebloatableComponents(entities, query, typeFilter)
                 _debloatableUiState.value = Result.Success(result)
             } catch (e: Exception) {
                 Timber.e(e, "Error loading debloatable components")
@@ -123,6 +134,10 @@ class DebloaterViewModel @Inject constructor(
         if (query.isNotBlank()) {
             analyticsHelper.logSearchQueryUpdated()
         }
+    }
+
+    fun updateComponentTypeFilter(types: Set<ComponentClassification>) {
+        _componentTypeFilter.update { types }
     }
 
     fun controlComponent(entity: DebloatableComponentEntity, enabled: Boolean) {
@@ -248,6 +263,7 @@ class DebloaterViewModel @Inject constructor(
     private fun groupAndFilterDebloatableComponents(
         entities: List<DebloatableComponentEntity>,
         query: String,
+        typeFilter: Set<ComponentClassification>,
     ): List<MatchedTarget> {
         val grouped = entities.groupBy { it.packageName }
         return grouped.mapNotNull { (packageName, debloatableComponents) ->
@@ -260,7 +276,7 @@ class DebloaterViewModel @Inject constructor(
 
             val appLabel = packageInfo?.applicationInfo?.loadLabel(pm)?.toString() ?: packageName
 
-            val filteredTargets = if (query.isBlank()) {
+            val textFilteredTargets = if (query.isBlank()) {
                 debloatableComponents
             } else {
                 debloatableComponents.filter { entity ->
@@ -269,6 +285,10 @@ class DebloaterViewModel @Inject constructor(
                         entity.simpleName.contains(query, ignoreCase = true) ||
                         entity.displayName.contains(query, ignoreCase = true)
                 }
+            }
+
+            val filteredTargets = textFilteredTargets.filter { entity ->
+                entity.matchesClassifications(typeFilter)
             }
 
             if (filteredTargets.isNotEmpty()) {
