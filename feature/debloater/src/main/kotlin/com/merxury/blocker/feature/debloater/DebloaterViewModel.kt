@@ -21,6 +21,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -61,6 +62,7 @@ class DebloaterViewModel @Inject constructor(
     private val componentRepository: ComponentRepository,
     private val userDataRepository: UserDataRepository,
     private val pm: PackageManager,
+    private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -118,11 +120,21 @@ class DebloaterViewModel @Inject constructor(
 
     fun updateSearchQuery(query: String) {
         _searchQuery.update { query }
+        if (query.isNotBlank()) {
+            analyticsHelper.logSearchQueryUpdated()
+        }
     }
 
     fun controlComponent(entity: DebloatableComponentEntity, enabled: Boolean) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            analyticsHelper.logComponentControlled(
+                enabled = enabled,
+                isShareable = isShareableComponent(entity),
+                isExplicitLaunch = isExplicitLaunch(entity),
+                isLauncherEntry = isLauncherEntry(entity),
+                isDeeplinkEntry = isDeeplinkEntry(entity),
+            )
             val componentInfo = entity.toComponentInfo()
             val controllerType = userDataRepository.userData.first().controllerType
             componentRepository.controlComponent(
@@ -165,6 +177,13 @@ class DebloaterViewModel @Inject constructor(
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            analyticsHelper.logBatchComponentsControlled(
+                enabled = enable,
+                componentCount = entities.size,
+                shareableCount = entities.count { isShareableComponent(it) },
+                launcherEntryCount = entities.count { isLauncherEntry(it) },
+                deeplinkEntryCount = entities.count { isDeeplinkEntry(it) },
+            )
             val components = entities.map { it.toComponentInfo() }
             val controllerType = userDataRepository.userData.first().controllerType
             var successCount = 0
@@ -215,6 +234,7 @@ class DebloaterViewModel @Inject constructor(
     }
 
     fun triggerTestShare(context: Context) {
+        analyticsHelper.logTestShareTriggered()
         val sendIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, "Test share message from Blocker")
