@@ -16,7 +16,9 @@
 
 package com.merxury.blocker.feature.debloater
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -29,6 +31,7 @@ import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,9 +43,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
+import com.merxury.blocker.core.designsystem.component.BlockerFilterChip
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.appdebloater.R
@@ -55,6 +61,7 @@ fun DebloaterScreen(
 ) {
     val debloatableUiState by viewModel.debloatableUiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val componentTypeFilter by viewModel.componentTypeFilter.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val hasRootPermission by viewModel.hasRootPermission.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -75,8 +82,10 @@ fun DebloaterScreen(
         modifier = modifier,
         debloatableUiState = debloatableUiState,
         searchQuery = searchQuery,
+        componentTypeFilter = componentTypeFilter,
         errorState = errorState,
         onSearchQueryChange = viewModel::updateSearchQuery,
+        onComponentTypeFilterChange = viewModel::updateComponentTypeFilter,
         onSwitchClick = { uiItem, enabled ->
             viewModel.controlComponent(uiItem.entity, enabled)
         },
@@ -99,8 +108,10 @@ internal fun DebloaterScreenContent(
     modifier: Modifier = Modifier,
     debloatableUiState: Result<List<MatchedTarget>> = Result.Loading,
     searchQuery: String = "",
+    componentTypeFilter: Set<ComponentClassification> = emptySet(),
     errorState: UiMessage? = null,
     onSearchQueryChange: (String) -> Unit = {},
+    onComponentTypeFilterChange: (Set<ComponentClassification>) -> Unit = {},
     onSwitchClick: (DebloatableComponentUiItem, Boolean) -> Unit = { _, _ -> },
     onBlockAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = {},
     onEnableAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = {},
@@ -132,6 +143,20 @@ internal fun DebloaterScreenContent(
                 )
             }
         }
+        ComponentTypeFilterChips(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            selectedTypes = componentTypeFilter,
+            onTypeToggle = { type ->
+                val newSet = if (type in componentTypeFilter) {
+                    componentTypeFilter - type
+                } else {
+                    componentTypeFilter + type
+                }
+                onComponentTypeFilterChange(newSet)
+            },
+        )
         DebloaterContent(
             modifier = Modifier.weight(1f),
             data = debloatableUiState,
@@ -147,5 +172,66 @@ internal fun DebloaterScreenContent(
             text = errorState.content.orEmpty(),
             onDismissRequest = onDismissError,
         )
+    }
+}
+
+@Composable
+private fun ComponentTypeFilterChips(
+    selectedTypes: Set<ComponentClassification>,
+    onTypeToggle: (ComponentClassification) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ComponentClassification.entries.forEach { type ->
+            val labelRes = when (type) {
+                ComponentClassification.SHAREABLE -> R.string.feature_debloater_filter_chip_shareable
+                ComponentClassification.DEEPLINK -> R.string.feature_debloater_filter_chip_deeplink
+                ComponentClassification.LAUNCHER -> R.string.feature_debloater_filter_chip_launcher
+                ComponentClassification.EXPLICIT -> R.string.feature_debloater_filter_chip_explicit
+            }
+            BlockerFilterChip(
+                selected = type in selectedTypes,
+                onSelectedChange = { onTypeToggle(type) },
+                label = { Text(stringResource(labelRes)) },
+            )
+        }
+    }
+}
+
+@PreviewThemes
+@Composable
+private fun ComponentTypeFilterChipsPreviewAllSelected() {
+    BlockerTheme {
+        Surface {
+            ComponentTypeFilterChips(
+                selectedTypes = setOf(
+                    ComponentClassification.SHAREABLE,
+                    ComponentClassification.DEEPLINK,
+                    ComponentClassification.LAUNCHER,
+                    ComponentClassification.EXPLICIT,
+                ),
+                onTypeToggle = {},
+            )
+        }
+    }
+}
+
+@PreviewThemes
+@Composable
+private fun ComponentTypeFilterChipsPreviewPartialSelection() {
+    BlockerTheme {
+        Surface {
+            ComponentTypeFilterChips(
+                selectedTypes = setOf(
+                    ComponentClassification.SHAREABLE,
+                    ComponentClassification.LAUNCHER,
+                ),
+                onTypeToggle = {},
+            )
+        }
     }
 }

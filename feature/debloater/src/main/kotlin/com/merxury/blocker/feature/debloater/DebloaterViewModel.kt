@@ -74,7 +74,14 @@ class DebloaterViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    private val _componentTypeFilter = MutableStateFlow<Set<ComponentClassification>>(emptySet())
+    private val _componentTypeFilter = MutableStateFlow<Set<ComponentClassification>>(
+        setOf(
+            ComponentClassification.SHAREABLE,
+            ComponentClassification.DEEPLINK,
+            ComponentClassification.LAUNCHER,
+            ComponentClassification.EXPLICIT,
+        ),
+    )
     val componentTypeFilter = _componentTypeFilter.asStateFlow()
 
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -138,6 +145,7 @@ class DebloaterViewModel @Inject constructor(
 
     fun updateComponentTypeFilter(types: Set<ComponentClassification>) {
         _componentTypeFilter.update { types }
+        analyticsHelper.logComponentTypeFilterChanged(selectedCount = types.size)
     }
 
     fun controlComponent(entity: DebloatableComponentEntity, enabled: Boolean) {

@@ -7,4 +7,8 @@
     <string name="feature_debloater_explicit_launch">Eksplisit</string>
     <string name="feature_debloater_launcher_entry">Peluncur</string>
     <string name="feature_debloater_deeplink_entry">Tautan dalam</string>
+    <string name="feature_debloater_filter_chip_shareable">Dapat Dibagikan</string>
+    <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_filter_chip_launcher">Peluncur</string>
+    <string name="feature_debloater_filter_chip_explicit">Eksplisit</string>
 </resources>

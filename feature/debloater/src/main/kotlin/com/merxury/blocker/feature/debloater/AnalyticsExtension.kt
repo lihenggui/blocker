@@ -69,3 +69,14 @@ internal fun AnalyticsHelper.logTestShareTriggered() = logEvent(
         type = "debloater_test_share_triggered",
     ),
 )
+
+internal fun AnalyticsHelper.logComponentTypeFilterChanged(
+    selectedCount: Int,
+) = logEvent(
+    AnalyticsEvent(
+        type = "debloater_component_type_filter_changed",
+        extras = listOf(
+            Param(key = "selected_count", value = selectedCount.toString()),
+        ),
+    ),
+)

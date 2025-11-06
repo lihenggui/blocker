@@ -345,7 +345,15 @@ class DebloaterViewModelTest {
 
     @Test
     fun givenInitialState_whenObserveComponentTypeFilter_thenEmpty() {
-        assertEquals(emptySet(), viewModel.componentTypeFilter.value)
+        assertEquals(
+            setOf(
+                ComponentClassification.SHAREABLE,
+                ComponentClassification.DEEPLINK,
+                ComponentClassification.LAUNCHER,
+                ComponentClassification.EXPLICIT,
+            ),
+            viewModel.componentTypeFilter.value,
+        )
     }
 
     @Test
