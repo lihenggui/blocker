@@ -31,17 +31,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.feature.appdebloater.R
+import com.merxury.blocker.feature.debloater.DebloaterPreviewParameterData.debloaterComponentUiItem
+import com.merxury.blocker.feature.debloater.DebloaterPreviewParameterData.launcherOnlyComponent
+import com.merxury.blocker.feature.debloater.DebloaterPreviewParameterData.shareComponent
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -151,5 +158,71 @@ fun DebloatableAppSubItem(
                 onSwitchClick(item, !enabled)
             },
         )
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloatableAppSubItemPreview() {
+    BlockerTheme {
+        Surface {
+            DebloatableAppSubItem(
+                item = debloaterComponentUiItem,
+                enabled = true,
+            )
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloatableAppSubItemDisabledPreview() {
+    BlockerTheme {
+        Surface {
+            DebloatableAppSubItem(
+                item = debloaterComponentUiItem,
+                enabled = false,
+            )
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloatableAppSubItemSelectedPreview() {
+    BlockerTheme {
+        Surface {
+            DebloatableAppSubItem(
+                item = debloaterComponentUiItem,
+                enabled = true,
+                isSelected = true,
+            )
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloatableAppSubItemLauncherOnlyPreview() {
+    BlockerTheme {
+        Surface {
+            DebloatableAppSubItem(
+                item = launcherOnlyComponent,
+                enabled = true,
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloatableAppSubItemShareOnlyPreview() {
+    BlockerTheme {
+        Surface {
+            DebloatableAppSubItem(
+                item = shareComponent,
+                enabled = true,
+            )
+        }
     }
 }

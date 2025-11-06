@@ -16,9 +16,14 @@
 
 package com.merxury.blocker.feature.debloater
 
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.component.NoComponentScreen
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -52,5 +57,56 @@ fun DebloaterContent(
         is Result.Error -> ErrorScreen(error = UiMessage(title = data.exception.message.orEmpty()))
 
         is Result.Loading -> LoadingScreen()
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloaterContentSuccessPreview(
+    @PreviewParameter(DebloaterPreviewParameterProvider::class)
+    list: List<MatchedTarget>,
+) {
+    BlockerTheme {
+        Surface {
+            DebloaterContent(
+                data = Result.Success(list),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloaterContentEmptyPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterContent(
+                data = Result.Success(emptyList()),
+            )
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloaterContentLoadingPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterContent(
+                data = Result.Loading,
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloaterContentErrorPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterContent(
+                data = Result.Error(Exception("Failed to load debloatable components")),
+            )
+        }
     }
 }
