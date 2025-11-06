@@ -28,16 +28,21 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastSumBy
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.collapseList.rememberSavableSnapshotStateMap
 import timber.log.Timber
 
@@ -124,5 +129,32 @@ fun DebloatableAppList(
                 itemsAvailable = list.size,
             ),
         )
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloatableAppListPreview(
+    @PreviewParameter(DebloaterPreviewParameterProvider::class)
+    list: List<MatchedTarget>,
+) {
+    BlockerTheme {
+        Surface {
+            DebloatableAppList(
+                list = list,
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloatableAppListEmptyPreview() {
+    BlockerTheme {
+        Surface {
+            DebloatableAppList(
+                list = emptyList(),
+            )
+        }
     }
 }

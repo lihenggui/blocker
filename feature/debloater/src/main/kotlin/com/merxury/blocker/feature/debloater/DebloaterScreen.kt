@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,13 +37,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.appdebloater.R
@@ -147,5 +152,68 @@ internal fun DebloaterScreenContent(
             text = errorState.content.orEmpty(),
             onDismissRequest = onDismissError,
         )
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloaterScreenContentPreview(
+    @PreviewParameter(DebloaterPreviewParameterProvider::class)
+    list: List<MatchedTarget>,
+) {
+    BlockerTheme {
+        Surface {
+            DebloaterScreenContent(
+                snackbarHostState = SnackbarHostState(),
+                debloatableUiState = Result.Success(list),
+                searchQuery = "",
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloaterScreenContentWithSearchPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterScreenContent(
+                snackbarHostState = SnackbarHostState(),
+                debloatableUiState = Result.Success(DebloaterPreviewParameterData.debloaterList),
+                searchQuery = "Main",
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloaterScreenContentWithErrorDialogPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterScreenContent(
+                snackbarHostState = SnackbarHostState(),
+                debloatableUiState = Result.Success(DebloaterPreviewParameterData.debloaterList),
+                searchQuery = "",
+                errorState = UiMessage(
+                    title = "Error",
+                    content = "Failed to disable component",
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloaterScreenContentLoadingPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterScreenContent(
+                snackbarHostState = SnackbarHostState(),
+                debloatableUiState = Result.Loading,
+                searchQuery = "",
+            )
+        }
     }
 }
