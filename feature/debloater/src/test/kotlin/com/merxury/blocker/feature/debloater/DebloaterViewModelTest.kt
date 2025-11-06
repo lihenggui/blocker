@@ -21,6 +21,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
 import app.cash.turbine.test
+import com.merxury.blocker.core.analytics.StubAnalyticsHelper
 import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
 import com.merxury.blocker.core.data.util.PermissionStatus
 import com.merxury.blocker.core.database.debloater.DebloatableComponentEntity
@@ -56,6 +57,7 @@ class DebloaterViewModelTest {
     private val componentRepository = TestComponentRepository()
     private val permissionMonitor = TestPermissionMonitor()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
+    private val analyticsHelper = StubAnalyticsHelper()
     private val debloatableFlow = MutableStateFlow<List<DebloatableComponentEntity>>(emptyList())
     private val debloatableComponentRepository = object : DebloatableComponentRepository {
         override fun getDebloatableComponent() = debloatableFlow
@@ -83,6 +85,7 @@ class DebloaterViewModelTest {
             userDataRepository = userDataRepository,
             permissionMonitor = permissionMonitor,
             pm = pm,
+            analyticsHelper = analyticsHelper,
             ioDispatcher = dispatcher,
         )
     }
@@ -120,6 +123,7 @@ class DebloaterViewModelTest {
             userDataRepository = userDataRepository,
             permissionMonitor = permissionMonitor,
             pm = pm,
+            analyticsHelper = analyticsHelper,
             ioDispatcher = dispatcher,
         )
         testViewModel.hasRootPermission.test {
@@ -217,6 +221,7 @@ class DebloaterViewModelTest {
             userDataRepository = userDataRepository,
             permissionMonitor = permissionMonitor,
             pm = pm,
+            analyticsHelper = analyticsHelper,
             ioDispatcher = dispatcher,
         )
 
@@ -262,6 +267,7 @@ class DebloaterViewModelTest {
             userDataRepository = userDataRepository,
             permissionMonitor = permissionMonitor,
             pm = pm,
+            analyticsHelper = analyticsHelper,
             ioDispatcher = dispatcher,
         )
 
@@ -309,6 +315,7 @@ class DebloaterViewModelTest {
             userDataRepository = userDataRepository,
             permissionMonitor = permissionMonitor,
             pm = pm,
+            analyticsHelper = analyticsHelper,
             ioDispatcher = dispatcher,
         )
 
