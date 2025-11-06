@@ -39,6 +39,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -231,6 +233,69 @@ private fun ComponentTypeFilterChipsPreviewPartialSelection() {
                     ComponentClassification.LAUNCHER,
                 ),
                 onTypeToggle = {},
+            )
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloaterScreenContentPreview(
+    @PreviewParameter(DebloaterPreviewParameterProvider::class)
+    list: List<MatchedTarget>,
+) {
+    BlockerTheme {
+        Surface {
+            DebloaterScreenContent(
+                snackbarHostState = SnackbarHostState(),
+                debloatableUiState = Result.Success(list),
+                searchQuery = "",
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloaterScreenContentWithSearchPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterScreenContent(
+                snackbarHostState = SnackbarHostState(),
+                debloatableUiState = Result.Success(DebloaterPreviewParameterData.debloaterList),
+                searchQuery = "Main",
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloaterScreenContentWithErrorDialogPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterScreenContent(
+                snackbarHostState = SnackbarHostState(),
+                debloatableUiState = Result.Success(DebloaterPreviewParameterData.debloaterList),
+                searchQuery = "",
+                errorState = UiMessage(
+                    title = "Error",
+                    content = "Failed to disable component",
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun DebloaterScreenContentLoadingPreview() {
+    BlockerTheme {
+        Surface {
+            DebloaterScreenContent(
+                snackbarHostState = SnackbarHostState(),
+                debloatableUiState = Result.Loading,
+                searchQuery = "",
             )
         }
     }

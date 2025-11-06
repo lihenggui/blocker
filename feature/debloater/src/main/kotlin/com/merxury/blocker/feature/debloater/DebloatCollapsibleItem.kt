@@ -26,11 +26,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
@@ -38,8 +40,11 @@ import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.feature.debloater.DebloaterPreviewParameterData.matchedTarget
 
 @Composable
 fun DebloatCollapsibleItem(
@@ -130,5 +135,31 @@ private fun DebloatAppInfo(
                 enabledCount,
             ),
         )
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloatCollapsibleItemCollapsedPreview() {
+    BlockerTheme {
+        Surface {
+            DebloatCollapsibleItem(
+                matchedTarget = matchedTarget,
+                expanded = false,
+            )
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun DebloatCollapsibleItemExpandedPreview() {
+    BlockerTheme {
+        Surface {
+            DebloatCollapsibleItem(
+                matchedTarget = matchedTarget,
+                expanded = true,
+            )
+        }
     }
 }
