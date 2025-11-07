@@ -17,7 +17,10 @@
 package com.merxury.blocker.core.utils
 
 import android.content.res.AssetManager
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.content.res.XmlResourceParser
+import android.util.DisplayMetrics
 import com.merxury.blocker.core.model.manifest.AndroidManifest
 import com.merxury.blocker.core.model.manifest.IntentFilterData
 import com.merxury.blocker.core.model.manifest.ManifestActivity
@@ -48,6 +51,11 @@ object ManifestParser {
 
     private const val NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android"
 
+    private data class ParserContext(
+        val parser: XmlResourceParser,
+        val resources: Resources,
+    )
+
     /**
      * Parses an APK file and returns its complete manifest representation.
      *
@@ -60,8 +68,8 @@ object ManifestParser {
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Result<AndroidManifest> = withContext(dispatcher) {
         try {
-            val parser = getParserForManifest(apkFile, dispatcher)
-            val manifest = parseManifestXml(parser)
+            val context = getParserContext(apkFile, dispatcher)
+            val manifest = parseManifestXml(context.parser, context.resources)
             Result.success(manifest)
         } catch (e: XmlPullParserException) {
             Timber.e(e, "XML parsing error in manifest")
@@ -75,7 +83,7 @@ object ManifestParser {
         }
     }
 
-    private fun parseManifestXml(parser: XmlResourceParser): AndroidManifest {
+    private fun parseManifestXml(parser: XmlResourceParser, resources: Resources): AndroidManifest {
         var packageName = ""
         var versionCode: Int? = null
         var versionName: String? = null
@@ -122,7 +130,7 @@ object ManifestParser {
                     }
                 }
                 "application" -> {
-                    application = parseApplication(parser)
+                    application = parseApplication(parser, resources, packageName)
                 }
             }
         }
@@ -139,7 +147,11 @@ object ManifestParser {
         )
     }
 
-    private fun parseApplication(parser: XmlResourceParser): ManifestApplication {
+    private fun parseApplication(
+        parser: XmlResourceParser,
+        resources: Resources,
+        packageName: String,
+    ): ManifestApplication {
         val appLabel = parser.getAttributeValue(NAMESPACE_ANDROID, "label")
         val appIcon = parser.getAttributeValue(NAMESPACE_ANDROID, "icon")
         val appTheme = parser.getAttributeValue(NAMESPACE_ANDROID, "theme")
@@ -161,16 +173,16 @@ object ManifestParser {
             if (parser.eventType != XmlPullParser.START_TAG) continue
 
             when (parser.name) {
-                "activity" -> activities.add(parseActivity(parser))
-                "service" -> services.add(parseService(parser))
-                "receiver" -> receivers.add(parseReceiver(parser))
-                "provider" -> providers.add(parseProvider(parser))
+                "activity" -> activities.add(parseActivity(parser, resources, packageName))
+                "service" -> services.add(parseService(parser, resources, packageName))
+                "receiver" -> receivers.add(parseReceiver(parser, resources, packageName))
+                "provider" -> providers.add(parseProvider(parser, resources, packageName))
                 "meta-data" -> metaData.add(parseMetaData(parser))
             }
         }
 
         return ManifestApplication(
-            label = appLabel,
+            label = resolveLabel(appLabel, resources, null),
             icon = appIcon,
             theme = appTheme,
             debuggable = debuggable,
@@ -183,7 +195,11 @@ object ManifestParser {
         )
     }
 
-    private fun parseActivity(parser: XmlResourceParser): ManifestActivity {
+    private fun parseActivity(
+        parser: XmlResourceParser,
+        resources: Resources,
+        packageName: String,
+    ): ManifestActivity {
         val name = parser.getAttributeValue(NAMESPACE_ANDROID, "name") ?: ""
         val label = parser.getAttributeValue(NAMESPACE_ANDROID, "label")
         val icon = parser.getAttributeValue(NAMESPACE_ANDROID, "icon")
@@ -212,9 +228,11 @@ object ManifestParser {
             }
         }
 
+        val simpleName = resolveComponentName(name, packageName)
+
         return ManifestActivity(
             name = name,
-            label = label,
+            label = resolveLabel(label, resources, simpleName),
             icon = icon,
             enabled = enabled,
             exported = exported,
@@ -229,7 +247,11 @@ object ManifestParser {
         )
     }
 
-    private fun parseService(parser: XmlResourceParser): ManifestService {
+    private fun parseService(
+        parser: XmlResourceParser,
+        resources: Resources,
+        packageName: String,
+    ): ManifestService {
         val name = parser.getAttributeValue(NAMESPACE_ANDROID, "name") ?: ""
         val label = parser.getAttributeValue(NAMESPACE_ANDROID, "label")
         val icon = parser.getAttributeValue(NAMESPACE_ANDROID, "icon")
@@ -255,9 +277,11 @@ object ManifestParser {
             }
         }
 
+        val simpleName = resolveComponentName(name, packageName)
+
         return ManifestService(
             name = name,
-            label = label,
+            label = resolveLabel(label, resources, simpleName),
             icon = icon,
             enabled = enabled,
             exported = exported,
@@ -269,7 +293,11 @@ object ManifestParser {
         )
     }
 
-    private fun parseReceiver(parser: XmlResourceParser): ManifestReceiver {
+    private fun parseReceiver(
+        parser: XmlResourceParser,
+        resources: Resources,
+        packageName: String,
+    ): ManifestReceiver {
         val name = parser.getAttributeValue(NAMESPACE_ANDROID, "name") ?: ""
         val label = parser.getAttributeValue(NAMESPACE_ANDROID, "label")
         val icon = parser.getAttributeValue(NAMESPACE_ANDROID, "icon")
@@ -294,9 +322,11 @@ object ManifestParser {
             }
         }
 
+        val simpleName = resolveComponentName(name, packageName)
+
         return ManifestReceiver(
             name = name,
-            label = label,
+            label = resolveLabel(label, resources, simpleName),
             icon = icon,
             enabled = enabled,
             exported = exported,
@@ -307,7 +337,11 @@ object ManifestParser {
         )
     }
 
-    private fun parseProvider(parser: XmlResourceParser): ManifestProvider {
+    private fun parseProvider(
+        parser: XmlResourceParser,
+        resources: Resources,
+        packageName: String,
+    ): ManifestProvider {
         val name = parser.getAttributeValue(NAMESPACE_ANDROID, "name") ?: ""
         val label = parser.getAttributeValue(NAMESPACE_ANDROID, "label")
         val icon = parser.getAttributeValue(NAMESPACE_ANDROID, "icon")
@@ -334,9 +368,11 @@ object ManifestParser {
             }
         }
 
+        val simpleName = resolveComponentName(name, packageName)
+
         return ManifestProvider(
             name = name,
-            label = label,
+            label = resolveLabel(label, resources, simpleName),
             icon = icon,
             enabled = enabled,
             exported = exported,
@@ -416,6 +452,48 @@ object ManifestParser {
         )
     }
 
+    private fun resolveLabel(
+        rawLabel: String?,
+        resources: Resources,
+        fallbackName: String?,
+    ): String? {
+        if (rawLabel == null) return fallbackName
+
+        if (!rawLabel.startsWith("@")) return rawLabel
+
+        val resourceId = try {
+            when {
+                rawLabel.startsWith("@0x") -> rawLabel.substring(1).toLong(16).toInt()
+                rawLabel.contains("/") -> {
+                    val (type, name) = rawLabel.substring(1).split("/", limit = 2)
+                    resources.getIdentifier(name, type, null)
+                }
+                else -> return fallbackName
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to parse resource reference: $rawLabel")
+            return fallbackName
+        }
+
+        if (resourceId == 0) return fallbackName
+
+        return try {
+            resources.getString(resourceId)
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to resolve resource: $rawLabel (id: $resourceId)")
+            fallbackName
+        }
+    }
+
+    private fun resolveComponentName(fullName: String, packageName: String): String {
+        val resolved = when {
+            fullName.startsWith(".") -> packageName + fullName
+            !fullName.contains(".") -> "$packageName.$fullName"
+            else -> fullName
+        }
+        return resolved.substringAfterLast(".")
+    }
+
     private val assetManager: Any?
         get() {
             return try {
@@ -428,20 +506,25 @@ object ManifestParser {
         }
 
     @Throws(IOException::class)
-    private suspend fun getParserForManifest(
+    @Suppress("DEPRECATION")
+    private suspend fun getParserContext(
         apkFile: File,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): XmlResourceParser = withContext(dispatcher) {
+    ): ParserContext = withContext(dispatcher) {
         val assetManagerInstance = assetManager
             ?: throw IOException("Failed to create AssetManager")
         val cookie = addAssets(apkFile, assetManagerInstance)
         if (cookie == -1) {
             throw IOException("Failed to add assets for ${apkFile.absolutePath}")
         }
-        return@withContext (assetManagerInstance as AssetManager).openXmlResourceParser(
-            cookie,
-            "AndroidManifest.xml",
-        )
+        val typedAssetManager = assetManagerInstance as AssetManager
+        val parser = typedAssetManager.openXmlResourceParser(cookie, "AndroidManifest.xml")
+        val displayMetrics = DisplayMetrics().apply {
+            setToDefaults()
+        }
+        val configuration = Configuration()
+        val resources = Resources(typedAssetManager, displayMetrics, configuration)
+        return@withContext ParserContext(parser, resources)
     }
 
     private fun addAssets(apkFile: File, assetManagerInstance: Any): Int = try {
