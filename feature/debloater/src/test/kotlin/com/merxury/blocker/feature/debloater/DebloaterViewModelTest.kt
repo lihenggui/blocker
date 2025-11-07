@@ -446,10 +446,6 @@ class DebloaterViewModelTest {
 
     @Test
     fun givenDebloatableComponentData_whenFilterByExplicitType_thenShowOnlyExplicitComponents() = runTest {
-        debloatableFlow.value = sampleComponentsWithVariousTypes
-        userDataRepository.sendUserData(defaultUserData)
-        testScheduler.advanceUntilIdle()
-
         val testViewModel = DebloaterViewModel(
             debloatableComponentRepository = debloatableComponentRepository,
             componentRepository = componentRepository,
@@ -460,15 +456,19 @@ class DebloaterViewModelTest {
             ioDispatcher = dispatcher,
         )
 
-        testScheduler.advanceUntilIdle()
+        testViewModel.debloatableUiState.test {
+            debloatableFlow.value = sampleComponentsWithVariousTypes
+            userDataRepository.sendUserData(defaultUserData)
 
-        testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.EXPLICIT))
-        testScheduler.advanceUntilIdle()
+            val initial = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(initial)
 
-        val result = testViewModel.debloatableUiState.value
-        assertIs<Result.Success<List<MatchedTarget>>>(result)
-        assertEquals(1, result.data.size)
-        assertEquals(4, result.data[0].targets.size)
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.EXPLICIT))
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(1, result.data.size)
+            assertEquals(4, result.data[0].targets.size)
+        }
     }
 
     @Test
@@ -501,10 +501,6 @@ class DebloaterViewModelTest {
 
     @Test
     fun givenDebloatableComponentData_whenFilterByTypeAndSearch_thenApplyBothFilters() = runTest {
-        debloatableFlow.value = sampleComponentsWithVariousTypes
-        userDataRepository.sendUserData(defaultUserData)
-        testScheduler.advanceUntilIdle()
-
         val testViewModel = DebloaterViewModel(
             debloatableComponentRepository = debloatableComponentRepository,
             componentRepository = componentRepository,
@@ -515,19 +511,23 @@ class DebloaterViewModelTest {
             ioDispatcher = dispatcher,
         )
 
-        testScheduler.advanceUntilIdle()
+        testViewModel.debloatableUiState.test {
+            debloatableFlow.value = sampleComponentsWithVariousTypes
+            userDataRepository.sendUserData(defaultUserData)
 
-        testViewModel.updateSearchQuery("Share")
-        testScheduler.advanceUntilIdle()
+            val initial = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(initial)
 
-        testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE))
-        testScheduler.advanceUntilIdle()
+            testViewModel.updateSearchQuery("Share")
+            awaitItem()
 
-        val result = testViewModel.debloatableUiState.value
-        assertIs<Result.Success<List<MatchedTarget>>>(result)
-        assertEquals(1, result.data.size)
-        assertEquals(1, result.data[0].targets.size)
-        assertEquals("ShareActivity", result.data[0].targets[0].entity.simpleName)
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE))
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(1, result.data.size)
+            assertEquals(1, result.data[0].targets.size)
+            assertEquals("ShareActivity", result.data[0].targets[0].entity.simpleName)
+        }
     }
 
     @Test
