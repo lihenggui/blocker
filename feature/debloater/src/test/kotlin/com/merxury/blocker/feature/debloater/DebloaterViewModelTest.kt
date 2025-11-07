@@ -342,6 +342,253 @@ class DebloaterViewModelTest {
         viewModel.dismissError()
         assertEquals(null, viewModel.errorState.value)
     }
+
+    @Test
+    fun givenInitialState_whenObserveComponentTypeFilter_thenEmpty() {
+        assertEquals(
+            setOf(
+                ComponentClassification.SHAREABLE,
+                ComponentClassification.DEEPLINK,
+                ComponentClassification.LAUNCHER,
+                ComponentClassification.EXPLICIT,
+            ),
+            viewModel.componentTypeFilter.value,
+        )
+    }
+
+    @Test
+    fun givenComponentTypeFilter_whenUpdateComponentTypeFilter_thenReflectNewValue() {
+        val types = setOf(ComponentClassification.SHAREABLE, ComponentClassification.LAUNCHER)
+        viewModel.updateComponentTypeFilter(types)
+        assertEquals(types, viewModel.componentTypeFilter.value)
+    }
+
+    @Test
+    fun givenDebloatableComponentData_whenFilterBySharableType_thenShowOnlyShareableComponents() = runTest {
+        debloatableFlow.value = sampleComponentsWithVariousTypes
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            analyticsHelper = analyticsHelper,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+
+            awaitItem()
+
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE))
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(1, result.data.size)
+            assertEquals(1, result.data[0].targets.size)
+            assertEquals("ShareActivity", result.data[0].targets[0].entity.simpleName)
+        }
+    }
+
+    @Test
+    fun givenDebloatableComponentData_whenFilterByLauncherType_thenShowOnlyLauncherComponents() = runTest {
+        debloatableFlow.value = sampleComponentsWithVariousTypes
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            analyticsHelper = analyticsHelper,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+
+            awaitItem()
+
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.LAUNCHER))
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(1, result.data.size)
+            assertEquals(1, result.data[0].targets.size)
+            assertEquals("MainActivity", result.data[0].targets[0].entity.simpleName)
+        }
+    }
+
+    @Test
+    fun givenDebloatableComponentData_whenFilterByDeeplinkType_thenShowOnlyDeeplinkComponents() = runTest {
+        debloatableFlow.value = sampleComponentsWithVariousTypes
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            analyticsHelper = analyticsHelper,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+
+            awaitItem()
+
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.DEEPLINK))
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(1, result.data.size)
+            assertEquals(1, result.data[0].targets.size)
+            assertEquals("DeeplinkActivity", result.data[0].targets[0].entity.simpleName)
+        }
+    }
+
+    @Test
+    fun givenDebloatableComponentData_whenFilterByExplicitType_thenShowOnlyExplicitComponents() = runTest {
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            analyticsHelper = analyticsHelper,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
+            debloatableFlow.value = sampleComponentsWithVariousTypes
+            userDataRepository.sendUserData(defaultUserData)
+
+            val initial = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(initial)
+
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.EXPLICIT))
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(1, result.data.size)
+            assertEquals(4, result.data[0].targets.size)
+        }
+    }
+
+    @Test
+    fun givenDebloatableComponentData_whenFilterByMultipleTypes_thenShowMatchingComponents() = runTest {
+        debloatableFlow.value = sampleComponentsWithVariousTypes
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            analyticsHelper = analyticsHelper,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+
+            awaitItem()
+
+            testViewModel.updateComponentTypeFilter(
+                setOf(ComponentClassification.SHAREABLE, ComponentClassification.LAUNCHER),
+            )
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(1, result.data.size)
+            assertEquals(2, result.data[0].targets.size)
+        }
+    }
+
+    @Test
+    fun givenDebloatableComponentData_whenFilterByTypeAndSearch_thenApplyBothFilters() = runTest {
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            analyticsHelper = analyticsHelper,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
+            debloatableFlow.value = sampleComponentsWithVariousTypes
+            userDataRepository.sendUserData(defaultUserData)
+
+            val initial = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(initial)
+
+            testViewModel.updateSearchQuery("Share")
+            awaitItem()
+
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE))
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(1, result.data.size)
+            assertEquals(1, result.data[0].targets.size)
+            assertEquals("ShareActivity", result.data[0].targets[0].entity.simpleName)
+        }
+    }
+
+    @Test
+    fun givenDebloatableComponentData_whenFilterByTypeAndSearchWithNoMatch_thenShowEmpty() = runTest {
+        debloatableFlow.value = sampleComponentsWithVariousTypes
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            analyticsHelper = analyticsHelper,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+
+            awaitItem()
+
+            testViewModel.updateSearchQuery("Main")
+            awaitItem()
+
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE))
+            val result = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(result)
+            assertEquals(0, result.data.size)
+        }
+    }
+
+    @Test
+    fun givenDebloatableComponentData_whenFilterByEmptySet_thenShowAllComponents() = runTest {
+        debloatableFlow.value = sampleComponentsWithVariousTypes
+        val testViewModel = DebloaterViewModel(
+            debloatableComponentRepository = debloatableComponentRepository,
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            permissionMonitor = permissionMonitor,
+            pm = pm,
+            analyticsHelper = analyticsHelper,
+            ioDispatcher = dispatcher,
+        )
+
+        testViewModel.debloatableUiState.test {
+            userDataRepository.sendUserData(defaultUserData)
+
+            val initialResult = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
+            assertEquals(4, initialResult.data[0].targets.size)
+
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.LAUNCHER))
+            val filteredResult = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(filteredResult)
+            assertEquals(1, filteredResult.data[0].targets.size)
+
+            testViewModel.updateComponentTypeFilter(emptySet())
+            val resetResult = awaitItem()
+            assertIs<Result.Success<List<MatchedTarget>>>(resetResult)
+            assertEquals(4, resetResult.data[0].targets.size)
+        }
+    }
 }
 
 private val sampleDebloatableComponents = listOf(
@@ -378,5 +625,78 @@ private val sampleDebloatableComponents = listOf(
                 data = emptyList(),
             ),
         ),
+    ),
+)
+
+private val sampleComponentsWithVariousTypes = listOf(
+    DebloatableComponentEntity(
+        packageName = "com.example.app",
+        componentName = "com.example.app.ShareActivity",
+        simpleName = "ShareActivity",
+        displayName = "Share",
+        ifwBlocked = false,
+        pmBlocked = false,
+        exported = true,
+        type = ComponentType.ACTIVITY,
+        intentFilters = listOf(
+            IntentFilterInfo(
+                actions = listOf("android.intent.action.SEND"),
+                categories = listOf("android.intent.category.DEFAULT"),
+                data = listOf(IntentFilterDataInfo(mimeType = "text/plain")),
+            ),
+        ),
+    ),
+    DebloatableComponentEntity(
+        packageName = "com.example.app",
+        componentName = "com.example.app.MainActivity",
+        simpleName = "MainActivity",
+        displayName = "Main",
+        ifwBlocked = false,
+        pmBlocked = false,
+        exported = true,
+        type = ComponentType.ACTIVITY,
+        intentFilters = listOf(
+            IntentFilterInfo(
+                actions = listOf("android.intent.action.MAIN"),
+                categories = listOf("android.intent.category.LAUNCHER"),
+                data = emptyList(),
+            ),
+        ),
+    ),
+    DebloatableComponentEntity(
+        packageName = "com.example.app",
+        componentName = "com.example.app.DeeplinkActivity",
+        simpleName = "DeeplinkActivity",
+        displayName = "Deeplink",
+        ifwBlocked = false,
+        pmBlocked = false,
+        exported = true,
+        type = ComponentType.ACTIVITY,
+        intentFilters = listOf(
+            IntentFilterInfo(
+                actions = listOf("android.intent.action.VIEW"),
+                categories = listOf(
+                    "android.intent.category.DEFAULT",
+                    "android.intent.category.BROWSABLE",
+                ),
+                data = listOf(
+                    IntentFilterDataInfo(
+                        scheme = "https",
+                        host = "example.com",
+                    ),
+                ),
+            ),
+        ),
+    ),
+    DebloatableComponentEntity(
+        packageName = "com.example.app",
+        componentName = "com.example.app.ExplicitActivity",
+        simpleName = "ExplicitActivity",
+        displayName = "Explicit",
+        ifwBlocked = false,
+        pmBlocked = false,
+        exported = true,
+        type = ComponentType.ACTIVITY,
+        intentFilters = emptyList(),
     ),
 )

@@ -7,4 +7,8 @@
     <string name="feature_debloater_explicit_launch">Açık</string>
     <string name="feature_debloater_launcher_entry">Başlatıcı</string>
     <string name="feature_debloater_deeplink_entry">Deeplink</string>
+    <string name="feature_debloater_filter_chip_shareable">Paylaşılabilir</string>
+    <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_filter_chip_launcher">Başlatıcı</string>
+    <string name="feature_debloater_filter_chip_explicit">Açık</string>
 </resources>
