@@ -45,7 +45,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -96,42 +96,87 @@ class DebloaterViewModel @Inject constructor(
         )
 
     private var controlComponentJob: Job? = null
-    private var loadDataJob: Job? = null
 
-    private val _debloatableUiState = MutableStateFlow<Result<List<MatchedTarget>>>(Result.Loading)
-    val debloatableUiState = _debloatableUiState.asStateFlow()
+    private val rawDebloatableComponents: StateFlow<List<DebloatableComponentEntity>> =
+        debloatableComponentRepository.getDebloatableComponent()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = emptyList(),
+            )
+
+    private val pendingComponentStates = MutableStateFlow<Map<String, Pair<ControllerType, Boolean>>>(emptyMap())
+
+    val debloatableUiState: StateFlow<Result<List<MatchedTarget>>> =
+        combine(
+            rawDebloatableComponents,
+            _searchQuery,
+            _componentTypeFilter,
+            pendingComponentStates,
+        ) { entities, query, typeFilter, pendingMap ->
+            try {
+                Timber.d("Filtering ${entities.size} debloatable components, query: $query, typeFilter: $typeFilter")
+                val result = groupAndFilterDebloatableComponents(entities, query, typeFilter)
+
+                if (pendingMap.isEmpty()) {
+                    Result.Success(result)
+                } else {
+                    val updatedResult = result.map { matchedTarget ->
+                        val updatedTargets = matchedTarget.targets.map { uiItem ->
+                            val key = "${uiItem.entity.packageName}/${uiItem.entity.componentName}"
+                            val pending = pendingMap[key]
+
+                            if (pending != null) {
+                                val (controllerType, enabled) = pending
+                                val updatedEntity = if (controllerType == ControllerType.IFW) {
+                                    uiItem.entity.copy(ifwBlocked = !enabled)
+                                } else {
+                                    uiItem.entity.copy(pmBlocked = !enabled)
+                                }
+                                uiItem.copy(entity = updatedEntity)
+                            } else {
+                                uiItem
+                            }
+                        }
+                        matchedTarget.copy(targets = updatedTargets)
+                    }
+                    Result.Success(updatedResult)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error filtering debloatable components")
+                Result.Error(e)
+            }
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = Result.Loading,
+            )
 
     init {
-        loadData()
         viewModelScope.launch {
-            _searchQuery
-                .drop(1)
-                .collect {
-                    loadData()
-                }
-        }
-        viewModelScope.launch {
-            _componentTypeFilter
-                .drop(1)
-                .collect {
-                    loadData()
-                }
-        }
-    }
+            rawDebloatableComponents.collect { entities ->
+                pendingComponentStates.update { current ->
+                    current.filterNot { (key, pendingValue) ->
+                        val (pendingController, pendingEnabled) = pendingValue
+                        val parts = key.split("/")
+                        if (parts.size != 2) return@filterNot false
 
-    private fun loadData() {
-        loadDataJob?.cancel()
-        loadDataJob = viewModelScope.launch(ioDispatcher) {
-            try {
-                val entities = debloatableComponentRepository.getDebloatableComponent().first()
-                val query = _searchQuery.value
-                val typeFilter = _componentTypeFilter.value
-                Timber.d("Received ${entities.size} debloatable components, query: $query, typeFilter: $typeFilter")
-                val result = groupAndFilterDebloatableComponents(entities, query, typeFilter)
-                _debloatableUiState.value = Result.Success(result)
-            } catch (e: Exception) {
-                Timber.e(e, "Error loading debloatable components")
-                _debloatableUiState.value = Result.Error(e)
+                        val entity = entities.find {
+                            it.packageName == parts[0] && it.componentName == parts[1]
+                        }
+
+                        if (entity == null) return@filterNot false
+
+                        val actualBlocked = if (pendingController == ControllerType.IFW) {
+                            entity.ifwBlocked
+                        } else {
+                            entity.pmBlocked
+                        }
+
+                        actualBlocked == !pendingEnabled
+                    }
+                }
             }
         }
     }
@@ -243,12 +288,11 @@ class DebloaterViewModel @Inject constructor(
         controllerType: ControllerType,
         enabled: Boolean,
     ) {
-        _debloatableUiState.update { currentState ->
-            currentState.updateDebloatableSubItemSwitchState(
-                changed = changed,
-                controllerType = controllerType,
-                enabled = enabled,
-            )
+        pendingComponentStates.update { current ->
+            current + changed.associate { entity ->
+                val key = "${entity.packageName}/${entity.componentName}"
+                key to (controllerType to enabled)
+            }
         }
     }
 
