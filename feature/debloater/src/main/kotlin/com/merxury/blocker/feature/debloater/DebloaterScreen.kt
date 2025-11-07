@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.feature.debloater
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
@@ -43,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
+import com.merxury.blocker.core.designsystem.component.BlockerFilterChip
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
@@ -60,6 +64,7 @@ fun DebloaterScreen(
 ) {
     val debloatableUiState by viewModel.debloatableUiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val componentTypeFilter by viewModel.componentTypeFilter.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val hasRootPermission by viewModel.hasRootPermission.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -80,8 +85,10 @@ fun DebloaterScreen(
         modifier = modifier,
         debloatableUiState = debloatableUiState,
         searchQuery = searchQuery,
+        componentTypeFilter = componentTypeFilter,
         errorState = errorState,
         onSearchQueryChange = viewModel::updateSearchQuery,
+        onComponentTypeFilterChange = viewModel::updateComponentTypeFilter,
         onSwitchClick = { uiItem, enabled ->
             viewModel.controlComponent(uiItem.entity, enabled)
         },
@@ -104,8 +111,10 @@ internal fun DebloaterScreenContent(
     modifier: Modifier = Modifier,
     debloatableUiState: Result<List<MatchedTarget>> = Result.Loading,
     searchQuery: String = "",
+    componentTypeFilter: Set<ComponentClassification> = emptySet(),
     errorState: UiMessage? = null,
     onSearchQueryChange: (String) -> Unit = {},
+    onComponentTypeFilterChange: (Set<ComponentClassification>) -> Unit = {},
     onSwitchClick: (DebloatableComponentUiItem, Boolean) -> Unit = { _, _ -> },
     onBlockAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = {},
     onEnableAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = {},
@@ -137,6 +146,20 @@ internal fun DebloaterScreenContent(
                 )
             }
         }
+        ComponentTypeFilterChips(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            selectedTypes = componentTypeFilter,
+            onTypeToggle = { type ->
+                val newSet = if (type in componentTypeFilter) {
+                    componentTypeFilter - type
+                } else {
+                    componentTypeFilter + type
+                }
+                onComponentTypeFilterChange(newSet)
+            },
+        )
         DebloaterContent(
             modifier = Modifier.weight(1f),
             data = debloatableUiState,
@@ -152,6 +175,66 @@ internal fun DebloaterScreenContent(
             text = errorState.content.orEmpty(),
             onDismissRequest = onDismissError,
         )
+    }
+}
+
+@Composable
+private fun ComponentTypeFilterChips(
+    selectedTypes: Set<ComponentClassification>,
+    onTypeToggle: (ComponentClassification) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ComponentClassification.entries.forEach { type ->
+            val labelRes = when (type) {
+                ComponentClassification.SHAREABLE -> R.string.feature_debloater_filter_chip_shareable
+                ComponentClassification.DEEPLINK -> R.string.feature_debloater_filter_chip_deeplink
+                ComponentClassification.LAUNCHER -> R.string.feature_debloater_filter_chip_launcher
+                ComponentClassification.EXPLICIT -> R.string.feature_debloater_filter_chip_explicit
+            }
+            BlockerFilterChip(
+                selected = type in selectedTypes,
+                onSelectedChange = { onTypeToggle(type) },
+                label = { Text(stringResource(labelRes)) },
+            )
+        }
+    }
+}
+
+@PreviewThemes
+@Composable
+private fun ComponentTypeFilterChipsPreviewAllSelected() {
+    BlockerTheme {
+        Surface {
+            ComponentTypeFilterChips(
+                selectedTypes = setOf(
+                    ComponentClassification.SHAREABLE,
+                    ComponentClassification.DEEPLINK,
+                    ComponentClassification.LAUNCHER,
+                    ComponentClassification.EXPLICIT,
+                ),
+                onTypeToggle = {},
+            )
+        }
+    }
+}
+
+@PreviewThemes
+@Composable
+private fun ComponentTypeFilterChipsPreviewPartialSelection() {
+    BlockerTheme {
+        Surface {
+            ComponentTypeFilterChips(
+                selectedTypes = setOf(
+                    ComponentClassification.SHAREABLE,
+                    ComponentClassification.LAUNCHER,
+                ),
+                onTypeToggle = {},
+            )
+        }
     }
 }
 

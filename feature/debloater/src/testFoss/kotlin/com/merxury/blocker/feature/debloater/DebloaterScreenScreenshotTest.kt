@@ -89,6 +89,44 @@ class DebloaterScreenScreenshotTest {
         }
     }
 
+    @Test
+    fun debloaterScreenWithAllFiltersSelected() {
+        composeTestRule.captureMultiDevice("DebloaterScreenAllFiltersSelected") {
+            DebloaterScreenWithAllFilters()
+        }
+    }
+
+    @Test
+    fun debloaterScreenWithAllFiltersSelected_dark() {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = DefaultTestDevices.PHONE.spec,
+            screenshotName = "DebloaterScreenAllFiltersSelected",
+            darkMode = true,
+        ) {
+            DebloaterScreenWithAllFilters()
+        }
+    }
+
+    @Test
+    fun debloaterScreenWithPartialFiltersSelected() {
+        composeTestRule.captureMultiDevice("DebloaterScreenPartialFiltersSelected") {
+            DebloaterScreenWithPartialFilters()
+        }
+    }
+
+    @Test
+    fun debloaterScreenWithPartialFiltersSelected_dark() {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = DefaultTestDevices.PHONE.spec,
+            screenshotName = "DebloaterScreenPartialFiltersSelected",
+            darkMode = true,
+        ) {
+            DebloaterScreenWithPartialFilters()
+        }
+    }
+
     @Composable
     private fun DebloaterScreenLoading() {
         BlockerTheme {
@@ -108,6 +146,40 @@ class DebloaterScreenScreenshotTest {
                 DebloaterScreenContent(
                     snackbarHostState = SnackbarHostState(),
                     debloatableUiState = Result.Success(emptyList()),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun DebloaterScreenWithAllFilters() {
+        BlockerTheme {
+            Surface {
+                DebloaterScreenContent(
+                    snackbarHostState = SnackbarHostState(),
+                    debloatableUiState = Result.Success(emptyList()),
+                    componentTypeFilter = setOf(
+                        ComponentClassification.SHAREABLE,
+                        ComponentClassification.DEEPLINK,
+                        ComponentClassification.LAUNCHER,
+                        ComponentClassification.EXPLICIT,
+                    ),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun DebloaterScreenWithPartialFilters() {
+        BlockerTheme {
+            Surface {
+                DebloaterScreenContent(
+                    snackbarHostState = SnackbarHostState(),
+                    debloatableUiState = Result.Success(emptyList()),
+                    componentTypeFilter = setOf(
+                        ComponentClassification.SHAREABLE,
+                        ComponentClassification.LAUNCHER,
+                    ),
                 )
             }
         }

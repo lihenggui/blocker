@@ -22,4 +22,8 @@
     <string name="feature_debloater_explicit_launch">صريح</string>
     <string name="feature_debloater_launcher_entry">المشغل</string>
     <string name="feature_debloater_deeplink_entry">رابط عميق</string>
+    <string name="feature_debloater_filter_chip_shareable">قابل للمشاركة</string>
+    <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_filter_chip_launcher">المشغل</string>
+    <string name="feature_debloater_filter_chip_explicit">صريح</string>
 </resources>

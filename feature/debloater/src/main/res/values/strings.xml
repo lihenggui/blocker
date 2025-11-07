@@ -22,4 +22,8 @@
     <string name="feature_debloater_explicit_launch">Explicit</string>
     <string name="feature_debloater_launcher_entry">Launcher</string>
     <string name="feature_debloater_deeplink_entry">Deeplink</string>
+    <string name="feature_debloater_filter_chip_shareable">Shareable</string>
+    <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_filter_chip_launcher">Launcher</string>
+    <string name="feature_debloater_filter_chip_explicit">Explicit</string>
 </resources>
