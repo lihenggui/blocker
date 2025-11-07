@@ -97,14 +97,14 @@ class DebloaterViewModel @Inject constructor(
 
     private var controlComponentJob: Job? = null
 
-    private val _optimisticUpdates = MutableStateFlow<Map<String, Pair<ControllerType, Boolean>>>(emptyMap())
+    private val optimisticUpdates = MutableStateFlow<Map<String, Pair<ControllerType, Boolean>>>(emptyMap())
 
     val debloatableUiState: StateFlow<Result<List<MatchedTarget>>> =
         combine(
             debloatableComponentRepository.getDebloatableComponent(),
             _searchQuery,
             _componentTypeFilter,
-            _optimisticUpdates,
+            optimisticUpdates,
         ) { entities, query, typeFilter, optimisticMap ->
             try {
                 Timber.d("Filtering ${entities.size} debloatable components, query: $query, typeFilter: $typeFilter, optimistic: ${optimisticMap.size}")
@@ -148,7 +148,7 @@ class DebloaterViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             debloatableComponentRepository.getDebloatableComponent().collect { entities ->
-                _optimisticUpdates.update { current ->
+                optimisticUpdates.update { current ->
                     current.filterNot { (key, pendingValue) ->
                         val (pendingController, pendingEnabled) = pendingValue
                         val parts = key.split("/")
@@ -280,7 +280,7 @@ class DebloaterViewModel @Inject constructor(
         controllerType: ControllerType,
         enabled: Boolean,
     ) {
-        _optimisticUpdates.update { current ->
+        optimisticUpdates.update { current ->
             current + changed.associate { entity ->
                 val key = "${entity.packageName}/${entity.componentName}"
                 key to (controllerType to enabled)
