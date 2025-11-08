@@ -408,8 +408,8 @@ class ManifestParserTest {
         manifest.application.activities.forEach { activity ->
             if (activity.label != null) {
                 assertFalse(
-                    activity.label!!.startsWith("@0x"),
-                    "Activity label should not be raw hex resource ID: ${activity.label}",
+                    activity.label!!.startsWith("@"),
+                    "Activity label should be resolved, not raw resource reference: ${activity.label}",
                 )
             }
         }
@@ -439,8 +439,8 @@ class ManifestParserTest {
         manifest.application.services.forEach { service ->
             if (service.label != null) {
                 assertFalse(
-                    service.label!!.startsWith("@0x"),
-                    "Service label should not be raw hex resource ID: ${service.label}",
+                    service.label!!.startsWith("@"),
+                    "Service label should be resolved, not raw resource reference: ${service.label}",
                 )
             }
         }
@@ -455,8 +455,8 @@ class ManifestParserTest {
         manifest.application.receivers.forEach { receiver ->
             if (receiver.label != null) {
                 assertFalse(
-                    receiver.label!!.startsWith("@0x"),
-                    "Receiver label should not be raw hex resource ID: ${receiver.label}",
+                    receiver.label!!.startsWith("@"),
+                    "Receiver label should be resolved, not raw resource reference: ${receiver.label}",
                 )
             }
         }
@@ -471,8 +471,8 @@ class ManifestParserTest {
         manifest.application.providers.forEach { provider ->
             if (provider.label != null) {
                 assertFalse(
-                    provider.label!!.startsWith("@0x"),
-                    "Provider label should not be raw hex resource ID: ${provider.label}",
+                    provider.label!!.startsWith("@"),
+                    "Provider label should be resolved, not raw resource reference: ${provider.label}",
                 )
             }
         }

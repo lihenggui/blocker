@@ -468,7 +468,14 @@ object ManifestParser {
                     val (type, name) = rawLabel.substring(1).split("/", limit = 2)
                     resources.getIdentifier(name, type, null)
                 }
-                else -> return fallbackName
+                else -> {
+                    val idString = rawLabel.substring(1)
+                    if (idString.all { it.isDigit() }) {
+                        idString.toInt()
+                    } else {
+                        return fallbackName
+                    }
+                }
             }
         } catch (e: Exception) {
             Timber.w(e, "Failed to parse resource reference: $rawLabel")
