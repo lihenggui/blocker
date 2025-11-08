@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.data.respository.debloater
 
-import android.content.ComponentName
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.di.IfwControl
@@ -96,7 +95,7 @@ internal class LocalDebloatableComponentDataSource @Inject constructor(
                             )
                         },
                     )
-                    val displayName = resolveActivityLabel(activityInfo)
+                    val displayName = manifestActivity.label ?: simpleName
 
                     val entity = DebloatableComponentEntity(
                         packageName = packageName,
@@ -119,27 +118,4 @@ internal class LocalDebloatableComponentDataSource @Inject constructor(
 
         emit(entityList)
     }.flowOn(ioDispatcher)
-
-    /**
-     * Resolves the display label for an activity.
-     *
-     * Uses PackageManager to load the activity's label. Falls back to the simple name
-     * if resolution fails.
-     *
-     * @param activity the activity information
-     * @return the resolved display name or simple name
-     */
-    private fun resolveActivityLabel(activity: ActivityIntentFilterInfo): String = try {
-        val fullName = if (activity.name.startsWith(".")) {
-            activity.packageName + activity.name
-        } else {
-            activity.name
-        }
-        val componentName = ComponentName(activity.packageName, fullName)
-        val activityInfo = pm.getActivityInfo(componentName, 0)
-        activityInfo.loadLabel(pm).toString()
-    } catch (e: Exception) {
-        Timber.w(e, "Failed to resolve label for ${activity.name}")
-        activity.name.substringAfterLast('.')
-    }
 }

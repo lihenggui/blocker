@@ -398,4 +398,83 @@ class ManifestParserTest {
         val application = manifest.application
         assertNotNull(application)
     }
+
+    @Test
+    fun givenComponentLabel_whenParseManifest_thenResolveLabelOrFallback() = runTest {
+        val result = ManifestParser.parseManifest(testApkFile)
+        val manifest = result.getOrNull()
+
+        assertNotNull(manifest)
+        manifest.application.activities.forEach { activity ->
+            if (activity.label != null) {
+                assertFalse(
+                    activity.label!!.startsWith("@"),
+                    "Activity label should be resolved, not raw resource reference: ${activity.label}",
+                )
+            }
+        }
+    }
+
+    @Test
+    fun givenActivityWithLabel_whenParseManifest_thenLabelNotNull() = runTest {
+        val result = ManifestParser.parseManifest(testApkFile)
+        val manifest = result.getOrNull()
+
+        assertNotNull(manifest)
+        val activitiesWithLabels = manifest.application.activities.filter { it.label != null }
+        if (activitiesWithLabels.isNotEmpty()) {
+            activitiesWithLabels.forEach { activity ->
+                assertNotNull(activity.label)
+                assertTrue(activity.label!!.isNotEmpty())
+            }
+        }
+    }
+
+    @Test
+    fun givenServiceWithLabel_whenParseManifest_thenLabelResolved() = runTest {
+        val result = ManifestParser.parseManifest(testApkFile)
+        val manifest = result.getOrNull()
+
+        assertNotNull(manifest)
+        manifest.application.services.forEach { service ->
+            if (service.label != null) {
+                assertFalse(
+                    service.label!!.startsWith("@"),
+                    "Service label should be resolved, not raw resource reference: ${service.label}",
+                )
+            }
+        }
+    }
+
+    @Test
+    fun givenReceiverWithLabel_whenParseManifest_thenLabelResolved() = runTest {
+        val result = ManifestParser.parseManifest(testApkFile)
+        val manifest = result.getOrNull()
+
+        assertNotNull(manifest)
+        manifest.application.receivers.forEach { receiver ->
+            if (receiver.label != null) {
+                assertFalse(
+                    receiver.label!!.startsWith("@"),
+                    "Receiver label should be resolved, not raw resource reference: ${receiver.label}",
+                )
+            }
+        }
+    }
+
+    @Test
+    fun givenProviderWithLabel_whenParseManifest_thenLabelResolved() = runTest {
+        val result = ManifestParser.parseManifest(testApkFile)
+        val manifest = result.getOrNull()
+
+        assertNotNull(manifest)
+        manifest.application.providers.forEach { provider ->
+            if (provider.label != null) {
+                assertFalse(
+                    provider.label!!.startsWith("@"),
+                    "Provider label should be resolved, not raw resource reference: ${provider.label}",
+                )
+            }
+        }
+    }
 }
