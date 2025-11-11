@@ -98,7 +98,8 @@ class DebloaterViewModel @Inject constructor(
     private var controlComponentJob: Job? = null
 
     private val _debloatableUiState = MutableStateFlow<Result<List<MatchedTarget>>>(Result.Loading)
-    val debloatableUiState: StateFlow<Result<List<MatchedTarget>>> = _debloatableUiState.asStateFlow()
+    val debloatableUiState: StateFlow<Result<List<MatchedTarget>>> =
+        _debloatableUiState.asStateFlow()
 
     private var loadDataJob: Job? = null
     private var cachedEntities: List<DebloatableComponentEntity> = emptyList()
@@ -169,7 +170,6 @@ class DebloaterViewModel @Inject constructor(
                 isDeeplinkEntry = isDeeplinkEntry(entity),
             )
             val componentInfo = entity.toComponentInfo()
-            val controllerType = userDataRepository.userData.first().controllerType
             componentRepository.controlComponent(
                 component = componentInfo,
                 newState = enabled,
@@ -178,7 +178,6 @@ class DebloaterViewModel @Inject constructor(
                 .onStart {
                     changeDebloatableComponentUiStatus(
                         changed = listOf(entity),
-                        controllerType = controllerType,
                         enabled = enabled,
                     )
                 }
@@ -186,7 +185,6 @@ class DebloaterViewModel @Inject constructor(
                     Timber.e(error, "Error controlling component: ${entity.componentName}")
                     changeDebloatableComponentUiStatus(
                         changed = listOf(entity),
-                        controllerType = controllerType,
                         enabled = !enabled,
                     )
                     _errorState.emit(error.toErrorMessage())
@@ -196,7 +194,6 @@ class DebloaterViewModel @Inject constructor(
                         Timber.w("Failed to control component: ${entity.componentName}")
                         changeDebloatableComponentUiStatus(
                             changed = listOf(entity),
-                            controllerType = controllerType,
                             enabled = !enabled,
                         )
                     }
@@ -228,7 +225,6 @@ class DebloaterViewModel @Inject constructor(
                 .onStart {
                     changeDebloatableComponentUiStatus(
                         changed = entities,
-                        controllerType = controllerType,
                         enabled = enable,
                     )
                 }
@@ -236,7 +232,6 @@ class DebloaterViewModel @Inject constructor(
                     Timber.e(exception, "Error batch controlling components")
                     changeDebloatableComponentUiStatus(
                         changed = entities,
-                        controllerType = controllerType,
                         enabled = !enable,
                     )
                     _errorState.emit(exception.toErrorMessage())
@@ -250,7 +245,6 @@ class DebloaterViewModel @Inject constructor(
 
     private fun changeDebloatableComponentUiStatus(
         changed: List<DebloatableComponentEntity>,
-        controllerType: ControllerType,
         enabled: Boolean,
     ) {
         cachedEntities = cachedEntities.map { entity ->
@@ -259,11 +253,7 @@ class DebloaterViewModel @Inject constructor(
                     changedEntity.componentName == entity.componentName
             }
             if (shouldUpdate) {
-                if (controllerType == ControllerType.IFW) {
-                    entity.copy(ifwBlocked = !enabled)
-                } else {
-                    entity.copy(pmBlocked = !enabled)
-                }
+                entity.copy(ifwBlocked = !enabled, pmBlocked = !enabled)
             } else {
                 entity
             }
