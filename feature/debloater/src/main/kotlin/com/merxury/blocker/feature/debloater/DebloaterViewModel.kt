@@ -97,79 +97,53 @@ class DebloaterViewModel @Inject constructor(
 
     private var controlComponentJob: Job? = null
 
-    private val optimisticUpdates = MutableStateFlow<Map<String, Pair<ControllerType, Boolean>>>(emptyMap())
-
+    private val _debloatableUiState = MutableStateFlow<Result<List<MatchedTarget>>>(Result.Loading)
     val debloatableUiState: StateFlow<Result<List<MatchedTarget>>> =
-        combine(
-            debloatableComponentRepository.getDebloatableComponent(),
-            _searchQuery,
-            _componentTypeFilter,
-            optimisticUpdates,
-        ) { entities, query, typeFilter, optimisticMap ->
-            try {
-                Timber.d("Filtering ${entities.size} debloatable components, query: $query, typeFilter: $typeFilter, optimistic: ${optimisticMap.size}")
-                val filtered = groupAndFilterDebloatableComponents(entities, query, typeFilter)
+        _debloatableUiState.asStateFlow()
 
-                if (optimisticMap.isEmpty()) {
-                    Result.Success(filtered)
-                } else {
-                    val withOptimistic = filtered.map { matchedTarget ->
-                        val updatedTargets = matchedTarget.targets.map { uiItem ->
-                            val key = "${uiItem.entity.packageName}/${uiItem.entity.componentName}"
-                            val pending = optimisticMap[key]
-
-                            if (pending != null) {
-                                val (controllerType, enabled) = pending
-                                val updatedEntity = if (controllerType == ControllerType.IFW) {
-                                    uiItem.entity.copy(ifwBlocked = !enabled)
-                                } else {
-                                    uiItem.entity.copy(pmBlocked = !enabled)
-                                }
-                                uiItem.copy(entity = updatedEntity)
-                            } else {
-                                uiItem
-                            }
-                        }
-                        matchedTarget.copy(targets = updatedTargets)
-                    }
-                    Result.Success(withOptimistic)
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error filtering debloatable components")
-                Result.Error(e)
-            }
-        }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Eagerly,
-                initialValue = Result.Loading,
-            )
+    private var loadDataJob: Job? = null
+    private var cachedEntities: List<DebloatableComponentEntity> = emptyList()
 
     init {
-        viewModelScope.launch {
-            debloatableComponentRepository.getDebloatableComponent().collect { entities ->
-                optimisticUpdates.update { current ->
-                    current.filterNot { (key, pendingValue) ->
-                        val (pendingController, pendingEnabled) = pendingValue
-                        val parts = key.split("/")
-                        if (parts.size != 2) return@filterNot false
+        loadData()
+        observeSearchAndFilterChanges()
+    }
 
-                        val entity = entities.find {
-                            it.packageName == parts[0] && it.componentName == parts[1]
-                        }
-
-                        if (entity == null) return@filterNot false
-
-                        val actualBlocked = if (pendingController == ControllerType.IFW) {
-                            entity.ifwBlocked
-                        } else {
-                            entity.pmBlocked
-                        }
-
-                        actualBlocked == !pendingEnabled
-                    }
+    private fun loadData() {
+        loadDataJob?.cancel()
+        loadDataJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            debloatableComponentRepository.getDebloatableComponent()
+                .catch { exception ->
+                    Timber.e(exception, "Error loading debloatable components")
+                    _debloatableUiState.update { Result.Error(exception) }
                 }
+                .collect { entities ->
+                    cachedEntities = entities
+                    applyFiltersAndUpdate()
+                }
+        }
+    }
+
+    private fun observeSearchAndFilterChanges() {
+        viewModelScope.launch {
+            combine(_searchQuery, _componentTypeFilter) { query, typeFilter ->
+                query to typeFilter
+            }.collect {
+                applyFiltersAndUpdate()
             }
+        }
+    }
+
+    private fun applyFiltersAndUpdate() {
+        try {
+            val query = _searchQuery.value
+            val typeFilter = _componentTypeFilter.value
+            Timber.d("Filtering ${cachedEntities.size} debloatable components, query: $query, typeFilter: $typeFilter")
+            val filtered = groupAndFilterDebloatableComponents(cachedEntities, query, typeFilter)
+            _debloatableUiState.update { Result.Success(filtered) }
+        } catch (e: Exception) {
+            Timber.e(e, "Error filtering debloatable components")
+            _debloatableUiState.update { Result.Error(e) }
         }
     }
 
@@ -196,7 +170,6 @@ class DebloaterViewModel @Inject constructor(
                 isDeeplinkEntry = isDeeplinkEntry(entity),
             )
             val componentInfo = entity.toComponentInfo()
-            val controllerType = userDataRepository.userData.first().controllerType
             componentRepository.controlComponent(
                 component = componentInfo,
                 newState = enabled,
@@ -205,7 +178,6 @@ class DebloaterViewModel @Inject constructor(
                 .onStart {
                     changeDebloatableComponentUiStatus(
                         changed = listOf(entity),
-                        controllerType = controllerType,
                         enabled = enabled,
                     )
                 }
@@ -213,7 +185,6 @@ class DebloaterViewModel @Inject constructor(
                     Timber.e(error, "Error controlling component: ${entity.componentName}")
                     changeDebloatableComponentUiStatus(
                         changed = listOf(entity),
-                        controllerType = controllerType,
                         enabled = !enabled,
                     )
                     _errorState.emit(error.toErrorMessage())
@@ -223,7 +194,6 @@ class DebloaterViewModel @Inject constructor(
                         Timber.w("Failed to control component: ${entity.componentName}")
                         changeDebloatableComponentUiStatus(
                             changed = listOf(entity),
-                            controllerType = controllerType,
                             enabled = !enabled,
                         )
                     }
@@ -255,7 +225,6 @@ class DebloaterViewModel @Inject constructor(
                 .onStart {
                     changeDebloatableComponentUiStatus(
                         changed = entities,
-                        controllerType = controllerType,
                         enabled = enable,
                     )
                 }
@@ -263,7 +232,6 @@ class DebloaterViewModel @Inject constructor(
                     Timber.e(exception, "Error batch controlling components")
                     changeDebloatableComponentUiStatus(
                         changed = entities,
-                        controllerType = controllerType,
                         enabled = !enable,
                     )
                     _errorState.emit(exception.toErrorMessage())
@@ -277,15 +245,20 @@ class DebloaterViewModel @Inject constructor(
 
     private fun changeDebloatableComponentUiStatus(
         changed: List<DebloatableComponentEntity>,
-        controllerType: ControllerType,
         enabled: Boolean,
     ) {
-        optimisticUpdates.update { current ->
-            current + changed.associate { entity ->
-                val key = "${entity.packageName}/${entity.componentName}"
-                key to (controllerType to enabled)
+        cachedEntities = cachedEntities.map { entity ->
+            val shouldUpdate = changed.any { changedEntity ->
+                changedEntity.packageName == entity.packageName &&
+                    changedEntity.componentName == entity.componentName
+            }
+            if (shouldUpdate) {
+                entity.copy(ifwBlocked = !enabled, pmBlocked = !enabled)
+            } else {
+                entity
             }
         }
+        applyFiltersAndUpdate()
     }
 
     fun dismissError() {
