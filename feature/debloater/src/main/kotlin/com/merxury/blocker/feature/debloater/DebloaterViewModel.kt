@@ -74,15 +74,7 @@ class DebloaterViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    private val _componentTypeFilter = MutableStateFlow<Set<ComponentClassification>>(
-        setOf(
-            ComponentClassification.SHAREABLE,
-            ComponentClassification.DEEPLINK,
-            ComponentClassification.EXPLICIT,
-            ComponentClassification.AUTO_START,
-            ComponentClassification.WAKELOCK,
-        ),
-    )
+    private val _componentTypeFilter = MutableStateFlow<Set<ComponentClassification>>(setOf())
     val componentTypeFilter = _componentTypeFilter.asStateFlow()
 
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -166,7 +158,6 @@ class DebloaterViewModel @Inject constructor(
             analyticsHelper.logComponentControlled(
                 enabled = enabled,
                 isShareable = isShareableComponent(entity),
-                isExplicitLaunch = isExplicitLaunch(entity),
                 isLauncherEntry = isLauncherEntry(entity),
                 isDeeplinkEntry = isDeeplinkEntry(entity),
             )
@@ -326,17 +317,14 @@ class DebloaterViewModel @Inject constructor(
                     DebloatableComponentUiItem(
                         entity = entity,
                         isShareableComponent = isShareableComponent(entity),
-                        isExplicitLaunch = isExplicitLaunch(entity),
                         isLauncherEntry = false,
                         isDeeplinkEntry = isDeeplinkEntry(entity),
                         isWakelockComponent = isWakelockComponent(entity, appPermissions),
                         isAutoStartReceiver = isAutoStartReceiver(entity),
                         isExportedNoPerm = isExportedNoPerm(entity),
                         isForegroundService = isForegroundService(entity),
-                        isSystemService = isSystemService(entity),
                         isPushService = isPushService(entity),
                         isDangerousProvider = isDangerousProvider(entity),
-                        isInitProvider = isInitProvider(entity),
                     )
                 }
                 MatchedTarget(

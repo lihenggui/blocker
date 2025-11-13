@@ -15,15 +15,12 @@ fun DebloatableComponentEntity.matchesClassifications(
             ComponentClassification.SHAREABLE -> isShareableComponent(this)
             ComponentClassification.DEEPLINK -> isDeeplinkEntry(this)
             ComponentClassification.LAUNCHER -> isLauncherEntry(this)
-            ComponentClassification.EXPLICIT -> isExplicitLaunch(this)
             ComponentClassification.WAKELOCK -> isWakelockComponent(this, appPermissions)
             ComponentClassification.AUTO_START -> isAutoStartReceiver(this)
             ComponentClassification.EXPORTED_NO_PERM -> isExportedNoPerm(this)
             ComponentClassification.FOREGROUND_SERVICE -> isForegroundService(this)
-            ComponentClassification.SYSTEM_SERVICE -> isSystemService(this)
             ComponentClassification.PUSH_SERVICE -> isPushService(this)
             ComponentClassification.DANGEROUS_PROVIDER -> isDangerousProvider(this)
-            ComponentClassification.INIT_PROVIDER -> isInitProvider(this)
         }
     }
 }

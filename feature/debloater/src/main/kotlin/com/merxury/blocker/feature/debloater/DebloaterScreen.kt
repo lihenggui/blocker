@@ -193,15 +193,12 @@ private fun ComponentTypeFilterChips(
                 ComponentClassification.SHAREABLE -> R.string.feature_debloater_filter_chip_shareable
                 ComponentClassification.DEEPLINK -> R.string.feature_debloater_filter_chip_deeplink
                 ComponentClassification.LAUNCHER -> R.string.feature_debloater_filter_chip_launcher
-                ComponentClassification.EXPLICIT -> R.string.feature_debloater_filter_chip_explicit
                 ComponentClassification.WAKELOCK -> R.string.feature_debloater_filter_chip_wakelock
                 ComponentClassification.AUTO_START -> R.string.feature_debloater_filter_chip_auto_start
                 ComponentClassification.EXPORTED_NO_PERM -> R.string.feature_debloater_filter_chip_exported_no_perm
                 ComponentClassification.FOREGROUND_SERVICE -> R.string.feature_debloater_filter_chip_foreground_service
-                ComponentClassification.SYSTEM_SERVICE -> R.string.feature_debloater_filter_chip_system_service
                 ComponentClassification.PUSH_SERVICE -> R.string.feature_debloater_filter_chip_push_service
                 ComponentClassification.DANGEROUS_PROVIDER -> R.string.feature_debloater_filter_chip_dangerous_provider
-                ComponentClassification.INIT_PROVIDER -> R.string.feature_debloater_filter_chip_init_provider
             }
             BlockerFilterChip(
                 selected = type in selectedTypes,
@@ -222,7 +219,6 @@ private fun ComponentTypeFilterChipsPreviewAllSelected() {
                     ComponentClassification.SHAREABLE,
                     ComponentClassification.DEEPLINK,
                     ComponentClassification.LAUNCHER,
-                    ComponentClassification.EXPLICIT,
                 ),
                 onTypeToggle = {},
             )

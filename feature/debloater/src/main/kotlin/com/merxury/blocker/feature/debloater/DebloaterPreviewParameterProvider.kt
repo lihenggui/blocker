@@ -65,7 +65,6 @@ object DebloaterPreviewParameterData {
             intentFilters = listOf(launcherIntentFilter, shareIntentFilter, deeplinkIntentFilter),
         ),
         isShareableComponent = true,
-        isExplicitLaunch = true,
         isLauncherEntry = true,
         isDeeplinkEntry = true,
     )
@@ -84,7 +83,6 @@ object DebloaterPreviewParameterData {
             intentFilters = listOf(launcherIntentFilter),
         ),
         isShareableComponent = false,
-        isExplicitLaunch = true,
         isLauncherEntry = true,
         isDeeplinkEntry = false,
     )
@@ -103,7 +101,6 @@ object DebloaterPreviewParameterData {
             intentFilters = emptyList(),
         ),
         isShareableComponent = false,
-        isExplicitLaunch = false,
         isLauncherEntry = false,
         isDeeplinkEntry = false,
     )
@@ -122,7 +119,6 @@ object DebloaterPreviewParameterData {
             intentFilters = listOf(shareIntentFilter),
         ),
         isShareableComponent = true,
-        isExplicitLaunch = true,
         isLauncherEntry = false,
         isDeeplinkEntry = false,
     )
@@ -141,7 +137,6 @@ object DebloaterPreviewParameterData {
             intentFilters = listOf(deeplinkIntentFilter),
         ),
         isShareableComponent = false,
-        isExplicitLaunch = true,
         isLauncherEntry = false,
         isDeeplinkEntry = true,
     )
@@ -182,7 +177,6 @@ object DebloaterPreviewParameterData {
                     intentFilters = listOf(launcherIntentFilter),
                 ),
                 isShareableComponent = false,
-                isExplicitLaunch = true,
                 isLauncherEntry = true,
                 isDeeplinkEntry = false,
             ),
@@ -200,7 +194,6 @@ object DebloaterPreviewParameterData {
                     intentFilters = emptyList(),
                 ),
                 isShareableComponent = false,
-                isExplicitLaunch = false,
                 isLauncherEntry = false,
                 isDeeplinkEntry = false,
             ),

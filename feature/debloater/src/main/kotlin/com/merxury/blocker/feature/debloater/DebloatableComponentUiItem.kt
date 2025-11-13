@@ -23,32 +23,26 @@ import com.merxury.blocker.core.database.debloater.DebloatableComponentEntity
  *
  * @param entity the underlying database entity
  * @param isShareableComponent whether this activity qualifies as a shareable component
- * @param isExplicitLaunch whether this activity can be explicitly launched (exported=true)
  * @param isLauncherEntry whether this activity is a launcher entry (has MAIN+LAUNCHER intent filter)
  * @param isDeeplinkEntry whether this activity handles deeplinks (has VIEW+BROWSABLE intent filter with data)
  * @param isWakelockComponent whether this component is related to wakelock functionality
  * @param isAutoStartReceiver whether this receiver has auto-start capabilities
  * @param isExportedNoPerm whether this component is exported without permission protection
  * @param isForegroundService whether this service declares foreground service type
- * @param isSystemService whether this is a system-level service
  * @param isPushService whether this service is a push notification service
  * @param isDangerousProvider whether this provider has potentially dangerous permissions
- * @param isInitProvider whether this provider is an initialization provider
  */
 data class DebloatableComponentUiItem(
     val entity: DebloatableComponentEntity,
     val isShareableComponent: Boolean = false,
-    val isExplicitLaunch: Boolean = false,
     val isLauncherEntry: Boolean = false,
     val isDeeplinkEntry: Boolean = false,
     val isWakelockComponent: Boolean = false,
     val isAutoStartReceiver: Boolean = false,
     val isExportedNoPerm: Boolean = false,
     val isForegroundService: Boolean = false,
-    val isSystemService: Boolean = false,
     val isPushService: Boolean = false,
     val isDangerousProvider: Boolean = false,
-    val isInitProvider: Boolean = false,
 )
 
 /**
@@ -71,17 +65,6 @@ fun isShareableComponent(entity: DebloatableComponentEntity): Boolean = entity.i
 
     hasSendAction && hasDefaultCategory && hasMimeType
 }
-
-/**
- * Determines if an activity can be explicitly launched via setComponent.
- *
- * An explicitly launchable activity must have:
- * - exported: true
- *
- * @param entity the activity entity to check
- * @return true if the activity is exported, false otherwise
- */
-fun isExplicitLaunch(entity: DebloatableComponentEntity): Boolean = entity.exported
 
 /**
  * Determines if an activity is a launcher entry (can be launched from home screen).
@@ -180,70 +163,18 @@ fun isExportedNoPerm(entity: DebloatableComponentEntity): Boolean = entity.expor
 fun isForegroundService(entity: DebloatableComponentEntity): Boolean = entity.foregroundServiceType != null
 
 /**
- * Determines if a service or receiver is a system-level component.
- *
- * System components include:
- * - NotificationListenerService
- * - AccessibilityService
- * - VpnService
- * - CompanionDeviceService
- * - DeviceAdminReceiver
- * - JobService
- *
- * @param entity the service or receiver entity to check
- * @return true if the component is a system service type, false otherwise
- */
-fun isSystemService(entity: DebloatableComponentEntity): Boolean {
-    val name = entity.componentName.lowercase()
-    return name.contains("notificationlistenerservice") ||
-        name.contains("accessibilityservice") ||
-        name.contains("vpnservice") ||
-        name.contains("companiondeviceservice") ||
-        name.contains("deviceadminreceiver") ||
-        name.contains("jobservice") ||
-        entity.intentFilters.any { filter ->
-            filter.actions.any {
-                it == "android.service.notification.NotificationListenerService" ||
-                    it == "android.accessibilityservice.AccessibilityService" ||
-                    it == "android.net.VpnService" ||
-                    it == "android.app.action.DEVICE_ADMIN_ENABLED"
-            }
-        }
-}
-
-/**
  * Determines if a service is a push notification service.
  *
- * Common push services include:
- * - Firebase Cloud Messaging (FCM)
- * - Xiaomi Push
- * - Huawei Push
- * - Oppo Push
- * - Vivo Push
- * - Meizu Push
+ * Detects push services by checking if the component name contains:
+ * - MessagingService
+ * - PushService
  *
  * @param entity the service entity to check
  * @return true if the service is a push notification service, false otherwise
  */
 fun isPushService(entity: DebloatableComponentEntity): Boolean {
     val name = entity.componentName.lowercase()
-    return name.contains("firebasemessaging") ||
-        name.contains("fcm") ||
-        name.contains("xiaomipush") ||
-        name.contains("mipush") ||
-        name.contains("huaweipush") ||
-        name.contains("oppopush") ||
-        name.contains("vivopush") ||
-        name.contains("meizupush") ||
-        entity.intentFilters.any { filter ->
-            filter.actions.any {
-                it == "com.google.firebase.MESSAGING_EVENT" ||
-                    it.contains("xiaomi.mipush") ||
-                    it.contains("huawei.push") ||
-                    it.contains("oppo.push") ||
-                    it.contains("vivo.push")
-            }
-        }
+    return name.contains("messagingservice") || name.contains("pushservice")
 }
 
 /**
@@ -256,21 +187,3 @@ fun isPushService(entity: DebloatableComponentEntity): Boolean {
  * @return true if the provider is exported with URI permission grants, false otherwise
  */
 fun isDangerousProvider(entity: DebloatableComponentEntity): Boolean = entity.exported && entity.grantUriPermissions
-
-/**
- * Determines if a provider is an initialization provider.
- *
- * Initialization providers run before the application's onCreate() and are used
- * for automatic library initialization:
- * - androidx.startup.InitializationProvider
- * - androidx.work.impl.WorkManagerInitializer
- *
- * @param entity the provider entity to check
- * @return true if the provider is an initialization provider, false otherwise
- */
-fun isInitProvider(entity: DebloatableComponentEntity): Boolean {
-    val name = entity.componentName.lowercase()
-    return name.contains("initializationprovider") ||
-        name.contains("workmanagerinitializer") ||
-        name.contains("androidx.startup")
-}

@@ -19,19 +19,15 @@
     <string name="feature_debloater_no_root_permission">مطلوب إذن الجذر لتمكين أو تعطيل المكونات</string>
     <string name="feature_debloater_test_share">اختبار المشاركة</string>
     <string name="feature_debloater_share_component">مشاركة</string>
-    <string name="feature_debloater_explicit_launch">صريح</string>
     <string name="feature_debloater_launcher_entry">المشغل</string>
     <string name="feature_debloater_deeplink_entry">رابط عميق</string>
     <string name="feature_debloater_filter_chip_shareable">قابل للمشاركة</string>
     <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
     <string name="feature_debloater_filter_chip_launcher">المشغل</string>
-    <string name="feature_debloater_filter_chip_explicit">صريح</string>
     <string name="feature_debloater_filter_chip_wakelock">قفل الاستيقاظ</string>
     <string name="feature_debloater_filter_chip_auto_start">التشغيل التلقائي</string>
     <string name="feature_debloater_filter_chip_exported_no_perm">مُصدَّر</string>
     <string name="feature_debloater_filter_chip_foreground_service">خدمة المقدمة</string>
-    <string name="feature_debloater_filter_chip_system_service">خدمة النظام</string>
     <string name="feature_debloater_filter_chip_push_service">خدمة الدفع</string>
     <string name="feature_debloater_filter_chip_dangerous_provider">مزود خطير</string>
-    <string name="feature_debloater_filter_chip_init_provider">مزود التهيئة</string>
 </resources>
