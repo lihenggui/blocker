@@ -26,4 +26,12 @@
     <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
     <string name="feature_debloater_filter_chip_launcher">Launcher</string>
     <string name="feature_debloater_filter_chip_explicit">Explicit</string>
+    <string name="feature_debloater_filter_chip_wakelock">Wakelock</string>
+    <string name="feature_debloater_filter_chip_auto_start">Auto-start</string>
+    <string name="feature_debloater_filter_chip_exported_no_perm">Exported</string>
+    <string name="feature_debloater_filter_chip_foreground_service">Foreground Service</string>
+    <string name="feature_debloater_filter_chip_system_service">System Service</string>
+    <string name="feature_debloater_filter_chip_push_service">Push Service</string>
+    <string name="feature_debloater_filter_chip_dangerous_provider">Dangerous Provider</string>
+    <string name="feature_debloater_filter_chip_init_provider">Init Provider</string>
 </resources>

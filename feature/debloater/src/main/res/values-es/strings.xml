@@ -11,4 +11,12 @@
     <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
     <string name="feature_debloater_filter_chip_launcher">Lanzador</string>
     <string name="feature_debloater_filter_chip_explicit">Explícito</string>
+    <string name="feature_debloater_filter_chip_wakelock">Bloqueo de activación</string>
+    <string name="feature_debloater_filter_chip_auto_start">Inicio automático</string>
+    <string name="feature_debloater_filter_chip_exported_no_perm">Exportado</string>
+    <string name="feature_debloater_filter_chip_foreground_service">Servicio en primer plano</string>
+    <string name="feature_debloater_filter_chip_system_service">Servicio del sistema</string>
+    <string name="feature_debloater_filter_chip_push_service">Servicio de notificaciones</string>
+    <string name="feature_debloater_filter_chip_dangerous_provider">Proveedor peligroso</string>
+    <string name="feature_debloater_filter_chip_init_provider">Proveedor de inicialización</string>
 </resources>

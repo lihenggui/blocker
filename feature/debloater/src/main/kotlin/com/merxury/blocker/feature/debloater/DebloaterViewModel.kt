@@ -78,8 +78,9 @@ class DebloaterViewModel @Inject constructor(
         setOf(
             ComponentClassification.SHAREABLE,
             ComponentClassification.DEEPLINK,
-            ComponentClassification.LAUNCHER,
             ComponentClassification.EXPLICIT,
+            ComponentClassification.AUTO_START,
+            ComponentClassification.WAKELOCK,
         ),
     )
     val componentTypeFilter = _componentTypeFilter.asStateFlow()
@@ -291,12 +292,24 @@ class DebloaterViewModel @Inject constructor(
                 return@mapNotNull null
             }
 
+            val appPermissions = try {
+                pm.getPackageInfoCompat(packageName, PackageManager.GET_PERMISSIONS)
+                    ?.requestedPermissions?.toList() ?: emptyList()
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to get permissions for package: $packageName")
+                emptyList()
+            }
+
             val appLabel = packageInfo?.applicationInfo?.loadLabel(pm)?.toString() ?: packageName
 
+            val nonLauncherComponents = debloatableComponents.filter { entity ->
+                !isLauncherEntry(entity)
+            }
+
             val textFilteredTargets = if (query.isBlank()) {
-                debloatableComponents
+                nonLauncherComponents
             } else {
-                debloatableComponents.filter { entity ->
+                nonLauncherComponents.filter { entity ->
                     appLabel.contains(query, ignoreCase = true) ||
                         entity.componentName.contains(query, ignoreCase = true) ||
                         entity.simpleName.contains(query, ignoreCase = true) ||
@@ -305,7 +318,7 @@ class DebloaterViewModel @Inject constructor(
             }
 
             val filteredTargets = textFilteredTargets.filter { entity ->
-                entity.matchesClassifications(typeFilter)
+                entity.matchesClassifications(typeFilter, appPermissions)
             }
 
             if (filteredTargets.isNotEmpty()) {
@@ -314,8 +327,16 @@ class DebloaterViewModel @Inject constructor(
                         entity = entity,
                         isShareableComponent = isShareableComponent(entity),
                         isExplicitLaunch = isExplicitLaunch(entity),
-                        isLauncherEntry = isLauncherEntry(entity),
+                        isLauncherEntry = false,
                         isDeeplinkEntry = isDeeplinkEntry(entity),
+                        isWakelockComponent = isWakelockComponent(entity, appPermissions),
+                        isAutoStartReceiver = isAutoStartReceiver(entity),
+                        isExportedNoPerm = isExportedNoPerm(entity),
+                        isForegroundService = isForegroundService(entity),
+                        isSystemService = isSystemService(entity),
+                        isPushService = isPushService(entity),
+                        isDangerousProvider = isDangerousProvider(entity),
+                        isInitProvider = isInitProvider(entity),
                     )
                 }
                 MatchedTarget(

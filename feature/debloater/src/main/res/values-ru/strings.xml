@@ -11,4 +11,12 @@
     <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
     <string name="feature_debloater_filter_chip_launcher">Запуск</string>
     <string name="feature_debloater_filter_chip_explicit">Явный</string>
+    <string name="feature_debloater_filter_chip_wakelock">Блокировка пробуждения</string>
+    <string name="feature_debloater_filter_chip_auto_start">Автозапуск</string>
+    <string name="feature_debloater_filter_chip_exported_no_perm">Экспортированный</string>
+    <string name="feature_debloater_filter_chip_foreground_service">Фоновая служба</string>
+    <string name="feature_debloater_filter_chip_system_service">Системная служба</string>
+    <string name="feature_debloater_filter_chip_push_service">Служба уведомлений</string>
+    <string name="feature_debloater_filter_chip_dangerous_provider">Опасный провайдер</string>
+    <string name="feature_debloater_filter_chip_init_provider">Провайдер инициализации</string>
 </resources>

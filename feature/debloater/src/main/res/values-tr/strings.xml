@@ -11,4 +11,12 @@
     <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
     <string name="feature_debloater_filter_chip_launcher">Başlatıcı</string>
     <string name="feature_debloater_filter_chip_explicit">Açık</string>
+    <string name="feature_debloater_filter_chip_wakelock">Uyandırma kilidi</string>
+    <string name="feature_debloater_filter_chip_auto_start">Otomatik başlatma</string>
+    <string name="feature_debloater_filter_chip_exported_no_perm">Dışa aktarılmış</string>
+    <string name="feature_debloater_filter_chip_foreground_service">Ön plan hizmeti</string>
+    <string name="feature_debloater_filter_chip_system_service">Sistem hizmeti</string>
+    <string name="feature_debloater_filter_chip_push_service">Bildirim hizmeti</string>
+    <string name="feature_debloater_filter_chip_dangerous_provider">Tehlikeli sağlayıcı</string>
+    <string name="feature_debloater_filter_chip_init_provider">Başlatma sağlayıcısı</string>
 </resources>
