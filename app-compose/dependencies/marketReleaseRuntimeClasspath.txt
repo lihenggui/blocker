@@ -183,7 +183,7 @@ com.caverock:androidsvg-aar:1.4
 com.github.ajalt.colormath:colormath-jvm:3.6.1
 com.github.ajalt.colormath:colormath:3.6.1
 com.github.jeziellago:Markwon:58aa5aba6a
-com.github.jeziellago:compose-markdown:0.5.7
+com.github.jeziellago:compose-markdown:0.5.8
 com.github.topjohnwu.libsu:core:6.0.0
 com.github.topjohnwu.libsu:io:6.0.0
 com.github.topjohnwu.libsu:nio:6.0.0
