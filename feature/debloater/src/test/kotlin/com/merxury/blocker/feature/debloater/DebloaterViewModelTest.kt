@@ -346,12 +346,7 @@ class DebloaterViewModelTest {
     @Test
     fun givenInitialState_whenObserveComponentTypeFilter_thenEmpty() {
         assertEquals(
-            setOf(
-                ComponentClassification.SHAREABLE,
-                ComponentClassification.DEEPLINK,
-                ComponentClassification.LAUNCHER,
-                ComponentClassification.EXPLICIT,
-            ),
+            emptySet(),
             viewModel.componentTypeFilter.value,
         )
     }
@@ -463,7 +458,7 @@ class DebloaterViewModelTest {
             val initial = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initial)
 
-            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.EXPLICIT))
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.EXPORTED_NO_PERM))
             val result = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(result)
             assertEquals(1, result.data.size)

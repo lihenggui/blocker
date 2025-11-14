@@ -162,7 +162,6 @@ class DebloaterScreenScreenshotTest {
                         ComponentClassification.SHAREABLE,
                         ComponentClassification.DEEPLINK,
                         ComponentClassification.LAUNCHER,
-                        ComponentClassification.EXPLICIT,
                     ),
                 )
             }

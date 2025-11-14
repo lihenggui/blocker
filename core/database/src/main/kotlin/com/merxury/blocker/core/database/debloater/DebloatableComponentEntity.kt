@@ -42,6 +42,9 @@ data class DebloatableComponentEntity(
     @ColumnInfo(name = "exported") val exported: Boolean,
     @ColumnInfo(name = "label") val label: String? = null,
     @ColumnInfo(name = "intent_filters") val intentFilters: List<IntentFilterInfo> = emptyList(),
+    @ColumnInfo(name = "permission") val permission: String? = null,
+    @ColumnInfo(name = "foreground_service_type") val foregroundServiceType: String? = null,
+    @ColumnInfo(name = "grant_uri_permissions") val grantUriPermissions: Boolean = false,
 ) {
     fun toComponentInfo() = ComponentInfo(
         packageName = packageName,

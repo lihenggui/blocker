@@ -88,9 +88,10 @@ fun DebloatableAppSubItem(
                 style = MaterialTheme.typography.bodyMedium.condensedRegular(),
             )
 
-            // Display chips for different activity types
-            val hasAnyChip = item.isExplicitLaunch || item.isLauncherEntry ||
-                item.isDeeplinkEntry || item.isShareableComponent
+            // Display chips for different component types
+            val hasAnyChip = item.isLauncherEntry || item.isDeeplinkEntry || item.isShareableComponent ||
+                item.isWakelockComponent || item.isAutoStartReceiver || item.isExportedNoPerm ||
+                item.isForegroundService || item.isPushService || item.isDangerousProvider
             if (hasAnyChip) {
                 Spacer(modifier = Modifier.padding(top = 4.dp))
                 FlowRow(
@@ -136,15 +137,83 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isExplicitLaunch) {
+                    if (item.isWakelockComponent) {
                         AssistChip(
                             onClick = { },
                             label = {
                                 Text(
-                                    text = stringResource(R.string.feature_debloater_explicit_launch),
+                                    text = stringResource(R.string.feature_debloater_filter_chip_wakelock),
                                     style = MaterialTheme.typography.labelSmall,
                                 )
                             },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                    if (item.isAutoStartReceiver) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_debloater_filter_chip_auto_start),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                    if (item.isExportedNoPerm) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_debloater_filter_chip_exported_no_perm),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                labelColor = MaterialTheme.colorScheme.onErrorContainer,
+                            ),
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                    if (item.isForegroundService) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_debloater_filter_chip_foreground_service),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                    if (item.isPushService) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_debloater_filter_chip_push_service),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                    if (item.isDangerousProvider) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.feature_debloater_filter_chip_dangerous_provider),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                labelColor = MaterialTheme.colorScheme.onErrorContainer,
+                            ),
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
