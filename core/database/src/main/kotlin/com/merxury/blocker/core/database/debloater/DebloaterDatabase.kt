@@ -21,7 +21,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.merxury.blocker.core.database.util.IntentFilterInfoConverter
 
-@Database(entities = [DebloatableComponentEntity::class], version = 2)
+@Database(entities = [DebloatableComponentEntity::class], version = 3)
 @TypeConverters(IntentFilterInfoConverter::class)
 internal abstract class DebloaterDatabase : RoomDatabase() {
     abstract fun DebloatableComponentDao(): DebloatableComponentDao

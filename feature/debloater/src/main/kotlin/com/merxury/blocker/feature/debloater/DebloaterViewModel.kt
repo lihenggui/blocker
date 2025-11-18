@@ -74,14 +74,7 @@ class DebloaterViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    private val _componentTypeFilter = MutableStateFlow<Set<ComponentClassification>>(
-        setOf(
-            ComponentClassification.SHAREABLE,
-            ComponentClassification.DEEPLINK,
-            ComponentClassification.LAUNCHER,
-            ComponentClassification.EXPLICIT,
-        ),
-    )
+    private val _componentTypeFilter = MutableStateFlow<Set<ComponentClassification>>(setOf())
     val componentTypeFilter = _componentTypeFilter.asStateFlow()
 
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -165,7 +158,6 @@ class DebloaterViewModel @Inject constructor(
             analyticsHelper.logComponentControlled(
                 enabled = enabled,
                 isShareable = isShareableComponent(entity),
-                isExplicitLaunch = isExplicitLaunch(entity),
                 isLauncherEntry = isLauncherEntry(entity),
                 isDeeplinkEntry = isDeeplinkEntry(entity),
             )
@@ -291,12 +283,24 @@ class DebloaterViewModel @Inject constructor(
                 return@mapNotNull null
             }
 
+            val appPermissions = try {
+                pm.getPackageInfoCompat(packageName, PackageManager.GET_PERMISSIONS)
+                    ?.requestedPermissions?.toList() ?: emptyList()
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to get permissions for package: $packageName")
+                emptyList()
+            }
+
             val appLabel = packageInfo?.applicationInfo?.loadLabel(pm)?.toString() ?: packageName
 
+            val nonLauncherComponents = debloatableComponents.filter { entity ->
+                !isLauncherEntry(entity)
+            }
+
             val textFilteredTargets = if (query.isBlank()) {
-                debloatableComponents
+                nonLauncherComponents
             } else {
-                debloatableComponents.filter { entity ->
+                nonLauncherComponents.filter { entity ->
                     appLabel.contains(query, ignoreCase = true) ||
                         entity.componentName.contains(query, ignoreCase = true) ||
                         entity.simpleName.contains(query, ignoreCase = true) ||
@@ -305,7 +309,7 @@ class DebloaterViewModel @Inject constructor(
             }
 
             val filteredTargets = textFilteredTargets.filter { entity ->
-                entity.matchesClassifications(typeFilter)
+                entity.matchesClassifications(typeFilter, appPermissions)
             }
 
             if (filteredTargets.isNotEmpty()) {
@@ -313,9 +317,14 @@ class DebloaterViewModel @Inject constructor(
                     DebloatableComponentUiItem(
                         entity = entity,
                         isShareableComponent = isShareableComponent(entity),
-                        isExplicitLaunch = isExplicitLaunch(entity),
-                        isLauncherEntry = isLauncherEntry(entity),
+                        isLauncherEntry = false,
                         isDeeplinkEntry = isDeeplinkEntry(entity),
+                        isWakelockComponent = isWakelockComponent(entity, appPermissions),
+                        isAutoStartReceiver = isAutoStartReceiver(entity),
+                        isExportedNoPerm = isExportedNoPerm(entity),
+                        isForegroundService = isForegroundService(entity),
+                        isPushService = isPushService(entity),
+                        isDangerousProvider = isDangerousProvider(entity),
                     )
                 }
                 MatchedTarget(

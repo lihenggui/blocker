@@ -146,7 +146,7 @@ class DebloaterViewModelTest {
             assertIs<Result.Success<List<MatchedTarget>>>(result)
             assertEquals(1, result.data.size)
             assertEquals("Test App", result.data[0].header.title)
-            assertEquals(2, result.data[0].targets.size)
+            assertEquals(1, result.data[0].targets.size)
         }
     }
 
@@ -166,18 +166,17 @@ class DebloaterViewModelTest {
 
     @Test
     fun givenDebloatableComponentData_whenSearchByComponentName_thenFilterByComponentName() = runTest {
-        viewModel.debloatableUiState.test {
-            userDataRepository.sendUserData(defaultUserData)
+        userDataRepository.sendUserData(defaultUserData)
+        testScheduler.advanceUntilIdle()
 
-            awaitItem()
+        viewModel.updateSearchQuery("ShareActivity")
+        testScheduler.advanceUntilIdle()
 
-            viewModel.updateSearchQuery("ShareActivity")
-            val result = awaitItem()
-            assertIs<Result.Success<List<MatchedTarget>>>(result)
-            assertEquals(1, result.data.size)
-            assertEquals(1, result.data[0].targets.size)
-            assertEquals("ShareActivity", result.data[0].targets[0].entity.simpleName)
-        }
+        val result = viewModel.debloatableUiState.value
+        assertIs<Result.Success<List<MatchedTarget>>>(result)
+        assertEquals(1, result.data.size)
+        assertEquals(1, result.data[0].targets.size)
+        assertEquals("ShareActivity", result.data[0].targets[0].entity.simpleName)
     }
 
     @Test
@@ -294,14 +293,12 @@ class DebloaterViewModelTest {
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
             assertEquals(false, initialResult.data[0].targets[0].entity.ifwBlocked)
-            assertEquals(false, initialResult.data[0].targets[1].entity.ifwBlocked)
 
             viewModel.controlAllComponents(sampleDebloatableComponents, enable = false)
 
             val updatedResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(updatedResult)
             assertEquals(true, updatedResult.data[0].targets[0].entity.ifwBlocked)
-            assertEquals(true, updatedResult.data[0].targets[1].entity.ifwBlocked)
         }
     }
 
@@ -325,14 +322,12 @@ class DebloaterViewModelTest {
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
             assertEquals(true, initialResult.data[0].targets[0].entity.ifwBlocked)
-            assertEquals(true, initialResult.data[0].targets[1].entity.ifwBlocked)
 
             testViewModel.controlAllComponents(blockedTargets, enable = true)
 
             val updatedResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(updatedResult)
             assertEquals(false, updatedResult.data[0].targets[0].entity.ifwBlocked)
-            assertEquals(false, updatedResult.data[0].targets[1].entity.ifwBlocked)
         }
     }
 
@@ -346,12 +341,7 @@ class DebloaterViewModelTest {
     @Test
     fun givenInitialState_whenObserveComponentTypeFilter_thenEmpty() {
         assertEquals(
-            setOf(
-                ComponentClassification.SHAREABLE,
-                ComponentClassification.DEEPLINK,
-                ComponentClassification.LAUNCHER,
-                ComponentClassification.EXPLICIT,
-            ),
+            emptySet(),
             viewModel.componentTypeFilter.value,
         )
     }
@@ -411,9 +401,7 @@ class DebloaterViewModelTest {
             testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.LAUNCHER))
             val result = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(result)
-            assertEquals(1, result.data.size)
-            assertEquals(1, result.data[0].targets.size)
-            assertEquals("MainActivity", result.data[0].targets[0].entity.simpleName)
+            assertEquals(0, result.data.size)
         }
     }
 
@@ -463,11 +451,11 @@ class DebloaterViewModelTest {
             val initial = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initial)
 
-            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.EXPLICIT))
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.EXPORTED_NO_PERM))
             val result = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(result)
             assertEquals(1, result.data.size)
-            assertEquals(4, result.data[0].targets.size)
+            assertEquals(3, result.data[0].targets.size)
         }
     }
 
@@ -495,7 +483,7 @@ class DebloaterViewModelTest {
             val result = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(result)
             assertEquals(1, result.data.size)
-            assertEquals(2, result.data[0].targets.size)
+            assertEquals(1, result.data[0].targets.size)
         }
     }
 
@@ -543,19 +531,18 @@ class DebloaterViewModelTest {
             ioDispatcher = dispatcher,
         )
 
-        testViewModel.debloatableUiState.test {
-            userDataRepository.sendUserData(defaultUserData)
+        userDataRepository.sendUserData(defaultUserData)
+        testScheduler.advanceUntilIdle()
 
-            awaitItem()
+        testViewModel.updateSearchQuery("Main")
+        testScheduler.advanceUntilIdle()
 
-            testViewModel.updateSearchQuery("Main")
-            awaitItem()
+        testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE))
+        testScheduler.advanceUntilIdle()
 
-            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE))
-            val result = awaitItem()
-            assertIs<Result.Success<List<MatchedTarget>>>(result)
-            assertEquals(0, result.data.size)
-        }
+        val result = testViewModel.debloatableUiState.value
+        assertIs<Result.Success<List<MatchedTarget>>>(result)
+        assertEquals(0, result.data.size)
     }
 
     @Test
@@ -576,9 +563,9 @@ class DebloaterViewModelTest {
 
             val initialResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(initialResult)
-            assertEquals(4, initialResult.data[0].targets.size)
+            assertEquals(3, initialResult.data[0].targets.size)
 
-            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.LAUNCHER))
+            testViewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE))
             val filteredResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(filteredResult)
             assertEquals(1, filteredResult.data[0].targets.size)
@@ -586,7 +573,7 @@ class DebloaterViewModelTest {
             testViewModel.updateComponentTypeFilter(emptySet())
             val resetResult = awaitItem()
             assertIs<Result.Success<List<MatchedTarget>>>(resetResult)
-            assertEquals(4, resetResult.data[0].targets.size)
+            assertEquals(3, resetResult.data[0].targets.size)
         }
     }
 }

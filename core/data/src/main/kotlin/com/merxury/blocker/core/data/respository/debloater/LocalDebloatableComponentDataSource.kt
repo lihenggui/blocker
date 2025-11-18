@@ -108,11 +108,121 @@ internal class LocalDebloatableComponentDataSource @Inject constructor(
                         label = manifestActivity.label,
                         type = ComponentType.ACTIVITY,
                         intentFilters = activityInfo.intentFilters,
+                        permission = manifestActivity.permission,
+                    )
+                    entityList.add(entity)
+                }
+
+                for (manifestService in manifest.application.services) {
+                    val componentName = if (manifestService.name.startsWith(".")) {
+                        manifest.packageName + manifestService.name
+                    } else {
+                        manifestService.name
+                    }
+                    val simpleName = componentName.substringAfterLast('.')
+                    val displayName = manifestService.label ?: simpleName
+
+                    val entity = DebloatableComponentEntity(
+                        packageName = packageName,
+                        componentName = componentName,
+                        simpleName = simpleName,
+                        displayName = displayName,
+                        ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
+                        pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
+                        exported = manifestService.exported,
+                        label = manifestService.label,
+                        type = ComponentType.SERVICE,
+                        intentFilters = manifestService.intentFilters.map { filter ->
+                            IntentFilterInfo(
+                                actions = filter.actions,
+                                categories = filter.categories,
+                                data = filter.data.map { data ->
+                                    IntentFilterDataInfo(
+                                        scheme = data.scheme,
+                                        host = data.host,
+                                        port = data.port,
+                                        path = data.path,
+                                        pathPrefix = data.pathPrefix,
+                                        pathPattern = data.pathPattern,
+                                        mimeType = data.mimeType,
+                                    )
+                                },
+                            )
+                        },
+                        permission = manifestService.permission,
+                        foregroundServiceType = manifestService.foregroundServiceType,
+                    )
+                    entityList.add(entity)
+                }
+
+                for (manifestReceiver in manifest.application.receivers) {
+                    val componentName = if (manifestReceiver.name.startsWith(".")) {
+                        manifest.packageName + manifestReceiver.name
+                    } else {
+                        manifestReceiver.name
+                    }
+                    val simpleName = componentName.substringAfterLast('.')
+                    val displayName = manifestReceiver.label ?: simpleName
+
+                    val entity = DebloatableComponentEntity(
+                        packageName = packageName,
+                        componentName = componentName,
+                        simpleName = simpleName,
+                        displayName = displayName,
+                        ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
+                        pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
+                        exported = manifestReceiver.exported,
+                        label = manifestReceiver.label,
+                        type = ComponentType.RECEIVER,
+                        intentFilters = manifestReceiver.intentFilters.map { filter ->
+                            IntentFilterInfo(
+                                actions = filter.actions,
+                                categories = filter.categories,
+                                data = filter.data.map { data ->
+                                    IntentFilterDataInfo(
+                                        scheme = data.scheme,
+                                        host = data.host,
+                                        port = data.port,
+                                        path = data.path,
+                                        pathPrefix = data.pathPrefix,
+                                        pathPattern = data.pathPattern,
+                                        mimeType = data.mimeType,
+                                    )
+                                },
+                            )
+                        },
+                        permission = manifestReceiver.permission,
+                    )
+                    entityList.add(entity)
+                }
+
+                for (manifestProvider in manifest.application.providers) {
+                    val componentName = if (manifestProvider.name.startsWith(".")) {
+                        manifest.packageName + manifestProvider.name
+                    } else {
+                        manifestProvider.name
+                    }
+                    val simpleName = componentName.substringAfterLast('.')
+                    val displayName = manifestProvider.label ?: simpleName
+
+                    val entity = DebloatableComponentEntity(
+                        packageName = packageName,
+                        componentName = componentName,
+                        simpleName = simpleName,
+                        displayName = displayName,
+                        ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
+                        pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
+                        exported = manifestProvider.exported,
+                        label = manifestProvider.label,
+                        type = ComponentType.PROVIDER,
+                        intentFilters = emptyList(),
+                        permission = manifestProvider.permission,
+                        grantUriPermissions = manifestProvider.grantUriPermissions,
                     )
                     entityList.add(entity)
                 }
             }.onFailure { e ->
-                Timber.w(e, "Failed to parse activities for package: $packageName")
+                Timber.w(e, "Failed to parse components for package: $packageName")
             }
         }
 

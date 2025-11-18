@@ -29,7 +29,6 @@ internal fun AnalyticsHelper.logSearchQueryUpdated() = logEvent(
 internal fun AnalyticsHelper.logComponentControlled(
     enabled: Boolean,
     isShareable: Boolean,
-    isExplicitLaunch: Boolean,
     isLauncherEntry: Boolean,
     isDeeplinkEntry: Boolean,
 ) = logEvent(
@@ -38,7 +37,6 @@ internal fun AnalyticsHelper.logComponentControlled(
         extras = listOf(
             Param(key = "enabled", value = enabled.toString()),
             Param(key = "is_shareable", value = isShareable.toString()),
-            Param(key = "is_explicit_launch", value = isExplicitLaunch.toString()),
             Param(key = "is_launcher_entry", value = isLauncherEntry.toString()),
             Param(key = "is_deeplink_entry", value = isDeeplinkEntry.toString()),
         ),

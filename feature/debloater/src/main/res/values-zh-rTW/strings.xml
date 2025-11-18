@@ -19,11 +19,15 @@
     <string name="feature_debloater_no_root_permission">需要 Root 權限才能啟用或停用元件</string>
     <string name="feature_debloater_test_share">測試分享</string>
     <string name="feature_debloater_share_component">分享</string>
-    <string name="feature_debloater_explicit_launch">顯式啟動</string>
     <string name="feature_debloater_launcher_entry">桌面入口</string>
     <string name="feature_debloater_deeplink_entry">Deeplink啟動</string>
     <string name="feature_debloater_filter_chip_shareable">分享組件</string>
     <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
     <string name="feature_debloater_filter_chip_launcher">啟動器</string>
-    <string name="feature_debloater_filter_chip_explicit">顯式啟動</string>
+    <string name="feature_debloater_filter_chip_wakelock">喚醒鎖</string>
+    <string name="feature_debloater_filter_chip_auto_start">自啟動</string>
+    <string name="feature_debloater_filter_chip_exported_no_perm">匯出組件</string>
+    <string name="feature_debloater_filter_chip_foreground_service">前台服務</string>
+    <string name="feature_debloater_filter_chip_push_service">推送服務</string>
+    <string name="feature_debloater_filter_chip_dangerous_provider">危險Provider</string>
 </resources>
