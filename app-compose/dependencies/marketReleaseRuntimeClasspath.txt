@@ -238,10 +238,10 @@ com.google.protobuf:protobuf-javalite:4.33.0
 com.google.protobuf:protobuf-kotlin-lite:4.33.0
 com.googlecode.javaewah:JavaEWAH:1.2.3
 com.jakewharton.timber:timber:5.0.1
-com.materialkolor:material-color-utilities-android:4.0.4
-com.materialkolor:material-color-utilities:4.0.4
-com.materialkolor:material-kolor-android:4.0.4
-com.materialkolor:material-kolor:4.0.4
+com.materialkolor:material-color-utilities-android:4.0.5
+com.materialkolor:material-color-utilities:4.0.5
+com.materialkolor:material-kolor-android:4.0.5
+com.materialkolor:material-kolor:4.0.5
 com.squareup.okhttp3:logging-interceptor:5.3.2
 com.squareup.okhttp3:okhttp-android:5.3.2
 com.squareup.okhttp3:okhttp:5.3.2
@@ -250,8 +250,8 @@ com.squareup.okio:okio:3.16.4
 com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0
 com.squareup.retrofit2:retrofit:3.0.0
 commons-codec:commons-codec:1.19.0
-dev.drewhamilton.poko:poko-annotations-jvm:0.20.1
-dev.drewhamilton.poko:poko-annotations:0.20.1
+dev.drewhamilton.poko:poko-annotations-jvm:0.20.2
+dev.drewhamilton.poko:poko-annotations:0.20.2
 dev.rikka.shizuku:aidl:13.1.5
 dev.rikka.shizuku:api:13.1.5
 dev.rikka.shizuku:provider:13.1.5
