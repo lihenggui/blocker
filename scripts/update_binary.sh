@@ -14,12 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Blocker Recovery Script - Entry Point
+
+# Blocker Recovery Script
 # This script is executed by recovery when flashing the APK as a ZIP
-#
-# Note: This script uses only basic shell commands to ensure compatibility
-# with minimal recovery environments without requiring busybox.
-#
 
 OUTFD=$2
 ZIPFILE="$3"
@@ -46,7 +43,6 @@ fi
 
 IFW_DIR="/data/system/ifw"
 
-# Check if IFW directory exists
 if [ ! -d "$IFW_DIR" ]; then
     ui_print "- IFW directory does not exist"
     ui_print "- Nothing to clean"
