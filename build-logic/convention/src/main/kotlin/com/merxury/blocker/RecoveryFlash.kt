@@ -43,7 +43,7 @@ internal fun Project.configureRecoveryFlash(
     androidComponentsExtension.onVariants { variant ->
         val variantName = variant.name
         val variantCapped = variantName.replaceFirstChar { it.uppercase() }
-        val scriptsDir = rootProject.file("scripts")
+        val scriptsDir = rootDir.resolve("scripts")
         val syncRecoveryScripts = tasks.register<SyncRecoveryScriptsTask>(
             "sync${variantCapped}RecoveryScripts",
         ) {
