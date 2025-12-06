@@ -23,6 +23,7 @@ plugins {
     alias(libs.plugins.blocker.android.application.jacoco)
     alias(libs.plugins.blocker.android.hilt)
     alias(libs.plugins.blocker.android.application.firebase)
+    alias(libs.plugins.blocker.flashable.apk)
     alias(libs.plugins.ksp)
     id("kotlin-parcelize")
     alias(libs.plugins.baselineprofile)
