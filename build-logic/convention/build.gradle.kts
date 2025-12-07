@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     `kotlin-dsl`
     alias(libs.plugins.android.lint)
@@ -64,6 +62,10 @@ gradlePlugin {
         register("androidApplicationJacoco") {
             id = libs.plugins.blocker.android.application.jacoco.get().pluginId
             implementationClass = "AndroidApplicationJacocoConventionPlugin"
+        }
+        register("flashableApk") {
+            id = libs.plugins.blocker.flashable.apk.get().pluginId
+            implementationClass = "FlashableApkConventionPlugin"
         }
         register("androidLibraryCompose") {
             id = libs.plugins.blocker.android.library.compose.get().pluginId

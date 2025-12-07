@@ -220,6 +220,7 @@ blocker-android-application-compose = { id = "blocker.android.application.compos
 blocker-android-application-firebase = { id = "blocker.android.application.firebase" }
 blocker-android-application-flavors = { id = "blocker.android.application.flavors" }
 blocker-android-application-jacoco = { id = "blocker.android.application.jacoco" }
+blocker-flashable-apk = { id = "blocker.flashable.apk" }
 blocker-android-feature = { id = "blocker.android.feature" }
 blocker-android-hilt = { id = "blocker.android.hilt" }
 blocker-android-library = { id = "blocker.android.library" }
