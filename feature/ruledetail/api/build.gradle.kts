@@ -19,24 +19,23 @@ plugins {
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
 }
+
 android {
-    namespace = "com.merxury.blocker.feature.settings"
+    namespace = "com.merxury.blocker.feature.ruledetail.api"
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 dependencies {
+    implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
-    implementation(projects.core.rule)
-    implementation(libs.accompanist.permissions)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.browser)
-    implementation(libs.androidx.documentfile)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
-    implementation(libs.androidx.work.ktx)
+    implementation(libs.coil.kt.compose)
+    implementation(libs.compose.markdown)
+    implementation(libs.material.kolor)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
+    testImplementation(libs.turbine)
     testImplementation(projects.core.testing)
 
     androidTestImplementation(projects.core.testing)

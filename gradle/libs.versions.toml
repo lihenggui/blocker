@@ -75,6 +75,8 @@ xmlutil = "v0.91.3"
 turbine = "1.2.1"
 truth = "1.4.5"
 material = "1.13.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
 
 [bundles]
 androidx-compose-ui-test = ["androidx-compose-ui-test", "androidx-compose-ui-testManifest"]
@@ -205,6 +207,8 @@ ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devto
 licensee-gradlePlugin = { group = "app.cash.licensee", name = "licensee-gradle-plugin", version.ref = "licensee" }
 room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
 work-testing = { group = "androidx.work", name = "work-testing", version.ref = "androidxWork" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -244,3 +248,4 @@ blocker-android-lint = { id = "blocker.android.lint" }
 blocker-android-room = { id = "blocker.android.room" }
 blocker-android-test = { id = "blocker.android.test" }
 blocker-jvm-library = { id = "blocker.jvm.library" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
