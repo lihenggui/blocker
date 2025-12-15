@@ -163,27 +163,27 @@ jobs:
 
       - name: Upload Foss apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: Foss-APK
           path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/release
 
       - name: Upload Market apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: Market-APK
           path: ${{ github.workspace }}/app-compose/build/outputs/apk/market/release
 
       - name: Upload build outputs (APKs)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: APKs
           path: '**/build/outputs/apk/**/*.apk'
 
       - name: Upload mappings
         if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: mappings
           path: "app-compose/build/outputs/mapping/marketRelease"
@@ -205,7 +205,7 @@ jobs:
 
       - name: Upload JVM local results (XML)
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: local-test-results
           path: '**/build/test-results/test*UnitTest/**.xml'
@@ -215,7 +215,7 @@ jobs:
 
       - name: Upload lint reports (HTML)
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: lint-reports
           path: '**/build/reports/lint-results-*.html'
@@ -353,7 +353,7 @@ jobs:
 
       - name: Upload test reports
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-reports-${{ matrix.api-level }}
           path: '**/build/reports/androidTests'
@@ -372,7 +372,7 @@ jobs:
 
       - name: Upload local coverage reports (XML + HTML) (only API 30)
         if: matrix.api-level == 30
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-reports
           if-no-files-found: error
