@@ -30,7 +30,6 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneExpansionAnchor
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
-import androidx.compose.material3.adaptive.layout.defaultDragHandleSemantics
 import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
@@ -93,10 +92,7 @@ internal fun SearchListDetailScreen(
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
     val selectedPackageName by viewModel.selectedPackageName.collectAsStateWithLifecycle()
-    val selectedAppTabs by viewModel.selectedAppTabs.collectAsStateWithLifecycle()
-    val searchKeywords by viewModel.searchKeyword.collectAsStateWithLifecycle()
     val selectedRuleId by viewModel.selectedRuleId.collectAsStateWithLifecycle()
-    val isAppDetailPage by viewModel.isAppDetailPage.collectAsStateWithLifecycle()
     SearchListDetailScreen(
         snackbarHostState = snackbarHostState,
         selectedPackageName = selectedPackageName,

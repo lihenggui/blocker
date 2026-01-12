@@ -15,30 +15,14 @@
  */
 
 plugins {
-    alias(libs.plugins.blocker.android.feature)
+    alias(libs.plugins.blocker.android.feature.api)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
 }
 
 android {
     namespace = "com.merxury.blocker.feature.applist.api"
-    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
-dependencies {
-    implementation(projects.core.componentController)
-    implementation(projects.core.data)
-    implementation(projects.core.domain)
-    implementation(projects.core.ifwApi)
-    implementation(libs.androidx.compose.material)
-    implementation(libs.kotlinx.datetime)
-
-    testImplementation(libs.hilt.android.testing)
-    testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.robolectric)
-    testImplementation(libs.turbine)
-    testImplementation(projects.core.testing)
-
-    androidTestImplementation(projects.core.testing)
-}
+dependencies { }
 

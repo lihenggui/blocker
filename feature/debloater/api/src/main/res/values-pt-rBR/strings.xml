@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_debloater_search_hint">Digite para pesquisar</string>
-    <string name="feature_debloater_no_root_permission">Permissão root é necessária para ativar ou desativar componentes</string>
-    <string name="feature_debloater_test_share">Testar compartilhamento</string>
-    <string name="feature_debloater_share_component">Compartilhar</string>
-    <string name="feature_debloater_launcher_entry">Iniciador</string>
-    <string name="feature_debloater_deeplink_entry">Link profundo</string>
-    <string name="feature_debloater_filter_chip_shareable">Compartilhável</string>
-    <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
-    <string name="feature_debloater_filter_chip_launcher">Iniciador</string>
-    <string name="feature_debloater_filter_chip_wakelock">Bloqueio de ativação</string>
-    <string name="feature_debloater_filter_chip_auto_start">Início automático</string>
-    <string name="feature_debloater_filter_chip_exported_no_perm">Exportado</string>
-    <string name="feature_debloater_filter_chip_foreground_service">Serviço em primeiro plano</string>
-    <string name="feature_debloater_filter_chip_push_service">Serviço de notificação</string>
-    <string name="feature_debloater_filter_chip_dangerous_provider">Provedor perigoso</string>
+    <string name="feature_debloater_api_search_hint">Digite para pesquisar</string>
+    <string name="feature_debloater_api_no_root_permission">Permissão root é necessária para ativar ou desativar componentes</string>
+    <string name="feature_debloater_api_test_share">Testar compartilhamento</string>
+    <string name="feature_debloater_api_share_component">Compartilhar</string>
+    <string name="feature_debloater_api_launcher_entry">Iniciador</string>
+    <string name="feature_debloater_api_deeplink_entry">Link profundo</string>
+    <string name="feature_debloater_api_filter_chip_shareable">Compartilhável</string>
+    <string name="feature_debloater_api_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_launcher">Iniciador</string>
+    <string name="feature_debloater_api_filter_chip_wakelock">Bloqueio de ativação</string>
+    <string name="feature_debloater_api_filter_chip_auto_start">Início automático</string>
+    <string name="feature_debloater_api_filter_chip_exported_no_perm">Exportado</string>
+    <string name="feature_debloater_api_filter_chip_foreground_service">Serviço em primeiro plano</string>
+    <string name="feature_debloater_api_filter_chip_push_service">Serviço de notificação</string>
+    <string name="feature_debloater_api_filter_chip_dangerous_provider">Provedor perigoso</string>
 </resources>

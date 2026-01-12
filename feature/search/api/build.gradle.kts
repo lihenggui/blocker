@@ -15,7 +15,7 @@
  */
 
 plugins {
-    alias(libs.plugins.blocker.android.feature)
+    alias(libs.plugins.blocker.android.feature.api)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
 }

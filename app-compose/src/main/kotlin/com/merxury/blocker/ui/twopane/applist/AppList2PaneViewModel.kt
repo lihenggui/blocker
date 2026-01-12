@@ -19,7 +19,7 @@ package com.merxury.blocker.ui.twopane.applist
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
-import com.merxury.blocker.feature.applist.navigation.AppListRoute
+import com.merxury.blocker.feature.impl.navigation.AppListRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject

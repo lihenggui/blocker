@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_debloater_search_hint">Aramak için yazın</string>
-    <string name="feature_debloater_no_root_permission">Bileşenleri etkinleştirmek veya devre dışı bırakmak için root izni gerekiyor</string>
-    <string name="feature_debloater_test_share">Paylaşımı test et</string>
-    <string name="feature_debloater_share_component">Paylaş</string>
-    <string name="feature_debloater_launcher_entry">Başlatıcı</string>
-    <string name="feature_debloater_deeplink_entry">Deeplink</string>
-    <string name="feature_debloater_filter_chip_shareable">Paylaşılabilir</string>
-    <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
-    <string name="feature_debloater_filter_chip_launcher">Başlatıcı</string>
-    <string name="feature_debloater_filter_chip_wakelock">Uyandırma kilidi</string>
-    <string name="feature_debloater_filter_chip_auto_start">Otomatik başlatma</string>
-    <string name="feature_debloater_filter_chip_exported_no_perm">Dışa aktarılmış</string>
-    <string name="feature_debloater_filter_chip_foreground_service">Ön plan hizmeti</string>
-    <string name="feature_debloater_filter_chip_push_service">Bildirim hizmeti</string>
-    <string name="feature_debloater_filter_chip_dangerous_provider">Tehlikeli sağlayıcı</string>
+    <string name="feature_debloater_api_search_hint">Aramak için yazın</string>
+    <string name="feature_debloater_api_no_root_permission">Bileşenleri etkinleştirmek veya devre dışı bırakmak için root izni gerekiyor</string>
+    <string name="feature_debloater_api_test_share">Paylaşımı test et</string>
+    <string name="feature_debloater_api_share_component">Paylaş</string>
+    <string name="feature_debloater_api_launcher_entry">Başlatıcı</string>
+    <string name="feature_debloater_api_deeplink_entry">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_shareable">Paylaşılabilir</string>
+    <string name="feature_debloater_api_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_launcher">Başlatıcı</string>
+    <string name="feature_debloater_api_filter_chip_wakelock">Uyandırma kilidi</string>
+    <string name="feature_debloater_api_filter_chip_auto_start">Otomatik başlatma</string>
+    <string name="feature_debloater_api_filter_chip_exported_no_perm">Dışa aktarılmış</string>
+    <string name="feature_debloater_api_filter_chip_foreground_service">Ön plan hizmeti</string>
+    <string name="feature_debloater_api_filter_chip_push_service">Bildirim hizmeti</string>
+    <string name="feature_debloater_api_filter_chip_dangerous_provider">Tehlikeli sağlayıcı</string>
 </resources>

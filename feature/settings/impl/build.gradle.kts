@@ -15,7 +15,7 @@
  */
 
 plugins {
-    alias(libs.plugins.blocker.android.feature)
+    alias(libs.plugins.blocker.android.feature.impl)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
 }
@@ -24,4 +24,21 @@ android {
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 dependencies {
+    api(projects.feature.settings.api)
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
+    implementation(projects.core.rule)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.browser)
+    implementation(libs.androidx.documentfile)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.work.ktx)
+
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.robolectric)
+    testImplementation(projects.core.testing)
+
+    androidTestImplementation(projects.core.testing)
 }

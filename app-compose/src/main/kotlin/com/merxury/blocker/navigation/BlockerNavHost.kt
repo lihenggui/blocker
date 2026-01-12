@@ -29,10 +29,10 @@ import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
-import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import com.merxury.blocker.feature.debloater.navigation.debloaterScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
+import com.merxury.blocker.feature.impl.navigation.AppListRoute
 import com.merxury.blocker.feature.licenses.navigation.licensesScreen
 import com.merxury.blocker.feature.licenses.navigation.navigateToLicenses
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail

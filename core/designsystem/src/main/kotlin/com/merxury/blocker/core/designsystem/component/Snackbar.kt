@@ -387,7 +387,7 @@ private fun SnackbarAnimationWithScale(
     }
     Box(modifier) {
         state.scope = currentRecomposeScope
-        state.items.forEach { (item, opacity) ->
+        state.items.forEach { (item, _) ->
             key(item) {
                 opacity {
                     content(item!!)

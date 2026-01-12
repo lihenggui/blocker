@@ -75,9 +75,13 @@ gradlePlugin {
             id = libs.plugins.blocker.android.library.asProvider().get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
         }
-        register("androidFeature") {
-            id = libs.plugins.blocker.android.feature.get().pluginId
-            implementationClass = "AndroidFeatureConventionPlugin"
+        register("androidFeatureImpl") {
+            id = libs.plugins.blocker.android.feature.impl.get().pluginId
+            implementationClass = "AndroidFeatureImplConventionPlugin"
+        }
+        register("androidFeatureApi") {
+            id = libs.plugins.blocker.android.feature.api.get().pluginId
+            implementationClass = "AndroidFeatureApiConventionPlugin"
         }
         register("androidLibraryJacoco") {
             id = libs.plugins.blocker.android.library.jacoco.get().pluginId

@@ -158,15 +158,15 @@ object FileUtils {
                     dest,
                 ),
             )
-            if (sourceFile.isDirectory()) {
-                sourceFile.getParent()?.let {
+            if (sourceFile.isDirectory) {
+                sourceFile.parent?.let {
                     zipSubFolder(out, sourceFile, it.length)
                 }
             } else {
                 val fi = FileInputStream(sourcePath)
                 origin = BufferedInputStream(fi, BUFFER_SIZE)
                 val entry = ZipEntry(getLastPathComponent(sourcePath))
-                entry.setTime(sourceFile.lastModified())
+                entry.time = sourceFile.lastModified()
                 out.putNextEntry(entry)
                 out.use {
                     origin.copyTo(it)
@@ -195,7 +195,7 @@ object FileUtils {
         }
         var origin: BufferedInputStream?
         for (file in fileList) {
-            if (file.isDirectory()) {
+            if (file.isDirectory) {
                 zipSubFolder(out, file, basePathLength)
             } else {
                 val unmodifiedFilePath = file.path
@@ -204,7 +204,7 @@ object FileUtils {
                 val fi = FileInputStream(unmodifiedFilePath)
                 origin = BufferedInputStream(fi, BUFFER_SIZE)
                 val entry = ZipEntry(relativePath)
-                entry.setTime(file.lastModified())
+                entry.time = file.lastModified()
                 out.putNextEntry(entry)
                 origin.use {
                     it.copyTo(out)

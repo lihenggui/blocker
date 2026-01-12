@@ -20,9 +20,9 @@ package com.merxury.blocker.navigation
 import com.merxury.blocker.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon
-import com.merxury.blocker.feature.applist.navigation.AppListRoute
 import com.merxury.blocker.feature.debloater.navigation.DebloaterRoute
 import com.merxury.blocker.feature.generalrules.navigation.GeneralRuleRoute
+import com.merxury.blocker.feature.impl.navigation.AppListRoute
 import com.merxury.blocker.feature.search.navigation.SearchRoute
 import kotlin.reflect.KClass
 

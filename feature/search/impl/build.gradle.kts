@@ -15,7 +15,7 @@
  */
 
 plugins {
-    alias(libs.plugins.blocker.android.feature)
+    alias(libs.plugins.blocker.android.feature.impl)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
 }
@@ -24,6 +24,7 @@ android {
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 dependencies {
+    implementation(projects.feature.search.api)
     implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)

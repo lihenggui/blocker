@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_search_searching">Rechercher</string>
-    <plurals name="feature_search_activity_count">
+    <string name="feature_search_api_searching">Rechercher</string>
+    <plurals name="feature_search_api_activity_count">
         <item quantity="one">%1$d Activité</item>
         <item quantity="many">%1$d Activités</item>
         <item quantity="other">%1$d Activités</item>
     </plurals>
-    <plurals name="feature_search_content_provider_count">
+    <plurals name="feature_search_api_content_provider_count">
         <item quantity="one">%1$d Fournisseur de contenu</item>
         <item quantity="many">%1$d Fournisseurs de contenu</item>
         <item quantity="other">%1$d Fournisseurs de contenu</item>
     </plurals>
-    <plurals name="feature_search_receiver_count">
+    <plurals name="feature_search_api_receiver_count">
         <item quantity="one">%1$d Récepteur</item>
         <item quantity="many">%1$d Récepteurs</item>
         <item quantity="other">%1$d Récepteurs</item>
     </plurals>
-    <plurals name="feature_search_service_count">
+    <plurals name="feature_search_api_service_count">
         <item quantity="one">%1$d Service</item>
         <item quantity="many">%1$d Services</item>
         <item quantity="other">%1$d Services</item>
     </plurals>
-    <string name="feature_search_search_hint">Applications, composants et règles</string>
-    <plurals name="feature_search_selected_app_count">
+    <string name="feature_search_api_search_hint">Applications, composants et règles</string>
+    <plurals name="feature_search_api_selected_app_count">
         <item quantity="one">%1$d app sélectionnée</item>
         <item quantity="many">%1$d apps sélectionnées</item>
         <item quantity="other">%1$d apps sélectionnées</item>
     </plurals>
-    <string name="feature_search_check_icon">Vérifier</string>
-    <string name="feature_search_select_an_app_or_a_rule">Sélectionner une application ou une règle</string>
+    <string name="feature_search_api_check_icon">Vérifier</string>
+    <string name="feature_search_api_select_an_app_or_a_rule">Sélectionner une application ou une règle</string>
 </resources>

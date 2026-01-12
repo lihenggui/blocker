@@ -15,19 +15,19 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_debloater_search_hint">输入进行搜索</string>
-    <string name="feature_debloater_no_root_permission">需要 Root 权限才能启用或禁用组件</string>
-    <string name="feature_debloater_test_share">测试分享</string>
-    <string name="feature_debloater_share_component">分享</string>
-    <string name="feature_debloater_launcher_entry">桌面入口</string>
-    <string name="feature_debloater_deeplink_entry">Deeplink启动</string>
-    <string name="feature_debloater_filter_chip_shareable">分享组件</string>
-    <string name="feature_debloater_filter_chip_deeplink">Deeplink</string>
-    <string name="feature_debloater_filter_chip_launcher">启动器</string>
-    <string name="feature_debloater_filter_chip_wakelock">唤醒锁</string>
-    <string name="feature_debloater_filter_chip_auto_start">自启动</string>
-    <string name="feature_debloater_filter_chip_exported_no_perm">导出组件</string>
-    <string name="feature_debloater_filter_chip_foreground_service">前台服务</string>
-    <string name="feature_debloater_filter_chip_push_service">推送服务</string>
-    <string name="feature_debloater_filter_chip_dangerous_provider">危险Provider</string>
+    <string name="feature_debloater_api_search_hint">输入进行搜索</string>
+    <string name="feature_debloater_api_no_root_permission">需要 Root 权限才能启用或禁用组件</string>
+    <string name="feature_debloater_api_test_share">测试分享</string>
+    <string name="feature_debloater_api_share_component">分享</string>
+    <string name="feature_debloater_api_launcher_entry">桌面入口</string>
+    <string name="feature_debloater_api_deeplink_entry">Deeplink启动</string>
+    <string name="feature_debloater_api_filter_chip_shareable">分享组件</string>
+    <string name="feature_debloater_api_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_launcher">启动器</string>
+    <string name="feature_debloater_api_filter_chip_wakelock">唤醒锁</string>
+    <string name="feature_debloater_api_filter_chip_auto_start">自启动</string>
+    <string name="feature_debloater_api_filter_chip_exported_no_perm">导出组件</string>
+    <string name="feature_debloater_api_filter_chip_foreground_service">前台服务</string>
+    <string name="feature_debloater_api_filter_chip_push_service">推送服务</string>
+    <string name="feature_debloater_api_filter_chip_dangerous_provider">危险Provider</string>
 </resources>

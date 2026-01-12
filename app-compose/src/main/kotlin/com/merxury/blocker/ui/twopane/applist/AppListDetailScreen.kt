@@ -30,7 +30,6 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneExpansionAnchor
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
-import androidx.compose.material3.adaptive.layout.defaultDragHandleSemantics
 import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
@@ -56,8 +55,8 @@ import com.merxury.blocker.feature.appdetail.AppDetailPlaceholder
 import com.merxury.blocker.feature.appdetail.AppDetailScreen
 import com.merxury.blocker.feature.appdetail.AppDetailViewModel
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailRoute
-import com.merxury.blocker.feature.applist.AppListScreen
-import com.merxury.blocker.feature.applist.navigation.AppListRoute
+import com.merxury.blocker.feature.impl.AppListScreen
+import com.merxury.blocker.feature.impl.navigation.AppListRoute
 import com.merxury.blocker.ui.twopane.isDetailPaneVisible
 import com.merxury.blocker.ui.twopane.isListPaneVisible
 import kotlinx.coroutines.launch

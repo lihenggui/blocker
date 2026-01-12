@@ -15,15 +15,15 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_ruledetail_safe_to_block">Bloqueo seguro</string>
-    <string name="feature_ruledetail_side_effect">Efecto de desplazamiento</string>
-    <string name="feature_ruledetail_contributors">Colaboradores</string>
-    <string name="feature_ruledetail_yes">Sí</string>
-    <string name="feature_ruledetail_no">No</string>
-    <string name="feature_ruledetail_unknown">Desconocido</string>
-    <string name="feature_ruledetail_no_description">Sin descripción</string>
-    <string name="feature_ruledetail_block_all_of_this_page">Bloquear la página</string>
-    <string name="feature_ruledetail_enable_all_of_this_page">Activar la página</string>
-    <string name="feature_ruledetail_keywords">Palabras clave</string>
-    <string name="feature_ruledetail_select_a_rule">Seleccione una regla</string>
+    <string name="feature_ruledetail_api_safe_to_block">Bloqueo seguro</string>
+    <string name="feature_ruledetail_api_side_effect">Efecto de desplazamiento</string>
+    <string name="feature_ruledetail_api_contributors">Colaboradores</string>
+    <string name="feature_ruledetail_api_yes">Sí</string>
+    <string name="feature_ruledetail_api_no">No</string>
+    <string name="feature_ruledetail_api_unknown">Desconocido</string>
+    <string name="feature_ruledetail_api_no_description">Sin descripción</string>
+    <string name="feature_ruledetail_api_block_all_of_this_page">Bloquear la página</string>
+    <string name="feature_ruledetail_api_enable_all_of_this_page">Activar la página</string>
+    <string name="feature_ruledetail_api_keywords">Palabras clave</string>
+    <string name="feature_ruledetail_api_select_a_rule">Seleccione una regla</string>
 </resources>

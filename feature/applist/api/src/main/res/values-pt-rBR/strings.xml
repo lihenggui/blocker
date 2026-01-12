@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_applist_sort_menu">Opções de menu</string>
-    <string name="feature_applist_settings">Configurações</string>
-    <string name="feature_applist_support_and_feedback">Suporte e feedback</string>
-    <string name="feature_applist_no_applications_to_display">Sem aplicativos para exibir</string>
-    <string name="feature_applist_sort_by">Ordenar por</string>
-    <string name="feature_applist_order">Ordenar</string>
-    <string name="feature_applist_sort_options">Opções de classificação</string>
-    <string name="feature_applist_descending">Decrescente</string>
-    <string name="feature_applist_name">Nome</string>
-    <string name="feature_applist_install_date">Data de instalação</string>
-    <string name="feature_applist_last_updated">Última Atualização</string>
-    <string name="feature_applist_show_running_apps_on_top">Mostrar aplicativos em execução no topo</string>
-    <string name="feature_applist_on">Ligado</string>
-    <string name="feature_applist_off">Desligado</string>
-    <string name="feature_applist_ascending">Crescente</string>
+    <string name="feature_applist_api_sort_menu">Opções de menu</string>
+    <string name="feature_applist_api_settings">Configurações</string>
+    <string name="feature_applist_api_support_and_feedback">Suporte e feedback</string>
+    <string name="feature_applist_api_no_applications_to_display">Sem aplicativos para exibir</string>
+    <string name="feature_applist_api_sort_by">Ordenar por</string>
+    <string name="feature_applist_api_order">Ordenar</string>
+    <string name="feature_applist_api_sort_options">Opções de classificação</string>
+    <string name="feature_applist_api_descending">Decrescente</string>
+    <string name="feature_applist_api_name">Nome</string>
+    <string name="feature_applist_api_install_date">Data de instalação</string>
+    <string name="feature_applist_api_last_updated">Última Atualização</string>
+    <string name="feature_applist_api_show_running_apps_on_top">Mostrar aplicativos em execução no topo</string>
+    <string name="feature_applist_api_on">Ligado</string>
+    <string name="feature_applist_api_off">Desligado</string>
+    <string name="feature_applist_api_ascending">Crescente</string>
 </resources>

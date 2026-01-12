@@ -1,5 +1,6 @@
 /*
  * Copyright 2025 Blocker
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +16,10 @@
  */
 
 plugins {
-    alias(libs.plugins.blocker.android.feature)
-    alias(libs.plugins.blocker.android.library.compose)
-    alias(libs.plugins.blocker.android.library.jacoco)
-    id("kotlin-parcelize")
+    alias(libs.plugins.blocker.android.feature.api)
 }
 android {
     namespace = "com.merxury.blocker.feature.appdetail.api"
     testOptions.unitTests.isIncludeAndroidResources = true
 }
-dependencies {
-    implementation(projects.core.componentController)
-    implementation(projects.core.data)
-    implementation(projects.core.domain)
-    implementation(projects.core.rule)
-    implementation(libs.androidx.compose.material)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
-    implementation(libs.androidx.work.ktx)
-    implementation(libs.kotlinx.datetime)
-    implementation(libs.material.kolor)
-
-    testImplementation(libs.hilt.android.testing)
-    testImplementation(libs.turbine)
-    testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.robolectric)
-    testImplementation(projects.core.testing)
-
-    androidTestImplementation(projects.core.testing)
-}
+dependencies { }

@@ -16,6 +16,8 @@
 
 plugins {
     alias(libs.plugins.blocker.android.library)
+    alias(libs.plugins.blocker.android.hilt)
+    alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose)
 }

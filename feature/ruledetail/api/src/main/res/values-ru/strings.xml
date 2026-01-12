@@ -14,15 +14,15 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 --><resources>
-    <string name="feature_ruledetail_safe_to_block">Безопасно для отключения</string>
-    <string name="feature_ruledetail_side_effect">Побочный эффект</string>
-    <string name="feature_ruledetail_contributors">Соавторы</string>
-    <string name="feature_ruledetail_yes">Да</string>
-    <string name="feature_ruledetail_no">Нет</string>
-    <string name="feature_ruledetail_unknown">Неизвестно</string>
-    <string name="feature_ruledetail_no_description">Нет описания</string>
-    <string name="feature_ruledetail_block_all_of_this_page">Отключить все на странице</string>
-    <string name="feature_ruledetail_enable_all_of_this_page">Включить все на странице</string>
-    <string name="feature_ruledetail_keywords">Ключевые слова</string>
-    <string name="feature_ruledetail_select_a_rule">Выберите правило</string>
+    <string name="feature_ruledetail_api_safe_to_block">Безопасно для отключения</string>
+    <string name="feature_ruledetail_api_side_effect">Побочный эффект</string>
+    <string name="feature_ruledetail_api_contributors">Соавторы</string>
+    <string name="feature_ruledetail_api_yes">Да</string>
+    <string name="feature_ruledetail_api_no">Нет</string>
+    <string name="feature_ruledetail_api_unknown">Неизвестно</string>
+    <string name="feature_ruledetail_api_no_description">Нет описания</string>
+    <string name="feature_ruledetail_api_block_all_of_this_page">Отключить все на странице</string>
+    <string name="feature_ruledetail_api_enable_all_of_this_page">Включить все на странице</string>
+    <string name="feature_ruledetail_api_keywords">Ключевые слова</string>
+    <string name="feature_ruledetail_api_select_a_rule">Выберите правило</string>
 </resources>

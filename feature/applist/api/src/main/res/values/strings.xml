@@ -15,20 +15,20 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_applist_sort_menu">Sort menu</string>
-    <string name="feature_applist_settings">Settings</string>
-    <string name="feature_applist_support_and_feedback">Support and feedback</string>
-    <string name="feature_applist_app_name" translatable="false">Blocker</string>
-    <string name="feature_applist_no_applications_to_display">No applications to display</string>
-    <string name="feature_applist_sort_options">Sort options</string>
-    <string name="feature_applist_sort_by">Sort by</string>
-    <string name="feature_applist_order">Order</string>
-    <string name="feature_applist_ascending">Ascending</string>
-    <string name="feature_applist_descending">Descending</string>
-    <string name="feature_applist_name">Name</string>
-    <string name="feature_applist_install_date">Install Date</string>
-    <string name="feature_applist_last_updated">Last Updated</string>
-    <string name="feature_applist_show_running_apps_on_top">Show running apps on top</string>
-    <string name="feature_applist_on">On</string>
-    <string name="feature_applist_off">Off</string>
+    <string name="feature_applist_api_sort_menu">Sort menu</string>
+    <string name="feature_applist_api_settings">Settings</string>
+    <string name="feature_applist_api_support_and_feedback">Support and feedback</string>
+    <string name="feature_applist_api_app_name" translatable="false">Blocker</string>
+    <string name="feature_applist_api_no_applications_to_display">No applications to display</string>
+    <string name="feature_applist_api_sort_options">Sort options</string>
+    <string name="feature_applist_api_sort_by">Sort by</string>
+    <string name="feature_applist_api_order">Order</string>
+    <string name="feature_applist_api_ascending">Ascending</string>
+    <string name="feature_applist_api_descending">Descending</string>
+    <string name="feature_applist_api_name">Name</string>
+    <string name="feature_applist_api_install_date">Install Date</string>
+    <string name="feature_applist_api_last_updated">Last Updated</string>
+    <string name="feature_applist_api_show_running_apps_on_top">Show running apps on top</string>
+    <string name="feature_applist_api_on">On</string>
+    <string name="feature_applist_api_off">Off</string>
 </resources>

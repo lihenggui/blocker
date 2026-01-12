@@ -34,9 +34,9 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
-import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.debloater.navigation.navigateToDebloater
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
+import com.merxury.blocker.feature.impl.navigation.navigateToAppList
 import com.merxury.blocker.feature.search.navigation.navigateToSearch
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP
