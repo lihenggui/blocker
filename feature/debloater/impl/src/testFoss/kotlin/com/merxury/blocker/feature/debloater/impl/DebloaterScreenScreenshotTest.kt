@@ -20,7 +20,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
@@ -132,7 +131,6 @@ class DebloaterScreenScreenshotTest {
         BlockerTheme {
             Surface {
                 DebloaterScreenContent(
-                    snackbarHostState = SnackbarHostState(),
                     debloatableUiState = Result.Loading,
                 )
             }
@@ -144,7 +142,6 @@ class DebloaterScreenScreenshotTest {
         BlockerTheme {
             Surface {
                 DebloaterScreenContent(
-                    snackbarHostState = SnackbarHostState(),
                     debloatableUiState = Result.Success(emptyList()),
                 )
             }
@@ -156,7 +153,6 @@ class DebloaterScreenScreenshotTest {
         BlockerTheme {
             Surface {
                 DebloaterScreenContent(
-                    snackbarHostState = SnackbarHostState(),
                     debloatableUiState = Result.Success(emptyList()),
                     componentTypeFilter = setOf(
                         ComponentClassification.SHAREABLE,
@@ -173,7 +169,6 @@ class DebloaterScreenScreenshotTest {
         BlockerTheme {
             Surface {
                 DebloaterScreenContent(
-                    snackbarHostState = SnackbarHostState(),
                     debloatableUiState = Result.Success(emptyList()),
                     componentTypeFilter = setOf(
                         ComponentClassification.SHAREABLE,

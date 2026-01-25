@@ -137,7 +137,7 @@ class AppListScreenScreenshotTests {
             Surface {
                 AppListScreen(
                     uiState = Success(),
-                    appList = appList
+                    appList = appList,
                 )
             }
         }
@@ -149,7 +149,7 @@ class AppListScreenScreenshotTests {
             Surface {
                 AppListScreen(
                     uiState = Initializing("Blocker"),
-                    appList = listOf()
+                    appList = listOf(),
                 )
             }
         }
@@ -161,7 +161,7 @@ class AppListScreenScreenshotTests {
             Surface {
                 AppListScreen(
                     uiState = Error(UiMessage("Error")),
-                    appList = listOf()
+                    appList = listOf(),
                 )
             }
         }
@@ -173,7 +173,7 @@ class AppListScreenScreenshotTests {
             Surface {
                 AppListScreen(
                     uiState = Success(),
-                    appList = listOf()
+                    appList = listOf(),
                 )
             }
         }

@@ -25,4 +25,4 @@ data class SearchNavKey(
     val tab: String? = null,
     val searchKeyword: List<String> = listOf(),
     val ruleId: String? = null,
-): NavKey
+) : NavKey

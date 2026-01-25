@@ -206,20 +206,19 @@ class AppListViewModel @AssistedInject constructor(
             }
     }
 
-    private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =
-        if (sortOrder == SortingOrder.ASCENDING) {
-            when (sortType) {
-                NAME -> compareBy { it.label.lowercase() }
-                FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
-                LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
-            }
-        } else {
-            when (sortType) {
-                NAME -> compareByDescending { it.label.lowercase() }
-                FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
-                LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
-            }
+    private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> = if (sortOrder == SortingOrder.ASCENDING) {
+        when (sortType) {
+            NAME -> compareBy { it.label.lowercase() }
+            FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
+            LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
         }
+    } else {
+        when (sortType) {
+            NAME -> compareByDescending { it.label.lowercase() }
+            FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
+            LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
+        }
+    }
 
     private var updateAppListJob: Job? = null
     fun updateInstalledAppList() {

@@ -21,7 +21,7 @@ import com.merxury.blocker.core.navigation.Navigator
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ComponentDetailNavKey(val componentName: String): NavKey
+data class ComponentDetailNavKey(val componentName: String) : NavKey
 
 fun Navigator.navigateToComponentDetail(componentName: String) {
     navigate(ComponentDetailNavKey(componentName))

@@ -21,8 +21,8 @@ import com.merxury.blocker.core.navigation.Navigator
 import kotlinx.serialization.Serializable
 
 @Serializable
-object LicensesNavKey: NavKey
+object LicensesNavKey : NavKey
 
-fun Navigator.navigateToLicenses(){
+fun Navigator.navigateToLicenses() {
     navigate(LicensesNavKey)
 }

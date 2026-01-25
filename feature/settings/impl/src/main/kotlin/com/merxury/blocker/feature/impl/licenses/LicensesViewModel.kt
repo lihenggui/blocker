@@ -55,8 +55,7 @@ class LicensesViewModel @AssistedInject constructor(
             initialValue = Loading,
         )
 
-    private fun countLicensesSize(licenses: List<LicenseGroup>): Int =
-        licenses.size + licenses.sumOf { it.artifacts.size }
+    private fun countLicensesSize(licenses: List<LicenseGroup>): Int = licenses.size + licenses.sumOf { it.artifacts.size }
 
     @AssistedFactory
     interface Factory {

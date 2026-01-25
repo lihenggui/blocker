@@ -38,7 +38,7 @@ fun EntryProviderScope<NavKey>.searchEntry(navigator: Navigator) {
         val tab = key.tab
         val searchKeyword = key.searchKeyword
         val ruleId = key.ruleId
-        val viewModelKey = "search_${ruleId ?: "none"}_${searchKeyword}"
+        val viewModelKey = "search_${ruleId ?: "none"}_$searchKeyword"
         val snackbarHostState = LocalSnackbarHostState.current
         SearchScreen(
             snackbarHostState = snackbarHostState,

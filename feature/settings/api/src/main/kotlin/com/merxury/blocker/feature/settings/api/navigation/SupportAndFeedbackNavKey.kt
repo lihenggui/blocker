@@ -21,8 +21,8 @@ import com.merxury.blocker.core.navigation.Navigator
 import kotlinx.serialization.Serializable
 
 @Serializable
-object SupportAndFeedbackNavKey: NavKey
+object SupportAndFeedbackNavKey : NavKey
 
-fun Navigator.navigateToSupportAndFeedback(){
+fun Navigator.navigateToSupportAndFeedback() {
     navigate(SupportAndFeedbackNavKey)
 }

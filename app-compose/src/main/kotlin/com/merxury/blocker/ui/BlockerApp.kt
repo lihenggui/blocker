@@ -172,8 +172,8 @@ internal fun BlockerApp(
                     },
                     label = { Text(stringResource(navItem.iconTextId)) },
                     modifier =
-                        Modifier
-                            .testTag("BlockerNavItem"),
+                    Modifier
+                        .testTag("BlockerNavItem"),
                 )
             }
         },

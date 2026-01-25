@@ -20,4 +20,4 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AppListNavKey( val initialPackageName: String) : NavKey
+data class AppListNavKey(val initialPackageName: String) : NavKey

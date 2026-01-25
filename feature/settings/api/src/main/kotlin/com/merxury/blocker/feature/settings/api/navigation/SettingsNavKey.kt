@@ -21,8 +21,8 @@ import com.merxury.blocker.core.navigation.Navigator
 import kotlinx.serialization.Serializable
 
 @Serializable
-object SettingsNavKey: NavKey
+object SettingsNavKey : NavKey
 
-fun Navigator.navigateToSettings(){
+fun Navigator.navigateToSettings() {
     navigate(SettingsNavKey)
 }
