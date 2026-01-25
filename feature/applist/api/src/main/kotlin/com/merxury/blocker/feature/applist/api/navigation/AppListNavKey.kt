@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.generalrule.impl.navigation
+package com.merxury.blocker.feature.applist.api.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavOptions
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GeneralRuleRoute(val initialRuleId: String? = null)
-
-fun NavController.navigateToGeneralRule(
-    initialRuleId: String? = null,
-    navOptions: NavOptions? = null,
-) {
-    navigate(route = GeneralRuleRoute(initialRuleId), navOptions)
-}
+data class AppListNavKey( val initialPackageName: String) : NavKey

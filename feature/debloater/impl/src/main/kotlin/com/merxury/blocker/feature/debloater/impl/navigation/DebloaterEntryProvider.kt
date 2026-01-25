@@ -16,25 +16,17 @@
 
 package com.merxury.blocker.feature.debloater.impl.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.debloater.impl.DebloaterScreen
-import kotlinx.serialization.Serializable
+import com.merxury.blocker.feature.debloator.api.navigation.DebloaterNavKey
 
-@Serializable
-data object DebloaterRoute
-
-fun NavController.navigateToDebloater(navOptions: NavOptions? = null) {
-    navigate(route = DebloaterRoute, navOptions)
-}
-
-fun NavGraphBuilder.debloaterScreen(
-    snackbarHostState: SnackbarHostState,
-) {
-    composable<DebloaterRoute> {
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+fun EntryProviderScope<NavKey>.debloaterEntry() {
+    entry<DebloaterNavKey> {
+        val snackbarHostState = LocalSnackbarHostState.current
         DebloaterScreen(
             snackbarHostState = snackbarHostState,
         )

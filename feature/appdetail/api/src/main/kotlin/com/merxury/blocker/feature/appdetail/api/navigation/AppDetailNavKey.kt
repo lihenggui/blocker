@@ -17,7 +17,21 @@
 package com.merxury.blocker.feature.appdetail.api.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.core.ui.AppDetailTabs
 import kotlinx.serialization.Serializable
 
 @Serializable
-object AppDetailNavKey : NavKey
+data class AppDetailNavKey(
+    val packageName: String,
+    val tab: String = AppDetailTabs.Info.name,
+    val searchKeyword: List<String> = listOf(),
+) : NavKey
+
+fun Navigator.navigateToAppDetail(
+    packageName: String,
+    tab: String = AppDetailTabs.Info.name,
+    searchKeyword: List<String> = listOf(),
+) {
+    navigate(AppDetailNavKey(packageName, tab, searchKeyword))
+}

@@ -21,15 +21,16 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.model.data.LicenseGroup
 import com.merxury.blocker.feature.impl.licenses.LicensesUiState.Loading
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
-@HiltViewModel
-class LicensesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = LicensesViewModel.Factory::class)
+class LicensesViewModel @AssistedInject constructor(
     licensesRepository: LicensesRepository,
 ) : ViewModel() {
     val licensesUiState: StateFlow<LicensesUiState> = licensesRepository.getLicensesList()
@@ -41,7 +42,12 @@ class LicensesViewModel @Inject constructor(
                         artifacts = licenseItems,
                     )
                 }
-                .let { LicensesUiState.Success(licenses = it, licensesSize = countLicensesSize(it)) }
+                .let {
+                    LicensesUiState.Success(
+                        licenses = it,
+                        licensesSize = countLicensesSize(it),
+                    )
+                }
         }
         .stateIn(
             scope = viewModelScope,
@@ -49,7 +55,13 @@ class LicensesViewModel @Inject constructor(
             initialValue = Loading,
         )
 
-    private fun countLicensesSize(licenses: List<LicenseGroup>): Int = licenses.size + licenses.sumOf { it.artifacts.size }
+    private fun countLicensesSize(licenses: List<LicenseGroup>): Int =
+        licenses.size + licenses.sumOf { it.artifacts.size }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(): LicensesViewModel
+    }
 }
 
 sealed interface LicensesUiState {

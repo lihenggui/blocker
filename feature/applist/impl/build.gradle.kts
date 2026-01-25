@@ -31,7 +31,10 @@ dependencies {
     implementation(projects.core.domain)
     implementation(projects.core.ifwApi)
     implementation(projects.feature.applist.api)
+    implementation(projects.feature.appdetail.api)
+    implementation(projects.feature.settings.api)
     implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.kotlinx.datetime)
 
     testImplementation(libs.hilt.android.testing)

@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.impl.licenses.navigation
+package com.merxury.blocker.feature.ruledetail.api.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import com.merxury.blocker.feature.impl.licenses.LicensesScreen
+import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object LicensesRoute
+data class RuleDetailNavKey(val ruleId: String, val tab: String = Applicable.name) : NavKey
 
-fun NavController.navigateToLicenses(navOptions: NavOptions? = null) = navigate(route = LicensesRoute, navOptions)
-
-fun NavGraphBuilder.licensesScreen(
-    onBackClick: () -> Unit,
-) {
-    composable<LicensesRoute> {
-        LicensesScreen(
-            onNavigationClick = onBackClick,
-        )
-    }
+fun Navigator.navigateToRuleDetail(ruleId: String, tab: String = Applicable.name) {
+    navigate(RuleDetailNavKey(ruleId, tab))
 }

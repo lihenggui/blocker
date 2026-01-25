@@ -25,9 +25,12 @@ android {
 }
 dependencies {
     implementation(projects.feature.search.api)
+    implementation(projects.feature.appdetail.api)
+    implementation(projects.feature.ruledetail.api)
     implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
+    implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.coil.kt.compose)
 
     testImplementation(libs.hilt.android.testing)

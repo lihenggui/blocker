@@ -27,6 +27,7 @@ import android.system.Os
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
@@ -60,6 +61,8 @@ import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -73,10 +76,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
-import javax.inject.Inject
 
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = SettingsViewModel.Factory::class)
+class SettingsViewModel @AssistedInject constructor(
     appContext: Application,
     private val userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
@@ -117,7 +119,7 @@ class SettingsViewModel @Inject constructor(
         if (path.isEmpty()) return@withContext path
         return@withContext try {
             val context: Context = getApplication()
-            val uri = Uri.parse(path)
+            val uri = path.toUri()
             val cr = context.contentResolver
             if (uri.scheme == "file") {
                 return@withContext uri.toFile().absolutePath
@@ -240,7 +242,7 @@ class SettingsViewModel @Inject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(IMPORT_BLOCKER_RULES, workInfo)
                 }
@@ -262,7 +264,7 @@ class SettingsViewModel @Inject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(EXPORT_BLOCKER_RULES, workInfo)
                 }
@@ -281,7 +283,7 @@ class SettingsViewModel @Inject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(EXPORT_IFW_RULES, workInfo)
                 }
@@ -303,7 +305,7 @@ class SettingsViewModel @Inject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(IMPORT_IFW_RULES, workInfo)
                 }
@@ -321,7 +323,7 @@ class SettingsViewModel @Inject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(RESET_IFW, workInfo)
                 }
@@ -357,6 +359,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userDataRepository.setDynamicColorPreference(useDynamicColor)
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(): SettingsViewModel
     }
 
     // Only FOSS version provides StubAnalyticsHelper

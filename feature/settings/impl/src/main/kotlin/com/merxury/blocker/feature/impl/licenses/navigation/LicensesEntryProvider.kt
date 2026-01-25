@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.search.api.navigation
+package com.merxury.blocker.feature.impl.licenses.navigation
 
+import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import kotlinx.serialization.Serializable
+import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.feature.impl.licenses.LicensesScreen
+import com.merxury.blocker.feature.settings.api.navigation.LicensesNavKey
 
-@Serializable
-data class SearchNavKey(
-    val packageName: String? = null,
-    val tab: String? = null,
-    val searchKeyword: List<String> = listOf(),
-    val ruleId: String? = null,
-): NavKey
+fun EntryProviderScope<NavKey>.licensesEntry(navigator: Navigator) {
+    entry<LicensesNavKey> {
+        LicensesScreen(
+            onNavigationClick = { navigator.goBack() },
+        )
+    }
+}

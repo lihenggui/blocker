@@ -16,4 +16,13 @@
 
 package com.merxury.blocker.feature.settings.api.navigation
 
+import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
+import kotlinx.serialization.Serializable
+
+@Serializable
 object SettingsNavKey: NavKey
+
+fun Navigator.navigateToSettings(){
+    navigate(SettingsNavKey)
+}

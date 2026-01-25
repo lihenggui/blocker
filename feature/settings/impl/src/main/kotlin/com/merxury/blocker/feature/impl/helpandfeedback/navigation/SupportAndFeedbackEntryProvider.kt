@@ -16,28 +16,20 @@
 
 package com.merxury.blocker.feature.impl.helpandfeedback.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.impl.helpandfeedback.SupportAndFeedbackScreen
-import kotlinx.serialization.Serializable
+import com.merxury.blocker.feature.settings.api.navigation.SupportAndFeedbackNavKey
+import com.merxury.blocker.feature.settings.api.navigation.navigateToLicenses
 
-@Serializable
-data object SupportAndFeedbackRoute
-
-fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) = navigate(route = SupportAndFeedbackRoute, navOptions)
-
-fun NavGraphBuilder.supportAndFeedbackScreen(
-    onBackClick: () -> Unit,
-    navigateToLicenses: () -> Unit,
-    snackbarHostState: SnackbarHostState,
-) {
-    composable<SupportAndFeedbackRoute> {
+fun EntryProviderScope<NavKey>.supportAndFeedbackEntry(navigator: Navigator) {
+    entry<SupportAndFeedbackNavKey> {
+        val snackbarHostState = LocalSnackbarHostState.current
         SupportAndFeedbackScreen(
-            onNavigationClick = onBackClick,
-            navigateToLicenses = navigateToLicenses,
+            onNavigationClick = { navigator.goBack() },
+            navigateToLicenses = navigator::navigateToLicenses,
             snackbarHostState = snackbarHostState,
         )
     }

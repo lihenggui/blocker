@@ -22,7 +22,6 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -48,7 +47,9 @@ import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.WarningDialogData
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.feature.applist.impl.navigation.AppListRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -69,11 +70,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import javax.inject.Inject
 import com.merxury.blocker.core.ui.R.string as uiString
 
-@HiltViewModel
-class AppListViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = AppListViewModel.Factory::class)
+class AppListViewModel @AssistedInject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
@@ -85,6 +85,7 @@ class AppListViewModel @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
+    @Assisted val initialPackageName: String?,
     private val analyticsHelper: AnalyticsHelper,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Initializing())
@@ -95,10 +96,9 @@ class AppListViewModel @Inject constructor(
     val warningState = _warningState.asStateFlow()
 
     private val selectedPackageKey = "selectedPackageKey"
-    private val appListRoute: AppListRoute = savedStateHandle.toRoute()
     private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
         key = selectedPackageKey,
-        initialValue = appListRoute.initialPackageName,
+        initialValue = initialPackageName,
     )
     private var showAppSortBottomSheetStatus = false
 
@@ -206,19 +206,20 @@ class AppListViewModel @Inject constructor(
             }
     }
 
-    private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> = if (sortOrder == SortingOrder.ASCENDING) {
-        when (sortType) {
-            NAME -> compareBy { it.label.lowercase() }
-            FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
-            LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
+    private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =
+        if (sortOrder == SortingOrder.ASCENDING) {
+            when (sortType) {
+                NAME -> compareBy { it.label.lowercase() }
+                FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
+                LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
+            }
+        } else {
+            when (sortType) {
+                NAME -> compareByDescending { it.label.lowercase() }
+                FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
+                LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
+            }
         }
-    } else {
-        when (sortType) {
-            NAME -> compareByDescending { it.label.lowercase() }
-            FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
-            LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
-        }
-    }
 
     private var updateAppListJob: Job? = null
     fun updateInstalledAppList() {
@@ -387,6 +388,11 @@ class AppListViewModel @Inject constructor(
                 }
             }
         Timber.v("App updated: $packageName")
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(initialPackageName: String?): AppListViewModel
     }
 }
 

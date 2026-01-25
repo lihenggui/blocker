@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.applist.impl.navigation
+package com.merxury.blocker.core.ui
 
-import androidx.navigation.NavController
-import androidx.navigation.NavOptions
-import kotlinx.serialization.Serializable
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.compositionLocalOf
 
-@Serializable
-data class AppListRoute(
-    val initialPackageName: String? = null,
-)
-
-fun NavController.navigateToAppList(
-    initialPackageName: String? = null,
-    navOptions: NavOptions? = null,
-) {
-    navigate(route = AppListRoute(initialPackageName), navOptions)
+val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> {
+    error("SnackbarHostState state should be initialized at runtime")
 }

@@ -24,6 +24,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.domain.ZipLogFileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -60,9 +61,9 @@ class SupportFeedbackViewModel @Inject constructor(
         val resolveInfo = getCustomTabsPackages(context)
         if (resolveInfo.isNotEmpty()) {
             Timber.i("Open url in Chrome Tabs $url")
-            chromeIntent.launchUrl(context, Uri.parse(url))
+            chromeIntent.launchUrl(context, url.toUri())
         } else {
-            val browseIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            val browseIntent = Intent(Intent.ACTION_VIEW, url.toUri())
             if (browseIntent.resolveActivity(context.packageManager) != null) {
                 Timber.i("Open url in default browser $url")
                 context.startActivity(browseIntent)

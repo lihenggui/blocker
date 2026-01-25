@@ -56,7 +56,7 @@ fun TrackJank(
 ) {
     val metrics = rememberMetricsStateHolder()
     LaunchedEffect(metrics, *keys) {
-        latestReportMetric(metrics)
+        reportMetric(metrics)
     }
 }
 
@@ -71,7 +71,7 @@ fun TrackDisposableJank(
 ) {
     val metrics = rememberMetricsStateHolder()
     DisposableEffect(metrics, *keys) {
-        latestReportMetric(this, metrics)
+        reportMetric(this, metrics)
     }
 }
 

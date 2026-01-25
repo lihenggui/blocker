@@ -37,6 +37,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Short
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,7 +72,6 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
@@ -231,13 +231,13 @@ private fun showEnableProgress(
 ) {
     scope.launch {
         if (current == total) {
-            snackbarHostState.showSnackbarWithoutQueue(
+            snackbarHostState.showSnackbar(
                 message = context.getString(uistring.core_ui_operation_completed),
                 duration = Short,
                 withDismissAction = true,
             )
         } else {
-            snackbarHostState.showSnackbarWithoutQueue(
+            snackbarHostState.showSnackbar(
                 message = context.getString(
                     uistring.core_ui_enabling_component_hint,
                     current,
@@ -259,13 +259,13 @@ private fun showDisableProgress(
 ) {
     scope.launch {
         if (current == total) {
-            snackbarHostState.showSnackbarWithoutQueue(
+            snackbarHostState.showSnackbar(
                 message = context.getString(uistring.core_ui_operation_completed),
                 duration = Short,
                 withDismissAction = true,
             )
         } else {
-            snackbarHostState.showSnackbarWithoutQueue(
+            snackbarHostState.showSnackbar(
                 message = context.getString(
                     uistring.core_ui_disabling_component_hint,
                     current,
@@ -369,7 +369,7 @@ fun RuleDetailContent(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 toolbarState.scrollTopLimitReached =
                     listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
+                        listState.firstVisibleItemScrollOffset == 0
                 toolbarState.scrollOffset -= available.y
                 return Offset(0f, toolbarState.consumed)
             }
@@ -384,7 +384,7 @@ fun RuleDetailContent(
                         ) { value, _ ->
                             toolbarState.scrollTopLimitReached =
                                 listState.firstVisibleItemIndex == 0 &&
-                                listState.firstVisibleItemScrollOffset == 0
+                                    listState.firstVisibleItemScrollOffset == 0
                             toolbarState.scrollOffset -= (value - (toolbarState.height + toolbarState.offset))
                             if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
                         }
@@ -492,9 +492,10 @@ fun MoreActionMenu(
 }
 
 @Composable
-private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
-    ExitUntilCollapsedState(heightRange = toolbarHeightRange)
-}
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState =
+    rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+        ExitUntilCollapsedState(heightRange = toolbarHeightRange)
+    }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

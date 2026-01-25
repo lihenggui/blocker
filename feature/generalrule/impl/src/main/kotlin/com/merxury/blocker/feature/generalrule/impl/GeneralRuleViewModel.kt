@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.generalrule.impl
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
@@ -33,7 +32,9 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.feature.generalrule.impl.navigation.GeneralRuleRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -50,10 +51,9 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
-@HiltViewModel
-class GeneralRulesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = GeneralRulesViewModel.Factory::class)
+class GeneralRulesViewModel @AssistedInject constructor(
     private val appRepository: AppRepository,
     private val appPropertiesRepository: AppPropertiesRepository,
     private val generalRuleRepository: GeneralRuleRepository,
@@ -62,6 +62,7 @@ class GeneralRulesViewModel @Inject constructor(
     private val updateRule: UpdateRuleMatchedAppUseCase,
     private val savedStateHandle: SavedStateHandle,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Assisted val initialRuleId: String,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<GeneralRuleUiState>(GeneralRuleUiState.Loading)
     val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
@@ -73,13 +74,12 @@ class GeneralRulesViewModel @Inject constructor(
         _uiState.value = (GeneralRuleUiState.Error(throwable.toErrorMessage()))
     }
     private var loadRuleJob: Job? = null
-    private val generalRuleRoute: GeneralRuleRoute = savedStateHandle.toRoute()
 
     // Key used to save and retrieve the currently selected topic id from saved state.
     private val selectedRuleIdKey = "selectedRuleIdKey"
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
         key = selectedRuleIdKey,
-        initialValue = generalRuleRoute.initialRuleId,
+        initialValue = initialRuleId,
     )
 
     init {
@@ -139,7 +139,7 @@ class GeneralRulesViewModel @Inject constructor(
                     } else {
                         GeneralRuleUiState.Success(
                             matchedRules = matchedRules,
-                            unmatchedRules = unmatchedRules
+                            unmatchedRules = unmatchedRules,
                         )
                     }
                     if (!skipLoading) {
@@ -223,6 +223,13 @@ class GeneralRulesViewModel @Inject constructor(
         Timber.d("Save app list hash: $appListHash, rule hash: $ruleHash")
         appPropertiesRepository.updateLastOpenedAppListHash(appListHash)
         appPropertiesRepository.updateLastOpenedRuleHash(ruleHash)
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            @Assisted initialRuleId: String,
+        ): GeneralRulesViewModel
     }
 }
 

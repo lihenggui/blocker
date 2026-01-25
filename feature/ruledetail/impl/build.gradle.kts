@@ -26,9 +26,11 @@ android {
 }
 dependencies {
     implementation(projects.feature.ruledetail.api)
+    implementation(projects.feature.appdetail.api)
     implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
+    implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.coil.kt.compose)
     implementation(libs.compose.markdown)
     implementation(libs.material.kolor)

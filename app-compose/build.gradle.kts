@@ -91,13 +91,20 @@ android {
 }
 
 dependencies {
-    implementation(projects.feature.appdetail)
-    implementation(projects.feature.applist)
-    implementation(projects.feature.debloater)
-    implementation(projects.feature.generalrule)
-    implementation(projects.feature.ruledetail)
-    implementation(projects.feature.search)
-    implementation(projects.feature.settings)
+    implementation(projects.feature.appdetail.api)
+    implementation(projects.feature.appdetail.impl)
+    implementation(projects.feature.applist.api)
+    implementation(projects.feature.applist.impl)
+    implementation(projects.feature.debloater.api)
+    implementation(projects.feature.debloater.impl)
+    implementation(projects.feature.generalrule.api)
+    implementation(projects.feature.generalrule.impl)
+    implementation(projects.feature.ruledetail.api)
+    implementation(projects.feature.ruledetail.impl)
+    implementation(projects.feature.search.api)
+    implementation(projects.feature.search.impl)
+    implementation(projects.feature.settings.api)
+    implementation(projects.feature.settings.impl)
 
     implementation(projects.core.analytics)
     implementation(projects.core.common)

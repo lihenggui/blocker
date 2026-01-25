@@ -32,6 +32,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +50,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -141,7 +141,7 @@ fun SettingsScreen(
             RuleWorkResult.FINISHED -> CoreRuleR.core_rule_done
             RuleWorkResult.FOLDER_NOT_DEFINED,
             RuleWorkResult.MISSING_STORAGE_PERMISSION,
-            -> CoreRuleR.core_rule_error_msg_folder_not_defined
+                -> CoreRuleR.core_rule_error_msg_folder_not_defined
 
             RuleWorkResult.MISSING_ROOT_PERMISSION -> CoreRuleR.core_rule_error_msg_missing_root_permission
             RuleWorkResult.UNEXPECTED_EXCEPTION -> CoreRuleR.core_rule_error_msg_unexpected_exception
@@ -269,7 +269,8 @@ fun SettingsContent(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { importMatRules(it) },
     )
-    val fileManagerRequiredMsg = stringResource(id = string.feature_settings_api_file_manager_required)
+    val fileManagerRequiredMsg =
+        stringResource(id = string.feature_settings_api_file_manager_required)
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())

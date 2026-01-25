@@ -17,5 +17,12 @@
 package com.merxury.blocker.feature.settings.api.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
+import kotlinx.serialization.Serializable
 
+@Serializable
 object SupportAndFeedbackNavKey: NavKey
+
+fun Navigator.navigateToSupportAndFeedback(){
+    navigate(SupportAndFeedbackNavKey)
+}

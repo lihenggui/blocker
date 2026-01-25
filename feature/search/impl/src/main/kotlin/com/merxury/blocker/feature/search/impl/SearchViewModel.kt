@@ -21,7 +21,6 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -51,7 +50,9 @@ import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.WarningDialogData
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.feature.search.impl.navigation.SearchRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -71,11 +72,10 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 import com.merxury.blocker.core.ui.R.string as uiString
 
-@HiltViewModel
-class SearchViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = SearchViewModel.Factory::class)
+class SearchViewModel @AssistedInject constructor(
     private val pm: PackageManager,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
@@ -87,6 +87,8 @@ class SearchViewModel @Inject constructor(
     private val analyticsHelper: AnalyticsHelper,
     private val savedStateHandle: SavedStateHandle,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Assisted("packageName") val packageName: String?,
+    @Assisted("ruleId") val ruleId: String?,
 ) : ViewModel() {
     private val _searchUiState = MutableStateFlow(SearchUiState())
     val searchUiState: StateFlow<SearchUiState> = _searchUiState.asStateFlow()
@@ -106,14 +108,13 @@ class SearchViewModel @Inject constructor(
     private var loadAppJob: Job? = null
     private val selectedPackageNameKey = "selectedPackageNameKey"
     private val selectedRuleIdKey = "selectedRuleIdKey"
-    private val searchRoute: SearchRoute = savedStateHandle.toRoute()
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
         key = selectedRuleIdKey,
-        initialValue = searchRoute.ruleId,
+        initialValue = ruleId,
     )
     private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
         key = selectedPackageNameKey,
-        initialValue = searchRoute.packageName,
+        initialValue = packageName,
     )
 
     private val _tabState = MutableStateFlow(
@@ -449,6 +450,16 @@ class SearchViewModel @Inject constructor(
 
     fun dismissWarningDialog() = viewModelScope.launch {
         _warningState.emit(null)
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            @Assisted("packageName") packageName: String? = null,
+            @Assisted("tab") tab: String? = null,
+            @Assisted searchKeyword: List<String> = listOf(),
+            @Assisted("ruleId") ruleId: String? = null,
+        ): SearchViewModel
     }
 }
 

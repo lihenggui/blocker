@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.generalrule.api.navigation
+package com.merxury.blocker.feature.appdetail.api.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
 import kotlinx.serialization.Serializable
 
 @Serializable
-object AppListNavKey : NavKey
+data class ComponentDetailNavKey(val componentName: String): NavKey
+
+fun Navigator.navigateToComponentDetail(componentName: String) {
+    navigate(ComponentDetailNavKey(componentName))
+}

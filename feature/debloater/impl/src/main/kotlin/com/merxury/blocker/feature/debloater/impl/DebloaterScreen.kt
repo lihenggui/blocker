@@ -32,6 +32,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,7 +51,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerFilterChip
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.result.Result
@@ -82,7 +82,6 @@ fun DebloaterScreen(
     }
 
     DebloaterScreenContent(
-        snackbarHostState = snackbarHostState,
         modifier = modifier,
         debloatableUiState = debloatableUiState,
         searchQuery = searchQuery,
@@ -108,7 +107,6 @@ fun DebloaterScreen(
 
 @Composable
 internal fun DebloaterScreenContent(
-    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     debloatableUiState: Result<List<MatchedTarget>> = Result.Loading,
     searchQuery: String = "",
@@ -172,7 +170,7 @@ internal fun DebloaterScreenContent(
 
     if (errorState != null) {
         BlockerErrorAlertDialog(
-            title = errorState.title.orEmpty(),
+            title = errorState.title,
             text = errorState.content.orEmpty(),
             onDismissRequest = onDismissError,
         )
@@ -252,7 +250,6 @@ private fun DebloaterScreenContentPreview(
     BlockerTheme {
         Surface {
             DebloaterScreenContent(
-                snackbarHostState = SnackbarHostState(),
                 debloatableUiState = Result.Success(list),
                 searchQuery = "",
             )
@@ -266,7 +263,6 @@ private fun DebloaterScreenContentWithSearchPreview() {
     BlockerTheme {
         Surface {
             DebloaterScreenContent(
-                snackbarHostState = SnackbarHostState(),
                 debloatableUiState = Result.Success(DebloaterPreviewParameterData.debloaterList),
                 searchQuery = "Main",
             )
@@ -280,7 +276,6 @@ private fun DebloaterScreenContentWithErrorDialogPreview() {
     BlockerTheme {
         Surface {
             DebloaterScreenContent(
-                snackbarHostState = SnackbarHostState(),
                 debloatableUiState = Result.Success(DebloaterPreviewParameterData.debloaterList),
                 searchQuery = "",
                 errorState = UiMessage(
@@ -298,7 +293,6 @@ private fun DebloaterScreenContentLoadingPreview() {
     BlockerTheme {
         Surface {
             DebloaterScreenContent(
-                snackbarHostState = SnackbarHostState(),
                 debloatableUiState = Result.Loading,
                 searchQuery = "",
             )

@@ -35,6 +35,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarDuration.Short
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,7 +53,6 @@ import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -165,13 +165,13 @@ private fun handleEnableAppClick(
     viewModel.controlAllSelectedComponents(true) { current, total ->
         scope.launch {
             if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
+                snackbarHostState.showSnackbar(
                     message = doneMessage,
                     duration = Short,
                     withDismissAction = true,
                 )
             } else {
-                snackbarHostState.showSnackbarWithoutQueue(
+                snackbarHostState.showSnackbar(
                     message = context.getString(
                         uistring.core_ui_enabling_component_hint,
                         current,
@@ -195,13 +195,13 @@ private fun handleBlockAllClick(
     viewModel.controlAllSelectedComponents(false) { current, total ->
         scope.launch {
             if (current == total) {
-                snackbarHostState.showSnackbarWithoutQueue(
+                snackbarHostState.showSnackbar(
                     message = doneMessage,
                     duration = Short,
                     withDismissAction = true,
                 )
             } else {
-                snackbarHostState.showSnackbarWithoutQueue(
+                snackbarHostState.showSnackbar(
                     message = context.getString(
                         uistring.core_ui_disabling_component_hint,
                         current,

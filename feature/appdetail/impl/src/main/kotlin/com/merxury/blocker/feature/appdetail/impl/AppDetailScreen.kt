@@ -45,6 +45,7 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Short
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,7 +85,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
@@ -274,7 +274,7 @@ fun AppDetailScreen(
             FINISHED -> rulestring.core_rule_done
             FOLDER_NOT_DEFINED,
             MISSING_STORAGE_PERMISSION,
-            -> rulestring.core_rule_error_msg_folder_not_defined
+                -> rulestring.core_rule_error_msg_folder_not_defined
 
             MISSING_ROOT_PERMISSION -> rulestring.core_rule_error_msg_missing_root_permission
             UNEXPECTED_EXCEPTION -> rulestring.core_rule_error_msg_unexpected_exception
@@ -304,13 +304,13 @@ private fun showEnableProgress(
 ) {
     scope.launch {
         if (current == total) {
-            snackbarHostState.showSnackbarWithoutQueue(
+            snackbarHostState.showSnackbar(
                 message = context.getString(uistring.core_ui_operation_completed),
                 duration = Short,
                 withDismissAction = true,
             )
         } else {
-            snackbarHostState.showSnackbarWithoutQueue(
+            snackbarHostState.showSnackbar(
                 message = context.getString(
                     uistring.core_ui_enabling_component_hint,
                     current,
@@ -332,13 +332,13 @@ private fun showDisableProgress(
 ) {
     scope.launch {
         if (current == total) {
-            snackbarHostState.showSnackbarWithoutQueue(
+            snackbarHostState.showSnackbar(
                 message = context.getString(uistring.core_ui_operation_completed),
                 duration = Short,
                 withDismissAction = true,
             )
         } else {
-            snackbarHostState.showSnackbarWithoutQueue(
+            snackbarHostState.showSnackbar(
                 message = context.getString(
                     uistring.core_ui_disabling_component_hint,
                     current,
@@ -372,8 +372,10 @@ private fun shareFile(
         "${context.packageName}.FileProvider",
         zippedFile,
     )
-    val appPackageName = rule.packageName ?: context.getString(string.feature_appdetail_api_all_rules)
-    val subject = context.getString(string.feature_appdetail_api_rules_sharing_title, appPackageName)
+    val appPackageName =
+        rule.packageName ?: context.getString(string.feature_appdetail_api_all_rules)
+    val subject =
+        context.getString(string.feature_appdetail_api_rules_sharing_title, appPackageName)
     val text = context.getString(string.feature_appdetail_api_provide_additional_details)
     val receiver = arrayOf("mercuryleee@gmail.com")
     val intent = Intent(Intent.ACTION_SEND).apply {
@@ -545,7 +547,7 @@ fun AppDetailContent(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 toolbarState.scrollTopLimitReached =
                     listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
+                        listState.firstVisibleItemScrollOffset == 0
                 toolbarState.scrollOffset -= available.y
                 return Offset(0f, toolbarState.consumed)
             }
@@ -560,7 +562,7 @@ fun AppDetailContent(
                         ) { value, _ ->
                             toolbarState.scrollTopLimitReached =
                                 listState.firstVisibleItemIndex == 0 &&
-                                listState.firstVisibleItemScrollOffset == 0
+                                    listState.firstVisibleItemScrollOffset == 0
                             toolbarState.scrollOffset -= (value - (toolbarState.height + toolbarState.offset))
                             if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
                         }
@@ -701,9 +703,10 @@ fun AppDetailAppBarActions(
 }
 
 @Composable
-private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
-    ExitUntilCollapsedState(heightRange = toolbarHeightRange)
-}
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState =
+    rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+        ExitUntilCollapsedState(heightRange = toolbarHeightRange)
+    }
 
 @Composable
 private fun TopAppBar(

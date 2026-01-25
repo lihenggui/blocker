@@ -20,4 +20,4 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-object GeneralRuleNavKey : NavKey
+data class GeneralRuleNavKey(val initialRuleId: String) : NavKey

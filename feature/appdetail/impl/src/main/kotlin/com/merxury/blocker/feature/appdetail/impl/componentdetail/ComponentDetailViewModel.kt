@@ -16,10 +16,8 @@
 
 package com.merxury.blocker.feature.appdetail.impl.componentdetail
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -27,7 +25,9 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.appdetail.impl.componentdetail.ComponentDetailUiState.Loading
 import com.merxury.blocker.feature.appdetail.impl.componentdetail.ComponentDetailUiState.Success
-import com.merxury.blocker.feature.appdetail.impl.navigation.ComponentDetailRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,15 +35,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class ComponentDetailViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+@HiltViewModel(assistedFactory = ComponentDetailViewModel.Factory::class)
+class ComponentDetailViewModel @AssistedInject constructor(
     private val componentDetailRepository: ComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Assisted val componentName: String,
 ) : ViewModel() {
-    private val componentDetailInfo = savedStateHandle.toRoute<ComponentDetailRoute>()
     private val _uiState = MutableStateFlow<ComponentDetailUiState>(Loading)
     val uiState = _uiState.asStateFlow()
 
@@ -53,7 +51,7 @@ class ComponentDetailViewModel @Inject constructor(
 
     private fun load() = viewModelScope.launch(ioDispatcher) {
         val userGeneratedDetail = componentDetailRepository
-            .getUserGeneratedDetail(componentDetailInfo.componentName)
+            .getUserGeneratedDetail(componentName)
             .first()
         if (userGeneratedDetail != null) {
             _uiState.value = Success(
@@ -63,7 +61,7 @@ class ComponentDetailViewModel @Inject constructor(
             return@launch
         }
         val localDetail = componentDetailRepository
-            .getLocalComponentDetail(componentDetailInfo.componentName)
+            .getLocalComponentDetail(componentName)
             .first()
         if (localDetail != null) {
             _uiState.value = Success(
@@ -74,7 +72,7 @@ class ComponentDetailViewModel @Inject constructor(
         // No matching found in the network, emit the default value
         // Dismiss the loading progress bar
         _uiState.value = Success(
-            detail = ComponentDetail(name = componentDetailInfo.componentName),
+            detail = ComponentDetail(name = componentName),
         )
     }
 
@@ -91,6 +89,13 @@ class ComponentDetailViewModel @Inject constructor(
     fun save(detail: ComponentDetail) = viewModelScope.launch {
         componentDetailRepository.saveComponentDetail(detail)
             .collect {}
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            @Assisted componentName: String,
+        ): ComponentDetailViewModel
     }
 }
 

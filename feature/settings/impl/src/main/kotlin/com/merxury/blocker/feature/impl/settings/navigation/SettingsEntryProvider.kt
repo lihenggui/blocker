@@ -16,26 +16,18 @@
 
 package com.merxury.blocker.feature.impl.settings.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.impl.settings.SettingsScreen
-import kotlinx.serialization.Serializable
+import com.merxury.blocker.feature.settings.api.navigation.SettingsNavKey
 
-@Serializable
-data object SettingsRoute
-
-fun NavController.navigateToSettings(navOptions: NavOptions? = null) = navigate(route = SettingsRoute, navOptions)
-
-fun NavGraphBuilder.settingsScreen(
-    onBackClick: () -> Unit,
-    snackbarHostState: SnackbarHostState,
-) {
-    composable<SettingsRoute> {
+fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
+    entry<SettingsNavKey> {
+        val snackbarHostState = LocalSnackbarHostState.current
         SettingsScreen(
-            onNavigationClick = onBackClick,
+            onNavigationClick = { navigator.goBack() },
             snackbarHostState = snackbarHostState,
         )
     }
