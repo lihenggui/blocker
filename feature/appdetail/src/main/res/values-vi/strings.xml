@@ -31,7 +31,7 @@
     <string name="feature_appdetail_enable_all_of_this_page">Kích hoạt tất cả trong trang này</string>
     <string name="feature_appdetail_blocking_effect">Hệ quả khi chặn</string>
     <string name="feature_appdetail_recommended_blocking">Khuyến khích chặn</string>
-    <string name="feature_appdetail_belonging_sdk">Belonging SDK</string>
+    <string name="feature_appdetail_belonging_sdk">Thuộc về SDK</string>
     <string name="feature_appdetail_save">Lưu</string>
     <string name="feature_appdetail_data_with_explanation" translatable="false">%1$s (%2$s)</string>
     <string name="feature_appdetail_search_components">Tìm kiếm thành phần</string>
