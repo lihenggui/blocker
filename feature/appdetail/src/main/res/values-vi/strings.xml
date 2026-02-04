@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2025 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="feature_appdetail_cannot_launch_this_app">Không thể khởi chạy ứng dụng</string>
+    <string name="feature_appdetail_blocker_rules">Luật chặn</string>
+    <string name="feature_appdetail_export_rules">Xuất luật</string>
+    <string name="feature_appdetail_import_rules">Nhập luật</string>
+    <string name="feature_appdetail_ifw_rules">Luật IFW</string>
+    <string name="feature_appdetail_export_ifw_rules">Xuất IFW luật</string>
+    <string name="feature_appdetail_import_ifw_rules">Nhập IFW luật</string>
+    <string name="feature_appdetail_reset_ifw">Khôi phục lại IFW</string>
+    <string name="feature_appdetail_target_sdk_version">Phiên bản SDK cao nhất</string>
+    <string name="feature_appdetail_minimum_sdk_version">Phiên bản SDK thấp nhật</string>
+    <string name="feature_appdetail_last_update_time">Cập nhật lần cuối</string>
+    <string name="feature_appdetail_data_dir">Đường dẫn dữ liệu</string>
+    <string name="feature_appdetail_block_all_of_this_page">Chặn tất cả trong trang này</string>
+    <string name="feature_appdetail_enable_all_of_this_page">Kích hoạt tất cả trong trang này</string>
+    <string name="feature_appdetail_blocking_effect">Hệ quả khi chặn</string>
+    <string name="feature_appdetail_recommended_blocking">Khuyến khích chặn</string>
+    <string name="feature_appdetail_belonging_sdk">Belonging SDK</string>
+    <string name="feature_appdetail_save">Lưu</string>
+    <string name="feature_appdetail_data_with_explanation" translatable="false">%1$s (%2$s)</string>
+    <string name="feature_appdetail_search_components">Tìm kiếm thành phần</string>
+    <string name="feature_appdetail_add_description_hint">Hiện tại không có thông tin về thành phần này, hãy thành người tiên phong!</string>
+    <string name="feature_appdetail_how_to_contribute">Cách để giúp đỡ xây dựng?</string>
+    <string name="feature_appdetail_unknown">Không rõ</string>
+    <string name="feature_appdetail_select_mutiple">Chọn nhiều</string>
+    <plurals name="feature_appdetail_selected_component_count">
+        <item quantity="one">%1$d đã chọn</item>
+        <item quantity="other">%1$d đã chọn</item>
+    </plurals>
+    <string name="feature_appdetail_share_your_rules">Chia sẻ luật của bạn</string>
+    <string name="feature_appdetail_share_all_rules">Chia sẻ tất cả các luật</string>
+    <string name="feature_appdetail_share_rules_of_this_app">Chia sẻ luật của ứng dụng</string>
+    <string name="feature_appdetail_cannot_share_rule_report_issue">Không thể chia sẻ luật, vui lòng báo lỗi.</string>
+    <string name="feature_appdetail_cannot_share_rule_no_apps_found">Không tìm thấy ứng dụng nào để chia sẻ.</string>
+    <string name="feature_appdetail_rules_sharing_title">Luật chia sẻ: %1$s</string>
+    <string name="feature_appdetail_provide_additional_details">(Bạn có thể cho chúng tôi biết thêm thông tin được không.)\n</string>
+    <string name="feature_appdetail_all_rules">Tất cả luật</string>
+    <string name="feature_appdetail_app_info">Thông tin ứng dụng</string>
+    <string name="feature_appdetail_app_info_with_libchecker_summary">Sử dụng ứng dụng LibChecker để biết thêm thông tin</string>
+    <string name="feature_appdetail_select_an_app">Chọn ứng dụng</string>
+    <string name="feature_appdetail_sort_options">Sắp xếp theo</string>
+    <string name="feature_appdetail_sort_by">Sắp từ</string>
+    <string name="feature_appdetail_package_name">Tên gói ứng dụng</string>
+    <string name="feature_appdetail_component_name">Tên gói thành phần</string>
+    <string name="feature_appdetail_order">Tên gọi</string>
+    <string name="feature_appdetail_ascending">A -> Z</string>
+    <string name="feature_appdetail_descending">Z -> A</string>
+    <string name="feature_appdetail_priority">Ưu tiên</string>
+    <string name="feature_appdetail_disabled_first">Vô hiệu trước</string>
+    <string name="feature_appdetail_enabled_first">Kích hoạt trước</string>
+    <string name="feature_appdetail_none">Không</string>
+</resources>
