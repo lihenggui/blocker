@@ -58,7 +58,7 @@
     <string name="feature_appdetail_sort_by">Sắp từ</string>
     <string name="feature_appdetail_package_name">Tên gói ứng dụng</string>
     <string name="feature_appdetail_component_name">Tên gói thành phần</string>
-    <string name="feature_appdetail_order">Tên gọi</string>
+    <string name="feature_appdetail_order">Chữ cái</string>
     <string name="feature_appdetail_ascending">A -> Z</string>
     <string name="feature_appdetail_descending">Z -> A</string>
     <string name="feature_appdetail_priority">Ưu tiên</string>
