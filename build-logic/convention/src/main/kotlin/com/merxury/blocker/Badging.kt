@@ -19,8 +19,8 @@ package com.merxury.blocker
 
 import com.android.SdkConstants
 import com.android.build.api.artifact.SingleArtifact
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.android.build.gradle.BaseExtension
 import com.google.common.truth.Truth.assertWithMessage
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -125,7 +125,7 @@ private fun String.trimSpaceForEachLine(): String {
 }
 
 fun Project.configureBadgingTasks(
-    baseExtension: BaseExtension,
+    applicationExtension: ApplicationExtension,
     componentsExtension: ApplicationAndroidComponentsExtension,
 ) {
     // Registers a callback to be called, when a new variant is configured
@@ -142,7 +142,7 @@ fun Project.configureBadgingTasks(
                 componentsExtension.sdkComponents.sdkDirectory.map { directory ->
                     directory.file(
                         "${SdkConstants.FD_BUILD_TOOLS}/" +
-                            "${baseExtension.buildToolsVersion}/" +
+                            "${applicationExtension.buildToolsVersion}/" +
                             SdkConstants.FN_AAPT2,
                     )
                 },

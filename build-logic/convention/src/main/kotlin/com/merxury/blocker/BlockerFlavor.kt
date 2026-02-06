@@ -21,6 +21,7 @@ import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.ApplicationProductFlavor
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.ProductFlavor
+import org.gradle.kotlin.dsl.invoke
 
 @Suppress("EnumEntryName")
 enum class FlavorDimension {
@@ -34,7 +35,7 @@ enum class BlockerFlavor(val dimension: FlavorDimension, val applicationIdSuffix
 }
 
 fun configureFlavors(
-    commonExtension: CommonExtension<*, *, *, *, *, *>,
+    commonExtension: CommonExtension,
     flavorConfigurationBlock: ProductFlavor.(flavor: BlockerFlavor) -> Unit = {},
 ) {
     commonExtension.apply {
@@ -46,7 +47,7 @@ fun configureFlavors(
                 register(blockerFlavor.name) {
                     dimension = blockerFlavor.dimension.name
                     flavorConfigurationBlock(this, blockerFlavor)
-                    if (this@apply is ApplicationExtension && this is ApplicationProductFlavor) {
+                    if (commonExtension is ApplicationExtension && this is ApplicationProductFlavor) {
                         if (blockerFlavor.applicationIdSuffix != null) {
                             this.applicationIdSuffix = blockerFlavor.applicationIdSuffix
                         }

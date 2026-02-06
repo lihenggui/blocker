@@ -47,7 +47,7 @@ fun EntryProviderScope<NavKey>.searchEntry(navigator: Navigator) {
             viewModel = hiltViewModel<SearchViewModel, SearchViewModel.Factory>(
                 key = viewModelKey,
             ) { factory ->
-                factory.create(packageName, tab, searchKeyword, ruleId)
+                factory.create(packageName, ruleId)
             },
         )
     }

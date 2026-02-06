@@ -14,25 +14,23 @@
  *   limitations under the License.
  */
 
-import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
+import com.android.build.api.dsl.LibraryExtension
 import com.merxury.blocker.configureJacoco
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
 
 class AndroidLibraryJacocoConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            pluginManager.apply("jacoco")
-            val androidExtension = extensions.getByType<LibraryExtension>()
+            pluginManager.apply(JacocoPlugin::class.java)
 
-            androidExtension.buildTypes.configureEach {
-                enableAndroidTestCoverage = true
-                enableUnitTestCoverage = true
-            }
-
-            configureJacoco(extensions.getByType<LibraryAndroidComponentsExtension>())
+            configureJacoco(
+                commonExtension = extensions.getByType<LibraryExtension>(),
+                androidComponentsExtension = extensions.getByType<LibraryAndroidComponentsExtension>(),
+            )
         }
     }
 }

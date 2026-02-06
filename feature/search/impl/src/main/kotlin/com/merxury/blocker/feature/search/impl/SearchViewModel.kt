@@ -456,8 +456,6 @@ class SearchViewModel @AssistedInject constructor(
     interface Factory {
         fun create(
             @Assisted("packageName") packageName: String? = null,
-            @Assisted("tab") tab: String? = null,
-            @Assisted searchKeyword: List<String> = listOf(),
             @Assisted("ruleId") ruleId: String? = null,
         ): SearchViewModel
     }
