@@ -35,10 +35,8 @@ fun EntryProviderScope<NavKey>.searchEntry(navigator: Navigator) {
         metadata = ListDetailSceneStrategy.listPane(),
     ) { key ->
         val packageName = key.packageName
-        val tab = key.tab
-        val searchKeyword = key.searchKeyword
         val ruleId = key.ruleId
-        val viewModelKey = "search_${ruleId ?: "none"}_$searchKeyword"
+        val viewModelKey = "search_${ruleId ?: "none"}_${key.searchKeyword}"
         val snackbarHostState = LocalSnackbarHostState.current
         SearchScreen(
             snackbarHostState = snackbarHostState,
@@ -47,7 +45,7 @@ fun EntryProviderScope<NavKey>.searchEntry(navigator: Navigator) {
             viewModel = hiltViewModel<SearchViewModel, SearchViewModel.Factory>(
                 key = viewModelKey,
             ) { factory ->
-                factory.create(packageName, tab, searchKeyword, ruleId)
+                factory.create(packageName, ruleId)
             },
         )
     }
