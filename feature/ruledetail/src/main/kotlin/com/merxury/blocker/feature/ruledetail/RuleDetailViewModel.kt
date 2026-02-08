@@ -301,20 +301,19 @@ class RuleDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private fun sortMatchedItems(items: List<MatchedItem>): List<MatchedItem> =
-        when (_sortType.value) {
-            NAME -> items.sortedBy { it.header.title.lowercase() }
-            RECENTLY_INSTALLED -> items.sortedByDescending {
-                installedAppMap[it.header.uniqueId]?.firstInstallTime
-            }
-            MOST_MATCHED -> items.sortedByDescending { it.componentList.size }
-            MOST_BLOCKED -> items.sortedByDescending { item ->
-                item.componentList.count { !it.enabled() }
-            }
-            MOST_ENABLED -> items.sortedByDescending { item ->
-                item.componentList.count { it.enabled() }
-            }
+    private fun sortMatchedItems(items: List<MatchedItem>): List<MatchedItem> = when (_sortType.value) {
+        NAME -> items.sortedBy { it.header.title.lowercase() }
+        RECENTLY_INSTALLED -> items.sortedByDescending {
+            installedAppMap[it.header.uniqueId]?.firstInstallTime
         }
+        MOST_MATCHED -> items.sortedByDescending { it.componentList.size }
+        MOST_BLOCKED -> items.sortedByDescending { item ->
+            item.componentList.count { !it.enabled() }
+        }
+        MOST_ENABLED -> items.sortedByDescending { item ->
+            item.componentList.count { it.enabled() }
+        }
+    }
 
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)

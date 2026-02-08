@@ -138,7 +138,7 @@ fun RuleDetailScreen(
         switchTab = viewModel::switchTab,
         appBarUiState = appBarUiState,
         sortType = sortType,
-        onSortTypeChanged = viewModel::updateSortType,
+        onSortTypeChange = viewModel::updateSortType,
         onStopServiceClick = viewModel::stopService,
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = {
@@ -297,7 +297,7 @@ fun RuleDetailScreen(
     showBackButton: Boolean = true,
     appBarUiState: AppBarUiState = AppBarUiState(),
     sortType: RuleDetailSortType = RuleDetailSortType.NAME,
-    onSortTypeChanged: (RuleDetailSortType) -> Unit = {},
+    onSortTypeChange: (RuleDetailSortType) -> Unit = {},
     onBackClick: () -> Unit = {},
     switchTab: (RuleDetailTabs) -> Unit = { _ -> },
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
@@ -326,7 +326,7 @@ fun RuleDetailScreen(
                 onBackClick = onBackClick,
                 appBarUiState = appBarUiState,
                 sortType = sortType,
-                onSortTypeChanged = onSortTypeChanged,
+                onSortTypeChange = onSortTypeChange,
                 tabState = tabState,
                 switchTab = switchTab,
                 onStopServiceClick = onStopServiceClick,
@@ -361,7 +361,7 @@ fun RuleDetailContent(
     showBackButton: Boolean = true,
     appBarUiState: AppBarUiState = AppBarUiState(),
     sortType: RuleDetailSortType = RuleDetailSortType.NAME,
-    onSortTypeChanged: (RuleDetailSortType) -> Unit = {},
+    onSortTypeChange: (RuleDetailSortType) -> Unit = {},
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -429,7 +429,7 @@ fun RuleDetailContent(
                     RuleDetailAppBarActions(
                         appBarUiState = appBarUiState,
                         sortType = sortType,
-                        onSortTypeChanged = onSortTypeChanged,
+                        onSortTypeChange = onSortTypeChange,
                         blockAllComponents = onBlockAllInPageClick,
                         enableAllComponents = onEnableAllInPageClick,
                     )
@@ -466,7 +466,7 @@ fun RuleDetailAppBarActions(
     modifier: Modifier = Modifier,
     appBarUiState: AppBarUiState = AppBarUiState(),
     sortType: RuleDetailSortType = RuleDetailSortType.NAME,
-    onSortTypeChanged: (RuleDetailSortType) -> Unit = {},
+    onSortTypeChange: (RuleDetailSortType) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
 ) {
@@ -482,7 +482,7 @@ fun RuleDetailAppBarActions(
         if (actions.contains(SORT)) {
             SortActionMenu(
                 sortType = sortType,
-                onSortTypeChanged = onSortTypeChanged,
+                onSortTypeChange = onSortTypeChange,
             )
         }
         if (actions.contains(MORE)) {
@@ -521,7 +521,7 @@ fun MoreActionMenu(
 @Composable
 fun SortActionMenu(
     sortType: RuleDetailSortType,
-    onSortTypeChanged: (RuleDetailSortType) -> Unit,
+    onSortTypeChange: (RuleDetailSortType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -540,7 +540,7 @@ fun SortActionMenu(
                 DropdownMenuItem(
                     text = { Text(text = stringResource(entry.labelRes)) },
                     onClick = {
-                        onSortTypeChanged(entry)
+                        onSortTypeChange(entry)
                         expanded = false
                     },
                     trailingIcon = if (entry == sortType) {
