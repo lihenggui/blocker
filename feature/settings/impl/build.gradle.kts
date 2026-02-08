@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.blocker.android.feature.impl)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
+    alias(libs.plugins.roborazzi)
 }
 android {
     namespace = "com.merxury.blocker.feature.settings.impl"
@@ -40,6 +41,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
+    testImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
 }

@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.blocker.android.feature.impl)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -42,6 +43,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(projects.core.testing)
+    testImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
 }
