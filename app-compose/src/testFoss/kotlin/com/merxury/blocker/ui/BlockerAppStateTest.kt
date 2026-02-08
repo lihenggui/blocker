@@ -91,17 +91,18 @@ class BlockerAppStateTest {
                     navigationState = navigationState,
                 )
             }
-            assertEquals(AppListNavKey(), state.navigationState.currentTopLevelKey)
-            assertEquals(AppListNavKey(), state.navigationState.currentKey)
-
-            // Navigate to another destination once
-            navigator.navigate(GeneralRuleNavKey())
-
-            composeTestRule.waitForIdle()
-
-            assertEquals(GeneralRuleNavKey(), state.navigationState.currentTopLevelKey)
-            assertEquals(GeneralRuleNavKey(), state.navigationState.currentKey)
         }
+
+        assertEquals(AppListNavKey(), state.navigationState.currentTopLevelKey)
+        assertEquals(AppListNavKey(), state.navigationState.currentKey)
+
+        // Navigate to another destination once
+        navigator.navigate(GeneralRuleNavKey())
+
+        composeTestRule.waitForIdle()
+
+        assertEquals(GeneralRuleNavKey(), state.navigationState.currentTopLevelKey)
+        assertEquals(GeneralRuleNavKey(), state.navigationState.currentKey)
     }
 
     @Test

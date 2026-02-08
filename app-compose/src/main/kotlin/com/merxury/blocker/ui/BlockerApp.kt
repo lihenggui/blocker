@@ -110,6 +110,7 @@ fun BlockerApp(
         CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
             BlockerApp(
                 appState = appState,
+                snackbarHostState = snackbarHostState,
                 updateIconThemingState = updateIconThemingState,
                 windowAdaptiveInfo = windowAdaptiveInfo,
             )
@@ -126,7 +127,6 @@ internal fun BlockerApp(
     updateIconThemingState: (IconThemingState) -> Unit = {},
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
-    val snackbarHostState = LocalSnackbarHostState.current
     val navigator = remember { Navigator(appState.navigationState) }
 
     BlockerNavigationSuiteScaffold(
