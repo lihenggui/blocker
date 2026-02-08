@@ -1,6 +1,9 @@
 # Set default behavior to automatically normalize line endings
 * text=auto eol=lf
 
+# Windows scripts must keep CRLF
+*.bat text eol=crlf
+
 # Binary files
 *.png binary
 *.jpg binary
