@@ -47,6 +47,7 @@ import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -57,7 +58,13 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.MOST_BLOCKED
+import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.MOST_ENABLED
+import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.MOST_MATCHED
+import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.NAME
+import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.RECENTLY_INSTALLED
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -118,6 +125,9 @@ class RuleDetailViewModel @AssistedInject constructor(
     private var currentSearchKeyword: List<String> = emptyList()
     private var loadRuleDetailJob: Job? = null
     private var controlComponentJob: Job? = null
+    private val _sortType = MutableStateFlow(NAME)
+    val sortType: StateFlow<RuleDetailSortType> = _sortType.asStateFlow()
+    private var installedAppMap: Map<String, InstalledApp> = emptyMap()
 
     init {
         loadTabInfo()
@@ -225,11 +235,13 @@ class RuleDetailViewModel @AssistedInject constructor(
         }
         Timber.v("Find ${matchedComponents.size} matched components for rule: $keywords")
         val showSystemApps = userDataRepository.userData.first().showSystemApps
+        val appMap = mutableMapOf<String, InstalledApp>()
         val searchResult = matchedComponents.groupBy { it.packageName }
             .mapNotNull { (packageName, components) ->
                 val app = appRepository.getApplication(packageName).first()
                     ?: return@mapNotNull null
                 if (!showSystemApps && app.isSystem) return@mapNotNull null
+                appMap[packageName] = app
                 val packageInfo = pm.getPackageInfoCompat(packageName, 0)
                 val headerData = MatchedHeaderData(
                     title = app.label,
@@ -241,9 +253,11 @@ class RuleDetailViewModel @AssistedInject constructor(
                     .toList()
                 MatchedItem(headerData, searchedComponentInfo)
             }
+        installedAppMap = appMap
+        val sortedResult = sortMatchedItems(searchResult)
         withContext(mainDispatcher) {
             _ruleInfoUiState.update {
-                val matchedApps = Result.Success(searchResult)
+                val matchedApps = Result.Success(sortedResult)
                 if (it is RuleInfoUiState.Success) {
                     it.copy(matchedAppsUiState = matchedApps)
                 } else {
@@ -268,8 +282,39 @@ class RuleDetailViewModel @AssistedInject constructor(
 
     private fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
         Description -> listOf()
-        else -> listOf(MORE)
+        else -> listOf(SORT, MORE)
     }
+
+    fun updateSortType(sortType: RuleDetailSortType) {
+        _sortType.value = sortType
+        applySorting()
+    }
+
+    private fun applySorting() {
+        val currentUiState = _ruleInfoUiState.value
+        if (currentUiState !is RuleInfoUiState.Success) return
+        val matchedAppsState = currentUiState.matchedAppsUiState
+        if (matchedAppsState !is Result.Success) return
+        val sorted = sortMatchedItems(matchedAppsState.data)
+        _ruleInfoUiState.update {
+            currentUiState.copy(matchedAppsUiState = Result.Success(sorted))
+        }
+    }
+
+    private fun sortMatchedItems(items: List<MatchedItem>): List<MatchedItem> =
+        when (_sortType.value) {
+            NAME -> items.sortedBy { it.header.title.lowercase() }
+            RECENTLY_INSTALLED -> items.sortedByDescending {
+                installedAppMap[it.header.uniqueId]?.firstInstallTime
+            }
+            MOST_MATCHED -> items.sortedByDescending { it.componentList.size }
+            MOST_BLOCKED -> items.sortedByDescending { item ->
+                item.componentList.count { !it.enabled() }
+            }
+            MOST_ENABLED -> items.sortedByDescending { item ->
+                item.componentList.count { it.enabled() }
+            }
+        }
 
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)
