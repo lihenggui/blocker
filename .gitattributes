@@ -1,0 +1,12 @@
+# Set default behavior to automatically normalize line endings
+* text=auto eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.keystore binary
+*.jks binary
