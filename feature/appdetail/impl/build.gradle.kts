@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.blocker.android.feature.impl)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
+    alias(libs.plugins.roborazzi)
     id("kotlin-parcelize")
 }
 android {
@@ -43,6 +44,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
+    testImplementation(projects.core.screenshotTesting)
 
     androidTestImplementation(projects.core.testing)
 }

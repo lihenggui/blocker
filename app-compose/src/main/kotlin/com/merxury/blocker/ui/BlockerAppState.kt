@@ -43,7 +43,7 @@ fun rememberBlockerAppState(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ): BlockerAppState {
     val navigationState =
-        rememberNavigationState(startKey = AppListNavKey, topLevelKeys = TOP_LEVEL_NAV_ITEMS.keys)
+        rememberNavigationState(startKey = AppListNavKey(), topLevelKeys = TOP_LEVEL_NAV_ITEMS.keys)
 
     NavigationTrackingSideEffect(navigationState)
 

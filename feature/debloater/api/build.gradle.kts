@@ -22,7 +22,6 @@ plugins {
 
 android {
     namespace = "com.merxury.blocker.feature.appdebloater.api"
-    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 dependencies {

@@ -46,6 +46,7 @@ import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -203,23 +204,27 @@ class SnackbarScreenshotTests {
                 ) {
                     BoxWithConstraints {
                         BlockerTheme {
-                            val fakeAppState = rememberBlockerAppState(
-                                networkMonitor = networkMonitor,
-                                timeZoneMonitor = timeZoneMonitor,
-                                permissionMonitor = permissionMonitor,
-                            )
-                            BlockerApp(
-                                appState = fakeAppState,
-                                snackbarHostState = snackbarHostState,
-                                updateIconThemingState = {},
-                                windowAdaptiveInfo = WindowAdaptiveInfo(
-                                    windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(
-                                        widthDp = maxWidth.value,
-                                        heightDp = maxHeight.value,
+                            CompositionLocalProvider(
+                                LocalSnackbarHostState provides snackbarHostState,
+                            ) {
+                                val fakeAppState = rememberBlockerAppState(
+                                    networkMonitor = networkMonitor,
+                                    timeZoneMonitor = timeZoneMonitor,
+                                    permissionMonitor = permissionMonitor,
+                                )
+                                BlockerApp(
+                                    appState = fakeAppState,
+                                    snackbarHostState = snackbarHostState,
+                                    updateIconThemingState = {},
+                                    windowAdaptiveInfo = WindowAdaptiveInfo(
+                                        windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(
+                                            widthDp = maxWidth.value,
+                                            heightDp = maxHeight.value,
+                                        ),
+                                        windowPosture = Posture(),
                                     ),
-                                    windowPosture = Posture(),
-                                ),
-                            )
+                                )
+                            }
                         }
                     }
                 }

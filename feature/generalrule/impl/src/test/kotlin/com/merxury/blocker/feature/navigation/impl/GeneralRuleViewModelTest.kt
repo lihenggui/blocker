@@ -107,6 +107,7 @@ class GeneralRuleViewModelTest {
             searchRule = searchRule,
             updateRule = updateRule,
             savedStateHandle = savedStateHandle,
+            initialRuleId = "",
             ioDispatcher = dispatcher,
         )
     }

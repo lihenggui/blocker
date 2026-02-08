@@ -66,13 +66,13 @@ class BlockerAppStateTest {
     private lateinit var state: BlockerAppState
 
     private fun testNavigationState() = NavigationState(
-        startKey = AppListNavKey,
-        topLevelStack = NavBackStack(AppListNavKey),
+        startKey = AppListNavKey(),
+        topLevelStack = NavBackStack(AppListNavKey()),
         subStacks = mapOf(
-            AppListNavKey to NavBackStack(AppListNavKey),
-            GeneralRuleNavKey to NavBackStack(GeneralRuleNavKey),
+            AppListNavKey() to NavBackStack(AppListNavKey()),
+            GeneralRuleNavKey() to NavBackStack(GeneralRuleNavKey()),
             DebloaterNavKey to NavBackStack(DebloaterNavKey),
-            SearchNavKey to NavBackStack(SearchNavKey),
+            SearchNavKey() to NavBackStack(SearchNavKey()),
         ),
     )
 
@@ -91,94 +91,95 @@ class BlockerAppStateTest {
                     navigationState = navigationState,
                 )
             }
-            assertEquals(AppListNavKey, state.navigationState.currentTopLevelKey)
-            assertEquals(AppListNavKey, state.navigationState.currentKey)
-
-            // Navigate to another destination once
-            navigator.navigate(GeneralRuleNavKey)
-
-            composeTestRule.waitForIdle()
-
-            assertEquals(GeneralRuleNavKey, state.navigationState.currentTopLevelKey)
-            assertEquals(GeneralRuleNavKey, state.navigationState.currentKey)
-
-            @Test
-            fun blockerAppState_destinations() = runTest {
-                composeTestRule.setContent {
-                    state = rememberBlockerAppState(
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
-                        timeZoneMonitor = timeZoneMonitor,
-                    )
-                }
-                val navigationState = state.navigationState
-
-                assertEquals(4, navigationState.topLevelKeys.size)
-                assertEquals(
-                    setOf(AppListNavKey, GeneralRuleNavKey, DebloaterNavKey, SearchNavKey),
-                    navigationState.topLevelKeys,
-                )
-            }
-
-            @Test
-            fun blockerAppState_WhenNetworkMonitorIsOffline_StateIsOffline() = runTest(UnconfinedTestDispatcher()) {
-                composeTestRule.setContent {
-                    state = BlockerAppState(
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
-                        coroutineScope = backgroundScope,
-                        timeZoneMonitor = timeZoneMonitor,
-                        navigationState = testNavigationState(),
-                    )
-                }
-
-                backgroundScope.launch { state.isOffline.collect() }
-                networkMonitor.setConnected(false)
-                assertEquals(
-                    true,
-                    state.isOffline.value,
-                )
-            }
-
-            @Test
-            fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() = runTest(UnconfinedTestDispatcher()) {
-                composeTestRule.setContent {
-                    state = BlockerAppState(
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
-                        coroutineScope = backgroundScope,
-                        timeZoneMonitor = timeZoneMonitor,
-                        navigationState = testNavigationState(),
-                    )
-                }
-
-                backgroundScope.launch { state.currentPermission.collect() }
-                permissionMonitor.setPermission(NO_PERMISSION)
-                assertEquals(
-                    NO_PERMISSION,
-                    state.currentPermission.value,
-                )
-            }
-
-            @Test
-            fun blockerAppState_differentTZ_withTimeZoneMonitorChange() = runTest(UnconfinedTestDispatcher()) {
-                composeTestRule.setContent {
-                    state = BlockerAppState(
-                        coroutineScope = backgroundScope,
-                        networkMonitor = networkMonitor,
-                        permissionMonitor = permissionMonitor,
-                        timeZoneMonitor = timeZoneMonitor,
-                        navigationState = testNavigationState(),
-                    )
-                }
-                val changedTz = TimeZone.of("Europe/Prague")
-                backgroundScope.launch { state.currentTimeZone.collect() }
-                timeZoneMonitor.setTimeZone(changedTz)
-                assertEquals(
-                    changedTz,
-                    state.currentTimeZone.value,
-                )
-            }
         }
+
+        assertEquals(AppListNavKey(), state.navigationState.currentTopLevelKey)
+        assertEquals(AppListNavKey(), state.navigationState.currentKey)
+
+        // Navigate to another destination once
+        navigator.navigate(GeneralRuleNavKey())
+
+        composeTestRule.waitForIdle()
+
+        assertEquals(GeneralRuleNavKey(), state.navigationState.currentTopLevelKey)
+        assertEquals(GeneralRuleNavKey(), state.navigationState.currentKey)
+    }
+
+    @Test
+    fun blockerAppState_destinations() = runTest {
+        composeTestRule.setContent {
+            state = rememberBlockerAppState(
+                networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
+                timeZoneMonitor = timeZoneMonitor,
+            )
+        }
+        val navigationState = state.navigationState
+
+        assertEquals(4, navigationState.topLevelKeys.size)
+        assertEquals(
+            setOf(AppListNavKey(), GeneralRuleNavKey(), DebloaterNavKey, SearchNavKey()),
+            navigationState.topLevelKeys,
+        )
+    }
+
+    @Test
+    fun blockerAppState_WhenNetworkMonitorIsOffline_StateIsOffline() = runTest(UnconfinedTestDispatcher()) {
+        composeTestRule.setContent {
+            state = BlockerAppState(
+                networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
+                coroutineScope = backgroundScope,
+                timeZoneMonitor = timeZoneMonitor,
+                navigationState = testNavigationState(),
+            )
+        }
+
+        backgroundScope.launch { state.isOffline.collect() }
+        networkMonitor.setConnected(false)
+        assertEquals(
+            true,
+            state.isOffline.value,
+        )
+    }
+
+    @Test
+    fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() = runTest(UnconfinedTestDispatcher()) {
+        composeTestRule.setContent {
+            state = BlockerAppState(
+                networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
+                coroutineScope = backgroundScope,
+                timeZoneMonitor = timeZoneMonitor,
+                navigationState = testNavigationState(),
+            )
+        }
+
+        backgroundScope.launch { state.currentPermission.collect() }
+        permissionMonitor.setPermission(NO_PERMISSION)
+        assertEquals(
+            NO_PERMISSION,
+            state.currentPermission.value,
+        )
+    }
+
+    @Test
+    fun blockerAppState_differentTZ_withTimeZoneMonitorChange() = runTest(UnconfinedTestDispatcher()) {
+        composeTestRule.setContent {
+            state = BlockerAppState(
+                coroutineScope = backgroundScope,
+                networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
+                timeZoneMonitor = timeZoneMonitor,
+                navigationState = testNavigationState(),
+            )
+        }
+        val changedTz = TimeZone.of("Europe/Prague")
+        backgroundScope.launch { state.currentTimeZone.collect() }
+        timeZoneMonitor.setTimeZone(changedTz)
+        assertEquals(
+            changedTz,
+            state.currentTimeZone.value,
+        )
     }
 }

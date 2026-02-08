@@ -120,6 +120,7 @@ class AppListViewModelTest {
             initializeDatabase = initializeDatabaseUseCase,
             searchAppList = searchAppListUseCase,
             getAppController = getAppController,
+            initialPackageName = null,
             ioDispatcher = dispatcher,
             cpuDispatcher = dispatcher,
             mainDispatcher = dispatcher,

@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.blocker.android.feature.impl)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
+    alias(libs.plugins.roborazzi)
 }
 android {
     namespace = "com.merxury.blocker.feature.generalrule.impl"
@@ -31,6 +32,7 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
 
     testImplementation(projects.core.testing)
+    testImplementation(projects.core.screenshotTesting)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext)
     testImplementation(libs.androidx.work.testing)

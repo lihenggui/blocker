@@ -140,6 +140,8 @@ class SearchViewModelTest {
             searchRule = searchGeneralRuleUseCase,
             getAppController = getAppControllerUseCase,
             savedStateHandle = savedStateHandle,
+            packageName = null,
+            ruleId = null,
             ioDispatcher = dispatcher,
         )
     }

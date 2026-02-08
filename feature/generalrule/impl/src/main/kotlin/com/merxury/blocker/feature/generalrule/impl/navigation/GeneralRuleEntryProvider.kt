@@ -18,20 +18,25 @@ package com.merxury.blocker.feature.generalrule.impl.navigation
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.feature.generalrule.api.navigation.GeneralRuleNavKey
 import com.merxury.blocker.feature.generalrule.impl.GeneralRulesScreen
+import com.merxury.blocker.feature.generalrule.impl.GeneralRulesViewModel
 import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetail
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.generalRuleEntry(navigator: Navigator) {
     entry<GeneralRuleNavKey>(
         metadata = ListDetailSceneStrategy.listPane(),
-    ) { _ ->
+    ) { key ->
         GeneralRulesScreen(
             navigateToRuleDetail = navigator::navigateToRuleDetail,
+            viewModel = hiltViewModel<GeneralRulesViewModel, GeneralRulesViewModel.Factory> { factory ->
+                factory.create(key.initialRuleId)
+            },
         )
     }
 }
