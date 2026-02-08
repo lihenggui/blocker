@@ -20,6 +20,5 @@ plugins {
 }
 android {
     namespace = "com.merxury.blocker.feature.appdetail.api"
-    testOptions.unitTests.isIncludeAndroidResources = true
 }
 dependencies { }
