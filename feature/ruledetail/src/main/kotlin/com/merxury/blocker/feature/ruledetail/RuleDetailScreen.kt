@@ -35,8 +35,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -71,6 +69,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
@@ -532,30 +531,23 @@ fun SortActionMenu(
                 contentDescription = stringResource(string.feature_ruledetail_sort_menu),
             )
         }
-        DropdownMenu(
+        BlockerDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-        ) {
-            RuleDetailSortType.entries.forEach { entry ->
-                DropdownMenuItem(
-                    text = { Text(text = stringResource(entry.labelRes)) },
-                    onClick = {
-                        onSortTypeChange(entry)
-                        expanded = false
-                    },
-                    trailingIcon = if (entry == sortType) {
-                        {
-                            Icon(
-                                imageVector = BlockerIcons.CheckSmall,
-                                contentDescription = null,
-                            )
-                        }
-                    } else {
-                        null
-                    },
-                )
-            }
-        }
+            items = RuleDetailSortType.entries,
+            onItemClick = { entry ->
+                onSortTypeChange(entry)
+            },
+            itemText = { entry -> Text(text = stringResource(entry.labelRes)) },
+            itemTrailingIcon = { entry ->
+                if (entry == sortType) {
+                    Icon(
+                        imageVector = BlockerIcons.CheckSmall,
+                        contentDescription = null,
+                    )
+                }
+            },
+        )
     }
 }
 
