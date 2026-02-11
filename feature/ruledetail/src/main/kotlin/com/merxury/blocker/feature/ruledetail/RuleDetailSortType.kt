@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.state.toolbar
+package com.merxury.blocker.feature.ruledetail
 
-enum class AppBarAction {
-    MORE,
-    SEARCH,
-    SHARE_RULE,
-    SORT,
+import androidx.annotation.StringRes
+import com.merxury.blocker.feature.ruledetail.R.string
+
+enum class RuleDetailSortType(
+    @StringRes val labelRes: Int,
+) {
+    NAME(string.feature_ruledetail_sort_by_name),
+    RECENTLY_INSTALLED(string.feature_ruledetail_sort_by_recently_installed),
+    MOST_MATCHED(string.feature_ruledetail_sort_by_most_matched),
+    MOST_BLOCKED(string.feature_ruledetail_sort_by_most_blocked),
+    MOST_ENABLED(string.feature_ruledetail_sort_by_most_enabled),
 }

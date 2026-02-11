@@ -26,4 +26,10 @@
     <string name="feature_ruledetail_enable_all_of_this_page">Activar la página</string>
     <string name="feature_ruledetail_keywords">Palabras clave</string>
     <string name="feature_ruledetail_select_a_rule">Seleccione una regla</string>
+    <string name="feature_ruledetail_sort_menu">Menú de ordenar</string>
+    <string name="feature_ruledetail_sort_by_name">Nombre de aplicación</string>
+    <string name="feature_ruledetail_sort_by_recently_installed">Instaladas recientemente</string>
+    <string name="feature_ruledetail_sort_by_most_matched">Más coincidencias</string>
+    <string name="feature_ruledetail_sort_by_most_blocked">Más bloqueadas</string>
+    <string name="feature_ruledetail_sort_by_most_enabled">Más activadas</string>
 </resources>

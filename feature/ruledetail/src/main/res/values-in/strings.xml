@@ -11,4 +11,10 @@
     <string name="feature_ruledetail_enable_all_of_this_page">Aktifkan semua di laman ini</string>
     <string name="feature_ruledetail_keywords">Kata kunci</string>
     <string name="feature_ruledetail_select_a_rule">Pilih aturan</string>
+    <string name="feature_ruledetail_sort_menu">Menu urutkan</string>
+    <string name="feature_ruledetail_sort_by_name">Nama aplikasi</string>
+    <string name="feature_ruledetail_sort_by_recently_installed">Baru dipasang</string>
+    <string name="feature_ruledetail_sort_by_most_matched">Paling cocok</string>
+    <string name="feature_ruledetail_sort_by_most_blocked">Paling banyak diblokir</string>
+    <string name="feature_ruledetail_sort_by_most_enabled">Paling banyak diaktifkan</string>
 </resources>

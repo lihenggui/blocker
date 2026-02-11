@@ -34,6 +34,7 @@ import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParamete
 import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Error
 import dagger.hilt.android.testing.HiltTestApplication
@@ -184,6 +185,7 @@ class RuleDetailScreenScreenshotTests {
                     tabState = tabState[0],
                     appBarUiState = AppBarUiState(
                         actions = listOf(
+                            SORT,
                             MORE,
                         ),
                     ),

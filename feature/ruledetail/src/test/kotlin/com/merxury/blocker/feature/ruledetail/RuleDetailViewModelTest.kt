@@ -41,6 +41,7 @@ import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Loading
 import kotlinx.coroutines.CoroutineDispatcher
@@ -124,7 +125,7 @@ class RuleDetailViewModelTest {
 
     @Test
     fun appBarUiState_whenInitial_thenShowDefault() = runTest {
-        assertEquals(AppBarUiState(actions = listOf(MORE)), viewModel.appBarUiState.value)
+        assertEquals(AppBarUiState(actions = listOf(SORT, MORE)), viewModel.appBarUiState.value)
     }
 
     @Test
@@ -181,6 +182,19 @@ class RuleDetailViewModelTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
         viewModel.switchTab(RuleDetailTabs.Description)
         assertEquals(listOf(), viewModel.appBarUiState.value.actions)
+        collectJob.cancel()
+    }
+
+    @Test
+    fun sortType_whenInitial_thenDefaultToName() = runTest {
+        assertEquals(RuleDetailSortType.NAME, viewModel.sortType.value)
+    }
+
+    @Test
+    fun sortType_whenUpdated_thenReflectNewValue() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.sortType.collect() }
+        viewModel.updateSortType(RuleDetailSortType.MOST_MATCHED)
+        assertEquals(RuleDetailSortType.MOST_MATCHED, viewModel.sortType.value)
         collectJob.cancel()
     }
 }
