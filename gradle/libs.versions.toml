@@ -4,7 +4,7 @@ androidDesugarJdkLibs = "2.1.5"
 # AGP and tools should be updated together
 androidGradlePlugin = "9.0.0"
 androidTools = "32.0.0"
-androidxActivity = "1.12.1"
+androidxActivity = "1.12.4"
 androidxAppCompat = "1.7.1"
 androidxBrowser = "1.9.0"
 androidxComposeBom = "2025.12.00"
