@@ -39,11 +39,11 @@ fun configureFlavors(
     flavorConfigurationBlock: ProductFlavor.(flavor: BlockerFlavor) -> Unit = {},
 ) {
     commonExtension.apply {
-        FlavorDimension.values().forEach { flavorDimension ->
+        FlavorDimension.entries.forEach { flavorDimension ->
             flavorDimensions += flavorDimension.name
         }
         productFlavors {
-            BlockerFlavor.values().forEach { blockerFlavor ->
+            BlockerFlavor.entries.forEach { blockerFlavor ->
                 register(blockerFlavor.name) {
                     dimension = blockerFlavor.dimension.name
                     flavorConfigurationBlock(this, blockerFlavor)
