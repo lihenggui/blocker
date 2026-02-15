@@ -1,6 +1,6 @@
 /*
  * Copyright 2025 Blocker
- * Copyright 2026 The Android Open Source Project
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ internal fun Project.configureSpotlessForAndroid() {
     extensions.configure<SpotlessExtension> {
         format("xml") {
             target("src/**/*.xml")
-            // Look for the first XML tag that isn't a comment (<!--) or the xml declaration (<?xml)
-            licenseHeaderFile(rootDir.resolve("spotless/copyright.xml"), "(<[^!?])")
             endWithNewline()
         }
     }
@@ -48,13 +46,10 @@ private fun Project.configureSpotlessCommon() {
             ).customRuleSets(
                 listOf("io.nlopez.compose.rules:ktlint:0.4.5"),
             )
-            licenseHeaderFile(rootDir.resolve("spotless/copyright.kt"))
             endWithNewline()
         }
         format("kts") {
             target("*.kts")
-            // Look for the first line that doesn't have a block comment (assumed to be the license)
-            licenseHeaderFile(rootDir.resolve("spotless/copyright.kts"), "(^(?![\\/ ]\\*).*$)")
             endWithNewline()
         }
     }
