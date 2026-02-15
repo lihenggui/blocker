@@ -3,3 +3,5 @@
 -keep class com.merxury.** { *; }
 # Keep file names and line numbers for Crashlytics.
 -keepattributes SourceFile,LineNumberTable
+# Repackage obfuscated classes into a flat package to reduce descriptor sizes
+-repackageclasses
