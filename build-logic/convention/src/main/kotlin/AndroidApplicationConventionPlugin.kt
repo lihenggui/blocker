@@ -17,6 +17,7 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.merxury.blocker.configureBadgingTasks
+import com.merxury.blocker.configureSpotlessForAndroid
 import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configureLicensee
@@ -54,6 +55,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     languageVersion.set(JavaLanguageVersion.of(21))
                 }
             }
+            configureSpotlessForAndroid()
         }
     }
 }
