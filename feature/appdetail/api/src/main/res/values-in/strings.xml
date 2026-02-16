@@ -17,9 +17,7 @@
     <string name="feature_appdetail_api_belonging_sdk">Versi SDK</string>
     <string name="feature_appdetail_api_save">Simpan</string>
     <string name="feature_appdetail_api_search_components">Cari komponen</string>
-    <string name="feature_appdetail_api_add_description_hint">Tidak ada informasi untuk komponen ini. Jadilah kontributor yang pertama!</string>
-    <string name="feature_appdetail_api_how_to_contribute">Cara berkonribusi?</string>
-    <string name="feature_appdetail_api_unknown">Tidakk tahu</string>
+<string name="feature_appdetail_api_unknown">Tidakk tahu</string>
     <string name="feature_appdetail_api_select_mutiple">Pilih beberapa</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="other">%1$d komponen dipilih</item>

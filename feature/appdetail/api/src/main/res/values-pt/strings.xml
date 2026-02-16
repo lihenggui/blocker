@@ -6,9 +6,7 @@
     <string name="feature_appdetail_api_enable_all_of_this_page">Permitir toda esta página</string>
     <string name="feature_appdetail_api_save">Salvar</string>
     <string name="feature_appdetail_api_search_components">Pesquisar componentes</string>
-    <string name="feature_appdetail_api_add_description_hint">Atualmente, não há informações disponíveis para este componente. Seja o primeiro a contribuir!</string>
-    <string name="feature_appdetail_api_how_to_contribute">Como contribuir?</string>
-    <string name="feature_appdetail_api_unknown">Desconhecido</string>
+<string name="feature_appdetail_api_unknown">Desconhecido</string>
     <string name="feature_appdetail_api_select_mutiple">Selecionar vários</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="one">%1$d componente selecionado</item>

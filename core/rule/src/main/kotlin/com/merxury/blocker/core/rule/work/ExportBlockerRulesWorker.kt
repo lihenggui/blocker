@@ -20,6 +20,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.pm.PackageInfoCompat
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
@@ -105,7 +106,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 val total = list.count()
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    export(it.packageName, Uri.parse(backupPath))
+                    export(it.packageName, backupPath.toUri())
                     current++
                 }
             } catch (e: Exception) {
@@ -125,7 +126,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
     private suspend fun backupSingleApp(packageName: String, backupPath: String) {
         Timber.d("Start to backup app rules for $packageName")
         setForeground(updateNotification(packageName, 1, 1))
-        export(packageName, Uri.parse(backupPath))
+        export(packageName, backupPath.toUri())
     }
 
     private suspend fun export(packageName: String, destUri: Uri): Boolean {

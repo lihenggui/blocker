@@ -33,9 +33,7 @@
     <string name="feature_appdetail_api_belonging_sdk">归属 SDK</string>
     <string name="feature_appdetail_api_save">保存</string>
     <string name="feature_appdetail_api_search_components">搜索组件</string>
-    <string name="feature_appdetail_api_add_description_hint">目前没有可用的组件信息。成为第一个贡献者吧！</string>
-    <string name="feature_appdetail_api_how_to_contribute">如何贡献？</string>
-    <string name="feature_appdetail_api_unknown">未知</string>
+<string name="feature_appdetail_api_unknown">未知</string>
     <string name="feature_appdetail_api_select_mutiple">选择多项</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="other">已选择 %1$d 个组件</item>

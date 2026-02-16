@@ -33,9 +33,7 @@
     <string name="feature_appdetail_api_belonging_sdk">Принадлежащий SDK</string>
     <string name="feature_appdetail_api_save">Сохранить</string>
     <string name="feature_appdetail_api_search_components">Поиск компонентов</string>
-    <string name="feature_appdetail_api_add_description_hint">В настоящее время по этому компоненту нет информации. Будьте первым, кто внесет свой вклад!</string>
-    <string name="feature_appdetail_api_how_to_contribute">Как внести свой вклад?</string>
-    <string name="feature_appdetail_api_unknown">Неизвестно</string>
+<string name="feature_appdetail_api_unknown">Неизвестно</string>
     <string name="feature_appdetail_api_select_mutiple">Выбрать несколько</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="one">Выбран %1$d компонент</item>

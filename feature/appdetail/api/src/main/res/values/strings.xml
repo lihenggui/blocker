@@ -35,9 +35,7 @@
     <string name="feature_appdetail_api_save">Save</string>
     <string name="feature_appdetail_api_data_with_explanation" translatable="false">%1$s (%2$s)</string>
     <string name="feature_appdetail_api_search_components">Search components</string>
-    <string name="feature_appdetail_api_add_description_hint">At present, there is no information available for this component. Be the first to contribute!</string>
-    <string name="feature_appdetail_api_how_to_contribute">How to contribute?</string>
-    <string name="feature_appdetail_api_unknown">Unknown</string>
+<string name="feature_appdetail_api_unknown">Unknown</string>
     <string name="feature_appdetail_api_select_mutiple">Select multiple</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="one">%1$d component selected</item>

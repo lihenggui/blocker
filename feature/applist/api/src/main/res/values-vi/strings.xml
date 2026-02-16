@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2025 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_applist_api_sort_menu">Thứ tự sắp xếp</string>
+    <string name="feature_applist_api_settings">Cài đặt</string>
+    <string name="feature_applist_api_support_and_feedback">Hỗ trợ và góp ý</string>
+<string name="feature_applist_api_no_applications_to_display">Không có ứng dụng nào để hiện</string>
+    <string name="feature_applist_api_sort_options">Xếp theo thứ tự</string>
+    <string name="feature_applist_api_sort_by">Xắp từ</string>
+    <string name="feature_applist_api_order">Chữ cái</string>
+    <string name="feature_applist_api_ascending">A -> Z</string>
+    <string name="feature_applist_api_descending">Z -> A</string>
+    <string name="feature_applist_api_name">Tên</string>
+    <string name="feature_applist_api_install_date">Ngày cài</string>
+    <string name="feature_applist_api_last_updated">Lần cuối cập nhật</string>
+    <string name="feature_applist_api_show_running_apps_on_top">Hiện thị ứng dụng đang chạy ở đầu</string>
+    <string name="feature_applist_api_on">Bật</string>
+    <string name="feature_applist_api_off">Tắt</string>
+</resources>

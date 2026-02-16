@@ -34,9 +34,7 @@
     <string name="feature_appdetail_api_belonging_sdk">SDK propio</string>
     <string name="feature_appdetail_api_save">Guardar</string>
     <string name="feature_appdetail_api_search_components">Buscar componentes</string>
-    <string name="feature_appdetail_api_add_description_hint">Actualmente no hay información disponible para este componente. ¡Sé el primero en contribuir!</string>
-    <string name="feature_appdetail_api_how_to_contribute">¿Cómo puedo contribuir?</string>
-    <string name="feature_appdetail_api_unknown">Desconocido</string>
+<string name="feature_appdetail_api_unknown">Desconocido</string>
     <string name="feature_appdetail_api_select_mutiple">Seleccione Múltiple</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="one">%1$d componente seleccionado</item>
