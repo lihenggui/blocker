@@ -1,4 +1,4 @@
-# `:feature:generalrule`
+# `:feature:debloater`
 
 ## Module dependency graph
 
@@ -13,7 +13,7 @@ config:
 graph TB
   subgraph :feature
     direction TB
-    :feature:generalrule[generalrule]:::android-feature
+    :feature:debloater[debloater]:::android-feature
   end
   subgraph :core
     direction TB
@@ -65,10 +65,10 @@ graph TB
   :core:ui --> :core:designsystem
   :core:ui -.-> :core:domain
   :core:ui --> :core:model
-  :feature:generalrule -.-> :core:data
-  :feature:generalrule -.-> :core:designsystem
-  :feature:generalrule -.-> :core:domain
-  :feature:generalrule -.-> :core:ui
+  :feature:debloater -.-> :core:data
+  :feature:debloater -.-> :core:designsystem
+  :feature:debloater -.-> :core:domain
+  :feature:debloater -.-> :core:ui
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

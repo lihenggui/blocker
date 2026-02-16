@@ -55,7 +55,6 @@ licensee = "1.14.1"
 logbackClassic = "1.5.29"
 materialKolor = "4.0.5"
 mockitoKotlin = "6.2.3"
-moduleGraph = "2.9.0"
 okhttp = "5.3.2"
 protobuf = "4.33.5"
 protobufPlugin = "0.9.6"
@@ -215,7 +214,6 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 licensee = { id = "app.cash.licensee", version.ref = "licensee" }
-module-graph = { id = "com.jraska.module.graph.assertion", version.ref = "moduleGraph" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 room = { id = "androidx.room", version.ref = "room" }
@@ -237,3 +235,4 @@ blocker-android-lint = { id = "blocker.android.lint" }
 blocker-android-room = { id = "blocker.android.room" }
 blocker-android-test = { id = "blocker.android.test" }
 blocker-jvm-library = { id = "blocker.jvm.library" }
+blocker-root = { id = "blocker.root" }

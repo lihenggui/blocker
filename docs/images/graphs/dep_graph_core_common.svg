@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="212" height="44pt" viewBox="0 0 158.79 44">
-    <g class="graph">
-        <path fill="#fff" stroke="transparent" d="M0 44V0h158.79v44H0z"/>
-        <g class="node" transform="translate(4 40)">
-            <ellipse cx="75.39" cy="-18" fill="none" stroke="#000" rx="75.29" ry="18"/>
-            <text x="75.39" y="-14.3" font-family="Times,serif" font-size="14" text-anchor="middle">:core:common</text>
-        </g>
-    </g>
-</svg>

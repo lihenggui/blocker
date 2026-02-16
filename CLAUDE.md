@@ -105,8 +105,8 @@ Build types: `debug`, `release`, `benchmarkRelease`, `nonMinifiedRelease`
 ### Other Useful Commands
 
 ```bash
-# Generate module dependency graph
-./generateModuleGraphs.sh
+# Generate module dependency graphs (Mermaid in READMEs)
+./gradlew graphUpdate
 
 # List all available tasks
 ./gradlew tasks

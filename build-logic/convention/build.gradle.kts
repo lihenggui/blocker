@@ -112,5 +112,9 @@ gradlePlugin {
             id = libs.plugins.blocker.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
         }
+        register("root") {
+            id = libs.plugins.blocker.root.get().pluginId
+            implementationClass = "RootPlugin"
+        }
     }
 }
