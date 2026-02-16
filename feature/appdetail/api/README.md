@@ -13,7 +13,10 @@ config:
 graph TB
   subgraph :feature
     direction TB
-    :feature:appdetail[appdetail]:::android-feature
+    subgraph :feature:appdetail
+      direction TB
+      :feature:appdetail:api[api]:::android-library
+    end
   end
   subgraph :core
     direction TB
@@ -28,6 +31,7 @@ graph TB
     :core:domain[domain]:::android-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
+    :core:navigation[navigation]:::android-library
     :core:network[network]:::android-library
     :core:rule[rule]:::android-library
     :core:ui[ui]:::android-library
@@ -65,12 +69,8 @@ graph TB
   :core:ui --> :core:designsystem
   :core:ui -.-> :core:domain
   :core:ui --> :core:model
-  :feature:appdetail -.-> :core:component-controller
-  :feature:appdetail -.-> :core:data
-  :feature:appdetail -.-> :core:designsystem
-  :feature:appdetail -.-> :core:domain
-  :feature:appdetail -.-> :core:rule
-  :feature:appdetail -.-> :core:ui
+  :feature:appdetail:api --> :core:navigation
+  :feature:appdetail:api -.-> :core:ui
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

@@ -1,4 +1,4 @@
-# `:feature:applist`
+# `:feature:applist:impl`
 
 ## Module dependency graph
 
@@ -16,6 +16,15 @@ graph TB
     subgraph :feature:applist
       direction TB
       :feature:applist:api[api]:::android-library
+      :feature:applist:impl[impl]:::android-library
+    end
+    subgraph :feature:appdetail
+      direction TB
+      :feature:appdetail:api[api]:::android-library
+    end
+    subgraph :feature:settings
+      direction TB
+      :feature:settings:api[api]:::android-library
     end
   end
   subgraph :core
@@ -69,8 +78,21 @@ graph TB
   :core:ui --> :core:designsystem
   :core:ui -.-> :core:domain
   :core:ui --> :core:model
+  :feature:appdetail:api --> :core:navigation
+  :feature:appdetail:api -.-> :core:ui
   :feature:applist:api --> :core:navigation
   :feature:applist:api -.-> :core:ui
+  :feature:applist:impl -.-> :core:component-controller
+  :feature:applist:impl -.-> :core:data
+  :feature:applist:impl -.-> :core:designsystem
+  :feature:applist:impl -.-> :core:domain
+  :feature:applist:impl -.-> :core:ifw-api
+  :feature:applist:impl -.-> :core:ui
+  :feature:applist:impl -.-> :feature:appdetail:api
+  :feature:applist:impl -.-> :feature:applist:api
+  :feature:applist:impl -.-> :feature:settings:api
+  :feature:settings:api --> :core:navigation
+  :feature:settings:api -.-> :core:ui
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

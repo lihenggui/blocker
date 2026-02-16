@@ -1,4 +1,4 @@
-# `:feature:applist`
+# `:feature:debloater:api`
 
 ## Module dependency graph
 
@@ -13,9 +13,9 @@ config:
 graph TB
   subgraph :feature
     direction TB
-    subgraph :feature:applist
+    subgraph :feature:debloater
       direction TB
-      :feature:applist:api[api]:::android-library
+      :feature:debloater:api[api]:::android-library
     end
   end
   subgraph :core
@@ -69,8 +69,8 @@ graph TB
   :core:ui --> :core:designsystem
   :core:ui -.-> :core:domain
   :core:ui --> :core:model
-  :feature:applist:api --> :core:navigation
-  :feature:applist:api -.-> :core:ui
+  :feature:debloater:api --> :core:navigation
+  :feature:debloater:api -.-> :core:ui
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;
