@@ -25,4 +25,10 @@
     <string name="feature_ruledetail_enable_all_of_this_page">启用本页所有组件</string>
     <string name="feature_ruledetail_keywords">关键词</string>
     <string name="feature_ruledetail_select_a_rule">选择一个规则</string>
+    <string name="feature_ruledetail_sort_menu">排序菜单</string>
+    <string name="feature_ruledetail_sort_by_name">应用名称</string>
+    <string name="feature_ruledetail_sort_by_recently_installed">最近安装</string>
+    <string name="feature_ruledetail_sort_by_most_matched">最多匹配</string>
+    <string name="feature_ruledetail_sort_by_most_blocked">最多阻止</string>
+    <string name="feature_ruledetail_sort_by_most_enabled">最多启用</string>
 </resources>

@@ -11,4 +11,10 @@
     <string name="feature_ruledetail_enable_all_of_this_page">تمكين كل هذه الصفحة</string>
     <string name="feature_ruledetail_keywords">الكلمات الرئيسية</string>
     <string name="feature_ruledetail_select_a_rule">حدد قاعدة</string>
+    <string name="feature_ruledetail_sort_menu">قائمة الترتيب</string>
+    <string name="feature_ruledetail_sort_by_name">اسم التطبيق</string>
+    <string name="feature_ruledetail_sort_by_recently_installed">المثبتة مؤخرًا</string>
+    <string name="feature_ruledetail_sort_by_most_matched">الأكثر تطابقًا</string>
+    <string name="feature_ruledetail_sort_by_most_blocked">الأكثر حظرًا</string>
+    <string name="feature_ruledetail_sort_by_most_enabled">الأكثر تفعيلًا</string>
 </resources>

@@ -25,4 +25,10 @@
     <string name="feature_ruledetail_enable_all_of_this_page">Kích hoạt những gì có trong trang này</string>
     <string name="feature_ruledetail_keywords">Từ khóa</string>
     <string name="feature_ruledetail_select_a_rule">Chọn luật</string>
+    <string name="feature_ruledetail_sort_menu">Menu sắp xếp</string>
+    <string name="feature_ruledetail_sort_by_name">Tên ứng dụng</string>
+    <string name="feature_ruledetail_sort_by_recently_installed">Cài đặt gần đây</string>
+    <string name="feature_ruledetail_sort_by_most_matched">Nhiều kết quả nhất</string>
+    <string name="feature_ruledetail_sort_by_most_blocked">Nhiều chặn nhất</string>
+    <string name="feature_ruledetail_sort_by_most_enabled">Nhiều kích hoạt nhất</string>
 </resources>
