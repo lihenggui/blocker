@@ -17,6 +17,7 @@
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import com.android.build.api.dsl.LibraryExtension
 import com.merxury.blocker.configureFlavors
+import com.merxury.blocker.configureSpotlessForAndroid
 import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configurePrintApksTask
@@ -67,6 +68,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 "testImplementation"(libs.findLibrary("junit4").get())
                 "androidTestImplementation"(libs.findLibrary("kotlin.test").get())
             }
+            configureSpotlessForAndroid()
         }
     }
 }

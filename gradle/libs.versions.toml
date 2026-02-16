@@ -48,6 +48,7 @@ kotlinxCoroutines = "1.10.2"
 kotlinxDatetime = "0.7.1"
 kotlinxSerializationJson = "1.9.0"
 ksp = "2.3.5"
+ktlint = "1.7.1"
 kxml = "2.3.0"
 libsu = "6.0.0"
 licensee = "1.14.1"
@@ -62,6 +63,7 @@ retrofit = "3.0.0"
 robolectric = "4.16"
 roborazzi = "1.59.0"
 room = "2.8.4"
+spotless = "7.2.1"
 shizuku = "13.1.5"
 timber = "5.0.1"
 xmlutil = "v0.91.3"
@@ -193,6 +195,7 @@ kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-pl
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 licensee-gradlePlugin = { group = "app.cash.licensee", name = "licensee-gradle-plugin", version.ref = "licensee" }
 room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
+spotless-gradlePlugin = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
 work-testing = { group = "androidx.work", name = "work-testing", version.ref = "androidxWork" }
 
 [plugins]
@@ -216,6 +219,7 @@ module-graph = { id = "com.jraska.module.graph.assertion", version.ref = "module
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 room = { id = "androidx.room", version.ref = "room" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
 # Plugins defined by this project
 blocker-android-application = { id = "blocker.android.application" }
