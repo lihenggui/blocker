@@ -15,6 +15,7 @@
  */
 
 import com.merxury.blocker.configureKotlin
+import com.merxury.blocker.configureSpotlessForJvm
 import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -33,6 +34,7 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
             dependencies {
                 "testImplementation"(libs.findLibrary("kotlin.test").get())
             }
+            configureSpotlessForJvm()
         }
     }
 }

@@ -25,4 +25,10 @@
     <string name="feature_ruledetail_api_enable_all_of_this_page">Включить все на странице</string>
     <string name="feature_ruledetail_api_keywords">Ключевые слова</string>
     <string name="feature_ruledetail_api_select_a_rule">Выберите правило</string>
+    <string name="feature_ruledetail_api_sort_menu">Меню сортировки</string>
+    <string name="feature_ruledetail_api_sort_by_name">Имя приложения</string>
+    <string name="feature_ruledetail_api_sort_by_recently_installed">Недавно установленные</string>
+    <string name="feature_ruledetail_api_sort_by_most_matched">Больше всего совпадений</string>
+    <string name="feature_ruledetail_api_sort_by_most_blocked">Больше всего заблокировано</string>
+    <string name="feature_ruledetail_api_sort_by_most_enabled">Больше всего включено</string>
 </resources>

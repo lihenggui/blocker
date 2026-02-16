@@ -38,6 +38,7 @@ dependencies {
     compileOnly(libs.ksp.gradlePlugin)
     compileOnly(libs.licensee.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
+    compileOnly(libs.spotless.gradlePlugin)
     implementation(libs.truth)
     lintChecks(libs.androidx.lint.gradle)
 }
@@ -114,6 +115,10 @@ gradlePlugin {
         register("jvmLibrary") {
             id = libs.plugins.blocker.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
+        }
+        register("root") {
+            id = libs.plugins.blocker.root.get().pluginId
+            implementationClass = "RootPlugin"
         }
     }
 }

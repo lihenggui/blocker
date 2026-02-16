@@ -25,4 +25,10 @@
     <string name="feature_ruledetail_api_enable_all_of_this_page">啟用本頁所有組件</string>
     <string name="feature_ruledetail_api_keywords">關鍵詞</string>
     <string name="feature_ruledetail_api_select_a_rule">選擇一個規則</string>
+    <string name="feature_ruledetail_api_sort_menu">排序選單</string>
+    <string name="feature_ruledetail_api_sort_by_name">應用名稱</string>
+    <string name="feature_ruledetail_api_sort_by_recently_installed">最近安裝</string>
+    <string name="feature_ruledetail_api_sort_by_most_matched">最多匹配</string>
+    <string name="feature_ruledetail_api_sort_by_most_blocked">最多阻止</string>
+    <string name="feature_ruledetail_api_sort_by_most_enabled">最多啟用</string>
 </resources>

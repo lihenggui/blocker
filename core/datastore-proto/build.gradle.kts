@@ -16,12 +16,8 @@
  */
 
 plugins {
-    alias(libs.plugins.blocker.android.library)
+    alias(libs.plugins.blocker.jvm.library)
     alias(libs.plugins.protobuf)
-}
-
-android {
-    namespace = "com.mercury.blocker.core.datastore.proto"
 }
 
 // Setup protobuf configuration, generating lite Java and Kotlin classes
@@ -30,9 +26,9 @@ protobuf {
         artifact = libs.protobuf.protoc.get().toString()
     }
     generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                register("java") {
+        all().configureEach {
+            builtins {
+                named("java") {
                     option("lite")
                 }
                 register("kotlin") {

@@ -22,6 +22,7 @@ import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -34,6 +35,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Short
@@ -43,9 +46,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -65,6 +70,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
@@ -93,9 +99,11 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
+import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
 import com.merxury.blocker.feature.ruledetail.impl.RuleInfoUiState.Error
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleDescription
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleMatchedAppList
@@ -118,6 +126,7 @@ fun RuleDetailScreen(
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val appBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
+    val sortType by viewModel.sortType.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboard.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -128,6 +137,8 @@ fun RuleDetailScreen(
         tabState = tabState,
         switchTab = viewModel::switchTab,
         appBarUiState = appBarUiState,
+        sortType = sortType,
+        onSortTypeChange = viewModel::updateSortType,
         onStopServiceClick = viewModel::stopService,
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = {
@@ -285,6 +296,8 @@ fun RuleDetailScreen(
     modifier: Modifier = Modifier,
     showBackButton: Boolean = true,
     appBarUiState: AppBarUiState = AppBarUiState(),
+    sortType: RuleDetailSortType = RuleDetailSortType.NAME,
+    onSortTypeChange: (RuleDetailSortType) -> Unit = {},
     onBackClick: () -> Unit = {},
     switchTab: (RuleDetailTabs) -> Unit = { _ -> },
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
@@ -312,6 +325,8 @@ fun RuleDetailScreen(
                 ruleInfoUiState = ruleInfoUiState,
                 onBackClick = onBackClick,
                 appBarUiState = appBarUiState,
+                sortType = sortType,
+                onSortTypeChange = onSortTypeChange,
                 tabState = tabState,
                 switchTab = switchTab,
                 onStopServiceClick = onStopServiceClick,
@@ -345,6 +360,8 @@ fun RuleDetailContent(
     modifier: Modifier = Modifier,
     showBackButton: Boolean = true,
     appBarUiState: AppBarUiState = AppBarUiState(),
+    sortType: RuleDetailSortType = RuleDetailSortType.NAME,
+    onSortTypeChange: (RuleDetailSortType) -> Unit = {},
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -411,6 +428,8 @@ fun RuleDetailContent(
                 actions = {
                     RuleDetailAppBarActions(
                         appBarUiState = appBarUiState,
+                        sortType = sortType,
+                        onSortTypeChange = onSortTypeChange,
                         blockAllComponents = onBlockAllInPageClick,
                         enableAllComponents = onEnableAllInPageClick,
                     )
@@ -446,6 +465,8 @@ fun RuleDetailContent(
 fun RuleDetailAppBarActions(
     modifier: Modifier = Modifier,
     appBarUiState: AppBarUiState = AppBarUiState(),
+    sortType: RuleDetailSortType = RuleDetailSortType.NAME,
+    onSortTypeChange: (RuleDetailSortType) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
 ) {
@@ -458,6 +479,12 @@ fun RuleDetailAppBarActions(
     ) {
         val actions = appBarUiState.actions
         if (actions.isEmpty()) return
+        if (actions.contains(SORT)) {
+            SortActionMenu(
+                sortType = sortType,
+                onSortTypeChange = onSortTypeChange,
+            )
+        }
         if (actions.contains(MORE)) {
             MoreActionMenu(
                 blockAllComponents = blockAllComponents,
@@ -489,6 +516,40 @@ fun MoreActionMenu(
         menuIconDesc = uistring.core_ui_more_menu,
         menuList = items,
     )
+}
+
+@Composable
+fun SortActionMenu(
+    sortType: RuleDetailSortType,
+    onSortTypeChange: (RuleDetailSortType) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        var expanded by remember { mutableStateOf(false) }
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = BlockerIcons.Sort,
+                contentDescription = stringResource(ruledetailString.feature_ruledetail_api_sort_menu),
+            )
+        }
+        BlockerDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            items = RuleDetailSortType.entries,
+            onItemClick = { entry ->
+                onSortTypeChange(entry)
+            },
+            itemText = { entry -> Text(text = stringResource(entry.labelRes)) },
+            itemTrailingIcon = { entry ->
+                if (entry == sortType) {
+                    Icon(
+                        imageVector = BlockerIcons.CheckSmall,
+                        contentDescription = null,
+                    )
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -594,6 +655,7 @@ private fun RuleDetailScreenPreview(
                 tabState = tabState[0],
                 appBarUiState = AppBarUiState(
                     actions = listOf(
+                        SORT,
                         MORE,
                     ),
                 ),

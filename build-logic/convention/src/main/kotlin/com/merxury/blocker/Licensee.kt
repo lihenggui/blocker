@@ -21,6 +21,7 @@ fun Project.configureLicensee() {
         allow("BSD-3-Clause")
         allowUrl("http://opensource.org/licenses/BSD-2-Clause")
         allowUrl("https://opensource.org/licenses/MIT")
+        allowUrl("https://opensource.org/license/mit")
         allowUrl("https://developer.android.com/studio/terms.html")
         allowUrl("https://github.com/jordond/materialkolor/blob/master/LICENSE") // MIT
         allowUrl("https://github.com/RikkaApps/Shizuku-API/blob/master/LICENSE") // MIT

@@ -1,6 +1,6 @@
 /*
- * Copyright 2025 The Android Open Source Project
  * Copyright 2025 Blocker
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 package com.merxury.blocker
 
 import com.android.utils.associateWithNotNull
+import com.merxury.blocker.PluginType.Unknown
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -67,7 +68,7 @@ private class Graph(
         seen += project.path
         plugins.putIfAbsent(
             project,
-            PluginType.entries.firstOrNull { project.pluginManager.hasPlugin(it.id) } ?: PluginType.Unknown,
+            PluginType.entries.firstOrNull { project.pluginManager.hasPlugin(it.id) } ?: Unknown,
         )
         dependencies.compute(project) { _, u -> u.orEmpty() }
         project.configurations
@@ -94,27 +95,27 @@ private class Graph(
  */
 internal enum class PluginType(val id: String, val ref: String, val style: String) {
     AndroidApplication(
-        id = "nowinandroid.android.application",
+        id = "blocker.android.application",
         ref = "android-application",
         style = "fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000",
     ),
     AndroidFeature(
-        id = "nowinandroid.android.feature",
+        id = "blocker.android.feature",
         ref = "android-feature",
         style = "fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000",
     ),
     AndroidLibrary(
-        id = "nowinandroid.android.library",
+        id = "blocker.android.library",
         ref = "android-library",
         style = "fill:#9BF6FF,stroke:#000,stroke-width:2px,color:#000",
     ),
     AndroidTest(
-        id = "nowinandroid.android.test",
+        id = "blocker.android.test",
         ref = "android-test",
         style = "fill:#A0C4FF,stroke:#000,stroke-width:2px,color:#000",
     ),
     Jvm(
-        id = "nowinandroid.jvm.library",
+        id = "blocker.jvm.library",
         ref = "jvm-library",
         style = "fill:#BDB2FF,stroke:#000,stroke-width:2px,color:#000",
     ),
@@ -334,7 +335,7 @@ private abstract class GraphUpdateTask : DefaultTask() {
             |$mermaid
             |```
             |
-            |<details><summary>📋 Graph legend</summary>
+            |<details><summary>Graph legend</summary>
             |
             |```mermaid
             |$legend

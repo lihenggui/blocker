@@ -16,8 +16,8 @@
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.android.build.gradle.BaseExtension
 import com.merxury.blocker.configureBadgingTasks
+import com.merxury.blocker.configureSpotlessForAndroid
 import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configureLicensee
@@ -35,7 +35,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         with(target) {
             with(pluginManager) {
                 apply("com.android.application")
-                apply("org.jetbrains.kotlin.android")
                 apply("blocker.android.lint")
                 apply("com.dropbox.dependency-guard")
             }
@@ -48,7 +47,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             extensions.configure<ApplicationAndroidComponentsExtension> {
                 configurePrintApksTask(this)
                 configureRenameBuildOutputTask(this)
-                configureBadgingTasks(extensions.getByType<BaseExtension>(), this)
+                configureBadgingTasks(extensions.getByType<ApplicationExtension>(), this)
                 configureLicensee()
             }
             extensions.configure<JavaPluginExtension> {
@@ -56,6 +55,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     languageVersion.set(JavaLanguageVersion.of(21))
                 }
             }
+            configureSpotlessForAndroid()
         }
     }
 }

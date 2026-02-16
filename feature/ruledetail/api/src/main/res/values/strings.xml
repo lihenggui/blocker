@@ -25,4 +25,10 @@
     <string name="feature_ruledetail_api_enable_all_of_this_page">Enable all of this page</string>
     <string name="feature_ruledetail_api_keywords">Keywords</string>
     <string name="feature_ruledetail_api_select_a_rule">Select a rule</string>
+    <string name="feature_ruledetail_api_sort_menu">Sort menu</string>
+    <string name="feature_ruledetail_api_sort_by_name">App name</string>
+    <string name="feature_ruledetail_api_sort_by_recently_installed">Recently installed</string>
+    <string name="feature_ruledetail_api_sort_by_most_matched">Most matched</string>
+    <string name="feature_ruledetail_api_sort_by_most_blocked">Most blocked</string>
+    <string name="feature_ruledetail_api_sort_by_most_enabled">Most enabled</string>
 </resources>

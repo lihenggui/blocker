@@ -11,4 +11,10 @@
     <string name="feature_ruledetail_api_enable_all_of_this_page">Bu Sayfadaki Tümünü Etkinleştir</string>
     <string name="feature_ruledetail_api_keywords">Anahtar Kelimeler</string>
     <string name="feature_ruledetail_api_select_a_rule">Bir Kural Seçin</string>
+    <string name="feature_ruledetail_api_sort_menu">Sıralama Menüsü</string>
+    <string name="feature_ruledetail_api_sort_by_name">Uygulama Adı</string>
+    <string name="feature_ruledetail_api_sort_by_recently_installed">Son Yüklenen</string>
+    <string name="feature_ruledetail_api_sort_by_most_matched">En Çok Eşleşen</string>
+    <string name="feature_ruledetail_api_sort_by_most_blocked">En Çok Engellenen</string>
+    <string name="feature_ruledetail_api_sort_by_most_enabled">En Çok Etkinleştirilen</string>
 </resources>
