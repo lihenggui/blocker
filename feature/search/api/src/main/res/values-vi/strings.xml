@@ -16,23 +16,18 @@
 <resources>
     <string name="feature_search_api_searching">Đang tìm</string>
     <plurals name="feature_search_api_activity_count">
-        <item quantity="one">%1$d hoạt động</item>
         <item quantity="other">%1$d hoạt động</item>
     </plurals>
     <plurals name="feature_search_api_content_provider_count">
-        <item quantity="one">%1$d nhà cung cấp nội dung</item>
         <item quantity="other">%1$d nhà cung cấp nội dung</item>
     </plurals>
     <plurals name="feature_search_api_receiver_count">
-        <item quantity="one">%1$d bên nhận</item>
         <item quantity="other">%1$d bên nhận</item>
     </plurals>
     <plurals name="feature_search_api_service_count">
-        <item quantity="one">%1$d dịch vụ</item>
         <item quantity="other">%1$d dịch vụ</item>
     </plurals>
     <plurals name="feature_search_api_selected_app_count">
-        <item quantity="one">%1$d ứng dụng đã chọn</item>
         <item quantity="other">%1$d ứng dụng đã chọn</item>
     </plurals>
 <string name="feature_search_api_search_hint">Bạn có thể tìm ứng dụng, tiến trình và luật</string>
