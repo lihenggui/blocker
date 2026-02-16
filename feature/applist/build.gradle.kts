@@ -42,4 +42,3 @@ dependencies {
 
     androidTestImplementation(projects.core.testing)
 }
-

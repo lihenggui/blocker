@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="300" height="44pt" viewBox="0 0 225.08 44">
-    <g class="graph">
-        <path fill="#fff" stroke="transparent" d="M0 44V0h225.08v44H0z"/>
-        <g class="node" transform="translate(4 40)">
-            <ellipse cx="108.54" cy="-18" fill="none" stroke="#000" rx="108.58" ry="18"/>
-            <text x="108.54" y="-14.3" font-family="Times,serif" font-size="14" text-anchor="middle">:core:datastore-proto</text>
-        </g>
-    </g>
-</svg>

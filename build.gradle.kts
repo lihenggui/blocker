@@ -45,5 +45,6 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.roborazzi) apply false
     alias(libs.plugins.room) apply false
-    alias(libs.plugins.module.graph) apply true // Plugin applied to allow module graph generation
+    alias(libs.plugins.spotless) apply false
+    alias(libs.plugins.blocker.root)
 }
