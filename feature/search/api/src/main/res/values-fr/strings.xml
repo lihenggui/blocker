@@ -29,4 +29,5 @@
     </plurals>
     <string name="feature_search_api_check_icon">Vérifier</string>
     <string name="feature_search_api_select_an_app_or_a_rule">Sélectionner une application ou une règle</string>
+    <string name="feature_search_api_no_search_result">Aucun résultat de recherche pour le moment</string>
 </resources>
