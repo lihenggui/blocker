@@ -36,8 +36,6 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -55,9 +53,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = DebloaterViewModel.Factory::class)
-class DebloaterViewModel @AssistedInject constructor(
+@HiltViewModel
+class  DebloaterViewModel @Inject constructor(
     private val debloatableComponentRepository: DebloatableComponentRepository,
     permissionMonitor: PermissionMonitor,
     private val componentRepository: ComponentRepository,
@@ -340,10 +339,5 @@ class DebloaterViewModel @AssistedInject constructor(
                 null
             }
         }
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(): DebloaterViewModel
     }
 }

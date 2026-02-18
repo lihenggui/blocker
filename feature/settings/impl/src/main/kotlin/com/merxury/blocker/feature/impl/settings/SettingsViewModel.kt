@@ -61,8 +61,6 @@ import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -76,9 +74,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = SettingsViewModel.Factory::class)
-class SettingsViewModel @AssistedInject constructor(
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
     appContext: Application,
     private val userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
@@ -359,11 +358,6 @@ class SettingsViewModel @AssistedInject constructor(
         viewModelScope.launch {
             userDataRepository.setDynamicColorPreference(useDynamicColor)
         }
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(): SettingsViewModel
     }
 
     // Only FOSS version provides StubAnalyticsHelper
