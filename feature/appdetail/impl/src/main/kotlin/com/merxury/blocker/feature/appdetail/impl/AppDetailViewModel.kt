@@ -704,7 +704,7 @@ class AppDetailViewModel @AssistedInject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(EXPORT_BLOCKER_RULES, workInfo)
                 }
@@ -730,7 +730,7 @@ class AppDetailViewModel @AssistedInject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(IMPORT_BLOCKER_RULES, workInfo)
                 }
@@ -754,7 +754,7 @@ class AppDetailViewModel @AssistedInject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(EXPORT_IFW_RULES, workInfo)
                 }
@@ -779,7 +779,7 @@ class AppDetailViewModel @AssistedInject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(IMPORT_IFW_RULES, workInfo)
                 }
@@ -801,7 +801,7 @@ class AppDetailViewModel @AssistedInject constructor(
             getWorkInfosForUniqueWorkLiveData(taskName)
                 .asFlow()
                 .collect { workInfoList ->
-                    if (workInfoList.isNullOrEmpty()) return@collect
+                    if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(RESET_IFW, workInfo)
                 }
@@ -910,6 +910,12 @@ class AppDetailViewModel @AssistedInject constructor(
         }
     }
 
+    fun showComponentDetailDialog(showComponentDetailDialog: Boolean, componentName: String) {
+        _appInfoUiState.update {
+            it.copy(showComponentDetailDialog = showComponentDetailDialog, selectedComponentName = componentName)
+        }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(
@@ -929,4 +935,6 @@ data class AppInfoUiState(
     val seedColor: Color? = null,
     val showOpenInLibChecker: Boolean = false,
     val showComponentSortBottomSheet: Boolean = false,
+    val showComponentDetailDialog: Boolean = false,
+    val selectedComponentName: String = "",
 )

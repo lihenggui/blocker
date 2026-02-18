@@ -56,7 +56,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class  DebloaterViewModel @Inject constructor(
+class DebloaterViewModel @Inject constructor(
     private val debloatableComponentRepository: DebloatableComponentRepository,
     permissionMonitor: PermissionMonitor,
     private val componentRepository: ComponentRepository,

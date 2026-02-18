@@ -67,7 +67,6 @@ import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.navigation.toEntries
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.impl.navigation.appDetailEntry
-import com.merxury.blocker.feature.appdetail.impl.navigation.componentDetailEntry
 import com.merxury.blocker.feature.applist.impl.navigation.appListEntry
 import com.merxury.blocker.feature.debloater.impl.navigation.debloaterEntry
 import com.merxury.blocker.feature.generalrule.impl.navigation.generalRuleEntry
@@ -219,7 +218,6 @@ internal fun BlockerApp(
                     supportAndFeedbackEntry(navigator)
                     licensesEntry(navigator)
                     settingsEntry(navigator)
-                    componentDetailEntry(navigator)
                 }
 
                 NavDisplay(

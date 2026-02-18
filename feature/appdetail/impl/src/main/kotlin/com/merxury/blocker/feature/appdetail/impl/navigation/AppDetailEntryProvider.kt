@@ -25,7 +25,6 @@ import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
-import com.merxury.blocker.feature.appdetail.api.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.appdetail.impl.AppDetailScreen
 import com.merxury.blocker.feature.appdetail.impl.AppDetailViewModel
 import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetail
@@ -45,7 +44,6 @@ fun EntryProviderScope<NavKey>.appDetailEntry(
             snackbarHostState = LocalSnackbarHostState.current,
             updateIconThemingState = updateIconThemingState,
             onBackClick = { navigator.goBack() },
-            navigateToComponentDetail = navigator::navigateToComponentDetail,
             navigateToRuleDetail = navigator::navigateToRuleDetail,
             viewModel = hiltViewModel<AppDetailViewModel, AppDetailViewModel.Factory>(
                 key = packageName,

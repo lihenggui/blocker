@@ -135,6 +135,7 @@ import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.appdetail.api.R.plurals
 import com.merxury.blocker.feature.appdetail.api.R.string
 import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortBottomSheetRoute
+import com.merxury.blocker.feature.appdetail.impl.componentdetail.ComponentDetailDialog
 import com.merxury.blocker.feature.appdetail.impl.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.impl.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.impl.ui.MoreActionMenu
@@ -151,7 +152,6 @@ fun AppDetailScreen(
     snackbarHostState: SnackbarHostState,
     updateIconThemingState: (IconThemingState) -> Unit,
     onBackClick: () -> Unit,
-    navigateToComponentDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
     navigateToRuleDetail: (String) -> Unit = {},
     showBackButton: Boolean = true,
@@ -170,7 +170,7 @@ fun AppDetailScreen(
         topAppBarUiState = topAppBarUiState,
         componentListUiState = appInfoUiState.componentSearchUiState,
         tabState = tabState,
-        navigateToComponentDetail = navigateToComponentDetail,
+        showComponentDetailDialog = viewModel::showComponentDetailDialog,
         navigateToRuleDetail = navigateToRuleDetail,
         showComponentSortBottomSheet = viewModel::showComponentSortBottomSheet,
         modifier = modifier.fillMaxSize(),
@@ -414,7 +414,7 @@ fun AppDetailScreen(
     onBackClick: () -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     switchTab: (AppDetailTabs) -> Unit = {},
-    navigateToComponentDetail: (String) -> Unit = {},
+    showComponentDetailDialog: (Boolean, String) -> Unit = {_, _ -> },
     navigateToRuleDetail: (String) -> Unit = {},
     onSearchTextChange: (String) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
@@ -451,7 +451,7 @@ fun AppDetailScreen(
         componentListUiState = componentListUiState,
         tabState = tabState,
         onBackClick = onBackClick,
-        navigateToComponentDetail = navigateToComponentDetail,
+        showComponentDetailDialog = showComponentDetailDialog,
         navigateToRuleDetail = navigateToRuleDetail,
         showComponentSortBottomSheet = showComponentSortBottomSheet,
         onLaunchAppClick = onLaunchAppClick,
@@ -504,7 +504,7 @@ fun AppDetailContent(
     topAppBarUiState: AppBarUiState,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = true,
-    navigateToComponentDetail: (String) -> Unit = {},
+    showComponentDetailDialog: (Boolean, String) -> Unit = { _, _ -> },
     navigateToRuleDetail: (String) -> Unit = {},
     onShowAppInfoClick: () -> Unit = {},
     onSearchTextChange: (String) -> Unit = {},
@@ -614,7 +614,7 @@ fun AppDetailContent(
                         onPress = { scope.coroutineContext.cancelChildren() },
                     )
                 },
-            navigateToComponentDetail = navigateToComponentDetail,
+            showComponentDetailDialog = showComponentDetailDialog,
             navigateToRuleDetail = navigateToRuleDetail,
             onShowAppInfoClick = onShowAppInfoClick,
             onExportRules = onExportRules,
@@ -636,6 +636,12 @@ fun AppDetailContent(
             showOpenInLibChecker = showOpenInLibChecker,
             matchedGeneralRuleUiState = matchedGeneralRuleUiState,
         )
+        if (appInfoUiState.showComponentDetailDialog) {
+            ComponentDetailDialog(
+                componentName = appInfoUiState.selectedComponentName,
+                dismissHandler = { showComponentDetailDialog(false, "") },
+            )
+        }
         if (appInfoUiState.showComponentSortBottomSheet) {
             ComponentSortBottomSheetRoute(
                 dismissHandler = { showComponentSortBottomSheet(false) },
@@ -791,7 +797,7 @@ fun AppDetailTabContent(
     modifier: Modifier = Modifier,
     selectedComponentList: List<ComponentInfo> = emptyList(),
     isSelectedMode: Boolean = false,
-    navigateToComponentDetail: (String) -> Unit = {},
+    showComponentDetailDialog: (Boolean, String) -> Unit = { _, _ -> },
     navigateToRuleDetail: (String) -> Unit = {},
     onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
@@ -902,7 +908,7 @@ fun AppDetailTabContent(
                                     components = components,
                                     selectedComponentList = selectedComponentList,
                                     isSelectedMode = isSelectedMode,
-                                    navigateToComponentDetail = navigateToComponentDetail,
+                                    showComponentDetailDialog = showComponentDetailDialog,
                                     onSwitchClick = onSwitchClick,
                                     onStopServiceClick = onStopServiceClick,
                                     onLaunchActivityClick = onLaunchActivityClick,
