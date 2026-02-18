@@ -16,16 +16,22 @@
 
 package com.merxury.blocker.feature.impl.licenses.navigation
 
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.feature.impl.licenses.LicensesScreen
+import com.merxury.blocker.feature.impl.licenses.LicensesViewModel
 import com.merxury.blocker.feature.settings.api.navigation.LicensesNavKey
 
 fun EntryProviderScope<NavKey>.licensesEntry(navigator: Navigator) {
     entry<LicensesNavKey> {
         LicensesScreen(
             onNavigationClick = { navigator.goBack() },
+            viewModel = hiltViewModel<LicensesViewModel, LicensesViewModel.Factory>
+            { factory ->
+                factory.create()
+            },
         )
     }
 }

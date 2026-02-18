@@ -17,10 +17,12 @@
 package com.merxury.blocker.feature.debloater.impl.navigation
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.debloater.impl.DebloaterScreen
+import com.merxury.blocker.feature.debloater.impl.DebloaterViewModel
 import com.merxury.blocker.feature.debloator.api.navigation.DebloaterNavKey
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -29,6 +31,10 @@ fun EntryProviderScope<NavKey>.debloaterEntry() {
         val snackbarHostState = LocalSnackbarHostState.current
         DebloaterScreen(
             snackbarHostState = snackbarHostState,
+            viewModel = hiltViewModel<DebloaterViewModel, DebloaterViewModel.Factory>
+            { factory ->
+                factory.create()
+            },
         )
     }
 }

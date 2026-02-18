@@ -16,11 +16,13 @@
 
 package com.merxury.blocker.feature.impl.settings.navigation
 
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.impl.settings.SettingsScreen
+import com.merxury.blocker.feature.impl.settings.SettingsViewModel
 import com.merxury.blocker.feature.settings.api.navigation.SettingsNavKey
 
 fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
@@ -29,6 +31,10 @@ fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
         SettingsScreen(
             onNavigationClick = { navigator.goBack() },
             snackbarHostState = snackbarHostState,
+            viewModel = hiltViewModel<SettingsViewModel, SettingsViewModel.Factory>
+            { factory ->
+                factory.create()
+            },
         )
     }
 }
