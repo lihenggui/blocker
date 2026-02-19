@@ -21,6 +21,7 @@
     <string name="core_ui_matched">%1$d correspondentes, %2$d bloqueados, %3$d ativos.</string>
     <plurals name="core_ui_matched_apps">
         <item quantity="one">%1$d app correspondente</item>
+        <item quantity="many">%1$d app correspondentes</item>
         <item quantity="other">%1$d apps correspondentes</item>
     </plurals>
     <string name="core_ui_description">Descrição</string>
@@ -50,14 +51,17 @@
     <string name="core_ui_not_found_icon">Ícone não encontrado</string>
     <plurals name="core_ui_block_all">
         <item quantity="one">Esta operação irá desativar %1$d componente, deseja continuar?</item>
+        <item quantity="many">Esta operação irá desativar %1$d componentes, deseja continuar?</item>
         <item quantity="other">Esta operação irá desativar %1$d componentes, deseja continuar?</item>
     </plurals>
     <plurals name="core_ui_enable_all">
         <item quantity="one">Esta operação irá ativar %1$d componente, deseja continuar?</item>
+        <item quantity="many">Esta operação irá ativar %1$d componentes, deseja continuar?</item>
         <item quantity="other">Esta operação irá ativar %1$d componentes, deseja continuar?</item>
     </plurals>
     <plurals name="core_ui_selected_app_count">
         <item quantity="one">%1$d app selecionado</item>
+        <item quantity="many">%1$d apps selecionados</item>
         <item quantity="other">%1$d apps selecionados</item>
     </plurals>
     <string name="core_ui_disabling_component_hint">A desativar componentes, por favor aguarde… (%1$d/%2$d)</string>
