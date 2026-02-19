@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2025 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+--><resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
+    <string name="feature_appdetail_api_cannot_launch_this_app">Не удалось запустить это приложение</string>
+    <string name="feature_appdetail_api_blocker_rules">Правила Blocker</string>
+    <string name="feature_appdetail_api_export_rules">Экспорт правил</string>
+    <string name="feature_appdetail_api_import_rules">Импорт правил</string>
+    <string name="feature_appdetail_api_ifw_rules">Правила IFW</string>
+    <string name="feature_appdetail_api_export_ifw_rules">Экспорт правил IFW</string>
+    <string name="feature_appdetail_api_import_ifw_rules">Импорт правил IFW</string>
+    <string name="feature_appdetail_api_reset_ifw">Сбросить IFW</string>
+    <string name="feature_appdetail_api_target_sdk_version">Целевая версия SDK</string>
+    <string name="feature_appdetail_api_minimum_sdk_version">Минимальная версия SDK</string>
+    <string name="feature_appdetail_api_last_update_time">Время последнего обновления</string>
+    <string name="feature_appdetail_api_data_dir">Каталог данных</string>
+    <string name="feature_appdetail_api_block_all_of_this_page">Отключить все на странице</string>
+    <string name="feature_appdetail_api_enable_all_of_this_page">Включить все на странице</string>
+    <string name="feature_appdetail_api_blocking_effect">Последствия отключения</string>
+    <string name="feature_appdetail_api_recommended_blocking">Рекомендуемая блокировка</string>
+    <string name="feature_appdetail_api_belonging_sdk">Принадлежащий SDK</string>
+    <string name="feature_appdetail_api_save">Сохранить</string>
+    <string name="feature_appdetail_api_search_components">Поиск компонентов</string>
+<string name="feature_appdetail_api_unknown">Неизвестно</string>
+    <string name="feature_appdetail_api_select_mutiple">Выбрать несколько</string>
+    <plurals name="feature_appdetail_api_selected_component_count">
+        <item quantity="one">Выбран %1$d компонент</item>
+        <item quantity="few">Выбрано %1$d компонента</item>
+        <item quantity="many">Выбрано %1$d компонентов</item>
+        <item quantity="other">Выбрано %1$d компонентов</item>
+    </plurals>
+    <string name="feature_appdetail_api_share_your_rules">Поделиться своими правилами</string>
+    <string name="feature_appdetail_api_share_all_rules">Поделиться всеми правилами</string>
+    <string name="feature_appdetail_api_share_rules_of_this_app">Поделиться правилами этого приложения</string>
+    <string name="feature_appdetail_api_cannot_share_rule_report_issue">Невозможно поделиться правилами. Сообщите нам об этой ошибке.</string>
+    <string name="feature_appdetail_api_cannot_share_rule_no_apps_found">Невозможно поделиться правилами, не найдено ни одного приложения для обмена.</string>
+    <string name="feature_appdetail_api_rules_sharing_title">Обмен правилами: %1$s</string>
+    <string name="feature_appdetail_api_provide_additional_details">(Пожалуйста, предоставьте дополнительные сведения о своих правилах.)\n</string>
+    <string name="feature_appdetail_api_all_rules">Все правила</string>
+    <string name="feature_appdetail_api_app_info">Информация о приложении</string>
+    <string name="feature_appdetail_api_app_info_with_libchecker_summary">Используйте LibChecker для просмотра сведений о приложении</string>
+    <string name="feature_appdetail_api_select_an_app">Выберите приложение</string>
+    <string name="feature_appdetail_api_sort_options">Параметры сортировки</string>
+    <string name="feature_appdetail_api_sort_by">Сортировать по</string>
+    <string name="feature_appdetail_api_package_name">Имя пакета</string>
+    <string name="feature_appdetail_api_component_name">Имя компонента</string>
+    <string name="feature_appdetail_api_order">Порядок</string>
+    <string name="feature_appdetail_api_ascending">По возрастанию</string>
+    <string name="feature_appdetail_api_descending">По убыванию</string>
+    <string name="feature_appdetail_api_priority">Приоритет</string>
+    <string name="feature_appdetail_api_disabled_first">Сначала отключенные</string>
+    <string name="feature_appdetail_api_enabled_first">Сначала включенные</string>
+    <string name="feature_appdetail_api_none">Нет</string>
+</resources>

@@ -18,6 +18,7 @@
 package com.merxury.blocker.sync.workers
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.hilt.work.HiltWorker
 import androidx.tracing.traceAsync
 import androidx.work.CoroutineWorker
@@ -192,7 +193,7 @@ internal class SyncWorker @AssistedInject constructor(
         val sharedPreferences =
             appContext.getSharedPreferences(PREF_SYNC_RULE, Context.MODE_PRIVATE)
         val currentTime = System.currentTimeMillis()
-        sharedPreferences.edit().putLong(PREF_LAST_SYNCED_TIME, currentTime).apply()
+        sharedPreferences.edit { putLong(PREF_LAST_SYNCED_TIME, currentTime) }
         Timber.d("Mark rule sync time: ${Instant.fromEpochMilliseconds(currentTime)}")
     }
 

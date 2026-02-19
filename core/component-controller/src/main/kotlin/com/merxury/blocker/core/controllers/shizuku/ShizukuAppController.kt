@@ -224,7 +224,7 @@ internal class ShizukuAppController @Inject constructor(
         Timber.i("Open app details for $packageName")
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         val uri = Uri.fromParts("package", packageName, null)
-        intent.setData(uri)
+        intent.data = uri
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         context.startActivity(intent)
     }

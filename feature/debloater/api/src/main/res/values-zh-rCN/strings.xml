@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2025 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_debloater_api_search_hint">输入进行搜索</string>
+    <string name="feature_debloater_api_no_root_permission">需要 Root 权限才能启用或禁用组件</string>
+    <string name="feature_debloater_api_test_share">测试分享</string>
+    <string name="feature_debloater_api_share_component">分享</string>
+    <string name="feature_debloater_api_launcher_entry">桌面入口</string>
+    <string name="feature_debloater_api_deeplink_entry">Deeplink启动</string>
+    <string name="feature_debloater_api_filter_chip_shareable">分享组件</string>
+    <string name="feature_debloater_api_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_launcher">启动器</string>
+    <string name="feature_debloater_api_filter_chip_wakelock">唤醒锁</string>
+    <string name="feature_debloater_api_filter_chip_auto_start">自启动</string>
+    <string name="feature_debloater_api_filter_chip_exported_no_perm">导出组件</string>
+    <string name="feature_debloater_api_filter_chip_foreground_service">前台服务</string>
+    <string name="feature_debloater_api_filter_chip_push_service">推送服务</string>
+    <string name="feature_debloater_api_filter_chip_dangerous_provider">危险Provider</string>
+</resources>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2025 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_debloater_api_search_hint">اكتب للبحث</string>
+    <string name="feature_debloater_api_no_root_permission">مطلوب إذن الجذر لتمكين أو تعطيل المكونات</string>
+    <string name="feature_debloater_api_test_share">اختبار المشاركة</string>
+    <string name="feature_debloater_api_share_component">مشاركة</string>
+    <string name="feature_debloater_api_launcher_entry">المشغل</string>
+    <string name="feature_debloater_api_deeplink_entry">رابط عميق</string>
+    <string name="feature_debloater_api_filter_chip_shareable">قابل للمشاركة</string>
+    <string name="feature_debloater_api_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_launcher">المشغل</string>
+    <string name="feature_debloater_api_filter_chip_wakelock">قفل الاستيقاظ</string>
+    <string name="feature_debloater_api_filter_chip_auto_start">التشغيل التلقائي</string>
+    <string name="feature_debloater_api_filter_chip_exported_no_perm">مُصدَّر</string>
+    <string name="feature_debloater_api_filter_chip_foreground_service">خدمة المقدمة</string>
+    <string name="feature_debloater_api_filter_chip_push_service">خدمة الدفع</string>
+    <string name="feature_debloater_api_filter_chip_dangerous_provider">مزود خطير</string>
+</resources>

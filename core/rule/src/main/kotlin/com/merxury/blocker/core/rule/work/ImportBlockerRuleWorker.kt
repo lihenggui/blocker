@@ -19,7 +19,7 @@ package com.merxury.blocker.core.rule.work
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
@@ -86,7 +86,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         val packageManager = context.packageManager
         val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
         val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
-        val documentDir = DocumentFile.fromTreeUri(context, Uri.parse(backupPath))
+        val documentDir = DocumentFile.fromTreeUri(context, backupPath.toUri())
         if (documentDir == null) {
             Timber.e("Cannot create DocumentFile")
             return@withContext Result.failure()

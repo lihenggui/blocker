@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2025 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_debloater_api_search_hint">Type to search</string>
+    <string name="feature_debloater_api_no_root_permission">Root permission is required to enable or disable components</string>
+    <string name="feature_debloater_api_test_share">Test share</string>
+    <string name="feature_debloater_api_share_component">Share</string>
+    <string name="feature_debloater_api_launcher_entry">Launcher</string>
+    <string name="feature_debloater_api_deeplink_entry">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_shareable">Shareable</string>
+    <string name="feature_debloater_api_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_launcher">Launcher</string>
+    <string name="feature_debloater_api_filter_chip_wakelock">Wakelock</string>
+    <string name="feature_debloater_api_filter_chip_auto_start">Auto-start</string>
+    <string name="feature_debloater_api_filter_chip_exported_no_perm">Exported</string>
+    <string name="feature_debloater_api_filter_chip_foreground_service">Foreground Service</string>
+    <string name="feature_debloater_api_filter_chip_push_service">Push Service</string>
+    <string name="feature_debloater_api_filter_chip_dangerous_provider">Dangerous Provider</string>
+</resources>

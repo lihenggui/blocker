@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2025 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  --><resources>
+    <string name="feature_settings_api_settings">Configuración</string>
+    <string name="feature_settings_api_controller_type">Tipo de controlador</string>
+    <string name="feature_settings_api_online_rule_source">Fuente de reglas en línea</string>
+    <string name="feature_settings_api_import_mat_rules">Importar reglas de MyAndroidTools</string>
+    <string name="feature_settings_api_application_list">Lista de aplicaciones</string>
+    <string name="feature_settings_api_show_system_apps">Mostrar aplicaciones del sistema</string>
+    <string name="feature_settings_api_show_service_info">Mostrar información de servicios</string>
+    <string name="feature_settings_api_export_ifw_rules">Exportar reglas de IFW</string>
+    <string name="feature_settings_api_import_ifw_rules">Importar reglas de IFW</string>
+    <string name="feature_settings_api_export_rules">Exportar reglas</string>
+    <string name="feature_settings_api_import_rules">Importar reglas</string>
+    <string name="feature_settings_api_reset_ifw">Restablecer IFW</string>
+    <string name="feature_settings_api_file_manager_required">Primero debe instalar un administrador de archivos desde la tienda.</string>
+    <string name="feature_settings_api_backup">Copia de seguridad</string>
+    <string name="feature_settings_api_folder_to_save">Guardar carpeta</string>
+    <string name="feature_settings_api_directory_invalid_or_not_set">La carpeta no es válida o no está configurada</string>
+    <string name="feature_settings_api_backup_system_apps">Copia de seguridad de las aplicaciones del sistema</string>
+    <string name="feature_settings_api_restore_system_apps">Restaurar aplicaciones del sistema</string>
+    <string name="feature_settings_api_blocker_rules">Reglas de Blocker</string>
+    <string name="feature_settings_api_ifw_rules">Reglas IFW</string>
+    <string name="feature_settings_api_theme">Asunto</string>
+    <string name="feature_settings_api_theme_default">Predeterminado</string>
+    <string name="feature_settings_api_android">Android</string>
+    <string name="feature_settings_api_dark_mode">Modo oscuro</string>
+    <string name="feature_settings_api_system_default">Valores predeterminados del sistema</string>
+    <string name="feature_settings_api_light">Luz</string>
+    <string name="feature_settings_api_dark">Oscuro</string>
+    <string name="feature_settings_api_support_and_feedback">Soporte y comentarios</string>
+    <string name="feature_settings_api_project_homepage">Página de inicio del proyecto</string>
+    <string name="feature_settings_api_rule_repository">Repositorio de reglas</string>
+    <string name="feature_settings_api_intent_firewall">Cortafuego de Intent</string>
+    <string name="feature_settings_api_package_manager">Gestor de Paquetes</string>
+    <string name="feature_settings_api_telegram_group">Grupo de Telegram</string>
+    <string name="feature_settings_api_export_error_log">Exportación del registro de errores</string>
+    <string name="feature_settings_api_dynamic_color">Color dinámico</string>
+    <string name="feature_settings_api_report_bugs_or_submit_ideas">Informar de errores o sugerir ideas</string>
+    <string name="feature_settings_api_designers_homepage">Página de inicio de los diseñadores</string>
+    <string name="feature_settings_api_open_source_licenses">Licencias de código abierto</string>
+    <string name="feature_settings_api_display_language">Idioma de visualización</string>
+    <string name="feature_settings_api_library_language">Lenguaje de reglas</string>
+    <string name="feature_settings_api_follow_system">Siga el sistema</string>
+    <string name="feature_settings_api_english">Inglés</string>
+    <string name="feature_settings_api_simplifed_chinese">Chino simplificado</string>
+    <string name="feature_settings_api_traditional_chinese">Chino tradicional</string>
+    <string name="feature_settings_api_russian">Ruso</string>
+    <string name="feature_settings_api_spanish">Español</string>
+    <string name="feature_settings_api_french">Francés</string>
+    <string name="feature_settings_api_failed_to_export_logs">Error al exportar los registros, informe de un problema.</string>
+    <string name="feature_settings_api_export_log_title">Compartir registro de Blocker</string>
+    <string name="feature_settings_api_provide_additional_details">Proporcione detalles adicionales sobre el problema que encontró: \n</string>
+    <string name="feature_settings_api_no_sharable_app_found">No se encontró ninguna aplicación compartible.</string>
+    <string name="feature_settings_api_others">Otros</string>
+    <string name="feature_settings_api_anonymous_statistics">Estadísticas anónimas</string>
+    <string name="feature_settings_api_anonymous_statistics_summary">Utilizamos Firebase Analytics para recopilar y analizar datos sobre las funciones más utilizadas y el comportamiento del usuario con el fin de mejorar la funcionalidad de Blocker.</string>
+</resources>

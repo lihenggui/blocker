@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_ruledetail_api_safe_to_block">Güvenli Engellenebilir</string>
+    <string name="feature_ruledetail_api_side_effect">Yan Etki</string>
+    <string name="feature_ruledetail_api_contributors">Katkıda Bulunanlar</string>
+    <string name="feature_ruledetail_api_yes">Evet</string>
+    <string name="feature_ruledetail_api_no">Hayır</string>
+    <string name="feature_ruledetail_api_unknown">Bilinmiyor</string>
+    <string name="feature_ruledetail_api_no_description">Açıklama Yok</string>
+    <string name="feature_ruledetail_api_block_all_of_this_page">Bu Sayfadaki Tümünü Engelle</string>
+    <string name="feature_ruledetail_api_enable_all_of_this_page">Bu Sayfadaki Tümünü Etkinleştir</string>
+    <string name="feature_ruledetail_api_keywords">Anahtar Kelimeler</string>
+    <string name="feature_ruledetail_api_select_a_rule">Bir Kural Seçin</string>
+    <string name="feature_ruledetail_api_sort_menu">Sıralama Menüsü</string>
+    <string name="feature_ruledetail_api_sort_by_name">Uygulama Adı</string>
+    <string name="feature_ruledetail_api_sort_by_recently_installed">Son Yüklenen</string>
+    <string name="feature_ruledetail_api_sort_by_most_matched">En Çok Eşleşen</string>
+    <string name="feature_ruledetail_api_sort_by_most_blocked">En Çok Engellenen</string>
+    <string name="feature_ruledetail_api_sort_by_most_enabled">En Çok Etkinleştirilen</string>
+</resources>

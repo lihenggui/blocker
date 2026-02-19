@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="core_rule_processing_progress_indicator">مؤشر تقدم المعالجة</string>
+    <string name="core_rule_update_rules_notification">إشعار تحديث القواعد</string>
+    <string name="core_rule_backing_up_apps_please_wait">جارٍ النسخ الاحتياطي لقواعد التطبيقات، يرجى الانتظار…</string>
+    <string name="core_rule_backing_up_ifw_please_wait">جارٍ النسخ الاحتياطي لقواعد IFW، يرجى الانتظار…</string>
+    <string name="core_rule_import_ifw_please_wait">جارٍ استيراد قواعد IFW، يرجى الانتظار…</string>
+    <string name="core_rule_reset_ifw_please_wait">جارٍ إعادة تعيين IFW، يرجى الانتظار…</string>
+    <string name="core_rule_import_mat_rule_please_wait">جارٍ استيراد قواعد MAT، يرجى الانتظار…</string>
+    <string name="core_rule_import_app_rules_please_wait">جارٍ استيراد قواعد التطبيقات، يرجى الانتظار…</string>
+    <string name="core_rule_cancel">إلغاء</string>
+    <string name="core_rule_processing_please_wait">جارٍ المعالجة، يرجى الانتظار…</string>
+    <string name="core_rule_done">تم</string>
+    <string name="core_rule_error_msg_folder_not_defined">لم يتم تحديد مجلد النسخ الاحتياطي، يرجى الانتقال إلى الإعدادات لتعيينه.</string>
+    <string name="core_rule_error_msg_missing_root_permission">إذن الروت مفقود، يرجى منح الإذن لتطبيق Blocker.</string>
+    <string name="core_rule_error_msg_unexpected_exception">خطأ غير متوقع، يرجى الإبلاغ عنه للمطور.</string>
+    <string name="core_rule_task_cancelled">تم إلغاء المهمة</string>
+    <string name="core_rule_copying_rules_to_internal_storage">جارٍ نسخ القواعد إلى وحدة التخزين الداخلية…</string>
+</resources>

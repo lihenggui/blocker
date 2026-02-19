@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2025 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_settings_api_settings">設置</string>
+    <string name="feature_settings_api_controller_type">控制器種類</string>
+    <string name="feature_settings_api_online_rule_source">在線規則源</string>
+    <string name="feature_settings_api_import_mat_rules">匯入MyAndroidTools規則</string>
+    <string name="feature_settings_api_application_list">應用程式列表</string>
+    <string name="feature_settings_api_show_system_apps">顯示系統應用</string>
+    <string name="feature_settings_api_show_service_info">顯示服務信息</string>
+    <string name="feature_settings_api_export_ifw_rules">匯出IFW規則</string>
+    <string name="feature_settings_api_import_ifw_rules">匯入IFW規則</string>
+    <string name="feature_settings_api_export_rules">導出規則</string>
+    <string name="feature_settings_api_reset_ifw">重設IFW</string>
+    <string name="feature_settings_api_file_manager_required">未找到檔案管理器，請先從商店下載。</string>
+    <string name="feature_settings_api_folder_to_save">保存目錄</string>
+    <string name="feature_settings_api_backup">備份</string>
+    <string name="feature_settings_api_directory_invalid_or_not_set">目錄未設置或不可讀</string>
+    <string name="feature_settings_api_backup_system_apps">備份系統應用</string>
+    <string name="feature_settings_api_restore_system_apps">還原系統應用</string>
+    <string name="feature_settings_api_blocker_rules">Blocker規則</string>
+    <string name="feature_settings_api_ifw_rules">IFW規則</string>
+    <string name="feature_settings_api_support_and_feedback">幫助和反饋</string>
+    <string name="feature_settings_api_project_homepage">項目主頁</string>
+    <string name="feature_settings_api_rule_repository">規則倉庫</string>
+    <string name="feature_settings_api_telegram_group">Telegram 群組</string>
+    <string name="feature_settings_api_export_error_log">導出錯誤日誌</string>
+    <string name="feature_settings_api_dark_mode">夜間主題</string>
+    <string name="feature_settings_api_intent_firewall">Intent Firewall（意圖防火牆）</string>
+    <string name="feature_settings_api_package_manager">Package Manager（系統包管理器）</string>
+    <string name="feature_settings_api_dynamic_color">動態主題顏色</string>
+    <string name="feature_settings_api_report_bugs_or_submit_ideas">問題反饋 &amp; 我有新點子</string>
+    <string name="feature_settings_api_designers_homepage">設計師主頁</string>
+    <string name="feature_settings_api_open_source_licenses">開源許可證</string>
+    <string name="feature_settings_api_display_language">顯示語言</string>
+    <string name="feature_settings_api_library_language">知識庫語言</string>
+    <string name="feature_settings_api_follow_system">跟隨系統</string>
+    <string name="feature_settings_api_english">英文</string>
+    <string name="feature_settings_api_simplifed_chinese">簡體中文</string>
+    <string name="feature_settings_api_traditional_chinese">繁體中文</string>
+    <string name="feature_settings_api_russian">俄語</string>
+    <string name="feature_settings_api_spanish">西班牙語</string>
+    <string name="feature_settings_api_french">法語</string>
+    <string name="feature_settings_api_failed_to_export_logs">導出日誌失敗，請報告問題。</string>
+    <string name="feature_settings_api_export_log_title">Blocker日誌導出</string>
+    <string name="feature_settings_api_provide_additional_details">請提供您遇到的問題的詳細資訊：\n</string>
+    <string name="feature_settings_api_no_sharable_app_found">未找到可共享的應用程式。</string>
+    <string name="feature_settings_api_others">其他</string>
+    <string name="feature_settings_api_anonymous_statistics">匿名統計</string>
+    <string name="feature_settings_api_anonymous_statistics_summary">我們利用 Firebase Analytics 收集和分析有關最常用功能和使用者行為的數據，以增強 Blocker 的功能。</string>
+</resources>

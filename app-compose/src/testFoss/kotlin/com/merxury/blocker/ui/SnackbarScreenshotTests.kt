@@ -19,6 +19,7 @@ package com.merxury.blocker.ui
 import android.util.Log
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.SnackbarDuration.Indefinite
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -33,7 +34,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowSizeClass.Companion.BREAKPOINTS_V1
 import androidx.window.core.layout.computeWindowSizeClass
 import androidx.work.Configuration
@@ -44,9 +44,9 @@ import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -204,23 +204,27 @@ class SnackbarScreenshotTests {
                 ) {
                     BoxWithConstraints {
                         BlockerTheme {
-                            val fakeAppState = rememberBlockerAppState(
-                                networkMonitor = networkMonitor,
-                                timeZoneMonitor = timeZoneMonitor,
-                                permissionMonitor = permissionMonitor,
-                            )
-                            BlockerApp(
-                                appState = fakeAppState,
-                                snackbarHostState = snackbarHostState,
-                                updateIconThemingState = {},
-                                windowAdaptiveInfo = WindowAdaptiveInfo(
-                                    windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(
-                                        widthDp = maxWidth.value,
-                                        heightDp = maxHeight.value,
+                            CompositionLocalProvider(
+                                LocalSnackbarHostState provides snackbarHostState,
+                            ) {
+                                val fakeAppState = rememberBlockerAppState(
+                                    networkMonitor = networkMonitor,
+                                    timeZoneMonitor = timeZoneMonitor,
+                                    permissionMonitor = permissionMonitor,
+                                )
+                                BlockerApp(
+                                    appState = fakeAppState,
+                                    snackbarHostState = snackbarHostState,
+                                    updateIconThemingState = {},
+                                    windowAdaptiveInfo = WindowAdaptiveInfo(
+                                        windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(
+                                            widthDp = maxWidth.value,
+                                            heightDp = maxHeight.value,
+                                        ),
+                                        windowPosture = Posture(),
                                     ),
-                                    windowPosture = Posture(),
-                                ),
-                            )
+                                )
+                            }
                         }
                     }
                 }
