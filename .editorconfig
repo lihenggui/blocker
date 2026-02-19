@@ -1,6 +1,11 @@
 # https://editorconfig.org/
 # This configuration is used by ktlint when spotless invokes it
 
+root = true
+
+[*]
+end_of_line = lf
+
 [*.{kt,kts}]
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
