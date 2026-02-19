@@ -414,7 +414,7 @@ fun AppDetailScreen(
     onBackClick: () -> Unit = {},
     onLaunchAppClick: (String) -> Unit = {},
     switchTab: (AppDetailTabs) -> Unit = {},
-    showComponentDetailDialog: (Boolean, String) -> Unit = {_, _ -> },
+    showComponentDetailDialog: (Boolean, String) -> Unit = { _, _ -> },
     navigateToRuleDetail: (String) -> Unit = {},
     onSearchTextChange: (String) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
