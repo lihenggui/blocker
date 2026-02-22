@@ -73,7 +73,7 @@ fun ComponentListItem(
     type: ComponentType,
     isServiceRunning: Boolean,
     modifier: Modifier = Modifier,
-    navigateToComponentDetail: (String) -> Unit = { },
+    showComponentDetailDialog: (Boolean, String) -> Unit = { _, _ -> },
     onStopServiceClick: () -> Unit = { },
     onLaunchActivityClick: () -> Unit = { },
     onCopyNameClick: () -> Unit = { },
@@ -99,7 +99,7 @@ fun ComponentListItem(
             .combinedClickable(
                 onClick = {
                     if (!isSelectedMode) {
-                        navigateToComponentDetail(item.name)
+                        showComponentDetailDialog(true, item.name)
                     } else {
                         if (isSelected) {
                             onDeselect(item)

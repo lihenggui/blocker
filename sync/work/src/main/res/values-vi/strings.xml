@@ -15,7 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="sync_work_notification_title" translatable="false">Blocker</string>
     <string name="sync_work_notification_channel_name">Đồng bộ</string>
     <string name="sync_work_notification_channel_description">Trình đồng bộ trong nền của Blocker</string>
 </resources>

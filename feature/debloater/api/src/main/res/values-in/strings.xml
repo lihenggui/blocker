@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_debloater_api_search_hint">Ketik untuk mencari</string>
+    <string name="feature_debloater_api_no_root_permission">Izin root diperlukan untuk mengaktifkan atau menonaktifkan komponen</string>
+    <string name="feature_debloater_api_test_share">Uji berbagi</string>
+    <string name="feature_debloater_api_share_component">Berbagi</string>
+    <string name="feature_debloater_api_launcher_entry">Peluncur</string>
+    <string name="feature_debloater_api_deeplink_entry">Tautan dalam</string>
+    <string name="feature_debloater_api_filter_chip_shareable">Dapat Dibagikan</string>
+    <string name="feature_debloater_api_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_launcher">Peluncur</string>
+    <string name="feature_debloater_api_filter_chip_wakelock">Kunci bangun</string>
+    <string name="feature_debloater_api_filter_chip_auto_start">Mulai otomatis</string>
+    <string name="feature_debloater_api_filter_chip_exported_no_perm">Diekspor</string>
+    <string name="feature_debloater_api_filter_chip_foreground_service">Layanan latar depan</string>
+    <string name="feature_debloater_api_filter_chip_push_service">Layanan push</string>
+    <string name="feature_debloater_api_filter_chip_dangerous_provider">Penyedia berbahaya</string>
+</resources>

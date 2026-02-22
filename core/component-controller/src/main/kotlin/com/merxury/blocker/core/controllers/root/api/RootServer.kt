@@ -226,7 +226,7 @@ internal class RootServer : RootService() {
                 return false
             }
             val intent = Intent().apply {
-                setComponent(ComponentName(packageName, serviceName))
+                component = ComponentName(packageName, serviceName)
             }
             val cn = am.startService(
                 null,
@@ -260,7 +260,7 @@ internal class RootServer : RootService() {
                 return false
             }
             val intent = Intent().apply {
-                setComponent(ComponentName(packageName, serviceName))
+                component = ComponentName(packageName, serviceName)
             }
             val result = am.stopService(null, intent, intent.type, context.userId)
             return when (result) {

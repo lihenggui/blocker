@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_ruledetail_api_safe_to_block">Seguro bloquear</string>
+    <string name="feature_ruledetail_api_side_effect">Efeito secundário</string>
+    <string name="feature_ruledetail_api_contributors">Contribuidores</string>
+    <string name="feature_ruledetail_api_yes">Sim</string>
+    <string name="feature_ruledetail_api_no">Não</string>
+    <string name="feature_ruledetail_api_unknown">Desconhecido</string>
+    <string name="feature_ruledetail_api_no_description">Sem descrição</string>
+    <string name="feature_ruledetail_api_block_all_of_this_page">Bloquear toda esta página</string>
+    <string name="feature_ruledetail_api_enable_all_of_this_page">Ativar toda esta página</string>
+    <string name="feature_ruledetail_api_keywords">Palavras-chave</string>
+    <string name="feature_ruledetail_api_select_a_rule">Selecionar uma regra</string>
+</resources>

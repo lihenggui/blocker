@@ -18,7 +18,7 @@
     <style name="NightAdjusted.Theme.Blocker" parent="android:Theme.Material.NoActionBar" />
 
     <style name="NightAdjusted.Theme.Splash" parent="Theme.SplashScreen">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
 

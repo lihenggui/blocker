@@ -19,30 +19,16 @@ package com.merxury.blocker.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navOptions
-import androidx.tracing.trace
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
+import com.merxury.blocker.core.navigation.NavigationState
+import com.merxury.blocker.core.navigation.rememberNavigationState
 import com.merxury.blocker.core.ui.TrackDisposableJank
-import com.merxury.blocker.feature.applist.navigation.navigateToAppList
-import com.merxury.blocker.feature.debloater.navigation.navigateToDebloater
-import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
-import com.merxury.blocker.feature.search.navigation.navigateToSearch
-import com.merxury.blocker.navigation.TopLevelDestination
-import com.merxury.blocker.navigation.TopLevelDestination.APP
-import com.merxury.blocker.navigation.TopLevelDestination.RULE
-import com.merxury.blocker.navigation.TopLevelDestination.SEARCH
-import com.merxury.blocker.navigation.TopLevelDestination.SHARE_FILTER
+import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
+import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -55,18 +41,21 @@ fun rememberBlockerAppState(
     permissionMonitor: PermissionMonitor,
     timeZoneMonitor: TimeZoneMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    navController: NavHostController = rememberNavController(),
 ): BlockerAppState {
-    NavigationTrackingSideEffect(navController)
+    val navigationState =
+        rememberNavigationState(startKey = AppListNavKey(), topLevelKeys = TOP_LEVEL_NAV_ITEMS.keys)
+
+    NavigationTrackingSideEffect(navigationState)
+
     return remember(
-        navController,
+        navigationState,
         coroutineScope,
         networkMonitor,
         permissionMonitor,
         timeZoneMonitor,
     ) {
         BlockerAppState(
-            navController = navController,
+            navigationState = navigationState,
             coroutineScope = coroutineScope,
             networkMonitor = networkMonitor,
             permissionMonitor = permissionMonitor,
@@ -77,28 +66,12 @@ fun rememberBlockerAppState(
 
 @Stable
 class BlockerAppState(
-    val navController: NavHostController,
+    val navigationState: NavigationState,
     coroutineScope: CoroutineScope,
     networkMonitor: NetworkMonitor,
     permissionMonitor: PermissionMonitor,
     timeZoneMonitor: TimeZoneMonitor,
 ) {
-    private val previousDestination = mutableStateOf<NavDestination?>(null)
-
-    val currentDestination: NavDestination?
-        @Composable get() {
-            // Collect the currentBackStackEntryFlow as a state
-            val currentEntry = navController.currentBackStackEntryFlow
-                .collectAsState(initial = null)
-
-            // Fallback to previousDestination if currentEntry is null
-            return currentEntry.value?.destination.also { destination ->
-                if (destination != null) {
-                    previousDestination.value = destination
-                }
-            } ?: previousDestination.value
-        }
-
     val isOffline = networkMonitor.isOnline
         .map(Boolean::not)
         .stateIn(
@@ -120,73 +93,15 @@ class BlockerAppState(
             SharingStarted.WhileSubscribed(5_000),
             TimeZone.currentSystemDefault(),
         )
-
-    /**
-     * Map of top level destinations to be used in the TopBar, BottomBar and NavRail. The key is the
-     * route.
-     */
-    val topLevelDestinations: List<TopLevelDestination> = TopLevelDestination.entries
-
-    /**
-     * UI logic for navigating to a top level destination in the app. Top level destinations have
-     * only one copy of the destination of the back stack, and save and restore state whenever you
-     * navigate to and from it.
-     *
-     * @param topLevelDestination: The destination the app needs to navigate to.
-     */
-    fun navigateToTopLevelDestination(topLevelDestination: TopLevelDestination) {
-        trace("Navigation: ${topLevelDestination.name}") {
-            val topLevelNavOptions = navOptions {
-                // Pop up to the start destination of the graph to
-                // avoid building up a large stack of destinations
-                // on the back stack as users select items
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
-                }
-                // Avoid multiple copies of the same destination when
-                // reselecting the same item
-                launchSingleTop = true
-                // Restore state when reselecting a previously selected item
-                restoreState = true
-            }
-
-            when (topLevelDestination) {
-                APP -> navController.navigateToAppList(
-                    initialPackageName = null,
-                    navOptions = topLevelNavOptions,
-                )
-
-                RULE -> navController.navigateToGeneralRule(
-                    initialRuleId = null,
-                    navOptions = topLevelNavOptions,
-                )
-
-                SHARE_FILTER -> navController.navigateToDebloater(
-                    navOptions = topLevelNavOptions,
-                )
-
-                SEARCH -> navController.navigateToSearch(
-                    navOptions = topLevelNavOptions,
-                )
-            }
-        }
-    }
 }
 
 /**
  * Stores information about navigation events to be used with JankStats
  */
 @Composable
-private fun NavigationTrackingSideEffect(navController: NavHostController) {
-    TrackDisposableJank(navController) { metricsHolder ->
-        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-            metricsHolder.state?.putState("Navigation", destination.route.toString())
-        }
-
-        navController.addOnDestinationChangedListener(listener)
-
-        onDispose {
-            navController.removeOnDestinationChangedListener(listener)
-        }
+private fun NavigationTrackingSideEffect(navigationState: NavigationState) {
+    TrackDisposableJank(navigationState.currentKey) { metricsHolder ->
+        metricsHolder.state?.putState("Navigation", navigationState.currentKey.toString())
+        onDispose {}
     }
 }

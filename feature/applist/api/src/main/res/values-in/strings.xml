@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_applist_api_sort_menu">Menu sortir</string>
+    <string name="feature_applist_api_settings">Pengaturan</string>
+    <string name="feature_applist_api_support_and_feedback">Saran dan Tanggapan</string>
+    <string name="feature_applist_api_no_applications_to_display">Tidak ada aplikasi tersedia</string>
+    <string name="feature_applist_api_last_updated">Terbaru</string>
+    <string name="feature_applist_api_show_running_apps_on_top">Apl yang berjalan di baris atas</string>
+    <string name="feature_applist_api_on">Hidup</string>
+    <string name="feature_applist_api_sort_options">Opsi sortir</string>
+    <string name="feature_applist_api_sort_by">Sortir berdasar</string>
+    <string name="feature_applist_api_order">Urutan</string>
+    <string name="feature_applist_api_ascending">Naik</string>
+    <string name="feature_applist_api_descending">Turun</string>
+    <string name="feature_applist_api_name">Nama</string>
+    <string name="feature_applist_api_install_date">Waktu Instal</string>
+    <string name="feature_applist_api_off">Mati</string>
+</resources>
