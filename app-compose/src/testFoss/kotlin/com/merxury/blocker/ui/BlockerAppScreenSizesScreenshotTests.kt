@@ -152,7 +152,7 @@ class BlockerAppScreenSizesScreenshotTests {
     @Test
     fun compactWidth_compactHeight_showsNavigationBar() {
         testBlockerAppScreenshotWithSize(
-            610.dp,
+            400.dp,
             400.dp,
             "compactWidth_compactHeight_showsNavigationBar",
         )
