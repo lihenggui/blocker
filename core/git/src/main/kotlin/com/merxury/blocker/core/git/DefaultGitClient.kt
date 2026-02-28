@@ -22,6 +22,7 @@ import com.merxury.blocker.core.git.MergeStatus.MERGED
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ResetCommand.ResetType
 import org.eclipse.jgit.internal.storage.file.FileRepository
+import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.transport.URIish
 import org.jetbrains.annotations.TestOnly
 import timber.log.Timber
@@ -206,7 +207,7 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         val git = Git(FileRepository(gitFolder))
         val remoteConfig = git.remoteList().call().find { it.name == remoteName }
         val refSpecs = remoteConfig?.fetchRefSpecs
-            ?: listOf(org.eclipse.jgit.transport.RefSpec("+refs/heads/*:refs/remotes/$remoteName/*"))
+            ?: listOf(RefSpec("+refs/heads/*:refs/remotes/$remoteName/*"))
         git.fetch()
             .setRemote(remoteName)
             .setRefSpecs(refSpecs)
