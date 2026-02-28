@@ -51,6 +51,15 @@ internal class WorkManagerSyncManager @Inject constructor(
             SyncWorker.startUpSyncWork(),
         )
     }
+
+    override fun requestSyncImmediately() {
+        val workManager = WorkManager.getInstance(context)
+        workManager.enqueueUniqueWork(
+            SYNC_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            SyncWorker.startUpSyncWork(),
+        )
+    }
 }
 
 private fun List<WorkInfo>.anyRunning() = any { it.state == State.RUNNING }

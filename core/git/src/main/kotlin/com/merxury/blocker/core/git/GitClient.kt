@@ -28,4 +28,6 @@ interface GitClient {
     suspend fun pull(): Boolean
     suspend fun fetchAndMergeFromMain(): MergeStatus
     suspend fun setRemote(url: String, name: String): Boolean
+    suspend fun resetToRemote(remoteName: String, branch: String = "main"): Boolean
+    suspend fun getTrackingRemote(): String?
 }
