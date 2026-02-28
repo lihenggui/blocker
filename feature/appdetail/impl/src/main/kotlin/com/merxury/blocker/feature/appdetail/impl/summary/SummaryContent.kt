@@ -27,7 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -97,7 +97,7 @@ fun AppSummary(
     onImportIfw: () -> Unit = {},
     onResetIfw: () -> Unit = {},
 ) {
-    val locale = LocalConfiguration.current.locales[0]
+    val locale = LocalLocale.current.platformLocale
     Column(modifier = modifier) {
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_api_target_sdk_version),
