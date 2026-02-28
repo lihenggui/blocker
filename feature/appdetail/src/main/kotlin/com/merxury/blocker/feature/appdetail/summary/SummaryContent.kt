@@ -27,6 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +39,6 @@ import com.merxury.blocker.feature.appdetail.R.string
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle.LONG
-import java.util.Locale
 import kotlin.time.Clock.System
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
@@ -97,6 +97,7 @@ fun AppSummary(
     onImportIfw: () -> Unit = {},
     onResetIfw: () -> Unit = {},
 ) {
+    val locale = LocalConfiguration.current.locales[0]
     Column(modifier = modifier) {
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_target_sdk_version),
@@ -117,7 +118,7 @@ fun AppSummary(
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_last_update_time),
             summary = DateTimeFormatter.ofLocalizedDateTime(LONG)
-                .withLocale(Locale.getDefault())
+                .withLocale(locale)
                 .withZone(ZoneId.systemDefault())
                 .format((lastUpdateTime ?: Instant.DISTANT_PAST).toJavaInstant()),
         )
