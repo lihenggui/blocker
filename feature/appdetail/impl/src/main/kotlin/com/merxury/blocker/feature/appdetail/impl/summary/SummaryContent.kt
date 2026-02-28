@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.os.ConfigurationCompat
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.BlockerSettingItem
@@ -97,7 +98,7 @@ fun AppSummary(
     onImportIfw: () -> Unit = {},
     onResetIfw: () -> Unit = {},
 ) {
-    val locale = LocalConfiguration.current.locales[0]
+    val locale = ConfigurationCompat.getLocales(LocalConfiguration.current).get(0)!!
     Column(modifier = modifier) {
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_api_target_sdk_version),
