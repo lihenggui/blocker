@@ -73,7 +73,6 @@ class AppSortViewModelTest {
 
         userDataRepository.sendUserData(defaultUserData)
         viewModel.updateAppSorting(AppSorting.LAST_UPDATE_TIME)
-        viewModel.loadAppSortInfo()
         val updatedUserData = defaultUserData.copy(appSorting = AppSorting.LAST_UPDATE_TIME)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
@@ -91,7 +90,6 @@ class AppSortViewModelTest {
 
         userDataRepository.sendUserData(defaultUserData)
         viewModel.updateAppSortingOrder(SortingOrder.DESCENDING)
-        viewModel.loadAppSortInfo()
         val updatedUserData = defaultUserData.copy(appSortingOrder = SortingOrder.DESCENDING)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
@@ -109,7 +107,6 @@ class AppSortViewModelTest {
 
         userDataRepository.sendUserData(defaultUserData)
         viewModel.updateShowRunningAppsOnTop(true)
-        viewModel.loadAppSortInfo()
         val updatedUserData = defaultUserData.copy(showRunningAppsOnTop = true)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),

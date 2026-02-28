@@ -43,8 +43,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,17 +70,15 @@ fun <T> SegmentedButtons(
     modifier: Modifier = Modifier,
     onItemSelection: (item: T) -> Unit = {},
 ) {
-    val selectedItem = remember { mutableStateOf(selectedValue) }
     SegmentedButtons(modifier = modifier.fillMaxWidth()) {
         items.forEachIndexed { _, item ->
             SegmentedButtonItem(
-                selected = selectedItem.value == item.first,
+                selected = selectedValue == item.first,
                 onClick = {
-                    selectedItem.value = item.first
                     onItemSelection(item.first)
                 },
                 label = {
-                    if (selectedItem.value == item.first) {
+                    if (selectedValue == item.first) {
                         Icon(
                             imageVector = BlockerIcons.CheckSmall,
                             contentDescription = null,

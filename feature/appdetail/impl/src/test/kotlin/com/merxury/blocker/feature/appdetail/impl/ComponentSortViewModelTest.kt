@@ -76,7 +76,6 @@ class ComponentSortViewModelTest {
 
         userDataRepository.sendUserData(defaultUserData)
         viewModel.updateComponentSorting(ComponentSorting.PACKAGE_NAME)
-        viewModel.loadComponentSortInfo()
         val updatedUserData = defaultUserData.copy(componentSorting = ComponentSorting.PACKAGE_NAME)
         assertEquals(
             Success(updatedUserData.toComponentSortInfo()),
@@ -94,7 +93,6 @@ class ComponentSortViewModelTest {
 
         userDataRepository.sendUserData(defaultUserData)
         viewModel.updateComponentSortingOrder(SortingOrder.DESCENDING)
-        viewModel.loadComponentSortInfo()
         val updatedUserData =
             defaultUserData.copy(componentSortingOrder = SortingOrder.DESCENDING)
         assertEquals(
@@ -113,7 +111,6 @@ class ComponentSortViewModelTest {
 
         userDataRepository.sendUserData(defaultUserData)
         viewModel.updateComponentShowPriority(ComponentShowPriority.ENABLED_COMPONENTS_FIRST)
-        viewModel.loadComponentSortInfo()
         val updatedUserData =
             defaultUserData.copy(componentShowPriority = ComponentShowPriority.ENABLED_COMPONENTS_FIRST)
         assertEquals(
