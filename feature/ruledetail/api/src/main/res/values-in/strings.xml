@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_ruledetail_api_safe_to_block">Aman diblokir</string>
+    <string name="feature_ruledetail_api_side_effect">Efek samping</string>
+    <string name="feature_ruledetail_api_contributors">Kontributor</string>
+    <string name="feature_ruledetail_api_yes">Ya</string>
+    <string name="feature_ruledetail_api_no">Tidak</string>
+    <string name="feature_ruledetail_api_unknown">Tidak tahu</string>
+    <string name="feature_ruledetail_api_no_description">Tanpa keterangan</string>
+    <string name="feature_ruledetail_api_block_all_of_this_page">Blokir semua di laman ini</string>
+    <string name="feature_ruledetail_api_enable_all_of_this_page">Aktifkan semua di laman ini</string>
+    <string name="feature_ruledetail_api_keywords">Kata kunci</string>
+    <string name="feature_ruledetail_api_select_a_rule">Pilih aturan</string>
+    <string name="feature_ruledetail_api_sort_menu">Menu urutkan</string>
+    <string name="feature_ruledetail_api_sort_by_name">Nama aplikasi</string>
+    <string name="feature_ruledetail_api_sort_by_recently_installed">Baru dipasang</string>
+    <string name="feature_ruledetail_api_sort_by_most_matched">Paling cocok</string>
+    <string name="feature_ruledetail_api_sort_by_most_blocked">Paling banyak diblokir</string>
+    <string name="feature_ruledetail_api_sort_by_most_enabled">Paling banyak diaktifkan</string>
+</resources>

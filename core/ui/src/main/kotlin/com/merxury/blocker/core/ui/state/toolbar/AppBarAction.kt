@@ -20,4 +20,5 @@ enum class AppBarAction {
     MORE,
     SEARCH,
     SHARE_RULE,
+    SORT,
 }

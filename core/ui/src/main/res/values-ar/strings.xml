@@ -35,4 +35,52 @@
     <string name="core_ui_not_found">ليس موجودا</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">هل تريد إلغاء تثبيت هذا التطبيق؟</string>
     <string name="core_ui_matched">%1$d مطابق، %2$d محظور، %3$d مفعّل.</string>
+    <string name="core_ui_online_rule_with_count">قاعدة عبر الإنترنت (%1$d)</string>
+    <string name="core_ui_service_status_template">الخدمة: %1$d قيد التشغيل، %2$d محظور، %3$d إجمالي.</string>
+    <string name="core_ui_rule_icon_description">أيقونة القاعدة</string>
+    <string name="core_ui_receiver_with_count">مستقبل البث (%1$d)</string>
+    <string name="core_ui_initializing_database">جارٍ تهيئة قاعدة البيانات</string>
+    <string name="core_ui_more_menu">المزيد</string>
+    <string name="core_ui_open_rule_detail">فتح تفاصيل القاعدة</string>
+    <string name="core_ui_collapse_list">طي القائمة</string>
+    <string name="core_ui_expand_list">توسيع المزيد</string>
+    <string name="core_ui_block_selected">حظر المحدد</string>
+    <string name="core_ui_not_found_icon">أيقونة غير موجود</string>
+    <plurals name="core_ui_matched_apps">
+        <item quantity="zero">%1$d تطبيق مطابق</item>
+        <item quantity="one">تطبيق مطابق واحد (%1$d)</item>
+        <item quantity="two">تطبيقان مطابقان (%1$d)</item>
+        <item quantity="few">%1$d تطبيقات مطابقة</item>
+        <item quantity="many">%1$d تطبيقًا مطابقًا</item>
+        <item quantity="other">%1$d تطبيق مطابق</item>
+    </plurals>
+    <string name="core_ui_applicable_application">تطبيق قابل للتطبيق</string>
+    <string name="core_ui_no_applicable_app">لا يوجد تطبيق قابل للتطبيق</string>
+    <plurals name="core_ui_block_all">
+        <item quantity="zero">ستقوم هذه العملية بتعطيل %1$d مكون، هل تريد المتابعة؟</item>
+        <item quantity="one">ستقوم هذه العملية بتعطيل مكون واحد (%1$d)، هل تريد المتابعة؟</item>
+        <item quantity="two">ستقوم هذه العملية بتعطيل مكونين (%1$d)، هل تريد المتابعة؟</item>
+        <item quantity="few">ستقوم هذه العملية بتعطيل %1$d مكونات، هل تريد المتابعة؟</item>
+        <item quantity="many">ستقوم هذه العملية بتعطيل %1$d مكونًا، هل تريد المتابعة؟</item>
+        <item quantity="other">ستقوم هذه العملية بتعطيل %1$d مكون، هل تريد المتابعة؟</item>
+    </plurals>
+    <plurals name="core_ui_enable_all">
+        <item quantity="zero">ستقوم هذه العملية بتفعيل %1$d مكون، هل تريد المتابعة؟</item>
+        <item quantity="one">ستقوم هذه العملية بتفعيل مكون واحد (%1$d)، هل تريد المتابعة؟</item>
+        <item quantity="two">ستقوم هذه العملية بتفعيل مكونين (%1$d)، هل تريد المتابعة؟</item>
+        <item quantity="few">ستقوم هذه العملية بتفعيل %1$d مكونات، هل تريد المتابعة؟</item>
+        <item quantity="many">ستقوم هذه العملية بتفعيل %1$d مكونًا، هل تريد المتابعة؟</item>
+        <item quantity="other">ستقوم هذه العملية بتفعيل %1$d مكون، هل تريد المتابعة؟</item>
+    </plurals>
+    <plurals name="core_ui_selected_app_count">
+        <item quantity="zero">%1$d تطبيق محدد</item>
+        <item quantity="one">تطبيق واحد محدد (%1$d)</item>
+        <item quantity="two">تطبيقان محددان (%1$d)</item>
+        <item quantity="few">%1$d تطبيقات محددة</item>
+        <item quantity="many">%1$d تطبيقًا محددًا</item>
+        <item quantity="other">%1$d تطبيق محدد</item>
+    </plurals>
+    <string name="core_ui_disabling_component_hint">جارٍ تعطيل المكونات، يرجى الانتظار… (%1$d/%2$d)</string>
+    <string name="core_ui_enabling_component_hint">جارٍ تفعيل المكونات، يرجى الانتظار… (%1$d/%2$d)</string>
+    <string name="core_ui_operation_completed">اكتملت العملية</string>
 </resources>
