@@ -16,4 +16,8 @@
   -->
 <resources>
     <string name="feature_generalrule_api_sdk_trackers">SDK/Trackers</string>
+    <string name="feature_generalrule_api_block_all_matched">Block all matched</string>
+    <string name="feature_generalrule_api_enable_all_matched">Enable all matched</string>
+    <string name="feature_generalrule_api_block_all_confirmation">This will disable all components matched by SDK/Tracker rules across all apps. Continue?</string>
+    <string name="feature_generalrule_api_enable_all_confirmation">This will re-enable all components matched by SDK/Tracker rules across all apps. Continue?</string>
 </resources>

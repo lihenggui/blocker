@@ -82,6 +82,7 @@ fun BlockerTopAppBarWithProgress(
     title: String,
     modifier: Modifier = Modifier,
     progress: Float? = null,
+    actions: @Composable () -> Unit = {},
 ) {
     TopAppBar(
         modifier = modifier,
@@ -105,6 +106,7 @@ fun BlockerTopAppBarWithProgress(
                     )
                 }
             }
+            actions()
         },
     )
 }

@@ -20,6 +20,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkManager
 import app.cash.turbine.test
+import com.merxury.blocker.core.domain.GatherAllMatchedComponentsUseCase
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.UpdateRuleMatchedAppUseCase
@@ -38,6 +39,7 @@ import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.feature.generalrule.impl.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrule.impl.GeneralRuleUiState.Success
 import com.merxury.blocker.feature.generalrule.impl.GeneralRulesViewModel
@@ -73,6 +75,7 @@ class GeneralRuleViewModelTest {
     private val workManager = mock<WorkManager> {
         on { getWorkInfosByTagFlow(any()) } doReturn emptyFlow()
     }
+    private val analyticsHelper = TestAnalyticsHelper()
     private val savedStateHandle = SavedStateHandle()
     private lateinit var viewModel: GeneralRulesViewModel
 
@@ -98,14 +101,24 @@ class GeneralRuleViewModelTest {
             componentRepository = componentRepository,
             ioDispatcher = dispatcher,
         )
+        val gatherAllMatchedComponents = GatherAllMatchedComponentsUseCase(
+            generalRuleRepository = generalRuleRepository,
+            componentRepository = componentRepository,
+            appRepository = appRepository,
+            userDataRepository = userDataRepository,
+            ioDispatcher = dispatcher,
+        )
 
         viewModel = GeneralRulesViewModel(
             appRepository = appRepository,
             appPropertiesRepository = appPropertiesRepository,
             generalRuleRepository = generalRuleRepository,
+            componentRepository = componentRepository,
             initGeneralRuleUseCase = initGeneralRuleUseCase,
             searchRule = searchRule,
             updateRule = updateRule,
+            gatherAllMatchedComponents = gatherAllMatchedComponents,
+            analyticsHelper = analyticsHelper,
             savedStateHandle = savedStateHandle,
             initialRuleId = "",
             ioDispatcher = dispatcher,
