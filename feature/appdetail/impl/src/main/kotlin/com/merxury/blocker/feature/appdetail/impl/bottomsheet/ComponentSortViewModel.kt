@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.impl.bottomsheet
 
-import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -29,7 +28,7 @@ import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortInfoU
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,18 +42,15 @@ class ComponentSortViewModel @Inject constructor(
     val componentSortInfoUiState = _componentSortInfoUiState.asStateFlow()
 
     init {
-        loadComponentSortInfo()
-    }
-
-    @VisibleForTesting
-    fun loadComponentSortInfo() = viewModelScope.launch {
-        val userData = userDataRepository.userData.first()
-        val sorting = userData.componentSorting
-        val order = userData.componentSortingOrder
-        val priority = userData.componentShowPriority
-        _componentSortInfoUiState.emit(
-            Success(ComponentSortInfo(sorting, order, priority)),
-        )
+        viewModelScope.launch {
+            userDataRepository.userData
+                .map { userData ->
+                    Success(
+                        ComponentSortInfo(userData.componentSorting, userData.componentSortingOrder, userData.componentShowPriority),
+                    )
+                }
+                .collect { _componentSortInfoUiState.value = it }
+        }
     }
 
     fun updateComponentSorting(sorting: ComponentSorting) = viewModelScope.launch {

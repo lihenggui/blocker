@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.applist.impl
 
-import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -26,7 +25,7 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,18 +39,15 @@ class AppSortViewModel @Inject constructor(
     val appSortInfoUiState = _appSortInfoUiState.asStateFlow()
 
     init {
-        loadAppSortInfo()
-    }
-
-    @VisibleForTesting
-    fun loadAppSortInfo() = viewModelScope.launch {
-        val userData = userDataRepository.userData.first()
-        val sorting = userData.appSorting
-        val order = userData.appSortingOrder
-        val showRunningAppsOnTop = userData.showRunningAppsOnTop
-        _appSortInfoUiState.emit(
-            AppSortInfoUiState.Success(AppSortInfo(sorting, order, showRunningAppsOnTop)),
-        )
+        viewModelScope.launch {
+            userDataRepository.userData
+                .map { userData ->
+                    AppSortInfoUiState.Success(
+                        AppSortInfo(userData.appSorting, userData.appSortingOrder, userData.showRunningAppsOnTop),
+                    )
+                }
+                .collect { _appSortInfoUiState.value = it }
+        }
     }
 
     fun updateAppSorting(sorting: AppSorting) = viewModelScope.launch {
