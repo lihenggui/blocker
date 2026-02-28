@@ -26,7 +26,18 @@ class TestSyncManager : SyncManager {
 
     override val isSyncing: Flow<Boolean> = syncStatusFlow
 
-    override fun requestSync() = TODO("Not yet implemented")
+    var syncRequested = false
+        private set
+    var syncRequestedImmediately = false
+        private set
+
+    override fun requestSync() {
+        syncRequested = true
+    }
+
+    override fun requestSyncImmediately() {
+        syncRequestedImmediately = true
+    }
 
     /**
      * A test-only API to set the sync status from tests.

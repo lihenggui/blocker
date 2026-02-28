@@ -182,11 +182,52 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         }
         Timber.i("Setting remote $name to $url")
         val git = Git(FileRepository(gitFolder))
-        git.remoteSetUrl()
-            .setRemoteName(name)
-            .setRemoteUri(URIish(url))
-            .call()
+        val existingRemotes = git.remoteList().call()
+        if (existingRemotes.any { it.name == name }) {
+            git.remoteSetUrl()
+                .setRemoteName(name)
+                .setRemoteUri(URIish(url))
+                .call()
+        } else {
+            git.remoteAdd()
+                .setName(name)
+                .setUri(URIish(url))
+                .call()
+        }
         return true
+    }
+
+    override suspend fun resetToRemote(remoteName: String, branch: String): Boolean {
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return false
+        }
+        Timber.i("Resetting to $remoteName/$branch")
+        val git = Git(FileRepository(gitFolder))
+        val remoteConfig = git.remoteList().call().find { it.name == remoteName }
+        val refSpecs = remoteConfig?.fetchRefSpecs
+            ?: listOf(org.eclipse.jgit.transport.RefSpec("+refs/heads/*:refs/remotes/$remoteName/*"))
+        git.fetch()
+            .setRemote(remoteName)
+            .setRefSpecs(refSpecs)
+            .call()
+        git.reset()
+            .setMode(ResetType.HARD)
+            .setRef("refs/remotes/$remoteName/$branch")
+            .call()
+        // Update branch tracking configuration
+        val config = git.repository.config
+        config.setString("branch", branch, "remote", remoteName)
+        config.setString("branch", branch, "merge", "refs/heads/$branch")
+        config.save()
+        Timber.i("Successfully reset to $remoteName/$branch")
+        return true
+    }
+
+    override suspend fun getTrackingRemote(): String? {
+        if (!gitFolder.exists()) return null
+        val repo = FileRepository(gitFolder)
+        return repo.config.getString("branch", repo.branch, "remote")
     }
 
     /**

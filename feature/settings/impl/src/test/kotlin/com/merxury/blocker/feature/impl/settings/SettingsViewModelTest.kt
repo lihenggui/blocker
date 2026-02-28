@@ -17,12 +17,16 @@
 package com.merxury.blocker.feature.impl.settings
 
 import android.app.Application
+import android.content.SharedPreferences
 import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
+import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.UserEditableSettings
+import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.core.testing.util.TestSyncManager
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
 import kotlinx.coroutines.CoroutineDispatcher
@@ -34,13 +38,20 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SettingsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     private val userDataRepository = TestUserDataRepository()
+    private val syncManager = TestSyncManager()
+    private val blockerPreferences = mock<BlockerPreferencesDataSource>()
     private val analyticsHelper = NoOpAnalyticsHelper()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val appContext = mock<Application>()
@@ -51,6 +62,8 @@ class SettingsViewModelTest {
         viewModel = SettingsViewModel(
             ioDispatcher = dispatcher,
             userDataRepository = userDataRepository,
+            blockerPreferences = blockerPreferences,
+            syncManager = syncManager,
             appContext = appContext,
             analyticsHelper = analyticsHelper,
         )
@@ -74,6 +87,33 @@ class SettingsViewModelTest {
             Success(defaultUserData, allowStatistics),
             viewModel.settingsUiState.value,
         )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun updateRuleServerProvider_switchesProvider_resetsAndSyncs() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.settingsUiState.collect() }
+        // Initialize with GITHUB (the default)
+        userDataRepository.sendUserData(defaultUserData)
+
+        // Mock SharedPreferences for clearLastSyncTime
+        val mockEditor = mock<SharedPreferences.Editor>()
+        val mockPrefs = mock<SharedPreferences>()
+        whenever(mockPrefs.edit()) doReturn mockEditor
+        whenever(mockEditor.remove(any())) doReturn mockEditor
+        whenever(appContext.getSharedPreferences(any<String>(), any())) doReturn mockPrefs
+
+        // Switch to GITLAB
+        viewModel.updateRuleServerProvider(RuleServerProvider.GITLAB)
+
+        // Verify ruleCommitId was reset
+        verify(blockerPreferences).resetRuleCommitId()
+        // Verify immediate sync was requested
+        assertTrue(syncManager.syncRequestedImmediately)
+        // Verify the provider was updated
+        val currentProvider = userDataRepository.userData
+        launch(UnconfinedTestDispatcher()) { currentProvider.collect() }.cancel()
+
         collectJob.cancel()
     }
 }

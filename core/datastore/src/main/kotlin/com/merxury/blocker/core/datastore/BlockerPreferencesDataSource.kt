@@ -288,6 +288,14 @@ class BlockerPreferencesDataSource @Inject constructor(
         }
     }
 
+    suspend fun resetRuleCommitId() {
+        try {
+            userPreferences.updateData { it.copy { ruleCommitId = "" } }
+        } catch (ioException: IOException) {
+            Timber.e("Failed to reset rule commit id", ioException)
+        }
+    }
+
     suspend fun getChangeListVersions() = userPreferences.data
         .map {
             ChangeListVersions(

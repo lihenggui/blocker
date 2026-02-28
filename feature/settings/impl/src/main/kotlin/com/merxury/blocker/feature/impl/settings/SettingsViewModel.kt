@@ -26,6 +26,7 @@ import android.os.LocaleList
 import android.system.Os
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
@@ -40,6 +41,8 @@ import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.StubAnalyticsHelper
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.util.SyncManager
+import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
@@ -80,6 +83,8 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     appContext: Application,
     private val userDataRepository: UserDataRepository,
+    private val blockerPreferences: BlockerPreferencesDataSource,
+    private val syncManager: SyncManager,
     private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(appContext) {
@@ -155,8 +160,21 @@ class SettingsViewModel @Inject constructor(
 
     fun updateRuleServerProvider(provider: RuleServerProvider) {
         viewModelScope.launch {
+            val currentProvider = userDataRepository.userData.first().ruleServerProvider
+            if (currentProvider == provider) return@launch
             userDataRepository.setRuleServerProvider(provider)
+            withContext(ioDispatcher) {
+                blockerPreferences.resetRuleCommitId()
+                clearLastSyncTime()
+            }
+            syncManager.requestSyncImmediately()
         }
+    }
+
+    private fun clearLastSyncTime() {
+        getApplication<Application>()
+            .getSharedPreferences("sync_rule", Context.MODE_PRIVATE)
+            .edit { remove("last_synced_time") }
     }
 
     fun updateAppDisplayLanguage(language: String) {
