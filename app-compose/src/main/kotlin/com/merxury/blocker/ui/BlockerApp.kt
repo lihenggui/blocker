@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -206,7 +207,9 @@ internal fun BlockerApp(
                         ),
                     ),
             ) {
-                val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
+                val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
+                    directive = calculatePaneScaffoldDirective(windowAdaptiveInfo),
+                )
 
                 val entryProvider = entryProvider {
                     appListEntry(navigator)
