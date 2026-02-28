@@ -18,6 +18,7 @@ package com.merxury.blocker.core.rule.work
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
@@ -67,7 +68,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
     override fun getNotificationTitle(): Int = R.string.core_rule_import_mat_rule_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        val uri = Uri.parse(uriString)
+        val uri = uriString?.toUri()
         if (uri == null) {
             Timber.e("File URI is null, cannot import MAT rules")
             return@withContext Result.failure(

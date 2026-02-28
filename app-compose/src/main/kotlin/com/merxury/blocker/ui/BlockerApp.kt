@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -30,10 +32,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Long
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -45,21 +52,30 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
 import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationSuiteScaffold
-import com.merxury.blocker.core.designsystem.component.SnackbarHost
-import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
-import com.merxury.blocker.navigation.BlockerNavHost
-import kotlin.reflect.KClass
+import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.core.navigation.toEntries
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
+import com.merxury.blocker.feature.appdetail.impl.navigation.appDetailEntry
+import com.merxury.blocker.feature.applist.impl.navigation.appListEntry
+import com.merxury.blocker.feature.debloater.impl.navigation.debloaterEntry
+import com.merxury.blocker.feature.generalrule.impl.navigation.generalRuleEntry
+import com.merxury.blocker.feature.impl.helpandfeedback.navigation.supportAndFeedbackEntry
+import com.merxury.blocker.feature.impl.licenses.navigation.licensesEntry
+import com.merxury.blocker.feature.impl.settings.navigation.settingsEntry
+import com.merxury.blocker.feature.ruledetail.impl.navigation.ruleDetailEntry
+import com.merxury.blocker.feature.search.impl.navigation.searchEntry
+import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 
 @Composable
 fun BlockerApp(
@@ -90,17 +106,19 @@ fun BlockerApp(
                 )
             }
         }
-        BlockerApp(
-            appState = appState,
-            snackbarHostState = snackbarHostState,
-            updateIconThemingState = updateIconThemingState,
-            windowAdaptiveInfo = windowAdaptiveInfo,
-        )
+        CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+            BlockerApp(
+                appState = appState,
+                snackbarHostState = snackbarHostState,
+                updateIconThemingState = updateIconThemingState,
+                windowAdaptiveInfo = windowAdaptiveInfo,
+            )
+        }
     }
 }
 
 @Composable
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3AdaptiveApi::class)
 internal fun BlockerApp(
     appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,
@@ -108,23 +126,24 @@ internal fun BlockerApp(
     updateIconThemingState: (IconThemingState) -> Unit = {},
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
-    val currentDestination = appState.currentDestination
+    val navigator = remember { Navigator(appState.navigationState) }
 
     BlockerNavigationSuiteScaffold(
         navigationSuiteItems = {
-            appState.topLevelDestinations.forEach { destination ->
-                val selected = currentDestination.isRouteInHierarchy(destination.route)
+            TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
+                val selected = navKey == appState.navigationState.currentTopLevelKey
                 item(
                     selected = selected,
-                    onClick = { appState.navigateToTopLevelDestination(destination) },
+                    onClick = { navigator.navigate(navKey) },
                     icon = {
-                        when (val icon = destination.unselectedIcon) {
+                        when (val icon = navItem.unselectedIcon) {
                             is ImageVectorIcon -> {
                                 Icon(
                                     imageVector = icon.imageVector,
                                     contentDescription = null,
                                 )
                             }
+
                             is DrawableResourceIcon -> {
                                 Icon(
                                     painter = painterResource(icon.id),
@@ -134,13 +153,14 @@ internal fun BlockerApp(
                         }
                     },
                     selectedIcon = {
-                        when (val icon = destination.selectedIcon) {
+                        when (val icon = navItem.selectedIcon) {
                             is ImageVectorIcon -> {
                                 Icon(
                                     imageVector = icon.imageVector,
                                     contentDescription = null,
                                 )
                             }
+
                             is DrawableResourceIcon -> {
                                 Icon(
                                     painter = painterResource(icon.id),
@@ -149,7 +169,7 @@ internal fun BlockerApp(
                             }
                         }
                     },
-                    label = { Text(stringResource(destination.iconTextId)) },
+                    label = { Text(stringResource(navItem.iconTextId)) },
                     modifier =
                     Modifier
                         .testTag("BlockerNavItem"),
@@ -164,7 +184,16 @@ internal fun BlockerApp(
             },
             contentColor = MaterialTheme.colorScheme.onBackground,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = {
+                SnackbarHost(
+                    snackbarHostState,
+                    modifier = Modifier.windowInsetsPadding(
+                        WindowInsets.safeDrawing.exclude(
+                            WindowInsets.ime,
+                        ),
+                    ),
+                )
+            },
         ) { padding ->
             Column(
                 Modifier
@@ -177,10 +206,24 @@ internal fun BlockerApp(
                         ),
                     ),
             ) {
-                BlockerNavHost(
-                    snackbarHostState = snackbarHostState,
-                    updateIconThemingState = updateIconThemingState,
-                    appState = appState,
+                val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
+
+                val entryProvider = entryProvider {
+                    appListEntry(navigator)
+                    appDetailEntry(navigator, updateIconThemingState)
+                    generalRuleEntry(navigator)
+                    ruleDetailEntry(navigator)
+                    debloaterEntry()
+                    searchEntry(navigator)
+                    supportAndFeedbackEntry(navigator)
+                    licensesEntry(navigator)
+                    settingsEntry(navigator)
+                }
+
+                NavDisplay(
+                    entries = appState.navigationState.toEntries(entryProvider),
+                    sceneStrategy = listDetailStrategy,
+                    onBack = { navigator.goBack() },
                 )
             }
         }
@@ -189,7 +232,3 @@ internal fun BlockerApp(
         //  content doesn't display behind it.
     }
 }
-
-private fun NavDestination?.isRouteInHierarchy(route: KClass<*>) = this?.hierarchy?.any {
-    it.hasRoute(route)
-} ?: false

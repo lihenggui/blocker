@@ -18,6 +18,7 @@ package com.merxury.blocker.core.rule.work
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
@@ -93,7 +94,7 @@ class ListAllComponentsToStorageWorker @AssistedInject constructor(
                 provider = provider,
             )
         }
-        saveRuleToStorage(context, appComponentInfoList, Uri.parse(backupPath), ioDispatcher)
+        saveRuleToStorage(context, appComponentInfoList, backupPath.toUri(), ioDispatcher)
         Timber.d("All components are saved to $backupPath")
         return Result.success()
     }

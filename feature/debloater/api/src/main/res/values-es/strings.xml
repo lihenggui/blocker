@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_debloater_api_search_hint">Escribir para buscar</string>
+    <string name="feature_debloater_api_no_root_permission">Se requiere permiso de root para habilitar o deshabilitar componentes</string>
+    <string name="feature_debloater_api_test_share">Probar compartir</string>
+    <string name="feature_debloater_api_share_component">Compartir</string>
+    <string name="feature_debloater_api_launcher_entry">Lanzador</string>
+    <string name="feature_debloater_api_deeplink_entry">Enlace profundo</string>
+    <string name="feature_debloater_api_filter_chip_shareable">Compartible</string>
+    <string name="feature_debloater_api_filter_chip_deeplink">Deeplink</string>
+    <string name="feature_debloater_api_filter_chip_launcher">Lanzador</string>
+    <string name="feature_debloater_api_filter_chip_wakelock">Bloqueo de activación</string>
+    <string name="feature_debloater_api_filter_chip_auto_start">Inicio automático</string>
+    <string name="feature_debloater_api_filter_chip_exported_no_perm">Exportado</string>
+    <string name="feature_debloater_api_filter_chip_foreground_service">Servicio en primer plano</string>
+    <string name="feature_debloater_api_filter_chip_push_service">Servicio de notificaciones</string>
+    <string name="feature_debloater_api_filter_chip_dangerous_provider">Proveedor peligroso</string>
+</resources>

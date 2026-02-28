@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="feature_ruledetail_sort_menu">Menu de ordenação</string>
-    <string name="feature_ruledetail_sort_by_name">Nome do aplicativo</string>
-    <string name="feature_ruledetail_sort_by_recently_installed">Instalados recentemente</string>
-    <string name="feature_ruledetail_sort_by_most_matched">Mais correspondentes</string>
-    <string name="feature_ruledetail_sort_by_most_blocked">Mais bloqueados</string>
-    <string name="feature_ruledetail_sort_by_most_enabled">Mais ativados</string>
-</resources>

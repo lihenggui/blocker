@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.rule.util
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +29,7 @@ object StorageUtil {
     private const val IFW_RELATIVE_PATH = "ifw"
 
     fun getOrCreateIfwFolder(context: Context, baseFolder: String): DocumentFile? {
-        val baseDocument = DocumentFile.fromTreeUri(context, Uri.parse(baseFolder))
+        val baseDocument = DocumentFile.fromTreeUri(context, baseFolder.toUri())
         if (baseDocument == null) {
             Timber.e("Can't parse the path of the base folder.")
             return null
@@ -44,7 +44,7 @@ object StorageUtil {
     }
 
     fun isFolderReadable(context: Context, path: String): Boolean {
-        val uri = Uri.parse(path)
+        val uri = path.toUri()
         // Hasn't set the dir to store
         val folder = try {
             DocumentFile.fromTreeUri(context, uri)
@@ -67,7 +67,7 @@ object StorageUtil {
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Boolean = withContext(dispatcher) {
         // Get base dir
-        val destUri = Uri.parse(baseFolder)
+        val destUri = baseFolder.toUri()
         if (destUri == null) {
             Timber.w("No dest folder defined")
             return@withContext false

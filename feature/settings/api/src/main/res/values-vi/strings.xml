@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2025 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_settings_api_settings">Cài đặt</string>
+    <string name="feature_settings_api_controller_type">Chế độ hoạt động</string>
+    <string name="feature_settings_api_online_rule_source">Nguồn luật trực tuyến</string>
+    <string name="feature_settings_api_import_mat_rules">Nhập luật từ MyAndroidTools</string>
+    <string name="feature_settings_api_application_list">Danh sách ứng dụng</string>
+    <string name="feature_settings_api_show_system_apps">Hiện thị ứng dụng hệ thống</string>
+    <string name="feature_settings_api_show_service_info">Hiện thị dịch vụ</string>
+    <string name="feature_settings_api_export_ifw_rules">Xuất luật IFW</string>
+    <string name="feature_settings_api_import_ifw_rules">Nhập luật IFW</string>
+    <string name="feature_settings_api_export_rules">Xuất luật</string>
+    <string name="feature_settings_api_import_rules">Nhập luật</string>
+    <string name="feature_settings_api_reset_ifw">Khôi phục lại IFW</string>
+    <string name="feature_settings_api_file_manager_required">Bạn cần cài một trình quản lý tệp tin.</string>
+    <string name="feature_settings_api_backup">Khôi phục</string>
+    <string name="feature_settings_api_folder_to_save">Thư mục để lưu</string>
+    <string name="feature_settings_api_directory_invalid_or_not_set">Đường dẫn không hợp lệ hoặc chưa đặt</string>
+    <string name="feature_settings_api_backup_system_apps">Sao lưu ứng dụng hệ thống</string>
+    <string name="feature_settings_api_restore_system_apps">Khôi phục ứng dụng hệ thống</string>
+    <string name="feature_settings_api_blocker_rules">Luật chặn</string>
+    <string name="feature_settings_api_ifw_rules">Luật IFW</string>
+    <string name="feature_settings_api_theme">Màu da</string>
+    <string name="feature_settings_api_theme_default">Mặc định</string>
+    <string name="feature_settings_api_android">Android</string>
+    <string name="feature_settings_api_dark_mode">Màu</string>
+    <string name="feature_settings_api_system_default">Theo hệ thống</string>
+    <string name="feature_settings_api_light">Trắng</string>
+    <string name="feature_settings_api_dark">Đen</string>
+    <string name="feature_settings_api_support_and_feedback">Hỗ trợ và phản hồi</string>
+    <string name="feature_settings_api_project_homepage">Trang chủ dự án</string>
+    <string name="feature_settings_api_rule_repository">Kho lưu trữ luật</string>
+    <string name="feature_settings_api_intent_firewall">Intent Firewall</string>
+    <string name="feature_settings_api_package_manager">Trình quản lý gói</string>
+    <string name="feature_settings_api_telegram_group">Nhóm Telegram</string>
+    <string name="feature_settings_api_export_error_log">Xuất bản ghi lỗi</string>
+    <string name="feature_settings_api_dynamic_color">Material</string>
+    <string name="feature_settings_api_report_bugs_or_submit_ideas">Báo cáo lỗi hoặc xây dựng ý tưởng</string>
+    <string name="feature_settings_api_designers_homepage">Trang chủ của nhà thiết kế (chưa đi tù) </string>
+    <string name="feature_settings_api_open_source_licenses">Giấy phép mã nguồn mở</string>
+    <string name="feature_settings_api_display_language">Ngôn ngữ hiện thị</string>
+    <string name="feature_settings_api_library_language">Thư viện ngôn ngữ</string>
+    <string name="feature_settings_api_follow_system">Theo hệ thống</string>
+    <string name="feature_settings_api_english">Anh</string>
+    <string name="feature_settings_api_simplifed_chinese">Trung giản thể</string>
+    <string name="feature_settings_api_traditional_chinese">Trung phổn thể</string>
+    <string name="feature_settings_api_russian">Nga</string>
+    <string name="feature_settings_api_spanish">Tây b(á)n nh(à)</string>
+    <string name="feature_settings_api_french">Pháp (vân)</string>
+    <string name="feature_settings_api_failed_to_export_logs">Lỗi khi xuất bản ghi, vui lòng báo lỗi.</string>
+    <string name="feature_settings_api_export_log_title">Trình chia sẻ bản ghi của Blocker</string>
+    <string name="feature_settings_api_provide_additional_details">Miêu tả thêm thông tin về vấn đề bạn gặp: \n</string>
+    <string name="feature_settings_api_no_sharable_app_found">Không có ứng dụng nào để chia sẻ.</string>
+    <string name="feature_settings_api_others">Khác</string>
+    <string name="feature_settings_api_anonymous_statistics">Thống kê ẩn danh</string>
+    <string name="feature_settings_api_anonymous_statistics_summary">Chúng tôi sử dụng Firebase Analytics của Google để thu thập và xử lý dữ liệu về những tính năng được dùng nhiều nhất và phản hồi của người dùng giúp tôi có thể cải thiện Blocker.</string>
+</resources>

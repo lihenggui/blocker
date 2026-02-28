@@ -8,20 +8,25 @@ androidxActivity = "1.12.4"
 androidxAppCompat = "1.7.1"
 androidxBrowser = "1.9.0"
 androidxComposeBom = "2026.02.00"
+androidxComposeMaterial3AdaptiveNavigation3 = "1.3.0-alpha04"
 androidxComposeRuntimeTracing = "1.10.3"
 androidxCore = "1.17.0"
 androidxCoreSplashscreen = "1.2.0"
 androidxDataStore = "1.2.0"
 androidxEspresso = "3.7.0"
 androidxHiltNavigationCompose = "1.3.0"
+androidxHiltLifecycleViewModelCompose = "1.3.0-alpha02"
 androidxLifecycle = "2.10.0"
 androidxLintGradle = "1.0.0-alpha03"
+androidxLifecycleViewModelNavigation3 = "2.10.0"
 androidxMacroBenchmark = "1.5.0-alpha03"
-androidxComposeMaterialNavigation = "1.10.0"
+androidxComposeMaterialNavigation = "1.10.4"
 androidxNavigation = "2.9.7"
+androidxNavigation3 = "1.0.0"
 androidxMetrics = "1.0.0"
 androidxPalette = "1.0.0"
 androidxProfileinstaller = "1.4.1"
+androidxSavedStateCompose = "1.3.1"
 androidxTestCore = "1.7.0"
 androidxTestExt = "1.3.0"
 androidxTestRunner = "1.7.0"
@@ -39,7 +44,7 @@ firebaseCrashlyticsPlugin = "3.0.6"
 firebasePerfPlugin = "2.0.2"
 gmsPlugin = "4.4.4"
 googleAndroidMaterial = "1.13.0"
-hilt = "2.59.1"
+hilt = "2.59.2"
 hiltExt = "1.3.0"
 jacoco = "0.8.13"
 jgit = "7.5.0.202512021534-r"
@@ -47,7 +52,7 @@ kotlin = "2.3.10"
 kotlinxCoroutines = "1.10.2"
 kotlinxDatetime = "0.7.1"
 kotlinxSerializationJson = "1.9.0"
-ksp = "2.3.5"
+ksp = "2.3.6"
 ktlint = "1.7.1"
 kxml = "2.3.0"
 libsu = "6.0.0"
@@ -59,7 +64,7 @@ okhttp = "5.3.2"
 protobuf = "4.33.5"
 protobufPlugin = "0.9.6"
 retrofit = "3.0.0"
-robolectric = "4.16"
+robolectric = "4.16.1"
 roborazzi = "1.59.0"
 room = "2.8.4"
 spotless = "8.2.1"
@@ -69,6 +74,8 @@ xmlutil = "v0.91.3"
 turbine = "1.2.1"
 truth = "1.4.5"
 material = "1.13.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
 
 [bundles]
 androidx-compose-ui-test = ["androidx-compose-ui-test", "androidx-compose-ui-testManifest"]
@@ -92,6 +99,7 @@ androidx-compose-material3-navigationSuite = { group = "androidx.compose.materia
 androidx-compose-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive" }
 androidx-compose-material3-adaptive-layout = { group = "androidx.compose.material3.adaptive", name = "adaptive-layout" }
 androidx-compose-material3-adaptive-navigation = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation" }
+androidx-compose-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3",version.ref="androidxComposeMaterial3AdaptiveNavigation3" }
 androidx-compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
 androidx-compose-runtime-tracing = { group = "androidx.compose.runtime", name = "runtime-tracing", version.ref = "androidxComposeRuntimeTracing" }
@@ -105,13 +113,20 @@ androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscree
 androidx-dataStore-core = { group = "androidx.datastore", name = "datastore", version.ref = "androidxDataStore" }
 androidx-documentfile = "androidx.documentfile:documentfile:1.1.0"
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
+androidx-hilt-lifecycle-viewModelCompose = { group = "androidx.hilt", name = "hilt-lifecycle-viewmodel-compose", version.ref = "androidxHiltLifecycleViewModelCompose" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtimeCompose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+androidx-lifecycle-runtimeTesting = { group = "androidx.lifecycle", name = "lifecycle-runtime-testing", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+androidx-lifecycle-viewModel-testing = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-testing", version.ref = "androidxLifecycle" }
+androidx-lifecycle-viewModel-navigation3 = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-navigation3", version.ref = "androidxLifecycleViewModelNavigation3" }
 androidx-lint-gradle = { group = "androidx.lint", name = "lint-gradle", version.ref = "androidxLintGradle" }
 androidx-metrics = { group = "androidx.metrics", name = "metrics-performance", version.ref = "androidxMetrics" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
 androidx-navigation-testing = { group = "androidx.navigation", name = "navigation-testing", version.ref = "androidxNavigation" }
+androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "androidxNavigation3" }
+androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "androidxNavigation3" }
+androidx-savedstate-compose = { group = "androidx.savedstate", name = "savedstate-compose", version.ref = "androidxSavedStateCompose" }
 androidx-palette = { group = "androidx.palette", name = "palette-ktx", version.ref = "androidxPalette" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidxProfileinstaller" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
@@ -196,6 +211,8 @@ licensee-gradlePlugin = { group = "app.cash.licensee", name = "licensee-gradle-p
 room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
 spotless-gradlePlugin = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
 work-testing = { group = "androidx.work", name = "work-testing", version.ref = "androidxWork" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -225,6 +242,8 @@ blocker-android-application-compose = { id = "blocker.android.application.compos
 blocker-android-application-firebase = { id = "blocker.android.application.firebase" }
 blocker-android-application-flavors = { id = "blocker.android.application.flavors" }
 blocker-android-application-jacoco = { id = "blocker.android.application.jacoco" }
+blocker-android-feature-impl = { id = "blocker.android.feature.impl" }
+blocker-android-feature-api = { id = "blocker.android.feature.api" }
 blocker-flashable-apk = { id = "blocker.flashable.apk" }
 blocker-android-feature = { id = "blocker.android.feature" }
 blocker-android-hilt = { id = "blocker.android.hilt" }
@@ -236,3 +255,4 @@ blocker-android-room = { id = "blocker.android.room" }
 blocker-android-test = { id = "blocker.android.test" }
 blocker-jvm-library = { id = "blocker.jvm.library" }
 blocker-root = { id = "blocker.root" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
