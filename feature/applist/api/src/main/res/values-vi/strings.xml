@@ -27,7 +27,10 @@
     <string name="feature_applist_api_name">Tên</string>
     <string name="feature_applist_api_install_date">Ngày cài</string>
     <string name="feature_applist_api_last_updated">Lần cuối cập nhật</string>
-    <string name="feature_applist_api_show_running_apps_on_top">Hiện thị ứng dụng đang chạy ở đầu</string>
+    <string name="feature_applist_api_show_apps_on_top">Hiển thị ứng dụng ở đầu</string>
+    <string name="feature_applist_api_none">Không</string>
+    <string name="feature_applist_api_running_apps">Ứng dụng đang chạy</string>
+    <string name="feature_applist_api_disabled_apps">Ứng dụng đã vô hiệu hóa</string>
     <string name="feature_applist_api_on">Bật</string>
     <string name="feature_applist_api_off">Tắt</string>
 </resources>

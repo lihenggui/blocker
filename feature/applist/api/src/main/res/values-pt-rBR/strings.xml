@@ -11,7 +11,10 @@
     <string name="feature_applist_api_name">Nome</string>
     <string name="feature_applist_api_install_date">Data de instalação</string>
     <string name="feature_applist_api_last_updated">Última Atualização</string>
-    <string name="feature_applist_api_show_running_apps_on_top">Mostrar aplicativos em execução no topo</string>
+    <string name="feature_applist_api_show_apps_on_top">Mostrar aplicativos no topo</string>
+    <string name="feature_applist_api_none">Nenhum</string>
+    <string name="feature_applist_api_running_apps">Aplicativos em execução</string>
+    <string name="feature_applist_api_disabled_apps">Aplicativos desativados</string>
     <string name="feature_applist_api_on">Ligado</string>
     <string name="feature_applist_api_off">Desligado</string>
     <string name="feature_applist_api_ascending">Crescente</string>

@@ -137,13 +137,13 @@ internal fun AnalyticsHelper.logComponentSortingOrderPreferenceChanged(component
     ),
 )
 
-internal fun AnalyticsHelper.logShowRunningAppsOnTopPreferenceChanged(showRunningAppsOnTop: Boolean) = logEvent(
+internal fun AnalyticsHelper.logTopAppTypeChanged(topAppType: String) = logEvent(
     AnalyticsEvent(
-        type = "show_running_apps_on_top_preference_changed",
+        type = "top_app_type_preference_changed",
         extras = listOf(
             Param(
-                key = "show_running_apps_on_top_preference",
-                value = showRunningAppsOnTop.toString(),
+                key = "top_app_type_preference",
+                value = topAppType,
             ),
         ),
     ),

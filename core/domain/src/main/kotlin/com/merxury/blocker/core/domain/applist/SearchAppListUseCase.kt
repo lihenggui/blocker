@@ -31,6 +31,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combineTransform
@@ -97,10 +98,10 @@ class SearchAppListUseCase @Inject constructor(
         }.sortedWith(
             appComparator(sortType, sortOrder),
         ).let { sortedList ->
-            if (userData.showRunningAppsOnTop) {
-                sortedList.sortedByDescending { it.isRunning }
-            } else {
-                sortedList
+            when (userData.topAppType) {
+                TopAppType.NONE -> sortedList
+                TopAppType.RUNNING -> sortedList.sortedByDescending { it.isRunning }
+                TopAppType.DISABLED -> sortedList.sortedByDescending { !it.isEnabled }
             }
         }
         emit(finalList)

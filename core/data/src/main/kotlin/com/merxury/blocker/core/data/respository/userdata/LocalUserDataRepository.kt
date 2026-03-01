@@ -31,9 +31,9 @@ import com.merxury.blocker.core.data.respository.logFirstTimeInitializationCompl
 import com.merxury.blocker.core.data.respository.logLibDisplayLanguageChanged
 import com.merxury.blocker.core.data.respository.logRestoreSystemAppPreferenceChanged
 import com.merxury.blocker.core.data.respository.logRuleServerProviderChanged
-import com.merxury.blocker.core.data.respository.logShowRunningAppsOnTopPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowServiceInfoPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.respository.logTopAppTypeChanged
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -42,6 +42,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -127,9 +128,9 @@ class LocalUserDataRepository @Inject constructor(
         analyticsHelper.logComponentSortingOrderPreferenceChanged(order.name)
     }
 
-    override suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean) {
-        blockerPreferenceDataSource.setShowRunningAppsOnTop(shouldShowRunningAppsOnTop)
-        analyticsHelper.logShowRunningAppsOnTopPreferenceChanged(shouldShowRunningAppsOnTop)
+    override suspend fun setTopAppType(topAppType: TopAppType) {
+        blockerPreferenceDataSource.setTopAppType(topAppType)
+        analyticsHelper.logTopAppTypeChanged(topAppType.name)
     }
 
     override suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {

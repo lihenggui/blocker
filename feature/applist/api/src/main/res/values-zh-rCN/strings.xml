@@ -27,7 +27,10 @@
     <string name="feature_applist_api_name">名称</string>
     <string name="feature_applist_api_install_date">安装日期</string>
     <string name="feature_applist_api_last_updated">最后更新</string>
-    <string name="feature_applist_api_show_running_apps_on_top">置顶运行中应用</string>
+    <string name="feature_applist_api_show_apps_on_top">应用置顶</string>
+    <string name="feature_applist_api_none">无</string>
+    <string name="feature_applist_api_running_apps">运行中的应用</string>
+    <string name="feature_applist_api_disabled_apps">已禁用的应用</string>
     <string name="feature_applist_api_on">开启</string>
     <string name="feature_applist_api_off">关闭</string>
 </resources>

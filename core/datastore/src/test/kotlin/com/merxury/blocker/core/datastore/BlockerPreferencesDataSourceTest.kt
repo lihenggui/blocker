@@ -25,6 +25,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -53,8 +54,8 @@ class BlockerPreferencesDataSourceTest {
     }
 
     @Test
-    fun shouldShowRunningAppsOnTopIsFalseByDefault() = testScope.runTest {
-        assertFalse(subject.userData.first().showRunningAppsOnTop)
+    fun topAppTypeShouldBeNoneByDefault() = testScope.runTest {
+        assertEquals(subject.userData.first().topAppType, TopAppType.NONE)
     }
 
     @Test
@@ -160,9 +161,15 @@ class BlockerPreferencesDataSourceTest {
     }
 
     @Test
-    fun userShouldSetShowRunningAppsOnTopToTrue() = testScope.runTest {
-        subject.setShowRunningAppsOnTop(true)
-        assertTrue(subject.userData.first().showRunningAppsOnTop)
+    fun userShouldSetTopAppTypeToRunning() = testScope.runTest {
+        subject.setTopAppType(TopAppType.RUNNING)
+        assertEquals(subject.userData.first().topAppType, TopAppType.RUNNING)
+    }
+
+    @Test
+    fun userShouldSetTopAppTypeToDisabled() = testScope.runTest {
+        subject.setTopAppType(TopAppType.DISABLED)
+        assertEquals(subject.userData.first().topAppType, TopAppType.DISABLED)
     }
 
     @Test
