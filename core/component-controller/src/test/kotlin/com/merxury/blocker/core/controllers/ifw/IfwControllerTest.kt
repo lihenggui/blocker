@@ -159,10 +159,9 @@ class IfwControllerTest {
         assertFalse(controller.checkComponentEnableState(testPackage, ".MyReceiver"))
     }
 
-    private fun componentInfo(name: String, type: ComponentType) =
-        ComponentInfo(
-            packageName = testPackage,
-            name = name,
-            type = type,
-        )
+    private fun componentInfo(name: String, type: ComponentType) = ComponentInfo(
+        packageName = testPackage,
+        name = name,
+        type = type,
+    )
 }

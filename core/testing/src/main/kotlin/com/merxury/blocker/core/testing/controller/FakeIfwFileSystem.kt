@@ -27,10 +27,7 @@ class FakeIfwFileSystem : IfwFileSystem {
         files[packageName] = content
     }
 
-    override suspend fun deleteRules(packageName: String): Boolean {
-        return files.remove(packageName) != null
-    }
+    override suspend fun deleteRules(packageName: String): Boolean = files.remove(packageName) != null
 
-    override suspend fun fileExists(packageName: String): Boolean =
-        files.containsKey(packageName)
+    override suspend fun fileExists(packageName: String): Boolean = files.containsKey(packageName)
 }
