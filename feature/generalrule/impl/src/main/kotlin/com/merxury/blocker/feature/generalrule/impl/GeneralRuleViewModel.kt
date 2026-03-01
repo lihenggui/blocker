@@ -110,21 +110,23 @@ class GeneralRulesViewModel @AssistedInject constructor(
             analyticsHelper.logControlAllSdksClicked(newState = enable)
             val list = gatherAllMatchedComponents().first()
             if (list.isEmpty()) return@launch
-            _isProcessing.value = true
-            var successCount = 0
-            componentRepository.batchControlComponent(
-                components = list,
-                newState = enable,
-            )
-                .catch { exception ->
-                    _errorState.emit(exception.toErrorMessage())
-                    _isProcessing.value = false
-                }
-                .collect {
-                    successCount++
-                    action(successCount, list.size)
-                }
-            _isProcessing.value = false
+            try {
+                _isProcessing.value = true
+                var successCount = 0
+                componentRepository.batchControlComponent(
+                    components = list,
+                    newState = enable,
+                )
+                    .catch { exception ->
+                        _errorState.emit(exception.toErrorMessage())
+                    }
+                    .collect {
+                        successCount++
+                        action(successCount, list.size)
+                    }
+            } finally {
+                _isProcessing.value = false
+            }
         }
     }
 

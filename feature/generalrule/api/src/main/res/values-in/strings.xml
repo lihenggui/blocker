@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_generalrule_api_sdk_trackers">SDK/Tracker</string>
+    <string name="feature_generalrule_api_block_all_matched">Blokir semua yang cocok</string>
+    <string name="feature_generalrule_api_enable_all_matched">Aktifkan semua yang cocok</string>
+    <string name="feature_generalrule_api_block_all_confirmation">Ini akan menonaktifkan semua komponen yang cocok dengan aturan SDK/Tracker di semua aplikasi. Lanjutkan?</string>
+    <string name="feature_generalrule_api_enable_all_confirmation">Ini akan mengaktifkan kembali semua komponen yang cocok dengan aturan SDK/Tracker di semua aplikasi. Lanjutkan?</string>
 </resources>

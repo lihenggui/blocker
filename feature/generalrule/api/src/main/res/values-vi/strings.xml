@@ -16,4 +16,8 @@
   -->
 <resources>
     <string name="feature_generalrule_api_sdk_trackers">SDK/Trình theo dõi</string>
+    <string name="feature_generalrule_api_block_all_matched">Chặn tất cả khớp</string>
+    <string name="feature_generalrule_api_enable_all_matched">Bật tất cả khớp</string>
+    <string name="feature_generalrule_api_block_all_confirmation">Thao tác này sẽ vô hiệu hóa tất cả các thành phần khớp với quy tắc SDK/Trình theo dõi trên mọi ứng dụng. Tiếp tục?</string>
+    <string name="feature_generalrule_api_enable_all_confirmation">Thao tác này sẽ bật lại tất cả các thành phần khớp với quy tắc SDK/Trình theo dõi trên mọi ứng dụng. Tiếp tục?</string>
 </resources>
