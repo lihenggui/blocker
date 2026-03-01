@@ -307,7 +307,7 @@ class BlockerPreferencesDataSource @Inject constructor(
         try {
             userPreferences.updateData { it.copy { ruleCommitId = "" } }
         } catch (ioException: IOException) {
-            Timber.e("Failed to reset rule commit id", ioException)
+            Timber.e(ioException, "Failed to reset rule commit id")
         }
     }
 
@@ -336,7 +336,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 }
             }
         } catch (ioException: IOException) {
-            Timber.e("Failed to update user preferences", ioException)
+            Timber.e(ioException, "Failed to update user preferences")
         }
     }
 
