@@ -353,11 +353,15 @@ class AppListViewModel @AssistedInject constructor(
         val appController = getAppController().first()
         appController.forceStop(packageName)
         appController.refreshRunningAppList()
-        val item = appList.find { it.packageName == packageName }
-        if (item != null) {
-            val index = appStateList.indexOf(item)
-            val newItem = item.copy(isRunning = appController.isAppRunning(packageName))
-            appStateList[index] = newItem
+        val isRunning = appController.isAppRunning(packageName)
+        withContext(mainDispatcher) {
+            val item = appList.find { it.packageName == packageName }
+            if (item != null) {
+                val index = appStateList.indexOf(item)
+                if (index != -1) {
+                    appStateList[index] = item.copy(isRunning = isRunning)
+                }
+            }
         }
         analyticsHelper.logForceStopClicked()
     }
