@@ -19,11 +19,14 @@ package com.merxury.blocker.feature.generalrule.impl
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.app.AppRepository
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.GatherAllMatchedComponentsUseCase
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.UpdateRuleMatchedAppUseCase
@@ -57,9 +60,12 @@ class GeneralRulesViewModel @AssistedInject constructor(
     private val appRepository: AppRepository,
     private val appPropertiesRepository: AppPropertiesRepository,
     private val generalRuleRepository: GeneralRuleRepository,
+    private val componentRepository: ComponentRepository,
     private val initGeneralRuleUseCase: InitializeRuleStorageUseCase,
     private val searchRule: SearchGeneralRuleUseCase,
     private val updateRule: UpdateRuleMatchedAppUseCase,
+    private val gatherAllMatchedComponents: GatherAllMatchedComponentsUseCase,
+    private val analyticsHelper: AnalyticsHelper,
     private val savedStateHandle: SavedStateHandle,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Assisted val initialRuleId: String,
@@ -74,6 +80,9 @@ class GeneralRulesViewModel @AssistedInject constructor(
         _uiState.value = (GeneralRuleUiState.Error(throwable.toErrorMessage()))
     }
     private var loadRuleJob: Job? = null
+    private var controlJob: Job? = null
+    private val _isProcessing = MutableStateFlow(false)
+    val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
 
     // Key used to save and retrieve the currently selected topic id from saved state.
     private val selectedRuleIdKey = "selectedRuleIdKey"
@@ -93,6 +102,32 @@ class GeneralRulesViewModel @AssistedInject constructor(
     fun onRuleClick(ruleId: String?) {
         savedStateHandle[selectedRuleIdKey] = ruleId
         loadSelectedRule()
+    }
+
+    fun controlAllComponents(enable: Boolean, action: suspend (Int, Int) -> Unit) {
+        controlJob?.cancel()
+        controlJob = viewModelScope.launch {
+            analyticsHelper.logControlAllSdksClicked(newState = enable)
+            val list = gatherAllMatchedComponents().first()
+            if (list.isEmpty()) return@launch
+            try {
+                _isProcessing.value = true
+                var successCount = 0
+                componentRepository.batchControlComponent(
+                    components = list,
+                    newState = enable,
+                )
+                    .catch { exception ->
+                        _errorState.emit(exception.toErrorMessage())
+                    }
+                    .collect {
+                        successCount++
+                        action(successCount, list.size)
+                    }
+            } finally {
+                _isProcessing.value = false
+            }
+        }
     }
 
     private fun loadSelectedRule() {

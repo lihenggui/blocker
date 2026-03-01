@@ -16,4 +16,8 @@
   -->
 <resources>
     <string name="feature_generalrule_api_sdk_trackers">SDK/跟踪器</string>
+    <string name="feature_generalrule_api_block_all_matched">拦截所有匹配项</string>
+    <string name="feature_generalrule_api_enable_all_matched">启用所有匹配项</string>
+    <string name="feature_generalrule_api_block_all_confirmation">此操作将禁用所有应用中被 SDK/跟踪器规则匹配到的组件。是否继续？</string>
+    <string name="feature_generalrule_api_enable_all_confirmation">此操作将重新启用所有应用中被 SDK/跟踪器规则匹配到的组件。是否继续？</string>
 </resources>

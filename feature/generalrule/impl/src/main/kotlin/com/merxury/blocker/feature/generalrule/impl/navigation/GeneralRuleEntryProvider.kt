@@ -22,6 +22,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.generalrule.api.navigation.GeneralRuleNavKey
 import com.merxury.blocker.feature.generalrule.impl.GeneralRulesScreen
 import com.merxury.blocker.feature.generalrule.impl.GeneralRulesViewModel
@@ -34,6 +35,7 @@ fun EntryProviderScope<NavKey>.generalRuleEntry(navigator: Navigator) {
     ) { key ->
         GeneralRulesScreen(
             navigateToRuleDetail = navigator::navigateToRuleDetail,
+            snackbarHostState = LocalSnackbarHostState.current,
             viewModel = hiltViewModel<GeneralRulesViewModel, GeneralRulesViewModel.Factory> { factory ->
                 factory.create(key.initialRuleId)
             },

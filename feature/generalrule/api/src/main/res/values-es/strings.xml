@@ -15,4 +15,8 @@
   ~ limitations under the License.
   --><resources>
     <string name="feature_generalrule_api_sdk_trackers">Rastreadores SDK</string>
+    <string name="feature_generalrule_api_block_all_matched">Bloquear todas las coincidencias</string>
+    <string name="feature_generalrule_api_enable_all_matched">Habilitar todas las coincidencias</string>
+    <string name="feature_generalrule_api_block_all_confirmation">Esto deshabilitará todos los componentes que coincidan con las reglas de SDK/rastreadores en todas las aplicaciones. ¿Continuar?</string>
+    <string name="feature_generalrule_api_enable_all_confirmation">Esto volverá a habilitar todos los componentes que coincidan con las reglas de SDK/rastreadores en todas las aplicaciones. ¿Continuar?</string>
 </resources>
