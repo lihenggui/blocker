@@ -29,6 +29,7 @@ android {
     buildFeatures {
         aidl = true
     }
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 dependencies {
@@ -45,4 +46,5 @@ dependencies {
     implementation(libs.shizuku.provider)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.robolectric)
 }
