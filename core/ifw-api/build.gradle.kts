@@ -40,4 +40,5 @@ dependencies {
 
     testImplementation(projects.core.testing)
     testImplementation(libs.kxml)
+    testImplementation(libs.robolectric)
 }

@@ -20,8 +20,14 @@ import android.content.pm.PackageManager
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
+import com.merxury.blocker.core.utils.ShellRootAvailabilityChecker
+import com.merxury.core.ifw.ComponentTypeResolver
 import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.core.ifw.IfwFileSystem
 import com.merxury.core.ifw.IntentFirewall
+import com.merxury.core.ifw.PmComponentTypeResolver
+import com.merxury.core.ifw.SuIfwFileSystem
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,10 +47,30 @@ object IfwModule {
 
     @Singleton
     @Provides
-    fun providesIntentFirewall(
+    fun providesRootAvailabilityChecker(
+        @Dispatcher(IO) dispatcher: CoroutineDispatcher,
+    ): RootAvailabilityChecker = ShellRootAvailabilityChecker(dispatcher)
+
+    @Singleton
+    @Provides
+    fun providesComponentTypeResolver(
         pm: PackageManager,
-        xmlParser: XML,
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
         @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
-    ): IIntentFirewall = IntentFirewall(pm, xmlParser, ioDispatcher, cpuDispatcher)
+    ): ComponentTypeResolver = PmComponentTypeResolver(pm, ioDispatcher, cpuDispatcher)
+
+    @Singleton
+    @Provides
+    fun providesIfwFileSystem(
+        @Dispatcher(IO) dispatcher: CoroutineDispatcher,
+    ): IfwFileSystem = SuIfwFileSystem(dispatcher)
+
+    @Singleton
+    @Provides
+    fun providesIntentFirewall(
+        xmlParser: XML,
+        rootChecker: RootAvailabilityChecker,
+        componentTypeResolver: ComponentTypeResolver,
+        fileSystem: IfwFileSystem,
+    ): IIntentFirewall = IntentFirewall(xmlParser, rootChecker, componentTypeResolver, fileSystem)
 }
