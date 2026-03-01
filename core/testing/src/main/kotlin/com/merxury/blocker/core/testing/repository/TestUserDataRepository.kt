@@ -24,6 +24,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
@@ -45,7 +46,7 @@ val defaultUserData = UserPreferenceData(
     componentSortingOrder = SortingOrder.ASCENDING,
     componentSorting = ComponentSorting.COMPONENT_NAME,
     isFirstTimeInitializationCompleted = false,
-    showRunningAppsOnTop = false,
+    topAppType = TopAppType.NONE,
     appDisplayLanguage = "en-US",
     libDisplayLanguage = "en-US",
     enableStatistics = true,
@@ -117,8 +118,8 @@ class TestUserDataRepository : UserDataRepository {
         _userData.tryEmit(currentUserData.copy(componentSorting = sorting))
     }
 
-    override suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean) {
-        _userData.tryEmit(currentUserData.copy(showRunningAppsOnTop = shouldShowRunningAppsOnTop))
+    override suspend fun setTopAppType(topAppType: TopAppType) {
+        _userData.tryEmit(currentUserData.copy(topAppType = topAppType))
     }
 
     override suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {

@@ -45,6 +45,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
+import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -53,8 +54,6 @@ import com.merxury.blocker.feature.applist.impl.AppSortInfoUiState
 import com.merxury.blocker.feature.applist.impl.AppSortInfoUiState.Loading
 import com.merxury.blocker.feature.applist.impl.AppSortInfoUiState.Success
 import com.merxury.blocker.feature.applist.impl.AppSortViewModel
-import java.lang.Boolean.FALSE
-import java.lang.Boolean.TRUE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +76,7 @@ fun AppSortBottomSheetRoute(
             modifier = modifier,
             onSortByClick = viewModel::updateAppSorting,
             onSortOrderClick = viewModel::updateAppSortingOrder,
-            onChangeShowRunningAppsOnTop = viewModel::updateShowRunningAppsOnTop,
+            onTopAppTypeChange = viewModel::updateTopAppType,
         )
     }
 }
@@ -88,7 +87,7 @@ fun ComponentSortBottomSheet(
     modifier: Modifier = Modifier,
     onSortByClick: (AppSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
-    onChangeShowRunningAppsOnTop: (Boolean) -> Unit = {},
+    onTopAppTypeChange: (TopAppType) -> Unit = {},
 ) {
     when (uiState) {
         Loading -> {
@@ -101,7 +100,7 @@ fun ComponentSortBottomSheet(
                 modifier = modifier,
                 onSortByClick = onSortByClick,
                 onSortOrderClick = onSortOrderClick,
-                onChangeShowRunningAppsOnTop = onChangeShowRunningAppsOnTop,
+                onTopAppTypeChange = onTopAppTypeChange,
             )
         }
     }
@@ -113,7 +112,7 @@ fun AppSortOptionsContent(
     modifier: Modifier = Modifier,
     onSortByClick: (AppSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
-    onChangeShowRunningAppsOnTop: (Boolean) -> Unit = {},
+    onTopAppTypeChange: (TopAppType) -> Unit = {},
 ) {
     val sortModeList = listOf(
         NAME to string.feature_applist_api_name,
@@ -124,9 +123,10 @@ fun AppSortOptionsContent(
         ASCENDING to string.feature_applist_api_ascending,
         DESCENDING to string.feature_applist_api_descending,
     )
-    val showRunningAppsOnTopList = listOf(
-        TRUE to string.feature_applist_api_on,
-        FALSE to string.feature_applist_api_off,
+    val topAppTypeList = listOf(
+        TopAppType.NONE to string.feature_applist_api_none,
+        TopAppType.RUNNING to string.feature_applist_api_running_apps,
+        TopAppType.DISABLED to string.feature_applist_api_disabled_apps,
     )
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -148,11 +148,11 @@ fun AppSortOptionsContent(
             selectedValue = uiState.appSortInfo.order,
             onItemSelection = onSortOrderClick,
         )
-        ItemHeader(title = stringResource(id = string.feature_applist_api_show_running_apps_on_top))
+        ItemHeader(title = stringResource(id = string.feature_applist_api_show_apps_on_top))
         SegmentedButtons(
-            items = showRunningAppsOnTopList,
-            selectedValue = uiState.appSortInfo.showRunningAppsOnTop,
-            onItemSelection = onChangeShowRunningAppsOnTop,
+            items = topAppTypeList,
+            selectedValue = uiState.appSortInfo.topAppType,
+            onItemSelection = onTopAppTypeChange,
         )
         Spacer(modifier = Modifier.height(16.dp))
     }

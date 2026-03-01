@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
 
@@ -60,7 +61,7 @@ interface UserDataRepository {
 
     suspend fun setComponentSorting(sorting: ComponentSorting)
 
-    suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean)
+    suspend fun setTopAppType(topAppType: TopAppType)
 
     suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean)
 

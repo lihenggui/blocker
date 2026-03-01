@@ -5,7 +5,10 @@
     <string name="feature_applist_api_support_and_feedback">Saran dan Tanggapan</string>
     <string name="feature_applist_api_no_applications_to_display">Tidak ada aplikasi tersedia</string>
     <string name="feature_applist_api_last_updated">Terbaru</string>
-    <string name="feature_applist_api_show_running_apps_on_top">Apl yang berjalan di baris atas</string>
+    <string name="feature_applist_api_show_apps_on_top">Tampilkan aplikasi di atas</string>
+    <string name="feature_applist_api_none">Tidak ada</string>
+    <string name="feature_applist_api_running_apps">Aplikasi yang berjalan</string>
+    <string name="feature_applist_api_disabled_apps">Aplikasi yang dinonaktifkan</string>
     <string name="feature_applist_api_on">Hidup</string>
     <string name="feature_applist_api_sort_options">Opsi sortir</string>
     <string name="feature_applist_api_sort_by">Sortir berdasar</string>

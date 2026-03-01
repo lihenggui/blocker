@@ -1,0 +1,13 @@
+arguments=--init-script /Users/julie.wang/.local/share/opencode/bin/jdtls/config_mac/org.eclipse.osgi/59/0/.cp/gradle/init/init.gradle
+auto.sync=false
+build.scans.enabled=false
+connection.gradle.distribution=GRADLE_DISTRIBUTION(VERSION(8.9))
+connection.project.dir=
+eclipse.preferences.version=1
+gradle.user.home=
+java.home=/opt/homebrew/Cellar/openjdk@21/21.0.7/libexec/openjdk.jdk/Contents/Home
+jvm.arguments=
+offline.mode=false
+override.workspace.settings=true
+show.console.view=true
+show.executions.view=true

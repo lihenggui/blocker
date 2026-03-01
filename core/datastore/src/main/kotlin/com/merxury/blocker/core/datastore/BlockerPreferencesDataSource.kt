@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
+import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -127,7 +128,15 @@ class BlockerPreferencesDataSource @Inject constructor(
                     DESCENDING
             },
             useDynamicColor = it.useDynamicColor,
-            showRunningAppsOnTop = it.showRunningAppsOnTop,
+            topAppType = when (it.topAppType) {
+                null,
+                TopAppTypeProto.UNRECOGNIZED,
+                TopAppTypeProto.TOP_APP_TYPE_NONE,
+                -> TopAppType.NONE
+
+                TopAppTypeProto.TOP_APP_TYPE_RUNNING -> TopAppType.RUNNING
+                TopAppTypeProto.TOP_APP_TYPE_DISABLED -> TopAppType.DISABLED
+            },
             isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
             appDisplayLanguage = it.appDisplayLanguage,
             libDisplayLanguage = it.libDisplayLanguage,
@@ -276,9 +285,15 @@ class BlockerPreferencesDataSource @Inject constructor(
         }
     }
 
-    suspend fun setShowRunningAppsOnTop(showRunningAppsOnTop: Boolean) {
+    suspend fun setTopAppType(topAppType: TopAppType) {
         userPreferences.updateData {
-            it.copy { this.showRunningAppsOnTop = showRunningAppsOnTop }
+            it.copy {
+                this.topAppType = when (topAppType) {
+                    TopAppType.NONE -> TopAppTypeProto.TOP_APP_TYPE_NONE
+                    TopAppType.RUNNING -> TopAppTypeProto.TOP_APP_TYPE_RUNNING
+                    TopAppType.DISABLED -> TopAppTypeProto.TOP_APP_TYPE_DISABLED
+                }
+            }
         }
     }
 

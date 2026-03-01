@@ -26,7 +26,10 @@
     <string name="feature_applist_api_name">Имя</string>
     <string name="feature_applist_api_install_date">Дата установки</string>
     <string name="feature_applist_api_last_updated">Последнее обновление</string>
-    <string name="feature_applist_api_show_running_apps_on_top">Показывать работающие приложения сверху</string>
+    <string name="feature_applist_api_show_apps_on_top">Показывать приложения сверху</string>
+    <string name="feature_applist_api_none">Нет</string>
+    <string name="feature_applist_api_running_apps">Работающие приложения</string>
+    <string name="feature_applist_api_disabled_apps">Отключенные приложения</string>
     <string name="feature_applist_api_on">Вкл.</string>
     <string name="feature_applist_api_off">Выкл.</string>
 </resources>

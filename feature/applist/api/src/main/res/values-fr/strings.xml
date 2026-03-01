@@ -4,8 +4,11 @@
     <string name="feature_applist_api_settings">Paramètres</string>
     <string name="feature_applist_api_support_and_feedback">Assistance et commentaires</string>
     <string name="feature_applist_api_no_applications_to_display">Aucune application à afficher</string>
+    <string name="feature_applist_api_show_apps_on_top">Afficher les applications en haut</string>
+    <string name="feature_applist_api_none">Aucun</string>
+    <string name="feature_applist_api_running_apps">Applications en cours d\'exécution</string>
+    <string name="feature_applist_api_disabled_apps">Applications désactivées</string>
     <string name="feature_applist_api_on">On</string>
-    <string name="feature_applist_api_show_running_apps_on_top">Afficher les applications en cours d\'exécution en haut</string>
     <string name="feature_applist_api_last_updated">Dernière mise à jour</string>
     <string name="feature_applist_api_ascending">Ascendant</string>
     <string name="feature_applist_api_order">Ordre</string>

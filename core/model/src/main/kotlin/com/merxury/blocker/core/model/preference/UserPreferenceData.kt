@@ -33,7 +33,7 @@ data class UserPreferenceData(
     val componentSorting: ComponentSorting,
     val componentSortingOrder: SortingOrder,
     val componentShowPriority: ComponentShowPriority,
-    val showRunningAppsOnTop: Boolean,
+    val topAppType: TopAppType,
     val isFirstTimeInitializationCompleted: Boolean,
     val appDisplayLanguage: String,
     val libDisplayLanguage: String,

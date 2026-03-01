@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.applist.impl
 import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
@@ -100,14 +101,14 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_whenUpdateShowRunningAppsOnTop_thenUpdateShowRunningAppsOnTop() = runTest {
+    fun appSortInfoUiState_whenUpdateTopAppType_thenUpdateTopAppType() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.appSortInfoUiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
-        viewModel.updateShowRunningAppsOnTop(true)
-        val updatedUserData = defaultUserData.copy(showRunningAppsOnTop = true)
+        viewModel.updateTopAppType(TopAppType.RUNNING)
+        val updatedUserData = defaultUserData.copy(topAppType = TopAppType.RUNNING)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
             viewModel.appSortInfoUiState.value,
@@ -120,5 +121,5 @@ class AppSortViewModelTest {
 private fun UserPreferenceData.toAppSortInfo() = AppSortInfo(
     sorting = appSorting,
     order = appSortingOrder,
-    showRunningAppsOnTop = showRunningAppsOnTop,
+    topAppType = topAppType,
 )

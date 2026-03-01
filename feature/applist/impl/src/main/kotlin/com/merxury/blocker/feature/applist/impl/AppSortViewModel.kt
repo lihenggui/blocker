@@ -22,6 +22,7 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,7 +44,11 @@ class AppSortViewModel @Inject constructor(
             userDataRepository.userData
                 .map { userData ->
                     AppSortInfoUiState.Success(
-                        AppSortInfo(userData.appSorting, userData.appSortingOrder, userData.showRunningAppsOnTop),
+                        AppSortInfo(
+                            userData.appSorting,
+                            userData.appSortingOrder,
+                            userData.topAppType,
+                        ),
                     )
                 }
                 .collect { _appSortInfoUiState.value = it }
@@ -58,10 +63,8 @@ class AppSortViewModel @Inject constructor(
         userDataRepository.setAppSortingOrder(order)
     }
 
-    fun updateShowRunningAppsOnTop(shouldShow: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.setShowRunningAppsOnTop(shouldShow)
-        }
+    fun updateTopAppType(topAppType: TopAppType) = viewModelScope.launch {
+        userDataRepository.setTopAppType(topAppType)
     }
 }
 

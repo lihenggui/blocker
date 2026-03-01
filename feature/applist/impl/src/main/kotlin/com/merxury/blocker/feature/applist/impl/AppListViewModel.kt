@@ -42,6 +42,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.WarningDialogData
@@ -124,7 +125,7 @@ class AppListViewModel @AssistedInject constructor(
         loadData()
         updateInstalledAppList()
         listenSortingChanges()
-        listenShowRunningAppsOnTopChanges()
+        listenTopAppTypeChanges()
         listenShowSystemAppsChanges()
     }
 
@@ -242,8 +243,10 @@ class AppListViewModel @AssistedInject constructor(
                 .collect { userData ->
                     val newList = appList.toMutableList()
                     newList.sortWith(appComparator(userData.appSorting, userData.appSortingOrder))
-                    if (userDataRepository.userData.first().showRunningAppsOnTop) {
-                        newList.sortByDescending { it.isRunning }
+                    when (userData.topAppType) {
+                        TopAppType.NONE -> {}
+                        TopAppType.RUNNING -> newList.sortByDescending { it.isRunning }
+                        TopAppType.DISABLED -> newList.sortByDescending { !it.isEnabled }
                     }
                     withContext(mainDispatcher) {
                         refreshServiceJobs.cancelChildren()
@@ -255,24 +258,23 @@ class AppListViewModel @AssistedInject constructor(
         }
     }
 
-    private var listenShowRunningAppsOnTopChangesJob: Job? = null
-    private fun listenShowRunningAppsOnTopChanges() {
-        listenShowRunningAppsOnTopChangesJob?.cancel()
-        listenShowRunningAppsOnTopChangesJob = viewModelScope.launch {
+    private var listenTopAppTypeChangesJob: Job? = null
+    private fun listenTopAppTypeChanges() {
+        listenTopAppTypeChangesJob?.cancel()
+        listenTopAppTypeChangesJob = viewModelScope.launch {
             userDataRepository.userData
-                .map { it.showRunningAppsOnTop }
+                .map { it.topAppType }
                 .distinctUntilChanged()
                 .drop(1)
-                .collect { showRunningAppsOnTop ->
+                .collect { topAppType ->
                     val newList = appList.toMutableList()
-                    if (showRunningAppsOnTop) {
-                        newList.sortByDescending { it.isRunning }
-                    } else {
-                        val sorting = userDataRepository.userData.first()
-                            .appSorting
-                        val order = userDataRepository.userData.first()
-                            .appSortingOrder
-                        newList.sortWith(appComparator(sorting, order))
+                    val sorting = userDataRepository.userData.first().appSorting
+                    val order = userDataRepository.userData.first().appSortingOrder
+                    newList.sortWith(appComparator(sorting, order))
+                    when (topAppType) {
+                        TopAppType.NONE -> {}
+                        TopAppType.RUNNING -> newList.sortByDescending { it.isRunning }
+                        TopAppType.DISABLED -> newList.sortByDescending { !it.isEnabled }
                     }
                     withContext(mainDispatcher) {
                         refreshServiceJobs.cancelChildren()

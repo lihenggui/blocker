@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.model.preference
 
-import com.merxury.blocker.core.model.preference.AppSorting
-import com.merxury.blocker.core.model.preference.AppSorting.NAME
-import com.merxury.blocker.core.model.preference.SortingOrder
-import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
-import com.merxury.blocker.core.model.preference.TopAppType
-
-data class AppSortInfo(
-    val sorting: AppSorting = NAME,
-    val order: SortingOrder = ASCENDING,
-    val topAppType: TopAppType = TopAppType.NONE,
-)
+enum class TopAppType {
+    NONE,
+    RUNNING,
+    DISABLED,
+}

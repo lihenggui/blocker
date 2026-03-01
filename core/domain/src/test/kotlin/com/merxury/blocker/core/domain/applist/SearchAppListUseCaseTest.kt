@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
@@ -358,7 +359,7 @@ class SearchAppListUseCaseTest {
     }
 
     @Test
-    fun givenAppList_whenSetShowRunningAppsOnTop_thenShowCorrectList() = runTest {
+    fun givenAppList_whenSetTopAppTypeToRunning_thenShowCorrectList() = runTest {
         val app1 = InstalledApp(packageName = "1")
         val app2 = InstalledApp(packageName = "2")
         val app3 = InstalledApp(packageName = "3")
@@ -368,7 +369,7 @@ class SearchAppListUseCaseTest {
             defaultUserData.copy(
                 appSorting = AppSorting.NAME,
                 appSortingOrder = SortingOrder.ASCENDING,
-                showRunningAppsOnTop = true,
+                topAppType = TopAppType.RUNNING,
             ),
         )
         // Default setting is sort by name, ascending
@@ -381,6 +382,31 @@ class SearchAppListUseCaseTest {
             .toMutableList()
         expectedList[0] = expectedList[0].copy(isRunning = true)
         expectedList[1] = expectedList[1].copy(isRunning = true)
+        searchAppListUseCase("").test {
+            assertEquals(expectedList.toList(), awaitItem())
+        }
+    }
+
+    @Test
+    fun givenAppList_whenSetTopAppTypeToDisabled_thenShowCorrectList() = runTest {
+        val app1 = InstalledApp(packageName = "1", isEnabled = true)
+        val app2 = InstalledApp(packageName = "2", isEnabled = true)
+        val app3 = InstalledApp(packageName = "3", isEnabled = false)
+        val app4 = InstalledApp(packageName = "4", isEnabled = false)
+        val appList = listOf(app1, app2, app3, app4)
+        userDataRepository.sendUserData(
+            defaultUserData.copy(
+                appSorting = AppSorting.NAME,
+                appSortingOrder = SortingOrder.ASCENDING,
+                topAppType = TopAppType.DISABLED,
+            ),
+        )
+        // Default setting is sort by name, ascending
+        appRepository.sendAppList(appList)
+        val expectedList = mutableListOf(app3, app4, app1, app2)
+            .map {
+                it.toAppItem(packageInfo = packageInfo)
+            }
         searchAppListUseCase("").test {
             assertEquals(expectedList.toList(), awaitItem())
         }
