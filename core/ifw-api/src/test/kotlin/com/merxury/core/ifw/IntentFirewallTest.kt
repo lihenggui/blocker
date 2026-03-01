@@ -68,34 +68,34 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun add_receiver_addsComponentFilterToBroadcast() = runTest {
+    fun givenReceiverComponent_whenAddRule_thenComponentIsBlocked() = runTest {
         val result = intentFirewall.add(testPackage, testReceiver)
         assertTrue(result)
         assertFalse(intentFirewall.getComponentEnableState(testPackage, testReceiver))
     }
 
     @Test
-    fun add_service_addsComponentFilterToService() = runTest {
+    fun givenServiceComponent_whenAddRule_thenComponentIsBlocked() = runTest {
         val result = intentFirewall.add(testPackage, testService)
         assertTrue(result)
         assertFalse(intentFirewall.getComponentEnableState(testPackage, testService))
     }
 
     @Test
-    fun add_activity_addsComponentFilterToActivity() = runTest {
+    fun givenActivityComponent_whenAddRule_thenComponentIsBlocked() = runTest {
         val result = intentFirewall.add(testPackage, testActivity)
         assertTrue(result)
         assertFalse(intentFirewall.getComponentEnableState(testPackage, testActivity))
     }
 
     @Test
-    fun add_provider_returnsFalse() = runTest {
+    fun givenProviderComponent_whenAddRule_thenReturnsFalse() = runTest {
         val result = intentFirewall.add(testPackage, testProvider)
         assertFalse(result)
     }
 
     @Test
-    fun add_noRoot_throwsRootUnavailableException() = runTest {
+    fun givenNoRootAccess_whenAddRule_thenThrowsRootUnavailableException() = runTest {
         rootChecker.rootAvailable = false
         assertFailsWith<RootUnavailableException> {
             intentFirewall.add(testPackage, testReceiver)
@@ -103,7 +103,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun remove_afterAdd_componentIsEnabled() = runTest {
+    fun givenBlockedComponent_whenRemoveRule_thenComponentIsEnabled() = runTest {
         intentFirewall.add(testPackage, testReceiver)
         assertFalse(intentFirewall.getComponentEnableState(testPackage, testReceiver))
 
@@ -112,7 +112,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun remove_noRoot_throwsRootUnavailableException() = runTest {
+    fun givenNoRootAccess_whenRemoveRule_thenThrowsRootUnavailableException() = runTest {
         rootChecker.rootAvailable = false
         assertFailsWith<RootUnavailableException> {
             intentFirewall.remove(testPackage, testReceiver)
@@ -120,12 +120,12 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun getComponentEnableState_noRules_returnsTrue() = runTest {
+    fun givenNoRules_whenGetComponentEnableState_thenReturnsTrue() = runTest {
         assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))
     }
 
     @Test
-    fun addAll_multipleComponents_blocksAll() = runTest {
+    fun givenMultipleComponents_whenAddAll_thenAllComponentsAreBlocked() = runTest {
         val components = listOf(
             ComponentName(testPackage, testReceiver),
             ComponentName(testPackage, testService),
@@ -141,7 +141,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun addAll_skipsProviders() = runTest {
+    fun givenProviderInList_whenAddAll_thenProviderIsSkipped() = runTest {
         val components = listOf(
             ComponentName(testPackage, testReceiver),
             ComponentName(testPackage, testProvider),
@@ -156,7 +156,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun addAll_noRoot_throwsRootUnavailableException() = runTest {
+    fun givenNoRootAccess_whenAddAll_thenThrowsRootUnavailableException() = runTest {
         rootChecker.rootAvailable = false
         val components = listOf(ComponentName(testPackage, testReceiver))
         assertFailsWith<RootUnavailableException> {
@@ -165,7 +165,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun removeAll_afterAddAll_unblocks() = runTest {
+    fun givenBlockedComponents_whenRemoveAll_thenAllComponentsAreEnabled() = runTest {
         val components = listOf(
             ComponentName(testPackage, testReceiver),
             ComponentName(testPackage, testService),
@@ -184,7 +184,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun clear_removesAllRulesForPackage() = runTest {
+    fun givenBlockedComponents_whenClear_thenAllRulesAreRemoved() = runTest {
         intentFirewall.add(testPackage, testReceiver)
         intentFirewall.add(testPackage, testService)
         assertFalse(intentFirewall.getComponentEnableState(testPackage, testReceiver))
@@ -197,7 +197,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun clear_noRoot_throwsRootUnavailableException() = runTest {
+    fun givenNoRootAccess_whenClear_thenThrowsRootUnavailableException() = runTest {
         rootChecker.rootAvailable = false
         assertFailsWith<RootUnavailableException> {
             intentFirewall.clear(testPackage)
@@ -205,7 +205,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun save_emptyRule_deletesFile() = runTest {
+    fun givenEmptyRule_whenSave_thenFileIsDeleted() = runTest {
         // First write a rule so a file exists
         intentFirewall.add(testPackage, testActivity)
         assertTrue(fileSystem.fileExists(testPackage))
@@ -216,7 +216,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun save_nonEmptyRule_writesXml() = runTest {
+    fun givenNonEmptyRule_whenSave_thenXmlIsWrittenToFileSystem() = runTest {
         val rule = Rules(
             activity = Component.Activity(
                 componentFilter = mutableSetOf(
@@ -229,7 +229,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun resetCache_clearsInternalCache() = runTest {
+    fun givenCachedRules_whenResetCache_thenRulesAreReloadedFromFileSystem() = runTest {
         // Add a rule (this caches the rule internally)
         intentFirewall.add(testPackage, testReceiver)
         assertFalse(intentFirewall.getComponentEnableState(testPackage, testReceiver))
@@ -242,7 +242,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun load_invalidXml_returnsEmptyRule() = runTest {
+    fun givenInvalidXmlInFileSystem_whenLoad_thenReturnsEmptyRule() = runTest {
         // Put invalid XML content into the file system
         fileSystem.writeRules(testPackage, "<not-valid-xml>>>")
 
@@ -251,7 +251,7 @@ class IntentFirewallTest {
     }
 
     @Test
-    fun load_noRoot_returnsEmptyRule() = runTest {
+    fun givenNoRootAccess_whenLoad_thenReturnsEmptyRule() = runTest {
         rootChecker.rootAvailable = false
         // Without root, load returns empty rule, so component appears enabled
         assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))

@@ -45,7 +45,7 @@ class IfwControllerTest {
     }
 
     @Test
-    fun disable_callsIntentFirewallAdd() = runTest {
+    fun givenReceiverComponent_whenDisable_thenComponentIsBlocked() = runTest {
         val component = componentInfo(".MyReceiver", ComponentType.RECEIVER)
 
         val result = controller.disable(component)
@@ -55,7 +55,7 @@ class IfwControllerTest {
     }
 
     @Test
-    fun enable_callsIntentFirewallRemove() = runTest {
+    fun givenBlockedComponent_whenEnable_thenComponentIsUnblocked() = runTest {
         val component = componentInfo(".MyReceiver", ComponentType.RECEIVER)
         controller.disable(component)
         assertFalse(fakeIfw.getComponentEnableState(testPackage, ".MyReceiver"))
@@ -67,7 +67,7 @@ class IfwControllerTest {
     }
 
     @Test
-    fun switchComponent_disabled_callsAdd() = runTest {
+    fun givenComponent_whenSwitchToDisabled_thenComponentIsBlocked() = runTest {
         val component = componentInfo(".MyService", ComponentType.SERVICE)
 
         val result = controller.switchComponent(component, COMPONENT_ENABLED_STATE_DISABLED)
@@ -77,7 +77,7 @@ class IfwControllerTest {
     }
 
     @Test
-    fun switchComponent_enabled_callsRemove() = runTest {
+    fun givenBlockedComponent_whenSwitchToEnabled_thenComponentIsUnblocked() = runTest {
         val component = componentInfo(".MyService", ComponentType.SERVICE)
         controller.disable(component)
         assertFalse(fakeIfw.getComponentEnableState(testPackage, ".MyService"))
@@ -89,7 +89,7 @@ class IfwControllerTest {
     }
 
     @Test
-    fun switchComponent_unknownState_returnsFalse() = runTest {
+    fun givenComponent_whenSwitchToUnknownState_thenReturnsFalse() = runTest {
         val component = componentInfo(".MyActivity", ComponentType.ACTIVITY)
 
         val result = controller.switchComponent(component, 999)
@@ -98,7 +98,7 @@ class IfwControllerTest {
     }
 
     @Test
-    fun batchDisable_returnsCount() = runTest {
+    fun givenMultipleComponents_whenBatchDisable_thenReturnsCountAndCallsBack() = runTest {
         val components = listOf(
             componentInfo(".Receiver1", ComponentType.RECEIVER),
             componentInfo(".Receiver2", ComponentType.RECEIVER),
@@ -116,14 +116,14 @@ class IfwControllerTest {
     }
 
     @Test
-    fun batchDisable_emptyList_returnsZero() = runTest {
+    fun givenEmptyList_whenBatchDisable_thenReturnsZero() = runTest {
         val count = controller.batchDisable(emptyList()) { }
 
         assertEquals(0, count)
     }
 
     @Test
-    fun batchEnable_afterBatchDisable_unblocks() = runTest {
+    fun givenBlockedComponents_whenBatchEnable_thenAllComponentsAreUnblocked() = runTest {
         val components = listOf(
             componentInfo(".Service1", ComponentType.SERVICE),
             componentInfo(".Service2", ComponentType.SERVICE),
@@ -144,14 +144,14 @@ class IfwControllerTest {
     }
 
     @Test
-    fun batchEnable_emptyList_returnsZero() = runTest {
+    fun givenEmptyList_whenBatchEnable_thenReturnsZero() = runTest {
         val count = controller.batchEnable(emptyList()) { }
 
         assertEquals(0, count)
     }
 
     @Test
-    fun checkComponentEnableState_delegatesToIntentFirewall() = runTest {
+    fun givenComponent_whenCheckEnableState_thenDelegatesToIntentFirewall() = runTest {
         assertTrue(controller.checkComponentEnableState(testPackage, ".MyReceiver"))
 
         controller.disable(componentInfo(".MyReceiver", ComponentType.RECEIVER))
