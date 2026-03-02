@@ -136,10 +136,10 @@ androidx.lifecycle:lifecycle-viewmodel:2.10.0
 androidx.loader:loader:1.0.0
 androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
 androidx.metrics:metrics-performance:1.0.0
-androidx.navigation3:navigation3-runtime-android:1.0.0
-androidx.navigation3:navigation3-runtime:1.0.0
-androidx.navigation3:navigation3-ui-android:1.0.0
-androidx.navigation3:navigation3-ui:1.0.0
+androidx.navigation3:navigation3-runtime-android:1.0.1
+androidx.navigation3:navigation3-runtime:1.0.1
+androidx.navigation3:navigation3-ui-android:1.0.1
+androidx.navigation3:navigation3-ui:1.0.1
 androidx.navigation:navigation-common-android:2.9.7
 androidx.navigation:navigation-common:2.9.7
 androidx.navigation:navigation-compose-android:2.9.7
