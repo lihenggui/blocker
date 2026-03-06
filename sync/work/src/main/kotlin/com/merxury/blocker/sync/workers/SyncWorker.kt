@@ -40,7 +40,7 @@ import com.merxury.blocker.core.git.DefaultGitClient
 import com.merxury.blocker.core.git.RepositoryInfo
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import com.merxury.blocker.sync.initializers.SyncConstraints
 import com.merxury.blocker.sync.initializers.syncForegroundInfo
 import com.merxury.blocker.sync.status.ISyncSubscriber
@@ -74,6 +74,7 @@ internal class SyncWorker @AssistedInject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
     private val syncSubscriber: ISyncSubscriber,
+    private val packageInfoDataSource: PackageInfoDataSource,
 ) : CoroutineWorker(appContext, workerParams),
     Synchronizer {
 
@@ -161,7 +162,7 @@ internal class SyncWorker @AssistedInject constructor(
             }
         } catch (e: Exception) {
             // If it is in the debug mode, throw the exception
-            if (ApplicationUtil.isDebugMode(appContext)) {
+            if (packageInfoDataSource.isDebugMode()) {
                 throw e
             }
             Timber.e(e, "Failed to sync rules from remote")
@@ -176,7 +177,7 @@ internal class SyncWorker @AssistedInject constructor(
 
     // Only run this worker in the first run in a day
     private fun shouldRunTask(): Boolean {
-        if (ApplicationUtil.isDebugMode(appContext)) {
+        if (packageInfoDataSource.isDebugMode()) {
             Timber.d("Should run sync task in debug mode each time when app launches")
             return true
         }

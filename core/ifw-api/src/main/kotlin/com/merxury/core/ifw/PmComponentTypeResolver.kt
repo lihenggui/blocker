@@ -16,24 +16,21 @@
 
 package com.merxury.core.ifw
 
-import android.content.pm.PackageManager
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 internal class PmComponentTypeResolver @Inject constructor(
-    private val pm: PackageManager,
-    @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
+    private val packageInfoDataSource: PackageInfoDataSource,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ComponentTypeResolver {
 
@@ -41,25 +38,25 @@ internal class PmComponentTypeResolver @Inject constructor(
         packageName: String,
         componentName: String,
     ): ComponentType = withContext(cpuDispatcher) {
-        val receivers = ApplicationUtil.getReceiverList(pm, packageName, dispatcher)
+        val receivers = packageInfoDataSource.getReceiverList(packageName)
         for (receiver in receivers) {
             if (componentName == receiver.name) {
                 return@withContext RECEIVER
             }
         }
-        val services = ApplicationUtil.getServiceList(pm, packageName, dispatcher)
+        val services = packageInfoDataSource.getServiceList(packageName)
         for (service in services) {
             if (componentName == service.name) {
                 return@withContext SERVICE
             }
         }
-        val activities = ApplicationUtil.getActivityList(pm, packageName, dispatcher)
+        val activities = packageInfoDataSource.getActivityList(packageName)
         for (activity in activities) {
             if (componentName == activity.name) {
                 return@withContext ACTIVITY
             }
         }
-        val providers = ApplicationUtil.getProviderList(pm, packageName, dispatcher)
+        val providers = packageInfoDataSource.getProviderList(packageName)
         for (provider in providers) {
             if (componentName == provider.name) {
                 return@withContext PROVIDER

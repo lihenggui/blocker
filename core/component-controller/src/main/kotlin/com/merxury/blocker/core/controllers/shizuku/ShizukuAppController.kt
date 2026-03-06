@@ -34,7 +34,7 @@ import android.os.Build
 import android.provider.Settings
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
@@ -49,6 +49,7 @@ private const val SHELL_UID = 2000
 @Singleton
 internal class ShizukuAppController @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val packageInfoDataSource: PackageInfoDataSource,
 ) : IAppController {
 
     private val pm: IPackageManager by lazy {
@@ -171,7 +172,7 @@ internal class ShizukuAppController @Inject constructor(
             broadcastIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val isSystemApp = ApplicationUtil.isSystemApp(context.packageManager, packageName)
+        val isSystemApp = packageInfoDataSource.isSystemApp(packageName)
         // 0x00000004 = PackageManager.DELETE_SYSTEM_APP
         // 0x00000002 = PackageManager.DELETE_ALL_USERS
         val flags = if (isSystemApp) 0x00000004 else 0x00000002

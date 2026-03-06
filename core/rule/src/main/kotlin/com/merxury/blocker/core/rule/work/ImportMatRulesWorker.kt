@@ -44,7 +44,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSI
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -56,6 +56,7 @@ import java.io.IOException
 class ImportMatRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
+    private val packageInfoDataSource: PackageInfoDataSource,
     @IfwControl private val ifwController: IController,
     @RootApiControl private val rootController: IController,
     @ShizukuControl private val shizukuController: IController,
@@ -100,8 +101,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
                     if (isApplicationUninstalled(context, uninstalledAppList, packageName)) {
                         return@forEach
                     }
-                    val isSystemApp = ApplicationUtil.isSystemApp(
-                        context.packageManager,
+                    val isSystemApp = packageInfoDataSource.isSystemApp(
                         packageName,
                     )
                     if (!shouldRestoreSystemApps && isSystemApp) {
@@ -147,7 +147,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
         if (savedList.contains(packageName)) {
             return true
         }
-        if (!ApplicationUtil.isAppInstalled(context.packageManager, packageName)) {
+        if (!packageInfoDataSource.isAppInstalled(packageName)) {
             savedList.add(packageName)
             return true
         }

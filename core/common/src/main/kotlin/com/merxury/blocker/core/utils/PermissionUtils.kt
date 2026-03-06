@@ -24,15 +24,15 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Utility for checking root permissions with a three-level fallback:
- * [Shell.isAppGrantedRoot], `Shell.cmd("su")`, and `Runtime.exec("su")`.
- * The result is cached after the first successful check.
+ * Internal utility used only by [String.exec][com.merxury.blocker.core.extension.exec]
+ * as a defensive root check for extension functions that cannot use dependency injection.
+ *
+ * All injectable classes should use [RootAvailabilityChecker] instead.
  */
-object PermissionUtils {
+internal object PermissionUtils {
 
     private val rooted = AtomicBoolean(false)
 
-    /** Checks whether root access is available, using a cached result when possible. */
     suspend fun isRootAvailable(
         dispatcher: CoroutineDispatcher,
     ): Boolean = withContext(dispatcher) {
@@ -59,21 +59,19 @@ object PermissionUtils {
         return@withContext runtimeResult
     }
 
-    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean = withContext(dispatcher) {
+    private suspend fun requestRootPermission(
+        dispatcher: CoroutineDispatcher,
+    ): Boolean = withContext(dispatcher) {
         Shell.cmd("su").exec().isSuccess
     }
 
     private suspend fun requestRootInRuntime(dispatcher: CoroutineDispatcher): Boolean {
-        // isAppGrantedRoot is always false on KernelSU and APatch.
-        // This method looks for a file but su is not a real file in those
         return withContext(dispatcher) {
             try {
                 val process = Runtime.getRuntime().exec("su")
                 val exitValue = process.waitFor()
                 val isSuccess = exitValue == 0
-                if (isSuccess) {
-                    Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
-                } else {
+                if (!isSuccess) {
                     Timber.e("Root unavailable: exitValue of the su command is not 0")
                 }
                 return@withContext isSuccess

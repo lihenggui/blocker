@@ -49,7 +49,7 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.WarningDialogData
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -77,6 +77,7 @@ import com.merxury.blocker.core.ui.R.string as uiString
 @HiltViewModel(assistedFactory = SearchViewModel.Factory::class)
 class SearchViewModel @AssistedInject constructor(
     private val pm: PackageManager,
+    private val packageInfoDataSource: PackageInfoDataSource,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val initializeDatabase: InitializeDatabaseUseCase,
@@ -403,7 +404,7 @@ class SearchViewModel @AssistedInject constructor(
     fun uninstall(packageName: String) = viewModelScope.launch {
         val action: () -> Unit = {
             viewModelScope.launch(ioDispatcher + exceptionHandler) {
-                val app = ApplicationUtil.getApplicationComponents(pm, packageName)
+                val app = packageInfoDataSource.getApplicationComponents(packageName)
                 val versionCode = app.getVersionCode()
                 getAppController().first().uninstallApp(packageName, versionCode)
                 notifyAppUpdated(packageName)

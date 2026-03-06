@@ -29,7 +29,7 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -38,13 +38,14 @@ import javax.inject.Inject
 
 internal class LocalComponentDataSource @Inject constructor(
     private val pm: PackageManager,
+    private val packageInfoDataSource: PackageInfoDataSource,
     @IfwControl private val ifwController: IController,
     @RootApiControl private val pmController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDataSource {
 
     override fun getComponent(packageName: String, componentName: String): Flow<ComponentInfo?> = flow {
-        val list = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
+        val list = packageInfoDataSource.getApplicationComponents(packageName)
         val component = list.activities?.find { it.name == componentName }
             ?.let { toComponentInfo(it, ACTIVITY, packageName) }
             ?: list.services?.find { it.name == componentName }
@@ -62,10 +63,10 @@ internal class LocalComponentDataSource @Inject constructor(
         type: ComponentType,
     ): Flow<List<ComponentInfo>> = flow {
         val list = when (type) {
-            RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
-            SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
-            ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
-            PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
+            RECEIVER -> packageInfoDataSource.getReceiverList(packageName)
+            SERVICE -> packageInfoDataSource.getServiceList(packageName)
+            ACTIVITY -> packageInfoDataSource.getActivityList(packageName)
+            PROVIDER -> packageInfoDataSource.getProviderList(packageName)
         }
         emit(
             list.map {
@@ -76,7 +77,7 @@ internal class LocalComponentDataSource @Inject constructor(
         .flowOn(ioDispatcher)
 
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = flow {
-        val packageInfo = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
+        val packageInfo = packageInfoDataSource.getApplicationComponents(packageName)
         val activity = packageInfo.activities
             ?.mapNotNull { toComponentInfo(it, ACTIVITY, packageName) }
             ?: emptyList()
@@ -97,7 +98,7 @@ internal class LocalComponentDataSource @Inject constructor(
         packageName: String,
         componentName: String,
     ): Flow<ComponentType?> = flow {
-        val components = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
+        val components = packageInfoDataSource.getApplicationComponents(packageName)
         val isProvider = components.providers?.any { it.name == componentName } ?: false
         if (isProvider) {
             emit(PROVIDER)

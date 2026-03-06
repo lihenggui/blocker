@@ -28,8 +28,8 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
-import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.utils.PermissionUtils
+import com.merxury.blocker.core.utils.PackageInfoDataSource
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -37,6 +37,8 @@ import javax.inject.Inject
 internal class AppStateCache @Inject constructor(
     private val packageManager: PackageManager,
     private val userDataRepository: UserDataRepository,
+    private val rootChecker: RootAvailabilityChecker,
+    private val packageInfoDataSource: PackageInfoDataSource,
     @IfwControl private val ifwController: IController,
     @RootApiControl private val rootController: IController,
     @RootApiServiceControl private val rootServiceController: IServiceController,
@@ -61,11 +63,11 @@ internal class AppStateCache @Inject constructor(
 
     private suspend fun getServiceStatus(packageName: String): AppServiceStatus {
         val controllerType = userDataRepository.userData.first().controllerType
-        val services = ApplicationUtil.getServiceList(packageManager, packageName)
+        val services = packageInfoDataSource.getServiceList(packageName)
         var running = 0
         var blocked = 0
         for (service in services) {
-            val ifwState = if (PermissionUtils.isRootAvailable(ioDispatcher)) {
+            val ifwState = if (rootChecker.isRootAvailable()) {
                 ifwController.checkComponentEnableState(packageName, service.name)
             } else {
                 true

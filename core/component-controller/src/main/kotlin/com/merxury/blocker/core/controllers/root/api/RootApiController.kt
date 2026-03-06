@@ -29,8 +29,8 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.utils.PermissionUtils
+import com.merxury.blocker.core.utils.PackageInfoDataSource
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.topjohnwu.superuser.ipc.RootService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,6 +44,8 @@ import kotlin.coroutines.suspendCoroutine
 @Singleton
 internal class RootApiController @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val rootChecker: RootAvailabilityChecker,
+    private val packageInfoDataSource: PackageInfoDataSource,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IController {
@@ -51,7 +53,7 @@ internal class RootApiController @Inject constructor(
     private var rootService: IRootService? = null
 
     override suspend fun init() = withContext(mainDispatcher) {
-        if (!PermissionUtils.isRootAvailable(ioDispatcher)) {
+        if (!rootChecker.isRootAvailable()) {
             throw RootUnavailableException()
         }
         Timber.d("Initialize RootApiController")
@@ -138,8 +140,7 @@ internal class RootApiController @Inject constructor(
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
-    ): Boolean = ApplicationUtil.checkComponentIsEnabled(
-        context.packageManager,
+    ): Boolean = packageInfoDataSource.checkComponentIsEnabled(
         ComponentName(packageName, componentName),
     )
 }
