@@ -26,6 +26,7 @@ import timber.log.Timber
 
 // The lint tool cannot recognize value 0 as a flag, so we need to suppress the warning
 
+/** Version-compatible wrapper for [PackageManager.getPackageInfo]. Returns null if the package is not found. */
 @SuppressLint("WrongConstant")
 fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int): PackageInfo? = try {
     when {
@@ -39,6 +40,7 @@ fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int): Packag
     null
 }
 
+/** Version-compatible wrapper for [PackageManager.getApplicationInfo]. */
 @SuppressLint("WrongConstant")
 fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): ApplicationInfo = when {
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
@@ -47,6 +49,7 @@ fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): Ap
     else -> getApplicationInfo(packageName, flags)
 }
 
+/** Version-compatible wrapper for [PackageManager.getInstalledPackages]. */
 @SuppressLint("QueryPermissionsNeeded", "WrongConstant")
 fun PackageManager.getInstalledPackagesCompat(flags: Int): List<PackageInfo> = when {
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->

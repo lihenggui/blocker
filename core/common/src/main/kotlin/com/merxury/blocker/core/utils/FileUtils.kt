@@ -36,6 +36,7 @@ import java.util.zip.ZipOutputStream
 
 object FileUtils {
 
+    /** Copies a file from [source] to [dest] using root-accessible [SuFile]. */
     @JvmStatic
     fun copy(source: String, dest: String): File {
         val sourceFile = SuFile(source)
@@ -43,11 +44,7 @@ object FileUtils {
         return sourceFile.copyTo(destFile)
     }
 
-    @JvmStatic
-    suspend fun cat(source: String, dest: String) {
-        "cat '$source' > '$dest'".exec()
-    }
-
+    /** Lists file names in the directory at [path] using root access. Returns an empty list if the path does not exist. */
     @JvmStatic
     fun listFiles(path: String): List<String> {
         val file = SuFile(path)
@@ -58,15 +55,17 @@ object FileUtils {
         return file.list()?.toList() ?: ArrayList()
     }
 
+    /** Changes file permissions of [path] to [permission] via a root shell command. */
     @JvmStatic
     suspend fun chmod(path: String, permission: Int, recursively: Boolean) {
         val comm = when (recursively) {
-            true -> "chmod $permission '$path'"
-            false -> "chmod -R $permission '$path'"
+            true -> "chmod -R $permission '$path'"
+            false -> "chmod $permission '$path'"
         }
         comm.exec()
     }
 
+    /** Reads and returns the entire content of the file at [path] as a UTF-8 string using root access. */
     @JvmStatic
     fun read(path: String): String {
         SuFileInputStream.open(path).use {
@@ -74,6 +73,7 @@ object FileUtils {
         }
     }
 
+    /** Deletes the file or directory at [path] using root access. If [recursively] is true, deletes all contents. */
     @JvmStatic
     @Throws(IOException::class)
     suspend fun delete(
@@ -93,6 +93,7 @@ object FileUtils {
         }
     }
 
+    /** Returns the size of the file at [path] in bytes, or 0 if the file does not exist. */
     fun getFileSize(path: String): Long {
         val file = SuFile(path)
         return if (file.exists()) {
@@ -102,6 +103,7 @@ object FileUtils {
         }
     }
 
+    /** Extracts all entries from a ZIP file at [zipFilePath] into [destDirectory]. */
     @Throws(IOException::class)
     fun unzip(zipFilePath: File, destDirectory: String) {
         File(destDirectory).run {
@@ -148,6 +150,7 @@ object FileUtils {
      */
     private const val BUFFER_SIZE = 4096
 
+    /** Compresses the file or folder at [sourcePath] into a ZIP archive at [toLocation]. */
     fun zipFolder(sourcePath: String, toLocation: String?): Boolean {
         val sourceFile = File(sourcePath)
         try {
@@ -221,7 +224,7 @@ object FileUtils {
     }
 }
 
-// Note: Might be a time-consuming operation
+/** Recursively lists all files within this directory and its subdirectories. May be time-consuming for large trees. */
 fun File.listFilesRecursively(): List<File> {
     val result = ArrayList<File>()
     val files = listFiles()

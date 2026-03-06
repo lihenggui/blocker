@@ -21,36 +21,42 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 
+/**
+ * Utility for checking root permissions with a three-level fallback:
+ * [Shell.isAppGrantedRoot], `Shell.cmd("su")`, and `Runtime.exec("su")`.
+ * The result is cached after the first successful check.
+ */
 object PermissionUtils {
 
-    private var rooted: Boolean = false
+    private val rooted = AtomicBoolean(false)
 
+    /** Checks whether root access is available, using a cached result when possible. */
     suspend fun isRootAvailable(
         dispatcher: CoroutineDispatcher,
     ): Boolean = withContext(dispatcher) {
-        if (rooted) {
+        if (rooted.get()) {
             return@withContext true
         }
         val libSuStatus = Shell.isAppGrantedRoot() ?: false
         if (libSuStatus) {
             Timber.i("Get root permission from isAppGrantedRoot")
-            rooted = true
+            rooted.set(true)
             return@withContext true
-        } else {
-            val requestResult = requestRootPermission(dispatcher)
-            if (requestResult) {
-                rooted = true
-                Timber.i("Requested root permission from Shell.cmd(\"su\")")
-                return@withContext true
-            }
-            val runtimeResult = requestRootInRuntime(dispatcher)
-            if (runtimeResult) {
-                rooted = true
-                Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
-            }
-            return@withContext runtimeResult
         }
+        val requestResult = requestRootPermission(dispatcher)
+        if (requestResult) {
+            rooted.set(true)
+            Timber.i("Requested root permission from Shell.cmd(\"su\")")
+            return@withContext true
+        }
+        val runtimeResult = requestRootInRuntime(dispatcher)
+        if (runtimeResult) {
+            rooted.set(true)
+            Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
+        }
+        return@withContext runtimeResult
     }
 
     private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean = withContext(dispatcher) {
