@@ -40,6 +40,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.testing.controller.FakePackageInfoDataSource
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
@@ -155,6 +156,7 @@ class AppDetailViewModelTest {
 
         viewModel = AppDetailViewModel(
             pm = pm,
+            packageInfoDataSource = FakePackageInfoDataSource(),
             userDataRepository = userDataRepository,
             appRepository = appRepository,
             componentRepository = componentRepository,

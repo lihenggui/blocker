@@ -16,12 +16,12 @@
 
 package com.merxury.blocker.core.data.respository.debloater
 
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import app.cash.turbine.test
 import com.merxury.blocker.core.database.debloater.DebloatableComponentEntity
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.testing.controller.FakePackageInfoDataSource
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
@@ -48,6 +48,7 @@ class LocalDebloatableComponentRepositoryTest {
     private val cacheDataSource: CacheDebloatableComponentDataSource = mock()
     private val userDataRepository = TestUserDataRepository()
     private val pm: PackageManager = mock()
+    private val packageInfoDataSource = FakePackageInfoDataSource()
 
     private lateinit var repository: LocalDebloatableComponentRepository
 
@@ -85,19 +86,11 @@ class LocalDebloatableComponentRepositoryTest {
             cacheDataSource = cacheDataSource,
             userDataRepository = userDataRepository,
             pm = pm,
+            packageInfoDataSource = packageInfoDataSource,
             ioDispatcher = mainDispatcherRule.testDispatcher,
         )
 
-        whenever(pm.getApplicationInfo(any(), any<Int>())).thenAnswer { invocation ->
-            val packageName = invocation.getArgument<String>(0)
-            val appInfo = ApplicationInfo()
-            appInfo.flags = if (packageName.startsWith("com.android")) {
-                ApplicationInfo.FLAG_SYSTEM
-            } else {
-                0
-            }
-            appInfo
-        }
+        packageInfoDataSource.systemPackages = setOf("com.android.system")
     }
 
     @Test
