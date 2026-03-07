@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.applist.impl
 
-import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.SavedStateHandle
@@ -47,7 +46,7 @@ import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.WarningDialogData
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -75,7 +74,7 @@ import com.merxury.blocker.core.ui.R.string as uiString
 
 @HiltViewModel(assistedFactory = AppListViewModel.Factory::class)
 class AppListViewModel @AssistedInject constructor(
-    private val pm: PackageManager,
+    private val packageInfoDataSource: PackageInfoDataSource,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val initializeDatabase: InitializeDatabaseUseCase,
@@ -331,7 +330,7 @@ class AppListViewModel @AssistedInject constructor(
     fun uninstall(packageName: String) = viewModelScope.launch {
         val action: () -> Unit = {
             viewModelScope.launch(ioDispatcher + exceptionHandler) {
-                val app = ApplicationUtil.getApplicationComponents(pm, packageName)
+                val app = packageInfoDataSource.getApplicationComponents(packageName)
                 val versionCode = app.getVersionCode()
                 getAppController().first().uninstallApp(packageName, versionCode)
                 notifyAppUpdated(packageName)

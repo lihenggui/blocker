@@ -16,12 +16,11 @@
 
 package com.merxury.core.ifw.di
 
-import android.content.pm.PackageManager
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import com.merxury.blocker.core.utils.RootAvailabilityChecker
-import com.merxury.blocker.core.utils.ShellRootAvailabilityChecker
 import com.merxury.core.ifw.ComponentTypeResolver
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IfwFileSystem
@@ -47,17 +46,10 @@ object IfwModule {
 
     @Singleton
     @Provides
-    fun providesRootAvailabilityChecker(
-        @Dispatcher(IO) dispatcher: CoroutineDispatcher,
-    ): RootAvailabilityChecker = ShellRootAvailabilityChecker(dispatcher)
-
-    @Singleton
-    @Provides
     fun providesComponentTypeResolver(
-        pm: PackageManager,
-        @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
+        packageInfoDataSource: PackageInfoDataSource,
         @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
-    ): ComponentTypeResolver = PmComponentTypeResolver(pm, ioDispatcher, cpuDispatcher)
+    ): ComponentTypeResolver = PmComponentTypeResolver(packageInfoDataSource, cpuDispatcher)
 
     @Singleton
     @Provides

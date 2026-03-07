@@ -30,7 +30,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSI
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.blocker.core.utils.PermissionUtils
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IfwStorageUtils
 import dagger.assisted.Assisted
@@ -44,6 +44,7 @@ import java.io.IOException
 class ResetIfwWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     private val intentFirewall: IIntentFirewall,
+    private val rootChecker: RootAvailabilityChecker,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
@@ -52,7 +53,7 @@ class ResetIfwWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         Timber.i("Clear IFW rules")
-        if (!PermissionUtils.isRootAvailable(ioDispatcher)) {
+        if (!rootChecker.isRootAvailable()) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )

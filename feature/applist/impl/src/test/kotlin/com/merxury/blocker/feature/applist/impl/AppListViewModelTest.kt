@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppPropertiesData
 import com.merxury.blocker.core.testing.controller.FakeAppController
+import com.merxury.blocker.core.testing.controller.FakePackageInfoDataSource
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
 import com.merxury.blocker.core.testing.repository.TestAppPropertiesRepository
@@ -116,7 +117,7 @@ class AppListViewModelTest {
             userDataRepository = userDataRepository,
             analyticsHelper = analyticsHelper,
             permissionMonitor = permissionMonitor,
-            pm = pm,
+            packageInfoDataSource = FakePackageInfoDataSource(),
             initializeDatabase = initializeDatabaseUseCase,
             searchAppList = searchAppListUseCase,
             getAppController = getAppController,

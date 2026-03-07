@@ -26,7 +26,7 @@ import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.minSdkVersionCompat
 import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -39,6 +39,7 @@ import kotlin.time.Instant
 internal class LocalAppDataSource @Inject constructor(
     @AppPackageName private val appPackageName: String,
     private val pm: PackageManager,
+    private val packageInfoDataSource: PackageInfoDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AppDataSource {
     override fun getApplicationList(): Flow<List<InstalledApp>> = flow {
@@ -65,7 +66,7 @@ internal class LocalAppDataSource @Inject constructor(
         firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
         lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
         isEnabled = applicationInfo?.enabled ?: false,
-        isSystem = ApplicationUtil.isSystemApp(pm, packageName),
+        isSystem = packageInfoDataSource.isSystemApp(packageName),
         label = applicationInfo?.loadLabel(pm).toString(),
     )
 }

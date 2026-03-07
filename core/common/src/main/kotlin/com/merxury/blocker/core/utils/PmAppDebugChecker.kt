@@ -16,8 +16,14 @@
 
 package com.merxury.blocker.core.utils
 
-/** Contract for checking whether root access is available on the device. */
-interface RootAvailabilityChecker {
-    /** Returns `true` if root access is available. */
-    suspend fun isRootAvailable(): Boolean
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class PmAppDebugChecker @Inject constructor(
+    @ApplicationContext private val context: Context,
+) : AppDebugChecker {
+    override fun isDebugMode(): Boolean = ApplicationUtil.isDebugMode(context)
 }

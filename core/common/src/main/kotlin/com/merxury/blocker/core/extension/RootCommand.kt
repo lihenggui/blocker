@@ -15,6 +15,7 @@
  */
 package com.merxury.blocker.core.extension
 
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.utils.PermissionUtils
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,12 +23,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Created by Mercury on 2018/2/4.
+ * Executes this string as a shell command with root privileges.
+ *
+ * @throws RootUnavailableException if root access is not available.
  */
 suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): ShellResult = withContext(dispatcher) {
     val rootGranted = PermissionUtils.isRootAvailable(dispatcher)
     if (!rootGranted) {
-        throw RuntimeException("Root unavailable")
+        throw RootUnavailableException()
     }
     val result = Shell.cmd(this@exec).exec()
     return@withContext ShellResult(
@@ -38,6 +41,7 @@ suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): Shell
     )
 }
 
+/** Represents the result of a root shell command execution. */
 data class ShellResult(
     /**
      * Get the output of STDOUT.

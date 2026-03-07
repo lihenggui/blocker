@@ -24,7 +24,7 @@ import android.os.Build
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
@@ -34,6 +34,7 @@ import javax.inject.Singleton
 @Singleton
 internal class ShizukuController @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val packageInfoDataSource: PackageInfoDataSource,
 ) : IController {
     private val pm: IPackageManager by lazy {
         IPackageManager.Stub.asInterface(
@@ -110,8 +111,7 @@ internal class ShizukuController @Inject constructor(
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
-    ): Boolean = ApplicationUtil.checkComponentIsEnabled(
-        context.packageManager,
+    ): Boolean = packageInfoDataSource.checkComponentIsEnabled(
         ComponentName(packageName, componentName),
     )
 }

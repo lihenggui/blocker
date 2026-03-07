@@ -34,7 +34,7 @@ import com.merxury.blocker.core.logging.ReleaseTree
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.Sync
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
@@ -76,6 +76,9 @@ class BlockerApplication :
     @Inject
     lateinit var analyticsHelper: AnalyticsHelper
 
+    @Inject
+    lateinit var appDebugChecker: AppDebugChecker
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -83,7 +86,7 @@ class BlockerApplication :
 
     override fun onCreate() {
         super.onCreate()
-        if (ApplicationUtil.isDebugMode(this)) {
+        if (appDebugChecker.isDebugMode()) {
             Timber.plant(Timber.DebugTree())
             // Kill the app if there are main thread policy violations.
             StrictMode.setThreadPolicy(

@@ -36,7 +36,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMI
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.rule.util.StorageUtil
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import com.merxury.core.ifw.Rules
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -51,6 +51,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     private val xmlParser: XML,
+    private val packageInfoDataSource: PackageInfoDataSource,
     @IfwControl private val ifwController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
@@ -112,7 +113,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                         ?: service.firstOrNull()?.packageName
                         ?: return@forEach
                     val isSystemApp =
-                        ApplicationUtil.isSystemApp(context.packageManager, packageName)
+                        packageInfoDataSource.isSystemApp(packageName)
                     if (!shouldRestoreSystemApps && isSystemApp) {
                         Timber.i("Skipping system app $packageName")
                         return@forEach

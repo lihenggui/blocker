@@ -16,8 +16,9 @@
 
 package com.merxury.blocker.core.utils
 
-/** Contract for checking whether root access is available on the device. */
-interface RootAvailabilityChecker {
-    /** Returns `true` if root access is available. */
-    suspend fun isRootAvailable(): Boolean
+/**
+ * Checks whether the current application is running in debug mode.
+ */
+interface AppDebugChecker {
+    fun isDebugMode(): Boolean
 }

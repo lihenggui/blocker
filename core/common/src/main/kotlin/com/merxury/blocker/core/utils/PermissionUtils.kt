@@ -21,53 +21,57 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 
-object PermissionUtils {
+/**
+ * Internal utility used only by [String.exec][com.merxury.blocker.core.extension.exec]
+ * as a defensive root check for extension functions that cannot use dependency injection.
+ *
+ * All injectable classes should use [RootAvailabilityChecker] instead.
+ */
+internal object PermissionUtils {
 
-    private var rooted: Boolean = false
+    private val rooted = AtomicBoolean(false)
 
     suspend fun isRootAvailable(
         dispatcher: CoroutineDispatcher,
     ): Boolean = withContext(dispatcher) {
-        if (rooted) {
+        if (rooted.get()) {
             return@withContext true
         }
         val libSuStatus = Shell.isAppGrantedRoot() ?: false
         if (libSuStatus) {
             Timber.i("Get root permission from isAppGrantedRoot")
-            rooted = true
+            rooted.set(true)
             return@withContext true
-        } else {
-            val requestResult = requestRootPermission(dispatcher)
-            if (requestResult) {
-                rooted = true
-                Timber.i("Requested root permission from Shell.cmd(\"su\")")
-                return@withContext true
-            }
-            val runtimeResult = requestRootInRuntime(dispatcher)
-            if (runtimeResult) {
-                rooted = true
-                Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
-            }
-            return@withContext runtimeResult
         }
+        val requestResult = requestRootPermission(dispatcher)
+        if (requestResult) {
+            rooted.set(true)
+            Timber.i("Requested root permission from Shell.cmd(\"su\")")
+            return@withContext true
+        }
+        val runtimeResult = requestRootInRuntime(dispatcher)
+        if (runtimeResult) {
+            rooted.set(true)
+            Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
+        }
+        return@withContext runtimeResult
     }
 
-    private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean = withContext(dispatcher) {
+    private suspend fun requestRootPermission(
+        dispatcher: CoroutineDispatcher,
+    ): Boolean = withContext(dispatcher) {
         Shell.cmd("su").exec().isSuccess
     }
 
     private suspend fun requestRootInRuntime(dispatcher: CoroutineDispatcher): Boolean {
-        // isAppGrantedRoot is always false on KernelSU and APatch.
-        // This method looks for a file but su is not a real file in those
         return withContext(dispatcher) {
             try {
                 val process = Runtime.getRuntime().exec("su")
                 val exitValue = process.waitFor()
                 val isSuccess = exitValue == 0
-                if (isSuccess) {
-                    Timber.i("Requested root permission from Runtime.getRuntime().exec(su)")
-                } else {
+                if (!isSuccess) {
                     Timber.e("Root unavailable: exitValue of the su command is not 0")
                 }
                 return@withContext isSuccess

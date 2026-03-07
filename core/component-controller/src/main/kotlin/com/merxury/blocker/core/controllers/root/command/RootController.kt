@@ -28,7 +28,7 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,6 +37,7 @@ import javax.inject.Inject
 
 internal class RootController @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val packageInfoDataSource: PackageInfoDataSource,
 ) : IController {
 
     override suspend fun switchComponent(
@@ -120,8 +121,7 @@ internal class RootController @Inject constructor(
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
-    ): Boolean = ApplicationUtil.checkComponentIsEnabled(
-        context.packageManager,
+    ): Boolean = packageInfoDataSource.checkComponentIsEnabled(
         ComponentName(packageName, componentName),
     )
 

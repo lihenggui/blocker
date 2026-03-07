@@ -37,6 +37,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.testing.controller.FakeAppController
+import com.merxury.blocker.core.testing.controller.FakePackageInfoDataSource
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.data.TestAppStateCache
 import com.merxury.blocker.core.testing.repository.TestAppPropertiesRepository
@@ -135,6 +136,7 @@ class SearchViewModelTest {
             appRepository = appRepository,
             componentRepository = componentRepository,
             pm = pm,
+            packageInfoDataSource = FakePackageInfoDataSource(),
             initializeDatabase = initializeDatabase,
             searchAppList = searchAppList,
             searchRule = searchGeneralRuleUseCase,

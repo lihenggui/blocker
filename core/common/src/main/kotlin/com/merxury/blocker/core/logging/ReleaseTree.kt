@@ -22,18 +22,16 @@ import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import timber.log.Timber
 import java.io.File
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import kotlin.time.Clock
 
@@ -44,12 +42,14 @@ class ReleaseTree @Inject constructor(
     @ApplicationScope private val coroutineScope: CoroutineScope,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : Timber.DebugTree() {
-    private val writeFile = AtomicReference<File>()
-    private val initMutex: Mutex = Mutex()
+    @Volatile
+    private var writeFile: File? = null
+    private val initComplete = CompletableDeferred<Unit>()
 
     @SuppressLint("LogNotTimber")
     private val initErrorHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Error occurred while initializing log file", throwable)
+        initComplete.complete(Unit)
     }
 
     @SuppressLint("LogNotTimber")
@@ -59,10 +59,9 @@ class ReleaseTree @Inject constructor(
 
     init {
         coroutineScope.launch(ioDispatcher + initErrorHandler) {
-            initMutex.withLock {
-                createLogFile()
-                clearOldLogsIfNecessary(days = 7)
-            }
+            createLogFile()
+            clearOldLogsIfNecessary(days = 7)
+            initComplete.complete(Unit)
         }
     }
 
@@ -74,7 +73,7 @@ class ReleaseTree @Inject constructor(
         val date = Clock.System.todayIn(TimeZone.currentSystemDefault())
         val fileName = "$date.log"
         val logFile = logFolder.resolve(fileName)
-        writeFile.set(logFile)
+        writeFile = logFile
     }
 
     private suspend fun clearOldLogsIfNecessary(days: Int) = withContext(ioDispatcher) {
@@ -92,11 +91,8 @@ class ReleaseTree @Inject constructor(
             return
         }
         coroutineScope.launch(ioDispatcher + writeErrorHandler) {
-            // Wait until initMutex being unlocked
-            if (initMutex.isLocked) {
-                initMutex.withLock { }
-            }
-            val logFile = writeFile.get() ?: return@launch
+            initComplete.await()
+            val logFile = writeFile ?: return@launch
             val time = Clock.System.now().toString()
             val level = when (priority) {
                 Log.DEBUG -> "D"

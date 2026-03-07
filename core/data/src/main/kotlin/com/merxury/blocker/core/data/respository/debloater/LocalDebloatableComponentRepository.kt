@@ -23,7 +23,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -38,6 +38,7 @@ internal class LocalDebloatableComponentRepository @Inject constructor(
     private val cacheDataSource: CacheDebloatableComponentDataSource,
     private val userDataRepository: UserDataRepository,
     private val pm: PackageManager,
+    private val packageInfoDataSource: PackageInfoDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : DebloatableComponentRepository {
 
@@ -51,7 +52,7 @@ internal class LocalDebloatableComponentRepository @Inject constructor(
                 components
             } else {
                 components.filter { activity ->
-                    !ApplicationUtil.isSystemApp(pm, activity.packageName)
+                    !packageInfoDataSource.isSystemApp(activity.packageName)
                 }
             }
         }

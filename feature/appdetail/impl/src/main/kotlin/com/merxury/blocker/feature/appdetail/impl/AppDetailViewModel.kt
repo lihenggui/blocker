@@ -89,7 +89,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -119,6 +119,7 @@ private const val LIBCHECKER_PACKAGE_NAME = "com.absinthe.libchecker"
 class AppDetailViewModel @AssistedInject constructor(
     private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
+    private val packageInfoDataSource: PackageInfoDataSource,
     private val workerManager: WorkManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
@@ -825,8 +826,7 @@ class AppDetailViewModel @AssistedInject constructor(
     fun loadAppInfo() = viewModelScope.launch {
         val packageName = packageName
         val app = appRepository.getApplication(packageName).first()
-        val isLibCheckerInstalled = ApplicationUtil.isAppInstalled(
-            pm = pm,
+        val isLibCheckerInstalled = packageInfoDataSource.isAppInstalled(
             packageName = LIBCHECKER_PACKAGE_NAME,
         )
         if (app == null) {

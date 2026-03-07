@@ -21,7 +21,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
-import com.merxury.blocker.core.utils.PermissionUtils
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -32,13 +32,14 @@ private const val SERVICE_REGEX = """ServiceRecord\{(.*?) %s\/%s\}"""
 
 @Singleton
 internal class RootServiceController @Inject constructor(
+    private val rootChecker: RootAvailabilityChecker,
     @Dispatcher(DEFAULT) private val defaultDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IServiceController {
 
     private val runningServices = mutableListOf<String>()
     override suspend fun load(): Boolean = withContext(defaultDispatcher) {
-        if (!PermissionUtils.isRootAvailable(ioDispatcher)) {
+        if (!rootChecker.isRootAvailable()) {
             return@withContext false
         }
         runningServices.clear()
