@@ -18,6 +18,7 @@ package com.merxury.blocker.core.controllers.combined
 
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.di.IfwControl
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.model.data.ComponentInfo
 import timber.log.Timber
@@ -42,7 +43,7 @@ internal class CombinedController @Inject constructor(
 
     override suspend fun switchComponent(
         component: ComponentInfo,
-        state: Int,
+        state: ComponentState,
     ): Boolean {
         val ifwResult = ifwController.switchComponent(component, state)
         val pmResult = pmController.switchComponent(component, state)

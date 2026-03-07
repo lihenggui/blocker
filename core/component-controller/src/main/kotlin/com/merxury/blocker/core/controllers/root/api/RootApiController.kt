@@ -20,10 +20,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.pm.PackageManager
 import android.os.IBinder
 import com.merxury.blocker.core.controller.root.service.IRootService
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -81,7 +81,7 @@ internal class RootApiController @Inject constructor(
 
     override suspend fun switchComponent(
         component: ComponentInfo,
-        state: Int,
+        state: ComponentState,
     ): Boolean {
         val rootService = rootService
         val packageName = component.packageName
@@ -94,19 +94,19 @@ internal class RootApiController @Inject constructor(
         rootService.setComponentEnabledSetting(
             packageName,
             componentName,
-            state,
+            state.pmValue,
         )
         return true
     }
 
     override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(
         component,
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+        ComponentState.ENABLED,
     )
 
     override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(
         component,
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+        ComponentState.DISABLED,
     )
 
     override suspend fun batchEnable(

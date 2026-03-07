@@ -23,8 +23,8 @@ package com.merxury.blocker.core.controllers.root.command
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -42,12 +42,12 @@ internal class RootController @Inject constructor(
 
     override suspend fun switchComponent(
         component: ComponentInfo,
-        state: Int,
+        state: ComponentState,
     ): Boolean {
         val packageName = component.packageName
         val componentName = component.name
         val comm: String = when (state) {
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> removeEscapeCharacter(
+            ComponentState.ENABLED -> removeEscapeCharacter(
                 String.format(
                     ENABLE_COMPONENT_TEMPLATE,
                     context.userId,
@@ -56,7 +56,7 @@ internal class RootController @Inject constructor(
                 ),
             )
 
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> removeEscapeCharacter(
+            ComponentState.DISABLED -> removeEscapeCharacter(
                 String.format(
                     DISABLE_COMPONENT_TEMPLATE,
                     context.userId,
@@ -64,8 +64,6 @@ internal class RootController @Inject constructor(
                     componentName,
                 ),
             )
-
-            else -> return false
         }
         Timber.d("command:$comm, componentState is $state")
         return withContext(Dispatchers.IO) {
@@ -76,12 +74,12 @@ internal class RootController @Inject constructor(
 
     override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(
         component,
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+        ComponentState.ENABLED,
     )
 
     override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(
         component,
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+        ComponentState.DISABLED,
     )
 
     override suspend fun batchEnable(

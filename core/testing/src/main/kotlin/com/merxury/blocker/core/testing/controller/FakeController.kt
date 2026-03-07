@@ -16,15 +16,15 @@
 
 package com.merxury.blocker.core.testing.controller
 
-import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.data.ComponentInfo
 
 class FakeController(private val rootGranted: Boolean = false) : IController {
     override suspend fun switchComponent(
         component: ComponentInfo,
-        state: Int,
+        state: ComponentState,
     ): Boolean {
         if (rootGranted) {
             return true
@@ -33,9 +33,9 @@ class FakeController(private val rootGranted: Boolean = false) : IController {
         }
     }
 
-    override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(component, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+    override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(component, ComponentState.ENABLED)
 
-    override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(component, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+    override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(component, ComponentState.DISABLED)
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,

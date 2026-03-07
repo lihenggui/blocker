@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.controllers
 
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 
 /**
@@ -36,7 +37,7 @@ interface IController {
      * @return true : changed component state successfully
      * false: cannot disable component
      */
-    suspend fun switchComponent(component: ComponentInfo, state: Int): Boolean
+    suspend fun switchComponent(component: ComponentInfo, state: ComponentState): Boolean
 
     suspend fun enable(component: ComponentInfo): Boolean
 
