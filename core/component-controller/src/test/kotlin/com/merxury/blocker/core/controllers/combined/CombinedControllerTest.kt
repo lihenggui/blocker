@@ -47,40 +47,40 @@ class CombinedControllerTest {
     }
 
     @Test
-    fun enable_bothSucceed_returnsTrue() = runTest {
+    fun givenBothControllersSucceed_whenEnable_thenReturnsTrue() = runTest {
         val result = combinedController.enable(testComponent)
         assertTrue(result)
     }
 
     @Test
-    fun enable_ifwFails_returnsFalse() = runTest {
+    fun givenIfwFails_whenEnable_thenReturnsFalse() = runTest {
         ifwController.shouldFail = true
         val result = combinedController.enable(testComponent)
         assertFalse(result)
     }
 
     @Test
-    fun enable_pmFails_returnsFalse() = runTest {
+    fun givenPmFails_whenEnable_thenReturnsFalse() = runTest {
         pmController.shouldFail = true
         val result = combinedController.enable(testComponent)
         assertFalse(result)
     }
 
     @Test
-    fun disable_bothSucceed_returnsTrue() = runTest {
+    fun givenBothControllersSucceed_whenDisable_thenReturnsTrue() = runTest {
         val result = combinedController.disable(testComponent)
         assertTrue(result)
     }
 
     @Test
-    fun disable_ifwFails_returnsFalse() = runTest {
+    fun givenIfwFails_whenDisable_thenReturnsFalse() = runTest {
         ifwController.shouldFail = true
         val result = combinedController.disable(testComponent)
         assertFalse(result)
     }
 
     @Test
-    fun switchComponent_delegatesToBothControllers() = runTest {
+    fun givenComponent_whenSwitchComponent_thenDelegatesToBothControllers() = runTest {
         val result = combinedController.switchComponent(testComponent, ComponentState.DISABLED)
         assertTrue(result)
         assertEquals(1, ifwController.switchComponentCalls.size)
@@ -88,7 +88,7 @@ class CombinedControllerTest {
     }
 
     @Test
-    fun batchDisable_allSucceed_returnsCountAndCallsAction() = runTest {
+    fun givenMultipleComponents_whenBatchDisable_thenReturnsCountAndCallsAction() = runTest {
         val components = listOf(
             testComponent,
             testComponent.copy(name = ".Service1"),
@@ -103,7 +103,7 @@ class CombinedControllerTest {
     }
 
     @Test
-    fun batchDisable_partialFailure_returnsSuccessCount() = runTest {
+    fun givenPartialFailure_whenBatchDisable_thenReturnsSuccessCount() = runTest {
         val failComponent = testComponent.copy(name = ".FailComponent")
         ifwController.failForComponents.add(failComponent.name)
 
@@ -118,19 +118,19 @@ class CombinedControllerTest {
     }
 
     @Test
-    fun batchEnable_emptyList_returnsZero() = runTest {
+    fun givenEmptyList_whenBatchEnable_thenReturnsZero() = runTest {
         val count = combinedController.batchEnable(emptyList()) { }
         assertEquals(0, count)
     }
 
     @Test
-    fun batchDisable_emptyList_returnsZero() = runTest {
+    fun givenEmptyList_whenBatchDisable_thenReturnsZero() = runTest {
         val count = combinedController.batchDisable(emptyList()) { }
         assertEquals(0, count)
     }
 
     @Test
-    fun checkComponentEnableState_ifwEnabledPmDisabled_returnsTrue() = runTest {
+    fun givenIfwEnabledPmDisabled_whenCheckEnableState_thenReturnsTrue() = runTest {
         ifwController.enabledComponents.add("com.example.test/.MyReceiver")
         pmController.enabledComponents.clear()
 
@@ -138,7 +138,7 @@ class CombinedControllerTest {
     }
 
     @Test
-    fun checkComponentEnableState_bothDisabled_returnsFalse() = runTest {
+    fun givenBothDisabled_whenCheckEnableState_thenReturnsFalse() = runTest {
         ifwController.enabledComponents.clear()
         pmController.enabledComponents.clear()
 
@@ -146,7 +146,7 @@ class CombinedControllerTest {
     }
 
     @Test
-    fun checkComponentEnableState_bothEnabled_returnsTrue() = runTest {
+    fun givenBothEnabled_whenCheckEnableState_thenReturnsTrue() = runTest {
         ifwController.enabledComponents.add("com.example.test/.MyReceiver")
         pmController.enabledComponents.add("com.example.test/.MyReceiver")
 
@@ -154,7 +154,7 @@ class CombinedControllerTest {
     }
 
     @Test
-    fun init_onlyInitializesPmController() = runTest {
+    fun givenCombinedController_whenInit_thenOnlyInitializesPmController() = runTest {
         combinedController.init()
         assertTrue(pmController.initCalled)
         assertFalse(ifwController.initCalled)
