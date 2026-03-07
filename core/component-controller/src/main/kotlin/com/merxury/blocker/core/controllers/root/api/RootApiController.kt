@@ -17,73 +17,28 @@
 package com.merxury.blocker.core.controllers.root.api
 
 import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
-import com.merxury.blocker.core.controller.root.service.IRootService
 import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.model.ComponentState
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
-import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.exception.RootUnavailableException
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.utils.PackageInfoDataSource
-import com.merxury.blocker.core.utils.RootAvailabilityChecker
-import com.topjohnwu.superuser.ipc.RootService
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @Singleton
 internal class RootApiController @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val rootChecker: RootAvailabilityChecker,
+    private val rootServiceConnection: RootServiceConnection,
     private val packageInfoDataSource: PackageInfoDataSource,
-    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IController {
-    private var rootConnection: ServiceConnection? = null
-    private var rootService: IRootService? = null
 
-    override suspend fun init() = withContext(mainDispatcher) {
-        if (!rootChecker.isRootAvailable()) {
-            throw RootUnavailableException()
-        }
-        Timber.d("Initialize RootApiController")
-        val intent = Intent(context, RootServer::class.java)
-        suspendCoroutine { cont ->
-            RootService.bind(
-                intent,
-                object : ServiceConnection {
-                    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                        Timber.d("RootConnection: onServiceConnected")
-                        rootConnection = this
-                        rootService = IRootService.Stub.asInterface(service)
-                        cont.resume(Unit)
-                    }
-
-                    override fun onServiceDisconnected(name: ComponentName?) {
-                        Timber.d("RootConnection: onServiceDisconnected")
-                        rootService = null
-                        rootConnection = null
-                    }
-                },
-            )
-        }
-    }
+    override suspend fun init() = rootServiceConnection.ensureConnected()
 
     override suspend fun switchComponent(
         component: ComponentInfo,
         state: ComponentState,
     ): Boolean {
-        val rootService = rootService
+        val rootService = rootServiceConnection.rootService
         val packageName = component.packageName
         val componentName = component.name
         if (rootService == null) {
