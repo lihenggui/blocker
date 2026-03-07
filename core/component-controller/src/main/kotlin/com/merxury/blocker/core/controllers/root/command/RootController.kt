@@ -69,12 +69,8 @@ internal class RootController @Inject constructor(
         }
         Timber.d("command:$comm, componentState is $state")
         return withContext(Dispatchers.IO) {
-            try {
-                val commandOutput = comm.exec()
-                return@withContext commandOutput.isSuccess
-            } catch (e: Exception) {
-                throw e
-            }
+            val commandOutput = comm.exec()
+            commandOutput.isSuccess
         }
     }
 
