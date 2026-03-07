@@ -24,9 +24,9 @@ package com.merxury.blocker.core.controllers.root.command
 import android.content.ComponentName
 import android.content.Context
 import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.extension.exec
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext

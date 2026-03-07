@@ -17,8 +17,8 @@
 package com.merxury.blocker.core.testing.controller
 
 import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.exception.RootUnavailableException
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 
 class FakeController(private val rootGranted: Boolean = false) : IController {

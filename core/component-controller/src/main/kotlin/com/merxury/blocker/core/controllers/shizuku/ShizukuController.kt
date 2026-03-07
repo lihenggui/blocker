@@ -21,8 +21,8 @@ import android.content.Context
 import android.content.pm.IPackageManager
 import android.os.Build
 import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext

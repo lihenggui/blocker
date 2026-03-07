@@ -18,8 +18,8 @@ package com.merxury.blocker.core.controllers.combined
 
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.di.IfwControl
-import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.controllers.di.RootApiControl
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import timber.log.Timber
 import javax.inject.Inject

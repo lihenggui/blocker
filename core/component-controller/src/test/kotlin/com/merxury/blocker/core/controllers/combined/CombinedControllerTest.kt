@@ -180,11 +180,9 @@ private class FakeIController : IController {
         return !shouldFail && component.name !in failForComponents
     }
 
-    override suspend fun enable(component: ComponentInfo): Boolean =
-        switchComponent(component, ComponentState.ENABLED)
+    override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(component, ComponentState.ENABLED)
 
-    override suspend fun disable(component: ComponentInfo): Boolean =
-        switchComponent(component, ComponentState.DISABLED)
+    override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(component, ComponentState.DISABLED)
 
     override suspend fun checkComponentEnableState(
         packageName: String,
