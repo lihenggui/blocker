@@ -85,7 +85,7 @@ internal class ShizukuServiceController @Inject constructor(
 
             1 -> {
                 Timber.i("Service $packageName/$serviceName stopped")
-                false
+                true
             }
 
             -1 -> {
