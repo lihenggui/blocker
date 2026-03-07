@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.controllers
 
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 
 /**
@@ -36,7 +37,7 @@ interface IController {
      * @return true : changed component state successfully
      * false: cannot disable component
      */
-    suspend fun switchComponent(component: ComponentInfo, state: Int): Boolean
+    suspend fun switchComponent(component: ComponentInfo, state: ComponentState): Boolean
 
     suspend fun enable(component: ComponentInfo): Boolean
 
@@ -45,12 +46,30 @@ interface IController {
     suspend fun batchEnable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
-    ): Int
+    ): Int {
+        var succeededCount = 0
+        componentList.forEach {
+            if (enable(it)) {
+                succeededCount++
+            }
+            action(it)
+        }
+        return succeededCount
+    }
 
     suspend fun batchDisable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
-    ): Int
+    ): Int {
+        var succeededCount = 0
+        componentList.forEach {
+            if (disable(it)) {
+                succeededCount++
+            }
+            action(it)
+        }
+        return succeededCount
+    }
 
     suspend fun checkComponentEnableState(packageName: String, componentName: String): Boolean
 }

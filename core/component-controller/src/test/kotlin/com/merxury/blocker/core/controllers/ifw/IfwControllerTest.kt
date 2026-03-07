@@ -16,8 +16,7 @@
 
 package com.merxury.blocker.core.controllers.ifw
 
-import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.testing.controller.FakeIntentFirewall
@@ -70,7 +69,7 @@ class IfwControllerTest {
     fun givenComponent_whenSwitchToDisabled_thenComponentIsBlocked() = runTest {
         val component = componentInfo(".MyService", ComponentType.SERVICE)
 
-        val result = controller.switchComponent(component, COMPONENT_ENABLED_STATE_DISABLED)
+        val result = controller.switchComponent(component, ComponentState.DISABLED)
 
         assertTrue(result)
         assertFalse(fakeIfw.getComponentEnableState(testPackage, ".MyService"))
@@ -82,19 +81,10 @@ class IfwControllerTest {
         controller.disable(component)
         assertFalse(fakeIfw.getComponentEnableState(testPackage, ".MyService"))
 
-        val result = controller.switchComponent(component, COMPONENT_ENABLED_STATE_ENABLED)
+        val result = controller.switchComponent(component, ComponentState.ENABLED)
 
         assertTrue(result)
         assertTrue(fakeIfw.getComponentEnableState(testPackage, ".MyService"))
-    }
-
-    @Test
-    fun givenComponent_whenSwitchToUnknownState_thenReturnsFalse() = runTest {
-        val component = componentInfo(".MyActivity", ComponentType.ACTIVITY)
-
-        val result = controller.switchComponent(component, 999)
-
-        assertFalse(result)
     }
 
     @Test
