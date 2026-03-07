@@ -37,7 +37,6 @@ class FakePackageInfoDataSource : PackageInfoDataSource {
     var installedPackages: Set<String> = emptySet()
     var systemPackages: Set<String> = emptySet()
     var runningPackages: Set<String> = emptySet()
-    var debugMode: Boolean = false
 
     override suspend fun getApplicationList(): List<Application> = applicationList
     override suspend fun getThirdPartyApplicationList(): List<Application> = thirdPartyApplicationList
@@ -61,8 +60,6 @@ class FakePackageInfoDataSource : PackageInfoDataSource {
     override fun isAppInstalled(packageName: String?): Boolean = packageName in installedPackages
 
     override fun isSystemApp(packageName: String?): Boolean = packageName in systemPackages
-
-    override fun isDebugMode(): Boolean = debugMode
 
     override suspend fun isRunning(packageName: String): Boolean = packageName in runningPackages
 }

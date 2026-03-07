@@ -41,6 +41,5 @@ interface PackageInfoDataSource {
     fun checkComponentIsEnabled(componentName: ComponentName): Boolean
     fun isAppInstalled(packageName: String?): Boolean
     fun isSystemApp(packageName: String?): Boolean
-    fun isDebugMode(): Boolean
     suspend fun isRunning(packageName: String): Boolean
 }

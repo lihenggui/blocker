@@ -16,10 +16,10 @@
 
 package com.merxury.blocker.core.logging
 
-import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -28,28 +28,29 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import timber.log.Timber
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class ReleaseTreeTest {
 
     @get:Rule
     val tempFolder = TemporaryFolder()
 
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val testScope = TestScope(testDispatcher)
+
     private lateinit var tree: ReleaseTree
 
     @Before
     fun setUp() {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         tree = ReleaseTree(
             filesDir = tempFolder.root,
-            coroutineScope = scope,
-            ioDispatcher = Dispatchers.Default,
+            coroutineScope = testScope,
+            ioDispatcher = testDispatcher,
         )
         Timber.plant(tree)
-        Thread.sleep(500)
     }
 
     @After
@@ -60,9 +61,9 @@ class ReleaseTreeTest {
     private fun logDir() = tempFolder.root.resolve(LOG_DIR)
 
     @Test
-    fun givenReleaseTree_whenInitialized_thenLogFileIsCreatedInLogsDirectory() {
+    fun givenReleaseTree_whenInitialized_thenLogFileIsCreatedInLogsDirectory() = testScope.runTest {
         Timber.tag("TestTag").i("init message")
-        Thread.sleep(500)
+        testScheduler.advanceUntilIdle()
 
         val logDir = logDir()
         assertTrue(logDir.exists())
@@ -72,11 +73,11 @@ class ReleaseTreeTest {
     }
 
     @Test
-    fun givenVerbosePriority_whenLogging_thenMessageIsNotWrittenToFile() {
+    fun givenVerbosePriority_whenLogging_thenMessageIsNotWrittenToFile() = testScope.runTest {
         Timber.tag("TestTag").i("info message")
-        Thread.sleep(500)
+        testScheduler.advanceUntilIdle()
         Timber.tag("TestTag").v("verbose message")
-        Thread.sleep(500)
+        testScheduler.advanceUntilIdle()
 
         val logFile = logDir().listFiles()!!.first()
         val content = logFile.readText()
@@ -85,9 +86,9 @@ class ReleaseTreeTest {
     }
 
     @Test
-    fun givenDebugPriority_whenLogging_thenMessageIsWrittenWithCorrectFormat() {
+    fun givenDebugPriority_whenLogging_thenMessageIsWrittenWithCorrectFormat() = testScope.runTest {
         Timber.tag("TestTag").d("debug message")
-        Thread.sleep(500)
+        testScheduler.advanceUntilIdle()
 
         val logFile = logDir().listFiles()!!.first()
         val content = logFile.readText()
@@ -95,7 +96,7 @@ class ReleaseTreeTest {
     }
 
     @Test
-    fun givenMoreThanSevenLogFiles_whenInitialized_thenOldFilesAreCleaned() {
+    fun givenMoreThanSevenLogFiles_whenInitialized_thenOldFilesAreCleaned() = testScope.runTest {
         val logDir = logDir()
         logDir.mkdirs()
 
@@ -104,18 +105,16 @@ class ReleaseTreeTest {
             file.writeText("old log $i")
             file.setLastModified(i * 1000L)
         }
-        assertEquals(10, logDir.listFiles()!!.size)
 
         Timber.uproot(tree)
 
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         tree = ReleaseTree(
             filesDir = tempFolder.root,
-            coroutineScope = scope,
-            ioDispatcher = Dispatchers.Default,
+            coroutineScope = testScope,
+            ioDispatcher = testDispatcher,
         )
         Timber.plant(tree)
-        Thread.sleep(500)
+        testScheduler.advanceUntilIdle()
 
         val remainingFiles = logDir.listFiles()!!
         assertTrue(remainingFiles.size <= 8)

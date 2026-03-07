@@ -32,14 +32,23 @@ import android.os.IBinder
 import com.merxury.blocker.core.controller.root.service.IRootService
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.utils.PackageInfoDataSource
-import com.merxury.blocker.core.utils.PmPackageInfoDataSource
 import com.topjohnwu.superuser.ipc.RootService
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import timber.log.Timber
 
 private const val MAX_SERVICE_COUNT = 10000
 
 internal class RootServer : RootService() {
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface RootServerEntryPoint {
+        fun packageInfoDataSource(): PackageInfoDataSource
+    }
+
     override fun onCreate() {
         super.onCreate()
         Timber.d("RootService onCreate")
@@ -47,12 +56,11 @@ internal class RootServer : RootService() {
 
     override fun onBind(intent: Intent): IBinder {
         Timber.d("RootService onBind")
-        val packageInfoDataSource = PmPackageInfoDataSource(
-            this,
-            packageManager,
-            Dispatchers.IO,
+        val entryPoint = EntryPointAccessors.fromApplication(
+            applicationContext,
+            RootServerEntryPoint::class.java,
         )
-        return Ipc(this, packageInfoDataSource)
+        return Ipc(this, entryPoint.packageInfoDataSource())
     }
 
     override fun onRebind(intent: Intent) {

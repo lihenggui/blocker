@@ -68,7 +68,5 @@ class PmPackageInfoDataSource @Inject constructor(
 
     override fun isSystemApp(packageName: String?): Boolean = ApplicationUtil.isSystemApp(pm, packageName)
 
-    override fun isDebugMode(): Boolean = ApplicationUtil.isDebugMode(context)
-
     override suspend fun isRunning(packageName: String): Boolean = ApplicationUtil.isRunning(packageName, ioDispatcher)
 }
