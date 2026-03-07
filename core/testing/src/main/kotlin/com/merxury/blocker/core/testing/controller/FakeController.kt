@@ -37,28 +37,6 @@ class FakeController(private val rootGranted: Boolean = false) : IController {
 
     override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(component, ComponentState.DISABLED)
 
-    override suspend fun batchEnable(
-        componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        if (rootGranted) {
-            return componentList.size
-        } else {
-            throw RootUnavailableException()
-        }
-    }
-
-    override suspend fun batchDisable(
-        componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        if (rootGranted) {
-            return componentList.size
-        } else {
-            throw RootUnavailableException()
-        }
-    }
-
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,

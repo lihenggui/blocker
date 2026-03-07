@@ -82,34 +82,6 @@ internal class RootController @Inject constructor(
         ComponentState.DISABLED,
     )
 
-    override suspend fun batchEnable(
-        componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        var succeededCount = 0
-        componentList.forEach {
-            if (enable(it)) {
-                succeededCount++
-            }
-            action(it)
-        }
-        return succeededCount
-    }
-
-    override suspend fun batchDisable(
-        componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        var succeededCount = 0
-        componentList.forEach {
-            if (disable(it)) {
-                succeededCount++
-            }
-            action(it)
-        }
-        return succeededCount
-    }
-
     private fun removeEscapeCharacter(comm: String): String = comm.replace("$", "\\$")
 
     override suspend fun checkComponentEnableState(

@@ -109,34 +109,6 @@ internal class RootApiController @Inject constructor(
         ComponentState.DISABLED,
     )
 
-    override suspend fun batchEnable(
-        componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        var successCount = 0
-        componentList.forEach {
-            if (enable(it)) {
-                successCount++
-            }
-            action(it)
-        }
-        return successCount
-    }
-
-    override suspend fun batchDisable(
-        componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        var successCount = 0
-        componentList.forEach {
-            if (disable(it)) {
-                successCount++
-            }
-            action(it)
-        }
-        return successCount
-    }
-
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
