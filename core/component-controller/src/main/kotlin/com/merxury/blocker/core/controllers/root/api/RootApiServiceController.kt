@@ -16,77 +16,31 @@
 
 package com.merxury.blocker.core.controllers.root.api
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
-import com.merxury.blocker.core.controller.root.service.IRootService
 import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
-import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.exception.RootUnavailableException
-import com.merxury.blocker.core.utils.RootAvailabilityChecker
-import com.topjohnwu.superuser.ipc.RootService
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.suspendCoroutine
 
 @Singleton
 internal class RootApiServiceController @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val rootChecker: RootAvailabilityChecker,
-    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    private val rootServiceConnection: RootServiceConnection,
 ) : IServiceController {
-    private var rootConnection: ServiceConnection? = null
-    private var rootService: IRootService? = null
 
-    override suspend fun init() = withContext(mainDispatcher) {
-        if (!rootChecker.isRootAvailable()) {
-            throw RootUnavailableException()
-        }
-        Timber.d("Start initialize RootApiServiceController")
-        val intent = Intent(context, RootServer::class.java)
-        suspendCoroutine { cont ->
-            RootService.bind(
-                intent,
-                object : ServiceConnection {
-                    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                        Timber.d("RootConnection: onServiceConnected")
-                        rootConnection = this
-                        rootService = IRootService.Stub.asInterface(service)
-                        cont.resumeWith(Result.success(Unit))
-                    }
-
-                    override fun onServiceDisconnected(name: ComponentName?) {
-                        Timber.d("RootConnection: onServiceDisconnected")
-                        rootService = null
-                        rootConnection = null
-                    }
-                },
-            )
-        }
-    }
+    override suspend fun init() = rootServiceConnection.ensureConnected()
 
     override suspend fun load(): Boolean {
-        val rootService = rootService ?: return false
+        val rootService = rootServiceConnection.rootService ?: return false
         rootService.refreshRunningServiceList()
         return true
     }
 
     override fun isServiceRunning(packageName: String, serviceName: String): Boolean {
-        val rootService = rootService ?: return false
+        val rootService = rootServiceConnection.rootService ?: return false
         return rootService.isServiceRunning(packageName, serviceName)
     }
 
     override suspend fun stopService(packageName: String, serviceName: String): Boolean {
-        val rootService = rootService
+        val rootService = rootServiceConnection.rootService
         if (rootService == null) {
             Timber.w("Cannot stop service, rootService is null")
             return false
@@ -95,7 +49,7 @@ internal class RootApiServiceController @Inject constructor(
     }
 
     override suspend fun startService(packageName: String, serviceName: String): Boolean {
-        val rootService = rootService
+        val rootService = rootServiceConnection.rootService
         if (rootService == null) {
             Timber.w("Cannot start service, rootService is null")
             return false

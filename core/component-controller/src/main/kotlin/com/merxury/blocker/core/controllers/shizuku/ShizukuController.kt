@@ -19,10 +19,10 @@ package com.merxury.blocker.core.controllers.shizuku
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.IPackageManager
-import android.content.pm.PackageManager
 import android.os.Build
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -46,7 +46,7 @@ internal class ShizukuController @Inject constructor(
 
     override suspend fun switchComponent(
         component: ComponentInfo,
-        state: Int,
+        state: ComponentState,
     ): Boolean {
         val packageName = component.packageName
         val componentName = component.name
@@ -54,7 +54,7 @@ internal class ShizukuController @Inject constructor(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm.setComponentEnabledSetting(
                 ComponentName(packageName, componentName),
-                state,
+                state.pmValue,
                 0,
                 context.userId,
                 context.packageName,
@@ -62,7 +62,7 @@ internal class ShizukuController @Inject constructor(
         } else {
             pm.setComponentEnabledSetting(
                 ComponentName(packageName, componentName),
-                state,
+                state.pmValue,
                 0,
                 context.userId,
             )
@@ -72,41 +72,13 @@ internal class ShizukuController @Inject constructor(
 
     override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(
         component,
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+        ComponentState.ENABLED,
     )
 
     override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(
         component,
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+        ComponentState.DISABLED,
     )
-
-    override suspend fun batchEnable(
-        componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        var successCount = 0
-        componentList.forEach {
-            if (enable(it)) {
-                successCount++
-            }
-            action(it)
-        }
-        return successCount
-    }
-
-    override suspend fun batchDisable(
-        componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        var successCount = 0
-        componentList.forEach {
-            if (disable(it)) {
-                successCount++
-            }
-            action(it)
-        }
-        return successCount
-    }
 
     override suspend fun checkComponentEnableState(
         packageName: String,

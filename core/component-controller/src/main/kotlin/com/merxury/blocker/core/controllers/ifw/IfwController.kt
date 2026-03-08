@@ -17,9 +17,8 @@
 package com.merxury.blocker.core.controllers.ifw
 
 import android.content.ComponentName
-import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.core.ifw.IIntentFirewall
 import timber.log.Timber
@@ -33,25 +32,24 @@ internal class IfwController @Inject constructor(
 
     override suspend fun switchComponent(
         component: ComponentInfo,
-        state: Int,
+        state: ComponentState,
     ): Boolean {
         val packageName = component.packageName
         val componentName = component.name
         return when (state) {
-            COMPONENT_ENABLED_STATE_DISABLED -> intentFirewall.add(packageName, componentName)
-            COMPONENT_ENABLED_STATE_ENABLED -> intentFirewall.remove(packageName, componentName)
-            else -> false
+            ComponentState.DISABLED -> intentFirewall.add(packageName, componentName)
+            ComponentState.ENABLED -> intentFirewall.remove(packageName, componentName)
         }
     }
 
     override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(
         component,
-        COMPONENT_ENABLED_STATE_ENABLED,
+        ComponentState.ENABLED,
     )
 
     override suspend fun disable(component: ComponentInfo): Boolean = switchComponent(
         component,
-        COMPONENT_ENABLED_STATE_DISABLED,
+        ComponentState.DISABLED,
     )
 
     override suspend fun batchEnable(
