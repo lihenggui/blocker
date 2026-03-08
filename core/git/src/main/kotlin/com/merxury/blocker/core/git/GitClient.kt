@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.git
 
+import java.io.File
+
 interface GitClient {
     suspend fun cloneRepository(): Boolean
     suspend fun commitChanges(commitMessage: String): Boolean
@@ -28,6 +30,10 @@ interface GitClient {
     suspend fun pull(): Boolean
     suspend fun fetchAndMergeFromMain(): MergeStatus
     suspend fun setRemote(url: String, name: String): Boolean
-    suspend fun resetToRemote(remoteName: String, branch: String = "main"): Boolean
+    suspend fun resetToRemote(remoteName: String, branch: String): Boolean
     suspend fun getTrackingRemote(): String?
+
+    fun interface Factory {
+        fun create(repoInfo: RepositoryInfo, baseDirectory: File): GitClient
+    }
 }

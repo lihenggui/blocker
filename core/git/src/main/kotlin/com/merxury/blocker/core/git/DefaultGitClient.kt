@@ -33,134 +33,115 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
     private val gitRepository = File(baseDirectory, repoInfo.repoName)
     private val gitFolder = File(gitRepository, ".git")
 
+    /**
+     * Opens a [FileRepository] for [gitFolder], executes [block] with a [Git] wrapper,
+     * and guarantees the repository is closed afterwards.
+     * Returns `null` (without running [block]) when the `.git` directory does not exist.
+     */
+    private inline fun <T> withGit(block: (Git) -> T): T? {
+        if (!gitFolder.exists()) {
+            Timber.e("$gitFolder is not a git repository")
+            return null
+        }
+        val repo = FileRepository(gitFolder)
+        return try {
+            block(Git(repo))
+        } finally {
+            repo.close()
+        }
+    }
+
     override suspend fun cloneRepository(): Boolean {
         Timber.d("Cloning repository from ${repoInfo.url} to ${gitRepository.absolutePath}")
-        Git.cloneRepository()
+        val git = Git.cloneRepository()
             .setURI(repoInfo.url)
             .setRemote(repoInfo.remoteName)
             .setDirectory(gitRepository)
             .call()
+        git.close()
         Timber.d("Repository cloned successfully")
         return true
     }
 
-    override suspend fun commitChanges(commitMessage: String): Boolean {
-        val git = Git(FileRepository(gitFolder))
+    override suspend fun commitChanges(commitMessage: String): Boolean = withGit { git ->
         git.add()
             .addFilepattern(".")
             .call()
         git.commit()
             .setMessage(commitMessage)
             .call()
-        return true
-    }
+        true
+    } ?: false
 
-    override suspend fun hasLocalChanges(): Boolean {
-        val git = Git(FileRepository(gitFolder))
-        val status = git.status()
+    override suspend fun hasLocalChanges(): Boolean = withGit { git ->
+        git.status()
             .call()
-        return status.hasUncommittedChanges()
-    }
+            .hasUncommittedChanges()
+    } ?: false
 
-    override suspend fun add(filePattern: String): Int {
-        val git = Git(FileRepository(gitFolder))
+    override suspend fun add(filePattern: String): Int = withGit { git ->
         git.add()
             .addFilepattern(filePattern)
             .call()
         val status = git.status()
             .call()
-        return status.added.size + status.changed.size + status.removed.size + status.missing.size
-    }
+        status.added.size + status.changed.size + status.removed.size + status.missing.size
+    } ?: 0
 
-    override suspend fun checkoutLocalBranch(branchName: String): Boolean {
-        // Check if it's a git repository
-        if (!gitFolder.exists()) {
-            Timber.e("$gitFolder is not a git repository")
-            return false
-        }
+    override suspend fun checkoutLocalBranch(branchName: String): Boolean = withGit { git ->
         val branchWithNamespace = "refs/heads/$branchName"
         Timber.d("Checking out branch $branchWithNamespace")
-        // Find the branch list and check if the branch exists
-        val branches = Git(FileRepository(gitFolder)).branchList().call()
+        val branches = git.branchList().call()
         if (branches.none { it.name == branchWithNamespace }) {
             Timber.e("Branch $branchWithNamespace does not exist")
-            return false
+            return@withGit false
         }
-        val git = Git(FileRepository(gitFolder))
         git.checkout()
             .setName(branchWithNamespace)
             .call()
-        return true
-    }
+        true
+    } ?: false
 
-    override suspend fun createBranch(branchName: String): Boolean {
-        if (!gitFolder.exists()) {
-            Timber.e("$gitFolder is not a git repository")
-            return false
-        }
+    override suspend fun createBranch(branchName: String): Boolean = withGit { git ->
         Timber.d("Creating branch $branchName")
-        val git = Git(FileRepository(gitFolder))
         git.checkout()
             .setCreateBranch(true)
             .setName(branchName)
             .call()
-        return true
-    }
+        true
+    } ?: false
 
-    override suspend fun renameBranch(name: String): Boolean {
-        if (!gitFolder.exists()) {
-            Timber.e("$gitFolder is not a git repository")
-            return false
-        }
+    override suspend fun renameBranch(name: String): Boolean = withGit { git ->
         Timber.d("Renaming branch to $name")
-        val git = Git(FileRepository(gitFolder))
         git.branchRename()
             .setNewName(name)
             .call()
-        return true
+        true
+    } ?: false
+
+    override suspend fun getCurrentBranch(): String? = withGit { git ->
+        git.repository.branch
     }
 
-    override suspend fun getCurrentBranch(): String? {
-        if (!gitFolder.exists()) {
-            Timber.e("$gitFolder is not a git repository")
-            return null
-        }
-        val git = Git(FileRepository(gitFolder))
-        return git.repository.branch
-    }
-
-    override suspend fun pull(): Boolean {
-        if (!gitFolder.exists()) {
-            Timber.e("$gitFolder is not a git repository")
-            return false
-        }
-        val currentBranch = getCurrentBranch()
+    override suspend fun pull(): Boolean = withGit { git ->
+        val currentBranch = git.repository.branch
         Timber.d("Pulling changes on branch $currentBranch from $repoInfo")
-        val git = Git(FileRepository(gitFolder))
-        git.fetch()
-            .setRemote(repoInfo.remoteName)
-            .setRefSpecs("+refs/heads/*:refs/remotes/${repoInfo.remoteName}/*")
-            .call()
         git.pull()
             .setRemote(repoInfo.remoteName)
             .call()
-        return true
-    }
+        true
+    } ?: false
 
-    override suspend fun fetchAndMergeFromMain(): MergeStatus {
-        if (!gitFolder.exists()) {
-            Timber.e("$gitFolder is not a git repository")
-            return FAILED
-        }
-        val git = Git(FileRepository(gitFolder))
-        Timber.d("Fetching changes from remote $repoInfo.url")
+    override suspend fun fetchAndMergeFromMain(): MergeStatus = withGit { git ->
+        val branch = repoInfo.branch
+        Timber.d("Fetching changes from remote ${repoInfo.url}")
         git.fetch()
             .setRemote(repoInfo.remoteName)
-            .setRefSpecs("+refs/heads/main:refs/remotes/${repoInfo.remoteName}/main")
+            .setRefSpecs("+refs/heads/$branch:refs/remotes/${repoInfo.remoteName}/$branch")
             .call()
-        Timber.d("Merging changes from ${repoInfo.remoteName}/main")
+        Timber.d("Merging changes from ${repoInfo.remoteName}/$branch")
         git.merge()
-            .include(git.repository.resolve("refs/remotes/${repoInfo.remoteName}/main"))
+            .include(git.repository.resolve("refs/remotes/${repoInfo.remoteName}/$branch"))
             .call()
         // Resolve conflicts if any
         val status = git.status()
@@ -171,18 +152,13 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
             git.reset()
                 .setMode(ResetType.HARD)
                 .call()
-            return CONFLICTS
+            return@withGit CONFLICTS
         }
-        return MERGED
-    }
+        MERGED
+    } ?: FAILED
 
-    override suspend fun setRemote(url: String, name: String): Boolean {
-        if (!gitFolder.exists()) {
-            Timber.e("$gitFolder is not a git repository")
-            return false
-        }
+    override suspend fun setRemote(url: String, name: String): Boolean = withGit { git ->
         Timber.i("Setting remote $name to $url")
-        val git = Git(FileRepository(gitFolder))
         val existingRemotes = git.remoteList().call()
         if (existingRemotes.any { it.name == name }) {
             git.remoteSetUrl()
@@ -195,16 +171,11 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
                 .setUri(URIish(url))
                 .call()
         }
-        return true
-    }
+        true
+    } ?: false
 
-    override suspend fun resetToRemote(remoteName: String, branch: String): Boolean {
-        if (!gitFolder.exists()) {
-            Timber.e("$gitFolder is not a git repository")
-            return false
-        }
+    override suspend fun resetToRemote(remoteName: String, branch: String): Boolean = withGit { git ->
         Timber.i("Resetting to $remoteName/$branch")
-        val git = Git(FileRepository(gitFolder))
         val remoteConfig = git.remoteList().call().find { it.name == remoteName }
         val refSpecs = remoteConfig?.fetchRefSpecs
             ?: listOf(RefSpec("+refs/heads/*:refs/remotes/$remoteName/*"))
@@ -222,13 +193,11 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         config.setString("branch", branch, "merge", "refs/heads/$branch")
         config.save()
         Timber.i("Successfully reset to $remoteName/$branch")
-        return true
-    }
+        true
+    } ?: false
 
-    override suspend fun getTrackingRemote(): String? {
-        if (!gitFolder.exists()) return null
-        val repo = FileRepository(gitFolder)
-        return repo.config.getString("branch", repo.branch, "remote")
+    override suspend fun getTrackingRemote(): String? = withGit { git ->
+        git.repository.config.getString("branch", git.repository.branch, "remote")
     }
 
     /**
@@ -236,9 +205,10 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
      */
     @TestOnly
     fun createGitRepository(): Boolean {
-        Git.init()
+        val git = Git.init()
             .setDirectory(gitRepository)
             .call()
+        git.close()
         return true
     }
 }
