@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(projects.core.common)
     implementation(projects.core.componentController)
+    implementation(projects.core.git)
     implementation(projects.core.domain)
     implementation(projects.core.ifwApi)
     implementation(projects.core.designsystem)

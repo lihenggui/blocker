@@ -36,7 +36,7 @@ import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.git.DefaultGitClient
+import com.merxury.blocker.core.git.GitClient
 import com.merxury.blocker.core.git.RepositoryInfo
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
@@ -75,6 +75,7 @@ internal class SyncWorker @AssistedInject constructor(
     private val analyticsHelper: AnalyticsHelper,
     private val syncSubscriber: ISyncSubscriber,
     private val appDebugChecker: AppDebugChecker,
+    private val gitClientFactory: GitClient.Factory,
 ) : CoroutineWorker(appContext, workerParams),
     Synchronizer {
 
@@ -131,7 +132,7 @@ internal class SyncWorker @AssistedInject constructor(
             repoName = provider.projectName,
             branch = mainBranchName,
         )
-        val gitClient = DefaultGitClient(repoInfo, filesDir)
+        val gitClient = gitClientFactory.create(repoInfo, filesDir)
         // Detect the folder is a git repository or not
         val projectFolder = filesDir.resolve(repoInfo.repoName)
         val gitFolder = projectFolder.resolve(".git")
@@ -150,7 +151,7 @@ internal class SyncWorker @AssistedInject constructor(
                                 " switching remote",
                         )
                         gitClient.setRemote(repoInfo.url, provider.name)
-                        gitClient.resetToRemote(provider.name)
+                        gitClient.resetToRemote(provider.name, mainBranchName)
                     } else {
                         gitClient.setRemote(repoInfo.url, provider.name)
                         gitClient.pull()
