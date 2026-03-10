@@ -27,7 +27,7 @@ class AnalyticsExtensionTest {
     private val analyticsHelper = TestAnalyticsHelper()
 
     @Test
-    fun logControlComponentViaProvider_enableState() {
+    fun givenNewStateTrue_whenLogControlComponentViaProvider_thenEventLoggedWithTrueState() {
         analyticsHelper.logControlComponentViaProvider(newState = true)
         assertTrue(
             analyticsHelper.hasLogged(
@@ -40,7 +40,7 @@ class AnalyticsExtensionTest {
     }
 
     @Test
-    fun logControlComponentViaProvider_disableState() {
+    fun givenNewStateFalse_whenLogControlComponentViaProvider_thenEventLoggedWithFalseState() {
         analyticsHelper.logControlComponentViaProvider(newState = false)
         assertTrue(
             analyticsHelper.hasLogged(

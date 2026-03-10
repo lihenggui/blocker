@@ -24,7 +24,7 @@ import kotlin.test.assertEquals
 class ShareCmpInfoTest {
 
     @Test
-    fun serializeAndDeserialize_roundTrip() {
+    fun givenShareCmpInfoWithComponents_whenSerializedAndDeserialized_thenRoundTripIsEqual() {
         val original = ShareCmpInfo(
             pkg = "com.example.app",
             components = listOf(
@@ -38,7 +38,7 @@ class ShareCmpInfoTest {
     }
 
     @Test
-    fun deserialize_fromJsonString() {
+    fun givenValidJsonString_whenDeserialized_thenFieldsMatchExpected() {
         val json = """
             {
                 "pkg": "com.example.app",
@@ -56,7 +56,7 @@ class ShareCmpInfoTest {
     }
 
     @Test
-    fun serialize_emptyComponents() {
+    fun givenEmptyComponentList_whenSerializedAndDeserialized_thenComponentsIsEmpty() {
         val info = ShareCmpInfo(pkg = "com.example.app", components = emptyList())
         val json = Json.encodeToString(info)
         val deserialized = Json.decodeFromString<ShareCmpInfo>(json)
