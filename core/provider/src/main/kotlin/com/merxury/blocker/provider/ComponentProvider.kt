@@ -30,6 +30,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -52,7 +53,7 @@ class ComponentProvider : ContentProvider() {
         else -> null
     }
 
-    private fun getBlockedComponents(packageName: String?): Bundle? = runBlocking {
+    private fun getBlockedComponents(packageName: String?): Bundle? = runBlocking(Dispatchers.IO) {
         if (packageName == null) return@runBlocking null
         val appContext = context?.applicationContext ?: return@runBlocking null
         val hintEntryPoint = EntryPointAccessors.fromApplication(
@@ -74,7 +75,7 @@ class ComponentProvider : ContentProvider() {
         return@runBlocking bundleOf(KEY_COMPONENT_LIST to returnJson)
     }
 
-    private fun controlComponent(packageName: String?, data: Bundle?): Bundle? = runBlocking {
+    private fun controlComponent(packageName: String?, data: Bundle?): Bundle? = runBlocking(Dispatchers.IO) {
         if (packageName == null || data == null) return@runBlocking null
         val rawString = data.getString(KEY_COMPONENT_LIST) ?: return@runBlocking null
         val appContext = context?.applicationContext ?: return@runBlocking null
