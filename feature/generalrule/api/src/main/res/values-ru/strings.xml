@@ -15,4 +15,8 @@
   ~ limitations under the License.
   --><resources>
     <string name="feature_generalrule_api_sdk_trackers">SDK/Трекеры</string>
+    <string name="feature_generalrule_api_block_all_matched">Заблокировать все совпадения</string>
+    <string name="feature_generalrule_api_enable_all_matched">Включить все совпадения</string>
+    <string name="feature_generalrule_api_block_all_confirmation">Это отключит все компоненты, совпадающие с правилами SDK/трекеров, во всех приложениях. Продолжить?</string>
+    <string name="feature_generalrule_api_enable_all_confirmation">Это повторно включит все компоненты, совпадающие с правилами SDK/трекеров, во всех приложениях. Продолжить?</string>
 </resources>

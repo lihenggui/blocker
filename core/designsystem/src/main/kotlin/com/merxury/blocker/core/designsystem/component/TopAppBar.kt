@@ -82,6 +82,7 @@ fun BlockerTopAppBarWithProgress(
     title: String,
     modifier: Modifier = Modifier,
     progress: Float? = null,
+    actions: @Composable () -> Unit = {},
 ) {
     val locale = LocalLocale.current.platformLocale
     TopAppBar(
@@ -106,6 +107,7 @@ fun BlockerTopAppBarWithProgress(
                     )
                 }
             }
+            actions()
         },
     )
 }

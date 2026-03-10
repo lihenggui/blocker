@@ -28,3 +28,12 @@ internal fun AnalyticsHelper.logGeneralRuleClicked(id: String) = logEvent(
         ),
     ),
 )
+
+internal fun AnalyticsHelper.logControlAllSdksClicked(newState: Boolean) = logEvent(
+    AnalyticsEvent(
+        type = "general_rule_control_all_sdks_clicked",
+        extras = listOf(
+            Param(key = "new_state", value = newState.toString()),
+        ),
+    ),
+)

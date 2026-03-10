@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_generalrule_api_sdk_trackers">SDK/Rastreadores</string>
+    <string name="feature_generalrule_api_block_all_matched">Bloquer toutes les correspondances</string>
+    <string name="feature_generalrule_api_enable_all_matched">Activer toutes les correspondances</string>
+    <string name="feature_generalrule_api_block_all_confirmation">Cela désactivera tous les composants correspondant aux règles SDK/trackers dans toutes les applications. Continuer ?</string>
+    <string name="feature_generalrule_api_enable_all_confirmation">Cela réactivera tous les composants correspondant aux règles SDK/trackers dans toutes les applications. Continuer ?</string>
 </resources>
