@@ -24,7 +24,7 @@ import android.os.Bundle
 import androidx.core.os.bundleOf
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -47,8 +47,8 @@ class ComponentProvider : ContentProvider() {
     }
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? = when (method) {
-        "getComponents" -> getBlockedComponents(arg)
-        "blocks" -> controlComponent(arg, extras)
+        METHOD_GET_COMPONENTS -> getBlockedComponents(arg)
+        METHOD_BLOCK_COMPONENTS -> controlComponent(arg, extras)
         else -> null
     }
 
@@ -65,18 +65,18 @@ class ComponentProvider : ContentProvider() {
             .filter { it.ifwBlocked || it.pmBlocked }
             .map {
                 ShareCmpInfo.Component(
-                    it.packageName,
-                    it.name,
+                    type = it.type.name,
+                    name = it.name,
                     block = true,
                 )
             }
         val returnJson = Json.encodeToString(ShareCmpInfo(packageName, blockedComponents))
-        return@runBlocking bundleOf("cmp_list" to returnJson)
+        return@runBlocking bundleOf(KEY_COMPONENT_LIST to returnJson)
     }
 
     private fun controlComponent(packageName: String?, data: Bundle?): Bundle? = runBlocking {
         if (packageName == null || data == null) return@runBlocking null
-        val rawString = data.getString("cmp_list") ?: return@runBlocking null
+        val rawString = data.getString(KEY_COMPONENT_LIST) ?: return@runBlocking null
         val appContext = context?.applicationContext ?: return@runBlocking null
         val hintEntryPoint = EntryPointAccessors.fromApplication(
             appContext,
@@ -87,23 +87,29 @@ class ComponentProvider : ContentProvider() {
         try {
             val shareCmpInfo = Json.decodeFromString<ShareCmpInfo>(rawString)
             Timber.d("controlComponent: $shareCmpInfo")
+            var successCount = 0
             shareCmpInfo.components.forEach { component ->
+                val componentType = try {
+                    ComponentType.valueOf(component.type)
+                } catch (_: IllegalArgumentException) {
+                    ComponentType.ACTIVITY
+                }
                 val blockerComponent = ComponentInfo(
                     name = component.name,
                     packageName = packageName,
-                    // The controller doesn't care about the type of the component
-                    // It will query internally, so we just set it to ACTIVITY
-                    // Just to avoid compilation error
-                    type = ACTIVITY,
+                    type = componentType,
                 )
-                componentRepository.controlComponent(
+                val result = componentRepository.controlComponent(
                     blockerComponent,
                     newState = !component.block,
                 ).first()
+                if (result) successCount++
                 analyticsHelper.logControlComponentViaProvider(newState = !component.block)
             }
-            // Returned, but seems that it's not used.
-            return@runBlocking data
+            return@runBlocking bundleOf(
+                KEY_SUCCESS_COUNT to successCount,
+                KEY_TOTAL_COUNT to shareCmpInfo.components.size,
+            )
         } catch (e: Exception) {
             Timber.e(e, "Error in controlComponent")
             return@runBlocking null
@@ -144,4 +150,12 @@ class ComponentProvider : ContentProvider() {
     }
 
     override fun getType(uri: Uri): String = "vnd.android.cursor.item/vnd.com.merxury.blocker.component"
+
+    companion object {
+        const val METHOD_GET_COMPONENTS = "getComponents"
+        const val METHOD_BLOCK_COMPONENTS = "blocks"
+        const val KEY_COMPONENT_LIST = "cmp_list"
+        const val KEY_SUCCESS_COUNT = "success_count"
+        const val KEY_TOTAL_COUNT = "total_count"
+    }
 }

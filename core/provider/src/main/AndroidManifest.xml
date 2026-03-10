@@ -18,12 +18,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-sdk tools:overrideLibrary="com.google.firebase,com.google.firebase.components,com.google.firebase.installations" />
+
+    <permission
+        android:name="${applicationId}.permission.CONTROL_COMPONENTS"
+        android:protectionLevel="signature" />
+
     <application>
         <provider
             android:name=".ComponentProvider"
             android:authorities="${applicationId}.provider.ComponentProvider"
             android:enabled="true"
             android:exported="true"
+            android:permission="${applicationId}.permission.CONTROL_COMPONENTS"
             tools:ignore="ExportedContentProvider" />
     </application>
 </manifest>
