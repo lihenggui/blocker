@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.retrofit
+package com.merxury.blocker.core.network
 
 import java.io.IOException
 

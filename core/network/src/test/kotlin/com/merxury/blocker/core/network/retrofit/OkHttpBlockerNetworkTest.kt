@@ -18,6 +18,7 @@ package com.merxury.blocker.core.network.retrofit
 
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.network.NetworkException
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertThrows
 import org.junit.Test
