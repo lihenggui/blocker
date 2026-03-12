@@ -20,7 +20,7 @@ package com.merxury.blocker.core.network.di
 import androidx.tracing.trace
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.BuildConfig
-import com.merxury.blocker.core.network.retrofit.OkHttpBlockerNetwork
+import com.merxury.blocker.core.network.okhttp.OkHttpBlockerNetwork
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

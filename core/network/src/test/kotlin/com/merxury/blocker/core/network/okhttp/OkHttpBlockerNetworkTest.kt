@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.retrofit
+package com.merxury.blocker.core.network.okhttp
 
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.preference.RuleServerProvider
