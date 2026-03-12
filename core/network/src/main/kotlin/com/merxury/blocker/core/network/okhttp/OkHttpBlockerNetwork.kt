@@ -19,11 +19,13 @@ package com.merxury.blocker.core.network.okhttp
 
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.NetworkException
 import com.merxury.blocker.core.network.io.BinaryFileWriter
 import com.merxury.blocker.core.network.model.NetworkChangeList
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -42,6 +44,7 @@ import javax.inject.Singleton
 internal class OkHttpBlockerNetwork @Inject constructor(
     private val okhttpCallFactory: dagger.Lazy<Call.Factory>,
     private val networkJson: Json,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : BlockerNetworkDataSource {
 
     override suspend fun getRuleLatestCommitId(provider: RuleServerProvider): NetworkChangeList {
@@ -83,7 +86,7 @@ internal class OkHttpBlockerNetwork @Inject constructor(
                 return@use 0L
             }
             Timber.v("Zip length: $contentLength")
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 writer.write(responseBody.byteStream(), contentLength)
             }
         }

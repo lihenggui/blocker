@@ -19,6 +19,7 @@ package com.merxury.blocker.core.network.okhttp
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.network.NetworkException
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -29,6 +30,7 @@ class OkHttpBlockerNetworkTest {
     private val network = OkHttpBlockerNetwork(
         okhttpCallFactory = dagger.Lazy { error("Not used in these tests") },
         networkJson = json,
+        ioDispatcher = UnconfinedTestDispatcher(),
     )
 
     @Test
