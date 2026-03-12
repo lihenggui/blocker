@@ -16,29 +16,94 @@
 
 package com.merxury.blocker.core.network.io
 
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
+import java.io.ByteArrayOutputStream
 
 class BinaryFileWriterUnitTest {
-    private val inputStream = PipedInputStream()
-    private val outputStream = PipedOutputStream(inputStream)
 
     @Test
-    fun givenInputStream_whenWrite_thenExpectWritten() {
+    fun givenContent_whenWrite_thenOutputMatchesInput() {
         val content = "Hello"
-        BinaryFileWriter(outputStream).use {
-            it.write(content.byteInputStream(), content.length.toLong())
+        val output = ByteArrayOutputStream()
+        BinaryFileWriter(output).use {
+            val written = it.write(content.byteInputStream(), content.length.toLong())
+            assertThat(written).isEqualTo(content.length.toLong())
         }
-        assert(inputStream.readBytes().contentEquals(content.toByteArray()))
+        assertThat(output.toByteArray()).isEqualTo(content.toByteArray())
     }
 
     @Test
-    fun givenInputStreamEmpty_whenWrite_thenExpectNotWritten() {
-        val content = ""
-        BinaryFileWriter(outputStream).use {
+    fun givenEmptyContent_whenWrite_thenReturnsZero() {
+        val output = ByteArrayOutputStream()
+        BinaryFileWriter(output).use {
+            val written = it.write("".byteInputStream(), 0L)
+            assertThat(written).isEqualTo(0L)
+        }
+        assertThat(output.size()).isEqualTo(0)
+    }
+
+    @Test
+    fun givenLargeContent_whenWrite_thenAllBytesWritten() {
+        // Content larger than CHUNK_SIZE (8192) to test multi-chunk writing
+        val content = "A".repeat(20_000)
+        val output = ByteArrayOutputStream()
+        BinaryFileWriter(output).use {
+            val written = it.write(content.byteInputStream(), content.length.toLong())
+            assertThat(written).isEqualTo(content.length.toLong())
+        }
+        assertThat(output.toByteArray()).isEqualTo(content.toByteArray())
+    }
+
+    @Test
+    fun givenContent_whenWrite_thenProgressUpdatesReported() {
+        val content = "A".repeat(20_000)
+        val progressValues = mutableListOf<Double>()
+        val output = ByteArrayOutputStream()
+        BinaryFileWriter(output, onProgressUpdate = { progressValues.add(it) }).use {
             it.write(content.byteInputStream(), content.length.toLong())
         }
-        assert(inputStream.readBytes().contentEquals(content.toByteArray()))
+        assertThat(progressValues).isNotEmpty()
+        // Progress should be monotonically increasing
+        progressValues.zipWithNext().forEach { (prev, next) ->
+            assertThat(next).isAtLeast(prev)
+        }
+        // Last progress should be 100%
+        assertThat(progressValues.last()).isWithin(0.01).of(100.0)
+    }
+
+    @Test
+    fun givenContent_whenWrite_thenProgressIsNotAlwaysZero() {
+        // This specifically tests the integer division bug fix:
+        // Before the fix, totalBytes / length would always be 0 for intermediate chunks
+        val content = "A".repeat(20_000)
+        val progressValues = mutableListOf<Double>()
+        val output = ByteArrayOutputStream()
+        BinaryFileWriter(output, onProgressUpdate = { progressValues.add(it) }).use {
+            it.write(content.byteInputStream(), content.length.toLong())
+        }
+        // With the fix, intermediate progress values should be > 0 and < 100
+        val intermediateValues = progressValues.dropLast(1)
+        assertThat(intermediateValues).isNotEmpty()
+        intermediateValues.forEach { value ->
+            assertThat(value).isGreaterThan(0.0)
+        }
+    }
+
+    @Test
+    fun givenNegativeLength_whenWrite_thenReturnsZero() {
+        val output = ByteArrayOutputStream()
+        BinaryFileWriter(output).use {
+            val written = it.write("data".byteInputStream(), -1L)
+            assertThat(written).isEqualTo(0L)
+        }
+    }
+
+    @Test
+    fun givenClose_whenCalled_thenOutputStreamIsClosed() {
+        val output = ByteArrayOutputStream()
+        val writer = BinaryFileWriter(output)
+        writer.close()
+        // ByteArrayOutputStream.close() is a no-op, but we verify no exception is thrown
     }
 }
