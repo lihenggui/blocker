@@ -17,10 +17,10 @@
 
 package com.merxury.blocker.core.network.okhttp
 
-import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.NetworkException
 import com.merxury.blocker.core.network.io.BinaryFileWriter
