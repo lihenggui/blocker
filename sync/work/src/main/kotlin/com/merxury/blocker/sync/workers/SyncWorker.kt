@@ -38,6 +38,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.git.GitClient
 import com.merxury.blocker.core.git.RepositoryInfo
+import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.AppDebugChecker
@@ -114,17 +115,32 @@ internal class SyncWorker @AssistedInject constructor(
         Timber.d("Syncing rule...")
         val provider = userDataRepository.userData.first().ruleServerProvider
         val localCommitId = getChangeListVersions().ruleCommitId
-        val latestCommitId = network.getRuleLatestCommitId(provider)
-            .ruleCommitId
-        if (localCommitId.isNotBlank() && localCommitId == latestCommitId) {
-            Timber.i("Local rule is up to date, skip syncing rules.")
-            return true
+        try {
+            val latestCommitId = network.getRuleLatestCommitId(provider)
+                .ruleCommitId
+            if (localCommitId.isNotBlank() && localCommitId == latestCommitId) {
+                Timber.i("Local rule is up to date, skip syncing rules.")
+                return true
+            }
+            Timber.i(
+                "Last synced commit id: $localCommitId, latest commit id: $latestCommitId" +
+                    ", start pulling rule...",
+            )
+            waitForCopyTaskFinish()
+            return syncFromRemote(provider, latestCommitId)
+        } catch (e: Exception) {
+            if (appDebugChecker.isDebugMode()) {
+                throw e
+            }
+            Timber.e(e, "Failed to sync rules from remote")
+            return false
         }
-        Timber.i(
-            "Last synced commit id: $localCommitId, latest commit id: $latestCommitId" +
-                ", start pulling rule...",
-        )
-        waitForCopyTaskFinish()
+    }
+
+    private suspend fun syncFromRemote(
+        provider: RuleServerProvider,
+        latestCommitId: String,
+    ): Boolean {
         val mainBranchName = "main"
         val repoInfo = RepositoryInfo(
             remoteName = provider.name,
@@ -133,41 +149,31 @@ internal class SyncWorker @AssistedInject constructor(
             branch = mainBranchName,
         )
         val gitClient = gitClientFactory.create(repoInfo, filesDir)
-        // Detect the folder is a git repository or not
         val projectFolder = filesDir.resolve(repoInfo.repoName)
         val gitFolder = projectFolder.resolve(".git")
-        try {
-            if (projectFolder.exists()) {
-                if (!gitFolder.exists()) {
-                    // Repo not initialized, delete the folder and clone again
-                    Timber.i("Local rule folder is not a git repository, delete and clone again")
-                    projectFolder.deleteRecursively()
-                    gitClient.cloneRepository()
-                } else {
-                    val trackingRemote = gitClient.getTrackingRemote()
-                    if (trackingRemote != null && trackingRemote != provider.name) {
-                        Timber.i(
-                            "Provider changed from $trackingRemote to ${provider.name}," +
-                                " switching remote",
-                        )
-                        gitClient.setRemote(repoInfo.url, provider.name)
-                        gitClient.resetToRemote(provider.name, mainBranchName)
-                    } else {
-                        gitClient.setRemote(repoInfo.url, provider.name)
-                        gitClient.pull()
-                    }
-                }
-            } else {
-                // Repo not exists, clone the repository
+        if (projectFolder.exists()) {
+            if (!gitFolder.exists()) {
+                // Repo not initialized, delete the folder and clone again
+                Timber.i("Local rule folder is not a git repository, delete and clone again")
+                projectFolder.deleteRecursively()
                 gitClient.cloneRepository()
+            } else {
+                val trackingRemote = gitClient.getTrackingRemote()
+                if (trackingRemote != null && trackingRemote != provider.name) {
+                    Timber.i(
+                        "Provider changed from $trackingRemote to ${provider.name}," +
+                            " switching remote",
+                    )
+                    gitClient.setRemote(repoInfo.url, provider.name)
+                    gitClient.resetToRemote(provider.name, mainBranchName)
+                } else {
+                    gitClient.setRemote(repoInfo.url, provider.name)
+                    gitClient.pull()
+                }
             }
-        } catch (e: Exception) {
-            // If it is in the debug mode, throw the exception
-            if (appDebugChecker.isDebugMode()) {
-                throw e
-            }
-            Timber.e(e, "Failed to sync rules from remote")
-            return false
+        } else {
+            // Repo not exists, clone the repository
+            gitClient.cloneRepository()
         }
         // write latest commit id to preference
         updateChangeListVersions {
