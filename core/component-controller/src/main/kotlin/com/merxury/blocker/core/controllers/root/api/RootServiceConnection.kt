@@ -29,8 +29,6 @@ import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.topjohnwu.superuser.ipc.RootService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -46,41 +44,35 @@ internal class RootServiceConnection @Inject constructor(
 ) {
     private var connection: ServiceConnection? = null
     private var service: IRootService? = null
-    private val bindMutex = Mutex()
 
     val rootService: IRootService?
         get() = service
 
     suspend fun ensureConnected() = withContext(mainDispatcher) {
-        bindMutex.withLock {
-            if (service != null) return@withContext
-            if (!rootChecker.isRootAvailable()) {
-                throw RootUnavailableException()
-            }
-            Timber.d("Binding to RootServer")
-            val intent = Intent(context, RootServer::class.java)
-            suspendCoroutine { cont ->
-                RootService.bind(
-                    intent,
-                    object : ServiceConnection {
-                        override fun onServiceConnected(
-                            name: ComponentName?,
-                            binder: IBinder?,
-                        ) {
-                            Timber.d("RootConnection: onServiceConnected")
-                            connection = this
-                            service = IRootService.Stub.asInterface(binder)
-                            cont.resume(Unit)
-                        }
+        if (service != null) return@withContext
+        if (!rootChecker.isRootAvailable()) {
+            throw RootUnavailableException()
+        }
+        Timber.d("Binding to RootServer")
+        val intent = Intent(context, RootServer::class.java)
+        suspendCoroutine { cont ->
+            RootService.bind(
+                intent,
+                object : ServiceConnection {
+                    override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                        Timber.d("RootConnection: onServiceConnected")
+                        connection = this
+                        service = IRootService.Stub.asInterface(binder)
+                        cont.resume(Unit)
+                    }
 
-                        override fun onServiceDisconnected(name: ComponentName?) {
-                            Timber.d("RootConnection: onServiceDisconnected")
-                            service = null
-                            connection = null
-                        }
-                    },
-                )
-            }
+                    override fun onServiceDisconnected(name: ComponentName?) {
+                        Timber.d("RootConnection: onServiceDisconnected")
+                        service = null
+                        connection = null
+                    }
+                },
+            )
         }
     }
 }
