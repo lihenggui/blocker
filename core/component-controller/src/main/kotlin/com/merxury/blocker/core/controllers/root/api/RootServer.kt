@@ -31,23 +31,13 @@ import android.os.Build
 import android.os.IBinder
 import com.merxury.blocker.core.controller.root.service.IRootService
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
-import com.merxury.blocker.core.utils.PackageInfoDataSource
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.topjohnwu.superuser.ipc.RootService
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
 import timber.log.Timber
 
 private const val MAX_SERVICE_COUNT = 10000
 
 internal class RootServer : RootService() {
-
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface RootServerEntryPoint {
-        fun packageInfoDataSource(): PackageInfoDataSource
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -56,11 +46,7 @@ internal class RootServer : RootService() {
 
     override fun onBind(intent: Intent): IBinder {
         Timber.d("RootService onBind")
-        val entryPoint = EntryPointAccessors.fromApplication(
-            applicationContext,
-            RootServerEntryPoint::class.java,
-        )
-        return Ipc(this, entryPoint.packageInfoDataSource())
+        return Ipc(this)
     }
 
     override fun onRebind(intent: Intent) {
@@ -81,7 +67,6 @@ internal class RootServer : RootService() {
 
     class Ipc(
         private val context: Context,
-        private val packageInfoDataSource: PackageInfoDataSource,
     ) : IRootService.Stub() {
         private var serviceList: List<ActivityManager.RunningServiceInfo> = listOf()
         private var currentRunningProcess = mutableListOf<ActivityManager.RunningAppProcessInfo>()
@@ -187,7 +172,7 @@ internal class RootServer : RootService() {
                 broadcastIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
-            val isSystemApp = packageInfoDataSource.isSystemApp(packageName)
+            val isSystemApp = ApplicationUtil.isSystemApp(context.packageManager, packageName)
             // 0x00000004 = PackageManager.DELETE_SYSTEM_APP
             // 0x00000002 = PackageManager.DELETE_ALL_USERS
             val flags = if (isSystemApp) 0x00000004 else 0x00000002

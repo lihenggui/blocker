@@ -27,12 +27,16 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.ROOT_USER
 import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
+import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
@@ -48,6 +52,7 @@ class AppPermissionMonitor @Inject constructor(
     @RootApiControl private val rootApiController: IController,
     @RootApiAppControl private val rootApiAppController: IAppController,
     @RootApiServiceControl private val rootApiServiceController: IServiceController,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : PermissionMonitor {
     private val controllerStatus = mutableMapOf<ControllerType, PermissionStatus>()
 
@@ -61,6 +66,11 @@ class AppPermissionMonitor @Inject constructor(
             val controllerType = if (type == SHIZUKU) SHIZUKU else PM
             emit(controllerStatus[controllerType] ?: NO_PERMISSION)
         }
+        .shareIn(
+            scope = appScope,
+            started = SharingStarted.Lazily,
+            replay = 1,
+        )
 
     private suspend fun initController(type: ControllerType) {
         Timber.d("Initialize controller: $type")
