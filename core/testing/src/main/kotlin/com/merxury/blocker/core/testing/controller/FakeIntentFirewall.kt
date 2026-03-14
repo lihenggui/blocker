@@ -17,48 +17,74 @@
 package com.merxury.blocker.core.testing.controller
 
 import android.content.ComponentName
-import com.merxury.core.ifw.ComponentFilter
 import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.Rules
+import com.merxury.core.ifw.model.IfwComponentType
+import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwRule
+import com.merxury.core.ifw.model.IfwRules
 
 class FakeIntentFirewall : IIntentFirewall {
-    val rules = mutableMapOf<String, Rules>()
+    val rules = mutableMapOf<String, IfwRules>()
 
-    override suspend fun save(packageName: String, rule: Rules) {
-        rules[packageName] = rule
+    override suspend fun getRules(packageName: String): IfwRules = rules[packageName] ?: IfwRules.empty()
+
+    override suspend fun saveRules(packageName: String, rules: IfwRules) {
+        if (rules.isEmpty()) {
+            this.rules.remove(packageName)
+        } else {
+            this.rules[packageName] = rules
+        }
     }
 
-    override suspend fun add(packageName: String, componentName: String): Boolean {
-        val rule = rules.getOrPut(packageName) { Rules() }
-        rule.broadcast.componentFilter.add(ComponentFilter("$packageName/$componentName"))
+    override suspend fun addComponentFilter(packageName: String, componentName: String): Boolean {
+        val current = getRules(packageName)
+        val filter = IfwFilter.ComponentFilter("$packageName/$componentName")
+        val existingRule = current.rulesFor(IfwComponentType.BROADCAST).firstOrNull()
+        val updated = if (existingRule != null) {
+            val updatedRule = existingRule.copy(filters = existingRule.filters + filter)
+            IfwRules(current.rules.map { if (it === existingRule) updatedRule else it })
+        } else {
+            IfwRules(
+                current.rules + IfwRule(
+                    componentType = IfwComponentType.BROADCAST,
+                    filters = listOf(filter),
+                ),
+            )
+        }
+        saveRules(packageName, updated)
         return true
     }
 
-    override suspend fun remove(packageName: String, componentName: String): Boolean {
-        val rule = rules[packageName] ?: return true
-        val filter = ComponentFilter("$packageName/$componentName")
-        rule.activity.componentFilter.remove(filter)
-        rule.broadcast.componentFilter.remove(filter)
-        rule.service.componentFilter.remove(filter)
+    override suspend fun removeComponentFilter(packageName: String, componentName: String): Boolean {
+        val current = getRules(packageName)
+        val filterName = "$packageName/$componentName"
+        val updatedRules = current.rules.map { rule ->
+            rule.copy(
+                filters = rule.filters.filterNot {
+                    it is IfwFilter.ComponentFilter && it.name == filterName
+                },
+            )
+        }.filter { it.filters.isNotEmpty() }
+        saveRules(packageName, IfwRules(updatedRules))
         return true
     }
 
-    override suspend fun addAll(
+    override suspend fun addAllComponentFilters(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
         list.forEach { component ->
-            add(component.packageName, component.className)
+            addComponentFilter(component.packageName, component.className)
             callback(component)
         }
     }
 
-    override suspend fun removeAll(
+    override suspend fun removeAllComponentFilters(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
         list.forEach { component ->
-            remove(component.packageName, component.className)
+            removeComponentFilter(component.packageName, component.className)
             callback(component)
         }
     }
@@ -67,18 +93,11 @@ class FakeIntentFirewall : IIntentFirewall {
         packageName: String,
         componentName: String,
     ): Boolean {
-        val rule = rules[packageName] ?: return true
+        val current = getRules(packageName)
         val formattedName = "$packageName/$componentName"
-        for (filter in rule.activity.componentFilter) {
-            if (filter.name == formattedName) return false
+        return IfwComponentType.entries.none { type ->
+            formattedName in current.componentFiltersFor(type)
         }
-        for (filter in rule.broadcast.componentFilter) {
-            if (filter.name == formattedName) return false
-        }
-        for (filter in rule.service.componentFilter) {
-            if (filter.name == formattedName) return false
-        }
-        return true
     }
 
     override suspend fun clear(packageName: String) {

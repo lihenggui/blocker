@@ -17,47 +17,82 @@
 package com.merxury.core.ifw
 
 import android.content.ComponentName
+import com.merxury.core.ifw.model.IfwRules
 
+/**
+ * Interface for managing Android Intent Firewall rules.
+ *
+ * Provides both full rule CRUD via [IfwRules] and convenience methods
+ * for component-level blocking via `<component-filter>`.
+ */
 interface IIntentFirewall {
-    /**
-     * Save the rules to IFW folder
-     */
-    suspend fun save(packageName: String, rule: Rules)
+
+    // ── Core API ───────────────────────────────────────────────────────
 
     /**
-     * Add single rule for a component
-     * @return true if this method executed successfully, the component will be blocked
+     * Loads and returns the full [IfwRules] for a package.
+     *
+     * @param packageName the package to load rules for
+     * @return the [IfwRules] for the package, or [IfwRules.empty] if none exist
      */
-    suspend fun add(packageName: String, componentName: String): Boolean
+    suspend fun getRules(packageName: String): IfwRules
 
     /**
-     * Remove single rule for a component
-     * @return true if this method executed successfully, the component will be unblocked
+     * Saves the full [IfwRules] for a package.
+     *
+     * If the rules are empty, the IFW file is deleted.
+     *
+     * @param packageName the package to save rules for
+     * @param rules the rules to write
      */
-    suspend fun remove(packageName: String, componentName: String): Boolean
+    suspend fun saveRules(packageName: String, rules: IfwRules)
 
     /**
-     * Add multiple rules for a component
-     */
-    suspend fun addAll(list: List<ComponentName>, callback: suspend (ComponentName) -> Unit = {})
-
-    /**
-     * Remove multiple rules for a component
-     */
-    suspend fun removeAll(list: List<ComponentName>, callback: suspend (ComponentName) -> Unit = {})
-
-    /**
-     * @return false if the component is blocked
-     */
-    suspend fun getComponentEnableState(packageName: String, componentName: String): Boolean
-
-    /**
-     * Remove the IFW rules for specific package
+     * Remove the IFW rules for specific package.
      */
     suspend fun clear(packageName: String)
 
     /**
-     * Reset cache
+     * Reset internal cache, forcing next read to go to file system.
      */
     fun resetCache()
+
+    // ── Component Filter Convenience Methods ───────────────────────────
+
+    /**
+     * Add a component-filter rule to block a single component.
+     *
+     * @return true if the component was successfully blocked
+     */
+    suspend fun addComponentFilter(packageName: String, componentName: String): Boolean
+
+    /**
+     * Remove a component-filter rule to unblock a single component.
+     *
+     * @return true if the component was successfully unblocked
+     */
+    suspend fun removeComponentFilter(packageName: String, componentName: String): Boolean
+
+    /**
+     * Add component-filter rules for multiple components.
+     */
+    suspend fun addAllComponentFilters(
+        list: List<ComponentName>,
+        callback: suspend (ComponentName) -> Unit = {},
+    )
+
+    /**
+     * Remove component-filter rules for multiple components.
+     */
+    suspend fun removeAllComponentFilters(
+        list: List<ComponentName>,
+        callback: suspend (ComponentName) -> Unit = {},
+    )
+
+    /**
+     * Check whether a component is enabled (not blocked by IFW).
+     *
+     * @return false if the component is blocked by a component-filter rule
+     */
+    suspend fun getComponentEnableState(packageName: String, componentName: String): Boolean
 }
