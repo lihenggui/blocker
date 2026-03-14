@@ -38,6 +38,10 @@ internal class RootApiController @Inject constructor(
         component: ComponentInfo,
         state: ComponentState,
     ): Boolean {
+        if (rootServiceConnection.rootService == null) {
+            Timber.w("Root server not connected, attempting to reconnect")
+            rootServiceConnection.ensureConnected()
+        }
         val rootService = rootServiceConnection.rootService
         val packageName = component.packageName
         val componentName = component.name
