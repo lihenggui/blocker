@@ -27,12 +27,13 @@ import com.merxury.core.ifw.IfwFileSystem
 import com.merxury.core.ifw.IntentFirewall
 import com.merxury.core.ifw.PmComponentTypeResolver
 import com.merxury.core.ifw.SuIfwFileSystem
+import com.merxury.core.ifw.xml.IfwXmlDeserializer
+import com.merxury.core.ifw.xml.IfwXmlSerializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
-import nl.adaptivity.xmlutil.serialization.XML
 import javax.inject.Singleton
 
 @Module
@@ -40,9 +41,10 @@ import javax.inject.Singleton
 object IfwModule {
 
     @Provides
-    fun providesXmlParser(): XML = XML {
-        indentString = "   "
-    }
+    fun providesIfwXmlSerializer(): IfwXmlSerializer = IfwXmlSerializer()
+
+    @Provides
+    fun providesIfwXmlDeserializer(): IfwXmlDeserializer = IfwXmlDeserializer()
 
     @Singleton
     @Provides
@@ -60,9 +62,16 @@ object IfwModule {
     @Singleton
     @Provides
     fun providesIntentFirewall(
-        xmlParser: XML,
         rootChecker: RootAvailabilityChecker,
         componentTypeResolver: ComponentTypeResolver,
         fileSystem: IfwFileSystem,
-    ): IIntentFirewall = IntentFirewall(xmlParser, rootChecker, componentTypeResolver, fileSystem)
+        serializer: IfwXmlSerializer,
+        deserializer: IfwXmlDeserializer,
+    ): IIntentFirewall = IntentFirewall(
+        rootChecker,
+        componentTypeResolver,
+        fileSystem,
+        serializer,
+        deserializer,
+    )
 }

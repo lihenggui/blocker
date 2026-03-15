@@ -37,8 +37,8 @@ internal class IfwController @Inject constructor(
         val packageName = component.packageName
         val componentName = component.name
         return when (state) {
-            ComponentState.DISABLED -> intentFirewall.add(packageName, componentName)
-            ComponentState.ENABLED -> intentFirewall.remove(packageName, componentName)
+            ComponentState.DISABLED -> intentFirewall.addComponentFilter(packageName, componentName)
+            ComponentState.ENABLED -> intentFirewall.removeComponentFilter(packageName, componentName)
         }
     }
 
@@ -62,7 +62,7 @@ internal class IfwController @Inject constructor(
         }
         var succeededCount = 0
         val list = componentList.map { ComponentName(it.packageName, it.name) }
-        intentFirewall.removeAll(list) {
+        intentFirewall.removeAllComponentFilters(list) {
             succeededCount++
             val component = componentList
                 .find { info -> info.packageName == it.packageName && info.name == it.className }
@@ -83,7 +83,7 @@ internal class IfwController @Inject constructor(
         }
         var succeededCount = 0
         val list = componentList.map { ComponentName(it.packageName, it.name) }
-        intentFirewall.addAll(list) {
+        intentFirewall.addAllComponentFilters(list) {
             succeededCount++
             val component = componentList
                 .find { info -> info.packageName == it.packageName && info.name == it.className }
