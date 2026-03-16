@@ -38,23 +38,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerButton
-import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.ui.IfwRuleTreeEditor
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.feature.ifwrule.impl.component.ConditionCard
-import com.merxury.blocker.feature.ifwrule.impl.component.ConditionTypeBottomSheet
 import com.merxury.blocker.feature.ifwrule.impl.model.BlockMode
-import com.merxury.blocker.feature.ifwrule.impl.model.CombineMode
 import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorScreenUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorUiState
 
@@ -86,12 +80,9 @@ fun IfwRuleEditorScreen(
             is RuleEditorScreenUiState.Success -> EditorContent(
                 editor = state.editor,
                 onUpdateBlockMode = viewModel::updateBlockMode,
-                onUpdateCombineMode = viewModel::updateCombineMode,
                 onUpdateLog = viewModel::updateLog,
                 onChangeBlockEnable = viewModel::updateBlockEnabled,
-                onAddCondition = viewModel::addCondition,
-                onRemoveCondition = viewModel::removeCondition,
-                onUpdateCondition = viewModel::updateCondition,
+                onUpdateRootGroup = viewModel::updateRootGroup,
                 onSave = viewModel::save,
                 onDelete = viewModel::deleteRule,
             )
@@ -123,18 +114,13 @@ private fun ErrorContent(
 private fun EditorContent(
     editor: RuleEditorUiState,
     onUpdateBlockMode: (BlockMode) -> Unit,
-    onUpdateCombineMode: (CombineMode) -> Unit,
     onUpdateLog: (Boolean) -> Unit,
     onChangeBlockEnable: (Boolean) -> Unit,
-    onAddCondition: (com.merxury.blocker.feature.ifwrule.impl.model.ConditionUiState) -> Unit,
-    onRemoveCondition: (String) -> Unit,
-    onUpdateCondition: (com.merxury.blocker.feature.ifwrule.impl.model.ConditionUiState) -> Unit,
+    onUpdateRootGroup: (com.merxury.core.ifw.editor.IfwEditorNode.Group) -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var showConditionPicker by remember { mutableStateOf(false) }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -183,27 +169,9 @@ private fun EditorContent(
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
-
-            // Combine mode
-            CombineModeSelector(
-                combineMode = editor.combineMode,
-                onUpdate = onUpdateCombineMode,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Condition list
-            editor.conditions.forEach { condition ->
-                ConditionCard(
-                    condition = condition,
-                    onUpdate = onUpdateCondition,
-                    onDelete = onRemoveCondition,
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            BlockerOutlinedButton(
-                onClick = { showConditionPicker = true },
-                text = { Text(stringResource(R.string.feature_ifwrule_impl_add_condition)) },
-                modifier = Modifier.fillMaxWidth(),
+            IfwRuleTreeEditor(
+                rootGroup = editor.rootGroup,
+                onChange = onUpdateRootGroup,
             )
         }
 
@@ -238,13 +206,6 @@ private fun EditorContent(
         Spacer(modifier = Modifier.height(16.dp))
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
     }
-
-    if (showConditionPicker) {
-        ConditionTypeBottomSheet(
-            onDismiss = { showConditionPicker = false },
-            onSelect = onAddCondition,
-        )
-    }
 }
 
 @Composable
@@ -266,7 +227,7 @@ private fun AdvancedRuleBanner(
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Spacer(modifier = Modifier.height(8.dp))
-            BlockerOutlinedButton(
+            BlockerButton(
                 onClick = onDelete,
                 text = { Text(stringResource(R.string.feature_ifwrule_impl_advanced_rule_delete)) },
             )
@@ -292,44 +253,6 @@ private fun BlockModeRadioRow(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
         )
-    }
-}
-
-@Composable
-private fun CombineModeSelector(
-    combineMode: CombineMode,
-    onUpdate: (CombineMode) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_ifwrule_impl_combine_label),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(end = 8.dp),
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = combineMode == CombineMode.ALL_MATCH,
-                onClick = { onUpdate(CombineMode.ALL_MATCH) },
-            )
-            Text(
-                text = stringResource(R.string.feature_ifwrule_impl_combine_all),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = combineMode == CombineMode.ANY_MATCH,
-                onClick = { onUpdate(CombineMode.ANY_MATCH) },
-            )
-            Text(
-                text = stringResource(R.string.feature_ifwrule_impl_combine_any),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
     }
 }
 

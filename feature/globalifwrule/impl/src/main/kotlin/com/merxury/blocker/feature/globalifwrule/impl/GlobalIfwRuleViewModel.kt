@@ -21,11 +21,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.core.ifw.editor.IfwEditorNode
+import com.merxury.core.ifw.editor.toEditorRootGroup
+import com.merxury.core.ifw.editor.toTopLevelFilters
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
-import com.merxury.core.ifw.model.StringMatcher
 import com.merxury.core.ifw.model.toSummary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,16 +110,17 @@ class GlobalIfwRuleViewModel @Inject constructor(
     private fun saveNewRule(data: AddRuleData) {
         viewModelScope.launch {
             try {
-                val filters = data.toRuleFilters()
                 val newRule = IfwRule(
                     componentType = data.componentType,
                     block = data.block,
                     log = data.log,
-                    filters = filters,
+                    filters = data.rootGroup.toTopLevelFilters(),
                 )
                 val currentRules = intentFirewall.getRules(data.packageName)
-                val updatedRules = IfwRules(currentRules.rules + newRule)
-                intentFirewall.saveRules(data.packageName, updatedRules)
+                intentFirewall.saveRules(
+                    data.packageName,
+                    IfwRules(currentRules.rules + newRule),
+                )
                 dismissEditor()
                 loadAllRules()
             } catch (e: Exception) {
@@ -130,16 +133,12 @@ class GlobalIfwRuleViewModel @Inject constructor(
         val state = _uiState.value as? GlobalIfwRuleUiState.Success ?: return null
         val group = state.groups.find { it.packageName == packageName } ?: return null
         val ruleItem = group.rules.find { it.ruleIndex == ruleIndex } ?: return null
-        if (ruleItem.isAdvancedRule) return null
         return AddRuleData(
             packageName = packageName,
             componentType = ruleItem.componentType,
             block = ruleItem.block,
             log = ruleItem.log,
-            combineMode = ruleItem.combineMode,
-            conditions = ruleItem.filters.map { filter ->
-                filter.toSimpleCondition()
-            },
+            rootGroup = ruleItem.rootGroup,
             editingRuleIndex = ruleIndex,
         )
     }
@@ -148,12 +147,11 @@ class GlobalIfwRuleViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val ruleIndex = data.editingRuleIndex ?: return@launch
-                val filters = data.toRuleFilters()
                 val newRule = IfwRule(
                     componentType = data.componentType,
                     block = data.block,
                     log = data.log,
-                    filters = filters,
+                    filters = data.rootGroup.toTopLevelFilters(),
                 )
                 val currentRules = intentFirewall.getRules(data.packageName)
                 val updatedRules = currentRules.rules.toMutableList()
@@ -190,19 +188,18 @@ class GlobalIfwRuleViewModel @Inject constructor(
             _uiState.value = GlobalIfwRuleUiState.Loading
             try {
                 intentFirewall.resetCache()
-                val allRules = intentFirewall.getAllRules()
-                val groups = allRules.mapNotNull { (packageName, ifwRules) ->
-                    if (ifwRules.isEmpty()) return@mapNotNull null
-                    val appLabel = resolveAppLabel(packageName)
-                    val ruleItems = ifwRules.rules.mapIndexed { index, rule ->
-                        rule.toRuleItemUiState(index, packageName)
+                val groups = intentFirewall.getAllRules()
+                    .mapNotNull { (packageName, ifwRules) ->
+                        if (ifwRules.isEmpty()) return@mapNotNull null
+                        PackageRuleGroup(
+                            packageName = packageName,
+                            appLabel = resolveAppLabel(packageName),
+                            rules = ifwRules.rules.mapIndexed { index, rule ->
+                                rule.toRuleItemUiState(index, packageName)
+                            },
+                        )
                     }
-                    PackageRuleGroup(
-                        packageName = packageName,
-                        appLabel = appLabel,
-                        rules = ruleItems,
-                    )
-                }.sortedBy { it.appLabel ?: it.packageName }
+                    .sortedBy { it.appLabel ?: it.packageName }
                 _uiState.value = GlobalIfwRuleUiState.Success(groups)
                 restoreEditorState(groups)
             } catch (e: Exception) {
@@ -226,8 +223,10 @@ class GlobalIfwRuleViewModel @Inject constructor(
             return
         }
 
-        val group = groups.find { it.packageName == editingPackageName }
-        val ruleItem = group?.rules?.find { it.ruleIndex == editingRuleIndex }
+        val ruleItem = groups
+            .find { it.packageName == editingPackageName }
+            ?.rules
+            ?.find { it.ruleIndex == editingRuleIndex }
 
         if (ruleItem == null) {
             dismissEditor()
@@ -241,8 +240,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
                 componentType = ruleItem.componentType,
                 block = ruleItem.block,
                 log = ruleItem.log,
-                combineMode = ruleItem.combineMode,
-                conditions = ruleItem.filters.map { filter -> filter.toSimpleCondition() },
+                rootGroup = ruleItem.rootGroup,
                 editingRuleIndex = editingRuleIndex,
             ),
         )
@@ -251,98 +249,33 @@ class GlobalIfwRuleViewModel @Inject constructor(
     private fun resolveAppLabel(packageName: String): String? = try {
         val appInfo = packageManager.getApplicationInfo(packageName, 0)
         packageManager.getApplicationLabel(appInfo).toString()
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (_: PackageManager.NameNotFoundException) {
         null
     }
 
-    private fun IfwRule.toRuleItemUiState(index: Int, packageName: String): RuleItemUiState {
-        val normalized = normalizeEditableFilters()
-        val editableFilters = normalized?.filters ?: filters
-        val filtersSummary = editableFilters.joinToString("\n") { it.toDisplaySummary(packageName) }
-        return RuleItemUiState(
-            componentType = componentType,
-            block = block,
-            log = log,
-            filtersSummary = filtersSummary,
-            filters = editableFilters,
-            ruleIndex = index,
-            combineMode = normalized?.combineMode ?: SimpleCombineMode.ALL_MATCH,
-            isAdvancedRule = normalized == null || editableFilters.any { !it.isSimpleEditableLeaf() },
-        )
-    }
+    private fun IfwRule.toRuleItemUiState(index: Int, packageName: String): RuleItemUiState = RuleItemUiState(
+        componentType = componentType,
+        block = block,
+        log = log,
+        filtersSummary = filters.joinToString("\n") { filter -> filter.toDisplaySummary(packageName) },
+        filters = filters,
+        rootGroup = filters.toEditorRootGroup() ?: IfwEditorNode.Group(),
+        ruleIndex = index,
+    )
 
     private fun IfwFilter.toDisplaySummary(packageName: String): String = when (this) {
         is IfwFilter.ComponentFilter -> {
-            val compName = name.substringAfter("/")
-            if (compName.startsWith(packageName)) {
-                compName.removePrefix(packageName)
+            val componentName = name.substringAfter("/")
+            if (componentName.startsWith(packageName)) {
+                componentName.removePrefix(packageName)
             } else {
-                compName
+                componentName
             }
         }
-        is IfwFilter.And -> filters.joinToString(" AND ") { it.toDisplaySummary(packageName) }
-        is IfwFilter.Or -> filters.joinToString(" OR ") { it.toDisplaySummary(packageName) }
+        is IfwFilter.And -> filters.joinToString(" AND ") { child -> child.toDisplaySummary(packageName) }
+        is IfwFilter.Or -> filters.joinToString(" OR ") { child -> child.toDisplaySummary(packageName) }
         is IfwFilter.Not -> "NOT (${filter.toDisplaySummary(packageName)})"
         else -> toSummary()
-    }
-
-    private fun IfwFilter.isSimpleEditableLeaf(): Boolean = when (this) {
-        is IfwFilter.Action,
-        is IfwFilter.Category,
-        is IfwFilter.Component,
-        is IfwFilter.ComponentFilter,
-        is IfwFilter.ComponentName,
-        is IfwFilter.ComponentPackage,
-        is IfwFilter.Data,
-        is IfwFilter.Host,
-        is IfwFilter.MimeType,
-        is IfwFilter.Path,
-        is IfwFilter.Port,
-        is IfwFilter.Scheme,
-        is IfwFilter.SchemeSpecificPart,
-        is IfwFilter.Sender,
-        is IfwFilter.SenderPackage,
-        is IfwFilter.SenderPermission,
-        -> true
-        is IfwFilter.Not -> filter.isSimpleEditableLeaf() && filter !is IfwFilter.Not
-        is IfwFilter.And,
-        is IfwFilter.Or,
-        -> false
-    }
-
-    private fun IfwRule.normalizeEditableFilters(): EditableRuleFilters? {
-        if (filters.isEmpty()) {
-            return EditableRuleFilters(
-                combineMode = SimpleCombineMode.ALL_MATCH,
-                filters = emptyList(),
-            )
-        }
-        if (filters.all { it.isSimpleEditableLeaf() }) {
-            return EditableRuleFilters(
-                combineMode = SimpleCombineMode.ALL_MATCH,
-                filters = filters,
-            )
-        }
-        val composite = filters.singleOrNull() ?: return null
-        return when (composite) {
-            is IfwFilter.And -> if (composite.filters.all { it.isSimpleEditableLeaf() }) {
-                EditableRuleFilters(
-                    combineMode = SimpleCombineMode.ALL_MATCH,
-                    filters = composite.filters,
-                )
-            } else {
-                null
-            }
-            is IfwFilter.Or -> if (composite.filters.all { it.isSimpleEditableLeaf() }) {
-                EditableRuleFilters(
-                    combineMode = SimpleCombineMode.ANY_MATCH,
-                    filters = composite.filters,
-                )
-            } else {
-                null
-            }
-            else -> null
-        }
     }
 }
 
@@ -364,9 +297,8 @@ data class RuleItemUiState(
     val log: Boolean,
     val filtersSummary: String,
     val filters: List<IfwFilter>,
+    val rootGroup: IfwEditorNode.Group,
     val ruleIndex: Int,
-    val combineMode: SimpleCombineMode,
-    val isAdvancedRule: Boolean,
 )
 
 data class GlobalIfwRuleEditorUiState(
@@ -377,160 +309,4 @@ data class GlobalIfwRuleEditorUiState(
 enum class GlobalIfwRuleScreenState {
     LIST,
     EDIT,
-}
-
-private fun IfwFilter.toSimpleCondition(): SimpleCondition = when (this) {
-    is IfwFilter.Not -> filter.toSimpleCondition().copy(negated = true)
-    is IfwFilter.ComponentFilter -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, value = name)
-    is IfwFilter.Action -> SimpleCondition(
-        filterType = SimpleFilterType.ACTION,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.Category -> SimpleCondition(SimpleFilterType.CATEGORY, value = name)
-    is IfwFilter.Sender -> SimpleCondition(
-        filterType = SimpleFilterType.SENDER,
-        senderType = type,
-    )
-    is IfwFilter.SenderPackage -> SimpleCondition(SimpleFilterType.SENDER_PACKAGE, value = name)
-    is IfwFilter.SenderPermission -> SimpleCondition(SimpleFilterType.SENDER_PERMISSION, value = name)
-    is IfwFilter.Component -> SimpleCondition(
-        filterType = SimpleFilterType.COMPONENT,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.ComponentName -> SimpleCondition(
-        filterType = SimpleFilterType.COMPONENT_NAME,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.ComponentPackage -> SimpleCondition(
-        filterType = SimpleFilterType.COMPONENT_PACKAGE,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.Host -> SimpleCondition(
-        filterType = SimpleFilterType.HOST,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.Scheme -> SimpleCondition(
-        filterType = SimpleFilterType.SCHEME,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.SchemeSpecificPart -> SimpleCondition(
-        filterType = SimpleFilterType.SCHEME_SPECIFIC_PART,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.Path -> SimpleCondition(
-        filterType = SimpleFilterType.PATH,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.Data -> SimpleCondition(
-        filterType = SimpleFilterType.DATA,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.MimeType -> SimpleCondition(
-        filterType = SimpleFilterType.MIME_TYPE,
-        value = matcher.valueOrEmpty(),
-        matchMode = matcher.toSimpleMatchMode(),
-    )
-    is IfwFilter.Port -> SimpleCondition(
-        filterType = SimpleFilterType.PORT,
-        portMode = if (equals != null) SimplePortMode.EXACT else SimplePortMode.RANGE,
-        equals = equals,
-        min = min,
-        max = max,
-    )
-    else -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, value = this.toSummary())
-}
-
-private fun StringMatcher.valueOrEmpty(): String = when (this) {
-    is StringMatcher.Equals -> value
-    is StringMatcher.StartsWith -> value
-    is StringMatcher.Contains -> value
-    is StringMatcher.Pattern -> value
-    is StringMatcher.Regex -> value
-    is StringMatcher.IsNull -> ""
-}
-
-private fun SimpleCondition.toIfwFilter(): IfwFilter? {
-    val filter = when (filterType) {
-        SimpleFilterType.COMPONENT_FILTER -> {
-            if (value.isBlank()) return null
-            IfwFilter.ComponentFilter(value)
-        }
-        SimpleFilterType.ACTION -> IfwFilter.Action(matchMode.toStringMatcher(value))
-        SimpleFilterType.CATEGORY -> {
-            if (value.isBlank()) return null
-            IfwFilter.Category(value)
-        }
-        SimpleFilterType.SENDER -> IfwFilter.Sender(senderType)
-        SimpleFilterType.SENDER_PACKAGE -> {
-            if (value.isBlank()) return null
-            IfwFilter.SenderPackage(value)
-        }
-        SimpleFilterType.SENDER_PERMISSION -> {
-            if (value.isBlank()) return null
-            IfwFilter.SenderPermission(value)
-        }
-        SimpleFilterType.COMPONENT -> IfwFilter.Component(matchMode.toStringMatcher(value))
-        SimpleFilterType.COMPONENT_NAME -> IfwFilter.ComponentName(matchMode.toStringMatcher(value))
-        SimpleFilterType.COMPONENT_PACKAGE -> IfwFilter.ComponentPackage(matchMode.toStringMatcher(value))
-        SimpleFilterType.HOST -> IfwFilter.Host(matchMode.toStringMatcher(value))
-        SimpleFilterType.SCHEME -> IfwFilter.Scheme(matchMode.toStringMatcher(value))
-        SimpleFilterType.SCHEME_SPECIFIC_PART -> IfwFilter.SchemeSpecificPart(matchMode.toStringMatcher(value))
-        SimpleFilterType.PATH -> IfwFilter.Path(matchMode.toStringMatcher(value))
-        SimpleFilterType.DATA -> IfwFilter.Data(matchMode.toStringMatcher(value))
-        SimpleFilterType.MIME_TYPE -> IfwFilter.MimeType(matchMode.toStringMatcher(value))
-        SimpleFilterType.PORT -> when (portMode) {
-            SimplePortMode.EXACT -> {
-                val port = equals ?: return null
-                IfwFilter.Port(equals = port)
-            }
-            SimplePortMode.RANGE -> {
-                if (min == null && max == null) return null
-                IfwFilter.Port(min = min, max = max)
-            }
-        }
-    }
-    return if (negated) IfwFilter.Not(filter) else filter
-}
-
-private fun StringMatcher.toSimpleMatchMode(): SimpleMatchMode = when (this) {
-    is StringMatcher.Equals -> SimpleMatchMode.EXACT
-    is StringMatcher.StartsWith -> SimpleMatchMode.STARTS_WITH
-    is StringMatcher.Contains -> SimpleMatchMode.CONTAINS
-    is StringMatcher.Pattern -> SimpleMatchMode.PATTERN
-    is StringMatcher.Regex -> SimpleMatchMode.REGEX
-    is StringMatcher.IsNull -> if (isNull) SimpleMatchMode.IS_NULL else SimpleMatchMode.IS_NOT_NULL
-}
-
-private fun SimpleMatchMode.toStringMatcher(value: String): StringMatcher = when (this) {
-    SimpleMatchMode.EXACT -> StringMatcher.Equals(value)
-    SimpleMatchMode.STARTS_WITH -> StringMatcher.StartsWith(value)
-    SimpleMatchMode.CONTAINS -> StringMatcher.Contains(value)
-    SimpleMatchMode.PATTERN -> StringMatcher.Pattern(value)
-    SimpleMatchMode.REGEX -> StringMatcher.Regex(value)
-    SimpleMatchMode.IS_NULL -> StringMatcher.IsNull(true)
-    SimpleMatchMode.IS_NOT_NULL -> StringMatcher.IsNull(false)
-}
-
-private data class EditableRuleFilters(
-    val combineMode: SimpleCombineMode,
-    val filters: List<IfwFilter>,
-)
-
-private fun AddRuleData.toRuleFilters(): List<IfwFilter> {
-    val filters = conditions.mapNotNull { it.toIfwFilter() }
-    return when {
-        filters.isEmpty() -> emptyList()
-        combineMode == SimpleCombineMode.ALL_MATCH -> filters
-        filters.size == 1 -> filters
-        else -> listOf(IfwFilter.Or(filters))
-    }
 }

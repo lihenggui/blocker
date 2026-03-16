@@ -10,6 +10,9 @@
     <string name="feature_globalifwrule_impl_cancel">取消</string>
     <string name="feature_globalifwrule_impl_delete">删除</string>
     <string name="feature_globalifwrule_impl_rule_type">规则类型</string>
+    <string name="feature_globalifwrule_impl_rule_type_activity">活动</string>
+    <string name="feature_globalifwrule_impl_rule_type_broadcast">广播接收器</string>
+    <string name="feature_globalifwrule_impl_rule_type_service">服务</string>
     <string name="feature_globalifwrule_impl_block">阻止</string>
     <string name="feature_globalifwrule_impl_log">记录日志</string>
     <string name="feature_globalifwrule_impl_conditions">拦截条件</string>

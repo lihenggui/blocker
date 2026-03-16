@@ -19,14 +19,13 @@ package com.merxury.blocker.feature.ifwrule.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.feature.ifwrule.impl.model.BlockMode
-import com.merxury.blocker.feature.ifwrule.impl.model.CombineMode
-import com.merxury.blocker.feature.ifwrule.impl.model.ConditionUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorScreenUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.mergeComponentRule
 import com.merxury.blocker.feature.ifwrule.impl.model.toEditorState
 import com.merxury.blocker.feature.ifwrule.impl.model.toIfwFilter
 import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.model.IfwComponentType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -85,10 +84,6 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
         updateEditor { it.copy(blockMode = mode) }
     }
 
-    fun updateCombineMode(mode: CombineMode) {
-        updateEditor { it.copy(combineMode = mode) }
-    }
-
     fun updateLog(enabled: Boolean) {
         updateEditor { it.copy(log = enabled) }
     }
@@ -97,22 +92,8 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
         updateEditor { it.copy(blockEnabled = enabled) }
     }
 
-    fun addCondition(condition: ConditionUiState) {
-        updateEditor { it.copy(conditions = it.conditions + condition) }
-    }
-
-    fun removeCondition(id: String) {
-        updateEditor { it.copy(conditions = it.conditions.filter { c -> c.id != id }) }
-    }
-
-    fun updateCondition(updated: ConditionUiState) {
-        updateEditor {
-            it.copy(
-                conditions = it.conditions.map { c ->
-                    if (c.id == updated.id) updated else c
-                },
-            )
-        }
+    fun updateRootGroup(rootGroup: IfwEditorNode.Group) {
+        updateEditor { it.copy(rootGroup = rootGroup) }
     }
 
     fun save() {

@@ -19,9 +19,10 @@ package com.merxury.blocker.feature.ifwrule.impl
 import com.merxury.blocker.core.testing.controller.FakeIntentFirewall
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.feature.ifwrule.impl.model.BlockMode
-import com.merxury.blocker.feature.ifwrule.impl.model.ConditionUiState
-import com.merxury.blocker.feature.ifwrule.impl.model.MatchMode
 import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorScreenUiState
+import com.merxury.core.ifw.editor.IfwEditorConditionKind
+import com.merxury.core.ifw.editor.IfwEditorNode
+import com.merxury.core.ifw.editor.IfwEditorStringMatcherMode
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -29,7 +30,7 @@ import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.StringMatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
-import org.junit.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
@@ -39,85 +40,83 @@ class IfwRuleEditorViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val pkg = "com.example"
-    private val comp = "com.example.BootReceiver"
+    private val packageName = "com.example"
+    private val componentName = "com.example.BootReceiver"
 
     @Test
     fun givenNoExistingRules_whenLoaded_thenShowsDefaultState() = runTest {
         val viewModel = createViewModel()
-        val state = viewModel.uiState.value
-        assertIs<RuleEditorScreenUiState.Success>(state)
+
+        val state = assertIs<RuleEditorScreenUiState.Success>(viewModel.uiState.value)
         assertEquals(BlockMode.ALL, state.editor.blockMode)
-        assertTrue(state.editor.conditions.isEmpty())
+        assertTrue(state.editor.rootGroup.children.isEmpty())
     }
 
     @Test
-    fun givenExistingComponentFilter_whenLoaded_thenShowsBlockAll() = runTest {
+    fun givenExistingConditionalRule_whenLoaded_thenShowsNestedRootGroup() = runTest {
         val ifw = FakeIntentFirewall()
-        ifw.addComponentFilter(pkg, comp)
-        val viewModel = createViewModel(ifw)
-        val state = viewModel.uiState.value
-        assertIs<RuleEditorScreenUiState.Success>(state)
-        assertEquals(BlockMode.ALL, state.editor.blockMode)
-    }
-
-    @Test
-    fun givenExistingConditionalRule_whenLoaded_thenShowsConditions() = runTest {
-        val ifw = FakeIntentFirewall()
-        val filter = IfwFilter.And(
-            listOf(
-                IfwFilter.ComponentFilter("$pkg/$comp"),
-                IfwFilter.Action(StringMatcher.Equals("android.intent.action.BOOT_COMPLETED")),
-            ),
-        )
-        ifw.rules[pkg] = IfwRules(
+        ifw.rules[packageName] = IfwRules(
             listOf(
                 IfwRule(
                     componentType = IfwComponentType.BROADCAST,
-                    filters = listOf(filter),
+                    filters = listOf(
+                        IfwFilter.And(
+                            listOf(
+                                IfwFilter.ComponentFilter("$packageName/$componentName"),
+                                IfwFilter.Action(StringMatcher.Equals("android.intent.action.BOOT_COMPLETED")),
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )
+
         val viewModel = createViewModel(ifw)
-        val state = viewModel.uiState.value
-        assertIs<RuleEditorScreenUiState.Success>(state)
+
+        val state = assertIs<RuleEditorScreenUiState.Success>(viewModel.uiState.value)
         assertEquals(BlockMode.CONDITIONAL, state.editor.blockMode)
-        assertEquals(1, state.editor.conditions.size)
+        assertEquals(1, state.editor.rootGroup.children.size)
+    }
+
+    @Test
+    fun givenUpdatedRootGroup_whenUpdateRootGroup_thenStateChanges() = runTest {
+        val viewModel = createViewModel()
+        val rootGroup = IfwEditorNode.Group(
+            children = listOf(
+                IfwEditorNode.Condition(
+                    kind = IfwEditorConditionKind.ACTION,
+                    matcherMode = IfwEditorStringMatcherMode.EXACT,
+                    value = "BOOT_COMPLETED",
+                ),
+            ),
+        )
+
+        viewModel.updateBlockMode(BlockMode.CONDITIONAL)
+        viewModel.updateRootGroup(rootGroup)
+
+        val state = assertIs<RuleEditorScreenUiState.Success>(viewModel.uiState.value)
+        assertEquals(1, state.editor.rootGroup.children.size)
     }
 
     @Test
     fun givenUserSavesBlockAll_whenSave_thenRulesWritten() = runTest {
         val ifw = FakeIntentFirewall()
         val viewModel = createViewModel(ifw)
-        assertIs<RuleEditorScreenUiState.Success>(viewModel.uiState.value)
-        viewModel.save()
-        val rules = ifw.getRules(pkg)
-        val filters = rules.rulesFor(IfwComponentType.BROADCAST).flatMap { it.filters }
-        assertTrue(filters.any { it is IfwFilter.ComponentFilter })
-    }
 
-    @Test
-    fun givenUserAddsCondition_whenUpdateConditions_thenStateUpdated() = runTest {
-        val viewModel = createViewModel()
-        assertIs<RuleEditorScreenUiState.Success>(viewModel.uiState.value)
-        val condition = ConditionUiState.ActionFilter(
-            id = "1",
-            matchMode = MatchMode.EXACT,
-            value = "BOOT_COMPLETED",
-        )
-        viewModel.updateBlockMode(BlockMode.CONDITIONAL)
-        viewModel.addCondition(condition)
-        val state = viewModel.uiState.value
-        assertIs<RuleEditorScreenUiState.Success>(state)
-        assertEquals(1, state.editor.conditions.size)
+        viewModel.save()
+
+        val filters = ifw.getRules(packageName)
+            .rulesFor(IfwComponentType.BROADCAST)
+            .flatMap { rule -> rule.filters }
+        assertTrue(filters.any { filter -> filter is IfwFilter.ComponentFilter })
     }
 
     private fun createViewModel(
         ifw: FakeIntentFirewall = FakeIntentFirewall(),
     ) = IfwRuleEditorViewModel(
         intentFirewall = ifw,
-        packageName = pkg,
-        componentName = comp,
+        packageName = packageName,
+        componentName = componentName,
         componentTypeTag = "broadcast",
     )
 }

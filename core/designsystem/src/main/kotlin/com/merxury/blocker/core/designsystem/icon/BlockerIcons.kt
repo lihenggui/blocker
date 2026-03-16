@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Block
@@ -70,6 +71,7 @@ import com.merxury.blocker.core.designsystem.R
  * Blocker icons. Material icons are [ImageVector]s, custom icons are drawable resource IDs.
  */
 object BlockerIcons {
+    val Add = Icons.Outlined.Add
     val Apps = Icons.Outlined.Apps
     val GeneralRule = Icons.Outlined.CollectionsBookmark
     val Sort = Icons.AutoMirrored.Outlined.Sort

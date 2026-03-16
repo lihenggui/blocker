@@ -85,4 +85,85 @@
     <string name="core_ui_do_you_want_to_uninstall_this_app">Do you want to uninstall this app?</string>
     <string name="core_ui_found">Found</string>
     <string name="core_ui_not_found">Not found</string>
+    <string name="core_ui_ifw_add_condition">Add condition</string>
+    <string name="core_ui_ifw_add_group">Add group</string>
+    <string name="core_ui_ifw_group_logic">Match when</string>
+    <string name="core_ui_ifw_group_all">all are true</string>
+    <string name="core_ui_ifw_group_any">any is true</string>
+    <string name="core_ui_ifw_group_exclude">Exclude matches in this group</string>
+    <string name="core_ui_ifw_group_all_title">All of these conditions</string>
+    <string name="core_ui_ifw_group_all_summary">The rule matches only when every item in this group matches.</string>
+    <string name="core_ui_ifw_group_any_title">Any of these conditions</string>
+    <string name="core_ui_ifw_group_any_summary">The rule matches when at least one item in this group matches.</string>
+    <string name="core_ui_ifw_group_excluded_title">Exclude these cases</string>
+    <string name="core_ui_ifw_group_excluded_summary">Anything that matches this group will be excluded from the rule.</string>
+    <string name="core_ui_ifw_condition_type">Condition type</string>
+    <string name="core_ui_ifw_condition_exclude">Exclude this condition</string>
+    <string name="core_ui_ifw_match_type">Match type</string>
+    <string name="core_ui_ifw_sender_type">Caller type</string>
+    <string name="core_ui_ifw_port_exact">Exact port</string>
+    <string name="core_ui_ifw_port_range">Port range</string>
+    <string name="core_ui_ifw_port_exact_value">Port</string>
+    <string name="core_ui_ifw_port_min_value">Min port</string>
+    <string name="core_ui_ifw_port_max_value">Max port</string>
+    <string name="core_ui_ifw_match_exact">Exact match</string>
+    <string name="core_ui_ifw_match_starts_with">Starts with</string>
+    <string name="core_ui_ifw_match_contains">Contains</string>
+    <string name="core_ui_ifw_match_pattern">Wildcard pattern</string>
+    <string name="core_ui_ifw_match_regex">Regular expression</string>
+    <string name="core_ui_ifw_match_is_empty">Is empty</string>
+    <string name="core_ui_ifw_match_is_not_empty">Is not empty</string>
+    <string name="core_ui_ifw_picker_section_intent">Intent basics</string>
+    <string name="core_ui_ifw_picker_section_caller">Who sent it</string>
+    <string name="core_ui_ifw_picker_section_link">Link and data</string>
+    <string name="core_ui_ifw_picker_section_component">Target component</string>
+    <string name="core_ui_ifw_condition_action">Intent action</string>
+    <string name="core_ui_ifw_condition_action_desc">Match a specific action string, like BOOT_COMPLETED.</string>
+    <string name="core_ui_ifw_condition_category">Intent category</string>
+    <string name="core_ui_ifw_condition_category_desc">Match a category attached to the intent.</string>
+    <string name="core_ui_ifw_condition_caller_type">Caller type</string>
+    <string name="core_ui_ifw_condition_caller_type_desc">Match whether the caller is system, signature, or same user ID.</string>
+    <string name="core_ui_ifw_condition_caller_package">Caller package</string>
+    <string name="core_ui_ifw_condition_caller_package_desc">Match a specific app package that sends the intent.</string>
+    <string name="core_ui_ifw_condition_caller_permission">Caller permission</string>
+    <string name="core_ui_ifw_condition_caller_permission_desc">Match a permission the caller must hold.</string>
+    <string name="core_ui_ifw_condition_component">Component name</string>
+    <string name="core_ui_ifw_condition_component_desc">Match the full component name with its package.</string>
+    <string name="core_ui_ifw_condition_component_name">Component class name</string>
+    <string name="core_ui_ifw_condition_component_name_desc">Match only the class name part of the component.</string>
+    <string name="core_ui_ifw_condition_component_package">Component package</string>
+    <string name="core_ui_ifw_condition_component_package_desc">Match the package of the target component.</string>
+    <string name="core_ui_ifw_condition_component_filter">Exact target component</string>
+    <string name="core_ui_ifw_condition_component_filter_desc">Match one exact target component in package/class form.</string>
+    <string name="core_ui_ifw_condition_host">Link host</string>
+    <string name="core_ui_ifw_condition_host_desc">Match the host part of the intent data URI.</string>
+    <string name="core_ui_ifw_condition_scheme">Link scheme</string>
+    <string name="core_ui_ifw_condition_scheme_desc">Match the URI scheme, such as https or content.</string>
+    <string name="core_ui_ifw_condition_scheme_specific_part">Link special part</string>
+    <string name="core_ui_ifw_condition_scheme_specific_part_desc">Match the scheme-specific part of the URI.</string>
+    <string name="core_ui_ifw_condition_path">Link path</string>
+    <string name="core_ui_ifw_condition_path_desc">Match the path part of the intent data URI.</string>
+    <string name="core_ui_ifw_condition_data">Full data URI</string>
+    <string name="core_ui_ifw_condition_data_desc">Match the full data URI as one string.</string>
+    <string name="core_ui_ifw_condition_mime_type">MIME type</string>
+    <string name="core_ui_ifw_condition_mime_type_desc">Match the resolved MIME type of the intent.</string>
+    <string name="core_ui_ifw_condition_port">Port</string>
+    <string name="core_ui_ifw_condition_port_desc">Match one port or a port range from the data URI.</string>
+    <string name="core_ui_ifw_value_hint_action" translatable="false">android.intent.action.BOOT_COMPLETED</string>
+    <string name="core_ui_ifw_value_hint_category" translatable="false">android.intent.category.DEFAULT</string>
+    <string name="core_ui_ifw_value_hint_permission" translatable="false">android.permission.INTERNET</string>
+    <string name="core_ui_ifw_value_hint_package_name" translatable="false">com.example.app</string>
+    <string name="core_ui_ifw_value_hint_component" translatable="false">com.example/.Receiver</string>
+    <string name="core_ui_ifw_value_hint_component_name" translatable="false">.MainActivity</string>
+    <string name="core_ui_ifw_value_hint_component_filter" translatable="false">com.example/.Receiver</string>
+    <string name="core_ui_ifw_value_hint_host" translatable="false">example.com</string>
+    <string name="core_ui_ifw_value_hint_scheme" translatable="false">https</string>
+    <string name="core_ui_ifw_value_hint_scheme_specific_part" translatable="false">//example.com/path</string>
+    <string name="core_ui_ifw_value_hint_path" translatable="false">/path/to/item</string>
+    <string name="core_ui_ifw_value_hint_data" translatable="false">content://com.example/items/1</string>
+    <string name="core_ui_ifw_value_hint_mime_type" translatable="false">text/plain</string>
+    <string name="core_ui_ifw_sender_system">System</string>
+    <string name="core_ui_ifw_sender_signature">Signature</string>
+    <string name="core_ui_ifw_sender_system_or_signature">System or signature</string>
+    <string name="core_ui_ifw_sender_user_id">Same user ID</string>
 </resources>

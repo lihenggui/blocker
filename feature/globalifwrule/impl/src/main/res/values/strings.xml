@@ -10,6 +10,9 @@
     <string name="feature_globalifwrule_impl_cancel">Cancel</string>
     <string name="feature_globalifwrule_impl_delete">Delete</string>
     <string name="feature_globalifwrule_impl_rule_type">Rule type</string>
+    <string name="feature_globalifwrule_impl_rule_type_activity">Activity</string>
+    <string name="feature_globalifwrule_impl_rule_type_broadcast">Broadcast receiver</string>
+    <string name="feature_globalifwrule_impl_rule_type_service">Service</string>
     <string name="feature_globalifwrule_impl_block">Block</string>
     <string name="feature_globalifwrule_impl_log">Log</string>
     <string name="feature_globalifwrule_impl_conditions">Conditions</string>

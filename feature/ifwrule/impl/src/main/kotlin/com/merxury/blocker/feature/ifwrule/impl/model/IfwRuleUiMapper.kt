@@ -16,118 +16,32 @@
 
 package com.merxury.blocker.feature.ifwrule.impl.model
 
+import com.merxury.core.ifw.editor.IfwEditorGroupMode
+import com.merxury.core.ifw.editor.IfwEditorNode
+import com.merxury.core.ifw.editor.toEditorRootGroup
+import com.merxury.core.ifw.editor.toIfwFilterOrNull
+import com.merxury.core.ifw.editor.toTopLevelFilters
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
-import com.merxury.core.ifw.model.SenderType
-import com.merxury.core.ifw.model.StringMatcher
-import java.util.UUID
-
-// ── UI State → IFW ─────────────────────────────────────────
 
 fun RuleEditorUiState.toIfwFilter(): IfwFilter {
     val componentFilter = IfwFilter.ComponentFilter("$packageName/$componentName")
-    if (blockMode == BlockMode.ALL) return componentFilter
+    if (blockMode == BlockMode.ALL || rootGroup.children.isEmpty()) {
+        return componentFilter
+    }
 
-    val conditionFilters = conditions.flatMap { it.toIfwFilters() }
+    val conditionFilters = rootGroup.toTopLevelFilters()
     if (conditionFilters.isEmpty()) return componentFilter
 
-    val andChildren = when {
-        conditionFilters.size == 1 -> listOf(componentFilter, conditionFilters.first())
-        combineMode == CombineMode.ALL_MATCH -> listOf(componentFilter) + conditionFilters
-        else -> listOf(componentFilter, IfwFilter.Or(conditionFilters))
+    val children = if (!rootGroup.excluded && rootGroup.mode == IfwEditorGroupMode.ALL) {
+        listOf(componentFilter) + conditionFilters
+    } else {
+        listOf(componentFilter, rootGroup.toIfwFilterOrNull() ?: return componentFilter)
     }
-    return IfwFilter.And(andChildren)
+    return IfwFilter.And(children)
 }
-
-private fun ConditionUiState.toIfwFilters(): List<IfwFilter> = when (this) {
-    is ConditionUiState.ActionFilter -> listOf(
-        IfwFilter.Action(matchMode.toStringMatcher(value)),
-    )
-
-    is ConditionUiState.SourceControl -> listOf(option.toIfwFilter())
-
-    is ConditionUiState.CallerApp -> packageNames.map { IfwFilter.SenderPackage(it) }
-
-    is ConditionUiState.CallerPermission -> {
-        val filter = IfwFilter.SenderPermission(permission)
-        when (mode) {
-            PermissionMode.REQUIRE -> listOf(IfwFilter.Not(filter))
-            PermissionMode.BLOCK_WITH -> listOf(filter)
-        }
-    }
-
-    is ConditionUiState.CategoryFilter -> listOf(IfwFilter.Category(name))
-
-    is ConditionUiState.LinkFilter -> buildList {
-        if (host.isNotBlank() || hostMatchMode == MatchMode.IS_NULL || hostMatchMode == MatchMode.IS_NOT_NULL) {
-            add(IfwFilter.Host(hostMatchMode.toStringMatcher(host)))
-        }
-        if (path.isNotBlank()) add(IfwFilter.Path(pathMatchMode.toStringMatcher(path)))
-        if (scheme.isNotBlank() || schemeMatchMode == MatchMode.IS_NULL || schemeMatchMode == MatchMode.IS_NOT_NULL) {
-            add(IfwFilter.Scheme(schemeMatchMode.toStringMatcher(scheme)))
-        }
-        if (schemeSpecificPart.isNotBlank() ||
-            schemeSpecificPartMatchMode == MatchMode.IS_NULL ||
-            schemeSpecificPartMatchMode == MatchMode.IS_NOT_NULL
-        ) {
-            add(
-                IfwFilter.SchemeSpecificPart(
-                    schemeSpecificPartMatchMode.toStringMatcher(schemeSpecificPart),
-                ),
-            )
-        }
-    }
-
-    is ConditionUiState.DataFilter -> listOf(
-        IfwFilter.Data(matchMode.toStringMatcher(value)),
-    )
-
-    is ConditionUiState.MimeTypeFilter -> listOf(
-        IfwFilter.MimeType(matchMode.toStringMatcher(value)),
-    )
-
-    is ConditionUiState.PortFilter -> listOf(
-        IfwFilter.Port(equals = equals, min = min, max = max),
-    )
-
-    is ConditionUiState.ComponentPattern -> {
-        val matcher = matchMode.toStringMatcher(value)
-        when (patternType) {
-            ComponentPatternType.COMPONENT -> listOf(IfwFilter.Component(matcher))
-            ComponentPatternType.NAME -> listOf(IfwFilter.ComponentName(matcher))
-            ComponentPatternType.PACKAGE -> listOf(IfwFilter.ComponentPackage(matcher))
-        }
-    }
-}
-
-private fun SourceOption.toIfwFilter(): IfwFilter = when (this) {
-    SourceOption.MATCH_SYSTEM -> IfwFilter.Sender(SenderType.SYSTEM)
-    SourceOption.MATCH_SIGNATURE -> IfwFilter.Sender(SenderType.SIGNATURE)
-    SourceOption.MATCH_SYSTEM_OR_SIGNATURE -> IfwFilter.Sender(SenderType.SYSTEM_OR_SIGNATURE)
-    SourceOption.MATCH_USER_ID -> IfwFilter.Sender(SenderType.USER_ID)
-    SourceOption.ALLOW_SYSTEM_ONLY -> IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM))
-    SourceOption.ALLOW_SIGNATURE_ONLY -> IfwFilter.Not(IfwFilter.Sender(SenderType.SIGNATURE))
-    SourceOption.ALLOW_SYSTEM_OR_SIGNATURE -> IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM_OR_SIGNATURE))
-    SourceOption.ALLOW_USER_ID_ONLY -> IfwFilter.Not(IfwFilter.Sender(SenderType.USER_ID))
-    SourceOption.BLOCK_SYSTEM -> IfwFilter.Sender(SenderType.SYSTEM)
-    SourceOption.BLOCK_SIGNATURE -> IfwFilter.Sender(SenderType.SIGNATURE)
-    SourceOption.BLOCK_SYSTEM_OR_SIGNATURE -> IfwFilter.Sender(SenderType.SYSTEM_OR_SIGNATURE)
-    SourceOption.BLOCK_USER_ID -> IfwFilter.Sender(SenderType.USER_ID)
-}
-
-private fun MatchMode.toStringMatcher(value: String): StringMatcher = when (this) {
-    MatchMode.EXACT -> StringMatcher.Equals(value)
-    MatchMode.STARTS_WITH -> StringMatcher.StartsWith(value)
-    MatchMode.CONTAINS -> StringMatcher.Contains(value)
-    MatchMode.PATTERN -> StringMatcher.Pattern(value)
-    MatchMode.REGEX -> StringMatcher.Regex(value)
-    MatchMode.IS_NULL -> StringMatcher.IsNull(true)
-    MatchMode.IS_NOT_NULL -> StringMatcher.IsNull(false)
-}
-
-// ── IFW → UI State ─────────────────────────────────────────
 
 fun IfwRules.toEditorStateOrNull(
     componentType: IfwComponentType,
@@ -135,17 +49,19 @@ fun IfwRules.toEditorStateOrNull(
     componentName: String,
 ): RuleEditorUiState? {
     val filterName = "$packageName/$componentName"
-    val matchingRules = rulesFor(componentType)
-
-    for (rule in matchingRules) {
-        for (filter in rule.filters) {
-            val state = tryParseFilter(filter, filterName, packageName, componentName, componentType)
-            if (state != null) {
-                return state.copy(
-                    log = rule.log,
-                    blockEnabled = rule.block,
-                )
-            }
+    for (rule in rulesFor(componentType)) {
+        val state = tryParseRule(
+            filters = rule.filters,
+            filterName = filterName,
+            packageName = packageName,
+            componentName = componentName,
+            componentType = componentType,
+        )
+        if (state != null) {
+            return state.copy(
+                log = rule.log,
+                blockEnabled = rule.block,
+            )
         }
     }
     return null
@@ -162,311 +78,98 @@ fun IfwRules.toEditorState(
         componentType = componentType,
     )
 
-private fun tryParseFilter(
-    filter: IfwFilter,
+private fun tryParseRule(
+    filters: List<IfwFilter>,
     filterName: String,
     packageName: String,
     componentName: String,
     componentType: IfwComponentType,
-): RuleEditorUiState? = when {
-    // Case 1: Direct ComponentFilter
-    filter is IfwFilter.ComponentFilter && filter.name == filterName -> {
-        RuleEditorUiState(
-            packageName = packageName,
-            componentName = componentName,
-            componentType = componentType,
-            blockMode = BlockMode.ALL,
-        )
-    }
-
-    // Case 2: And with ComponentFilter
-    filter is IfwFilter.And && filter.filters.any {
-        it is IfwFilter.ComponentFilter && it.name == filterName
-    } -> {
-        parseAndFilter(filter, filterName, packageName, componentName, componentType)
-    }
-
-    // Case 3: Unrecognizable structure containing this component
-    filter.containsComponentFilter(filterName) -> {
-        RuleEditorUiState(
+): RuleEditorUiState? {
+    val extraction = extractConditionsForComponent(filters, filterName) ?: return null
+    return when (extraction) {
+        is ComponentRuleExtraction.Unsupported -> RuleEditorUiState(
             packageName = packageName,
             componentName = componentName,
             componentType = componentType,
             isAdvancedRule = true,
         )
+        is ComponentRuleExtraction.Success -> {
+            if (extraction.filters.isEmpty()) {
+                RuleEditorUiState(
+                    packageName = packageName,
+                    componentName = componentName,
+                    componentType = componentType,
+                    blockMode = BlockMode.ALL,
+                )
+            } else {
+                val rootGroup = extraction.filters.toEditorRootGroup() ?: return RuleEditorUiState(
+                    packageName = packageName,
+                    componentName = componentName,
+                    componentType = componentType,
+                    isAdvancedRule = true,
+                )
+                RuleEditorUiState(
+                    packageName = packageName,
+                    componentName = componentName,
+                    componentType = componentType,
+                    blockMode = BlockMode.CONDITIONAL,
+                    rootGroup = rootGroup,
+                )
+            }
+        }
     }
-
-    else -> null
 }
 
-private fun parseAndFilter(
-    and: IfwFilter.And,
+private sealed interface ComponentRuleExtraction {
+    data class Success(val filters: List<IfwFilter>) : ComponentRuleExtraction
+    data object Unsupported : ComponentRuleExtraction
+}
+
+private fun extractConditionsForComponent(
+    filters: List<IfwFilter>,
     filterName: String,
-    packageName: String,
-    componentName: String,
-    componentType: IfwComponentType,
-): RuleEditorUiState {
-    val conditions = and.filters.filter { !(it is IfwFilter.ComponentFilter && it.name == filterName) }
+): ComponentRuleExtraction? {
+    var foundTarget = false
+    val remaining = mutableListOf<IfwFilter>()
 
-    // Check if there's a single Or child → ANY_MATCH mode
-    val singleOr = conditions.singleOrNull() as? IfwFilter.Or
-    val (combineMode, effectiveConditions) = if (singleOr != null) {
-        CombineMode.ANY_MATCH to singleOr.filters
-    } else {
-        CombineMode.ALL_MATCH to conditions
-    }
-
-    val parsedConditions = effectiveConditions.map { it.toConditionUiState() }
-    if (parsedConditions.any { it == null }) {
-        return RuleEditorUiState(
-            packageName = packageName,
-            componentName = componentName,
-            componentType = componentType,
-            isAdvancedRule = true,
-        )
-    }
-    val uiConditions = parsedConditions.filterNotNull().mergeRelatedConditions()
-
-    return RuleEditorUiState(
-        packageName = packageName,
-        componentName = componentName,
-        componentType = componentType,
-        blockMode = BlockMode.CONDITIONAL,
-        combineMode = combineMode,
-        conditions = uiConditions,
-    )
-}
-
-private fun IfwFilter.toConditionUiState(): ConditionUiState? {
-    val id = UUID.randomUUID().toString()
-    return when (this) {
-        is IfwFilter.Action -> ConditionUiState.ActionFilter(
-            id = id,
-            matchMode = matcher.toMatchMode(),
-            value = matcher.stringValue(),
-        )
-
-        is IfwFilter.Not -> when (val inner = filter) {
-            is IfwFilter.Sender -> ConditionUiState.SourceControl(
-                id = id,
-                option = when (inner.type) {
-                    SenderType.SYSTEM -> SourceOption.ALLOW_SYSTEM_ONLY
-                    SenderType.SIGNATURE -> SourceOption.ALLOW_SIGNATURE_ONLY
-                    SenderType.SYSTEM_OR_SIGNATURE -> SourceOption.ALLOW_SYSTEM_OR_SIGNATURE
-                    SenderType.USER_ID -> SourceOption.ALLOW_USER_ID_ONLY
-                },
-            )
-
-            is IfwFilter.SenderPermission -> ConditionUiState.CallerPermission(
-                id = id,
-                permission = inner.name,
-                mode = PermissionMode.REQUIRE,
-            )
-
-            else -> null
-        }
-
-        is IfwFilter.Sender -> ConditionUiState.SourceControl(
-            id = id,
-            option = when (type) {
-                SenderType.SYSTEM -> SourceOption.BLOCK_SYSTEM
-                SenderType.SIGNATURE -> SourceOption.BLOCK_SIGNATURE
-                SenderType.SYSTEM_OR_SIGNATURE -> SourceOption.BLOCK_SYSTEM_OR_SIGNATURE
-                SenderType.USER_ID -> SourceOption.BLOCK_USER_ID
-            },
-        )
-
-        is IfwFilter.SenderPackage -> ConditionUiState.CallerApp(
-            id = id,
-            packageNames = listOf(name),
-        )
-
-        is IfwFilter.SenderPermission -> ConditionUiState.CallerPermission(
-            id = id,
-            permission = name,
-            mode = PermissionMode.BLOCK_WITH,
-        )
-
-        is IfwFilter.Category -> ConditionUiState.CategoryFilter(id = id, name = name)
-
-        is IfwFilter.Host -> ConditionUiState.LinkFilter(
-            id = id,
-            host = matcher.stringValue(),
-            hostMatchMode = matcher.toMatchMode(),
-        )
-
-        is IfwFilter.Data -> ConditionUiState.DataFilter(
-            id = id,
-            matchMode = matcher.toMatchMode(),
-            value = matcher.stringValue(),
-        )
-
-        is IfwFilter.MimeType -> ConditionUiState.MimeTypeFilter(
-            id = id,
-            matchMode = matcher.toMatchMode(),
-            value = matcher.stringValue(),
-        )
-
-        is IfwFilter.Port -> ConditionUiState.PortFilter(
-            id = id,
-            portMode = if (equals != null) PortMode.EXACT else PortMode.RANGE,
-            equals = equals,
-            min = min,
-            max = max,
-        )
-
-        is IfwFilter.Component -> ConditionUiState.ComponentPattern(
-            id = id,
-            patternType = ComponentPatternType.COMPONENT,
-            matchMode = matcher.toMatchMode(),
-            value = matcher.stringValue(),
-        )
-
-        is IfwFilter.ComponentName -> ConditionUiState.ComponentPattern(
-            id = id,
-            patternType = ComponentPatternType.NAME,
-            matchMode = matcher.toMatchMode(),
-            value = matcher.stringValue(),
-        )
-
-        is IfwFilter.ComponentPackage -> ConditionUiState.ComponentPattern(
-            id = id,
-            patternType = ComponentPatternType.PACKAGE,
-            matchMode = matcher.toMatchMode(),
-            value = matcher.stringValue(),
-        )
-
-        is IfwFilter.Scheme -> ConditionUiState.LinkFilter(
-            id = id,
-            scheme = matcher.stringValue(),
-            schemeMatchMode = matcher.toMatchMode(),
-        )
-        is IfwFilter.SchemeSpecificPart -> ConditionUiState.LinkFilter(
-            id = id,
-            schemeSpecificPart = matcher.stringValue(),
-            schemeSpecificPartMatchMode = matcher.toMatchMode(),
-        )
-        is IfwFilter.Path -> ConditionUiState.LinkFilter(
-            id = id,
-            path = matcher.stringValue(),
-            pathMatchMode = matcher.toMatchMode(),
-        )
-
-        // Composite and unsupported filters
-        else -> null
-    }
-}
-
-/**
- * Merges adjacent Host, Path, Scheme conditions into single LinkFilter conditions.
- * Also merges adjacent SenderPackage conditions into single CallerApp conditions.
- */
-private fun List<ConditionUiState>.mergeRelatedConditions(): List<ConditionUiState> {
-    val result = mutableListOf<ConditionUiState>()
-    var pendingLink: ConditionUiState.LinkFilter? = null
-    val pendingPackages = mutableListOf<String>()
-    var callerAppId: String? = null
-
-    for (condition in this) {
-        when (condition) {
-            is ConditionUiState.LinkFilter -> {
-                pendingLink = if (pendingLink == null) {
-                    condition
-                } else {
-                    pendingLink.copy(
-                        host = condition.host.ifBlank { pendingLink.host },
-                        hostMatchMode = if (
-                            condition.host.isNotBlank() ||
-                            condition.hostMatchMode == MatchMode.IS_NULL ||
-                            condition.hostMatchMode == MatchMode.IS_NOT_NULL
-                        ) {
-                            condition.hostMatchMode
-                        } else {
-                            pendingLink.hostMatchMode
-                        },
-                        path = condition.path.ifBlank { pendingLink.path },
-                        pathMatchMode = if (condition.path.isNotBlank()) condition.pathMatchMode else pendingLink.pathMatchMode,
-                        scheme = condition.scheme.ifBlank { pendingLink.scheme },
-                        schemeMatchMode = if (
-                            condition.scheme.isNotBlank() ||
-                            condition.schemeMatchMode == MatchMode.IS_NULL ||
-                            condition.schemeMatchMode == MatchMode.IS_NOT_NULL
-                        ) {
-                            condition.schemeMatchMode
-                        } else {
-                            pendingLink.schemeMatchMode
-                        },
-                        schemeSpecificPart = condition.schemeSpecificPart.ifBlank {
-                            pendingLink.schemeSpecificPart
-                        },
-                        schemeSpecificPartMatchMode = if (
-                            condition.schemeSpecificPart.isNotBlank() ||
-                            condition.schemeSpecificPartMatchMode == MatchMode.IS_NULL ||
-                            condition.schemeSpecificPartMatchMode == MatchMode.IS_NOT_NULL
-                        ) {
-                            condition.schemeSpecificPartMatchMode
-                        } else {
-                            pendingLink.schemeSpecificPartMatchMode
-                        },
-                    )
-                }
+    filters.forEach { filter ->
+        when {
+            filter is IfwFilter.ComponentFilter && filter.name == filterName -> {
+                foundTarget = true
             }
 
-            is ConditionUiState.CallerApp -> {
-                if (callerAppId == null) callerAppId = condition.id
-                pendingPackages.addAll(condition.packageNames)
+            filter is IfwFilter.And && filter.filters.any { child ->
+                child is IfwFilter.ComponentFilter && child.name == filterName
+            } -> {
+                foundTarget = true
+                val nested = filter.filters.filterNot { child ->
+                    child is IfwFilter.ComponentFilter && child.name == filterName
+                }
+                if (nested.any { child -> child is IfwFilter.ComponentFilter }) {
+                    return ComponentRuleExtraction.Unsupported
+                }
+                remaining += nested
             }
 
-            else -> {
-                // Flush pending link/packages before adding non-link condition
-                pendingLink?.let {
-                    result.add(it)
-                    pendingLink = null
-                }
-                if (pendingPackages.isNotEmpty()) {
-                    result.add(ConditionUiState.CallerApp(id = callerAppId!!, packageNames = pendingPackages.toList()))
-                    pendingPackages.clear()
-                    callerAppId = null
-                }
-                result.add(condition)
-            }
+            filter.containsComponentFilter(filterName) -> return ComponentRuleExtraction.Unsupported
+            else -> remaining += filter
         }
     }
-    // Flush remaining
-    pendingLink?.let { result.add(it) }
-    if (pendingPackages.isNotEmpty()) {
-        result.add(ConditionUiState.CallerApp(id = callerAppId!!, packageNames = pendingPackages.toList()))
+
+    if (!foundTarget) return null
+    if (remaining.any { filter -> filter is IfwFilter.ComponentFilter }) {
+        return ComponentRuleExtraction.Unsupported
     }
-    return result
-}
-
-private fun StringMatcher.toMatchMode(): MatchMode = when (this) {
-    is StringMatcher.Equals -> MatchMode.EXACT
-    is StringMatcher.StartsWith -> MatchMode.STARTS_WITH
-    is StringMatcher.Contains -> MatchMode.CONTAINS
-    is StringMatcher.Pattern -> MatchMode.PATTERN
-    is StringMatcher.Regex -> MatchMode.REGEX
-    is StringMatcher.IsNull -> if (isNull) MatchMode.IS_NULL else MatchMode.IS_NOT_NULL
-}
-
-private fun StringMatcher.stringValue(): String = when (this) {
-    is StringMatcher.Equals -> value
-    is StringMatcher.StartsWith -> value
-    is StringMatcher.Contains -> value
-    is StringMatcher.Pattern -> value
-    is StringMatcher.Regex -> value
-    is StringMatcher.IsNull -> ""
+    return ComponentRuleExtraction.Success(remaining)
 }
 
 private fun IfwFilter.containsComponentFilter(name: String): Boolean = when (this) {
     is IfwFilter.ComponentFilter -> this.name == name
-    is IfwFilter.And -> filters.any { it.containsComponentFilter(name) }
-    is IfwFilter.Or -> filters.any { it.containsComponentFilter(name) }
+    is IfwFilter.And -> filters.any { child -> child.containsComponentFilter(name) }
+    is IfwFilter.Or -> filters.any { child -> child.containsComponentFilter(name) }
     is IfwFilter.Not -> filter.containsComponentFilter(name)
     else -> false
 }
-
-// ── Merge Strategy ─────────────────────────────────────────
 
 fun IfwRules.mergeComponentRule(
     componentType: IfwComponentType,
@@ -475,14 +178,12 @@ fun IfwRules.mergeComponentRule(
     block: Boolean,
     log: Boolean,
 ): IfwRules {
-    // Step 1: Remove old filters for this component from all matching rules
     val updatedRules = rules.map { rule ->
         if (rule.componentType != componentType) return@map rule
-        val cleanedFilters = rule.filters.filter { !it.containsComponentFilter(componentName) }
+        val cleanedFilters = rule.filters.filter { filter -> !filter.containsComponentFilter(componentName) }
         rule.copy(filters = cleanedFilters)
-    }.filter { it.filters.isNotEmpty() }
+    }.filter { rule -> rule.filters.isNotEmpty() }
 
-    // Step 2: Add new dedicated rule if newFilter is provided
     val finalRules = if (newFilter != null) {
         updatedRules + IfwRule(
             componentType = componentType,
