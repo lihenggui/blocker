@@ -75,4 +75,13 @@ internal class SuIfwFileSystem @Inject constructor(
         val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
         destFile.exists()
     }
+
+    override suspend fun listRuleFiles(): List<String> = withContext(dispatcher) {
+        val ifwDir = SuFile(IfwStorageUtils.ifwFolder)
+        if (!ifwDir.exists()) return@withContext emptyList()
+        ifwDir.list()
+            ?.filter { it.endsWith(EXTENSION) }
+            ?.map { it.removeSuffix(EXTENSION) }
+            ?: emptyList()
+    }
 }

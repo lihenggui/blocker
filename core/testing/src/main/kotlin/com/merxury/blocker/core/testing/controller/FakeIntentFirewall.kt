@@ -104,6 +104,8 @@ class FakeIntentFirewall : IIntentFirewall {
         rules.remove(packageName)
     }
 
+    override suspend fun getAllRules(): Map<String, IfwRules> = rules.toMap()
+
     override fun resetCache() {
         rules.clear()
     }
