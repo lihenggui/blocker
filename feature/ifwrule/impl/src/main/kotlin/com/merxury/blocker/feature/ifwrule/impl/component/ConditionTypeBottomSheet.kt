@@ -49,53 +49,53 @@ private data class ConditionTypeItem(
 
 private val conditionTypes = listOf(
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_action,
-        descriptionRes = R.string.feature_ifwrule_condition_action_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_action,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_action_desc,
         factory = { ConditionUiState.ActionFilter(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_source,
-        descriptionRes = R.string.feature_ifwrule_condition_source_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_source,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_source_desc,
         factory = { ConditionUiState.SourceControl(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_caller_app,
-        descriptionRes = R.string.feature_ifwrule_condition_caller_app_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_caller_app,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_caller_app_desc,
         factory = { ConditionUiState.CallerApp(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_caller_permission,
-        descriptionRes = R.string.feature_ifwrule_condition_caller_permission_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_caller_permission,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_caller_permission_desc,
         factory = { ConditionUiState.CallerPermission(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_category,
-        descriptionRes = R.string.feature_ifwrule_condition_category_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_category,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_category_desc,
         factory = { ConditionUiState.CategoryFilter(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_link,
-        descriptionRes = R.string.feature_ifwrule_condition_link_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_link,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_link_desc,
         factory = { ConditionUiState.LinkFilter(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_data,
-        descriptionRes = R.string.feature_ifwrule_condition_data_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_data,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_data_desc,
         factory = { ConditionUiState.DataFilter(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_mime,
-        descriptionRes = R.string.feature_ifwrule_condition_mime_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_mime,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_mime_desc,
         factory = { ConditionUiState.MimeTypeFilter(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_port,
-        descriptionRes = R.string.feature_ifwrule_condition_port_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_port,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_port_desc,
         factory = { ConditionUiState.PortFilter(id = UUID.randomUUID().toString()) },
     ),
     ConditionTypeItem(
-        titleRes = R.string.feature_ifwrule_condition_component_pattern,
-        descriptionRes = R.string.feature_ifwrule_condition_component_pattern_desc,
+        titleRes = R.string.feature_ifwrule_impl_condition_component_pattern,
+        descriptionRes = R.string.feature_ifwrule_impl_condition_component_pattern_desc,
         factory = { ConditionUiState.ComponentPattern(id = UUID.randomUUID().toString()) },
     ),
 )
@@ -120,7 +120,7 @@ fun ConditionTypeBottomSheet(
                 .padding(bottom = 16.dp),
         ) {
             Text(
-                text = stringResource(R.string.feature_ifwrule_add_condition),
+                text = stringResource(R.string.feature_ifwrule_impl_add_condition),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
             )

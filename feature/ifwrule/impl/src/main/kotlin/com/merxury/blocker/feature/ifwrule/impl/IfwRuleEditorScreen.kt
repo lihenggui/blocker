@@ -76,7 +76,7 @@ fun IfwRuleEditorScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         BlockerTopAppBar(
-            title = stringResource(R.string.feature_ifwrule_title),
+            title = stringResource(R.string.feature_ifwrule_impl_title),
             hasNavigationIcon = true,
             onNavigationClick = onBackClick,
         )
@@ -159,17 +159,17 @@ private fun EditorContent(
         // Block mode
         HorizontalDivider()
         Text(
-            text = stringResource(R.string.feature_ifwrule_block_mode),
+            text = stringResource(R.string.feature_ifwrule_impl_block_mode),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
         )
         BlockModeRadioRow(
-            label = stringResource(R.string.feature_ifwrule_block_all),
+            label = stringResource(R.string.feature_ifwrule_impl_block_all),
             selected = editor.blockMode == BlockMode.ALL,
             onClick = { onUpdateBlockMode(BlockMode.ALL) },
         )
         BlockModeRadioRow(
-            label = stringResource(R.string.feature_ifwrule_block_conditional),
+            label = stringResource(R.string.feature_ifwrule_impl_block_conditional),
             selected = editor.blockMode == BlockMode.CONDITIONAL,
             onClick = { onUpdateBlockMode(BlockMode.CONDITIONAL) },
         )
@@ -179,7 +179,7 @@ private fun EditorContent(
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
             Text(
-                text = stringResource(R.string.feature_ifwrule_conditions),
+                text = stringResource(R.string.feature_ifwrule_impl_conditions),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
@@ -202,7 +202,7 @@ private fun EditorContent(
             Spacer(modifier = Modifier.height(8.dp))
             BlockerOutlinedButton(
                 onClick = { showConditionPicker = true },
-                text = { Text(stringResource(R.string.feature_ifwrule_add_condition)) },
+                text = { Text(stringResource(R.string.feature_ifwrule_impl_add_condition)) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -211,19 +211,19 @@ private fun EditorContent(
         Spacer(modifier = Modifier.height(16.dp))
         HorizontalDivider()
         Text(
-            text = stringResource(R.string.feature_ifwrule_advanced_options),
+            text = stringResource(R.string.feature_ifwrule_impl_advanced_options),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
         )
         SwitchRow(
-            label = stringResource(R.string.feature_ifwrule_log),
-            summary = stringResource(R.string.feature_ifwrule_log_summary),
+            label = stringResource(R.string.feature_ifwrule_impl_log),
+            summary = stringResource(R.string.feature_ifwrule_impl_log_summary),
             checked = editor.log,
             onCheckedChange = onUpdateLog,
         )
         SwitchRow(
-            label = stringResource(R.string.feature_ifwrule_monitor_only),
-            summary = stringResource(R.string.feature_ifwrule_monitor_only_summary),
+            label = stringResource(R.string.feature_ifwrule_impl_monitor_only),
+            summary = stringResource(R.string.feature_ifwrule_impl_monitor_only_summary),
             checked = !editor.blockEnabled,
             onCheckedChange = { onChangeBlockEnable(!it) },
         )
@@ -232,7 +232,7 @@ private fun EditorContent(
         Spacer(modifier = Modifier.height(24.dp))
         BlockerButton(
             onClick = onSave,
-            text = { Text(stringResource(R.string.feature_ifwrule_save)) },
+            text = { Text(stringResource(R.string.feature_ifwrule_impl_save)) },
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -261,14 +261,14 @@ private fun AdvancedRuleBanner(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = stringResource(R.string.feature_ifwrule_advanced_rule_banner),
+                text = stringResource(R.string.feature_ifwrule_impl_advanced_rule_banner),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Spacer(modifier = Modifier.height(8.dp))
             BlockerOutlinedButton(
                 onClick = onDelete,
-                text = { Text(stringResource(R.string.feature_ifwrule_advanced_rule_delete)) },
+                text = { Text(stringResource(R.string.feature_ifwrule_impl_advanced_rule_delete)) },
             )
         }
     }
@@ -306,7 +306,7 @@ private fun CombineModeSelector(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(R.string.feature_ifwrule_combine_label),
+            text = stringResource(R.string.feature_ifwrule_impl_combine_label),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(end = 8.dp),
         )
@@ -316,7 +316,7 @@ private fun CombineModeSelector(
                 onClick = { onUpdate(CombineMode.ALL_MATCH) },
             )
             Text(
-                text = stringResource(R.string.feature_ifwrule_combine_all),
+                text = stringResource(R.string.feature_ifwrule_impl_combine_all),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -326,7 +326,7 @@ private fun CombineModeSelector(
                 onClick = { onUpdate(CombineMode.ANY_MATCH) },
             )
             Text(
-                text = stringResource(R.string.feature_ifwrule_combine_any),
+                text = stringResource(R.string.feature_ifwrule_impl_combine_any),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }

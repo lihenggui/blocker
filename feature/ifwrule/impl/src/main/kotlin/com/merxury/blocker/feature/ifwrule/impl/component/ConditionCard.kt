@@ -102,16 +102,16 @@ fun ConditionCard(
 
 @Composable
 private fun conditionTitle(condition: ConditionUiState): String = when (condition) {
-    is ConditionUiState.ActionFilter -> stringResource(R.string.feature_ifwrule_action_label)
-    is ConditionUiState.SourceControl -> stringResource(R.string.feature_ifwrule_source_label)
-    is ConditionUiState.CallerApp -> stringResource(R.string.feature_ifwrule_caller_app_label)
-    is ConditionUiState.CallerPermission -> stringResource(R.string.feature_ifwrule_caller_perm_label)
-    is ConditionUiState.CategoryFilter -> stringResource(R.string.feature_ifwrule_category_label)
-    is ConditionUiState.LinkFilter -> stringResource(R.string.feature_ifwrule_condition_link)
-    is ConditionUiState.DataFilter -> stringResource(R.string.feature_ifwrule_data_label)
-    is ConditionUiState.MimeTypeFilter -> stringResource(R.string.feature_ifwrule_mime_label)
-    is ConditionUiState.PortFilter -> stringResource(R.string.feature_ifwrule_condition_port)
-    is ConditionUiState.ComponentPattern -> stringResource(R.string.feature_ifwrule_condition_component_pattern)
+    is ConditionUiState.ActionFilter -> stringResource(R.string.feature_ifwrule_impl_action_label)
+    is ConditionUiState.SourceControl -> stringResource(R.string.feature_ifwrule_impl_source_label)
+    is ConditionUiState.CallerApp -> stringResource(R.string.feature_ifwrule_impl_caller_app_label)
+    is ConditionUiState.CallerPermission -> stringResource(R.string.feature_ifwrule_impl_caller_perm_label)
+    is ConditionUiState.CategoryFilter -> stringResource(R.string.feature_ifwrule_impl_category_label)
+    is ConditionUiState.LinkFilter -> stringResource(R.string.feature_ifwrule_impl_condition_link)
+    is ConditionUiState.DataFilter -> stringResource(R.string.feature_ifwrule_impl_data_label)
+    is ConditionUiState.MimeTypeFilter -> stringResource(R.string.feature_ifwrule_impl_mime_label)
+    is ConditionUiState.PortFilter -> stringResource(R.string.feature_ifwrule_impl_condition_port)
+    is ConditionUiState.ComponentPattern -> stringResource(R.string.feature_ifwrule_impl_condition_component_pattern)
 }
 
 @Composable
@@ -127,7 +127,7 @@ private fun ActionFilterContent(
     OutlinedTextField(
         value = condition.value,
         onValueChange = { onUpdate(condition.copy(value = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_action_label)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_action_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -139,10 +139,10 @@ private fun SourceControlContent(
     onUpdate: (ConditionUiState) -> Unit,
 ) {
     val options = listOf(
-        SourceOption.ALLOW_SYSTEM_ONLY to R.string.feature_ifwrule_source_allow_system,
-        SourceOption.ALLOW_SIGNATURE_ONLY to R.string.feature_ifwrule_source_allow_signature,
-        SourceOption.ALLOW_SYSTEM_OR_SIGNATURE to R.string.feature_ifwrule_source_allow_system_or_sig,
-        SourceOption.BLOCK_SYSTEM to R.string.feature_ifwrule_source_block_system,
+        SourceOption.ALLOW_SYSTEM_ONLY to R.string.feature_ifwrule_impl_source_allow_system,
+        SourceOption.ALLOW_SIGNATURE_ONLY to R.string.feature_ifwrule_impl_source_allow_signature,
+        SourceOption.ALLOW_SYSTEM_OR_SIGNATURE to R.string.feature_ifwrule_impl_source_allow_system_or_sig,
+        SourceOption.BLOCK_SYSTEM to R.string.feature_ifwrule_impl_source_block_system,
     )
     options.forEach { (option, labelRes) ->
         Row(
@@ -202,7 +202,7 @@ private fun CallerAppContent(
         OutlinedTextField(
             value = newPackage,
             onValueChange = { newPackage = it },
-            label = { Text(stringResource(R.string.feature_ifwrule_condition_caller_app)) },
+            label = { Text(stringResource(R.string.feature_ifwrule_impl_condition_caller_app)) },
             modifier = Modifier.weight(1f),
             singleLine = true,
         )
@@ -235,7 +235,7 @@ private fun CallerPermissionContent(
     OutlinedTextField(
         value = condition.permission,
         onValueChange = { onUpdate(condition.copy(permission = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_caller_perm_label)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_caller_perm_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -249,7 +249,7 @@ private fun CallerPermissionContent(
             onClick = { onUpdate(condition.copy(mode = PermissionMode.REQUIRE)) },
         )
         Text(
-            text = stringResource(R.string.feature_ifwrule_perm_require),
+            text = stringResource(R.string.feature_ifwrule_impl_perm_require),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
@@ -263,7 +263,7 @@ private fun CallerPermissionContent(
             onClick = { onUpdate(condition.copy(mode = PermissionMode.BLOCK_WITH)) },
         )
         Text(
-            text = stringResource(R.string.feature_ifwrule_perm_block),
+            text = stringResource(R.string.feature_ifwrule_impl_perm_block),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
@@ -278,7 +278,7 @@ private fun CategoryFilterContent(
     OutlinedTextField(
         value = condition.name,
         onValueChange = { onUpdate(condition.copy(name = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_category_label)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_category_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -292,7 +292,7 @@ private fun LinkFilterContent(
     OutlinedTextField(
         value = condition.scheme,
         onValueChange = { onUpdate(condition.copy(scheme = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_link_scheme_label)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_link_scheme_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -300,7 +300,7 @@ private fun LinkFilterContent(
     OutlinedTextField(
         value = condition.host,
         onValueChange = { onUpdate(condition.copy(host = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_link_host_label)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_link_host_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -313,7 +313,7 @@ private fun LinkFilterContent(
     OutlinedTextField(
         value = condition.path,
         onValueChange = { onUpdate(condition.copy(path = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_link_path_label)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_link_path_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -332,7 +332,7 @@ private fun DataFilterContent(
     OutlinedTextField(
         value = condition.value,
         onValueChange = { onUpdate(condition.copy(value = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_data_label)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_data_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -351,7 +351,7 @@ private fun MimeTypeFilterContent(
     OutlinedTextField(
         value = condition.value,
         onValueChange = { onUpdate(condition.copy(value = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_mime_label)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_mime_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -368,7 +368,7 @@ private fun PortFilterContent(
             onClick = { onUpdate(condition.copy(portMode = PortMode.EXACT)) },
         )
         Text(
-            text = stringResource(R.string.feature_ifwrule_port_exact),
+            text = stringResource(R.string.feature_ifwrule_impl_port_exact),
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -377,7 +377,7 @@ private fun PortFilterContent(
             onClick = { onUpdate(condition.copy(portMode = PortMode.RANGE)) },
         )
         Text(
-            text = stringResource(R.string.feature_ifwrule_port_range),
+            text = stringResource(R.string.feature_ifwrule_impl_port_range),
             style = MaterialTheme.typography.bodyMedium,
         )
     }
@@ -386,7 +386,7 @@ private fun PortFilterContent(
         OutlinedTextField(
             value = condition.equals?.toString() ?: "",
             onValueChange = { onUpdate(condition.copy(equals = it.toIntOrNull())) },
-            label = { Text(stringResource(R.string.feature_ifwrule_port_exact_label)) },
+            label = { Text(stringResource(R.string.feature_ifwrule_impl_port_exact_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -396,7 +396,7 @@ private fun PortFilterContent(
             OutlinedTextField(
                 value = condition.min?.toString() ?: "",
                 onValueChange = { onUpdate(condition.copy(min = it.toIntOrNull())) },
-                label = { Text(stringResource(R.string.feature_ifwrule_port_min_label)) },
+                label = { Text(stringResource(R.string.feature_ifwrule_impl_port_min_label)) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -405,7 +405,7 @@ private fun PortFilterContent(
             OutlinedTextField(
                 value = condition.max?.toString() ?: "",
                 onValueChange = { onUpdate(condition.copy(max = it.toIntOrNull())) },
-                label = { Text(stringResource(R.string.feature_ifwrule_port_max_label)) },
+                label = { Text(stringResource(R.string.feature_ifwrule_impl_port_max_label)) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -420,9 +420,9 @@ private fun ComponentPatternContent(
     onUpdate: (ConditionUiState) -> Unit,
 ) {
     val patternTypes = listOf(
-        ComponentPatternType.COMPONENT to R.string.feature_ifwrule_pattern_component,
-        ComponentPatternType.NAME to R.string.feature_ifwrule_pattern_name,
-        ComponentPatternType.PACKAGE to R.string.feature_ifwrule_pattern_package,
+        ComponentPatternType.COMPONENT to R.string.feature_ifwrule_impl_pattern_component,
+        ComponentPatternType.NAME to R.string.feature_ifwrule_impl_pattern_name,
+        ComponentPatternType.PACKAGE to R.string.feature_ifwrule_impl_pattern_package,
     )
     Row(verticalAlignment = Alignment.CenterVertically) {
         patternTypes.forEach { (type, labelRes) ->
@@ -445,7 +445,7 @@ private fun ComponentPatternContent(
     OutlinedTextField(
         value = condition.value,
         onValueChange = { onUpdate(condition.copy(value = it)) },
-        label = { Text(stringResource(R.string.feature_ifwrule_condition_component_pattern)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_condition_component_pattern)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -458,12 +458,12 @@ private fun MatchModeSelector(
     modifier: Modifier = Modifier,
 ) {
     val modes = listOf(
-        MatchMode.EXACT to R.string.feature_ifwrule_match_exact,
-        MatchMode.STARTS_WITH to R.string.feature_ifwrule_match_starts_with,
-        MatchMode.CONTAINS to R.string.feature_ifwrule_match_contains,
-        MatchMode.PATTERN to R.string.feature_ifwrule_match_pattern,
-        MatchMode.REGEX to R.string.feature_ifwrule_match_regex,
-        MatchMode.IS_NULL to R.string.feature_ifwrule_match_is_null,
+        MatchMode.EXACT to R.string.feature_ifwrule_impl_match_exact,
+        MatchMode.STARTS_WITH to R.string.feature_ifwrule_impl_match_starts_with,
+        MatchMode.CONTAINS to R.string.feature_ifwrule_impl_match_contains,
+        MatchMode.PATTERN to R.string.feature_ifwrule_impl_match_pattern,
+        MatchMode.REGEX to R.string.feature_ifwrule_impl_match_regex,
+        MatchMode.IS_NULL to R.string.feature_ifwrule_impl_match_is_null,
     )
     Column(modifier = modifier) {
         modes.chunked(3).forEach { row ->

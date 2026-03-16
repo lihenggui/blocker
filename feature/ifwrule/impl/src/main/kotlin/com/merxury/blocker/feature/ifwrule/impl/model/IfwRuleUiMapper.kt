@@ -354,7 +354,10 @@ private fun List<ConditionUiState>.mergeRelatedConditions(): List<ConditionUiSta
 
             else -> {
                 // Flush pending link/packages before adding non-link condition
-                pendingLink?.let { result.add(it); pendingLink = null }
+                pendingLink?.let {
+                    result.add(it)
+                    pendingLink = null
+                }
                 if (pendingPackages.isNotEmpty()) {
                     result.add(ConditionUiState.CallerApp(id = callerAppId!!, packageNames = pendingPackages.toList()))
                     pendingPackages.clear()

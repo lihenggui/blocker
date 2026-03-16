@@ -15,89 +15,89 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_ifwrule_title">Interception rules</string>
-    <string name="feature_ifwrule_block_all">Block all calls (fully disable)</string>
-    <string name="feature_ifwrule_block_conditional">Block by condition (fine control)</string>
-    <string name="feature_ifwrule_block_mode">Block mode</string>
-    <string name="feature_ifwrule_conditions">Conditions</string>
-    <string name="feature_ifwrule_combine_all">All match</string>
-    <string name="feature_ifwrule_combine_any">Any match</string>
-    <string name="feature_ifwrule_combine_label">Block when conditions</string>
-    <string name="feature_ifwrule_add_condition">Add condition</string>
-    <string name="feature_ifwrule_save">Save rule</string>
-    <string name="feature_ifwrule_delete_rule">Delete rule</string>
-    <string name="feature_ifwrule_advanced_options">Advanced options</string>
-    <string name="feature_ifwrule_log">Log matches</string>
-    <string name="feature_ifwrule_log_summary">View matched intents in system log</string>
-    <string name="feature_ifwrule_monitor_only">Monitor only (no blocking)</string>
-    <string name="feature_ifwrule_monitor_only_summary">Rule only logs, does not block. Useful for observation before enabling</string>
-    <string name="feature_ifwrule_advanced_rule_banner">Advanced rule (read-only)</string>
-    <string name="feature_ifwrule_advanced_rule_delete">Delete and recreate</string>
-    <string name="feature_ifwrule_save_success">Rule saved</string>
-    <string name="feature_ifwrule_save_error">Failed to save rule</string>
-    <string name="feature_ifwrule_no_root">Root access required</string>
+    <string name="feature_ifwrule_impl_title">Interception rules</string>
+    <string name="feature_ifwrule_impl_block_all">Block all calls (fully disable)</string>
+    <string name="feature_ifwrule_impl_block_conditional">Block by condition (fine control)</string>
+    <string name="feature_ifwrule_impl_block_mode">Block mode</string>
+    <string name="feature_ifwrule_impl_conditions">Conditions</string>
+    <string name="feature_ifwrule_impl_combine_all">All match</string>
+    <string name="feature_ifwrule_impl_combine_any">Any match</string>
+    <string name="feature_ifwrule_impl_combine_label">Block when conditions</string>
+    <string name="feature_ifwrule_impl_add_condition">Add condition</string>
+    <string name="feature_ifwrule_impl_save">Save rule</string>
+    <string name="feature_ifwrule_impl_delete_rule">Delete rule</string>
+    <string name="feature_ifwrule_impl_advanced_options">Advanced options</string>
+    <string name="feature_ifwrule_impl_log">Log matches</string>
+    <string name="feature_ifwrule_impl_log_summary">View matched intents in system log</string>
+    <string name="feature_ifwrule_impl_monitor_only">Monitor only (no blocking)</string>
+    <string name="feature_ifwrule_impl_monitor_only_summary">Rule only logs, does not block. Useful for observation before enabling</string>
+    <string name="feature_ifwrule_impl_advanced_rule_banner">Advanced rule (read-only)</string>
+    <string name="feature_ifwrule_impl_advanced_rule_delete">Delete and recreate</string>
+    <string name="feature_ifwrule_impl_save_success">Rule saved</string>
+    <string name="feature_ifwrule_impl_save_error">Failed to save rule</string>
+    <string name="feature_ifwrule_impl_no_root">Root access required</string>
 
     <!-- Condition type picker -->
-    <string name="feature_ifwrule_condition_action">By trigger action</string>
-    <string name="feature_ifwrule_condition_action_desc">Block when component receives a specific action</string>
-    <string name="feature_ifwrule_condition_source">By caller source</string>
-    <string name="feature_ifwrule_condition_source_desc">Only block or allow calls from specific sources</string>
-    <string name="feature_ifwrule_condition_caller_app">By caller app</string>
-    <string name="feature_ifwrule_condition_caller_app_desc">Block calls from specific apps</string>
-    <string name="feature_ifwrule_condition_caller_permission">By caller permission</string>
-    <string name="feature_ifwrule_condition_caller_permission_desc">Filter by caller\'s permission</string>
-    <string name="feature_ifwrule_condition_category">By category</string>
-    <string name="feature_ifwrule_condition_category_desc">Block by intent category</string>
-    <string name="feature_ifwrule_condition_link">By link content</string>
-    <string name="feature_ifwrule_condition_link_desc">Filter by URL in the intent</string>
-    <string name="feature_ifwrule_condition_data">By data content</string>
-    <string name="feature_ifwrule_condition_data_desc">Filter by intent data URI</string>
-    <string name="feature_ifwrule_condition_mime">By content type</string>
-    <string name="feature_ifwrule_condition_mime_desc">Filter by MIME type</string>
-    <string name="feature_ifwrule_condition_port">By port number</string>
-    <string name="feature_ifwrule_condition_port_desc">Filter by port number in URI</string>
-    <string name="feature_ifwrule_condition_component_pattern">By component name pattern</string>
-    <string name="feature_ifwrule_condition_component_pattern_desc">Match components by name pattern</string>
+    <string name="feature_ifwrule_impl_condition_action">By trigger action</string>
+    <string name="feature_ifwrule_impl_condition_action_desc">Block when component receives a specific action</string>
+    <string name="feature_ifwrule_impl_condition_source">By caller source</string>
+    <string name="feature_ifwrule_impl_condition_source_desc">Only block or allow calls from specific sources</string>
+    <string name="feature_ifwrule_impl_condition_caller_app">By caller app</string>
+    <string name="feature_ifwrule_impl_condition_caller_app_desc">Block calls from specific apps</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission">By caller permission</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission_desc">Filter by caller\'s permission</string>
+    <string name="feature_ifwrule_impl_condition_category">By category</string>
+    <string name="feature_ifwrule_impl_condition_category_desc">Block by intent category</string>
+    <string name="feature_ifwrule_impl_condition_link">By link content</string>
+    <string name="feature_ifwrule_impl_condition_link_desc">Filter by URL in the intent</string>
+    <string name="feature_ifwrule_impl_condition_data">By data content</string>
+    <string name="feature_ifwrule_impl_condition_data_desc">Filter by intent data URI</string>
+    <string name="feature_ifwrule_impl_condition_mime">By content type</string>
+    <string name="feature_ifwrule_impl_condition_mime_desc">Filter by MIME type</string>
+    <string name="feature_ifwrule_impl_condition_port">By port number</string>
+    <string name="feature_ifwrule_impl_condition_port_desc">Filter by port number in URI</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern">By component name pattern</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern_desc">Match components by name pattern</string>
 
     <!-- Condition card labels -->
-    <string name="feature_ifwrule_action_label">When trigger action is</string>
-    <string name="feature_ifwrule_source_label">Caller source control</string>
-    <string name="feature_ifwrule_caller_app_label">Block calls from these apps</string>
-    <string name="feature_ifwrule_caller_perm_label">Caller permission filter</string>
-    <string name="feature_ifwrule_category_label">Intent category</string>
-    <string name="feature_ifwrule_link_host_label">Domain</string>
-    <string name="feature_ifwrule_link_path_label">Path</string>
-    <string name="feature_ifwrule_link_scheme_label">Protocol</string>
-    <string name="feature_ifwrule_data_label">Data content</string>
-    <string name="feature_ifwrule_mime_label">Content type</string>
-    <string name="feature_ifwrule_port_exact_label">Port number</string>
-    <string name="feature_ifwrule_port_min_label">Min port</string>
-    <string name="feature_ifwrule_port_max_label">Max port</string>
+    <string name="feature_ifwrule_impl_action_label">When trigger action is</string>
+    <string name="feature_ifwrule_impl_source_label">Caller source control</string>
+    <string name="feature_ifwrule_impl_caller_app_label">Block calls from these apps</string>
+    <string name="feature_ifwrule_impl_caller_perm_label">Caller permission filter</string>
+    <string name="feature_ifwrule_impl_category_label">Intent category</string>
+    <string name="feature_ifwrule_impl_link_host_label">Domain</string>
+    <string name="feature_ifwrule_impl_link_path_label">Path</string>
+    <string name="feature_ifwrule_impl_link_scheme_label">Protocol</string>
+    <string name="feature_ifwrule_impl_data_label">Data content</string>
+    <string name="feature_ifwrule_impl_mime_label">Content type</string>
+    <string name="feature_ifwrule_impl_port_exact_label">Port number</string>
+    <string name="feature_ifwrule_impl_port_min_label">Min port</string>
+    <string name="feature_ifwrule_impl_port_max_label">Max port</string>
 
     <!-- Source control options -->
-    <string name="feature_ifwrule_source_allow_system">Allow system process only</string>
-    <string name="feature_ifwrule_source_allow_signature">Allow same-signature apps only</string>
-    <string name="feature_ifwrule_source_allow_system_or_sig">Allow system or same-signature only</string>
-    <string name="feature_ifwrule_source_block_system">Block system process calls</string>
+    <string name="feature_ifwrule_impl_source_allow_system">Allow system process only</string>
+    <string name="feature_ifwrule_impl_source_allow_signature">Allow same-signature apps only</string>
+    <string name="feature_ifwrule_impl_source_allow_system_or_sig">Allow system or same-signature only</string>
+    <string name="feature_ifwrule_impl_source_block_system">Block system process calls</string>
 
     <!-- Permission mode options -->
-    <string name="feature_ifwrule_perm_require">Only allow callers with this permission</string>
-    <string name="feature_ifwrule_perm_block">Block callers with this permission</string>
+    <string name="feature_ifwrule_impl_perm_require">Only allow callers with this permission</string>
+    <string name="feature_ifwrule_impl_perm_block">Block callers with this permission</string>
 
     <!-- Match modes -->
-    <string name="feature_ifwrule_match_exact">Exact match</string>
-    <string name="feature_ifwrule_match_starts_with">Starts with</string>
-    <string name="feature_ifwrule_match_contains">Contains</string>
-    <string name="feature_ifwrule_match_pattern">Wildcard pattern</string>
-    <string name="feature_ifwrule_match_regex">Regular expression</string>
-    <string name="feature_ifwrule_match_is_null">Is empty</string>
+    <string name="feature_ifwrule_impl_match_exact">Exact match</string>
+    <string name="feature_ifwrule_impl_match_starts_with">Starts with</string>
+    <string name="feature_ifwrule_impl_match_contains">Contains</string>
+    <string name="feature_ifwrule_impl_match_pattern">Wildcard pattern</string>
+    <string name="feature_ifwrule_impl_match_regex">Regular expression</string>
+    <string name="feature_ifwrule_impl_match_is_null">Is empty</string>
 
     <!-- Port modes -->
-    <string name="feature_ifwrule_port_exact">Exact</string>
-    <string name="feature_ifwrule_port_range">Range</string>
+    <string name="feature_ifwrule_impl_port_exact">Exact</string>
+    <string name="feature_ifwrule_impl_port_range">Range</string>
 
     <!-- Component pattern types -->
-    <string name="feature_ifwrule_pattern_component">Full component name</string>
-    <string name="feature_ifwrule_pattern_name">Class name</string>
-    <string name="feature_ifwrule_pattern_package">Package name</string>
+    <string name="feature_ifwrule_impl_pattern_component">Full component name</string>
+    <string name="feature_ifwrule_impl_pattern_name">Class name</string>
+    <string name="feature_ifwrule_impl_pattern_package">Package name</string>
 </resources>
