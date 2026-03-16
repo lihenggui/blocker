@@ -137,7 +137,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
                     if (ifwRules.isEmpty()) return@mapNotNull null
                     val appLabel = resolveAppLabel(packageName)
                     val ruleItems = ifwRules.rules.mapIndexed { index, rule ->
-                        rule.toRuleItemUiState(index)
+                        rule.toRuleItemUiState(index, packageName)
                     }
                     PackageRuleGroup(
                         packageName = packageName,
@@ -160,8 +160,8 @@ class GlobalIfwRuleViewModel @Inject constructor(
         null
     }
 
-    private fun IfwRule.toRuleItemUiState(index: Int): RuleItemUiState {
-        val filtersSummary = filters.joinToString("\n") { it.toSummary() }
+    private fun IfwRule.toRuleItemUiState(index: Int, packageName: String): RuleItemUiState {
+        val filtersSummary = filters.joinToString("\n") { it.toDisplaySummary(packageName) }
         return RuleItemUiState(
             componentType = componentType,
             block = block,
@@ -170,6 +170,21 @@ class GlobalIfwRuleViewModel @Inject constructor(
             filters = filters,
             ruleIndex = index,
         )
+    }
+
+    private fun IfwFilter.toDisplaySummary(packageName: String): String = when (this) {
+        is IfwFilter.ComponentFilter -> {
+            val compName = name.substringAfter("/")
+            if (compName.startsWith(packageName)) {
+                compName.removePrefix(packageName)
+            } else {
+                compName
+            }
+        }
+        is IfwFilter.And -> filters.joinToString(" AND ") { it.toDisplaySummary(packageName) }
+        is IfwFilter.Or -> filters.joinToString(" OR ") { it.toDisplaySummary(packageName) }
+        is IfwFilter.Not -> "NOT (${filter.toDisplaySummary(packageName)})"
+        else -> toSummary()
     }
 }
 

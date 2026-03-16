@@ -16,6 +16,10 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl.navigation
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,37 +34,57 @@ import com.merxury.blocker.feature.globalifwrule.impl.AddRuleScreen
 import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleScreen
 import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleViewModel
 
+private enum class ScreenState { LIST, EDIT }
+
 fun EntryProviderScope<NavKey>.globalIfwRuleEntry(navigator: Navigator) {
     entry<GlobalIfwRuleNavKey> { _ ->
         val viewModel: GlobalIfwRuleViewModel = hiltViewModel()
-        var showAddRule by remember { mutableStateOf(false) }
         var editingData: AddRuleData? by remember { mutableStateOf(null) }
+        var screenState by remember { mutableStateOf(ScreenState.LIST) }
 
-        if (showAddRule || editingData != null) {
-            AddRuleScreen(
-                initialData = editingData,
-                onSave = { data ->
-                    if (data.editingRuleIndex != null) {
-                        viewModel.updateRule(data)
-                    } else {
-                        viewModel.saveNewRule(data)
-                    }
-                    showAddRule = false
-                    editingData = null
-                },
-                onBack = {
-                    showAddRule = false
-                    editingData = null
-                },
-            )
-        } else {
-            GlobalIfwRuleScreen(
-                onAddRuleClick = { showAddRule = true },
-                onEditRuleClick = { packageName, ruleIndex ->
-                    editingData = viewModel.getRuleForEdit(packageName, ruleIndex)
-                },
-                viewModel = viewModel,
-            )
+        AnimatedContent(
+            targetState = screenState,
+            transitionSpec = {
+                if (targetState == ScreenState.EDIT) {
+                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                } else {
+                    slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                }
+            },
+            label = "globalIfwRuleTransition",
+        ) { state ->
+            when (state) {
+                ScreenState.LIST -> {
+                    GlobalIfwRuleScreen(
+                        onAddRuleClick = {
+                            editingData = null
+                            screenState = ScreenState.EDIT
+                        },
+                        onEditRuleClick = { packageName, ruleIndex ->
+                            editingData = viewModel.getRuleForEdit(packageName, ruleIndex)
+                            screenState = ScreenState.EDIT
+                        },
+                        viewModel = viewModel,
+                    )
+                }
+
+                ScreenState.EDIT -> {
+                    AddRuleScreen(
+                        initialData = editingData,
+                        onSave = { data ->
+                            if (data.editingRuleIndex != null) {
+                                viewModel.updateRule(data)
+                            } else {
+                                viewModel.saveNewRule(data)
+                            }
+                            screenState = ScreenState.LIST
+                        },
+                        onBack = {
+                            screenState = ScreenState.LIST
+                        },
+                    )
+                }
+            }
         }
     }
 }

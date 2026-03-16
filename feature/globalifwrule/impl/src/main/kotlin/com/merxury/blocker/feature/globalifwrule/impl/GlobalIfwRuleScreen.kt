@@ -16,12 +16,12 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,20 +29,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -54,6 +52,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -198,8 +198,8 @@ private fun RuleListContent(
                 RuleItem(
                     packageName = group.packageName,
                     rule = rule,
-                    onEditRuleClick = onEditRuleClick,
-                    onDeleteRule = onDeleteRule,
+                    onClick = { onEditRuleClick(group.packageName, rule.ruleIndex) },
+                    onDelete = { onDeleteRule(group.packageName, rule.ruleIndex) },
                 )
             }
             item(key = "divider_${group.packageName}") {
@@ -240,78 +240,83 @@ private fun PackageHeader(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun RuleItem(
     packageName: String,
     rule: RuleItemUiState,
-    onEditRuleClick: (String, Int) -> Unit,
-    onDeleteRule: (String, Int) -> Unit,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showMenu by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
 
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onEditRuleClick(packageName, rule.ruleIndex) }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    showMenu = true
+                },
+            )
+            .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AssistChip(
+                onClick = { },
+                label = {
+                    Text(
+                        text = rule.componentType.xmlTag,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                },
+            )
+            if (rule.block) {
                 AssistChip(
                     onClick = { },
                     label = {
                         Text(
-                            text = rule.componentType.xmlTag,
+                            text = stringResource(R.string.feature_globalifwrule_impl_block),
                             style = MaterialTheme.typography.labelSmall,
                         )
                     },
                 )
-                if (rule.block) {
-                    AssistChip(
-                        onClick = { },
-                        label = {
-                            Text(
-                                text = stringResource(R.string.feature_globalifwrule_impl_block),
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        },
-                    )
-                }
-                if (rule.log) {
-                    AssistChip(
-                        onClick = { },
-                        label = {
-                            Text(
-                                text = stringResource(R.string.feature_globalifwrule_impl_log),
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        },
-                    )
-                }
             }
-            if (rule.filtersSummary.isNotBlank()) {
-                Text(
-                    text = rule.filtersSummary,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
+            if (rule.log) {
+                AssistChip(
+                    onClick = { },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.feature_globalifwrule_impl_log),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    },
                 )
             }
         }
-        IconButton(onClick = { onEditRuleClick(packageName, rule.ruleIndex) }) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = stringResource(R.string.feature_globalifwrule_impl_edit_rule),
+        if (rule.filtersSummary.isNotBlank()) {
+            Text(
+                text = rule.filtersSummary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
-        IconButton(onClick = { showDeleteDialog = true }) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = stringResource(R.string.feature_globalifwrule_impl_delete_rule),
-                tint = MaterialTheme.colorScheme.error,
+
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.feature_globalifwrule_impl_delete_rule)) },
+                onClick = {
+                    showMenu = false
+                    showDeleteDialog = true
+                },
             )
         }
     }
@@ -320,7 +325,7 @@ private fun RuleItem(
         DeleteConfirmationDialog(
             onConfirm = {
                 showDeleteDialog = false
-                onDeleteRule(packageName, rule.ruleIndex)
+                onDelete()
             },
             onDismiss = { showDeleteDialog = false },
         )

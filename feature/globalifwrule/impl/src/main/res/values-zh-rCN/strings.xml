@@ -10,7 +10,7 @@
     <string name="feature_globalifwrule_impl_cancel">取消</string>
     <string name="feature_globalifwrule_impl_delete">删除</string>
     <string name="feature_globalifwrule_impl_rule_type">规则类型</string>
-    <string name="feature_globalifwrule_impl_block">阻断</string>
+    <string name="feature_globalifwrule_impl_block">阻止</string>
     <string name="feature_globalifwrule_impl_log">记录日志</string>
     <string name="feature_globalifwrule_impl_conditions">拦截条件</string>
     <string name="feature_globalifwrule_impl_combine_all">全部满足</string>
