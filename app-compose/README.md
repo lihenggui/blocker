@@ -33,15 +33,15 @@ graph TB
       :feature:globalifwrule:api[api]:::android-library
       :feature:globalifwrule:impl[impl]:::android-library
     end
-    subgraph :feature:search
-      direction TB
-      :feature:search:api[api]:::android-library
-      :feature:search:impl[impl]:::android-library
-    end
     subgraph :feature:ifwrule
       direction TB
       :feature:ifwrule:api[api]:::android-library
       :feature:ifwrule:impl[impl]:::android-library
+    end
+    subgraph :feature:search
+      direction TB
+      :feature:search:api[api]:::android-library
+      :feature:search:impl[impl]:::android-library
     end
     subgraph :feature:settings
       direction TB
@@ -162,7 +162,6 @@ graph TB
   :feature:appdetail:impl -.-> :core:rule
   :feature:appdetail:impl -.-> :core:ui
   :feature:appdetail:impl -.-> :feature:appdetail:api
-  :feature:appdetail:impl -.-> :feature:ifwrule:api
   :feature:appdetail:impl -.-> :feature:ruledetail:api
   :feature:applist:api --> :core:navigation
   :feature:applist:api -.-> :core:ui
