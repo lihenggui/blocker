@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2025 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="feature_ifwrule_title">拦截规则</string>
+    <string name="feature_ifwrule_block_all">阻止所有调用（完全禁用）</string>
+    <string name="feature_ifwrule_block_conditional">按条件拦截（精细控制）</string>
+    <string name="feature_ifwrule_block_mode">拦截方式</string>
+    <string name="feature_ifwrule_conditions">拦截条件</string>
+    <string name="feature_ifwrule_combine_all">全部满足</string>
+    <string name="feature_ifwrule_combine_any">任一满足</string>
+    <string name="feature_ifwrule_combine_label">当以下条件满足时拦截</string>
+    <string name="feature_ifwrule_add_condition">添加条件</string>
+    <string name="feature_ifwrule_save">保存规则</string>
+    <string name="feature_ifwrule_delete_rule">删除规则</string>
+    <string name="feature_ifwrule_advanced_options">高级选项</string>
+    <string name="feature_ifwrule_log">记录日志</string>
+    <string name="feature_ifwrule_log_summary">开启后可在系统日志中查看匹配记录</string>
+    <string name="feature_ifwrule_monitor_only">仅记录不阻断</string>
+    <string name="feature_ifwrule_monitor_only_summary">开启后规则只记录不实际拦截，适合先观察再决定</string>
+    <string name="feature_ifwrule_advanced_rule_banner">高级规则（只读）</string>
+    <string name="feature_ifwrule_advanced_rule_delete">删除并重新创建</string>
+    <string name="feature_ifwrule_save_success">规则已保存</string>
+    <string name="feature_ifwrule_save_error">保存规则失败</string>
+    <string name="feature_ifwrule_no_root">需要Root权限</string>
+
+    <string name="feature_ifwrule_condition_action">按触发动作</string>
+    <string name="feature_ifwrule_condition_action_desc">当组件收到特定动作时拦截</string>
+    <string name="feature_ifwrule_condition_source">按调用来源</string>
+    <string name="feature_ifwrule_condition_source_desc">只拦截或只允许特定来源的调用</string>
+    <string name="feature_ifwrule_condition_caller_app">按调用者应用</string>
+    <string name="feature_ifwrule_condition_caller_app_desc">拦截来自特定应用的调用</string>
+    <string name="feature_ifwrule_condition_caller_permission">按调用者权限</string>
+    <string name="feature_ifwrule_condition_caller_permission_desc">根据调用者是否持有特定权限来拦截</string>
+    <string name="feature_ifwrule_condition_category">按分类</string>
+    <string name="feature_ifwrule_condition_category_desc">根据 Intent 分类拦截</string>
+    <string name="feature_ifwrule_condition_link">按链接内容</string>
+    <string name="feature_ifwrule_condition_link_desc">根据 Intent 携带的链接信息拦截</string>
+    <string name="feature_ifwrule_condition_data">按数据内容</string>
+    <string name="feature_ifwrule_condition_data_desc">根据 Intent 的 data 过滤</string>
+    <string name="feature_ifwrule_condition_mime">按内容类型</string>
+    <string name="feature_ifwrule_condition_mime_desc">按 MIME 类型过滤</string>
+    <string name="feature_ifwrule_condition_port">按端口号</string>
+    <string name="feature_ifwrule_condition_port_desc">拦截访问特定端口的 Intent</string>
+    <string name="feature_ifwrule_condition_component_pattern">按组件名模式</string>
+    <string name="feature_ifwrule_condition_component_pattern_desc">匹配组件名包含特定关键字</string>
+
+    <string name="feature_ifwrule_action_label">当触发动作为</string>
+    <string name="feature_ifwrule_source_label">调用来源控制</string>
+    <string name="feature_ifwrule_caller_app_label">拦截来自以下应用的调用</string>
+    <string name="feature_ifwrule_caller_perm_label">调用者权限过滤</string>
+    <string name="feature_ifwrule_category_label">Intent 分类</string>
+    <string name="feature_ifwrule_link_host_label">域名</string>
+    <string name="feature_ifwrule_link_path_label">路径</string>
+    <string name="feature_ifwrule_link_scheme_label">协议</string>
+    <string name="feature_ifwrule_data_label">数据内容</string>
+    <string name="feature_ifwrule_mime_label">内容类型</string>
+    <string name="feature_ifwrule_port_exact_label">端口号</string>
+    <string name="feature_ifwrule_port_min_label">最小端口</string>
+    <string name="feature_ifwrule_port_max_label">最大端口</string>
+
+    <string name="feature_ifwrule_source_allow_system">只允许系统进程调用</string>
+    <string name="feature_ifwrule_source_allow_signature">只允许同签名应用调用</string>
+    <string name="feature_ifwrule_source_allow_system_or_sig">只允许系统或同签名应用调用</string>
+    <string name="feature_ifwrule_source_block_system">阻止系统进程调用</string>
+
+    <string name="feature_ifwrule_perm_require">只允许持有此权限的应用调用</string>
+    <string name="feature_ifwrule_perm_block">阻止持有此权限的应用调用</string>
+
+    <string name="feature_ifwrule_match_exact">精确匹配</string>
+    <string name="feature_ifwrule_match_starts_with">以…开头</string>
+    <string name="feature_ifwrule_match_contains">包含</string>
+    <string name="feature_ifwrule_match_pattern">通配符匹配</string>
+    <string name="feature_ifwrule_match_regex">正则表达式</string>
+    <string name="feature_ifwrule_match_is_null">为空</string>
+
+    <string name="feature_ifwrule_port_exact">精确匹配</string>
+    <string name="feature_ifwrule_port_range">范围</string>
+
+    <string name="feature_ifwrule_pattern_component">完整组件名</string>
+    <string name="feature_ifwrule_pattern_name">类名</string>
+    <string name="feature_ifwrule_pattern_package">包名</string>
+</resources>
