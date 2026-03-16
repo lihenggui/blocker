@@ -18,10 +18,6 @@ graph TB
       :feature:appdetail:api[api]:::android-library
       :feature:appdetail:impl[impl]:::android-library
     end
-    subgraph :feature:ifwrule
-      direction TB
-      :feature:ifwrule:api[api]:::android-library
-    end
     subgraph :feature:ruledetail
       direction TB
       :feature:ruledetail:api[api]:::android-library
@@ -87,10 +83,7 @@ graph TB
   :feature:appdetail:impl -.-> :core:rule
   :feature:appdetail:impl -.-> :core:ui
   :feature:appdetail:impl -.-> :feature:appdetail:api
-  :feature:appdetail:impl -.-> :feature:ifwrule:api
   :feature:appdetail:impl -.-> :feature:ruledetail:api
-  :feature:ifwrule:api --> :core:navigation
-  :feature:ifwrule:api -.-> :core:ui
   :feature:ruledetail:api --> :core:navigation
   :feature:ruledetail:api -.-> :core:ui
 

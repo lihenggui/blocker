@@ -72,6 +72,7 @@ import com.merxury.blocker.feature.applist.impl.navigation.appListEntry
 import com.merxury.blocker.feature.debloater.impl.navigation.debloaterEntry
 import com.merxury.blocker.feature.generalrule.impl.navigation.generalRuleEntry
 import com.merxury.blocker.feature.globalifwrule.impl.navigation.globalIfwRuleEntry
+import com.merxury.blocker.feature.ifwrule.api.navigation.navigateToIfwRuleEditor
 import com.merxury.blocker.feature.ifwrule.impl.navigation.ifwRuleEditorEntry
 import com.merxury.blocker.feature.impl.helpandfeedback.navigation.supportAndFeedbackEntry
 import com.merxury.blocker.feature.impl.licenses.navigation.licensesEntry
@@ -215,9 +216,15 @@ internal fun BlockerApp(
 
                 val entryProvider = entryProvider {
                     appListEntry(navigator)
-                    appDetailEntry(navigator, updateIconThemingState)
+                    appDetailEntry(
+                        navigator = navigator,
+                        updateIconThemingState = updateIconThemingState,
+                        navigateToIfwRuleEditor = { packageName, componentName, componentType ->
+                            navigator.navigateToIfwRuleEditor(packageName, componentName, componentType)
+                        },
+                    )
                     generalRuleEntry(navigator)
-                    globalIfwRuleEntry(navigator)
+                    globalIfwRuleEntry()
                     ifwRuleEditorEntry(navigator)
                     ruleDetailEntry(navigator)
                     debloaterEntry()

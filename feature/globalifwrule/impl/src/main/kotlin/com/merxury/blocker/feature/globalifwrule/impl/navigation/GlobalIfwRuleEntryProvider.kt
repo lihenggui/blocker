@@ -20,32 +20,25 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.feature.globalifwrule.api.navigation.GlobalIfwRuleNavKey
-import com.merxury.blocker.feature.globalifwrule.impl.AddRuleData
 import com.merxury.blocker.feature.globalifwrule.impl.AddRuleScreen
 import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleScreen
+import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleScreenState
 import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleViewModel
 
-private enum class ScreenState { LIST, EDIT }
-
-fun EntryProviderScope<NavKey>.globalIfwRuleEntry(navigator: Navigator) {
+fun EntryProviderScope<NavKey>.globalIfwRuleEntry() {
     entry<GlobalIfwRuleNavKey> { _ ->
         val viewModel: GlobalIfwRuleViewModel = hiltViewModel()
-        var editingData: AddRuleData? by remember { mutableStateOf(null) }
-        var screenState by remember { mutableStateOf(ScreenState.LIST) }
+        val editorState = viewModel.editorState.collectAsStateWithLifecycle()
 
         AnimatedContent(
-            targetState = screenState,
+            targetState = editorState.value.screen,
             transitionSpec = {
-                if (targetState == ScreenState.EDIT) {
+                if (targetState == GlobalIfwRuleScreenState.EDIT) {
                     slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
                 } else {
                     slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
@@ -54,34 +47,19 @@ fun EntryProviderScope<NavKey>.globalIfwRuleEntry(navigator: Navigator) {
             label = "globalIfwRuleTransition",
         ) { state ->
             when (state) {
-                ScreenState.LIST -> {
+                GlobalIfwRuleScreenState.LIST -> {
                     GlobalIfwRuleScreen(
-                        onAddRuleClick = {
-                            editingData = null
-                            screenState = ScreenState.EDIT
-                        },
-                        onEditRuleClick = { packageName, ruleIndex ->
-                            editingData = viewModel.getRuleForEdit(packageName, ruleIndex)
-                            screenState = ScreenState.EDIT
-                        },
+                        onAddRuleClick = viewModel::startAddingRule,
+                        onEditRuleClick = viewModel::startEditingRule,
                         viewModel = viewModel,
                     )
                 }
 
-                ScreenState.EDIT -> {
+                GlobalIfwRuleScreenState.EDIT -> {
                     AddRuleScreen(
-                        initialData = editingData,
-                        onSave = { data ->
-                            if (data.editingRuleIndex != null) {
-                                viewModel.updateRule(data)
-                            } else {
-                                viewModel.saveNewRule(data)
-                            }
-                            screenState = ScreenState.LIST
-                        },
-                        onBack = {
-                            screenState = ScreenState.LIST
-                        },
+                        initialData = editorState.value.editingData,
+                        onSave = viewModel::saveRule,
+                        onBack = viewModel::dismissEditor,
                     )
                 }
             }

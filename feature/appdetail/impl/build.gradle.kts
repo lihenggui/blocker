@@ -27,7 +27,6 @@ android {
 }
 dependencies {
     implementation(projects.feature.appdetail.api)
-    implementation(projects.feature.ifwrule.api)
     implementation(projects.feature.ruledetail.api)
     implementation(projects.core.componentController)
     implementation(projects.core.data)

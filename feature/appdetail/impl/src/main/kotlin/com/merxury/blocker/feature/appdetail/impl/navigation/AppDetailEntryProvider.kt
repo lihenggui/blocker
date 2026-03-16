@@ -28,13 +28,13 @@ import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
 import com.merxury.blocker.feature.appdetail.impl.AppDetailScreen
 import com.merxury.blocker.feature.appdetail.impl.AppDetailViewModel
-import com.merxury.blocker.feature.ifwrule.api.navigation.navigateToIfwRuleEditor
 import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetail
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.appDetailEntry(
     navigator: Navigator,
     updateIconThemingState: (IconThemingState) -> Unit,
+    navigateToIfwRuleEditor: (String, String, String) -> Unit,
 ) {
     entry<AppDetailNavKey>(
         metadata = ListDetailSceneStrategy.detailPane(),
@@ -54,7 +54,7 @@ fun EntryProviderScope<NavKey>.appDetailEntry(
                     ComponentType.ACTIVITY -> "activity"
                     else -> return@AppDetailScreen
                 }
-                navigator.navigateToIfwRuleEditor(packageName, componentName, ifwTag)
+                navigateToIfwRuleEditor(packageName, componentName, ifwTag)
             },
             viewModel = hiltViewModel<AppDetailViewModel, AppDetailViewModel.Factory>(
                 key = packageName,

@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.globalifwrule.impl
 
 import android.content.pm.PackageManager
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.core.ifw.IIntentFirewall
@@ -38,10 +39,27 @@ import javax.inject.Inject
 class GlobalIfwRuleViewModel @Inject constructor(
     private val intentFirewall: IIntentFirewall,
     private val packageManager: PackageManager,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    private companion object {
+        const val EDITOR_VISIBLE_KEY = "editor_visible"
+        const val EDITING_PACKAGE_NAME_KEY = "editing_package_name"
+        const val EDITING_RULE_INDEX_KEY = "editing_rule_index"
+    }
 
     private val _uiState = MutableStateFlow<GlobalIfwRuleUiState>(GlobalIfwRuleUiState.Loading)
     val uiState: StateFlow<GlobalIfwRuleUiState> = _uiState.asStateFlow()
+
+    private val _editorState = MutableStateFlow(
+        GlobalIfwRuleEditorUiState(
+            screen = if (savedStateHandle.get<Boolean>(EDITOR_VISIBLE_KEY) == true) {
+                GlobalIfwRuleScreenState.EDIT
+            } else {
+                GlobalIfwRuleScreenState.LIST
+            },
+        ),
+    )
+    val editorState: StateFlow<GlobalIfwRuleEditorUiState> = _editorState.asStateFlow()
 
     init {
         loadAllRules()
@@ -51,7 +69,43 @@ class GlobalIfwRuleViewModel @Inject constructor(
         loadAllRules()
     }
 
-    fun saveNewRule(data: AddRuleData) {
+    fun startAddingRule() {
+        savedStateHandle[EDITOR_VISIBLE_KEY] = true
+        savedStateHandle[EDITING_PACKAGE_NAME_KEY] = null
+        savedStateHandle[EDITING_RULE_INDEX_KEY] = null
+        _editorState.value = GlobalIfwRuleEditorUiState(
+            screen = GlobalIfwRuleScreenState.EDIT,
+            editingData = null,
+        )
+    }
+
+    fun startEditingRule(packageName: String, ruleIndex: Int) {
+        val editingData = getRuleForEdit(packageName, ruleIndex) ?: return
+        savedStateHandle[EDITOR_VISIBLE_KEY] = true
+        savedStateHandle[EDITING_PACKAGE_NAME_KEY] = packageName
+        savedStateHandle[EDITING_RULE_INDEX_KEY] = ruleIndex
+        _editorState.value = GlobalIfwRuleEditorUiState(
+            screen = GlobalIfwRuleScreenState.EDIT,
+            editingData = editingData,
+        )
+    }
+
+    fun dismissEditor() {
+        savedStateHandle[EDITOR_VISIBLE_KEY] = false
+        savedStateHandle[EDITING_PACKAGE_NAME_KEY] = null
+        savedStateHandle[EDITING_RULE_INDEX_KEY] = null
+        _editorState.value = GlobalIfwRuleEditorUiState()
+    }
+
+    fun saveRule(data: AddRuleData) {
+        if (data.editingRuleIndex != null) {
+            updateRule(data)
+        } else {
+            saveNewRule(data)
+        }
+    }
+
+    private fun saveNewRule(data: AddRuleData) {
         viewModelScope.launch {
             try {
                 val filters = data.conditions.mapNotNull { it.toIfwFilter() }
@@ -64,6 +118,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
                 val currentRules = intentFirewall.getRules(data.packageName)
                 val updatedRules = IfwRules(currentRules.rules + newRule)
                 intentFirewall.saveRules(data.packageName, updatedRules)
+                dismissEditor()
                 loadAllRules()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to save new rule for ${data.packageName}")
@@ -87,7 +142,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
         )
     }
 
-    fun updateRule(data: AddRuleData) {
+    private fun updateRule(data: AddRuleData) {
         viewModelScope.launch {
             try {
                 val ruleIndex = data.editingRuleIndex ?: return@launch
@@ -104,6 +159,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
                     updatedRules[ruleIndex] = newRule
                 }
                 intentFirewall.saveRules(data.packageName, IfwRules(updatedRules))
+                dismissEditor()
                 loadAllRules()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update rule for ${data.packageName}")
@@ -146,11 +202,47 @@ class GlobalIfwRuleViewModel @Inject constructor(
                     )
                 }.sortedBy { it.appLabel ?: it.packageName }
                 _uiState.value = GlobalIfwRuleUiState.Success(groups)
+                restoreEditorState(groups)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load all IFW rules")
                 _uiState.value = GlobalIfwRuleUiState.Error(e.message ?: "Unknown error")
             }
         }
+    }
+
+    private fun restoreEditorState(groups: List<PackageRuleGroup>) {
+        if (savedStateHandle.get<Boolean>(EDITOR_VISIBLE_KEY) != true) return
+
+        val editingPackageName = savedStateHandle.get<String>(EDITING_PACKAGE_NAME_KEY)
+        val editingRuleIndex = savedStateHandle.get<Int>(EDITING_RULE_INDEX_KEY)
+
+        if (editingPackageName == null || editingRuleIndex == null) {
+            _editorState.value = GlobalIfwRuleEditorUiState(
+                screen = GlobalIfwRuleScreenState.EDIT,
+                editingData = null,
+            )
+            return
+        }
+
+        val group = groups.find { it.packageName == editingPackageName }
+        val ruleItem = group?.rules?.find { it.ruleIndex == editingRuleIndex }
+
+        if (ruleItem == null) {
+            dismissEditor()
+            return
+        }
+
+        _editorState.value = GlobalIfwRuleEditorUiState(
+            screen = GlobalIfwRuleScreenState.EDIT,
+            editingData = AddRuleData(
+                packageName = editingPackageName,
+                componentType = ruleItem.componentType,
+                block = ruleItem.block,
+                log = ruleItem.log,
+                conditions = ruleItem.filters.map { filter -> filter.toSimpleCondition() },
+                editingRuleIndex = editingRuleIndex,
+            ),
+        )
     }
 
     private fun resolveAppLabel(packageName: String): String? = try {
@@ -208,6 +300,16 @@ data class RuleItemUiState(
     val filters: List<IfwFilter>,
     val ruleIndex: Int,
 )
+
+data class GlobalIfwRuleEditorUiState(
+    val screen: GlobalIfwRuleScreenState = GlobalIfwRuleScreenState.LIST,
+    val editingData: AddRuleData? = null,
+)
+
+enum class GlobalIfwRuleScreenState {
+    LIST,
+    EDIT,
+}
 
 private fun IfwFilter.toSimpleCondition(): SimpleCondition = when (this) {
     is IfwFilter.ComponentFilter -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, name)
