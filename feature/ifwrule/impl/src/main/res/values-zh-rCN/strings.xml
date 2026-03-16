@@ -66,16 +66,21 @@
     <string name="feature_ifwrule_impl_link_host_label">域名</string>
     <string name="feature_ifwrule_impl_link_path_label">路径</string>
     <string name="feature_ifwrule_impl_link_scheme_label">协议</string>
+    <string name="feature_ifwrule_impl_link_ssp_label">协议专属部分</string>
     <string name="feature_ifwrule_impl_data_label">数据内容</string>
     <string name="feature_ifwrule_impl_mime_label">内容类型</string>
     <string name="feature_ifwrule_impl_port_exact_label">端口号</string>
     <string name="feature_ifwrule_impl_port_min_label">最小端口</string>
     <string name="feature_ifwrule_impl_port_max_label">最大端口</string>
 
+    <string name="feature_ifwrule_impl_source_allow_user_id">只允许同用户 ID 调用</string>
     <string name="feature_ifwrule_impl_source_allow_system">只允许系统进程调用</string>
     <string name="feature_ifwrule_impl_source_allow_signature">只允许同签名应用调用</string>
     <string name="feature_ifwrule_impl_source_allow_system_or_sig">只允许系统或同签名应用调用</string>
+    <string name="feature_ifwrule_impl_source_block_user_id">阻止同用户 ID 调用</string>
     <string name="feature_ifwrule_impl_source_block_system">阻止系统进程调用</string>
+    <string name="feature_ifwrule_impl_source_block_signature">阻止同签名应用调用</string>
+    <string name="feature_ifwrule_impl_source_block_system_or_sig">阻止系统或同签名应用调用</string>
 
     <string name="feature_ifwrule_impl_perm_require">只允许持有此权限的应用调用</string>
     <string name="feature_ifwrule_impl_perm_block">阻止持有此权限的应用调用</string>
@@ -86,6 +91,7 @@
     <string name="feature_ifwrule_impl_match_pattern">通配符匹配</string>
     <string name="feature_ifwrule_impl_match_regex">正则表达式</string>
     <string name="feature_ifwrule_impl_match_is_null">为空</string>
+    <string name="feature_ifwrule_impl_match_is_not_null">不为空</string>
 
     <string name="feature_ifwrule_impl_port_exact">精确匹配</string>
     <string name="feature_ifwrule_impl_port_range">范围</string>

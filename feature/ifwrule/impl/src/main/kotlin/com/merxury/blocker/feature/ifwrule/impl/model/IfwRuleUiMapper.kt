@@ -61,9 +61,23 @@ private fun ConditionUiState.toIfwFilters(): List<IfwFilter> = when (this) {
     is ConditionUiState.CategoryFilter -> listOf(IfwFilter.Category(name))
 
     is ConditionUiState.LinkFilter -> buildList {
-        if (host.isNotBlank()) add(IfwFilter.Host(StringMatcher.Equals(host)))
+        if (host.isNotBlank() || hostMatchMode == MatchMode.IS_NULL || hostMatchMode == MatchMode.IS_NOT_NULL) {
+            add(IfwFilter.Host(hostMatchMode.toStringMatcher(host)))
+        }
         if (path.isNotBlank()) add(IfwFilter.Path(pathMatchMode.toStringMatcher(path)))
-        if (scheme.isNotBlank()) add(IfwFilter.Scheme(StringMatcher.Equals(scheme)))
+        if (scheme.isNotBlank() || schemeMatchMode == MatchMode.IS_NULL || schemeMatchMode == MatchMode.IS_NOT_NULL) {
+            add(IfwFilter.Scheme(schemeMatchMode.toStringMatcher(scheme)))
+        }
+        if (schemeSpecificPart.isNotBlank() ||
+            schemeSpecificPartMatchMode == MatchMode.IS_NULL ||
+            schemeSpecificPartMatchMode == MatchMode.IS_NOT_NULL
+        ) {
+            add(
+                IfwFilter.SchemeSpecificPart(
+                    schemeSpecificPartMatchMode.toStringMatcher(schemeSpecificPart),
+                ),
+            )
+        }
     }
 
     is ConditionUiState.DataFilter -> listOf(
@@ -89,10 +103,18 @@ private fun ConditionUiState.toIfwFilters(): List<IfwFilter> = when (this) {
 }
 
 private fun SourceOption.toIfwFilter(): IfwFilter = when (this) {
+    SourceOption.MATCH_SYSTEM -> IfwFilter.Sender(SenderType.SYSTEM)
+    SourceOption.MATCH_SIGNATURE -> IfwFilter.Sender(SenderType.SIGNATURE)
+    SourceOption.MATCH_SYSTEM_OR_SIGNATURE -> IfwFilter.Sender(SenderType.SYSTEM_OR_SIGNATURE)
+    SourceOption.MATCH_USER_ID -> IfwFilter.Sender(SenderType.USER_ID)
     SourceOption.ALLOW_SYSTEM_ONLY -> IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM))
     SourceOption.ALLOW_SIGNATURE_ONLY -> IfwFilter.Not(IfwFilter.Sender(SenderType.SIGNATURE))
     SourceOption.ALLOW_SYSTEM_OR_SIGNATURE -> IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM_OR_SIGNATURE))
+    SourceOption.ALLOW_USER_ID_ONLY -> IfwFilter.Not(IfwFilter.Sender(SenderType.USER_ID))
     SourceOption.BLOCK_SYSTEM -> IfwFilter.Sender(SenderType.SYSTEM)
+    SourceOption.BLOCK_SIGNATURE -> IfwFilter.Sender(SenderType.SIGNATURE)
+    SourceOption.BLOCK_SYSTEM_OR_SIGNATURE -> IfwFilter.Sender(SenderType.SYSTEM_OR_SIGNATURE)
+    SourceOption.BLOCK_USER_ID -> IfwFilter.Sender(SenderType.USER_ID)
 }
 
 private fun MatchMode.toStringMatcher(value: String): StringMatcher = when (this) {
@@ -102,6 +124,7 @@ private fun MatchMode.toStringMatcher(value: String): StringMatcher = when (this
     MatchMode.PATTERN -> StringMatcher.Pattern(value)
     MatchMode.REGEX -> StringMatcher.Regex(value)
     MatchMode.IS_NULL -> StringMatcher.IsNull(true)
+    MatchMode.IS_NOT_NULL -> StringMatcher.IsNull(false)
 }
 
 // ── IFW → UI State ─────────────────────────────────────────
@@ -230,7 +253,7 @@ private fun IfwFilter.toConditionUiState(): ConditionUiState? {
                     SenderType.SYSTEM -> SourceOption.ALLOW_SYSTEM_ONLY
                     SenderType.SIGNATURE -> SourceOption.ALLOW_SIGNATURE_ONLY
                     SenderType.SYSTEM_OR_SIGNATURE -> SourceOption.ALLOW_SYSTEM_OR_SIGNATURE
-                    else -> return null
+                    SenderType.USER_ID -> SourceOption.ALLOW_USER_ID_ONLY
                 },
             )
 
@@ -247,7 +270,9 @@ private fun IfwFilter.toConditionUiState(): ConditionUiState? {
             id = id,
             option = when (type) {
                 SenderType.SYSTEM -> SourceOption.BLOCK_SYSTEM
-                else -> return null
+                SenderType.SIGNATURE -> SourceOption.BLOCK_SIGNATURE
+                SenderType.SYSTEM_OR_SIGNATURE -> SourceOption.BLOCK_SYSTEM_OR_SIGNATURE
+                SenderType.USER_ID -> SourceOption.BLOCK_USER_ID
             },
         )
 
@@ -267,6 +292,7 @@ private fun IfwFilter.toConditionUiState(): ConditionUiState? {
         is IfwFilter.Host -> ConditionUiState.LinkFilter(
             id = id,
             host = matcher.stringValue(),
+            hostMatchMode = matcher.toMatchMode(),
         )
 
         is IfwFilter.Data -> ConditionUiState.DataFilter(
@@ -310,7 +336,16 @@ private fun IfwFilter.toConditionUiState(): ConditionUiState? {
             value = matcher.stringValue(),
         )
 
-        is IfwFilter.Scheme -> ConditionUiState.LinkFilter(id = id, scheme = matcher.stringValue())
+        is IfwFilter.Scheme -> ConditionUiState.LinkFilter(
+            id = id,
+            scheme = matcher.stringValue(),
+            schemeMatchMode = matcher.toMatchMode(),
+        )
+        is IfwFilter.SchemeSpecificPart -> ConditionUiState.LinkFilter(
+            id = id,
+            schemeSpecificPart = matcher.stringValue(),
+            schemeSpecificPartMatchMode = matcher.toMatchMode(),
+        )
         is IfwFilter.Path -> ConditionUiState.LinkFilter(
             id = id,
             path = matcher.stringValue(),
@@ -340,9 +375,39 @@ private fun List<ConditionUiState>.mergeRelatedConditions(): List<ConditionUiSta
                 } else {
                     pendingLink.copy(
                         host = condition.host.ifBlank { pendingLink.host },
+                        hostMatchMode = if (
+                            condition.host.isNotBlank() ||
+                            condition.hostMatchMode == MatchMode.IS_NULL ||
+                            condition.hostMatchMode == MatchMode.IS_NOT_NULL
+                        ) {
+                            condition.hostMatchMode
+                        } else {
+                            pendingLink.hostMatchMode
+                        },
                         path = condition.path.ifBlank { pendingLink.path },
                         pathMatchMode = if (condition.path.isNotBlank()) condition.pathMatchMode else pendingLink.pathMatchMode,
                         scheme = condition.scheme.ifBlank { pendingLink.scheme },
+                        schemeMatchMode = if (
+                            condition.scheme.isNotBlank() ||
+                            condition.schemeMatchMode == MatchMode.IS_NULL ||
+                            condition.schemeMatchMode == MatchMode.IS_NOT_NULL
+                        ) {
+                            condition.schemeMatchMode
+                        } else {
+                            pendingLink.schemeMatchMode
+                        },
+                        schemeSpecificPart = condition.schemeSpecificPart.ifBlank {
+                            pendingLink.schemeSpecificPart
+                        },
+                        schemeSpecificPartMatchMode = if (
+                            condition.schemeSpecificPart.isNotBlank() ||
+                            condition.schemeSpecificPartMatchMode == MatchMode.IS_NULL ||
+                            condition.schemeSpecificPartMatchMode == MatchMode.IS_NOT_NULL
+                        ) {
+                            condition.schemeSpecificPartMatchMode
+                        } else {
+                            pendingLink.schemeSpecificPartMatchMode
+                        },
                     )
                 }
             }
@@ -381,7 +446,7 @@ private fun StringMatcher.toMatchMode(): MatchMode = when (this) {
     is StringMatcher.Contains -> MatchMode.CONTAINS
     is StringMatcher.Pattern -> MatchMode.PATTERN
     is StringMatcher.Regex -> MatchMode.REGEX
-    is StringMatcher.IsNull -> MatchMode.IS_NULL
+    is StringMatcher.IsNull -> if (isNull) MatchMode.IS_NULL else MatchMode.IS_NOT_NULL
 }
 
 private fun StringMatcher.stringValue(): String = when (this) {

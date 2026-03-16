@@ -139,10 +139,14 @@ private fun SourceControlContent(
     onUpdate: (ConditionUiState) -> Unit,
 ) {
     val options = listOf(
+        SourceOption.ALLOW_USER_ID_ONLY to R.string.feature_ifwrule_impl_source_allow_user_id,
         SourceOption.ALLOW_SYSTEM_ONLY to R.string.feature_ifwrule_impl_source_allow_system,
         SourceOption.ALLOW_SIGNATURE_ONLY to R.string.feature_ifwrule_impl_source_allow_signature,
         SourceOption.ALLOW_SYSTEM_OR_SIGNATURE to R.string.feature_ifwrule_impl_source_allow_system_or_sig,
+        SourceOption.BLOCK_USER_ID to R.string.feature_ifwrule_impl_source_block_user_id,
         SourceOption.BLOCK_SYSTEM to R.string.feature_ifwrule_impl_source_block_system,
+        SourceOption.BLOCK_SIGNATURE to R.string.feature_ifwrule_impl_source_block_signature,
+        SourceOption.BLOCK_SYSTEM_OR_SIGNATURE to R.string.feature_ifwrule_impl_source_block_system_or_sig,
     )
     options.forEach { (option, labelRes) ->
         Row(
@@ -289,6 +293,11 @@ private fun LinkFilterContent(
     condition: ConditionUiState.LinkFilter,
     onUpdate: (ConditionUiState) -> Unit,
 ) {
+    MatchModeSelector(
+        selected = condition.schemeMatchMode,
+        onSelect = { onUpdate(condition.copy(schemeMatchMode = it)) },
+    )
+    Spacer(modifier = Modifier.height(8.dp))
     OutlinedTextField(
         value = condition.scheme,
         onValueChange = { onUpdate(condition.copy(scheme = it)) },
@@ -297,10 +306,28 @@ private fun LinkFilterContent(
         singleLine = true,
     )
     Spacer(modifier = Modifier.height(8.dp))
+    MatchModeSelector(
+        selected = condition.hostMatchMode,
+        onSelect = { onUpdate(condition.copy(hostMatchMode = it)) },
+    )
+    Spacer(modifier = Modifier.height(8.dp))
     OutlinedTextField(
         value = condition.host,
         onValueChange = { onUpdate(condition.copy(host = it)) },
         label = { Text(stringResource(R.string.feature_ifwrule_impl_link_host_label)) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    MatchModeSelector(
+        selected = condition.schemeSpecificPartMatchMode,
+        onSelect = { onUpdate(condition.copy(schemeSpecificPartMatchMode = it)) },
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    OutlinedTextField(
+        value = condition.schemeSpecificPart,
+        onValueChange = { onUpdate(condition.copy(schemeSpecificPart = it)) },
+        label = { Text(stringResource(R.string.feature_ifwrule_impl_link_ssp_label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
@@ -464,6 +491,7 @@ private fun MatchModeSelector(
         MatchMode.PATTERN to R.string.feature_ifwrule_impl_match_pattern,
         MatchMode.REGEX to R.string.feature_ifwrule_impl_match_regex,
         MatchMode.IS_NULL to R.string.feature_ifwrule_impl_match_is_null,
+        MatchMode.IS_NOT_NULL to R.string.feature_ifwrule_impl_match_is_not_null,
     )
     Column(modifier = modifier) {
         modes.chunked(3).forEach { row ->

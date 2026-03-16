@@ -108,7 +108,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
     private fun saveNewRule(data: AddRuleData) {
         viewModelScope.launch {
             try {
-                val filters = data.conditions.mapNotNull { it.toIfwFilter() }
+                val filters = data.toRuleFilters()
                 val newRule = IfwRule(
                     componentType = data.componentType,
                     block = data.block,
@@ -130,11 +130,13 @@ class GlobalIfwRuleViewModel @Inject constructor(
         val state = _uiState.value as? GlobalIfwRuleUiState.Success ?: return null
         val group = state.groups.find { it.packageName == packageName } ?: return null
         val ruleItem = group.rules.find { it.ruleIndex == ruleIndex } ?: return null
+        if (ruleItem.isAdvancedRule) return null
         return AddRuleData(
             packageName = packageName,
             componentType = ruleItem.componentType,
             block = ruleItem.block,
             log = ruleItem.log,
+            combineMode = ruleItem.combineMode,
             conditions = ruleItem.filters.map { filter ->
                 filter.toSimpleCondition()
             },
@@ -146,7 +148,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val ruleIndex = data.editingRuleIndex ?: return@launch
-                val filters = data.conditions.mapNotNull { it.toIfwFilter() }
+                val filters = data.toRuleFilters()
                 val newRule = IfwRule(
                     componentType = data.componentType,
                     block = data.block,
@@ -239,6 +241,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
                 componentType = ruleItem.componentType,
                 block = ruleItem.block,
                 log = ruleItem.log,
+                combineMode = ruleItem.combineMode,
                 conditions = ruleItem.filters.map { filter -> filter.toSimpleCondition() },
                 editingRuleIndex = editingRuleIndex,
             ),
@@ -253,14 +256,18 @@ class GlobalIfwRuleViewModel @Inject constructor(
     }
 
     private fun IfwRule.toRuleItemUiState(index: Int, packageName: String): RuleItemUiState {
-        val filtersSummary = filters.joinToString("\n") { it.toDisplaySummary(packageName) }
+        val normalized = normalizeEditableFilters()
+        val editableFilters = normalized?.filters ?: filters
+        val filtersSummary = editableFilters.joinToString("\n") { it.toDisplaySummary(packageName) }
         return RuleItemUiState(
             componentType = componentType,
             block = block,
             log = log,
             filtersSummary = filtersSummary,
-            filters = filters,
+            filters = editableFilters,
             ruleIndex = index,
+            combineMode = normalized?.combineMode ?: SimpleCombineMode.ALL_MATCH,
+            isAdvancedRule = normalized == null || editableFilters.any { !it.isSimpleEditableLeaf() },
         )
     }
 
@@ -277,6 +284,65 @@ class GlobalIfwRuleViewModel @Inject constructor(
         is IfwFilter.Or -> filters.joinToString(" OR ") { it.toDisplaySummary(packageName) }
         is IfwFilter.Not -> "NOT (${filter.toDisplaySummary(packageName)})"
         else -> toSummary()
+    }
+
+    private fun IfwFilter.isSimpleEditableLeaf(): Boolean = when (this) {
+        is IfwFilter.Action,
+        is IfwFilter.Category,
+        is IfwFilter.Component,
+        is IfwFilter.ComponentFilter,
+        is IfwFilter.ComponentName,
+        is IfwFilter.ComponentPackage,
+        is IfwFilter.Data,
+        is IfwFilter.Host,
+        is IfwFilter.MimeType,
+        is IfwFilter.Path,
+        is IfwFilter.Port,
+        is IfwFilter.Scheme,
+        is IfwFilter.SchemeSpecificPart,
+        is IfwFilter.Sender,
+        is IfwFilter.SenderPackage,
+        is IfwFilter.SenderPermission,
+        -> true
+        is IfwFilter.Not -> filter.isSimpleEditableLeaf() && filter !is IfwFilter.Not
+        is IfwFilter.And,
+        is IfwFilter.Or,
+        -> false
+    }
+
+    private fun IfwRule.normalizeEditableFilters(): EditableRuleFilters? {
+        if (filters.isEmpty()) {
+            return EditableRuleFilters(
+                combineMode = SimpleCombineMode.ALL_MATCH,
+                filters = emptyList(),
+            )
+        }
+        if (filters.all { it.isSimpleEditableLeaf() }) {
+            return EditableRuleFilters(
+                combineMode = SimpleCombineMode.ALL_MATCH,
+                filters = filters,
+            )
+        }
+        val composite = filters.singleOrNull() ?: return null
+        return when (composite) {
+            is IfwFilter.And -> if (composite.filters.all { it.isSimpleEditableLeaf() }) {
+                EditableRuleFilters(
+                    combineMode = SimpleCombineMode.ALL_MATCH,
+                    filters = composite.filters,
+                )
+            } else {
+                null
+            }
+            is IfwFilter.Or -> if (composite.filters.all { it.isSimpleEditableLeaf() }) {
+                EditableRuleFilters(
+                    combineMode = SimpleCombineMode.ANY_MATCH,
+                    filters = composite.filters,
+                )
+            } else {
+                null
+            }
+            else -> null
+        }
     }
 }
 
@@ -299,6 +365,8 @@ data class RuleItemUiState(
     val filtersSummary: String,
     val filters: List<IfwFilter>,
     val ruleIndex: Int,
+    val combineMode: SimpleCombineMode,
+    val isAdvancedRule: Boolean,
 )
 
 data class GlobalIfwRuleEditorUiState(
@@ -312,19 +380,73 @@ enum class GlobalIfwRuleScreenState {
 }
 
 private fun IfwFilter.toSimpleCondition(): SimpleCondition = when (this) {
-    is IfwFilter.ComponentFilter -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, name)
-    is IfwFilter.Action -> SimpleCondition(SimpleFilterType.ACTION, matcher.valueOrEmpty())
-    is IfwFilter.Category -> SimpleCondition(SimpleFilterType.CATEGORY, name)
-    is IfwFilter.SenderPackage -> SimpleCondition(SimpleFilterType.SENDER_PACKAGE, name)
-    is IfwFilter.Component -> SimpleCondition(SimpleFilterType.COMPONENT, matcher.valueOrEmpty())
-    is IfwFilter.ComponentName -> SimpleCondition(SimpleFilterType.COMPONENT_NAME, matcher.valueOrEmpty())
-    is IfwFilter.ComponentPackage -> SimpleCondition(SimpleFilterType.COMPONENT_PACKAGE, matcher.valueOrEmpty())
-    is IfwFilter.Host -> SimpleCondition(SimpleFilterType.HOST, matcher.valueOrEmpty())
-    is IfwFilter.Scheme -> SimpleCondition(SimpleFilterType.SCHEME, matcher.valueOrEmpty())
-    is IfwFilter.Path -> SimpleCondition(SimpleFilterType.PATH, matcher.valueOrEmpty())
-    is IfwFilter.Data -> SimpleCondition(SimpleFilterType.DATA, matcher.valueOrEmpty())
-    is IfwFilter.MimeType -> SimpleCondition(SimpleFilterType.MIME_TYPE, matcher.valueOrEmpty())
-    else -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, this.toSummary())
+    is IfwFilter.Not -> filter.toSimpleCondition().copy(negated = true)
+    is IfwFilter.ComponentFilter -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, value = name)
+    is IfwFilter.Action -> SimpleCondition(
+        filterType = SimpleFilterType.ACTION,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.Category -> SimpleCondition(SimpleFilterType.CATEGORY, value = name)
+    is IfwFilter.Sender -> SimpleCondition(
+        filterType = SimpleFilterType.SENDER,
+        senderType = type,
+    )
+    is IfwFilter.SenderPackage -> SimpleCondition(SimpleFilterType.SENDER_PACKAGE, value = name)
+    is IfwFilter.SenderPermission -> SimpleCondition(SimpleFilterType.SENDER_PERMISSION, value = name)
+    is IfwFilter.Component -> SimpleCondition(
+        filterType = SimpleFilterType.COMPONENT,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.ComponentName -> SimpleCondition(
+        filterType = SimpleFilterType.COMPONENT_NAME,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.ComponentPackage -> SimpleCondition(
+        filterType = SimpleFilterType.COMPONENT_PACKAGE,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.Host -> SimpleCondition(
+        filterType = SimpleFilterType.HOST,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.Scheme -> SimpleCondition(
+        filterType = SimpleFilterType.SCHEME,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.SchemeSpecificPart -> SimpleCondition(
+        filterType = SimpleFilterType.SCHEME_SPECIFIC_PART,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.Path -> SimpleCondition(
+        filterType = SimpleFilterType.PATH,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.Data -> SimpleCondition(
+        filterType = SimpleFilterType.DATA,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.MimeType -> SimpleCondition(
+        filterType = SimpleFilterType.MIME_TYPE,
+        value = matcher.valueOrEmpty(),
+        matchMode = matcher.toSimpleMatchMode(),
+    )
+    is IfwFilter.Port -> SimpleCondition(
+        filterType = SimpleFilterType.PORT,
+        portMode = if (equals != null) SimplePortMode.EXACT else SimplePortMode.RANGE,
+        equals = equals,
+        min = min,
+        max = max,
+    )
+    else -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, value = this.toSummary())
 }
 
 private fun StringMatcher.valueOrEmpty(): String = when (this) {
@@ -337,19 +459,78 @@ private fun StringMatcher.valueOrEmpty(): String = when (this) {
 }
 
 private fun SimpleCondition.toIfwFilter(): IfwFilter? {
-    if (value.isBlank()) return null
-    return when (filterType) {
-        SimpleFilterType.COMPONENT_FILTER -> IfwFilter.ComponentFilter(value)
-        SimpleFilterType.ACTION -> IfwFilter.Action(StringMatcher.Equals(value))
-        SimpleFilterType.CATEGORY -> IfwFilter.Category(value)
-        SimpleFilterType.SENDER_PACKAGE -> IfwFilter.SenderPackage(value)
-        SimpleFilterType.COMPONENT -> IfwFilter.Component(StringMatcher.Equals(value))
-        SimpleFilterType.COMPONENT_NAME -> IfwFilter.ComponentName(StringMatcher.Equals(value))
-        SimpleFilterType.COMPONENT_PACKAGE -> IfwFilter.ComponentPackage(StringMatcher.Equals(value))
-        SimpleFilterType.HOST -> IfwFilter.Host(StringMatcher.Equals(value))
-        SimpleFilterType.SCHEME -> IfwFilter.Scheme(StringMatcher.Equals(value))
-        SimpleFilterType.PATH -> IfwFilter.Path(StringMatcher.Equals(value))
-        SimpleFilterType.DATA -> IfwFilter.Data(StringMatcher.Equals(value))
-        SimpleFilterType.MIME_TYPE -> IfwFilter.MimeType(StringMatcher.Equals(value))
+    val filter = when (filterType) {
+        SimpleFilterType.COMPONENT_FILTER -> {
+            if (value.isBlank()) return null
+            IfwFilter.ComponentFilter(value)
+        }
+        SimpleFilterType.ACTION -> IfwFilter.Action(matchMode.toStringMatcher(value))
+        SimpleFilterType.CATEGORY -> {
+            if (value.isBlank()) return null
+            IfwFilter.Category(value)
+        }
+        SimpleFilterType.SENDER -> IfwFilter.Sender(senderType)
+        SimpleFilterType.SENDER_PACKAGE -> {
+            if (value.isBlank()) return null
+            IfwFilter.SenderPackage(value)
+        }
+        SimpleFilterType.SENDER_PERMISSION -> {
+            if (value.isBlank()) return null
+            IfwFilter.SenderPermission(value)
+        }
+        SimpleFilterType.COMPONENT -> IfwFilter.Component(matchMode.toStringMatcher(value))
+        SimpleFilterType.COMPONENT_NAME -> IfwFilter.ComponentName(matchMode.toStringMatcher(value))
+        SimpleFilterType.COMPONENT_PACKAGE -> IfwFilter.ComponentPackage(matchMode.toStringMatcher(value))
+        SimpleFilterType.HOST -> IfwFilter.Host(matchMode.toStringMatcher(value))
+        SimpleFilterType.SCHEME -> IfwFilter.Scheme(matchMode.toStringMatcher(value))
+        SimpleFilterType.SCHEME_SPECIFIC_PART -> IfwFilter.SchemeSpecificPart(matchMode.toStringMatcher(value))
+        SimpleFilterType.PATH -> IfwFilter.Path(matchMode.toStringMatcher(value))
+        SimpleFilterType.DATA -> IfwFilter.Data(matchMode.toStringMatcher(value))
+        SimpleFilterType.MIME_TYPE -> IfwFilter.MimeType(matchMode.toStringMatcher(value))
+        SimpleFilterType.PORT -> when (portMode) {
+            SimplePortMode.EXACT -> {
+                val port = equals ?: return null
+                IfwFilter.Port(equals = port)
+            }
+            SimplePortMode.RANGE -> {
+                if (min == null && max == null) return null
+                IfwFilter.Port(min = min, max = max)
+            }
+        }
+    }
+    return if (negated) IfwFilter.Not(filter) else filter
+}
+
+private fun StringMatcher.toSimpleMatchMode(): SimpleMatchMode = when (this) {
+    is StringMatcher.Equals -> SimpleMatchMode.EXACT
+    is StringMatcher.StartsWith -> SimpleMatchMode.STARTS_WITH
+    is StringMatcher.Contains -> SimpleMatchMode.CONTAINS
+    is StringMatcher.Pattern -> SimpleMatchMode.PATTERN
+    is StringMatcher.Regex -> SimpleMatchMode.REGEX
+    is StringMatcher.IsNull -> if (isNull) SimpleMatchMode.IS_NULL else SimpleMatchMode.IS_NOT_NULL
+}
+
+private fun SimpleMatchMode.toStringMatcher(value: String): StringMatcher = when (this) {
+    SimpleMatchMode.EXACT -> StringMatcher.Equals(value)
+    SimpleMatchMode.STARTS_WITH -> StringMatcher.StartsWith(value)
+    SimpleMatchMode.CONTAINS -> StringMatcher.Contains(value)
+    SimpleMatchMode.PATTERN -> StringMatcher.Pattern(value)
+    SimpleMatchMode.REGEX -> StringMatcher.Regex(value)
+    SimpleMatchMode.IS_NULL -> StringMatcher.IsNull(true)
+    SimpleMatchMode.IS_NOT_NULL -> StringMatcher.IsNull(false)
+}
+
+private data class EditableRuleFilters(
+    val combineMode: SimpleCombineMode,
+    val filters: List<IfwFilter>,
+)
+
+private fun AddRuleData.toRuleFilters(): List<IfwFilter> {
+    val filters = conditions.mapNotNull { it.toIfwFilter() }
+    return when {
+        filters.isEmpty() -> emptyList()
+        combineMode == SimpleCombineMode.ALL_MATCH -> filters
+        filters.size == 1 -> filters
+        else -> listOf(IfwFilter.Or(filters))
     }
 }

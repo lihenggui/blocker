@@ -72,9 +72,13 @@ sealed interface ConditionUiState {
     data class LinkFilter(
         override val id: String,
         val host: String = "",
+        val hostMatchMode: MatchMode = MatchMode.EXACT,
         val path: String = "",
         val pathMatchMode: MatchMode = MatchMode.EXACT,
         val scheme: String = "",
+        val schemeMatchMode: MatchMode = MatchMode.EXACT,
+        val schemeSpecificPart: String = "",
+        val schemeSpecificPartMatchMode: MatchMode = MatchMode.EXACT,
     ) : ConditionUiState
 
     data class DataFilter(
@@ -106,10 +110,18 @@ sealed interface ConditionUiState {
 }
 
 enum class SourceOption {
+    MATCH_SYSTEM,
+    MATCH_SIGNATURE,
+    MATCH_SYSTEM_OR_SIGNATURE,
+    MATCH_USER_ID,
     ALLOW_SYSTEM_ONLY,
     ALLOW_SIGNATURE_ONLY,
     ALLOW_SYSTEM_OR_SIGNATURE,
+    ALLOW_USER_ID_ONLY,
     BLOCK_SYSTEM,
+    BLOCK_SIGNATURE,
+    BLOCK_SYSTEM_OR_SIGNATURE,
+    BLOCK_USER_ID,
 }
 
 enum class PermissionMode { REQUIRE, BLOCK_WITH }
@@ -123,4 +135,5 @@ enum class MatchMode {
     PATTERN,
     REGEX,
     IS_NULL,
+    IS_NOT_NULL,
 }

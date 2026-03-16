@@ -68,6 +68,7 @@
     <string name="feature_ifwrule_impl_link_host_label">Domain</string>
     <string name="feature_ifwrule_impl_link_path_label">Path</string>
     <string name="feature_ifwrule_impl_link_scheme_label">Protocol</string>
+    <string name="feature_ifwrule_impl_link_ssp_label">Scheme-specific part</string>
     <string name="feature_ifwrule_impl_data_label">Data content</string>
     <string name="feature_ifwrule_impl_mime_label">Content type</string>
     <string name="feature_ifwrule_impl_port_exact_label">Port number</string>
@@ -75,10 +76,14 @@
     <string name="feature_ifwrule_impl_port_max_label">Max port</string>
 
     <!-- Source control options -->
+    <string name="feature_ifwrule_impl_source_allow_user_id">Allow same user ID only</string>
     <string name="feature_ifwrule_impl_source_allow_system">Allow system process only</string>
     <string name="feature_ifwrule_impl_source_allow_signature">Allow same-signature apps only</string>
     <string name="feature_ifwrule_impl_source_allow_system_or_sig">Allow system or same-signature only</string>
+    <string name="feature_ifwrule_impl_source_block_user_id">Block same user ID calls</string>
     <string name="feature_ifwrule_impl_source_block_system">Block system process calls</string>
+    <string name="feature_ifwrule_impl_source_block_signature">Block same-signature app calls</string>
+    <string name="feature_ifwrule_impl_source_block_system_or_sig">Block system or same-signature calls</string>
 
     <!-- Permission mode options -->
     <string name="feature_ifwrule_impl_perm_require">Only allow callers with this permission</string>
@@ -91,6 +96,7 @@
     <string name="feature_ifwrule_impl_match_pattern">Wildcard pattern</string>
     <string name="feature_ifwrule_impl_match_regex">Regular expression</string>
     <string name="feature_ifwrule_impl_match_is_null">Is empty</string>
+    <string name="feature_ifwrule_impl_match_is_not_null">Is not empty</string>
 
     <!-- Port modes -->
     <string name="feature_ifwrule_impl_port_exact">Exact</string>

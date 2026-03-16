@@ -172,20 +172,40 @@ class IfwRuleUiMapperTest {
                 ConditionUiState.LinkFilter(
                     id = "1",
                     host = "tracking.example.com",
+                    hostMatchMode = MatchMode.CONTAINS,
                     path = "/api/track",
                     pathMatchMode = MatchMode.STARTS_WITH,
                     scheme = "https",
+                    schemeMatchMode = MatchMode.REGEX,
+                    schemeSpecificPart = "//tracking.example.com/api",
+                    schemeSpecificPartMatchMode = MatchMode.PATTERN,
                 ),
             ),
         )
         val filter = state.toIfwFilter()
         assertTrue(filter is IfwFilter.And)
         val children = (filter as IfwFilter.And).filters
-        // component-filter + host + path + scheme = 4
-        assertEquals(4, children.size)
-        assertTrue(children.any { it is IfwFilter.Host })
-        assertTrue(children.any { it is IfwFilter.Path })
-        assertTrue(children.any { it is IfwFilter.Scheme })
+        assertEquals(5, children.size)
+        assertTrue(children.contains(IfwFilter.Host(StringMatcher.Contains("tracking.example.com"))))
+        assertTrue(children.contains(IfwFilter.Path(StringMatcher.StartsWith("/api/track"))))
+        assertTrue(children.contains(IfwFilter.Scheme(StringMatcher.Regex("https"))))
+        assertTrue(children.contains(IfwFilter.SchemeSpecificPart(StringMatcher.Pattern("//tracking.example.com/api"))))
+    }
+
+    @Test
+    fun givenIsNotNullMatchMode_whenToIfwFilter_thenUsesFalseIsNullMatcher() {
+        val state = baseState().copy(
+            blockMode = BlockMode.CONDITIONAL,
+            conditions = listOf(
+                ConditionUiState.DataFilter(
+                    id = "1",
+                    matchMode = MatchMode.IS_NOT_NULL,
+                ),
+            ),
+        )
+        val filter = state.toIfwFilter()
+        assertTrue(filter is IfwFilter.And)
+        assertTrue((filter as IfwFilter.And).filters.contains(IfwFilter.Data(StringMatcher.IsNull(false))))
     }
 
     // ── IFW → UI State ─────────────────────────────────────
@@ -277,6 +297,79 @@ class IfwRuleUiMapperTest {
         val state = rules.toEditorState(componentType, pkg, comp)
         val source = state.conditions[0] as ConditionUiState.SourceControl
         assertEquals(SourceOption.ALLOW_SYSTEM_ONLY, source.option)
+    }
+
+    @Test
+    fun givenSenderUserId_whenFromIfwRules_thenReturnsSourceControlBlockUserId() {
+        val rules = IfwRules(
+            listOf(
+                IfwRule(
+                    componentType = componentType,
+                    filters = listOf(
+                        IfwFilter.And(
+                            listOf(
+                                IfwFilter.ComponentFilter(filterName),
+                                IfwFilter.Sender(SenderType.USER_ID),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val state = rules.toEditorState(componentType, pkg, comp)
+        val source = state.conditions[0] as ConditionUiState.SourceControl
+        assertEquals(SourceOption.BLOCK_USER_ID, source.option)
+    }
+
+    @Test
+    fun givenSchemeSpecificPartMatcher_whenFromIfwRules_thenRestoresLinkCondition() {
+        val rules = IfwRules(
+            listOf(
+                IfwRule(
+                    componentType = componentType,
+                    filters = listOf(
+                        IfwFilter.And(
+                            listOf(
+                                IfwFilter.ComponentFilter(filterName),
+                                IfwFilter.Scheme(StringMatcher.StartsWith("https")),
+                                IfwFilter.Host(StringMatcher.Contains("example.com")),
+                                IfwFilter.SchemeSpecificPart(StringMatcher.Regex("//example.com/.*")),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val state = rules.toEditorState(componentType, pkg, comp)
+        val link = state.conditions[0] as ConditionUiState.LinkFilter
+        assertEquals("https", link.scheme)
+        assertEquals(MatchMode.STARTS_WITH, link.schemeMatchMode)
+        assertEquals("example.com", link.host)
+        assertEquals(MatchMode.CONTAINS, link.hostMatchMode)
+        assertEquals("//example.com/.*", link.schemeSpecificPart)
+        assertEquals(MatchMode.REGEX, link.schemeSpecificPartMatchMode)
+    }
+
+    @Test
+    fun givenFalseIsNullMatcher_whenFromIfwRules_thenRestoresIsNotNullMatchMode() {
+        val rules = IfwRules(
+            listOf(
+                IfwRule(
+                    componentType = componentType,
+                    filters = listOf(
+                        IfwFilter.And(
+                            listOf(
+                                IfwFilter.ComponentFilter(filterName),
+                                IfwFilter.Data(StringMatcher.IsNull(false)),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val state = rules.toEditorState(componentType, pkg, comp)
+        val dataFilter = state.conditions[0] as ConditionUiState.DataFilter
+        assertEquals(MatchMode.IS_NOT_NULL, dataFilter.matchMode)
     }
 
     @Test

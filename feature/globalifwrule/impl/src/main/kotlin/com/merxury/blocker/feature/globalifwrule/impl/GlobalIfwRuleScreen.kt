@@ -198,7 +198,11 @@ private fun RuleListContent(
                 RuleItem(
                     packageName = group.packageName,
                     rule = rule,
-                    onClick = { onEditRuleClick(group.packageName, rule.ruleIndex) },
+                    onClick = {
+                        if (!rule.isAdvancedRule) {
+                            onEditRuleClick(group.packageName, rule.ruleIndex)
+                        }
+                    },
                     onDelete = { onDeleteRule(group.packageName, rule.ruleIndex) },
                 )
             }
@@ -297,12 +301,31 @@ private fun RuleItem(
                     },
                 )
             }
+            if (rule.isAdvancedRule) {
+                AssistChip(
+                    onClick = { },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.feature_globalifwrule_impl_advanced_rule),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    },
+                )
+            }
         }
         if (rule.filtersSummary.isNotBlank()) {
             Text(
                 text = rule.filtersSummary,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+        if (rule.isAdvancedRule) {
+            Text(
+                text = stringResource(R.string.feature_globalifwrule_impl_advanced_rule_summary),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.padding(top = 4.dp),
             )
         }

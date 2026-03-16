@@ -24,4 +24,20 @@
     <string name="feature_globalifwrule_impl_no_root">需要Root权限</string>
     <string name="feature_globalifwrule_impl_monitor_only">仅记录不阻断</string>
     <string name="feature_globalifwrule_impl_monitor_only_summary">开启后规则只记录不实际拦截</string>
+    <string name="feature_globalifwrule_impl_negate">反转此条件</string>
+    <string name="feature_globalifwrule_impl_sender_type">来源类型</string>
+    <string name="feature_globalifwrule_impl_port_exact">精确</string>
+    <string name="feature_globalifwrule_impl_port_range">范围</string>
+    <string name="feature_globalifwrule_impl_port_exact_label">端口</string>
+    <string name="feature_globalifwrule_impl_port_min_label">最小端口</string>
+    <string name="feature_globalifwrule_impl_port_max_label">最大端口</string>
+    <string name="feature_globalifwrule_impl_match_exact">精确匹配</string>
+    <string name="feature_globalifwrule_impl_match_starts_with">以…开头</string>
+    <string name="feature_globalifwrule_impl_match_contains">包含</string>
+    <string name="feature_globalifwrule_impl_match_pattern">通配符匹配</string>
+    <string name="feature_globalifwrule_impl_match_regex">正则表达式</string>
+    <string name="feature_globalifwrule_impl_match_is_null">为空</string>
+    <string name="feature_globalifwrule_impl_match_is_not_null">不为空</string>
+    <string name="feature_globalifwrule_impl_advanced_rule">高级规则</string>
+    <string name="feature_globalifwrule_impl_advanced_rule_summary">此规则使用了简化编辑器暂不支持的嵌套逻辑。</string>
 </resources>
