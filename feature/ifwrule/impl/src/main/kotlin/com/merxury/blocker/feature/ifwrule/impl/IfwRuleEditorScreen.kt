@@ -29,7 +29,10 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHostState
@@ -38,6 +41,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -45,12 +51,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerButton
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
+import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.ui.IfwRuleTreeEditor
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.ifwrule.impl.model.BlockMode
 import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorScreenUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorUiState
+import com.merxury.core.ifw.editor.IfwEditorNode
 
 @Suppress("ktlint:compose:modifier-missing-check")
 @Composable
@@ -61,9 +70,19 @@ fun IfwRuleEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val saveComplete by viewModel.saveComplete.collectAsStateWithLifecycle()
+    var isDirty by remember { mutableStateOf(false) }
+    var showUnsavedDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(saveComplete) {
         if (saveComplete) {
+            onBackClick()
+        }
+    }
+
+    val handleBack: () -> Unit = {
+        if (isDirty) {
+            showUnsavedDialog = true
+        } else {
             onBackClick()
         }
     }
@@ -72,22 +91,81 @@ fun IfwRuleEditorScreen(
         BlockerTopAppBar(
             title = stringResource(R.string.feature_ifwrule_impl_title),
             hasNavigationIcon = true,
-            onNavigationClick = onBackClick,
+            onNavigationClick = handleBack,
+            actions = {
+                if (uiState is RuleEditorScreenUiState.Success) {
+                    IconButton(onClick = {
+                        (uiState as? RuleEditorScreenUiState.Success)?.let {
+                            viewModel.save()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = BlockerIcons.Check,
+                            contentDescription = stringResource(R.string.feature_ifwrule_impl_save),
+                        )
+                    }
+                }
+            },
         )
         when (val state = uiState) {
             is RuleEditorScreenUiState.Loading -> LoadingScreen()
             is RuleEditorScreenUiState.Error -> ErrorContent(state.message)
             is RuleEditorScreenUiState.Success -> EditorContent(
                 editor = state.editor,
-                onUpdateBlockMode = viewModel::updateBlockMode,
-                onUpdateLog = viewModel::updateLog,
-                onChangeBlockEnable = viewModel::updateBlockEnabled,
-                onUpdateRootGroup = viewModel::updateRootGroup,
-                onSave = viewModel::save,
+                onUpdateBlockMode = { mode ->
+                    isDirty = true
+                    viewModel.updateBlockMode(mode)
+                },
+                onUpdateLog = { enabled ->
+                    isDirty = true
+                    viewModel.updateLog(enabled)
+                },
+                onChangeBlockEnable = { enabled ->
+                    isDirty = true
+                    viewModel.updateBlockEnabled(enabled)
+                },
+                onUpdateRootGroup = { group ->
+                    isDirty = true
+                    viewModel.updateRootGroup(group)
+                },
                 onDelete = viewModel::deleteRule,
             )
         }
     }
+
+    if (showUnsavedDialog) {
+        UnsavedChangesDialog(
+            onDiscard = {
+                showUnsavedDialog = false
+                onBackClick()
+            },
+            onCancel = { showUnsavedDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun UnsavedChangesDialog(
+    onDiscard: () -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.feature_ifwrule_impl_unsaved_title)) },
+        text = { Text(stringResource(R.string.feature_ifwrule_impl_unsaved_message)) },
+        confirmButton = {
+            BlockerTextButton(onClick = onDiscard) {
+                Text(stringResource(R.string.feature_ifwrule_impl_discard))
+            }
+        },
+        dismissButton = {
+            BlockerTextButton(onClick = onCancel) {
+                Text(stringResource(R.string.feature_ifwrule_impl_cancel))
+            }
+        },
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -116,8 +194,7 @@ private fun EditorContent(
     onUpdateBlockMode: (BlockMode) -> Unit,
     onUpdateLog: (Boolean) -> Unit,
     onChangeBlockEnable: (Boolean) -> Unit,
-    onUpdateRootGroup: (com.merxury.core.ifw.editor.IfwEditorNode.Group) -> Unit,
-    onSave: () -> Unit,
+    onUpdateRootGroup: (IfwEditorNode.Group) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -196,13 +273,6 @@ private fun EditorContent(
             onCheckedChange = { onChangeBlockEnable(!it) },
         )
 
-        // Save button
-        Spacer(modifier = Modifier.height(24.dp))
-        BlockerButton(
-            onClick = onSave,
-            text = { Text(stringResource(R.string.feature_ifwrule_impl_save)) },
-            modifier = Modifier.fillMaxWidth(),
-        )
         Spacer(modifier = Modifier.height(16.dp))
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
     }

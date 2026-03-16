@@ -36,6 +36,10 @@
     <string name="feature_ifwrule_impl_save_success">Rule saved</string>
     <string name="feature_ifwrule_impl_save_error">Failed to save rule</string>
     <string name="feature_ifwrule_impl_no_root">Root access required</string>
+    <string name="feature_ifwrule_impl_unsaved_title">Unsaved changes</string>
+    <string name="feature_ifwrule_impl_unsaved_message">You have unsaved changes. Are you sure you want to leave?</string>
+    <string name="feature_ifwrule_impl_discard">Discard</string>
+    <string name="feature_ifwrule_impl_cancel">Cancel</string>
 
     <!-- Condition type picker -->
     <string name="feature_ifwrule_impl_condition_action">By trigger action</string>

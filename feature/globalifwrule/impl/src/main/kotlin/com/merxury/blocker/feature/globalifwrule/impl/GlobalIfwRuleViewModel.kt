@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -194,6 +195,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
                         PackageRuleGroup(
                             packageName = packageName,
                             appLabel = resolveAppLabel(packageName),
+                            packageInfo = resolvePackageInfo(packageName),
                             rules = ifwRules.rules.mapIndexed { index, rule ->
                                 rule.toRuleItemUiState(index, packageName)
                             },
@@ -253,6 +255,12 @@ class GlobalIfwRuleViewModel @Inject constructor(
         null
     }
 
+    private fun resolvePackageInfo(packageName: String): PackageInfo? = try {
+        packageManager.getPackageInfo(packageName, 0)
+    } catch (_: PackageManager.NameNotFoundException) {
+        null
+    }
+
     private fun IfwRule.toRuleItemUiState(index: Int, packageName: String): RuleItemUiState = RuleItemUiState(
         componentType = componentType,
         block = block,
@@ -288,6 +296,7 @@ sealed interface GlobalIfwRuleUiState {
 data class PackageRuleGroup(
     val packageName: String,
     val appLabel: String?,
+    val packageInfo: PackageInfo?,
     val rules: List<RuleItemUiState>,
 )
 

@@ -20,7 +20,9 @@ import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
 
-fun List<IfwFilter>.toEditorRootGroup(): IfwEditorNode.Group? {
+fun List<IfwFilter>.toEditorRootGroup(
+    defaultMode: IfwEditorGroupMode = IfwEditorGroupMode.ANY,
+): IfwEditorNode.Group? {
     if (isEmpty()) return IfwEditorNode.Group()
     if (size == 1) {
         val node = first().toEditorNodeOrNull() ?: return null
@@ -28,7 +30,7 @@ fun List<IfwFilter>.toEditorRootGroup(): IfwEditorNode.Group? {
     }
     val nodes = map { filter -> filter.toEditorNodeOrNull() ?: return null }
     return IfwEditorNode.Group(
-        mode = IfwEditorGroupMode.ALL,
+        mode = defaultMode,
         children = nodes,
     )
 }

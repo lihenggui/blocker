@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.ifwrule.impl.model
 
+import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.toEditorRootGroup
 import com.merxury.core.ifw.editor.toIfwFilterOrNull
@@ -93,7 +94,8 @@ private fun tryParseRule(
                     blockMode = BlockMode.ALL,
                 )
             } else {
-                val rootGroup = extraction.filters.toEditorRootGroup() ?: return RuleEditorUiState(
+                val mode = if (extraction.fromAndWrapper) IfwEditorGroupMode.ALL else IfwEditorGroupMode.ANY
+                val rootGroup = extraction.filters.toEditorRootGroup(mode) ?: return RuleEditorUiState(
                     packageName = packageName,
                     componentName = componentName,
                     componentType = componentType,
@@ -112,7 +114,10 @@ private fun tryParseRule(
 }
 
 private sealed interface ComponentRuleExtraction {
-    data class Success(val filters: List<IfwFilter>) : ComponentRuleExtraction
+    data class Success(
+        val filters: List<IfwFilter>,
+        val fromAndWrapper: Boolean = false,
+    ) : ComponentRuleExtraction
     data object Unsupported : ComponentRuleExtraction
 }
 
@@ -121,6 +126,7 @@ private fun extractConditionsForComponent(
     filterName: String,
 ): ComponentRuleExtraction? {
     var foundTarget = false
+    var fromAndWrapper = false
     val remaining = mutableListOf<IfwFilter>()
 
     filters.forEach { filter ->
@@ -133,6 +139,7 @@ private fun extractConditionsForComponent(
                 child is IfwFilter.ComponentFilter && child.name == filterName
             } -> {
                 foundTarget = true
+                fromAndWrapper = true
                 val nested = filter.filters.filterNot { child ->
                     child is IfwFilter.ComponentFilter && child.name == filterName
                 }
@@ -151,7 +158,7 @@ private fun extractConditionsForComponent(
     if (remaining.any { filter -> filter is IfwFilter.ComponentFilter }) {
         return ComponentRuleExtraction.Unsupported
     }
-    return ComponentRuleExtraction.Success(remaining)
+    return ComponentRuleExtraction.Success(remaining, fromAndWrapper)
 }
 
 private fun IfwFilter.containsComponentFilter(name: String): Boolean = when (this) {

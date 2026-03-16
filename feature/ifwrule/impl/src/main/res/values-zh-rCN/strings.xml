@@ -36,6 +36,10 @@
     <string name="feature_ifwrule_impl_save_success">规则已保存</string>
     <string name="feature_ifwrule_impl_save_error">保存规则失败</string>
     <string name="feature_ifwrule_impl_no_root">需要Root权限</string>
+    <string name="feature_ifwrule_impl_unsaved_title">未保存的更改</string>
+    <string name="feature_ifwrule_impl_unsaved_message">你有未保存的更改，确定要离开吗？</string>
+    <string name="feature_ifwrule_impl_discard">放弃</string>
+    <string name="feature_ifwrule_impl_cancel">取消</string>
 
     <string name="feature_ifwrule_impl_condition_action">按触发动作</string>
     <string name="feature_ifwrule_impl_condition_action_desc">当组件收到特定动作时拦截</string>

@@ -30,12 +30,15 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -48,10 +51,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerButton
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
+import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.ui.IfwRuleTreeEditor
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.model.IfwComponentType
 
@@ -72,6 +76,16 @@ fun AddRuleScreen(
     var log by remember(editorKey) { mutableStateOf(initialData?.log ?: true) }
     var rootGroup by remember(editorKey) { mutableStateOf(initialData?.rootGroup ?: IfwEditorNode.Group()) }
     val isEditing = initialData != null
+    var isDirty by remember(editorKey) { mutableStateOf(false) }
+    var showUnsavedDialog by remember { mutableStateOf(false) }
+
+    val handleBack: () -> Unit = {
+        if (isDirty) {
+            showUnsavedDialog = true
+        } else {
+            onBack()
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         BlockerTopAppBar(
@@ -83,7 +97,30 @@ fun AddRuleScreen(
                 },
             ),
             hasNavigationIcon = true,
-            onNavigationClick = onBack,
+            onNavigationClick = handleBack,
+            actions = {
+                IconButton(
+                    onClick = {
+                        if (packageName.isNotBlank()) {
+                            onSave(
+                                AddRuleData(
+                                    packageName = packageName,
+                                    componentType = componentType,
+                                    block = block,
+                                    log = log,
+                                    rootGroup = rootGroup,
+                                    editingRuleIndex = initialData?.editingRuleIndex,
+                                ),
+                            )
+                        }
+                    },
+                ) {
+                    Icon(
+                        imageVector = BlockerIcons.Check,
+                        contentDescription = stringResource(R.string.feature_globalifwrule_impl_save),
+                    )
+                }
+            },
         )
         Column(
             modifier = Modifier
@@ -94,7 +131,10 @@ fun AddRuleScreen(
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = packageName,
-                onValueChange = { packageName = it },
+                onValueChange = {
+                    isDirty = true
+                    packageName = it
+                },
                 label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_package)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -103,19 +143,28 @@ fun AddRuleScreen(
             Spacer(modifier = Modifier.height(16.dp))
             ComponentTypeDropdown(
                 selected = componentType,
-                onSelect = { componentType = it },
+                onSelect = {
+                    isDirty = true
+                    componentType = it
+                },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
             SwitchRow(
                 label = stringResource(R.string.feature_globalifwrule_impl_block),
                 checked = block,
-                onCheckedChange = { block = it },
+                onCheckedChange = {
+                    isDirty = true
+                    block = it
+                },
             )
             SwitchRow(
                 label = stringResource(R.string.feature_globalifwrule_impl_log),
                 checked = log,
-                onCheckedChange = { log = it },
+                onCheckedChange = {
+                    isDirty = true
+                    log = it
+                },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -127,31 +176,36 @@ fun AddRuleScreen(
             )
             IfwRuleTreeEditor(
                 rootGroup = rootGroup,
-                onChange = { rootGroup = it },
+                onChange = {
+                    isDirty = true
+                    rootGroup = it
+                },
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-            BlockerButton(
-                onClick = {
-                    if (packageName.isNotBlank()) {
-                        onSave(
-                            AddRuleData(
-                                packageName = packageName,
-                                componentType = componentType,
-                                block = block,
-                                log = log,
-                                rootGroup = rootGroup,
-                                editingRuleIndex = initialData?.editingRuleIndex,
-                            ),
-                        )
-                    }
-                },
-                text = { Text(stringResource(R.string.feature_globalifwrule_impl_save)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
             Spacer(modifier = Modifier.height(16.dp))
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
+    }
+
+    if (showUnsavedDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnsavedDialog = false },
+            title = { Text(stringResource(R.string.feature_globalifwrule_impl_unsaved_title)) },
+            text = { Text(stringResource(R.string.feature_globalifwrule_impl_unsaved_message)) },
+            confirmButton = {
+                BlockerTextButton(onClick = {
+                    showUnsavedDialog = false
+                    onBack()
+                }) {
+                    Text(stringResource(R.string.feature_globalifwrule_impl_discard))
+                }
+            },
+            dismissButton = {
+                BlockerTextButton(onClick = { showUnsavedDialog = false }) {
+                    Text(stringResource(R.string.feature_globalifwrule_impl_cancel))
+                }
+            },
+        )
     }
 }
 

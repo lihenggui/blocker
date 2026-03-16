@@ -43,4 +43,7 @@
     <string name="feature_globalifwrule_impl_match_is_not_null">不为空</string>
     <string name="feature_globalifwrule_impl_advanced_rule">高级规则</string>
     <string name="feature_globalifwrule_impl_advanced_rule_summary">此规则使用了简化编辑器暂不支持的嵌套逻辑。</string>
+    <string name="feature_globalifwrule_impl_unsaved_title">未保存的更改</string>
+    <string name="feature_globalifwrule_impl_unsaved_message">你有未保存的更改，确定要离开吗？</string>
+    <string name="feature_globalifwrule_impl_discard">放弃</string>
 </resources>

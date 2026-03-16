@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -59,6 +62,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.ui.applist.AppIcon
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 
 @Composable
@@ -215,25 +219,33 @@ private fun PackageHeader(
     group: PackageRuleGroup,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = group.appLabel ?: group.packageName,
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        AppIcon(
+            info = group.packageInfo,
+            modifier = Modifier.size(40.dp),
         )
-        if (group.appLabel != null) {
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = group.packageName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = group.appLabel ?: group.packageName,
+                style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            if (group.appLabel != null) {
+                Text(
+                    text = group.packageName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }

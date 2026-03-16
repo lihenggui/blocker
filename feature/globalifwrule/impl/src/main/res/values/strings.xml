@@ -43,4 +43,7 @@
     <string name="feature_globalifwrule_impl_match_is_not_null">Is not empty</string>
     <string name="feature_globalifwrule_impl_advanced_rule">Advanced rule</string>
     <string name="feature_globalifwrule_impl_advanced_rule_summary">This rule uses nested logic not yet editable in the simplified editor.</string>
+    <string name="feature_globalifwrule_impl_unsaved_title">Unsaved changes</string>
+    <string name="feature_globalifwrule_impl_unsaved_message">You have unsaved changes. Are you sure you want to leave?</string>
+    <string name="feature_globalifwrule_impl_discard">Discard</string>
 </resources>

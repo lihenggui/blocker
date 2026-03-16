@@ -127,6 +127,7 @@ class IfwRuleUiMapperTest {
         val state = rules.toEditorState(componentType, packageName, componentName)
 
         assertEquals(BlockMode.CONDITIONAL, state.blockMode)
+        assertEquals(IfwEditorGroupMode.ALL, state.rootGroup.mode)
         assertEquals(2, state.rootGroup.children.size)
         assertIs<IfwEditorNode.Condition>(state.rootGroup.children.first())
         val nestedGroup = assertIs<IfwEditorNode.Group>(state.rootGroup.children.last())
@@ -155,6 +156,7 @@ class IfwRuleUiMapperTest {
         val state = rules.toEditorState(componentType, packageName, componentName)
 
         assertEquals(BlockMode.CONDITIONAL, state.blockMode)
+        assertEquals(IfwEditorGroupMode.ANY, state.rootGroup.mode)
         assertEquals(2, state.rootGroup.children.size)
         val scheme = assertIs<IfwEditorNode.Condition>(state.rootGroup.children.first())
         assertEquals(IfwEditorConditionKind.SCHEME, scheme.kind)
