@@ -193,9 +193,8 @@ private fun parseAndFilter(
         CombineMode.ALL_MATCH to conditions
     }
 
-    val uiConditions = effectiveConditions.mapNotNull { it.toConditionUiState() }.mergeRelatedConditions()
-    if (uiConditions.size != effectiveConditions.size && uiConditions.none { it is ConditionUiState.LinkFilter || it is ConditionUiState.CallerApp }) {
-        // Some conditions couldn't be parsed
+    val parsedConditions = effectiveConditions.map { it.toConditionUiState() }
+    if (parsedConditions.any { it == null }) {
         return RuleEditorUiState(
             packageName = packageName,
             componentName = componentName,
@@ -203,6 +202,7 @@ private fun parseAndFilter(
             isAdvancedRule = true,
         )
     }
+    val uiConditions = parsedConditions.filterNotNull().mergeRelatedConditions()
 
     return RuleEditorUiState(
         packageName = packageName,

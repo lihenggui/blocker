@@ -307,6 +307,28 @@ class IfwRuleUiMapperTest {
         assertTrue(state.isAdvancedRule)
     }
 
+    @Test
+    fun givenLinkFilterAndUnsupportedCondition_whenFromIfwRules_thenReturnsAdvancedRule() {
+        val rules = IfwRules(
+            listOf(
+                IfwRule(
+                    componentType = componentType,
+                    filters = listOf(
+                        IfwFilter.And(
+                            listOf(
+                                IfwFilter.ComponentFilter(filterName),
+                                IfwFilter.Host(StringMatcher.Equals("tracking.example.com")),
+                                IfwFilter.Not(IfwFilter.Action(StringMatcher.Equals("A"))),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val state = rules.toEditorState(componentType, pkg, comp)
+        assertTrue(state.isAdvancedRule)
+    }
+
     // ── Merge Strategy ──────────────────────────────────────
 
     @Test
