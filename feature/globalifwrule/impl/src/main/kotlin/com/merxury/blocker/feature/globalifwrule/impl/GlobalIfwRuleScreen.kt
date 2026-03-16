@@ -36,6 +36,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FloatingActionButton
@@ -57,6 +58,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -64,14 +66,21 @@ import com.merxury.blocker.core.ui.screen.LoadingScreen
 @Composable
 fun GlobalIfwRuleScreen(
     onAddRuleClick: () -> Unit,
+    onEditRuleClick: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GlobalIfwRuleViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LifecycleResumeEffect(Unit) {
+        viewModel.refresh()
+        onPauseOrDispose { }
+    }
+
     GlobalIfwRuleScreen(
         uiState = uiState,
         onAddRuleClick = onAddRuleClick,
+        onEditRuleClick = onEditRuleClick,
         onDeleteRule = viewModel::deleteRule,
         modifier = modifier,
     )
@@ -81,6 +90,7 @@ fun GlobalIfwRuleScreen(
 internal fun GlobalIfwRuleScreen(
     uiState: GlobalIfwRuleUiState,
     onAddRuleClick: () -> Unit,
+    onEditRuleClick: (String, Int) -> Unit,
     onDeleteRule: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -118,6 +128,7 @@ internal fun GlobalIfwRuleScreen(
                 } else {
                     RuleListContent(
                         groups = uiState.groups,
+                        onEditRuleClick = onEditRuleClick,
                         onDeleteRule = onDeleteRule,
                         modifier = Modifier.padding(padding),
                     )
@@ -171,6 +182,7 @@ private fun ErrorContent(
 @Composable
 private fun RuleListContent(
     groups: List<PackageRuleGroup>,
+    onEditRuleClick: (String, Int) -> Unit,
     onDeleteRule: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -186,6 +198,7 @@ private fun RuleListContent(
                 RuleItem(
                     packageName = group.packageName,
                     rule = rule,
+                    onEditRuleClick = onEditRuleClick,
                     onDeleteRule = onDeleteRule,
                 )
             }
@@ -232,6 +245,7 @@ private fun PackageHeader(
 private fun RuleItem(
     packageName: String,
     rule: RuleItemUiState,
+    onEditRuleClick: (String, Int) -> Unit,
     onDeleteRule: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -240,7 +254,7 @@ private fun RuleItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable { onEditRuleClick(packageName, rule.ruleIndex) }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -283,13 +297,16 @@ private fun RuleItem(
                     text = rule.filtersSummary,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
         }
-        Spacer(modifier = Modifier.width(8.dp))
+        IconButton(onClick = { onEditRuleClick(packageName, rule.ruleIndex) }) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = stringResource(R.string.feature_globalifwrule_impl_edit_rule),
+            )
+        }
         IconButton(onClick = { showDeleteDialog = true }) {
             Icon(
                 imageVector = Icons.Default.Delete,

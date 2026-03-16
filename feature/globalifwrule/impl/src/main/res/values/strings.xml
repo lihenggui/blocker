@@ -3,6 +3,7 @@
     <string name="feature_globalifwrule_impl_empty">No IFW interception rules</string>
     <string name="feature_globalifwrule_impl_empty_desc">Rules you create will appear here</string>
     <string name="feature_globalifwrule_impl_add_rule">Add rule</string>
+    <string name="feature_globalifwrule_impl_edit_rule">Edit rule</string>
     <string name="feature_globalifwrule_impl_delete_rule">Delete rule</string>
     <string name="feature_globalifwrule_impl_delete_confirm">Delete this interception rule?</string>
     <string name="feature_globalifwrule_impl_delete_confirm_message">This action cannot be undone.</string>

@@ -25,6 +25,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.feature.globalifwrule.api.navigation.GlobalIfwRuleNavKey
+import com.merxury.blocker.feature.globalifwrule.impl.AddRuleData
 import com.merxury.blocker.feature.globalifwrule.impl.AddRuleScreen
 import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleScreen
 import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleViewModel
@@ -33,18 +34,31 @@ fun EntryProviderScope<NavKey>.globalIfwRuleEntry(navigator: Navigator) {
     entry<GlobalIfwRuleNavKey> { _ ->
         val viewModel: GlobalIfwRuleViewModel = hiltViewModel()
         var showAddRule by remember { mutableStateOf(false) }
+        var editingData: AddRuleData? by remember { mutableStateOf(null) }
 
-        if (showAddRule) {
+        if (showAddRule || editingData != null) {
             AddRuleScreen(
+                initialData = editingData,
                 onSave = { data ->
-                    viewModel.saveNewRule(data)
+                    if (data.editingRuleIndex != null) {
+                        viewModel.updateRule(data)
+                    } else {
+                        viewModel.saveNewRule(data)
+                    }
                     showAddRule = false
+                    editingData = null
                 },
-                onBack = { showAddRule = false },
+                onBack = {
+                    showAddRule = false
+                    editingData = null
+                },
             )
         } else {
             GlobalIfwRuleScreen(
                 onAddRuleClick = { showAddRule = true },
+                onEditRuleClick = { packageName, ruleIndex ->
+                    editingData = viewModel.getRuleForEdit(packageName, ruleIndex)
+                },
                 viewModel = viewModel,
             )
         }

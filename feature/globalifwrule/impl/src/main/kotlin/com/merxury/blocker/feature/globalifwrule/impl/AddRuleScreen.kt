@@ -64,16 +64,28 @@ fun AddRuleScreen(
     onSave: (AddRuleData) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    initialData: AddRuleData? = null,
 ) {
-    var packageName by remember { mutableStateOf("") }
-    var componentType by remember { mutableStateOf(IfwComponentType.BROADCAST) }
-    var block by remember { mutableStateOf(true) }
-    var log by remember { mutableStateOf(true) }
-    val conditions = remember { mutableStateListOf<SimpleCondition>() }
+    var packageName by remember { mutableStateOf(initialData?.packageName ?: "") }
+    var componentType by remember { mutableStateOf(initialData?.componentType ?: IfwComponentType.BROADCAST) }
+    var block by remember { mutableStateOf(initialData?.block ?: true) }
+    var log by remember { mutableStateOf(initialData?.log ?: true) }
+    val conditions = remember {
+        mutableStateListOf<SimpleCondition>().also {
+            if (initialData != null) it.addAll(initialData.conditions)
+        }
+    }
+    val isEditing = initialData != null
 
     Column(modifier = modifier.fillMaxSize()) {
         BlockerTopAppBar(
-            title = stringResource(R.string.feature_globalifwrule_impl_add_rule),
+            title = stringResource(
+                if (isEditing) {
+                    R.string.feature_globalifwrule_impl_edit_rule
+                } else {
+                    R.string.feature_globalifwrule_impl_add_rule
+                },
+            ),
             hasNavigationIcon = true,
             onNavigationClick = onBack,
         )
@@ -312,6 +324,7 @@ data class AddRuleData(
     val block: Boolean,
     val log: Boolean,
     val conditions: List<SimpleCondition>,
+    val editingRuleIndex: Int? = null,
 )
 
 data class SimpleCondition(

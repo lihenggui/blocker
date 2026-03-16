@@ -71,6 +71,46 @@ class GlobalIfwRuleViewModel @Inject constructor(
         }
     }
 
+    fun getRuleForEdit(packageName: String, ruleIndex: Int): AddRuleData? {
+        val state = _uiState.value as? GlobalIfwRuleUiState.Success ?: return null
+        val group = state.groups.find { it.packageName == packageName } ?: return null
+        val ruleItem = group.rules.find { it.ruleIndex == ruleIndex } ?: return null
+        return AddRuleData(
+            packageName = packageName,
+            componentType = ruleItem.componentType,
+            block = ruleItem.block,
+            log = ruleItem.log,
+            conditions = ruleItem.filters.map { filter ->
+                filter.toSimpleCondition()
+            },
+            editingRuleIndex = ruleIndex,
+        )
+    }
+
+    fun updateRule(data: AddRuleData) {
+        viewModelScope.launch {
+            try {
+                val ruleIndex = data.editingRuleIndex ?: return@launch
+                val filters = data.conditions.mapNotNull { it.toIfwFilter() }
+                val newRule = IfwRule(
+                    componentType = data.componentType,
+                    block = data.block,
+                    log = data.log,
+                    filters = filters,
+                )
+                val currentRules = intentFirewall.getRules(data.packageName)
+                val updatedRules = currentRules.rules.toMutableList()
+                if (ruleIndex in updatedRules.indices) {
+                    updatedRules[ruleIndex] = newRule
+                }
+                intentFirewall.saveRules(data.packageName, IfwRules(updatedRules))
+                loadAllRules()
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update rule for ${data.packageName}")
+            }
+        }
+    }
+
     fun deleteRule(packageName: String, ruleIndex: Int) {
         viewModelScope.launch {
             try {
@@ -91,6 +131,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = GlobalIfwRuleUiState.Loading
             try {
+                intentFirewall.resetCache()
                 val allRules = intentFirewall.getAllRules()
                 val groups = allRules.mapNotNull { (packageName, ifwRules) ->
                     if (ifwRules.isEmpty()) return@mapNotNull null
@@ -120,12 +161,13 @@ class GlobalIfwRuleViewModel @Inject constructor(
     }
 
     private fun IfwRule.toRuleItemUiState(index: Int): RuleItemUiState {
-        val filtersSummary = filters.joinToString("; ") { it.toSummary() }
+        val filtersSummary = filters.joinToString("\n") { it.toSummary() }
         return RuleItemUiState(
             componentType = componentType,
             block = block,
             log = log,
             filtersSummary = filtersSummary,
+            filters = filters,
             ruleIndex = index,
         )
     }
@@ -148,8 +190,34 @@ data class RuleItemUiState(
     val block: Boolean,
     val log: Boolean,
     val filtersSummary: String,
+    val filters: List<IfwFilter>,
     val ruleIndex: Int,
 )
+
+private fun IfwFilter.toSimpleCondition(): SimpleCondition = when (this) {
+    is IfwFilter.ComponentFilter -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, name)
+    is IfwFilter.Action -> SimpleCondition(SimpleFilterType.ACTION, matcher.valueOrEmpty())
+    is IfwFilter.Category -> SimpleCondition(SimpleFilterType.CATEGORY, name)
+    is IfwFilter.SenderPackage -> SimpleCondition(SimpleFilterType.SENDER_PACKAGE, name)
+    is IfwFilter.Component -> SimpleCondition(SimpleFilterType.COMPONENT, matcher.valueOrEmpty())
+    is IfwFilter.ComponentName -> SimpleCondition(SimpleFilterType.COMPONENT_NAME, matcher.valueOrEmpty())
+    is IfwFilter.ComponentPackage -> SimpleCondition(SimpleFilterType.COMPONENT_PACKAGE, matcher.valueOrEmpty())
+    is IfwFilter.Host -> SimpleCondition(SimpleFilterType.HOST, matcher.valueOrEmpty())
+    is IfwFilter.Scheme -> SimpleCondition(SimpleFilterType.SCHEME, matcher.valueOrEmpty())
+    is IfwFilter.Path -> SimpleCondition(SimpleFilterType.PATH, matcher.valueOrEmpty())
+    is IfwFilter.Data -> SimpleCondition(SimpleFilterType.DATA, matcher.valueOrEmpty())
+    is IfwFilter.MimeType -> SimpleCondition(SimpleFilterType.MIME_TYPE, matcher.valueOrEmpty())
+    else -> SimpleCondition(SimpleFilterType.COMPONENT_FILTER, this.toSummary())
+}
+
+private fun StringMatcher.valueOrEmpty(): String = when (this) {
+    is StringMatcher.Equals -> value
+    is StringMatcher.StartsWith -> value
+    is StringMatcher.Contains -> value
+    is StringMatcher.Pattern -> value
+    is StringMatcher.Regex -> value
+    is StringMatcher.IsNull -> ""
+}
 
 private fun SimpleCondition.toIfwFilter(): IfwFilter? {
     if (value.isBlank()) return null
