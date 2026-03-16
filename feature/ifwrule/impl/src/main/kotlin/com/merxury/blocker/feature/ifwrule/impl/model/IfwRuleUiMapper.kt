@@ -16,11 +16,9 @@
 
 package com.merxury.blocker.feature.ifwrule.impl.model
 
-import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.toEditorRootGroup
 import com.merxury.core.ifw.editor.toIfwFilterOrNull
-import com.merxury.core.ifw.editor.toTopLevelFilters
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -32,15 +30,8 @@ fun RuleEditorUiState.toIfwFilter(): IfwFilter {
         return componentFilter
     }
 
-    val conditionFilters = rootGroup.toTopLevelFilters()
-    if (conditionFilters.isEmpty()) return componentFilter
-
-    val children = if (!rootGroup.excluded && rootGroup.mode == IfwEditorGroupMode.ALL) {
-        listOf(componentFilter) + conditionFilters
-    } else {
-        listOf(componentFilter, rootGroup.toIfwFilterOrNull() ?: return componentFilter)
-    }
-    return IfwFilter.And(children)
+    val groupFilter = rootGroup.toIfwFilterOrNull() ?: return componentFilter
+    return IfwFilter.And(listOf(componentFilter, groupFilter))
 }
 
 fun IfwRules.toEditorStateOrNull(

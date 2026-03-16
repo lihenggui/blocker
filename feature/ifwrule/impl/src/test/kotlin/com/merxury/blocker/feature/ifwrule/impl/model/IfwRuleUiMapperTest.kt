@@ -83,11 +83,15 @@ class IfwRuleUiMapperTest {
             IfwFilter.And(
                 listOf(
                     IfwFilter.ComponentFilter(filterName),
-                    IfwFilter.Action(StringMatcher.Equals("android.intent.action.BOOT_COMPLETED")),
-                    IfwFilter.Or(
+                    IfwFilter.And(
                         listOf(
-                            IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM)),
-                            IfwFilter.Host(StringMatcher.Contains("example.com")),
+                            IfwFilter.Action(StringMatcher.Equals("android.intent.action.BOOT_COMPLETED")),
+                            IfwFilter.Or(
+                                listOf(
+                                    IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM)),
+                                    IfwFilter.Host(StringMatcher.Contains("example.com")),
+                                ),
+                            ),
                         ),
                     ),
                 ),

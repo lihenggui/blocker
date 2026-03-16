@@ -35,8 +35,7 @@ fun List<IfwFilter>.toEditorRootGroup(): IfwEditorNode.Group? {
 
 fun IfwEditorNode.Group.toTopLevelFilters(): List<IfwFilter> = when {
     children.isEmpty() -> emptyList()
-    excluded || mode == IfwEditorGroupMode.ANY -> listOfNotNull(toIfwFilterOrNull())
-    else -> children.mapNotNull { child -> child.toIfwFilterOrNull() }
+    else -> listOfNotNull(toIfwFilterOrNull())
 }
 
 fun IfwEditorNode.toIfwFilterOrNull(): IfwFilter? = when (this) {
