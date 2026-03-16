@@ -31,6 +31,7 @@
     <string name="core_ui_copy_full_name">复制完整组件名</string>
     <string name="core_ui_launch_activity">启动活动</string>
     <string name="core_ui_stop_service">停止服务</string>
+    <string name="core_ui_edit_ifw_rule">自定义拦截规则</string>
     <string name="core_ui_no_components">无组件</string>
     <string name="core_ui_matched">%1$d 匹配，%2$d 阻止，%3$d 启用。</string>
     <plurals name="core_ui_matched_apps">

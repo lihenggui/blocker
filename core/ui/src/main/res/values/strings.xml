@@ -33,6 +33,7 @@
     <string name="core_ui_copy_full_name">Copy full name</string>
     <string name="core_ui_launch_activity">Launch activity</string>
     <string name="core_ui_stop_service">Stop service</string>
+    <string name="core_ui_edit_ifw_rule">Custom interception rule</string>
     <string name="core_ui_no_components">No components</string>
     <string name="core_ui_matched">%1$d matched, %2$d blocked, %3$d enabled.</string>
     <plurals name="core_ui_matched_apps">

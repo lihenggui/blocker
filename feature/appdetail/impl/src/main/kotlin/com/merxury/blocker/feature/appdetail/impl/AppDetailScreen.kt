@@ -154,6 +154,7 @@ fun AppDetailScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     navigateToRuleDetail: (String) -> Unit = {},
+    onEditIfwRuleClick: (String, String, String) -> Unit = { _, _, _ -> },
     showBackButton: Boolean = true,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
@@ -250,6 +251,7 @@ fun AppDetailScreen(
             }
         },
         onShowAppInfoClick = { viewModel.showAppInfo(context) },
+        onEditIfwRuleClick = onEditIfwRuleClick,
         onRefresh = {
             viewModel.loadComponentList()
             viewModel.updateComponentList()
@@ -431,6 +433,7 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onEditIfwRuleClick: (String, String, String) -> Unit = { _, _, _ -> },
     showComponentSortBottomSheet: (Boolean) -> Unit = {},
     updateIconThemingState: (IconThemingState) -> Unit = {},
     onSelectAll: () -> Unit = {},
@@ -472,6 +475,7 @@ fun AppDetailScreen(
         onLaunchActivityClick = onLaunchActivityClick,
         onCopyNameClick = onCopyNameClick,
         onCopyFullNameClick = onCopyFullNameClick,
+        onEditIfwRuleClick = onEditIfwRuleClick,
         updateIconThemingState = updateIconThemingState,
         onSelectAll = onSelectAll,
         blockAllSelectedComponents = blockAllSelectedComponents,
@@ -521,6 +525,7 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onEditIfwRuleClick: (String, String, String) -> Unit = { _, _, _ -> },
     onSelectAll: () -> Unit = {},
     blockAllSelectedComponents: () -> Unit = {},
     enableAllSelectedComponents: () -> Unit = {},
@@ -627,6 +632,7 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+            onEditIfwRuleClick = onEditIfwRuleClick,
             onBlockAllInItemClick = blockAllInItem,
             onEnableAllInItemClick = enableAllInItem,
             onSelect = onSelect,
@@ -810,6 +816,7 @@ fun AppDetailTabContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onEditIfwRuleClick: (String, String, String) -> Unit = { _, _, _ -> },
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
     onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
@@ -914,6 +921,7 @@ fun AppDetailTabContent(
                                     onLaunchActivityClick = onLaunchActivityClick,
                                     onCopyNameClick = onCopyNameClick,
                                     onCopyFullNameClick = onCopyFullNameClick,
+                                    onEditIfwRuleClick = onEditIfwRuleClick,
                                     onSelect = onSelect,
                                     onDeselect = onDeselect,
                                 )

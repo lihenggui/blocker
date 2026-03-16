@@ -78,6 +78,7 @@ fun ComponentListItem(
     onLaunchActivityClick: () -> Unit = { },
     onCopyNameClick: () -> Unit = { },
     onCopyFullNameClick: () -> Unit = { },
+    onEditIfwRuleClick: () -> Unit = { },
     onSwitchClick: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
     isSelected: Boolean = false,
     isSelectedMode: Boolean = false,
@@ -179,6 +180,7 @@ fun ComponentListItem(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyPackageNameClick = onCopyFullNameClick,
+            onEditIfwRuleClick = onEditIfwRuleClick,
             onDismissRequest = { expanded = false },
         )
     }

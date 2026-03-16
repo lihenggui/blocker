@@ -71,6 +71,7 @@ import com.merxury.blocker.feature.appdetail.impl.navigation.appDetailEntry
 import com.merxury.blocker.feature.applist.impl.navigation.appListEntry
 import com.merxury.blocker.feature.debloater.impl.navigation.debloaterEntry
 import com.merxury.blocker.feature.generalrule.impl.navigation.generalRuleEntry
+import com.merxury.blocker.feature.ifwrule.impl.navigation.ifwRuleEditorEntry
 import com.merxury.blocker.feature.impl.helpandfeedback.navigation.supportAndFeedbackEntry
 import com.merxury.blocker.feature.impl.licenses.navigation.licensesEntry
 import com.merxury.blocker.feature.impl.settings.navigation.settingsEntry
@@ -215,6 +216,7 @@ internal fun BlockerApp(
                     appListEntry(navigator)
                     appDetailEntry(navigator, updateIconThemingState)
                     generalRuleEntry(navigator)
+                    ifwRuleEditorEntry(navigator)
                     ruleDetailEntry(navigator)
                     debloaterEntry()
                     searchEntry(navigator)

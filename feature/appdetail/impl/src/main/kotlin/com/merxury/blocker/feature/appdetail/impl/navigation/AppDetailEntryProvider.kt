@@ -25,8 +25,10 @@ import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.feature.appdetail.impl.AppDetailScreen
 import com.merxury.blocker.feature.appdetail.impl.AppDetailViewModel
+import com.merxury.blocker.feature.ifwrule.api.navigation.navigateToIfwRuleEditor
 import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetail
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -45,6 +47,15 @@ fun EntryProviderScope<NavKey>.appDetailEntry(
             updateIconThemingState = updateIconThemingState,
             onBackClick = { navigator.goBack() },
             navigateToRuleDetail = navigator::navigateToRuleDetail,
+            onEditIfwRuleClick = { packageName, componentName, componentTypeName ->
+                val ifwTag = when (ComponentType.valueOf(componentTypeName)) {
+                    ComponentType.RECEIVER -> "broadcast"
+                    ComponentType.SERVICE -> "service"
+                    ComponentType.ACTIVITY -> "activity"
+                    else -> return@AppDetailScreen
+                }
+                navigator.navigateToIfwRuleEditor(packageName, componentName, ifwTag)
+            },
             viewModel = hiltViewModel<AppDetailViewModel, AppDetailViewModel.Factory>(
                 key = packageName,
             ) { factory ->

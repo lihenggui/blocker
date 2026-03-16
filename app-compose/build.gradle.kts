@@ -99,6 +99,8 @@ dependencies {
     implementation(projects.feature.debloater.impl)
     implementation(projects.feature.generalrule.api)
     implementation(projects.feature.generalrule.impl)
+    implementation(projects.feature.ifwrule.api)
+    implementation(projects.feature.ifwrule.impl)
     implementation(projects.feature.ruledetail.api)
     implementation(projects.feature.ruledetail.impl)
     implementation(projects.feature.search.api)
