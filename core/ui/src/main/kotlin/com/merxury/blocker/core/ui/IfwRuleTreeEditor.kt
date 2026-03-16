@@ -308,12 +308,12 @@ private fun ConditionEditorCard(
                     onSelect = { kind -> onUpdate(condition.copy(kind = kind)) },
                     modifier = Modifier.weight(1f),
                 )
-                    IconButton(onClick = { onDelete(condition.id) }) {
-                        Icon(
-                            imageVector = BlockerIcons.Close,
-                            contentDescription = stringResource(R.string.core_ui_close),
-                        )
-                    }
+                IconButton(onClick = { onDelete(condition.id) }) {
+                    Icon(
+                        imageVector = BlockerIcons.Close,
+                        contentDescription = stringResource(R.string.core_ui_close),
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
