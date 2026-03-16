@@ -22,10 +22,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
-import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.feature.appdetail.impl.AppDetailScreen
 import com.merxury.blocker.feature.appdetail.impl.AppDetailViewModel
 import com.merxury.blocker.feature.ifwrule.api.navigation.navigateToIfwRuleEditor

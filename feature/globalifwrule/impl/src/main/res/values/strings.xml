@@ -1,0 +1,26 @@
+<resources>
+    <string name="feature_globalifwrule_impl_title">Firewall</string>
+    <string name="feature_globalifwrule_impl_empty">No IFW interception rules</string>
+    <string name="feature_globalifwrule_impl_empty_desc">Rules you create will appear here</string>
+    <string name="feature_globalifwrule_impl_add_rule">Add rule</string>
+    <string name="feature_globalifwrule_impl_delete_rule">Delete rule</string>
+    <string name="feature_globalifwrule_impl_delete_confirm">Delete this interception rule?</string>
+    <string name="feature_globalifwrule_impl_delete_confirm_message">This action cannot be undone.</string>
+    <string name="feature_globalifwrule_impl_cancel">Cancel</string>
+    <string name="feature_globalifwrule_impl_delete">Delete</string>
+    <string name="feature_globalifwrule_impl_rule_type">Rule type</string>
+    <string name="feature_globalifwrule_impl_block">Block</string>
+    <string name="feature_globalifwrule_impl_log">Log</string>
+    <string name="feature_globalifwrule_impl_conditions">Conditions</string>
+    <string name="feature_globalifwrule_impl_combine_all">All match</string>
+    <string name="feature_globalifwrule_impl_combine_any">Any match</string>
+    <string name="feature_globalifwrule_impl_combine_label">Block when conditions</string>
+    <string name="feature_globalifwrule_impl_add_condition">Add condition</string>
+    <string name="feature_globalifwrule_impl_save">Save rule</string>
+    <string name="feature_globalifwrule_impl_save_success">Rule saved</string>
+    <string name="feature_globalifwrule_impl_save_error">Failed to save rule</string>
+    <string name="feature_globalifwrule_impl_target_package">Target package name</string>
+    <string name="feature_globalifwrule_impl_no_root">Root access required</string>
+    <string name="feature_globalifwrule_impl_monitor_only">Monitor only</string>
+    <string name="feature_globalifwrule_impl_monitor_only_summary">Rule only logs, does not block</string>
+</resources>

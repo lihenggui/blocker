@@ -1,0 +1,26 @@
+<resources>
+    <string name="feature_globalifwrule_impl_title">防火墙</string>
+    <string name="feature_globalifwrule_impl_empty">暂无 IFW 拦截规则</string>
+    <string name="feature_globalifwrule_impl_empty_desc">你创建的规则将显示在这里</string>
+    <string name="feature_globalifwrule_impl_add_rule">添加规则</string>
+    <string name="feature_globalifwrule_impl_delete_rule">删除规则</string>
+    <string name="feature_globalifwrule_impl_delete_confirm">确定要删除这条拦截规则吗？</string>
+    <string name="feature_globalifwrule_impl_delete_confirm_message">此操作无法撤销。</string>
+    <string name="feature_globalifwrule_impl_cancel">取消</string>
+    <string name="feature_globalifwrule_impl_delete">删除</string>
+    <string name="feature_globalifwrule_impl_rule_type">规则类型</string>
+    <string name="feature_globalifwrule_impl_block">阻断</string>
+    <string name="feature_globalifwrule_impl_log">记录日志</string>
+    <string name="feature_globalifwrule_impl_conditions">拦截条件</string>
+    <string name="feature_globalifwrule_impl_combine_all">全部满足</string>
+    <string name="feature_globalifwrule_impl_combine_any">任一满足</string>
+    <string name="feature_globalifwrule_impl_combine_label">当以下条件满足时拦截</string>
+    <string name="feature_globalifwrule_impl_add_condition">添加条件</string>
+    <string name="feature_globalifwrule_impl_save">保存规则</string>
+    <string name="feature_globalifwrule_impl_save_success">规则已保存</string>
+    <string name="feature_globalifwrule_impl_save_error">保存规则失败</string>
+    <string name="feature_globalifwrule_impl_target_package">目标包名</string>
+    <string name="feature_globalifwrule_impl_no_root">需要Root权限</string>
+    <string name="feature_globalifwrule_impl_monitor_only">仅记录不阻断</string>
+    <string name="feature_globalifwrule_impl_monitor_only_summary">开启后规则只记录不实际拦截</string>
+</resources>
