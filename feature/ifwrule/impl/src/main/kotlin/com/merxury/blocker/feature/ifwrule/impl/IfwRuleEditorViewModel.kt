@@ -23,7 +23,7 @@ import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorScreenUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.mergeComponentRule
 import com.merxury.blocker.feature.ifwrule.impl.model.toEditorState
-import com.merxury.blocker.feature.ifwrule.impl.model.toIfwFilter
+import com.merxury.blocker.feature.ifwrule.impl.model.toIfwFilters
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.model.IfwComponentType
@@ -100,13 +100,13 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
         val state = (_uiState.value as? RuleEditorScreenUiState.Success)?.editor ?: return
         viewModelScope.launch {
             try {
-                val newFilter = state.toIfwFilter()
+                val newFilters = state.toIfwFilters()
                 val currentRules = intentFirewall.getRules(packageName)
                 val filterName = "$packageName/$componentName"
                 val merged = currentRules.mergeComponentRule(
                     componentType = componentType,
                     componentName = filterName,
-                    newFilter = newFilter,
+                    newFilters = newFilters,
                     block = state.blockEnabled,
                     log = state.log,
                 )
@@ -126,7 +126,7 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
                 val merged = currentRules.mergeComponentRule(
                     componentType = componentType,
                     componentName = filterName,
-                    newFilter = null,
+                    newFilters = null,
                     block = true,
                     log = true,
                 )

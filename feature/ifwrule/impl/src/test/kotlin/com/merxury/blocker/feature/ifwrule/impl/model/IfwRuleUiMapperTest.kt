@@ -40,14 +40,14 @@ class IfwRuleUiMapperTest {
     private val filterName = "$packageName/$componentName"
 
     @Test
-    fun givenBlockAll_whenToIfwFilter_thenReturnsDirectComponentFilter() {
-        val filter = baseState().copy(blockMode = BlockMode.ALL).toIfwFilter()
+    fun givenBlockAll_whenToIfwFilters_thenReturnsDirectComponentFilter() {
+        val filters = baseState().copy(blockMode = BlockMode.ALL).toIfwFilters()
 
-        assertEquals(IfwFilter.ComponentFilter(filterName), filter)
+        assertEquals(listOf(IfwFilter.ComponentFilter(filterName)), filters)
     }
 
     @Test
-    fun givenNestedConditions_whenToIfwFilter_thenPreservesTreeStructure() {
+    fun givenNestedConditions_whenToIfwFilters_thenKeepsComponentFilterTopLevel() {
         val state = baseState().copy(
             blockMode = BlockMode.CONDITIONAL,
             rootGroup = IfwEditorNode.Group(
@@ -77,26 +77,20 @@ class IfwRuleUiMapperTest {
             ),
         )
 
-        val filter = state.toIfwFilter()
+        val filters = state.toIfwFilters()
 
         assertEquals(
-            IfwFilter.And(
-                listOf(
-                    IfwFilter.ComponentFilter(filterName),
-                    IfwFilter.And(
-                        listOf(
-                            IfwFilter.Action(StringMatcher.Equals("android.intent.action.BOOT_COMPLETED")),
-                            IfwFilter.Or(
-                                listOf(
-                                    IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM)),
-                                    IfwFilter.Host(StringMatcher.Contains("example.com")),
-                                ),
-                            ),
-                        ),
+            listOf(
+                IfwFilter.ComponentFilter(filterName),
+                IfwFilter.Action(StringMatcher.Equals("android.intent.action.BOOT_COMPLETED")),
+                IfwFilter.Or(
+                    listOf(
+                        IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM)),
+                        IfwFilter.Host(StringMatcher.Contains("example.com")),
                     ),
                 ),
             ),
-            filter,
+            filters,
         )
     }
 
@@ -156,7 +150,7 @@ class IfwRuleUiMapperTest {
         val state = rules.toEditorState(componentType, packageName, componentName)
 
         assertEquals(BlockMode.CONDITIONAL, state.blockMode)
-        assertEquals(IfwEditorGroupMode.ANY, state.rootGroup.mode)
+        assertEquals(IfwEditorGroupMode.ALL, state.rootGroup.mode)
         assertEquals(2, state.rootGroup.children.size)
         val scheme = assertIs<IfwEditorNode.Condition>(state.rootGroup.children.first())
         assertEquals(IfwEditorConditionKind.SCHEME, scheme.kind)
@@ -202,7 +196,7 @@ class IfwRuleUiMapperTest {
         val merged = rules.mergeComponentRule(
             componentType = componentType,
             componentName = filterName,
-            newFilter = null,
+            newFilters = null,
             block = true,
             log = true,
         )
@@ -215,7 +209,7 @@ class IfwRuleUiMapperTest {
         val merged = IfwRules.empty().mergeComponentRule(
             componentType = componentType,
             componentName = filterName,
-            newFilter = IfwFilter.ComponentFilter(filterName),
+            newFilters = listOf(IfwFilter.ComponentFilter(filterName)),
             block = false,
             log = true,
         )

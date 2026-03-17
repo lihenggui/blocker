@@ -19,20 +19,19 @@ package com.merxury.blocker.feature.ifwrule.impl.model
 import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.toEditorRootGroup
-import com.merxury.core.ifw.editor.toIfwFilterOrNull
+import com.merxury.core.ifw.editor.toTopLevelFilters
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 
-fun RuleEditorUiState.toIfwFilter(): IfwFilter {
+fun RuleEditorUiState.toIfwFilters(): List<IfwFilter> {
     val componentFilter = IfwFilter.ComponentFilter("$packageName/$componentName")
     if (blockMode == BlockMode.ALL || rootGroup.children.isEmpty()) {
-        return componentFilter
+        return listOf(componentFilter)
     }
 
-    val groupFilter = rootGroup.toIfwFilterOrNull() ?: return componentFilter
-    return IfwFilter.And(listOf(componentFilter, groupFilter))
+    return listOf(componentFilter) + rootGroup.toTopLevelFilters()
 }
 
 fun IfwRules.toEditorStateOrNull(
@@ -94,8 +93,7 @@ private fun tryParseRule(
                     blockMode = BlockMode.ALL,
                 )
             } else {
-                val mode = if (extraction.fromAndWrapper) IfwEditorGroupMode.ALL else IfwEditorGroupMode.ANY
-                val rootGroup = extraction.filters.toEditorRootGroup(mode) ?: return RuleEditorUiState(
+                val rootGroup = extraction.filters.toEditorRootGroup(IfwEditorGroupMode.ALL) ?: return RuleEditorUiState(
                     packageName = packageName,
                     componentName = componentName,
                     componentType = componentType,
@@ -116,7 +114,6 @@ private fun tryParseRule(
 private sealed interface ComponentRuleExtraction {
     data class Success(
         val filters: List<IfwFilter>,
-        val fromAndWrapper: Boolean = false,
     ) : ComponentRuleExtraction
     data object Unsupported : ComponentRuleExtraction
 }
@@ -126,7 +123,6 @@ private fun extractConditionsForComponent(
     filterName: String,
 ): ComponentRuleExtraction? {
     var foundTarget = false
-    var fromAndWrapper = false
     val remaining = mutableListOf<IfwFilter>()
 
     filters.forEach { filter ->
@@ -139,7 +135,6 @@ private fun extractConditionsForComponent(
                 child is IfwFilter.ComponentFilter && child.name == filterName
             } -> {
                 foundTarget = true
-                fromAndWrapper = true
                 val nested = filter.filters.filterNot { child ->
                     child is IfwFilter.ComponentFilter && child.name == filterName
                 }
@@ -158,7 +153,7 @@ private fun extractConditionsForComponent(
     if (remaining.any { filter -> filter is IfwFilter.ComponentFilter }) {
         return ComponentRuleExtraction.Unsupported
     }
-    return ComponentRuleExtraction.Success(remaining, fromAndWrapper)
+    return ComponentRuleExtraction.Success(remaining)
 }
 
 private fun IfwFilter.containsComponentFilter(name: String): Boolean = when (this) {
@@ -172,7 +167,7 @@ private fun IfwFilter.containsComponentFilter(name: String): Boolean = when (thi
 fun IfwRules.mergeComponentRule(
     componentType: IfwComponentType,
     componentName: String,
-    newFilter: IfwFilter?,
+    newFilters: List<IfwFilter>?,
     block: Boolean,
     log: Boolean,
 ): IfwRules {
@@ -182,12 +177,12 @@ fun IfwRules.mergeComponentRule(
         rule.copy(filters = cleanedFilters)
     }.filter { rule -> rule.filters.isNotEmpty() }
 
-    val finalRules = if (newFilter != null) {
+    val finalRules = if (newFilters != null) {
         updatedRules + IfwRule(
             componentType = componentType,
             block = block,
             log = log,
-            filters = listOf(newFilter),
+            filters = newFilters,
         )
     } else {
         updatedRules

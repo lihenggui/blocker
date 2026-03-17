@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.editor.IfwEditorNode
+import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.editor.toEditorRootGroup
 import com.merxury.core.ifw.editor.toTopLevelFilters
 import com.merxury.core.ifw.model.IfwComponentType
@@ -111,12 +112,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
     private fun saveNewRule(data: AddRuleData) {
         viewModelScope.launch {
             try {
-                val newRule = IfwRule(
-                    componentType = data.componentType,
-                    block = data.block,
-                    log = data.log,
-                    filters = data.rootGroup.toTopLevelFilters(),
-                )
+                val newRule = data.toIfwRuleOrNull() ?: return@launch
                 val currentRules = intentFirewall.getRules(data.packageName)
                 intentFirewall.saveRules(
                     data.packageName,
@@ -148,12 +144,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val ruleIndex = data.editingRuleIndex ?: return@launch
-                val newRule = IfwRule(
-                    componentType = data.componentType,
-                    block = data.block,
-                    log = data.log,
-                    filters = data.rootGroup.toTopLevelFilters(),
-                )
+                val newRule = data.toIfwRuleOrNull() ?: return@launch
                 val currentRules = intentFirewall.getRules(data.packageName)
                 val updatedRules = currentRules.rules.toMutableList()
                 if (ruleIndex in updatedRules.indices) {
@@ -259,6 +250,21 @@ class GlobalIfwRuleViewModel @Inject constructor(
         packageManager.getPackageInfo(packageName, 0)
     } catch (_: PackageManager.NameNotFoundException) {
         null
+    }
+
+    private fun AddRuleData.toIfwRuleOrNull(): IfwRule? {
+        if (!rootGroup.hasTopLevelComponentFilter()) {
+            Timber.w("Skip saving IFW rule without a top-level component-filter selector")
+            return null
+        }
+        val filters = rootGroup.toTopLevelFilters()
+        if (filters.isEmpty()) return null
+        return IfwRule(
+            componentType = componentType,
+            block = block,
+            log = log,
+            filters = filters,
+        )
     }
 
     private fun IfwRule.toRuleItemUiState(index: Int, packageName: String): RuleItemUiState = RuleItemUiState(

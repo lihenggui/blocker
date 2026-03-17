@@ -21,7 +21,7 @@ import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
 
 fun List<IfwFilter>.toEditorRootGroup(
-    defaultMode: IfwEditorGroupMode = IfwEditorGroupMode.ANY,
+    defaultMode: IfwEditorGroupMode = IfwEditorGroupMode.ALL,
 ): IfwEditorNode.Group? {
     if (isEmpty()) return IfwEditorNode.Group()
     if (size == 1) {
@@ -37,8 +37,12 @@ fun List<IfwFilter>.toEditorRootGroup(
 
 fun IfwEditorNode.Group.toTopLevelFilters(): List<IfwFilter> = when {
     children.isEmpty() -> emptyList()
-    else -> listOfNotNull(toIfwFilterOrNull())
+    excluded || mode == IfwEditorGroupMode.ANY -> listOfNotNull(toIfwFilterOrNull())
+    else -> children.mapNotNull { child -> child.toIfwFilterOrNull() }
 }
+
+fun IfwEditorNode.Group.hasTopLevelComponentFilter(): Boolean = toTopLevelFilters()
+    .any { filter -> filter is IfwFilter.ComponentFilter }
 
 fun IfwEditorNode.toIfwFilterOrNull(): IfwFilter? = when (this) {
     is IfwEditorNode.Group -> {

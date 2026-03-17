@@ -57,6 +57,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
 import com.merxury.core.ifw.editor.IfwEditorNode
+import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.model.IfwComponentType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,6 +79,7 @@ fun AddRuleScreen(
     val isEditing = initialData != null
     var isDirty by remember(editorKey) { mutableStateOf(false) }
     var showUnsavedDialog by remember { mutableStateOf(false) }
+    val canSave = packageName.isNotBlank() && rootGroup.hasTopLevelComponentFilter()
 
     val handleBack: () -> Unit = {
         if (isDirty) {
@@ -100,8 +102,9 @@ fun AddRuleScreen(
             onNavigationClick = handleBack,
             actions = {
                 IconButton(
+                    enabled = canSave,
                     onClick = {
-                        if (packageName.isNotBlank()) {
+                        if (canSave) {
                             onSave(
                                 AddRuleData(
                                     packageName = packageName,
@@ -136,6 +139,9 @@ fun AddRuleScreen(
                     packageName = it
                 },
                 label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_package)) },
+                supportingText = {
+                    Text(stringResource(R.string.feature_globalifwrule_impl_target_package_summary))
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -181,6 +187,14 @@ fun AddRuleScreen(
                     rootGroup = it
                 },
             )
+            if (!rootGroup.hasTopLevelComponentFilter()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.feature_globalifwrule_impl_selector_required),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
