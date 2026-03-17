@@ -18,6 +18,7 @@ package com.merxury.core.ifw.xml
 
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwIntentFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.SenderType
@@ -43,6 +44,7 @@ import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_COMPONENT_NAME
 import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_COMPONENT_PACKAGE
 import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_DATA
 import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_HOST
+import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_INTENT_FILTER
 import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_MIME_TYPE
 import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_NOT
 import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_OR
@@ -98,46 +100,56 @@ class IfwXmlDeserializer {
     }
 
     private fun parseRule(parser: XmlPullParser, componentType: IfwComponentType): IfwRule {
-        val block = parser.getAttributeValue(null, ATTR_BLOCK)?.toBoolean() ?: true
-        val log = parser.getAttributeValue(null, ATTR_LOG)?.toBoolean() ?: true
-        val filters = parseChildren(parser, componentType.xmlTag)
+        val block = parser.getAttributeValue(null, ATTR_BLOCK)?.toBoolean() ?: false
+        val log = parser.getAttributeValue(null, ATTR_LOG)?.toBoolean() ?: false
+        val intentFilters = mutableListOf<IfwIntentFilter>()
+        val filters = parseRuleChildren(parser, intentFilters)
         return IfwRule(
             componentType = componentType,
             block = block,
             log = log,
+            intentFilters = intentFilters,
             filters = filters,
         )
     }
 
-    private fun parseChildren(parser: XmlPullParser, parentTag: String): List<IfwFilter> {
+    private fun parseRuleChildren(
+        parser: XmlPullParser,
+        intentFilters: MutableList<IfwIntentFilter>,
+    ): List<IfwFilter> {
         val filters = mutableListOf<IfwFilter>()
+        val outerDepth = parser.depth
         while (true) {
             when (parser.next()) {
                 XmlPullParser.START_TAG -> {
-                    val filter = parseFilter(parser)
-                    if (filter != null) {
-                        filters.add(filter)
+                    if (parser.name == TAG_INTENT_FILTER) {
+                        intentFilters += parseIntentFilter(parser)
                     } else {
-                        // Unknown tag — skip its subtree
-                        skipSubtree(parser)
+                        filters += parseFilter(parser)
                     }
                 }
                 XmlPullParser.END_TAG -> {
-                    // We've hit the closing tag of our parent element
-                    break
+                    if (parser.depth == outerDepth) {
+                        break
+                    }
                 }
             }
         }
         return filters
     }
 
-    private fun parseFilter(parser: XmlPullParser): IfwFilter? = when (parser.name) {
-        // Composite — parseChildren consumes children up to the closing tag
-        TAG_AND -> IfwFilter.And(parseChildren(parser, TAG_AND))
-        TAG_OR -> IfwFilter.Or(parseChildren(parser, TAG_OR))
+    private fun parseFilter(parser: XmlPullParser): IfwFilter = when (parser.name) {
+        TAG_AND -> IfwFilter.And(parseFilterChildren(parser))
+        TAG_OR -> IfwFilter.Or(parseFilterChildren(parser))
         TAG_NOT -> {
-            val children = parseChildren(parser, TAG_NOT)
-            if (children.isNotEmpty()) IfwFilter.Not(children.first()) else null
+            val children = parseFilterChildren(parser)
+            when (children.size) {
+                0 -> throw IfwXmlParseException("<not> must contain a child filter at line ${parser.lineNumber}")
+                1 -> IfwFilter.Not(children.first())
+                else -> throw IfwXmlParseException(
+                    "<not> can only contain a single child filter at line ${parser.lineNumber}",
+                )
+            }
         }
 
         // Leaf filters — read attributes, then skip to closing tag
@@ -164,7 +176,21 @@ class IfwXmlDeserializer {
             IfwFilter.ComponentFilter(name = requireAttr(parser, ATTR_NAME))
         }
 
-        else -> null
+        else -> throw IfwXmlParseException(
+            "Unknown element in filter list: ${parser.name} at line ${parser.lineNumber}",
+        )
+    }
+
+    private fun parseFilterChildren(parser: XmlPullParser): List<IfwFilter> {
+        val filters = mutableListOf<IfwFilter>()
+        val outerDepth = parser.depth
+        while (true) {
+            when (parser.next()) {
+                XmlPullParser.START_TAG -> filters += parseFilter(parser)
+                XmlPullParser.END_TAG -> if (parser.depth == outerDepth) break
+            }
+        }
+        return filters
     }
 
     /**
@@ -172,7 +198,7 @@ class IfwXmlDeserializer {
      */
     private inline fun parseLeaf(parser: XmlPullParser, parse: () -> IfwFilter): IfwFilter {
         val filter = parse()
-        skipSubtree(parser)
+        skipCurrentTag(parser)
         return filter
     }
 
@@ -219,16 +245,6 @@ class IfwXmlDeserializer {
         ?: throw IfwXmlParseException(
             "Missing required attribute '$attr' on <${parser.name}> at line ${parser.lineNumber}",
         )
-
-    private fun skipSubtree(parser: XmlPullParser) {
-        var depth = 1
-        while (depth > 0) {
-            when (parser.next()) {
-                XmlPullParser.START_TAG -> depth++
-                XmlPullParser.END_TAG -> depth--
-            }
-        }
-    }
 }
 
 /**

@@ -18,6 +18,8 @@ package com.merxury.core.ifw.xml
 
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwMimeTypeKind
+import com.merxury.core.ifw.model.IfwPatternMatcherType
 import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
 import org.junit.Before
@@ -102,8 +104,50 @@ class IfwXmlDeserializerTest {
             </rules>
         """.trimIndent()
         val result = deserializer.deserialize(xml)
-        assertTrue(result.rules[0].block)
-        assertTrue(result.rules[0].log)
+        assertEquals(false, result.rules[0].block)
+        assertEquals(false, result.rules[0].log)
+    }
+
+    @Test
+    fun givenAospIntentFilterXml_whenDeserializing_thenParsesSelectorSeparately() {
+        val xml = """
+            <rules>
+              <broadcast block="true" log="false">
+                <intent-filter>
+                  <action name="android.intent.action.VIEW" />
+                  <cat name="android.intent.category.DEFAULT" />
+                  <staticType name="image/*" />
+                  <type name="text/plain" />
+                  <scheme name="content" />
+                  <ssp prefix="id:" />
+                  <auth host="example.com" port="443" />
+                  <path literal="/items" />
+                </intent-filter>
+                <sender-package name="com.example.sender" />
+              </broadcast>
+            </rules>
+        """.trimIndent()
+
+        val rule = deserializer.deserialize(xml).rules.single()
+
+        assertEquals(1, rule.intentFilters.size)
+        val intentFilter = rule.intentFilters.single()
+        assertEquals(listOf("android.intent.action.VIEW"), intentFilter.actions)
+        assertEquals(listOf("android.intent.category.DEFAULT"), intentFilter.categories)
+        assertEquals(2, intentFilter.dataTypes.size)
+        assertEquals(IfwMimeTypeKind.STATIC, intentFilter.dataTypes[0].kind)
+        assertEquals("image/*", intentFilter.dataTypes[0].value)
+        assertEquals(IfwMimeTypeKind.DYNAMIC, intentFilter.dataTypes[1].kind)
+        assertEquals("text/plain", intentFilter.dataTypes[1].value)
+        assertEquals(listOf("content"), intentFilter.schemes)
+        assertEquals(IfwPatternMatcherType.PREFIX, intentFilter.schemeSpecificParts.single().type)
+        assertEquals("id:", intentFilter.schemeSpecificParts.single().value)
+        assertEquals("example.com", intentFilter.authorities.single().host)
+        assertEquals("443", intentFilter.authorities.single().port)
+        assertEquals(IfwPatternMatcherType.LITERAL, intentFilter.paths.single().type)
+        assertEquals("/items", intentFilter.paths.single().value)
+        assertEquals(1, rule.filters.size)
+        assertIs<IfwFilter.SenderPackage>(rule.filters.single())
     }
 
     // ── String matcher modes ──

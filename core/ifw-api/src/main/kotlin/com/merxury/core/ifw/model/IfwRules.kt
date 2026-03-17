@@ -67,9 +67,9 @@ data class IfwRules(
         .toSet()
 
     /**
-     * Returns `true` if there are no rules at all (or all rules have empty filter lists).
+     * Returns `true` if there are no rules at all (or all rules have no selectors/conditions).
      */
-    fun isEmpty(): Boolean = rules.isEmpty() || rules.all { it.filters.isEmpty() }
+    fun isEmpty(): Boolean = rules.isEmpty() || rules.all { it.filters.isEmpty() && it.intentFilters.isEmpty() }
 
     companion object {
         /** Creates an empty [IfwRules] with no rules. */

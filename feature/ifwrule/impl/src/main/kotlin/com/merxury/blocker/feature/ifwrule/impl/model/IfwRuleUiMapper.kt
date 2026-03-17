@@ -42,6 +42,7 @@ fun IfwRules.toEditorStateOrNull(
     val filterName = "$packageName/$componentName"
     for (rule in rulesFor(componentType)) {
         val state = tryParseRule(
+            rule = rule,
             filters = rule.filters,
             filterName = filterName,
             packageName = packageName,
@@ -70,6 +71,7 @@ fun IfwRules.toEditorState(
     )
 
 private fun tryParseRule(
+    rule: IfwRule,
     filters: List<IfwFilter>,
     filterName: String,
     packageName: String,
@@ -77,6 +79,14 @@ private fun tryParseRule(
     componentType: IfwComponentType,
 ): RuleEditorUiState? {
     val extraction = extractConditionsForComponent(filters, filterName) ?: return null
+    if (rule.intentFilters.isNotEmpty()) {
+        return RuleEditorUiState(
+            packageName = packageName,
+            componentName = componentName,
+            componentType = componentType,
+            isAdvancedRule = true,
+        )
+    }
     return when (extraction) {
         is ComponentRuleExtraction.Unsupported -> RuleEditorUiState(
             packageName = packageName,

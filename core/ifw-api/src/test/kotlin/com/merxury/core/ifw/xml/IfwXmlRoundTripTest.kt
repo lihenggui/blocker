@@ -18,6 +18,11 @@ package com.merxury.core.ifw.xml
 
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwIntentFilter
+import com.merxury.core.ifw.model.IfwMimeTypeEntry
+import com.merxury.core.ifw.model.IfwMimeTypeKind
+import com.merxury.core.ifw.model.IfwPatternMatcher
+import com.merxury.core.ifw.model.IfwPatternMatcherType
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.SenderType
@@ -172,6 +177,38 @@ class IfwXmlRoundTripTest {
                 ),
             ),
         )
+        assertEquals(original, roundTrip(original))
+    }
+
+    @Test
+    fun givenIntentFilterSelectors_whenRoundTripping_thenProducesEqualResult() {
+        val original = IfwRules(
+            listOf(
+                IfwRule(
+                    componentType = IfwComponentType.BROADCAST,
+                    intentFilters = listOf(
+                        IfwIntentFilter(
+                            actions = listOf("android.intent.action.VIEW"),
+                            categories = listOf("android.intent.category.DEFAULT"),
+                            dataTypes = listOf(
+                                IfwMimeTypeEntry("image/*", IfwMimeTypeKind.STATIC),
+                                IfwMimeTypeEntry("text/plain", IfwMimeTypeKind.DYNAMIC),
+                            ),
+                            schemes = listOf("content"),
+                            schemeSpecificParts = listOf(
+                                IfwPatternMatcher("id:", IfwPatternMatcherType.PREFIX),
+                            ),
+                            authorities = listOf(),
+                            paths = listOf(
+                                IfwPatternMatcher("/items", IfwPatternMatcherType.LITERAL),
+                            ),
+                        ),
+                    ),
+                    filters = listOf(IfwFilter.SenderPackage("com.example.sender")),
+                ),
+            ),
+        )
+
         assertEquals(original, roundTrip(original))
     }
 

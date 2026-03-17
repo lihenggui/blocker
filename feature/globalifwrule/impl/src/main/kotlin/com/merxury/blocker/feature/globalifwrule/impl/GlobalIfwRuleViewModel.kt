@@ -130,6 +130,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
         val state = _uiState.value as? GlobalIfwRuleUiState.Success ?: return null
         val group = state.groups.find { it.packageName == packageName } ?: return null
         val ruleItem = group.rules.find { it.ruleIndex == ruleIndex } ?: return null
+        if (ruleItem.isAdvancedRule) return null
         return AddRuleData(
             packageName = packageName,
             componentType = ruleItem.componentType,
@@ -271,9 +272,17 @@ class GlobalIfwRuleViewModel @Inject constructor(
         componentType = componentType,
         block = block,
         log = log,
-        filtersSummary = filters.joinToString("\n") { filter -> filter.toDisplaySummary(packageName) },
+        filtersSummary = buildList {
+            intentFilters.forEach { intentFilter ->
+                add("intent-filter: ${intentFilter.toSummary()}")
+            }
+            filters.forEach { filter ->
+                add(filter.toDisplaySummary(packageName))
+            }
+        }.joinToString("\n"),
         filters = filters,
         rootGroup = filters.toEditorRootGroup() ?: IfwEditorNode.Group(),
+        isAdvancedRule = intentFilters.isNotEmpty(),
         ruleIndex = index,
     )
 
@@ -313,6 +322,7 @@ data class RuleItemUiState(
     val filtersSummary: String,
     val filters: List<IfwFilter>,
     val rootGroup: IfwEditorNode.Group,
+    val isAdvancedRule: Boolean,
     val ruleIndex: Int,
 )
 

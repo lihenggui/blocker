@@ -22,6 +22,7 @@ import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.IfwEditorStringMatcherMode
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwIntentFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.SenderType
@@ -173,6 +174,25 @@ class IfwRuleUiMapperTest {
                             ),
                         ),
                     ),
+                ),
+            ),
+        )
+
+        val state = rules.toEditorState(componentType, packageName, componentName)
+
+        assertTrue(state.isAdvancedRule)
+    }
+
+    @Test
+    fun givenRuleWithIntentFilterSelector_whenFromIfwRules_thenMarksAdvancedRule() {
+        val rules = IfwRules(
+            listOf(
+                IfwRule(
+                    componentType = componentType,
+                    intentFilters = listOf(
+                        IfwIntentFilter(actions = listOf("android.intent.action.BOOT_COMPLETED")),
+                    ),
+                    filters = listOf(IfwFilter.ComponentFilter(filterName)),
                 ),
             ),
         )

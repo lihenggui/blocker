@@ -200,7 +200,11 @@ private fun RuleListContent(
                 RuleItem(
                     packageName = group.packageName,
                     rule = rule,
-                    onClick = { onEditRuleClick(group.packageName, rule.ruleIndex) },
+                    onClick = {
+                        if (!rule.isAdvancedRule) {
+                            onEditRuleClick(group.packageName, rule.ruleIndex)
+                        }
+                    },
                     onDelete = { onDeleteRule(group.packageName, rule.ruleIndex) },
                 )
             }
@@ -302,6 +306,17 @@ private fun RuleItem(
                     label = {
                         Text(
                             text = stringResource(R.string.feature_globalifwrule_impl_log),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    },
+                )
+            }
+            if (rule.isAdvancedRule) {
+                AssistChip(
+                    onClick = { },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.feature_globalifwrule_impl_advanced_rule),
                             style = MaterialTheme.typography.labelSmall,
                         )
                     },
