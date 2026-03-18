@@ -89,5 +89,5 @@
     <string name="core_ui_do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
     <string name="core_ui_found">Совпадение</string>
     <string name="core_ui_not_found">Не найдено</string>
-    <string name="core_ui_edit_ifw_rule">Custom interception rule</string>
+    <string name="core_ui_edit_ifw_rule">Пользовательское правило перехвата</string>
 </resources>

@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -51,8 +50,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
-import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
 import com.merxury.core.ifw.editor.IfwEditorNode
@@ -174,22 +173,13 @@ fun AddRuleScreen(
     }
 
     if (showUnsavedDialog) {
-        AlertDialog(
+        BlockerWarningAlertDialog(
             onDismissRequest = { showUnsavedDialog = false },
-            title = { Text(stringResource(R.string.feature_globalifwrule_impl_unsaved_title)) },
-            text = { Text(stringResource(R.string.feature_globalifwrule_impl_unsaved_message)) },
-            confirmButton = {
-                BlockerTextButton(onClick = {
-                    showUnsavedDialog = false
-                    onBack()
-                }) {
-                    Text(stringResource(R.string.feature_globalifwrule_impl_discard))
-                }
-            },
-            dismissButton = {
-                BlockerTextButton(onClick = { showUnsavedDialog = false }) {
-                    Text(stringResource(R.string.feature_globalifwrule_impl_cancel))
-                }
+            title = stringResource(R.string.feature_globalifwrule_impl_unsaved_title),
+            text = stringResource(R.string.feature_globalifwrule_impl_unsaved_message),
+            onConfirmRequest = {
+                showUnsavedDialog = false
+                onBack()
             },
         )
     }

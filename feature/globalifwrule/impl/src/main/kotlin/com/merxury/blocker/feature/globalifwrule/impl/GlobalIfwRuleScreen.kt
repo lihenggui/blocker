@@ -39,7 +39,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -62,8 +61,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
-import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.applist.AppIcon
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -378,20 +377,11 @@ private fun DeleteConfirmationDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    AlertDialog(
+    BlockerWarningAlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.feature_globalifwrule_impl_delete_confirm)) },
-        text = { Text(stringResource(R.string.feature_globalifwrule_impl_delete_confirm_message)) },
-        confirmButton = {
-            BlockerTextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.feature_globalifwrule_impl_delete))
-            }
-        },
-        dismissButton = {
-            BlockerTextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.feature_globalifwrule_impl_cancel))
-            }
-        },
+        title = stringResource(R.string.feature_globalifwrule_impl_delete_confirm),
+        text = stringResource(R.string.feature_globalifwrule_impl_delete_confirm_message),
+        onConfirmRequest = onConfirm,
         modifier = modifier,
     )
 }

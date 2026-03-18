@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,8 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerButton
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
-import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
@@ -139,20 +138,11 @@ private fun UnsavedChangesDialog(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    AlertDialog(
+    BlockerWarningAlertDialog(
         onDismissRequest = onCancel,
-        title = { Text(stringResource(R.string.feature_ifwrule_impl_unsaved_title)) },
-        text = { Text(stringResource(R.string.feature_ifwrule_impl_unsaved_message)) },
-        confirmButton = {
-            BlockerTextButton(onClick = onDiscard) {
-                Text(stringResource(R.string.feature_ifwrule_impl_discard))
-            }
-        },
-        dismissButton = {
-            BlockerTextButton(onClick = onCancel) {
-                Text(stringResource(R.string.feature_ifwrule_impl_cancel))
-            }
-        },
+        title = stringResource(R.string.feature_ifwrule_impl_unsaved_title),
+        text = stringResource(R.string.feature_ifwrule_impl_unsaved_message),
+        onConfirmRequest = onDiscard,
         modifier = modifier,
     )
 }
