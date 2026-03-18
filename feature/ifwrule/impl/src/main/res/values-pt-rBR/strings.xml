@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2025 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="feature_ifwrule_impl_title">Regras de interceptação</string>
+    <string name="feature_ifwrule_impl_block_all">Bloquear todas as chamadas (desativação total)</string>
+    <string name="feature_ifwrule_impl_block_conditional">Bloquear por condição (controle detalhado)</string>
+    <string name="feature_ifwrule_impl_block_mode">Modo de bloqueio</string>
+    <string name="feature_ifwrule_impl_conditions">Condições</string>
+    <string name="feature_ifwrule_impl_combine_all">Todas correspondem</string>
+    <string name="feature_ifwrule_impl_combine_any">Qualquer uma corresponde</string>
+    <string name="feature_ifwrule_impl_combine_label">Bloquear quando as condições forem atendidas</string>
+    <string name="feature_ifwrule_impl_add_condition">Adicionar condição</string>
+    <string name="feature_ifwrule_impl_save">Salvar regra</string>
+    <string name="feature_ifwrule_impl_advanced_options">Opções avançadas</string>
+    <string name="feature_ifwrule_impl_log">Registrar correspondências</string>
+    <string name="feature_ifwrule_impl_log_summary">Ver intents correspondentes no registro do sistema</string>
+    <string name="feature_ifwrule_impl_monitor_only">Somente monitorar (sem bloqueio)</string>
+    <string name="feature_ifwrule_impl_monitor_only_summary">A regra apenas registra e não bloqueia. Útil para observar antes de ativar</string>
+    <string name="feature_ifwrule_impl_advanced_rule_banner">Regra avançada (somente leitura)</string>
+    <string name="feature_ifwrule_impl_advanced_rule_delete">Excluir e recriar</string>
+    <string name="feature_ifwrule_impl_unsaved_title">Alterações não salvas</string>
+    <string name="feature_ifwrule_impl_unsaved_message">Você tem alterações não salvas. Tem certeza de que deseja sair?</string>
+    <string name="feature_ifwrule_impl_discard">Descartar</string>
+    <string name="feature_ifwrule_impl_cancel">Cancelar</string>
+    <string name="feature_ifwrule_impl_condition_action">Por ação de acionamento</string>
+    <string name="feature_ifwrule_impl_condition_action_desc">Bloquear quando o componente receber uma ação específica</string>
+    <string name="feature_ifwrule_impl_condition_source">Por origem do chamador</string>
+    <string name="feature_ifwrule_impl_condition_source_desc">Bloquear ou permitir chamadas apenas de origens específicas</string>
+    <string name="feature_ifwrule_impl_condition_caller_app">Por aplicativo chamador</string>
+    <string name="feature_ifwrule_impl_condition_caller_app_desc">Bloquear chamadas de aplicativos específicos</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission">Por permissão do chamador</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission_desc">Filtrar pela permissão do chamador</string>
+    <string name="feature_ifwrule_impl_condition_category">Por categoria</string>
+    <string name="feature_ifwrule_impl_condition_category_desc">Bloquear pela categoria do intent</string>
+    <string name="feature_ifwrule_impl_condition_link">Por conteúdo do link</string>
+    <string name="feature_ifwrule_impl_condition_link_desc">Filtrar pela URL no intent</string>
+    <string name="feature_ifwrule_impl_condition_data">Por conteúdo de dados</string>
+    <string name="feature_ifwrule_impl_condition_data_desc">Filtrar pelo URI de dados do intent</string>
+    <string name="feature_ifwrule_impl_condition_mime">Por tipo de conteúdo</string>
+    <string name="feature_ifwrule_impl_condition_mime_desc">Filtrar por tipo MIME</string>
+    <string name="feature_ifwrule_impl_condition_port">Por número da porta</string>
+    <string name="feature_ifwrule_impl_condition_port_desc">Filtrar pelo número da porta no URI</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern">Por padrão do nome do componente</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern_desc">Corresponder componentes por padrão de nome</string>
+    <string name="feature_ifwrule_impl_action_label">Quando a ação de acionamento for</string>
+    <string name="feature_ifwrule_impl_source_label">Controle da origem do chamador</string>
+    <string name="feature_ifwrule_impl_caller_app_label">Bloquear chamadas destes aplicativos</string>
+    <string name="feature_ifwrule_impl_caller_perm_label">Filtro de permissão do chamador</string>
+    <string name="feature_ifwrule_impl_category_label">Categoria do intent</string>
+    <string name="feature_ifwrule_impl_link_host_label">Domínio</string>
+    <string name="feature_ifwrule_impl_link_path_label">Caminho</string>
+    <string name="feature_ifwrule_impl_link_scheme_label">Protocolo</string>
+    <string name="feature_ifwrule_impl_link_ssp_label">Parte específica do esquema</string>
+    <string name="feature_ifwrule_impl_data_label">Conteúdo de dados</string>
+    <string name="feature_ifwrule_impl_mime_label">Tipo de conteúdo</string>
+    <string name="feature_ifwrule_impl_port_exact_label">Número da porta</string>
+    <string name="feature_ifwrule_impl_port_min_label">Porta mínima</string>
+    <string name="feature_ifwrule_impl_port_max_label">Porta máxima</string>
+    <string name="feature_ifwrule_impl_source_allow_user_id">Permitir apenas o mesmo ID de usuário</string>
+    <string name="feature_ifwrule_impl_source_allow_system">Permitir apenas o processo do sistema</string>
+    <string name="feature_ifwrule_impl_source_allow_signature">Permitir apenas apps com a mesma assinatura</string>
+    <string name="feature_ifwrule_impl_source_allow_system_or_sig">Permitir apenas sistema ou mesma assinatura</string>
+    <string name="feature_ifwrule_impl_source_block_user_id">Bloquear chamadas com o mesmo ID de usuário</string>
+    <string name="feature_ifwrule_impl_source_block_system">Bloquear chamadas do processo do sistema</string>
+    <string name="feature_ifwrule_impl_source_block_signature">Bloquear chamadas de apps com a mesma assinatura</string>
+    <string name="feature_ifwrule_impl_source_block_system_or_sig">Bloquear chamadas do sistema ou com a mesma assinatura</string>
+    <string name="feature_ifwrule_impl_perm_require">Permitir apenas chamadores com esta permissão</string>
+    <string name="feature_ifwrule_impl_perm_block">Bloquear chamadores com esta permissão</string>
+    <string name="feature_ifwrule_impl_match_exact">Correspondência exata</string>
+    <string name="feature_ifwrule_impl_match_starts_with">Começa com</string>
+    <string name="feature_ifwrule_impl_match_contains">Contém</string>
+    <string name="feature_ifwrule_impl_match_pattern">Padrão curinga</string>
+    <string name="feature_ifwrule_impl_match_regex">Expressão regular</string>
+    <string name="feature_ifwrule_impl_match_is_null">Está vazio</string>
+    <string name="feature_ifwrule_impl_match_is_not_null">Não está vazio</string>
+    <string name="feature_ifwrule_impl_port_exact">Exata</string>
+    <string name="feature_ifwrule_impl_port_range">Intervalo</string>
+    <string name="feature_ifwrule_impl_pattern_component">Nome completo do componente</string>
+    <string name="feature_ifwrule_impl_pattern_name">Nome da classe</string>
+    <string name="feature_ifwrule_impl_pattern_package">Nome do pacote</string>
+</resources>

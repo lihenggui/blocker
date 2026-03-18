@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2025 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="feature_ifwrule_impl_title">قواعد الاعتراض</string>
+    <string name="feature_ifwrule_impl_block_all">حظر جميع الاستدعاءات (تعطيل كامل)</string>
+    <string name="feature_ifwrule_impl_block_conditional">الحظر حسب الشرط (تحكم دقيق)</string>
+    <string name="feature_ifwrule_impl_block_mode">وضع الحظر</string>
+    <string name="feature_ifwrule_impl_conditions">الشروط</string>
+    <string name="feature_ifwrule_impl_combine_all">تطابق الكل</string>
+    <string name="feature_ifwrule_impl_combine_any">تطابق أيّ</string>
+    <string name="feature_ifwrule_impl_combine_label">الحظر عند تحقق الشروط</string>
+    <string name="feature_ifwrule_impl_add_condition">إضافة شرط</string>
+    <string name="feature_ifwrule_impl_save">حفظ القاعدة</string>
+    <string name="feature_ifwrule_impl_advanced_options">خيارات متقدمة</string>
+    <string name="feature_ifwrule_impl_log">تسجيل المطابقات</string>
+    <string name="feature_ifwrule_impl_log_summary">عرض الـ Intent المطابق في سجل النظام</string>
+    <string name="feature_ifwrule_impl_monitor_only">مراقبة فقط (بدون حظر)</string>
+    <string name="feature_ifwrule_impl_monitor_only_summary">تسجّل القاعدة فقط ولا تحظر. مفيد للمراقبة قبل التفعيل</string>
+    <string name="feature_ifwrule_impl_advanced_rule_banner">قاعدة متقدمة (للقراءة فقط)</string>
+    <string name="feature_ifwrule_impl_advanced_rule_delete">احذف وأعد الإنشاء</string>
+    <string name="feature_ifwrule_impl_unsaved_title">تغييرات غير محفوظة</string>
+    <string name="feature_ifwrule_impl_unsaved_message">لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟</string>
+    <string name="feature_ifwrule_impl_discard">تجاهل</string>
+    <string name="feature_ifwrule_impl_cancel">إلغاء</string>
+    <string name="feature_ifwrule_impl_condition_action">حسب الإجراء المشغّل</string>
+    <string name="feature_ifwrule_impl_condition_action_desc">الحظر عندما يستقبل المكوّن إجراءً محددًا</string>
+    <string name="feature_ifwrule_impl_condition_source">حسب مصدر المستدعي</string>
+    <string name="feature_ifwrule_impl_condition_source_desc">حظر أو سماح الاستدعاءات من مصادر محددة فقط</string>
+    <string name="feature_ifwrule_impl_condition_caller_app">حسب تطبيق المستدعي</string>
+    <string name="feature_ifwrule_impl_condition_caller_app_desc">حظر الاستدعاءات من تطبيقات محددة</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission">حسب إذن المستدعي</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission_desc">التصفية حسب إذن المستدعي</string>
+    <string name="feature_ifwrule_impl_condition_category">حسب الفئة</string>
+    <string name="feature_ifwrule_impl_condition_category_desc">الحظر حسب فئة Intent</string>
+    <string name="feature_ifwrule_impl_condition_link">حسب محتوى الرابط</string>
+    <string name="feature_ifwrule_impl_condition_link_desc">التصفية حسب عنوان URL داخل Intent</string>
+    <string name="feature_ifwrule_impl_condition_data">حسب محتوى البيانات</string>
+    <string name="feature_ifwrule_impl_condition_data_desc">التصفية حسب URI بيانات Intent</string>
+    <string name="feature_ifwrule_impl_condition_mime">حسب نوع المحتوى</string>
+    <string name="feature_ifwrule_impl_condition_mime_desc">التصفية حسب نوع MIME</string>
+    <string name="feature_ifwrule_impl_condition_port">حسب رقم المنفذ</string>
+    <string name="feature_ifwrule_impl_condition_port_desc">التصفية حسب رقم المنفذ في URI</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern">حسب نمط اسم المكوّن</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern_desc">مطابقة المكوّنات حسب نمط الاسم</string>
+    <string name="feature_ifwrule_impl_action_label">عندما يكون الإجراء المشغّل هو</string>
+    <string name="feature_ifwrule_impl_source_label">التحكم في مصدر المستدعي</string>
+    <string name="feature_ifwrule_impl_caller_app_label">حظر الاستدعاءات من هذه التطبيقات</string>
+    <string name="feature_ifwrule_impl_caller_perm_label">مرشح إذن المستدعي</string>
+    <string name="feature_ifwrule_impl_category_label">فئة Intent</string>
+    <string name="feature_ifwrule_impl_link_host_label">النطاق</string>
+    <string name="feature_ifwrule_impl_link_path_label">المسار</string>
+    <string name="feature_ifwrule_impl_link_scheme_label">البروتوكول</string>
+    <string name="feature_ifwrule_impl_link_ssp_label">الجزء الخاص بالمخطط</string>
+    <string name="feature_ifwrule_impl_data_label">محتوى البيانات</string>
+    <string name="feature_ifwrule_impl_mime_label">نوع المحتوى</string>
+    <string name="feature_ifwrule_impl_port_exact_label">رقم المنفذ</string>
+    <string name="feature_ifwrule_impl_port_min_label">أدنى منفذ</string>
+    <string name="feature_ifwrule_impl_port_max_label">أقصى منفذ</string>
+    <string name="feature_ifwrule_impl_source_allow_user_id">السماح فقط لنفس معرّف المستخدم</string>
+    <string name="feature_ifwrule_impl_source_allow_system">السماح فقط لعملية النظام</string>
+    <string name="feature_ifwrule_impl_source_allow_signature">السماح فقط للتطبيقات ذات التوقيع نفسه</string>
+    <string name="feature_ifwrule_impl_source_allow_system_or_sig">السماح فقط للنظام أو للتطبيقات ذات التوقيع نفسه</string>
+    <string name="feature_ifwrule_impl_source_block_user_id">حظر استدعاءات نفس معرّف المستخدم</string>
+    <string name="feature_ifwrule_impl_source_block_system">حظر استدعاءات عملية النظام</string>
+    <string name="feature_ifwrule_impl_source_block_signature">حظر استدعاءات التطبيقات ذات التوقيع نفسه</string>
+    <string name="feature_ifwrule_impl_source_block_system_or_sig">حظر استدعاءات النظام أو التطبيقات ذات التوقيع نفسه</string>
+    <string name="feature_ifwrule_impl_perm_require">السماح فقط للمستدعين الذين لديهم هذا الإذن</string>
+    <string name="feature_ifwrule_impl_perm_block">حظر المستدعين الذين لديهم هذا الإذن</string>
+    <string name="feature_ifwrule_impl_match_exact">تطابق تام</string>
+    <string name="feature_ifwrule_impl_match_starts_with">يبدأ بـ</string>
+    <string name="feature_ifwrule_impl_match_contains">يحتوي على</string>
+    <string name="feature_ifwrule_impl_match_pattern">نمط أحرف بديلة</string>
+    <string name="feature_ifwrule_impl_match_regex">تعبير نمطي</string>
+    <string name="feature_ifwrule_impl_match_is_null">فارغ</string>
+    <string name="feature_ifwrule_impl_match_is_not_null">غير فارغ</string>
+    <string name="feature_ifwrule_impl_port_exact">مطابق</string>
+    <string name="feature_ifwrule_impl_port_range">نطاق</string>
+    <string name="feature_ifwrule_impl_pattern_component">الاسم الكامل للمكوّن</string>
+    <string name="feature_ifwrule_impl_pattern_name">اسم الصنف</string>
+    <string name="feature_ifwrule_impl_pattern_package">اسم الحزمة</string>
+</resources>

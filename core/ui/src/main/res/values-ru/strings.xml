@@ -90,4 +90,16 @@
     <string name="core_ui_found">Совпадение</string>
     <string name="core_ui_not_found">Не найдено</string>
     <string name="core_ui_edit_ifw_rule">Пользовательское правило перехвата</string>
+    <string name="core_ui_ifw_add_condition">Добавить условие</string>
+    <string name="core_ui_ifw_add_group">Добавить группу</string>
+    <string name="core_ui_ifw_group_logic">Срабатывать, когда</string>
+    <string name="core_ui_ifw_group_all">все истинны</string>
+    <string name="core_ui_ifw_group_any">истинно любое</string>
+    <string name="core_ui_ifw_group_exclude">Исключить совпадения в этой группе</string>
+    <string name="core_ui_ifw_group_all_title">Все эти условия</string>
+    <string name="core_ui_ifw_group_all_summary">Правило срабатывает только тогда, когда совпадает каждый элемент этой группы.</string>
+    <string name="core_ui_ifw_group_any_title">Любое из этих условий</string>
+    <string name="core_ui_ifw_group_any_summary">Правило срабатывает, когда совпадает хотя бы один элемент этой группы.</string>
+    <string name="core_ui_ifw_group_excluded_title">Исключить эти случаи</string>
+    <string name="core_ui_ifw_group_excluded_summary">Все, что совпадает с этой группой, будет исключено из правила.</string>
 </resources>

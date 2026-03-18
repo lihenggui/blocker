@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2025 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="feature_ifwrule_impl_title">Yakalama kuralları</string>
+    <string name="feature_ifwrule_impl_block_all">Tüm çağrıları engelle (tamamen devre dışı bırak)</string>
+    <string name="feature_ifwrule_impl_block_conditional">Koşula göre engelle (ayrıntılı denetim)</string>
+    <string name="feature_ifwrule_impl_block_mode">Engelleme modu</string>
+    <string name="feature_ifwrule_impl_conditions">Koşullar</string>
+    <string name="feature_ifwrule_impl_combine_all">Hepsi eşleşsin</string>
+    <string name="feature_ifwrule_impl_combine_any">Biri eşleşsin</string>
+    <string name="feature_ifwrule_impl_combine_label">Koşullar sağlandığında engelle</string>
+    <string name="feature_ifwrule_impl_add_condition">Koşul ekle</string>
+    <string name="feature_ifwrule_impl_save">Kuralı kaydet</string>
+    <string name="feature_ifwrule_impl_advanced_options">Gelişmiş seçenekler</string>
+    <string name="feature_ifwrule_impl_log">Eşleşmeleri günlüğe kaydet</string>
+    <string name="feature_ifwrule_impl_log_summary">Eşleşen intent’leri sistem günlüğünde görüntüle</string>
+    <string name="feature_ifwrule_impl_monitor_only">Yalnızca izle (engelleme yok)</string>
+    <string name="feature_ifwrule_impl_monitor_only_summary">Kural yalnızca günlüğe yazar, engellemez. Etkinleştirmeden önce gözlem için kullanışlıdır</string>
+    <string name="feature_ifwrule_impl_advanced_rule_banner">Gelişmiş kural (salt okunur)</string>
+    <string name="feature_ifwrule_impl_advanced_rule_delete">Sil ve yeniden oluştur</string>
+    <string name="feature_ifwrule_impl_unsaved_title">Kaydedilmemiş değişiklikler</string>
+    <string name="feature_ifwrule_impl_unsaved_message">Kaydedilmemiş değişiklikleriniz var. Ayrılmak istediğinizden emin misiniz?</string>
+    <string name="feature_ifwrule_impl_discard">Vazgeç</string>
+    <string name="feature_ifwrule_impl_cancel">İptal</string>
+    <string name="feature_ifwrule_impl_condition_action">Tetikleyici eyleme göre</string>
+    <string name="feature_ifwrule_impl_condition_action_desc">Bileşen belirli bir eylem aldığında engelle</string>
+    <string name="feature_ifwrule_impl_condition_source">Çağıran kaynağına göre</string>
+    <string name="feature_ifwrule_impl_condition_source_desc">Yalnızca belirli kaynaklardan gelen çağrıları engelle veya izin ver</string>
+    <string name="feature_ifwrule_impl_condition_caller_app">Çağıran uygulamaya göre</string>
+    <string name="feature_ifwrule_impl_condition_caller_app_desc">Belirli uygulamalardan gelen çağrıları engelle</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission">Çağıran iznine göre</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission_desc">Çağıranın iznine göre filtrele</string>
+    <string name="feature_ifwrule_impl_condition_category">Kategoriye göre</string>
+    <string name="feature_ifwrule_impl_condition_category_desc">Intent kategorisine göre engelle</string>
+    <string name="feature_ifwrule_impl_condition_link">Bağlantı içeriğine göre</string>
+    <string name="feature_ifwrule_impl_condition_link_desc">Intent içindeki URL’ye göre filtrele</string>
+    <string name="feature_ifwrule_impl_condition_data">Veri içeriğine göre</string>
+    <string name="feature_ifwrule_impl_condition_data_desc">Intent veri URI’sine göre filtrele</string>
+    <string name="feature_ifwrule_impl_condition_mime">İçerik türüne göre</string>
+    <string name="feature_ifwrule_impl_condition_mime_desc">MIME türüne göre filtrele</string>
+    <string name="feature_ifwrule_impl_condition_port">Bağlantı noktasına göre</string>
+    <string name="feature_ifwrule_impl_condition_port_desc">URI içindeki bağlantı noktası numarasına göre filtrele</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern">Bileşen adı desenine göre</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern_desc">Bileşenleri ad desenine göre eşleştir</string>
+    <string name="feature_ifwrule_impl_action_label">Tetikleyici eylem şu olduğunda</string>
+    <string name="feature_ifwrule_impl_source_label">Çağıran kaynağı denetimi</string>
+    <string name="feature_ifwrule_impl_caller_app_label">Bu uygulamalardan gelen çağrıları engelle</string>
+    <string name="feature_ifwrule_impl_caller_perm_label">Çağıran izin filtresi</string>
+    <string name="feature_ifwrule_impl_category_label">Intent kategorisi</string>
+    <string name="feature_ifwrule_impl_link_host_label">Alan adı</string>
+    <string name="feature_ifwrule_impl_link_path_label">Yol</string>
+    <string name="feature_ifwrule_impl_link_scheme_label">Protokol</string>
+    <string name="feature_ifwrule_impl_link_ssp_label">Şemaya özgü bölüm</string>
+    <string name="feature_ifwrule_impl_data_label">Veri içeriği</string>
+    <string name="feature_ifwrule_impl_mime_label">İçerik türü</string>
+    <string name="feature_ifwrule_impl_port_exact_label">Bağlantı noktası numarası</string>
+    <string name="feature_ifwrule_impl_port_min_label">En düşük bağlantı noktası</string>
+    <string name="feature_ifwrule_impl_port_max_label">En yüksek bağlantı noktası</string>
+    <string name="feature_ifwrule_impl_source_allow_user_id">Yalnızca aynı kullanıcı kimliğine izin ver</string>
+    <string name="feature_ifwrule_impl_source_allow_system">Yalnızca sistem sürecine izin ver</string>
+    <string name="feature_ifwrule_impl_source_allow_signature">Yalnızca aynı imzalı uygulamalara izin ver</string>
+    <string name="feature_ifwrule_impl_source_allow_system_or_sig">Yalnızca sistem veya aynı imzaya izin ver</string>
+    <string name="feature_ifwrule_impl_source_block_user_id">Aynı kullanıcı kimliğine sahip çağrıları engelle</string>
+    <string name="feature_ifwrule_impl_source_block_system">Sistem süreci çağrılarını engelle</string>
+    <string name="feature_ifwrule_impl_source_block_signature">Aynı imzalı uygulama çağrılarını engelle</string>
+    <string name="feature_ifwrule_impl_source_block_system_or_sig">Sistem veya aynı imzalı çağrıları engelle</string>
+    <string name="feature_ifwrule_impl_perm_require">Yalnızca bu izne sahip çağıranlara izin ver</string>
+    <string name="feature_ifwrule_impl_perm_block">Bu izne sahip çağıranları engelle</string>
+    <string name="feature_ifwrule_impl_match_exact">Tam eşleşme</string>
+    <string name="feature_ifwrule_impl_match_starts_with">Şununla başlar</string>
+    <string name="feature_ifwrule_impl_match_contains">İçerir</string>
+    <string name="feature_ifwrule_impl_match_pattern">Joker desen</string>
+    <string name="feature_ifwrule_impl_match_regex">Düzenli ifade</string>
+    <string name="feature_ifwrule_impl_match_is_null">Boş</string>
+    <string name="feature_ifwrule_impl_match_is_not_null">Boş değil</string>
+    <string name="feature_ifwrule_impl_port_exact">Tam</string>
+    <string name="feature_ifwrule_impl_port_range">Aralık</string>
+    <string name="feature_ifwrule_impl_pattern_component">Tam bileşen adı</string>
+    <string name="feature_ifwrule_impl_pattern_name">Sınıf adı</string>
+    <string name="feature_ifwrule_impl_pattern_package">Paket adı</string>
+</resources>

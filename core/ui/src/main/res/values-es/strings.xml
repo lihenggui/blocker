@@ -86,4 +86,16 @@
     <string name="core_ui_found">Encontrado</string>
     <string name="core_ui_not_found">No encontrado</string>
     <string name="core_ui_edit_ifw_rule">Regla de intercepción personalizada</string>
+    <string name="core_ui_ifw_add_condition">Agregar condición</string>
+    <string name="core_ui_ifw_add_group">Agregar grupo</string>
+    <string name="core_ui_ifw_group_logic">Coincidir cuando</string>
+    <string name="core_ui_ifw_group_all">todas sean verdaderas</string>
+    <string name="core_ui_ifw_group_any">cualquiera sea verdadera</string>
+    <string name="core_ui_ifw_group_exclude">Excluir coincidencias de este grupo</string>
+    <string name="core_ui_ifw_group_all_title">Todas estas condiciones</string>
+    <string name="core_ui_ifw_group_all_summary">La regla coincide solo cuando todos los elementos de este grupo coinciden.</string>
+    <string name="core_ui_ifw_group_any_title">Cualquiera de estas condiciones</string>
+    <string name="core_ui_ifw_group_any_summary">La regla coincide cuando al menos uno de los elementos de este grupo coincide.</string>
+    <string name="core_ui_ifw_group_excluded_title">Excluir estos casos</string>
+    <string name="core_ui_ifw_group_excluded_summary">Todo lo que coincida con este grupo quedará excluido de la regla.</string>
 </resources>

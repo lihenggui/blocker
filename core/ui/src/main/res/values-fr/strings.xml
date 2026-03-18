@@ -86,4 +86,16 @@
     <string name="core_ui_found">Correspondance</string>
     <string name="core_ui_not_found">Pas de correspondance</string>
     <string name="core_ui_edit_ifw_rule">Règle d’interception personnalisée</string>
+    <string name="core_ui_ifw_add_condition">Ajouter une condition</string>
+    <string name="core_ui_ifw_add_group">Ajouter un groupe</string>
+    <string name="core_ui_ifw_group_logic">Correspondre lorsque</string>
+    <string name="core_ui_ifw_group_all">toutes sont vraies</string>
+    <string name="core_ui_ifw_group_any">au moins une est vraie</string>
+    <string name="core_ui_ifw_group_exclude">Exclure les correspondances de ce groupe</string>
+    <string name="core_ui_ifw_group_all_title">Toutes ces conditions</string>
+    <string name="core_ui_ifw_group_all_summary">La règle ne correspond que lorsque chaque élément de ce groupe correspond.</string>
+    <string name="core_ui_ifw_group_any_title">N’importe laquelle de ces conditions</string>
+    <string name="core_ui_ifw_group_any_summary">La règle correspond lorsqu’au moins un élément de ce groupe correspond.</string>
+    <string name="core_ui_ifw_group_excluded_title">Exclure ces cas</string>
+    <string name="core_ui_ifw_group_excluded_summary">Tout ce qui correspond à ce groupe sera exclu de la règle.</string>
 </resources>

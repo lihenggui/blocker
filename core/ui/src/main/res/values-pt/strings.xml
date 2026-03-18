@@ -72,4 +72,16 @@
     <string name="core_ui_found">Encontrado</string>
     <string name="core_ui_not_found">Não encontrado</string>
     <string name="core_ui_edit_ifw_rule">Regra de interceptação personalizada</string>
+    <string name="core_ui_ifw_add_condition">Adicionar condição</string>
+    <string name="core_ui_ifw_add_group">Adicionar grupo</string>
+    <string name="core_ui_ifw_group_logic">Corresponder quando</string>
+    <string name="core_ui_ifw_group_all">todas forem verdadeiras</string>
+    <string name="core_ui_ifw_group_any">qualquer uma for verdadeira</string>
+    <string name="core_ui_ifw_group_exclude">Excluir correspondências deste grupo</string>
+    <string name="core_ui_ifw_group_all_title">Todas estas condições</string>
+    <string name="core_ui_ifw_group_all_summary">A regra corresponde apenas quando todos os itens deste grupo correspondem.</string>
+    <string name="core_ui_ifw_group_any_title">Qualquer uma destas condições</string>
+    <string name="core_ui_ifw_group_any_summary">A regra corresponde quando pelo menos um item deste grupo corresponde.</string>
+    <string name="core_ui_ifw_group_excluded_title">Excluir estes casos</string>
+    <string name="core_ui_ifw_group_excluded_summary">Tudo o que corresponder a este grupo será excluído da regra.</string>
 </resources>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2025 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="feature_ifwrule_impl_title">Quy tắc chặn</string>
+    <string name="feature_ifwrule_impl_block_all">Chặn mọi cuộc gọi (vô hiệu hóa hoàn toàn)</string>
+    <string name="feature_ifwrule_impl_block_conditional">Chặn theo điều kiện (kiểm soát chi tiết)</string>
+    <string name="feature_ifwrule_impl_block_mode">Chế độ chặn</string>
+    <string name="feature_ifwrule_impl_conditions">Điều kiện</string>
+    <string name="feature_ifwrule_impl_combine_all">Tất cả khớp</string>
+    <string name="feature_ifwrule_impl_combine_any">Bất kỳ mục nào khớp</string>
+    <string name="feature_ifwrule_impl_combine_label">Chặn khi các điều kiện thỏa mãn</string>
+    <string name="feature_ifwrule_impl_add_condition">Thêm điều kiện</string>
+    <string name="feature_ifwrule_impl_save">Lưu quy tắc</string>
+    <string name="feature_ifwrule_impl_advanced_options">Tùy chọn nâng cao</string>
+    <string name="feature_ifwrule_impl_log">Ghi nhật ký khớp</string>
+    <string name="feature_ifwrule_impl_log_summary">Xem các intent khớp trong nhật ký hệ thống</string>
+    <string name="feature_ifwrule_impl_monitor_only">Chỉ giám sát (không chặn)</string>
+    <string name="feature_ifwrule_impl_monitor_only_summary">Quy tắc chỉ ghi nhật ký, không chặn. Hữu ích để quan sát trước khi bật</string>
+    <string name="feature_ifwrule_impl_advanced_rule_banner">Quy tắc nâng cao (chỉ đọc)</string>
+    <string name="feature_ifwrule_impl_advanced_rule_delete">Xóa và tạo lại</string>
+    <string name="feature_ifwrule_impl_unsaved_title">Thay đổi chưa lưu</string>
+    <string name="feature_ifwrule_impl_unsaved_message">Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời đi không?</string>
+    <string name="feature_ifwrule_impl_discard">Hủy thay đổi</string>
+    <string name="feature_ifwrule_impl_cancel">Hủy</string>
+    <string name="feature_ifwrule_impl_condition_action">Theo hành động kích hoạt</string>
+    <string name="feature_ifwrule_impl_condition_action_desc">Chặn khi thành phần nhận một hành động cụ thể</string>
+    <string name="feature_ifwrule_impl_condition_source">Theo nguồn gọi</string>
+    <string name="feature_ifwrule_impl_condition_source_desc">Chỉ chặn hoặc cho phép các cuộc gọi từ những nguồn cụ thể</string>
+    <string name="feature_ifwrule_impl_condition_caller_app">Theo ứng dụng gọi</string>
+    <string name="feature_ifwrule_impl_condition_caller_app_desc">Chặn cuộc gọi từ các ứng dụng cụ thể</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission">Theo quyền của bên gọi</string>
+    <string name="feature_ifwrule_impl_condition_caller_permission_desc">Lọc theo quyền của bên gọi</string>
+    <string name="feature_ifwrule_impl_condition_category">Theo danh mục</string>
+    <string name="feature_ifwrule_impl_condition_category_desc">Chặn theo danh mục của intent</string>
+    <string name="feature_ifwrule_impl_condition_link">Theo nội dung liên kết</string>
+    <string name="feature_ifwrule_impl_condition_link_desc">Lọc theo URL trong intent</string>
+    <string name="feature_ifwrule_impl_condition_data">Theo nội dung dữ liệu</string>
+    <string name="feature_ifwrule_impl_condition_data_desc">Lọc theo URI dữ liệu của intent</string>
+    <string name="feature_ifwrule_impl_condition_mime">Theo kiểu nội dung</string>
+    <string name="feature_ifwrule_impl_condition_mime_desc">Lọc theo kiểu MIME</string>
+    <string name="feature_ifwrule_impl_condition_port">Theo số cổng</string>
+    <string name="feature_ifwrule_impl_condition_port_desc">Lọc theo số cổng trong URI</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern">Theo mẫu tên thành phần</string>
+    <string name="feature_ifwrule_impl_condition_component_pattern_desc">Khớp thành phần theo mẫu tên</string>
+    <string name="feature_ifwrule_impl_action_label">Khi hành động kích hoạt là</string>
+    <string name="feature_ifwrule_impl_source_label">Kiểm soát nguồn gọi</string>
+    <string name="feature_ifwrule_impl_caller_app_label">Chặn cuộc gọi từ các ứng dụng này</string>
+    <string name="feature_ifwrule_impl_caller_perm_label">Bộ lọc quyền của bên gọi</string>
+    <string name="feature_ifwrule_impl_category_label">Danh mục intent</string>
+    <string name="feature_ifwrule_impl_link_host_label">Tên miền</string>
+    <string name="feature_ifwrule_impl_link_path_label">Đường dẫn</string>
+    <string name="feature_ifwrule_impl_link_scheme_label">Giao thức</string>
+    <string name="feature_ifwrule_impl_link_ssp_label">Phần dành riêng cho lược đồ</string>
+    <string name="feature_ifwrule_impl_data_label">Nội dung dữ liệu</string>
+    <string name="feature_ifwrule_impl_mime_label">Kiểu nội dung</string>
+    <string name="feature_ifwrule_impl_port_exact_label">Số cổng</string>
+    <string name="feature_ifwrule_impl_port_min_label">Cổng nhỏ nhất</string>
+    <string name="feature_ifwrule_impl_port_max_label">Cổng lớn nhất</string>
+    <string name="feature_ifwrule_impl_source_allow_user_id">Chỉ cho phép cùng ID người dùng</string>
+    <string name="feature_ifwrule_impl_source_allow_system">Chỉ cho phép tiến trình hệ thống</string>
+    <string name="feature_ifwrule_impl_source_allow_signature">Chỉ cho phép ứng dụng cùng chữ ký</string>
+    <string name="feature_ifwrule_impl_source_allow_system_or_sig">Chỉ cho phép hệ thống hoặc cùng chữ ký</string>
+    <string name="feature_ifwrule_impl_source_block_user_id">Chặn cuộc gọi cùng ID người dùng</string>
+    <string name="feature_ifwrule_impl_source_block_system">Chặn cuộc gọi từ tiến trình hệ thống</string>
+    <string name="feature_ifwrule_impl_source_block_signature">Chặn cuộc gọi từ ứng dụng cùng chữ ký</string>
+    <string name="feature_ifwrule_impl_source_block_system_or_sig">Chặn cuộc gọi từ hệ thống hoặc cùng chữ ký</string>
+    <string name="feature_ifwrule_impl_perm_require">Chỉ cho phép bên gọi có quyền này</string>
+    <string name="feature_ifwrule_impl_perm_block">Chặn bên gọi có quyền này</string>
+    <string name="feature_ifwrule_impl_match_exact">Khớp chính xác</string>
+    <string name="feature_ifwrule_impl_match_starts_with">Bắt đầu bằng</string>
+    <string name="feature_ifwrule_impl_match_contains">Chứa</string>
+    <string name="feature_ifwrule_impl_match_pattern">Mẫu ký tự đại diện</string>
+    <string name="feature_ifwrule_impl_match_regex">Biểu thức chính quy</string>
+    <string name="feature_ifwrule_impl_match_is_null">Rỗng</string>
+    <string name="feature_ifwrule_impl_match_is_not_null">Không rỗng</string>
+    <string name="feature_ifwrule_impl_port_exact">Chính xác</string>
+    <string name="feature_ifwrule_impl_port_range">Phạm vi</string>
+    <string name="feature_ifwrule_impl_pattern_component">Tên thành phần đầy đủ</string>
+    <string name="feature_ifwrule_impl_pattern_name">Tên lớp</string>
+    <string name="feature_ifwrule_impl_pattern_package">Tên gói</string>
+</resources>

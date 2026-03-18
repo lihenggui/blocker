@@ -84,4 +84,16 @@
     <string name="core_ui_enabling_component_hint">جارٍ تفعيل المكونات، يرجى الانتظار… (%1$d/%2$d)</string>
     <string name="core_ui_operation_completed">اكتملت العملية</string>
     <string name="core_ui_edit_ifw_rule">قاعدة اعتراض مخصصة</string>
+    <string name="core_ui_ifw_add_condition">إضافة شرط</string>
+    <string name="core_ui_ifw_add_group">إضافة مجموعة</string>
+    <string name="core_ui_ifw_group_logic">التطابق عندما</string>
+    <string name="core_ui_ifw_group_all">تتحقق جميعها</string>
+    <string name="core_ui_ifw_group_any">يتحقق أي منها</string>
+    <string name="core_ui_ifw_group_exclude">استبعاد المطابقات في هذه المجموعة</string>
+    <string name="core_ui_ifw_group_all_title">جميع هذه الشروط</string>
+    <string name="core_ui_ifw_group_all_summary">تتطابق القاعدة فقط عندما يتطابق كل عنصر في هذه المجموعة.</string>
+    <string name="core_ui_ifw_group_any_title">أي من هذه الشروط</string>
+    <string name="core_ui_ifw_group_any_summary">تتطابق القاعدة عندما يتطابق عنصر واحد على الأقل في هذه المجموعة.</string>
+    <string name="core_ui_ifw_group_excluded_title">استبعاد هذه الحالات</string>
+    <string name="core_ui_ifw_group_excluded_summary">سيتم استبعاد أي شيء يطابق هذه المجموعة من القاعدة.</string>
 </resources>
