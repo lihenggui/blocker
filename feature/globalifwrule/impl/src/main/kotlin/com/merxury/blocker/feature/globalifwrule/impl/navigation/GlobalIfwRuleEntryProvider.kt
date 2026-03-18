@@ -16,53 +16,13 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl.navigation
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.feature.globalifwrule.api.navigation.GlobalIfwRuleNavKey
-import com.merxury.blocker.feature.globalifwrule.impl.AddRuleScreen
-import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleScreen
-import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleScreenState
-import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleViewModel
+import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleRoute
 
 fun EntryProviderScope<NavKey>.globalIfwRuleEntry() {
     entry<GlobalIfwRuleNavKey> { _ ->
-        val viewModel: GlobalIfwRuleViewModel = hiltViewModel()
-        val editorState = viewModel.editorState.collectAsStateWithLifecycle()
-
-        AnimatedContent(
-            targetState = editorState.value.screen,
-            transitionSpec = {
-                if (targetState == GlobalIfwRuleScreenState.EDIT) {
-                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-                } else {
-                    slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-                }
-            },
-            label = "globalIfwRuleTransition",
-        ) { state ->
-            when (state) {
-                GlobalIfwRuleScreenState.LIST -> {
-                    GlobalIfwRuleScreen(
-                        onAddRuleClick = viewModel::startAddingRule,
-                        onEditRuleClick = viewModel::startEditingRule,
-                        viewModel = viewModel,
-                    )
-                }
-
-                GlobalIfwRuleScreenState.EDIT -> {
-                    AddRuleScreen(
-                        initialData = editorState.value.editingData,
-                        onSave = viewModel::saveRule,
-                        onBack = viewModel::dismissEditor,
-                    )
-                }
-            }
-        }
+        GlobalIfwRuleRoute()
     }
 }

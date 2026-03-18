@@ -83,4 +83,5 @@
     <string name="core_ui_disabling_component_hint">جارٍ تعطيل المكونات، يرجى الانتظار… (%1$d/%2$d)</string>
     <string name="core_ui_enabling_component_hint">جارٍ تفعيل المكونات، يرجى الانتظار… (%1$d/%2$d)</string>
     <string name="core_ui_operation_completed">اكتملت العملية</string>
+    <string name="core_ui_edit_ifw_rule">Custom interception rule</string>
 </resources>

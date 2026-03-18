@@ -18,8 +18,6 @@ package com.merxury.blocker.feature.ifwrule.impl
 
 import com.merxury.blocker.core.testing.controller.FakeIntentFirewall
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.feature.ifwrule.impl.model.BlockMode
-import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorScreenUiState
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.IfwEditorStringMatcherMode

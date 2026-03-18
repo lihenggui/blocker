@@ -22,4 +22,5 @@
     <string name="no_permission_hint">Không thể cấp quyền, ứng dụng có thể hoạt động sai cách.</string>
     <string name="shell_permission_hint">Đã được cấp quyền shell. Điều khiển một số thành phần có thể không được</string>
     <string name="close">Đóng</string>
+    <string name="firewall">Firewall</string>
 </resources>

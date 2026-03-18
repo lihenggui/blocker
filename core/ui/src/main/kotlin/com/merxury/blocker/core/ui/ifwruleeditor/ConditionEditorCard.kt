@@ -33,7 +33,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.R
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
@@ -62,7 +62,8 @@ internal fun ConditionEditorCard(
     onDelete: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedCard(
+    BlockerOutlinedCard(
+        onClick = {},
         modifier = modifier
             .fillMaxWidth()
             .padding(start = (depth * 12).dp, top = 8.dp),

@@ -66,11 +66,13 @@ class GlobalIfwRuleViewModel @Inject constructor(
     val editorState: StateFlow<GlobalIfwRuleEditorUiState> = _editorState.asStateFlow()
 
     init {
-        loadAllRules()
+        refresh()
     }
 
     fun refresh() {
-        loadAllRules()
+        viewModelScope.launch {
+            loadAllRules()
+        }
     }
 
     fun startAddingRule() {
@@ -79,18 +81,18 @@ class GlobalIfwRuleViewModel @Inject constructor(
         savedStateHandle[EDITING_RULE_INDEX_KEY] = null
         _editorState.value = GlobalIfwRuleEditorUiState(
             screen = GlobalIfwRuleScreenState.EDIT,
-            editingData = null,
+            draft = AddRuleData(),
         )
     }
 
     fun startEditingRule(packageName: String, ruleIndex: Int) {
-        val editingData = getRuleForEdit(packageName, ruleIndex) ?: return
+        val draft = getRuleForEdit(packageName, ruleIndex) ?: return
         savedStateHandle[EDITOR_VISIBLE_KEY] = true
         savedStateHandle[EDITING_PACKAGE_NAME_KEY] = packageName
         savedStateHandle[EDITING_RULE_INDEX_KEY] = ruleIndex
         _editorState.value = GlobalIfwRuleEditorUiState(
             screen = GlobalIfwRuleScreenState.EDIT,
-            editingData = editingData,
+            draft = draft,
         )
     }
 
@@ -101,28 +103,39 @@ class GlobalIfwRuleViewModel @Inject constructor(
         _editorState.value = GlobalIfwRuleEditorUiState()
     }
 
-    fun saveRule(data: AddRuleData) {
-        if (data.editingRuleIndex != null) {
-            updateRule(data)
-        } else {
-            saveNewRule(data)
+    fun updatePackageName(packageName: String) = updateDraft { copy(packageName = packageName) }
+
+    fun updateComponentType(componentType: IfwComponentType) = updateDraft { copy(componentType = componentType) }
+
+    fun updateBlock(block: Boolean) = updateDraft { copy(block = block) }
+
+    fun updateLog(log: Boolean) = updateDraft { copy(log = log) }
+
+    fun updateRootGroup(rootGroup: IfwEditorNode.Group) = updateDraft { copy(rootGroup = rootGroup) }
+
+    fun saveRule() {
+        val draft = editorState.value.draft
+        viewModelScope.launch {
+            if (draft.editingRuleIndex != null) {
+                updateRule(draft)
+            } else {
+                saveNewRule(draft)
+            }
         }
     }
 
-    private fun saveNewRule(data: AddRuleData) {
-        viewModelScope.launch {
-            try {
-                val newRule = data.toIfwRuleOrNull() ?: return@launch
-                val currentRules = intentFirewall.getRules(data.packageName)
-                intentFirewall.saveRules(
-                    data.packageName,
-                    IfwRules(currentRules.rules + newRule),
-                )
-                dismissEditor()
-                loadAllRules()
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to save new rule for ${data.packageName}")
-            }
+    private suspend fun saveNewRule(data: AddRuleData) {
+        try {
+            val newRule = data.toIfwRuleOrNull() ?: return
+            val currentRules = intentFirewall.getRules(data.packageName)
+            intentFirewall.saveRules(
+                data.packageName,
+                IfwRules(currentRules.rules + newRule),
+            )
+            dismissEditor()
+            loadAllRules()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save new rule for ${data.packageName}")
         }
     }
 
@@ -141,65 +154,65 @@ class GlobalIfwRuleViewModel @Inject constructor(
         )
     }
 
-    private fun updateRule(data: AddRuleData) {
-        viewModelScope.launch {
-            try {
-                val ruleIndex = data.editingRuleIndex ?: return@launch
-                val newRule = data.toIfwRuleOrNull() ?: return@launch
-                val currentRules = intentFirewall.getRules(data.packageName)
-                val updatedRules = currentRules.rules.toMutableList()
-                if (ruleIndex in updatedRules.indices) {
-                    updatedRules[ruleIndex] = newRule
-                }
-                intentFirewall.saveRules(data.packageName, IfwRules(updatedRules))
-                dismissEditor()
-                loadAllRules()
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to update rule for ${data.packageName}")
+    private suspend fun updateRule(data: AddRuleData) {
+        try {
+            val ruleIndex = data.editingRuleIndex ?: return
+            val newRule = data.toIfwRuleOrNull() ?: return
+            val currentRules = intentFirewall.getRules(data.packageName)
+            val updatedRules = currentRules.rules.toMutableList()
+            if (ruleIndex in updatedRules.indices) {
+                updatedRules[ruleIndex] = newRule
             }
+            intentFirewall.saveRules(data.packageName, IfwRules(updatedRules))
+            dismissEditor()
+            loadAllRules()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to update rule for ${data.packageName}")
         }
     }
 
     fun deleteRule(packageName: String, ruleIndex: Int) {
         viewModelScope.launch {
-            try {
-                val currentRules = intentFirewall.getRules(packageName)
-                val updatedRules = currentRules.rules.toMutableList()
-                if (ruleIndex in updatedRules.indices) {
-                    updatedRules.removeAt(ruleIndex)
-                    intentFirewall.saveRules(packageName, IfwRules(updatedRules))
-                    loadAllRules()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to delete rule for $packageName at index $ruleIndex")
-            }
+            deleteRuleInternal(packageName, ruleIndex)
         }
     }
 
-    private fun loadAllRules() {
-        viewModelScope.launch {
-            _uiState.value = GlobalIfwRuleUiState.Loading
-            try {
-                intentFirewall.resetCache()
-                val groups = intentFirewall.getAllRules()
-                    .mapNotNull { (packageName, ifwRules) ->
-                        if (ifwRules.isEmpty()) return@mapNotNull null
-                        PackageRuleGroup(
-                            packageName = packageName,
-                            appLabel = resolveAppLabel(packageName),
-                            packageInfo = resolvePackageInfo(packageName),
-                            rules = ifwRules.rules.mapIndexed { index, rule ->
-                                rule.toRuleItemUiState(index, packageName)
-                            },
-                        )
-                    }
-                    .sortedBy { it.appLabel ?: it.packageName }
-                _uiState.value = GlobalIfwRuleUiState.Success(groups)
-                restoreEditorState(groups)
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load all IFW rules")
-                _uiState.value = GlobalIfwRuleUiState.Error(e.message ?: "Unknown error")
+    private suspend fun deleteRuleInternal(packageName: String, ruleIndex: Int) {
+        try {
+            val currentRules = intentFirewall.getRules(packageName)
+            val updatedRules = currentRules.rules.toMutableList()
+            if (ruleIndex in updatedRules.indices) {
+                updatedRules.removeAt(ruleIndex)
+                intentFirewall.saveRules(packageName, IfwRules(updatedRules))
+                loadAllRules()
             }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to delete rule for $packageName at index $ruleIndex")
+        }
+    }
+
+    private suspend fun loadAllRules() {
+        _uiState.value = GlobalIfwRuleUiState.Loading
+        try {
+            intentFirewall.resetCache()
+            val groups = intentFirewall.getAllRules()
+                .mapNotNull { (packageName, ifwRules) ->
+                    if (ifwRules.isEmpty()) return@mapNotNull null
+                    PackageRuleGroup(
+                        packageName = packageName,
+                        appLabel = resolveAppLabel(packageName),
+                        packageInfo = resolvePackageInfo(packageName),
+                        rules = ifwRules.rules.mapIndexed { index, rule ->
+                            rule.toRuleItemUiState(index, packageName)
+                        },
+                    )
+                }
+                .sortedBy { it.appLabel ?: it.packageName }
+            _uiState.value = GlobalIfwRuleUiState.Success(groups)
+            restoreEditorState(groups)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to load all IFW rules")
+            _uiState.value = GlobalIfwRuleUiState.Error(e.message ?: "Unknown error")
         }
     }
 
@@ -212,7 +225,8 @@ class GlobalIfwRuleViewModel @Inject constructor(
         if (editingPackageName == null || editingRuleIndex == null) {
             _editorState.value = GlobalIfwRuleEditorUiState(
                 screen = GlobalIfwRuleScreenState.EDIT,
-                editingData = null,
+                draft = editorState.value.draft,
+                isDirty = editorState.value.isDirty,
             )
             return
         }
@@ -229,7 +243,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
 
         _editorState.value = GlobalIfwRuleEditorUiState(
             screen = GlobalIfwRuleScreenState.EDIT,
-            editingData = AddRuleData(
+            draft = AddRuleData(
                 packageName = editingPackageName,
                 componentType = ruleItem.componentType,
                 block = ruleItem.block,
@@ -237,6 +251,14 @@ class GlobalIfwRuleViewModel @Inject constructor(
                 rootGroup = ruleItem.rootGroup,
                 editingRuleIndex = editingRuleIndex,
             ),
+        )
+    }
+
+    private fun updateDraft(transform: AddRuleData.() -> AddRuleData) {
+        val current = editorState.value
+        _editorState.value = current.copy(
+            draft = current.draft.transform(),
+            isDirty = true,
         )
     }
 
@@ -328,10 +350,30 @@ data class RuleItemUiState(
 
 data class GlobalIfwRuleEditorUiState(
     val screen: GlobalIfwRuleScreenState = GlobalIfwRuleScreenState.LIST,
-    val editingData: AddRuleData? = null,
+    val draft: AddRuleData = AddRuleData(),
+    val isDirty: Boolean = false,
 )
 
 enum class GlobalIfwRuleScreenState {
     LIST,
     EDIT,
 }
+
+data class AddRuleData(
+    val packageName: String = "",
+    val componentType: IfwComponentType = IfwComponentType.BROADCAST,
+    val block: Boolean = true,
+    val log: Boolean = true,
+    val rootGroup: IfwEditorNode.Group = IfwEditorNode.Group(),
+    val editingRuleIndex: Int? = null,
+) {
+    val canSave: Boolean
+        get() = packageName.isNotBlank() && rootGroup.hasTopLevelComponentFilter()
+}
+
+val IfwComponentType.labelRes: Int
+    get() = when (this) {
+        IfwComponentType.ACTIVITY -> R.string.feature_globalifwrule_impl_rule_type_activity
+        IfwComponentType.BROADCAST -> R.string.feature_globalifwrule_impl_rule_type_broadcast
+        IfwComponentType.SERVICE -> R.string.feature_globalifwrule_impl_rule_type_service
+    }

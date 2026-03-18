@@ -16,6 +16,10 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,7 +60,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
@@ -66,30 +69,49 @@ import com.merxury.blocker.core.ui.applist.AppIcon
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 
 @Composable
-fun GlobalIfwRuleScreen(
-    onAddRuleClick: () -> Unit,
-    onEditRuleClick: (String, Int) -> Unit,
+fun GlobalIfwRuleRoute(
     modifier: Modifier = Modifier,
     viewModel: GlobalIfwRuleViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val editorState by viewModel.editorState.collectAsStateWithLifecycle()
 
-    LifecycleResumeEffect(Unit) {
-        viewModel.refresh()
-        onPauseOrDispose { }
-    }
-
-    GlobalIfwRuleScreen(
-        uiState = uiState,
-        onAddRuleClick = onAddRuleClick,
-        onEditRuleClick = onEditRuleClick,
-        onDeleteRule = viewModel::deleteRule,
+    AnimatedContent(
+        targetState = editorState.screen,
+        transitionSpec = {
+            if (targetState == GlobalIfwRuleScreenState.EDIT) {
+                slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+            } else {
+                slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+            }
+        },
+        label = "globalIfwRuleTransition",
         modifier = modifier,
-    )
+    ) { screen ->
+        when (screen) {
+            GlobalIfwRuleScreenState.LIST -> GlobalIfwRuleScreen(
+                uiState = uiState,
+                onAddRuleClick = viewModel::startAddingRule,
+                onEditRuleClick = viewModel::startEditingRule,
+                onDeleteRule = viewModel::deleteRule,
+            )
+
+            GlobalIfwRuleScreenState.EDIT -> AddRuleScreen(
+                editorState = editorState,
+                onSave = viewModel::saveRule,
+                onBack = viewModel::dismissEditor,
+                onPackageNameChange = viewModel::updatePackageName,
+                onComponentTypeChange = viewModel::updateComponentType,
+                onBlockChange = viewModel::updateBlock,
+                onLogChange = viewModel::updateLog,
+                onRootGroupChange = viewModel::updateRootGroup,
+            )
+        }
+    }
 }
 
 @Composable
-internal fun GlobalIfwRuleScreen(
+fun GlobalIfwRuleScreen(
     uiState: GlobalIfwRuleUiState,
     onAddRuleClick: () -> Unit,
     onEditRuleClick: (String, Int) -> Unit,
@@ -113,16 +135,11 @@ internal fun GlobalIfwRuleScreen(
         modifier = modifier,
     ) { padding ->
         when (uiState) {
-            is GlobalIfwRuleUiState.Loading -> {
-                LoadingScreen(modifier = Modifier.padding(padding))
-            }
-
-            is GlobalIfwRuleUiState.Error -> {
-                ErrorContent(
-                    message = uiState.message,
-                    modifier = Modifier.padding(padding),
-                )
-            }
+            is GlobalIfwRuleUiState.Loading -> LoadingScreen(modifier = Modifier.padding(padding))
+            is GlobalIfwRuleUiState.Error -> ErrorContent(
+                message = uiState.message,
+                modifier = Modifier.padding(padding),
+            )
 
             is GlobalIfwRuleUiState.Success -> {
                 if (uiState.groups.isEmpty()) {

@@ -7,4 +7,5 @@
     <string name="apps">Apps</string>
     <string name="no_permission_hint">Não é possível obter permissão, o aplicativo pode não funcionar corretamente.</string>
     <string name="shell_permission_hint">Permissão de shell concedida. Componentes de controle podem não funcionar corretamente.</string>
+    <string name="firewall">Firewall</string>
 </resources>

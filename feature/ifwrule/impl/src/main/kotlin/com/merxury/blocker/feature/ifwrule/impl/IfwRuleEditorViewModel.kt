@@ -18,9 +18,6 @@ package com.merxury.blocker.feature.ifwrule.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.feature.ifwrule.impl.model.BlockMode
-import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorScreenUiState
-import com.merxury.blocker.feature.ifwrule.impl.model.RuleEditorUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.mergeComponentRule
 import com.merxury.blocker.feature.ifwrule.impl.model.toEditorState
 import com.merxury.blocker.feature.ifwrule.impl.model.toIfwFilters
@@ -69,79 +66,119 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
 
     private fun loadRules() {
         viewModelScope.launch {
-            try {
-                val rules = intentFirewall.getRules(packageName)
-                val editorState = rules.toEditorState(componentType, packageName, componentName)
-                _uiState.value = RuleEditorScreenUiState.Success(editorState)
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load IFW rules for $packageName")
-                _uiState.value = RuleEditorScreenUiState.Error(e.message ?: "Unknown error")
-            }
+            loadRulesInternal()
         }
     }
 
     fun updateBlockMode(mode: BlockMode) {
-        updateEditor { it.copy(blockMode = mode) }
+        updateEditor { copy(blockMode = mode) }
     }
 
     fun updateLog(enabled: Boolean) {
-        updateEditor { it.copy(log = enabled) }
+        updateEditor { copy(log = enabled) }
     }
 
     fun updateBlockEnabled(enabled: Boolean) {
-        updateEditor { it.copy(blockEnabled = enabled) }
+        updateEditor { copy(blockEnabled = enabled) }
     }
 
     fun updateRootGroup(rootGroup: IfwEditorNode.Group) {
-        updateEditor { it.copy(rootGroup = rootGroup) }
+        updateEditor { copy(rootGroup = rootGroup) }
     }
 
     fun save() {
-        val state = (_uiState.value as? RuleEditorScreenUiState.Success)?.editor ?: return
         viewModelScope.launch {
-            try {
-                val newFilters = state.toIfwFilters()
-                val currentRules = intentFirewall.getRules(packageName)
-                val filterName = "$packageName/$componentName"
-                val merged = currentRules.mergeComponentRule(
-                    componentType = componentType,
-                    componentName = filterName,
-                    newFilters = newFilters,
-                    block = state.blockEnabled,
-                    log = state.log,
-                )
-                intentFirewall.saveRules(packageName, merged)
-                _saveComplete.value = true
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to save IFW rules for $packageName")
-            }
+            saveRuleInternal()
         }
     }
 
     fun deleteRule() {
         viewModelScope.launch {
-            try {
-                val currentRules = intentFirewall.getRules(packageName)
-                val filterName = "$packageName/$componentName"
-                val merged = currentRules.mergeComponentRule(
-                    componentType = componentType,
-                    componentName = filterName,
-                    newFilters = null,
-                    block = true,
-                    log = true,
-                )
-                intentFirewall.saveRules(packageName, merged)
-                _saveComplete.value = true
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to delete IFW rule for $packageName/$componentName")
-            }
+            deleteRuleInternal()
         }
     }
 
-    private fun updateEditor(transform: (RuleEditorUiState) -> RuleEditorUiState) {
-        val current = _uiState.value
-        if (current is RuleEditorScreenUiState.Success) {
-            _uiState.value = RuleEditorScreenUiState.Success(transform(current.editor))
+    private suspend fun loadRulesInternal() {
+        try {
+            val rules = intentFirewall.getRules(packageName)
+            val editorState = rules.toEditorState(componentType, packageName, componentName)
+            _uiState.value = RuleEditorScreenUiState.Success(editor = editorState)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to load IFW rules for $packageName")
+            _uiState.value = RuleEditorScreenUiState.Error(e.message ?: "Unknown error")
         }
     }
+
+    private suspend fun saveRuleInternal() {
+        val state = (_uiState.value as? RuleEditorScreenUiState.Success)?.editor ?: return
+        try {
+            val newFilters = state.toIfwFilters()
+            val currentRules = intentFirewall.getRules(packageName)
+            val filterName = "$packageName/$componentName"
+            val merged = currentRules.mergeComponentRule(
+                componentType = componentType,
+                componentName = filterName,
+                newFilters = newFilters,
+                block = state.blockEnabled,
+                log = state.log,
+            )
+            intentFirewall.saveRules(packageName, merged)
+            _saveComplete.value = true
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save IFW rules for $packageName")
+        }
+    }
+
+    private suspend fun deleteRuleInternal() {
+        try {
+            val currentRules = intentFirewall.getRules(packageName)
+            val filterName = "$packageName/$componentName"
+            val merged = currentRules.mergeComponentRule(
+                componentType = componentType,
+                componentName = filterName,
+                newFilters = null,
+                block = true,
+                log = true,
+            )
+            intentFirewall.saveRules(packageName, merged)
+            _saveComplete.value = true
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to delete IFW rule for $packageName/$componentName")
+        }
+    }
+
+    private fun updateEditor(transform: RuleEditorUiState.() -> RuleEditorUiState) {
+        val current = _uiState.value
+        if (current is RuleEditorScreenUiState.Success) {
+            _uiState.value = current.copy(
+                editor = current.editor.transform(),
+                hasUnsavedChanges = true,
+            )
+        }
+    }
+}
+
+sealed interface RuleEditorScreenUiState {
+    data object Loading : RuleEditorScreenUiState
+    data class Success(
+        val editor: RuleEditorUiState,
+        val hasUnsavedChanges: Boolean = false,
+    ) : RuleEditorScreenUiState
+    data class Error(val message: String) : RuleEditorScreenUiState
+}
+
+data class RuleEditorUiState(
+    val packageName: String,
+    val componentName: String,
+    val componentType: IfwComponentType,
+    val blockMode: BlockMode = BlockMode.ALL,
+    val log: Boolean = true,
+    val blockEnabled: Boolean = true,
+    val rootGroup: IfwEditorNode.Group = IfwEditorNode.Group(),
+    val isAdvancedRule: Boolean = false,
+)
+
+enum class BlockMode {
+    ALL,
+    CONDITIONAL,
 }

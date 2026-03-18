@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -63,26 +62,23 @@ import com.merxury.core.ifw.model.IfwComponentType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddRuleScreen(
-    onSave: (AddRuleData) -> Unit,
+    editorState: GlobalIfwRuleEditorUiState,
+    onSave: () -> Unit,
     onBack: () -> Unit,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    onBlockChange: (Boolean) -> Unit,
+    onLogChange: (Boolean) -> Unit,
+    onRootGroupChange: (IfwEditorNode.Group) -> Unit,
     modifier: Modifier = Modifier,
-    initialData: AddRuleData? = null,
 ) {
-    val editorKey = initialData?.let { "${it.packageName}:${it.editingRuleIndex}" } ?: "new"
-    var packageName by remember(editorKey) { mutableStateOf(initialData?.packageName ?: "") }
-    var componentType by remember(editorKey) {
-        mutableStateOf(initialData?.componentType ?: IfwComponentType.BROADCAST)
-    }
-    var block by remember(editorKey) { mutableStateOf(initialData?.block ?: true) }
-    var log by remember(editorKey) { mutableStateOf(initialData?.log ?: true) }
-    var rootGroup by remember(editorKey) { mutableStateOf(initialData?.rootGroup ?: IfwEditorNode.Group()) }
-    val isEditing = initialData != null
-    var isDirty by remember(editorKey) { mutableStateOf(false) }
+    val editor = editorState.draft
+    val isEditing = editor.editingRuleIndex != null
     var showUnsavedDialog by remember { mutableStateOf(false) }
-    val canSave = packageName.isNotBlank() && rootGroup.hasTopLevelComponentFilter()
+    val canSave = editor.canSave
 
     val handleBack: () -> Unit = {
-        if (isDirty) {
+        if (editorState.isDirty) {
             showUnsavedDialog = true
         } else {
             onBack()
@@ -105,16 +101,7 @@ fun AddRuleScreen(
                     enabled = canSave,
                     onClick = {
                         if (canSave) {
-                            onSave(
-                                AddRuleData(
-                                    packageName = packageName,
-                                    componentType = componentType,
-                                    block = block,
-                                    log = log,
-                                    rootGroup = rootGroup,
-                                    editingRuleIndex = initialData?.editingRuleIndex,
-                                ),
-                            )
+                            onSave()
                         }
                     },
                 ) {
@@ -133,11 +120,8 @@ fun AddRuleScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = packageName,
-                onValueChange = {
-                    isDirty = true
-                    packageName = it
-                },
+                value = editor.packageName,
+                onValueChange = onPackageNameChange,
                 label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_package)) },
                 supportingText = {
                     Text(stringResource(R.string.feature_globalifwrule_impl_target_package_summary))
@@ -148,29 +132,20 @@ fun AddRuleScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             ComponentTypeDropdown(
-                selected = componentType,
-                onSelect = {
-                    isDirty = true
-                    componentType = it
-                },
+                selected = editor.componentType,
+                onSelect = onComponentTypeChange,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
             SwitchRow(
                 label = stringResource(R.string.feature_globalifwrule_impl_block),
-                checked = block,
-                onCheckedChange = {
-                    isDirty = true
-                    block = it
-                },
+                checked = editor.block,
+                onCheckedChange = onBlockChange,
             )
             SwitchRow(
                 label = stringResource(R.string.feature_globalifwrule_impl_log),
-                checked = log,
-                onCheckedChange = {
-                    isDirty = true
-                    log = it
-                },
+                checked = editor.log,
+                onCheckedChange = onLogChange,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -181,13 +156,10 @@ fun AddRuleScreen(
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
             IfwRuleTreeEditor(
-                rootGroup = rootGroup,
-                onChange = {
-                    isDirty = true
-                    rootGroup = it
-                },
+                rootGroup = editor.rootGroup,
+                onChange = onRootGroupChange,
             )
-            if (!rootGroup.hasTopLevelComponentFilter()) {
+            if (!editor.rootGroup.hasTopLevelComponentFilter()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.feature_globalifwrule_impl_selector_required),
@@ -222,15 +194,6 @@ fun AddRuleScreen(
         )
     }
 }
-
-data class AddRuleData(
-    val packageName: String,
-    val componentType: IfwComponentType,
-    val block: Boolean,
-    val log: Boolean,
-    val rootGroup: IfwEditorNode.Group = IfwEditorNode.Group(),
-    val editingRuleIndex: Int? = null,
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -271,13 +234,6 @@ private fun ComponentTypeDropdown(
         }
     }
 }
-
-internal val IfwComponentType.labelRes: Int
-    @StringRes get() = when (this) {
-        IfwComponentType.ACTIVITY -> R.string.feature_globalifwrule_impl_rule_type_activity
-        IfwComponentType.BROADCAST -> R.string.feature_globalifwrule_impl_rule_type_broadcast
-        IfwComponentType.SERVICE -> R.string.feature_globalifwrule_impl_rule_type_service
-    }
 
 @Composable
 private fun SwitchRow(

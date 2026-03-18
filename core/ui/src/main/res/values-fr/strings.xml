@@ -85,4 +85,5 @@
     <string name="core_ui_do_you_want_to_uninstall_this_app">Voulez-vous désinstaller cette application ?</string>
     <string name="core_ui_found">Correspondance</string>
     <string name="core_ui_not_found">Pas de correspondance</string>
+    <string name="core_ui_edit_ifw_rule">Custom interception rule</string>
 </resources>

@@ -7,4 +7,5 @@
     <string name="close">Kapat</string>
     <string name="apps">Uygulamalar</string>
     <string name="no_permission_hint">İzin alınamadığında uygulama düzgün çalışmayabilir.</string>
+    <string name="firewall">Firewall</string>
 </resources>

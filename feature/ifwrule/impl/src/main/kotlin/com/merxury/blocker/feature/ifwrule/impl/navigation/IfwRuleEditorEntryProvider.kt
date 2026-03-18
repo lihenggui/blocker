@@ -21,7 +21,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
-import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.ifwrule.api.navigation.IfwRuleEditorNavKey
 import com.merxury.blocker.feature.ifwrule.impl.IfwRuleEditorScreen
 import com.merxury.blocker.feature.ifwrule.impl.IfwRuleEditorViewModel
@@ -30,7 +29,6 @@ import com.merxury.blocker.feature.ifwrule.impl.IfwRuleEditorViewModel
 fun EntryProviderScope<NavKey>.ifwRuleEditorEntry(navigator: Navigator) {
     entry<IfwRuleEditorNavKey> { key ->
         IfwRuleEditorScreen(
-            snackbarHostState = LocalSnackbarHostState.current,
             onBackClick = navigator::goBack,
             viewModel = hiltViewModel<IfwRuleEditorViewModel, IfwRuleEditorViewModel.Factory>(
                 key = "${key.packageName}/${key.componentName}",
