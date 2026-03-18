@@ -196,6 +196,18 @@ internal class IntentFirewall @Inject constructor(
         }
     }
 
+    // ── Global Query ───────────────────────────────────────────────────
+
+    override suspend fun getAllRules(): Map<String, IfwRules> {
+        if (!rootChecker.isRootAvailable()) {
+            Timber.v("Root unavailable, cannot list rules")
+            return emptyMap()
+        }
+        val packages = fileSystem.listRuleFiles()
+        return packages.associateWith { getRules(it) }
+            .filter { it.value.rules.isNotEmpty() }
+    }
+
     // ── Private Helpers ────────────────────────────────────────────────
 
     private fun cacheEmpty(packageName: String): IfwRules {

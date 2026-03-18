@@ -30,6 +30,4 @@
     <string name="feature_applist_api_none">Ninguno</string>
     <string name="feature_applist_api_running_apps">Aplicaciones en ejecución</string>
     <string name="feature_applist_api_disabled_apps">Aplicaciones deshabilitadas</string>
-    <string name="feature_applist_api_on">Activa</string>
-    <string name="feature_applist_api_off">Apagadas</string>
 </resources>

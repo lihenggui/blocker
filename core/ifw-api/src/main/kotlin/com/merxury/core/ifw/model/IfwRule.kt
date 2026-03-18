@@ -25,6 +25,9 @@ package com.merxury.core.ifw.model
  * Example XML:
  * ```xml
  * <broadcast block="true" log="true">
+ *   <intent-filter>
+ *     <action name="android.intent.action.BOOT_COMPLETED" />
+ *   </intent-filter>
  *   <and>
  *     <action equals="android.intent.action.BOOT_COMPLETED" />
  *     <not><sender type="system" /></not>
@@ -35,11 +38,13 @@ package com.merxury.core.ifw.model
  * @property componentType the type of component this rule targets
  * @property block whether matching intents should be blocked (`true`) or allowed
  * @property log whether matching intents should be logged to logcat
+ * @property intentFilters first-phase selectors parsed via `IntentFilter.readFromXml()`
  * @property filters the list of filters that define what intents this rule matches
  */
 data class IfwRule(
     val componentType: IfwComponentType,
     val block: Boolean = true,
     val log: Boolean = true,
+    val intentFilters: List<IfwIntentFilter> = emptyList(),
     val filters: List<IfwFilter> = emptyList(),
 )

@@ -22,4 +22,5 @@
     <string name="no_permission_hint">無法獲取權限，應用可能無法正常工作。</string>
     <string name="shell_permission_hint">已授予 Shell 權限。應用內組件控制功能可能無法正常工作。</string>
     <string name="close">關閉</string>
+    <string name="firewall">防火牆</string>
 </resources>

@@ -41,6 +41,7 @@ internal object IfwXmlConstants {
     const val TAG_AND = "and"
     const val TAG_OR = "or"
     const val TAG_NOT = "not"
+    const val TAG_INTENT_FILTER = "intent-filter"
 
     // String-based filter elements
     const val TAG_ACTION = "action"
@@ -79,4 +80,22 @@ internal object IfwXmlConstants {
     // Port attributes
     const val ATTR_MIN = "min"
     const val ATTR_MAX = "max"
+
+    // IntentFilter.readFromXml / writeToXml tags
+    const val TAG_INTENT_CATEGORY = "cat"
+    const val TAG_INTENT_STATIC_TYPE = "staticType"
+    const val TAG_INTENT_TYPE = "type"
+    const val TAG_INTENT_GROUP = "group"
+    const val TAG_INTENT_SSP = "ssp"
+    const val TAG_INTENT_AUTH = "auth"
+    const val TAG_INTENT_EXTRAS = "extras"
+
+    // IntentFilter.readFromXml / writeToXml attributes
+    const val ATTR_HOST = "host"
+    const val ATTR_PORT = "port"
+    const val ATTR_LITERAL = "literal"
+    const val ATTR_PREFIX = "prefix"
+    const val ATTR_SGLOB = "sglob"
+    const val ATTR_AGLOB = "aglob"
+    const val ATTR_SUFFIX = "suffix"
 }

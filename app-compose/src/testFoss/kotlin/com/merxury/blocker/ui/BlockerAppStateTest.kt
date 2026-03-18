@@ -29,6 +29,7 @@ import com.merxury.blocker.core.testing.util.TestTimeZoneMonitor
 import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
 import com.merxury.blocker.feature.debloator.api.navigation.DebloaterNavKey
 import com.merxury.blocker.feature.generalrule.api.navigation.GeneralRuleNavKey
+import com.merxury.blocker.feature.globalifwrule.api.navigation.GlobalIfwRuleNavKey
 import com.merxury.blocker.feature.search.api.navigation.SearchNavKey
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
@@ -72,6 +73,7 @@ class BlockerAppStateTest {
             AppListNavKey() to NavBackStack(AppListNavKey()),
             GeneralRuleNavKey() to NavBackStack(GeneralRuleNavKey()),
             DebloaterNavKey to NavBackStack(DebloaterNavKey),
+            GlobalIfwRuleNavKey to NavBackStack(GlobalIfwRuleNavKey),
             SearchNavKey() to NavBackStack(SearchNavKey()),
         ),
     )
@@ -116,9 +118,15 @@ class BlockerAppStateTest {
         }
         val navigationState = state.navigationState
 
-        assertEquals(4, navigationState.topLevelKeys.size)
+        assertEquals(5, navigationState.topLevelKeys.size)
         assertEquals(
-            setOf(AppListNavKey(), GeneralRuleNavKey(), DebloaterNavKey, SearchNavKey()),
+            setOf(
+                AppListNavKey(),
+                GeneralRuleNavKey(),
+                DebloaterNavKey,
+                GlobalIfwRuleNavKey,
+                SearchNavKey(),
+            ),
             navigationState.topLevelKeys,
         )
     }

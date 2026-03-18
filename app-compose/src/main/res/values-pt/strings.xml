@@ -7,4 +7,5 @@
     <string name="shell_permission_hint">Permissão de shell concedida. O controle de componentes pode não funcionar corretamente.</string>
     <string name="close">Fechar</string>
     <string name="sdk_trackers">SDK/Rastreadores</string>
+    <string name="firewall">Cortafogo</string>
 </resources>

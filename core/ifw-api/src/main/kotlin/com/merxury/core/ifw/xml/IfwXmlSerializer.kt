@@ -95,6 +95,11 @@ class IfwXmlSerializer {
         serializer.attribute(null, ATTR_BLOCK, rule.block.toString())
         serializer.attribute(null, ATTR_LOG, rule.log.toString())
 
+        for (intentFilter in rule.intentFilters) {
+            serializer.text("\n    ")
+            serializeIntentFilter(serializer, intentFilter)
+        }
+
         for (filter in rule.filters) {
             serializer.text("\n    ")
             serializeFilter(serializer, filter, indent = 4)

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_ifwrule_impl_title">Aturan intersepsi</string>
+    <string name="feature_ifwrule_impl_block_all">Blokir semua panggilan (nonaktifkan sepenuhnya)</string>
+    <string name="feature_ifwrule_impl_block_conditional">Blokir berdasarkan kondisi (kontrol rinci)</string>
+    <string name="feature_ifwrule_impl_block_mode">Mode blokir</string>
+    <string name="feature_ifwrule_impl_conditions">Kondisi</string>
+    <string name="feature_ifwrule_impl_save">Simpan aturan</string>
+    <string name="feature_ifwrule_impl_advanced_options">Opsi lanjutan</string>
+    <string name="feature_ifwrule_impl_log">Catat kecocokan</string>
+    <string name="feature_ifwrule_impl_log_summary">Lihat intent yang cocok di log sistem</string>
+    <string name="feature_ifwrule_impl_monitor_only">Hanya pantau (tanpa blokir)</string>
+    <string name="feature_ifwrule_impl_monitor_only_summary">Aturan hanya mencatat dan tidak memblokir. Berguna untuk observasi sebelum diaktifkan</string>
+    <string name="feature_ifwrule_impl_advanced_rule_banner">Aturan lanjutan (hanya baca)</string>
+    <string name="feature_ifwrule_impl_advanced_rule_delete">Hapus dan buat ulang</string>
+    <string name="feature_ifwrule_impl_unsaved_title">Perubahan belum disimpan</string>
+    <string name="feature_ifwrule_impl_unsaved_message">Anda memiliki perubahan yang belum disimpan. Yakin ingin keluar?</string>
+</resources>

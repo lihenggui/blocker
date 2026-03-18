@@ -38,9 +38,6 @@
     <string name="core_ui_select_all">全選</string>
     <string name="core_ui_enable_selected">啟用選中</string>
     <string name="core_ui_matched">%1$d 匹配，%2$d 阻擋，%3$d 啟用。</string>
-    <plurals name="core_ui_matched_apps">
-        <item quantity="other">匹配%1$d個應用</item>
-    </plurals>
     <string name="core_ui_description">描述</string>
     <string name="core_ui_applicable_application">適用應用程序</string>
     <string name="core_ui_loading">正在加載</string>
@@ -78,4 +75,17 @@
     <string name="core_ui_do_you_want_to_uninstall_this_app">您想要卸載此應用嗎？</string>
     <string name="core_ui_found">已找到</string>
     <string name="core_ui_not_found">未找到</string>
+    <string name="core_ui_edit_ifw_rule">自訂攔截規則</string>
+    <string name="core_ui_ifw_add_condition">新增條件</string>
+    <string name="core_ui_ifw_add_group">新增條件群組</string>
+    <string name="core_ui_ifw_group_logic">符合方式</string>
+    <string name="core_ui_ifw_group_all">全部成立</string>
+    <string name="core_ui_ifw_group_any">任一成立</string>
+    <string name="core_ui_ifw_group_exclude">排除此群組中的匹配</string>
+    <string name="core_ui_ifw_group_all_title">以下條件全部成立</string>
+    <string name="core_ui_ifw_group_all_summary">只有當這個群組中的每一項都符合時，規則才會命中。</string>
+    <string name="core_ui_ifw_group_any_title">以下條件任一成立</string>
+    <string name="core_ui_ifw_group_any_summary">只要這個群組中有任一項符合，規則就會命中。</string>
+    <string name="core_ui_ifw_group_excluded_title">排除以下情況</string>
+    <string name="core_ui_ifw_group_excluded_summary">凡是符合這個群組的內容，都會從規則中排除。</string>
 </resources>

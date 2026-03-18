@@ -1,0 +1,24 @@
+<resources>
+    <string name="feature_globalifwrule_impl_title">Firewall</string>
+    <string name="feature_globalifwrule_impl_empty">No IFW interception rules</string>
+    <string name="feature_globalifwrule_impl_empty_desc">Rules you create will appear here</string>
+    <string name="feature_globalifwrule_impl_add_rule">Add rule</string>
+    <string name="feature_globalifwrule_impl_edit_rule">Edit rule</string>
+    <string name="feature_globalifwrule_impl_delete_rule">Delete rule</string>
+    <string name="feature_globalifwrule_impl_delete_confirm">Delete this interception rule?</string>
+    <string name="feature_globalifwrule_impl_delete_confirm_message">This action cannot be undone.</string>
+    <string name="feature_globalifwrule_impl_rule_type">Rule type</string>
+    <string name="feature_globalifwrule_impl_rule_type_activity">Activity</string>
+    <string name="feature_globalifwrule_impl_rule_type_broadcast">Broadcast receiver</string>
+    <string name="feature_globalifwrule_impl_rule_type_service">Service</string>
+    <string name="feature_globalifwrule_impl_block">Block</string>
+    <string name="feature_globalifwrule_impl_log">Log</string>
+    <string name="feature_globalifwrule_impl_conditions">Conditions</string>
+    <string name="feature_globalifwrule_impl_save">Save rule</string>
+    <string name="feature_globalifwrule_impl_target_package">Rule file package</string>
+    <string name="feature_globalifwrule_impl_target_package_summary">Used to group the IFW XML file. Matching still depends on the conditions below.</string>
+    <string name="feature_globalifwrule_impl_advanced_rule">Advanced rule</string>
+    <string name="feature_globalifwrule_impl_selector_required">Add at least one Exact target component condition. IFW cannot trigger pattern-only global rules without a concrete target component.</string>
+    <string name="feature_globalifwrule_impl_unsaved_title">Unsaved changes</string>
+    <string name="feature_globalifwrule_impl_unsaved_message">You have unsaved changes. Are you sure you want to leave?</string>
+</resources>

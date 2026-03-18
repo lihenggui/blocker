@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.rounded.ShortText
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoFixHigh
@@ -52,6 +53,7 @@ import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material.icons.rounded.Check
@@ -69,6 +71,7 @@ import com.merxury.blocker.core.designsystem.R
  * Blocker icons. Material icons are [ImageVector]s, custom icons are drawable resource IDs.
  */
 object BlockerIcons {
+    val Add = Icons.Outlined.Add
     val Apps = Icons.Outlined.Apps
     val GeneralRule = Icons.Outlined.CollectionsBookmark
     val Sort = Icons.AutoMirrored.Outlined.Sort
@@ -98,6 +101,7 @@ object BlockerIcons {
     val Language = Icons.Default.Language
     val Translate = Icons.Default.Translate
     val Analytics = Icons.Outlined.Analytics
+    val Shield = Icons.Outlined.Shield
 
     val Rectangle = R.drawable.core_designsystem_ic_rectangle
     val Android = R.drawable.core_designsystem_ic_android

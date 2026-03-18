@@ -95,4 +95,10 @@ interface IIntentFirewall {
      * @return false if the component is blocked by a component-filter rule
      */
     suspend fun getComponentEnableState(packageName: String, componentName: String): Boolean
+
+    /**
+     * Loads all IFW rules from all packages on the device.
+     * @return map of packageName to IfwRules
+     */
+    suspend fun getAllRules(): Map<String, IfwRules>
 }

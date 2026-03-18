@@ -31,6 +31,4 @@
     <string name="feature_applist_api_none">Không</string>
     <string name="feature_applist_api_running_apps">Ứng dụng đang chạy</string>
     <string name="feature_applist_api_disabled_apps">Ứng dụng đã vô hiệu hóa</string>
-    <string name="feature_applist_api_on">Bật</string>
-    <string name="feature_applist_api_off">Tắt</string>
 </resources>

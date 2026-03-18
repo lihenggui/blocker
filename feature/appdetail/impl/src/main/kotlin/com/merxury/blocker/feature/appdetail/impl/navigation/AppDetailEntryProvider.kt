@@ -22,6 +22,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
@@ -33,6 +34,7 @@ import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetai
 fun EntryProviderScope<NavKey>.appDetailEntry(
     navigator: Navigator,
     updateIconThemingState: (IconThemingState) -> Unit,
+    navigateToIfwRuleEditor: (String, String, String) -> Unit,
 ) {
     entry<AppDetailNavKey>(
         metadata = ListDetailSceneStrategy.detailPane(),
@@ -45,6 +47,15 @@ fun EntryProviderScope<NavKey>.appDetailEntry(
             updateIconThemingState = updateIconThemingState,
             onBackClick = { navigator.goBack() },
             navigateToRuleDetail = navigator::navigateToRuleDetail,
+            onEditIfwRuleClick = { packageName, componentName, componentTypeName ->
+                val ifwTag = when (ComponentType.valueOf(componentTypeName)) {
+                    ComponentType.RECEIVER -> "broadcast"
+                    ComponentType.SERVICE -> "service"
+                    ComponentType.ACTIVITY -> "activity"
+                    else -> return@AppDetailScreen
+                }
+                navigateToIfwRuleEditor(packageName, componentName, ifwTag)
+            },
             viewModel = hiltViewModel<AppDetailViewModel, AppDetailViewModel.Factory>(
                 key = packageName,
             ) { factory ->

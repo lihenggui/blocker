@@ -18,6 +18,11 @@ package com.merxury.core.ifw.xml
 
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwIntentFilter
+import com.merxury.core.ifw.model.IfwMimeTypeEntry
+import com.merxury.core.ifw.model.IfwMimeTypeKind
+import com.merxury.core.ifw.model.IfwPatternMatcher
+import com.merxury.core.ifw.model.IfwPatternMatcherType
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.SenderType
@@ -62,6 +67,46 @@ class IfwXmlSerializerTest {
         assertContains(xml, "log=\"true\"")
         assertContains(xml, "<component-filter")
         assertContains(xml, "name=\"com.example/com.example.Main\"")
+    }
+
+    @Test
+    fun givenIntentFilterSelector_whenSerializing_thenOutputsAospIntentFilterXml() {
+        val rules = IfwRules(
+            listOf(
+                IfwRule(
+                    componentType = IfwComponentType.BROADCAST,
+                    intentFilters = listOf(
+                        IfwIntentFilter(
+                            actions = listOf("android.intent.action.VIEW"),
+                            categories = listOf("android.intent.category.DEFAULT"),
+                            dataTypes = listOf(
+                                IfwMimeTypeEntry("image", IfwMimeTypeKind.STATIC),
+                                IfwMimeTypeEntry("text/plain", IfwMimeTypeKind.DYNAMIC),
+                            ),
+                            schemes = listOf("content"),
+                            schemeSpecificParts = listOf(
+                                IfwPatternMatcher("id:", IfwPatternMatcherType.PREFIX),
+                            ),
+                            paths = listOf(
+                                IfwPatternMatcher("/items", IfwPatternMatcherType.LITERAL),
+                            ),
+                        ),
+                    ),
+                    filters = listOf(IfwFilter.SenderPackage("com.example.sender")),
+                ),
+            ),
+        )
+
+        val xml = serializer.serialize(rules)
+
+        assertContains(xml, "<intent-filter>")
+        assertContains(xml, "<action name=\"android.intent.action.VIEW\"")
+        assertContains(xml, "<cat name=\"android.intent.category.DEFAULT\"")
+        assertContains(xml, "<staticType name=\"image/*\"")
+        assertContains(xml, "<type name=\"text/plain\"")
+        assertContains(xml, "<scheme name=\"content\"")
+        assertContains(xml, "<ssp prefix=\"id:\"")
+        assertContains(xml, "<path literal=\"/items\"")
     }
 
     @Test
