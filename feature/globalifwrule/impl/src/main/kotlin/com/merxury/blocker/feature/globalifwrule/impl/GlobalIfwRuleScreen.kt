@@ -17,6 +17,8 @@
 package com.merxury.blocker.feature.globalifwrule.impl
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -43,6 +45,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -60,7 +63,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerButton
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
+import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -78,10 +83,9 @@ fun GlobalIfwRuleRoute(
     AnimatedContent(
         targetState = editorState.screen,
         transitionSpec = {
-            if (targetState == GlobalIfwRuleScreenState.EDIT) {
-                slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-            } else {
-                slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+            when (targetState) {
+                GlobalIfwRuleScreenState.LIST -> fadeIn() togetherWith fadeOut()
+                else -> slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
             }
         },
         label = "globalIfwRuleTransition",
@@ -90,20 +94,45 @@ fun GlobalIfwRuleRoute(
         when (screen) {
             GlobalIfwRuleScreenState.LIST -> GlobalIfwRuleScreen(
                 uiState = uiState,
-                onAddRuleClick = viewModel::startAddingRule,
-                onEditRuleClick = viewModel::startEditingRule,
+                onAddSimpleRuleClick = viewModel::startAddingSimpleRule,
+                onAddAdvancedRuleClick = viewModel::startAddingAdvancedRule,
+                onOpenRuleClick = viewModel::openRule,
                 onDeleteRule = viewModel::deleteRule,
             )
 
-            GlobalIfwRuleScreenState.EDIT -> AddRuleScreen(
+            GlobalIfwRuleScreenState.SIMPLE_EDIT -> SimpleGlobalIfwRuleScreen(
                 editorState = editorState,
                 onSave = viewModel::saveRule,
                 onBack = viewModel::dismissEditor,
-                onPackageNameChange = viewModel::updatePackageName,
-                onComponentTypeChange = viewModel::updateComponentType,
-                onBlockChange = viewModel::updateBlock,
-                onLogChange = viewModel::updateLog,
-                onRootGroupChange = viewModel::updateRootGroup,
+                onPackageNameChange = viewModel::updateSimplePackageName,
+                onComponentTypeChange = viewModel::updateSimpleComponentType,
+                onTargetModeChange = viewModel::updateSimpleTargetMode,
+                onBlockChange = viewModel::updateSimpleBlock,
+                onLogChange = viewModel::updateSimpleLog,
+                onActionChange = viewModel::updateSimpleAction,
+                onCategoryChange = viewModel::updateSimpleCategory,
+                onCallerPackageChange = viewModel::updateSimpleCallerPackage,
+                onComponentQueryChange = viewModel::updateComponentQuery,
+                onSelectSingleTarget = viewModel::selectSingleTarget,
+                onToggleMultiTarget = viewModel::toggleMultiTarget,
+            )
+
+            GlobalIfwRuleScreenState.ADVANCED_EDIT -> AdvancedGlobalIfwRuleScreen(
+                editorState = editorState,
+                onSave = viewModel::saveRule,
+                onBack = viewModel::dismissEditor,
+                onPackageNameChange = viewModel::updateAdvancedPackageName,
+                onComponentTypeChange = viewModel::updateAdvancedComponentType,
+                onBlockChange = viewModel::updateAdvancedBlock,
+                onLogChange = viewModel::updateAdvancedLog,
+                onRootGroupChange = viewModel::updateAdvancedRootGroup,
+            )
+
+            GlobalIfwRuleScreenState.ADVANCED_DETAIL -> AdvancedGlobalIfwRuleDetailScreen(
+                editorState = editorState,
+                onBack = viewModel::dismissEditor,
+                onCopyAsNew = viewModel::copyAdvancedRule,
+                onDelete = viewModel::deleteViewedRule,
             )
         }
     }
@@ -112,8 +141,9 @@ fun GlobalIfwRuleRoute(
 @Composable
 fun GlobalIfwRuleScreen(
     uiState: GlobalIfwRuleUiState,
-    onAddRuleClick: () -> Unit,
-    onEditRuleClick: (String, Int) -> Unit,
+    onAddSimpleRuleClick: () -> Unit,
+    onAddAdvancedRuleClick: () -> Unit,
+    onOpenRuleClick: (String, Int) -> Unit,
     onDeleteRule: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -121,10 +151,18 @@ fun GlobalIfwRuleScreen(
         topBar = {
             BlockerTopAppBar(
                 title = stringResource(R.string.feature_globalifwrule_impl_title),
+                actions = {
+                    IconButton(onClick = onAddAdvancedRuleClick) {
+                        Icon(
+                            imageVector = BlockerIcons.Rule,
+                            contentDescription = stringResource(R.string.feature_globalifwrule_impl_add_advanced_rule),
+                        )
+                    }
+                },
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddRuleClick) {
+            FloatingActionButton(onClick = onAddSimpleRuleClick) {
                 Icon(
                     imageVector = BlockerIcons.Add,
                     contentDescription = stringResource(R.string.feature_globalifwrule_impl_add_rule),
@@ -146,13 +184,99 @@ fun GlobalIfwRuleScreen(
                 } else {
                     RuleListContent(
                         groups = uiState.groups,
-                        onEditRuleClick = onEditRuleClick,
+                        onOpenRuleClick = onOpenRuleClick,
                         onDeleteRule = onDeleteRule,
                         modifier = Modifier.padding(padding),
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AdvancedGlobalIfwRuleDetailScreen(
+    editorState: GlobalIfwRuleEditorUiState,
+    onBack: () -> Unit,
+    onCopyAsNew: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val detail = editorState.detail ?: return
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        BlockerTopAppBar(
+            title = stringResource(R.string.feature_globalifwrule_impl_advanced_rule),
+            hasNavigationIcon = true,
+            onNavigationClick = onBack,
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp),
+        ) {
+            Text(
+                text = stringResource(
+                    R.string.feature_globalifwrule_impl_advanced_detail_summary,
+                    detail.storagePackageName,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AssistChip(
+                    onClick = {},
+                    label = { Text(stringResource(detail.componentType.labelRes)) },
+                )
+                if (detail.block) {
+                    AssistChip(
+                        onClick = {},
+                        label = { Text(stringResource(R.string.feature_globalifwrule_impl_block)) },
+                    )
+                }
+                if (detail.log) {
+                    AssistChip(
+                        onClick = {},
+                        label = { Text(stringResource(R.string.feature_globalifwrule_impl_log)) },
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            if (detail.draft.hasReadOnlyIntentFilters) {
+                IntentFilterBanner()
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            Text(
+                text = detail.filtersSummary,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            BlockerButton(
+                onClick = onCopyAsNew,
+                text = { Text(stringResource(R.string.feature_globalifwrule_impl_copy_as_new_advanced_rule)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            BlockerOutlinedButton(
+                text = { Text(stringResource(R.string.feature_globalifwrule_impl_delete_rule)) },
+                onClick = { showDeleteDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+        }
+    }
+
+    if (showDeleteDialog) {
+        DeleteConfirmationDialog(
+            onConfirm = {
+                showDeleteDialog = false
+                onDelete()
+            },
+            onDismiss = { showDeleteDialog = false },
+        )
     }
 }
 
@@ -200,7 +324,7 @@ private fun ErrorContent(
 @Composable
 private fun RuleListContent(
     groups: List<PackageRuleGroup>,
-    onEditRuleClick: (String, Int) -> Unit,
+    onOpenRuleClick: (String, Int) -> Unit,
     onDeleteRule: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -216,11 +340,7 @@ private fun RuleListContent(
                 RuleItem(
                     packageName = group.packageName,
                     rule = rule,
-                    onClick = {
-                        if (!rule.isAdvancedRule) {
-                            onEditRuleClick(group.packageName, rule.ruleIndex)
-                        }
-                    },
+                    onClick = { onOpenRuleClick(group.packageName, rule.ruleIndex) },
                     onDelete = { onDeleteRule(group.packageName, rule.ruleIndex) },
                 )
             }
@@ -327,7 +447,7 @@ private fun RuleItem(
                     },
                 )
             }
-            if (rule.isAdvancedRule) {
+            if (rule.editMode == GlobalIfwRuleEditMode.ADVANCED) {
                 AssistChip(
                     onClick = { },
                     label = {
