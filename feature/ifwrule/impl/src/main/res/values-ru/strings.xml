@@ -1,29 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-     Copyright 2025 Blocker
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          https://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
 <resources>
     <string name="feature_ifwrule_impl_title">Правила перехвата</string>
     <string name="feature_ifwrule_impl_block_all">Блокировать все вызовы (полностью отключить)</string>
     <string name="feature_ifwrule_impl_block_conditional">Блокировать по условию (точная настройка)</string>
     <string name="feature_ifwrule_impl_block_mode">Режим блокировки</string>
     <string name="feature_ifwrule_impl_conditions">Условия</string>
-    <string name="feature_ifwrule_impl_combine_all">Совпадают все</string>
-    <string name="feature_ifwrule_impl_combine_any">Совпадает любое</string>
-    <string name="feature_ifwrule_impl_combine_label">Блокировать при выполнении условий</string>
-    <string name="feature_ifwrule_impl_add_condition">Добавить условие</string>
     <string name="feature_ifwrule_impl_save">Сохранить правило</string>
     <string name="feature_ifwrule_impl_advanced_options">Дополнительные параметры</string>
     <string name="feature_ifwrule_impl_log">Записывать совпадения в журнал</string>
@@ -34,62 +15,4 @@
     <string name="feature_ifwrule_impl_advanced_rule_delete">Удалить и создать заново</string>
     <string name="feature_ifwrule_impl_unsaved_title">Несохранённые изменения</string>
     <string name="feature_ifwrule_impl_unsaved_message">У вас есть несохранённые изменения. Вы уверены, что хотите выйти?</string>
-    <string name="feature_ifwrule_impl_discard">Отменить изменения</string>
-    <string name="feature_ifwrule_impl_cancel">Отмена</string>
-    <string name="feature_ifwrule_impl_condition_action">По действию запуска</string>
-    <string name="feature_ifwrule_impl_condition_action_desc">Блокировать, когда компонент получает определённое действие</string>
-    <string name="feature_ifwrule_impl_condition_source">По источнику вызова</string>
-    <string name="feature_ifwrule_impl_condition_source_desc">Блокировать или разрешать вызовы только из определённых источников</string>
-    <string name="feature_ifwrule_impl_condition_caller_app">По приложению вызывающей стороны</string>
-    <string name="feature_ifwrule_impl_condition_caller_app_desc">Блокировать вызовы от определённых приложений</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission">По разрешению вызывающей стороны</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission_desc">Фильтровать по разрешению вызывающей стороны</string>
-    <string name="feature_ifwrule_impl_condition_category">По категории</string>
-    <string name="feature_ifwrule_impl_condition_category_desc">Блокировать по категории Intent</string>
-    <string name="feature_ifwrule_impl_condition_link">По содержимому ссылки</string>
-    <string name="feature_ifwrule_impl_condition_link_desc">Фильтровать по URL в Intent</string>
-    <string name="feature_ifwrule_impl_condition_data">По содержимому данных</string>
-    <string name="feature_ifwrule_impl_condition_data_desc">Фильтровать по URI данных Intent</string>
-    <string name="feature_ifwrule_impl_condition_mime">По типу содержимого</string>
-    <string name="feature_ifwrule_impl_condition_mime_desc">Фильтровать по MIME-типу</string>
-    <string name="feature_ifwrule_impl_condition_port">По номеру порта</string>
-    <string name="feature_ifwrule_impl_condition_port_desc">Фильтровать по номеру порта в URI</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern">По шаблону имени компонента</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern_desc">Сопоставлять компоненты по шаблону имени</string>
-    <string name="feature_ifwrule_impl_action_label">Когда действие запуска равно</string>
-    <string name="feature_ifwrule_impl_source_label">Управление источником вызова</string>
-    <string name="feature_ifwrule_impl_caller_app_label">Блокировать вызовы от этих приложений</string>
-    <string name="feature_ifwrule_impl_caller_perm_label">Фильтр разрешения вызывающей стороны</string>
-    <string name="feature_ifwrule_impl_category_label">Категория Intent</string>
-    <string name="feature_ifwrule_impl_link_host_label">Домен</string>
-    <string name="feature_ifwrule_impl_link_path_label">Путь</string>
-    <string name="feature_ifwrule_impl_link_scheme_label">Протокол</string>
-    <string name="feature_ifwrule_impl_link_ssp_label">Специфическая часть схемы</string>
-    <string name="feature_ifwrule_impl_data_label">Содержимое данных</string>
-    <string name="feature_ifwrule_impl_mime_label">Тип содержимого</string>
-    <string name="feature_ifwrule_impl_port_exact_label">Номер порта</string>
-    <string name="feature_ifwrule_impl_port_min_label">Мин. порт</string>
-    <string name="feature_ifwrule_impl_port_max_label">Макс. порт</string>
-    <string name="feature_ifwrule_impl_source_allow_user_id">Разрешать только тот же ID пользователя</string>
-    <string name="feature_ifwrule_impl_source_allow_system">Разрешать только системный процесс</string>
-    <string name="feature_ifwrule_impl_source_allow_signature">Разрешать только приложения с той же подписью</string>
-    <string name="feature_ifwrule_impl_source_allow_system_or_sig">Разрешать только системе или той же подписи</string>
-    <string name="feature_ifwrule_impl_source_block_user_id">Блокировать вызовы с тем же ID пользователя</string>
-    <string name="feature_ifwrule_impl_source_block_system">Блокировать вызовы системного процесса</string>
-    <string name="feature_ifwrule_impl_source_block_signature">Блокировать вызовы приложений с той же подписью</string>
-    <string name="feature_ifwrule_impl_source_block_system_or_sig">Блокировать вызовы системы или той же подписи</string>
-    <string name="feature_ifwrule_impl_perm_require">Разрешать только вызывающим с этим разрешением</string>
-    <string name="feature_ifwrule_impl_perm_block">Блокировать вызывающих с этим разрешением</string>
-    <string name="feature_ifwrule_impl_match_exact">Точное совпадение</string>
-    <string name="feature_ifwrule_impl_match_starts_with">Начинается с</string>
-    <string name="feature_ifwrule_impl_match_contains">Содержит</string>
-    <string name="feature_ifwrule_impl_match_pattern">Шаблон с подстановками</string>
-    <string name="feature_ifwrule_impl_match_regex">Регулярное выражение</string>
-    <string name="feature_ifwrule_impl_match_is_null">Пусто</string>
-    <string name="feature_ifwrule_impl_match_is_not_null">Не пусто</string>
-    <string name="feature_ifwrule_impl_port_exact">Точно</string>
-    <string name="feature_ifwrule_impl_port_range">Диапазон</string>
-    <string name="feature_ifwrule_impl_pattern_component">Полное имя компонента</string>
-    <string name="feature_ifwrule_impl_pattern_name">Имя класса</string>
-    <string name="feature_ifwrule_impl_pattern_package">Имя пакета</string>
 </resources>

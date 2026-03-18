@@ -67,8 +67,8 @@ enum class IfwPatternMatcherType(
     LITERAL("literal", PatternMatcher.PATTERN_LITERAL),
     PREFIX("prefix", PatternMatcher.PATTERN_PREFIX),
     SIMPLE_GLOB("sglob", PatternMatcher.PATTERN_SIMPLE_GLOB),
-    ADVANCED_GLOB("aglob", PatternMatcher.PATTERN_ADVANCED_GLOB),
-    SUFFIX("suffix", PatternMatcher.PATTERN_SUFFIX),
+    ADVANCED_GLOB("aglob", PATTERN_ADVANCED_GLOB_COMPAT),
+    SUFFIX("suffix", PATTERN_SUFFIX_COMPAT),
     ;
 
     companion object {
@@ -76,6 +76,10 @@ enum class IfwPatternMatcherType(
             ?: throw IllegalArgumentException("Unsupported PatternMatcher type: $type")
     }
 }
+
+// Matches the framework values in android.os.PatternMatcher on API 26+ and 31+.
+private const val PATTERN_ADVANCED_GLOB_COMPAT = 3
+private const val PATTERN_SUFFIX_COMPAT = 4
 
 fun IfwIntentFilter.toSummary(): String {
     val parts = buildList {

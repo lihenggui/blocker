@@ -38,9 +38,6 @@
     <string name="core_ui_select_all">全選</string>
     <string name="core_ui_enable_selected">啟用選中</string>
     <string name="core_ui_matched">%1$d 匹配，%2$d 阻擋，%3$d 啟用。</string>
-    <plurals name="core_ui_matched_apps">
-        <item quantity="other">匹配%1$d個應用</item>
-    </plurals>
     <string name="core_ui_description">描述</string>
     <string name="core_ui_applicable_application">適用應用程序</string>
     <string name="core_ui_loading">正在加載</string>

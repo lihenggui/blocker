@@ -15,7 +15,5 @@
     <string name="feature_applist_api_none">Nenhum</string>
     <string name="feature_applist_api_running_apps">Aplicativos em execução</string>
     <string name="feature_applist_api_disabled_apps">Aplicativos desativados</string>
-    <string name="feature_applist_api_on">Ligado</string>
-    <string name="feature_applist_api_off">Desligado</string>
     <string name="feature_applist_api_ascending">Crescente</string>
 </resources>

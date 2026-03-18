@@ -1,29 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-     Copyright 2025 Blocker
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          https://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
 <resources>
     <string name="feature_ifwrule_impl_title">攔截規則</string>
     <string name="feature_ifwrule_impl_block_all">阻止所有呼叫（完全停用）</string>
     <string name="feature_ifwrule_impl_block_conditional">按條件攔截（精細控制）</string>
     <string name="feature_ifwrule_impl_block_mode">攔截方式</string>
     <string name="feature_ifwrule_impl_conditions">攔截條件</string>
-    <string name="feature_ifwrule_impl_combine_all">全部符合</string>
-    <string name="feature_ifwrule_impl_combine_any">任一符合</string>
-    <string name="feature_ifwrule_impl_combine_label">當以下條件符合時攔截</string>
-    <string name="feature_ifwrule_impl_add_condition">新增條件</string>
     <string name="feature_ifwrule_impl_save">儲存規則</string>
     <string name="feature_ifwrule_impl_advanced_options">進階選項</string>
     <string name="feature_ifwrule_impl_log">記錄日誌</string>
@@ -34,62 +15,4 @@
     <string name="feature_ifwrule_impl_advanced_rule_delete">刪除並重新建立</string>
     <string name="feature_ifwrule_impl_unsaved_title">未儲存的變更</string>
     <string name="feature_ifwrule_impl_unsaved_message">你有未儲存的變更，確定要離開嗎？</string>
-    <string name="feature_ifwrule_impl_discard">放棄</string>
-    <string name="feature_ifwrule_impl_cancel">取消</string>
-    <string name="feature_ifwrule_impl_condition_action">按觸發動作</string>
-    <string name="feature_ifwrule_impl_condition_action_desc">當元件收到特定動作時攔截</string>
-    <string name="feature_ifwrule_impl_condition_source">按呼叫來源</string>
-    <string name="feature_ifwrule_impl_condition_source_desc">只攔截或只允許特定來源的呼叫</string>
-    <string name="feature_ifwrule_impl_condition_caller_app">按呼叫者應用</string>
-    <string name="feature_ifwrule_impl_condition_caller_app_desc">攔截來自特定應用的呼叫</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission">按呼叫者權限</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission_desc">根據呼叫者是否持有特定權限來攔截</string>
-    <string name="feature_ifwrule_impl_condition_category">按分類</string>
-    <string name="feature_ifwrule_impl_condition_category_desc">根據 Intent 分類攔截</string>
-    <string name="feature_ifwrule_impl_condition_link">按連結內容</string>
-    <string name="feature_ifwrule_impl_condition_link_desc">根據 Intent 攜帶的連結資訊攔截</string>
-    <string name="feature_ifwrule_impl_condition_data">按資料內容</string>
-    <string name="feature_ifwrule_impl_condition_data_desc">根據 Intent 的 data 過濾</string>
-    <string name="feature_ifwrule_impl_condition_mime">按內容類型</string>
-    <string name="feature_ifwrule_impl_condition_mime_desc">按 MIME 類型過濾</string>
-    <string name="feature_ifwrule_impl_condition_port">按連接埠號</string>
-    <string name="feature_ifwrule_impl_condition_port_desc">攔截訪問特定連接埠的 Intent</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern">按元件名稱模式</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern_desc">匹配元件名稱包含特定關鍵字</string>
-    <string name="feature_ifwrule_impl_action_label">當觸發動作為</string>
-    <string name="feature_ifwrule_impl_source_label">呼叫來源控制</string>
-    <string name="feature_ifwrule_impl_caller_app_label">攔截來自以下應用的呼叫</string>
-    <string name="feature_ifwrule_impl_caller_perm_label">呼叫者權限過濾</string>
-    <string name="feature_ifwrule_impl_category_label">Intent 分類</string>
-    <string name="feature_ifwrule_impl_link_host_label">網域</string>
-    <string name="feature_ifwrule_impl_link_path_label">路徑</string>
-    <string name="feature_ifwrule_impl_link_scheme_label">協定</string>
-    <string name="feature_ifwrule_impl_link_ssp_label">協定專屬部分</string>
-    <string name="feature_ifwrule_impl_data_label">資料內容</string>
-    <string name="feature_ifwrule_impl_mime_label">內容類型</string>
-    <string name="feature_ifwrule_impl_port_exact_label">連接埠號</string>
-    <string name="feature_ifwrule_impl_port_min_label">最小連接埠</string>
-    <string name="feature_ifwrule_impl_port_max_label">最大連接埠</string>
-    <string name="feature_ifwrule_impl_source_allow_user_id">只允許同使用者 ID 呼叫</string>
-    <string name="feature_ifwrule_impl_source_allow_system">只允許系統行程呼叫</string>
-    <string name="feature_ifwrule_impl_source_allow_signature">只允許同簽章應用呼叫</string>
-    <string name="feature_ifwrule_impl_source_allow_system_or_sig">只允許系統或同簽章應用呼叫</string>
-    <string name="feature_ifwrule_impl_source_block_user_id">阻止同使用者 ID 呼叫</string>
-    <string name="feature_ifwrule_impl_source_block_system">阻止系統行程呼叫</string>
-    <string name="feature_ifwrule_impl_source_block_signature">阻止同簽章應用呼叫</string>
-    <string name="feature_ifwrule_impl_source_block_system_or_sig">阻止系統或同簽章應用呼叫</string>
-    <string name="feature_ifwrule_impl_perm_require">只允許持有此權限的應用呼叫</string>
-    <string name="feature_ifwrule_impl_perm_block">阻止持有此權限的應用呼叫</string>
-    <string name="feature_ifwrule_impl_match_exact">精確匹配</string>
-    <string name="feature_ifwrule_impl_match_starts_with">以…開頭</string>
-    <string name="feature_ifwrule_impl_match_contains">包含</string>
-    <string name="feature_ifwrule_impl_match_pattern">萬用字元匹配</string>
-    <string name="feature_ifwrule_impl_match_regex">正則表達式</string>
-    <string name="feature_ifwrule_impl_match_is_null">為空</string>
-    <string name="feature_ifwrule_impl_match_is_not_null">不為空</string>
-    <string name="feature_ifwrule_impl_port_exact">精確匹配</string>
-    <string name="feature_ifwrule_impl_port_range">範圍</string>
-    <string name="feature_ifwrule_impl_pattern_component">完整元件名稱</string>
-    <string name="feature_ifwrule_impl_pattern_name">類名</string>
-    <string name="feature_ifwrule_impl_pattern_package">套件名</string>
 </resources>

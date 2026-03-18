@@ -32,6 +32,4 @@
     <string name="feature_applist_api_none">None</string>
     <string name="feature_applist_api_running_apps">Running apps</string>
     <string name="feature_applist_api_disabled_apps">Disabled apps</string>
-    <string name="feature_applist_api_on">On</string>
-    <string name="feature_applist_api_off">Off</string>
 </resources>

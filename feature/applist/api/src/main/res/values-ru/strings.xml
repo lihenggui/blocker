@@ -30,6 +30,4 @@
     <string name="feature_applist_api_none">Нет</string>
     <string name="feature_applist_api_running_apps">Работающие приложения</string>
     <string name="feature_applist_api_disabled_apps">Отключенные приложения</string>
-    <string name="feature_applist_api_on">Вкл.</string>
-    <string name="feature_applist_api_off">Выкл.</string>
 </resources>

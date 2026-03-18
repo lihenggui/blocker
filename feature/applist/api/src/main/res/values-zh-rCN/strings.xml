@@ -31,6 +31,4 @@
     <string name="feature_applist_api_none">无</string>
     <string name="feature_applist_api_running_apps">运行中的应用</string>
     <string name="feature_applist_api_disabled_apps">已禁用的应用</string>
-    <string name="feature_applist_api_on">开启</string>
-    <string name="feature_applist_api_off">关闭</string>
 </resources>

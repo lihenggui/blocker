@@ -35,11 +35,7 @@
     <string name="core_ui_stop_service">Stop service</string>
     <string name="core_ui_edit_ifw_rule">Custom interception rule</string>
     <string name="core_ui_no_components">No components</string>
-    <string name="core_ui_matched">%1$d matched, %2$d blocked, %3$d enabled.</string>
-    <plurals name="core_ui_matched_apps">
-        <item quantity="one">%1$d matched app</item>
-        <item quantity="other">%1$d matched apps</item>
-    </plurals>
+    <string name="core_ui_matched" tools:ignore="PluralsCandidate">%1$d matched, %2$d blocked, %3$d enabled.</string>
     <string name="core_ui_description">Description</string>
     <string name="core_ui_applicable_application">Applicable app</string>
     <string name="core_ui_loading">Loading</string>

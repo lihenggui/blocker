@@ -1,29 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-     Copyright 2025 Blocker
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          https://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
 <resources>
     <string name="feature_ifwrule_impl_title">Aturan intersepsi</string>
     <string name="feature_ifwrule_impl_block_all">Blokir semua panggilan (nonaktifkan sepenuhnya)</string>
     <string name="feature_ifwrule_impl_block_conditional">Blokir berdasarkan kondisi (kontrol rinci)</string>
     <string name="feature_ifwrule_impl_block_mode">Mode blokir</string>
     <string name="feature_ifwrule_impl_conditions">Kondisi</string>
-    <string name="feature_ifwrule_impl_combine_all">Semua cocok</string>
-    <string name="feature_ifwrule_impl_combine_any">Salah satu cocok</string>
-    <string name="feature_ifwrule_impl_combine_label">Blokir saat kondisi terpenuhi</string>
-    <string name="feature_ifwrule_impl_add_condition">Tambah kondisi</string>
     <string name="feature_ifwrule_impl_save">Simpan aturan</string>
     <string name="feature_ifwrule_impl_advanced_options">Opsi lanjutan</string>
     <string name="feature_ifwrule_impl_log">Catat kecocokan</string>
@@ -34,62 +15,4 @@
     <string name="feature_ifwrule_impl_advanced_rule_delete">Hapus dan buat ulang</string>
     <string name="feature_ifwrule_impl_unsaved_title">Perubahan belum disimpan</string>
     <string name="feature_ifwrule_impl_unsaved_message">Anda memiliki perubahan yang belum disimpan. Yakin ingin keluar?</string>
-    <string name="feature_ifwrule_impl_discard">Buang</string>
-    <string name="feature_ifwrule_impl_cancel">Batal</string>
-    <string name="feature_ifwrule_impl_condition_action">Berdasarkan aksi pemicu</string>
-    <string name="feature_ifwrule_impl_condition_action_desc">Blokir saat komponen menerima aksi tertentu</string>
-    <string name="feature_ifwrule_impl_condition_source">Berdasarkan sumber pemanggil</string>
-    <string name="feature_ifwrule_impl_condition_source_desc">Hanya blokir atau izinkan panggilan dari sumber tertentu</string>
-    <string name="feature_ifwrule_impl_condition_caller_app">Berdasarkan aplikasi pemanggil</string>
-    <string name="feature_ifwrule_impl_condition_caller_app_desc">Blokir panggilan dari aplikasi tertentu</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission">Berdasarkan izin pemanggil</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission_desc">Saring berdasarkan izin pemanggil</string>
-    <string name="feature_ifwrule_impl_condition_category">Berdasarkan kategori</string>
-    <string name="feature_ifwrule_impl_condition_category_desc">Blokir berdasarkan kategori intent</string>
-    <string name="feature_ifwrule_impl_condition_link">Berdasarkan isi tautan</string>
-    <string name="feature_ifwrule_impl_condition_link_desc">Saring berdasarkan URL dalam intent</string>
-    <string name="feature_ifwrule_impl_condition_data">Berdasarkan isi data</string>
-    <string name="feature_ifwrule_impl_condition_data_desc">Saring berdasarkan URI data intent</string>
-    <string name="feature_ifwrule_impl_condition_mime">Berdasarkan jenis konten</string>
-    <string name="feature_ifwrule_impl_condition_mime_desc">Saring berdasarkan tipe MIME</string>
-    <string name="feature_ifwrule_impl_condition_port">Berdasarkan nomor port</string>
-    <string name="feature_ifwrule_impl_condition_port_desc">Saring berdasarkan nomor port dalam URI</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern">Berdasarkan pola nama komponen</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern_desc">Cocokkan komponen berdasarkan pola nama</string>
-    <string name="feature_ifwrule_impl_action_label">Saat aksi pemicu adalah</string>
-    <string name="feature_ifwrule_impl_source_label">Kontrol sumber pemanggil</string>
-    <string name="feature_ifwrule_impl_caller_app_label">Blokir panggilan dari aplikasi ini</string>
-    <string name="feature_ifwrule_impl_caller_perm_label">Filter izin pemanggil</string>
-    <string name="feature_ifwrule_impl_category_label">Kategori intent</string>
-    <string name="feature_ifwrule_impl_link_host_label">Domain</string>
-    <string name="feature_ifwrule_impl_link_path_label">Path</string>
-    <string name="feature_ifwrule_impl_link_scheme_label">Protokol</string>
-    <string name="feature_ifwrule_impl_link_ssp_label">Bagian spesifik skema</string>
-    <string name="feature_ifwrule_impl_data_label">Isi data</string>
-    <string name="feature_ifwrule_impl_mime_label">Jenis konten</string>
-    <string name="feature_ifwrule_impl_port_exact_label">Nomor port</string>
-    <string name="feature_ifwrule_impl_port_min_label">Port minimum</string>
-    <string name="feature_ifwrule_impl_port_max_label">Port maksimum</string>
-    <string name="feature_ifwrule_impl_source_allow_user_id">Hanya izinkan ID pengguna yang sama</string>
-    <string name="feature_ifwrule_impl_source_allow_system">Hanya izinkan proses sistem</string>
-    <string name="feature_ifwrule_impl_source_allow_signature">Hanya izinkan aplikasi dengan tanda tangan yang sama</string>
-    <string name="feature_ifwrule_impl_source_allow_system_or_sig">Hanya izinkan sistem atau tanda tangan yang sama</string>
-    <string name="feature_ifwrule_impl_source_block_user_id">Blokir panggilan dengan ID pengguna yang sama</string>
-    <string name="feature_ifwrule_impl_source_block_system">Blokir panggilan dari proses sistem</string>
-    <string name="feature_ifwrule_impl_source_block_signature">Blokir panggilan dari aplikasi dengan tanda tangan yang sama</string>
-    <string name="feature_ifwrule_impl_source_block_system_or_sig">Blokir panggilan sistem atau tanda tangan yang sama</string>
-    <string name="feature_ifwrule_impl_perm_require">Hanya izinkan pemanggil dengan izin ini</string>
-    <string name="feature_ifwrule_impl_perm_block">Blokir pemanggil dengan izin ini</string>
-    <string name="feature_ifwrule_impl_match_exact">Cocok persis</string>
-    <string name="feature_ifwrule_impl_match_starts_with">Diawali dengan</string>
-    <string name="feature_ifwrule_impl_match_contains">Berisi</string>
-    <string name="feature_ifwrule_impl_match_pattern">Pola wildcard</string>
-    <string name="feature_ifwrule_impl_match_regex">Ekspresi reguler</string>
-    <string name="feature_ifwrule_impl_match_is_null">Kosong</string>
-    <string name="feature_ifwrule_impl_match_is_not_null">Tidak kosong</string>
-    <string name="feature_ifwrule_impl_port_exact">Persis</string>
-    <string name="feature_ifwrule_impl_port_range">Rentang</string>
-    <string name="feature_ifwrule_impl_pattern_component">Nama komponen lengkap</string>
-    <string name="feature_ifwrule_impl_pattern_name">Nama kelas</string>
-    <string name="feature_ifwrule_impl_pattern_package">Nama paket</string>
 </resources>

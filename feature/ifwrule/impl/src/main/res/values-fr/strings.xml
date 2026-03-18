@@ -1,29 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-     Copyright 2025 Blocker
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          https://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
 <resources>
     <string name="feature_ifwrule_impl_title">Règles d’interception</string>
     <string name="feature_ifwrule_impl_block_all">Bloquer tous les appels (désactivation complète)</string>
     <string name="feature_ifwrule_impl_block_conditional">Bloquer selon la condition (contrôle fin)</string>
     <string name="feature_ifwrule_impl_block_mode">Mode de blocage</string>
     <string name="feature_ifwrule_impl_conditions">Conditions</string>
-    <string name="feature_ifwrule_impl_combine_all">Toutes correspondent</string>
-    <string name="feature_ifwrule_impl_combine_any">Au moins une correspond</string>
-    <string name="feature_ifwrule_impl_combine_label">Bloquer lorsque les conditions sont remplies</string>
-    <string name="feature_ifwrule_impl_add_condition">Ajouter une condition</string>
     <string name="feature_ifwrule_impl_save">Enregistrer la règle</string>
     <string name="feature_ifwrule_impl_advanced_options">Options avancées</string>
     <string name="feature_ifwrule_impl_log">Journaliser les correspondances</string>
@@ -34,62 +15,4 @@
     <string name="feature_ifwrule_impl_advanced_rule_delete">Supprimer et recréer</string>
     <string name="feature_ifwrule_impl_unsaved_title">Modifications non enregistrées</string>
     <string name="feature_ifwrule_impl_unsaved_message">Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter ?</string>
-    <string name="feature_ifwrule_impl_discard">Ignorer</string>
-    <string name="feature_ifwrule_impl_cancel">Annuler</string>
-    <string name="feature_ifwrule_impl_condition_action">Par action déclencheuse</string>
-    <string name="feature_ifwrule_impl_condition_action_desc">Bloquer lorsque le composant reçoit une action spécifique</string>
-    <string name="feature_ifwrule_impl_condition_source">Par source de l’appelant</string>
-    <string name="feature_ifwrule_impl_condition_source_desc">Bloquer ou autoriser uniquement les appels provenant de sources spécifiques</string>
-    <string name="feature_ifwrule_impl_condition_caller_app">Par application appelante</string>
-    <string name="feature_ifwrule_impl_condition_caller_app_desc">Bloquer les appels provenant d’applications spécifiques</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission">Par permission de l’appelant</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission_desc">Filtrer selon la permission de l’appelant</string>
-    <string name="feature_ifwrule_impl_condition_category">Par catégorie</string>
-    <string name="feature_ifwrule_impl_condition_category_desc">Bloquer selon la catégorie de l’intent</string>
-    <string name="feature_ifwrule_impl_condition_link">Par contenu du lien</string>
-    <string name="feature_ifwrule_impl_condition_link_desc">Filtrer selon l’URL de l’intent</string>
-    <string name="feature_ifwrule_impl_condition_data">Par contenu des données</string>
-    <string name="feature_ifwrule_impl_condition_data_desc">Filtrer selon l’URI de données de l’intent</string>
-    <string name="feature_ifwrule_impl_condition_mime">Par type de contenu</string>
-    <string name="feature_ifwrule_impl_condition_mime_desc">Filtrer selon le type MIME</string>
-    <string name="feature_ifwrule_impl_condition_port">Par numéro de port</string>
-    <string name="feature_ifwrule_impl_condition_port_desc">Filtrer selon le numéro de port dans l’URI</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern">Par motif de nom de composant</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern_desc">Faire correspondre les composants selon un motif de nom</string>
-    <string name="feature_ifwrule_impl_action_label">Lorsque l’action déclencheuse est</string>
-    <string name="feature_ifwrule_impl_source_label">Contrôle de la source de l’appelant</string>
-    <string name="feature_ifwrule_impl_caller_app_label">Bloquer les appels de ces applications</string>
-    <string name="feature_ifwrule_impl_caller_perm_label">Filtre de permission de l’appelant</string>
-    <string name="feature_ifwrule_impl_category_label">Catégorie de l’intent</string>
-    <string name="feature_ifwrule_impl_link_host_label">Domaine</string>
-    <string name="feature_ifwrule_impl_link_path_label">Chemin</string>
-    <string name="feature_ifwrule_impl_link_scheme_label">Protocole</string>
-    <string name="feature_ifwrule_impl_link_ssp_label">Partie spécifique au schéma</string>
-    <string name="feature_ifwrule_impl_data_label">Contenu des données</string>
-    <string name="feature_ifwrule_impl_mime_label">Type de contenu</string>
-    <string name="feature_ifwrule_impl_port_exact_label">Numéro de port</string>
-    <string name="feature_ifwrule_impl_port_min_label">Port min.</string>
-    <string name="feature_ifwrule_impl_port_max_label">Port max.</string>
-    <string name="feature_ifwrule_impl_source_allow_user_id">Autoriser uniquement le même identifiant utilisateur</string>
-    <string name="feature_ifwrule_impl_source_allow_system">Autoriser uniquement le processus système</string>
-    <string name="feature_ifwrule_impl_source_allow_signature">Autoriser uniquement les applications avec la même signature</string>
-    <string name="feature_ifwrule_impl_source_allow_system_or_sig">Autoriser uniquement le système ou la même signature</string>
-    <string name="feature_ifwrule_impl_source_block_user_id">Bloquer les appels du même identifiant utilisateur</string>
-    <string name="feature_ifwrule_impl_source_block_system">Bloquer les appels du processus système</string>
-    <string name="feature_ifwrule_impl_source_block_signature">Bloquer les appels des applications avec la même signature</string>
-    <string name="feature_ifwrule_impl_source_block_system_or_sig">Bloquer les appels du système ou avec la même signature</string>
-    <string name="feature_ifwrule_impl_perm_require">Autoriser uniquement les appelants disposant de cette permission</string>
-    <string name="feature_ifwrule_impl_perm_block">Bloquer les appelants disposant de cette permission</string>
-    <string name="feature_ifwrule_impl_match_exact">Correspondance exacte</string>
-    <string name="feature_ifwrule_impl_match_starts_with">Commence par</string>
-    <string name="feature_ifwrule_impl_match_contains">Contient</string>
-    <string name="feature_ifwrule_impl_match_pattern">Motif générique</string>
-    <string name="feature_ifwrule_impl_match_regex">Expression régulière</string>
-    <string name="feature_ifwrule_impl_match_is_null">Est vide</string>
-    <string name="feature_ifwrule_impl_match_is_not_null">N’est pas vide</string>
-    <string name="feature_ifwrule_impl_port_exact">Exact</string>
-    <string name="feature_ifwrule_impl_port_range">Plage</string>
-    <string name="feature_ifwrule_impl_pattern_component">Nom complet du composant</string>
-    <string name="feature_ifwrule_impl_pattern_name">Nom de la classe</string>
-    <string name="feature_ifwrule_impl_pattern_package">Nom du package</string>
 </resources>

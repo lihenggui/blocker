@@ -1,29 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-     Copyright 2025 Blocker
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          https://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
 <resources>
     <string name="feature_ifwrule_impl_title">Reglas de interceptación</string>
     <string name="feature_ifwrule_impl_block_all">Bloquear todas las llamadas (desactivar por completo)</string>
     <string name="feature_ifwrule_impl_block_conditional">Bloquear por condición (control detallado)</string>
     <string name="feature_ifwrule_impl_block_mode">Modo de bloqueo</string>
     <string name="feature_ifwrule_impl_conditions">Condiciones</string>
-    <string name="feature_ifwrule_impl_combine_all">Todas coinciden</string>
-    <string name="feature_ifwrule_impl_combine_any">Cualquiera coincide</string>
-    <string name="feature_ifwrule_impl_combine_label">Bloquear cuando se cumplan las condiciones</string>
-    <string name="feature_ifwrule_impl_add_condition">Agregar condición</string>
     <string name="feature_ifwrule_impl_save">Guardar regla</string>
     <string name="feature_ifwrule_impl_advanced_options">Opciones avanzadas</string>
     <string name="feature_ifwrule_impl_log">Registrar coincidencias</string>
@@ -34,62 +15,4 @@
     <string name="feature_ifwrule_impl_advanced_rule_delete">Eliminar y recrear</string>
     <string name="feature_ifwrule_impl_unsaved_title">Cambios sin guardar</string>
     <string name="feature_ifwrule_impl_unsaved_message">Tienes cambios sin guardar. ¿Seguro que quieres salir?</string>
-    <string name="feature_ifwrule_impl_discard">Descartar</string>
-    <string name="feature_ifwrule_impl_cancel">Cancelar</string>
-    <string name="feature_ifwrule_impl_condition_action">Por acción de activación</string>
-    <string name="feature_ifwrule_impl_condition_action_desc">Bloquear cuando el componente reciba una acción específica</string>
-    <string name="feature_ifwrule_impl_condition_source">Por origen del llamante</string>
-    <string name="feature_ifwrule_impl_condition_source_desc">Solo bloquear o permitir llamadas de orígenes específicos</string>
-    <string name="feature_ifwrule_impl_condition_caller_app">Por aplicación llamante</string>
-    <string name="feature_ifwrule_impl_condition_caller_app_desc">Bloquear llamadas de aplicaciones específicas</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission">Por permiso del llamante</string>
-    <string name="feature_ifwrule_impl_condition_caller_permission_desc">Filtrar según el permiso del llamante</string>
-    <string name="feature_ifwrule_impl_condition_category">Por categoría</string>
-    <string name="feature_ifwrule_impl_condition_category_desc">Bloquear por categoría del intent</string>
-    <string name="feature_ifwrule_impl_condition_link">Por contenido del enlace</string>
-    <string name="feature_ifwrule_impl_condition_link_desc">Filtrar por la URL del intent</string>
-    <string name="feature_ifwrule_impl_condition_data">Por contenido de datos</string>
-    <string name="feature_ifwrule_impl_condition_data_desc">Filtrar por la URI de datos del intent</string>
-    <string name="feature_ifwrule_impl_condition_mime">Por tipo de contenido</string>
-    <string name="feature_ifwrule_impl_condition_mime_desc">Filtrar por tipo MIME</string>
-    <string name="feature_ifwrule_impl_condition_port">Por número de puerto</string>
-    <string name="feature_ifwrule_impl_condition_port_desc">Filtrar por el número de puerto en la URI</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern">Por patrón del nombre del componente</string>
-    <string name="feature_ifwrule_impl_condition_component_pattern_desc">Hacer coincidir componentes por patrón de nombre</string>
-    <string name="feature_ifwrule_impl_action_label">Cuando la acción de activación sea</string>
-    <string name="feature_ifwrule_impl_source_label">Control del origen del llamante</string>
-    <string name="feature_ifwrule_impl_caller_app_label">Bloquear llamadas de estas aplicaciones</string>
-    <string name="feature_ifwrule_impl_caller_perm_label">Filtro de permiso del llamante</string>
-    <string name="feature_ifwrule_impl_category_label">Categoría del intent</string>
-    <string name="feature_ifwrule_impl_link_host_label">Dominio</string>
-    <string name="feature_ifwrule_impl_link_path_label">Ruta</string>
-    <string name="feature_ifwrule_impl_link_scheme_label">Protocolo</string>
-    <string name="feature_ifwrule_impl_link_ssp_label">Parte específica del esquema</string>
-    <string name="feature_ifwrule_impl_data_label">Contenido de datos</string>
-    <string name="feature_ifwrule_impl_mime_label">Tipo de contenido</string>
-    <string name="feature_ifwrule_impl_port_exact_label">Número de puerto</string>
-    <string name="feature_ifwrule_impl_port_min_label">Puerto mínimo</string>
-    <string name="feature_ifwrule_impl_port_max_label">Puerto máximo</string>
-    <string name="feature_ifwrule_impl_source_allow_user_id">Permitir solo el mismo ID de usuario</string>
-    <string name="feature_ifwrule_impl_source_allow_system">Permitir solo el proceso del sistema</string>
-    <string name="feature_ifwrule_impl_source_allow_signature">Permitir solo apps con la misma firma</string>
-    <string name="feature_ifwrule_impl_source_allow_system_or_sig">Permitir solo sistema o misma firma</string>
-    <string name="feature_ifwrule_impl_source_block_user_id">Bloquear llamadas con el mismo ID de usuario</string>
-    <string name="feature_ifwrule_impl_source_block_system">Bloquear llamadas del proceso del sistema</string>
-    <string name="feature_ifwrule_impl_source_block_signature">Bloquear llamadas de apps con la misma firma</string>
-    <string name="feature_ifwrule_impl_source_block_system_or_sig">Bloquear llamadas del sistema o con la misma firma</string>
-    <string name="feature_ifwrule_impl_perm_require">Permitir solo llamantes con este permiso</string>
-    <string name="feature_ifwrule_impl_perm_block">Bloquear llamantes con este permiso</string>
-    <string name="feature_ifwrule_impl_match_exact">Coincidencia exacta</string>
-    <string name="feature_ifwrule_impl_match_starts_with">Empieza por</string>
-    <string name="feature_ifwrule_impl_match_contains">Contiene</string>
-    <string name="feature_ifwrule_impl_match_pattern">Patrón comodín</string>
-    <string name="feature_ifwrule_impl_match_regex">Expresión regular</string>
-    <string name="feature_ifwrule_impl_match_is_null">Está vacío</string>
-    <string name="feature_ifwrule_impl_match_is_not_null">No está vacío</string>
-    <string name="feature_ifwrule_impl_port_exact">Exacto</string>
-    <string name="feature_ifwrule_impl_port_range">Rango</string>
-    <string name="feature_ifwrule_impl_pattern_component">Nombre completo del componente</string>
-    <string name="feature_ifwrule_impl_pattern_name">Nombre de clase</string>
-    <string name="feature_ifwrule_impl_pattern_package">Nombre del paquete</string>
 </resources>

@@ -34,9 +34,6 @@
     <string name="core_ui_edit_ifw_rule">自定义拦截规则</string>
     <string name="core_ui_no_components">无组件</string>
     <string name="core_ui_matched">%1$d 匹配，%2$d 阻止，%3$d 启用。</string>
-    <plurals name="core_ui_matched_apps">
-        <item quantity="other">匹配 %1$d 个应用</item>
-    </plurals>
     <string name="core_ui_description">描述</string>
     <string name="core_ui_applicable_application">适用应用程序</string>
     <string name="core_ui_loading">正在加载</string>

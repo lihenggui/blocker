@@ -7,8 +7,6 @@
     <string name="feature_globalifwrule_impl_delete_rule">Delete rule</string>
     <string name="feature_globalifwrule_impl_delete_confirm">Delete this interception rule?</string>
     <string name="feature_globalifwrule_impl_delete_confirm_message">This action cannot be undone.</string>
-    <string name="feature_globalifwrule_impl_cancel">Cancel</string>
-    <string name="feature_globalifwrule_impl_delete">Delete</string>
     <string name="feature_globalifwrule_impl_rule_type">Rule type</string>
     <string name="feature_globalifwrule_impl_rule_type_activity">Activity</string>
     <string name="feature_globalifwrule_impl_rule_type_broadcast">Broadcast receiver</string>
@@ -16,28 +14,11 @@
     <string name="feature_globalifwrule_impl_block">Block</string>
     <string name="feature_globalifwrule_impl_log">Log</string>
     <string name="feature_globalifwrule_impl_conditions">Conditions</string>
-    <string name="feature_globalifwrule_impl_add_condition">Add condition</string>
     <string name="feature_globalifwrule_impl_save">Save rule</string>
     <string name="feature_globalifwrule_impl_target_package">Rule file package</string>
     <string name="feature_globalifwrule_impl_target_package_summary">Used to group the IFW XML file. Matching still depends on the conditions below.</string>
-    <string name="feature_globalifwrule_impl_negate">Negate this condition</string>
-    <string name="feature_globalifwrule_impl_sender_type">Sender type</string>
-    <string name="feature_globalifwrule_impl_port_exact">Exact</string>
-    <string name="feature_globalifwrule_impl_port_range">Range</string>
-    <string name="feature_globalifwrule_impl_port_exact_label">Port</string>
-    <string name="feature_globalifwrule_impl_port_min_label">Min port</string>
-    <string name="feature_globalifwrule_impl_port_max_label">Max port</string>
-    <string name="feature_globalifwrule_impl_match_exact">Exact match</string>
-    <string name="feature_globalifwrule_impl_match_starts_with">Starts with</string>
-    <string name="feature_globalifwrule_impl_match_contains">Contains</string>
-    <string name="feature_globalifwrule_impl_match_pattern">Wildcard pattern</string>
-    <string name="feature_globalifwrule_impl_match_regex">Regular expression</string>
-    <string name="feature_globalifwrule_impl_match_is_null">Is empty</string>
-    <string name="feature_globalifwrule_impl_match_is_not_null">Is not empty</string>
     <string name="feature_globalifwrule_impl_advanced_rule">Advanced rule</string>
-    <string name="feature_globalifwrule_impl_advanced_rule_summary">This rule uses nested logic not yet editable in the simplified editor.</string>
     <string name="feature_globalifwrule_impl_selector_required">Add at least one Exact target component condition. IFW cannot trigger pattern-only global rules without a concrete target component.</string>
     <string name="feature_globalifwrule_impl_unsaved_title">Unsaved changes</string>
     <string name="feature_globalifwrule_impl_unsaved_message">You have unsaved changes. Are you sure you want to leave?</string>
-    <string name="feature_globalifwrule_impl_discard">Discard</string>
 </resources>
