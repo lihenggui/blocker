@@ -55,7 +55,13 @@ import com.merxury.core.ifw.model.IfwComponentType
 
 @Composable
 fun SimpleGlobalIfwRuleScreen(
-    editorState: GlobalIfwRuleEditorUiState,
+    draft: SimpleGlobalIfwRuleDraft,
+    isDirty: Boolean,
+    selectedPackageLabel: String?,
+    componentQuery: String,
+    visibleComponents: List<SimpleRuleComponentUiState>,
+    isComponentLoading: Boolean,
+    componentLoadError: String?,
     onSave: () -> Unit,
     onBack: () -> Unit,
     onPackageNameChange: (String) -> Unit,
@@ -71,7 +77,6 @@ fun SimpleGlobalIfwRuleScreen(
     onToggleMultiTarget: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val draft = editorState.draft as? SimpleGlobalIfwRuleDraft ?: return
     val isEditing = draft.editingRuleIndex != null
     var showUnsavedDialog by remember { mutableStateOf(false) }
     var showOptionalConditions by rememberSaveable {
@@ -83,7 +88,7 @@ fun SimpleGlobalIfwRuleScreen(
     }
 
     val handleBack: () -> Unit = {
-        if (editorState.isDirty) {
+        if (isDirty) {
             showUnsavedDialog = true
         } else {
             onBack()
@@ -140,12 +145,11 @@ fun SimpleGlobalIfwRuleScreen(
                 label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_app_package)) },
                 singleLine = true,
                 supportingText = {
-                    val packageLabel = editorState.selectedPackageLabel
                     Text(
-                        text = if (packageLabel != null) {
+                        text = if (selectedPackageLabel != null) {
                             stringResource(
                                 R.string.feature_globalifwrule_impl_target_app_package_label,
-                                packageLabel,
+                                selectedPackageLabel,
                             )
                         } else {
                             stringResource(R.string.feature_globalifwrule_impl_target_app_package_summary)
@@ -170,7 +174,7 @@ fun SimpleGlobalIfwRuleScreen(
                 )
             } else {
                 OutlinedTextField(
-                    value = editorState.componentQuery,
+                    value = componentQuery,
                     onValueChange = onComponentQueryChange,
                     label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_component_search)) },
                     singleLine = true,
@@ -178,10 +182,10 @@ fun SimpleGlobalIfwRuleScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 ComponentSelectionContent(
-                    components = editorState.visibleComponents,
+                    components = visibleComponents,
                     targetMode = draft.targetMode,
-                    isLoading = editorState.isComponentLoading,
-                    error = editorState.componentLoadError,
+                    isLoading = isComponentLoading,
+                    error = componentLoadError,
                     onSelectSingleTarget = onSelectSingleTarget,
                     onToggleMultiTarget = onToggleMultiTarget,
                 )

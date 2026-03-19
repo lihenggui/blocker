@@ -235,7 +235,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
         )
         _editorState.value = GlobalIfwRuleEditorUiState(
             screen = GlobalIfwRuleScreenState.SIMPLE_EDIT,
-            draft = draft,
+            simpleDraft = draft,
             selectedPackageLabel = resolveAppLabel(draft.selectedPackageName),
         )
         observeSimpleComponents()
@@ -253,7 +253,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
         componentsJob?.cancel()
         _editorState.value = GlobalIfwRuleEditorUiState(
             screen = GlobalIfwRuleScreenState.ADVANCED_EDIT,
-            draft = draft,
+            advancedDraft = draft,
             isDirty = false,
         )
     }
@@ -277,10 +277,10 @@ class GlobalIfwRuleViewModel @Inject constructor(
         transform: SimpleGlobalIfwRuleDraft.() -> SimpleGlobalIfwRuleDraft,
     ) {
         val current = editorState.value
-        val draft = current.draft as? SimpleGlobalIfwRuleDraft ?: return
+        val draft = current.simpleDraft ?: return
         val updatedDraft = draft.transform()
         _editorState.value = current.copy(
-            draft = updatedDraft,
+            simpleDraft = updatedDraft,
             isDirty = current.isDirty || markDirty,
             selectedPackageLabel = if (resetComponentState) {
                 resolveAppLabel(updatedDraft.selectedPackageName)
@@ -299,16 +299,16 @@ class GlobalIfwRuleViewModel @Inject constructor(
         transform: AdvancedGlobalIfwRuleDraft.() -> AdvancedGlobalIfwRuleDraft,
     ) {
         val current = editorState.value
-        val draft = current.draft as? AdvancedGlobalIfwRuleDraft ?: return
+        val draft = current.advancedDraft ?: return
         _editorState.value = current.copy(
-            draft = draft.transform(),
+            advancedDraft = draft.transform(),
             isDirty = current.isDirty || markDirty,
         )
     }
 
     private fun observeSimpleComponents() {
         componentsJob?.cancel()
-        val draft = editorState.value.draft as? SimpleGlobalIfwRuleDraft ?: return
+        val draft = editorState.value.simpleDraft ?: return
         if (draft.selectedPackageName.isBlank()) {
             _editorState.value = _editorState.value.copy(
                 selectedPackageLabel = null,
@@ -336,7 +336,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
 
             try {
                 componentRepository.getComponentList(packageName, componentType).collect { components ->
-                    val currentDraft = editorState.value.draft as? SimpleGlobalIfwRuleDraft ?: return@collect
+                    val currentDraft = editorState.value.simpleDraft ?: return@collect
                     if (currentDraft.selectedPackageName != packageName || currentDraft.componentType != draft.componentType) {
                         return@collect
                     }
@@ -531,11 +531,10 @@ class GlobalIfwRuleViewModel @Inject constructor(
                     val rule = groups.findRuleItem(editingPackageName, editingRuleIndex)
                     val draft = rule?.simpleDraft ?: return dismissEditor()
                     openSimpleDraft(draft)
-                } else if (editorState.value.draft is SimpleGlobalIfwRuleDraft) {
+                } else {
+                    val draft = editorState.value.simpleDraft ?: return
                     _editorState.value = editorState.value.copy(
-                        selectedPackageLabel = resolveAppLabel(
-                            (editorState.value.draft as SimpleGlobalIfwRuleDraft).selectedPackageName,
-                        ),
+                        selectedPackageLabel = resolveAppLabel(draft.selectedPackageName),
                     )
                     observeSimpleComponents()
                 }

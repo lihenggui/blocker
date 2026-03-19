@@ -62,7 +62,8 @@ import com.merxury.core.ifw.model.IfwComponentType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedGlobalIfwRuleScreen(
-    editorState: GlobalIfwRuleEditorUiState,
+    draft: AdvancedGlobalIfwRuleDraft,
+    isDirty: Boolean,
     onSave: () -> Unit,
     onBack: () -> Unit,
     onPackageNameChange: (String) -> Unit,
@@ -72,12 +73,11 @@ fun AdvancedGlobalIfwRuleScreen(
     onRootGroupChange: (IfwEditorNode.Group) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val draft = editorState.draft as? AdvancedGlobalIfwRuleDraft ?: return
     val isEditing = draft.editingRuleIndex != null
     var showUnsavedDialog by remember { mutableStateOf(false) }
 
     val handleBack: () -> Unit = {
-        if (editorState.isDirty) {
+        if (isDirty) {
             showUnsavedDialog = true
         } else {
             onBack()

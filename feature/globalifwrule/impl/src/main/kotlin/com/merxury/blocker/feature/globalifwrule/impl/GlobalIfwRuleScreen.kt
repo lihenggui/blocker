@@ -100,40 +100,53 @@ fun GlobalIfwRuleRoute(
                 onDeleteRule = viewModel::deleteRule,
             )
 
-            GlobalIfwRuleScreenState.SIMPLE_EDIT -> SimpleGlobalIfwRuleScreen(
-                editorState = editorState,
-                onSave = viewModel::saveRule,
-                onBack = viewModel::dismissEditor,
-                onPackageNameChange = viewModel::updateSimplePackageName,
-                onComponentTypeChange = viewModel::updateSimpleComponentType,
-                onTargetModeChange = viewModel::updateSimpleTargetMode,
-                onBlockChange = viewModel::updateSimpleBlock,
-                onLogChange = viewModel::updateSimpleLog,
-                onActionChange = viewModel::updateSimpleAction,
-                onCategoryChange = viewModel::updateSimpleCategory,
-                onCallerPackageChange = viewModel::updateSimpleCallerPackage,
-                onComponentQueryChange = viewModel::updateComponentQuery,
-                onSelectSingleTarget = viewModel::selectSingleTarget,
-                onToggleMultiTarget = viewModel::toggleMultiTarget,
-            )
+            GlobalIfwRuleScreenState.SIMPLE_EDIT -> editorState.simpleDraft?.let { draft ->
+                SimpleGlobalIfwRuleScreen(
+                    draft = draft,
+                    isDirty = editorState.isDirty,
+                    selectedPackageLabel = editorState.selectedPackageLabel,
+                    componentQuery = editorState.componentQuery,
+                    visibleComponents = editorState.visibleComponents,
+                    isComponentLoading = editorState.isComponentLoading,
+                    componentLoadError = editorState.componentLoadError,
+                    onSave = viewModel::saveRule,
+                    onBack = viewModel::dismissEditor,
+                    onPackageNameChange = viewModel::updateSimplePackageName,
+                    onComponentTypeChange = viewModel::updateSimpleComponentType,
+                    onTargetModeChange = viewModel::updateSimpleTargetMode,
+                    onBlockChange = viewModel::updateSimpleBlock,
+                    onLogChange = viewModel::updateSimpleLog,
+                    onActionChange = viewModel::updateSimpleAction,
+                    onCategoryChange = viewModel::updateSimpleCategory,
+                    onCallerPackageChange = viewModel::updateSimpleCallerPackage,
+                    onComponentQueryChange = viewModel::updateComponentQuery,
+                    onSelectSingleTarget = viewModel::selectSingleTarget,
+                    onToggleMultiTarget = viewModel::toggleMultiTarget,
+                )
+            } ?: LoadingScreen(modifier = Modifier.fillMaxSize())
 
-            GlobalIfwRuleScreenState.ADVANCED_EDIT -> AdvancedGlobalIfwRuleScreen(
-                editorState = editorState,
-                onSave = viewModel::saveRule,
-                onBack = viewModel::dismissEditor,
-                onPackageNameChange = viewModel::updateAdvancedPackageName,
-                onComponentTypeChange = viewModel::updateAdvancedComponentType,
-                onBlockChange = viewModel::updateAdvancedBlock,
-                onLogChange = viewModel::updateAdvancedLog,
-                onRootGroupChange = viewModel::updateAdvancedRootGroup,
-            )
+            GlobalIfwRuleScreenState.ADVANCED_EDIT -> editorState.advancedDraft?.let { draft ->
+                AdvancedGlobalIfwRuleScreen(
+                    draft = draft,
+                    isDirty = editorState.isDirty,
+                    onSave = viewModel::saveRule,
+                    onBack = viewModel::dismissEditor,
+                    onPackageNameChange = viewModel::updateAdvancedPackageName,
+                    onComponentTypeChange = viewModel::updateAdvancedComponentType,
+                    onBlockChange = viewModel::updateAdvancedBlock,
+                    onLogChange = viewModel::updateAdvancedLog,
+                    onRootGroupChange = viewModel::updateAdvancedRootGroup,
+                )
+            } ?: LoadingScreen(modifier = Modifier.fillMaxSize())
 
-            GlobalIfwRuleScreenState.ADVANCED_DETAIL -> AdvancedGlobalIfwRuleDetailScreen(
-                editorState = editorState,
-                onBack = viewModel::dismissEditor,
-                onCopyAsNew = viewModel::copyAdvancedRule,
-                onDelete = viewModel::deleteViewedRule,
-            )
+            GlobalIfwRuleScreenState.ADVANCED_DETAIL -> editorState.detail?.let { detail ->
+                AdvancedGlobalIfwRuleDetailScreen(
+                    detail = detail,
+                    onBack = viewModel::dismissEditor,
+                    onCopyAsNew = viewModel::copyAdvancedRule,
+                    onDelete = viewModel::deleteViewedRule,
+                )
+            } ?: LoadingScreen(modifier = Modifier.fillMaxSize())
         }
     }
 }
@@ -196,13 +209,12 @@ fun GlobalIfwRuleScreen(
 
 @Composable
 private fun AdvancedGlobalIfwRuleDetailScreen(
-    editorState: GlobalIfwRuleEditorUiState,
+    detail: AdvancedRuleDetailUiState,
     onBack: () -> Unit,
     onCopyAsNew: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val detail = editorState.detail ?: return
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -217,53 +229,13 @@ private fun AdvancedGlobalIfwRuleDetailScreen(
                 .padding(horizontal = 16.dp)
                 .padding(top = 8.dp),
         ) {
-            Text(
-                text = stringResource(
-                    R.string.feature_globalifwrule_impl_advanced_detail_summary,
-                    detail.storagePackageName,
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(
-                    onClick = {},
-                    label = { Text(stringResource(detail.componentType.labelRes)) },
-                )
-                if (detail.block) {
-                    AssistChip(
-                        onClick = {},
-                        label = { Text(stringResource(R.string.feature_globalifwrule_impl_block)) },
-                    )
-                }
-                if (detail.log) {
-                    AssistChip(
-                        onClick = {},
-                        label = { Text(stringResource(R.string.feature_globalifwrule_impl_log)) },
-                    )
-                }
-            }
+            AdvancedRuleDetailHeader(detail = detail)
             Spacer(modifier = Modifier.height(16.dp))
-            if (detail.draft.hasReadOnlyIntentFilters) {
-                IntentFilterBanner()
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            Text(
-                text = detail.filtersSummary,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            AdvancedRuleDetailFilters(detail = detail)
             Spacer(modifier = Modifier.height(24.dp))
-            BlockerButton(
-                onClick = onCopyAsNew,
-                text = { Text(stringResource(R.string.feature_globalifwrule_impl_copy_as_new_advanced_rule)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            BlockerOutlinedButton(
-                text = { Text(stringResource(R.string.feature_globalifwrule_impl_delete_rule)) },
-                onClick = { showDeleteDialog = true },
-                modifier = Modifier.fillMaxWidth(),
+            AdvancedRuleDetailActions(
+                onCopyAsNew = onCopyAsNew,
+                onDelete = { showDeleteDialog = true },
             )
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
@@ -276,6 +248,80 @@ private fun AdvancedGlobalIfwRuleDetailScreen(
                 onDelete()
             },
             onDismiss = { showDeleteDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun AdvancedRuleDetailHeader(
+    detail: AdvancedRuleDetailUiState,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(
+                R.string.feature_globalifwrule_impl_advanced_detail_summary,
+                detail.storagePackageName,
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AssistChip(
+                onClick = {},
+                label = { Text(stringResource(detail.componentType.labelRes)) },
+            )
+            if (detail.block) {
+                AssistChip(
+                    onClick = {},
+                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_block)) },
+                )
+            }
+            if (detail.log) {
+                AssistChip(
+                    onClick = {},
+                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_log)) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdvancedRuleDetailFilters(
+    detail: AdvancedRuleDetailUiState,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (detail.draft.hasReadOnlyIntentFilters) {
+            IntentFilterBanner()
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        Text(
+            text = detail.filtersSummary,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+@Composable
+private fun AdvancedRuleDetailActions(
+    onCopyAsNew: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        BlockerButton(
+            onClick = onCopyAsNew,
+            text = { Text(stringResource(R.string.feature_globalifwrule_impl_copy_as_new_advanced_rule)) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        BlockerOutlinedButton(
+            text = { Text(stringResource(R.string.feature_globalifwrule_impl_delete_rule)) },
+            onClick = onDelete,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

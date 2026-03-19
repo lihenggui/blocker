@@ -48,7 +48,8 @@ data class RuleItemUiState(
 
 data class GlobalIfwRuleEditorUiState(
     val screen: GlobalIfwRuleScreenState = GlobalIfwRuleScreenState.LIST,
-    val draft: GlobalIfwRuleDraft? = null,
+    val simpleDraft: SimpleGlobalIfwRuleDraft? = null,
+    val advancedDraft: AdvancedGlobalIfwRuleDraft? = null,
     val detail: AdvancedRuleDetailUiState? = null,
     val isDirty: Boolean = false,
     val selectedPackageLabel: String? = null,
@@ -57,6 +58,9 @@ data class GlobalIfwRuleEditorUiState(
     val isComponentLoading: Boolean = false,
     val componentLoadError: String? = null,
 ) {
+    val draft: GlobalIfwRuleDraft?
+        get() = simpleDraft ?: advancedDraft
+
     val visibleComponents: List<SimpleRuleComponentUiState>
         get() {
             if (componentQuery.isBlank()) return availableComponents
