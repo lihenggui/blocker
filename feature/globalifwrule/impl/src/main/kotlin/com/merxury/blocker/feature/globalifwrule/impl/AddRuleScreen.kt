@@ -39,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,8 +61,9 @@ import com.merxury.core.ifw.model.IfwComponentType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddRuleScreen(
-    editorState: GlobalIfwRuleEditorUiState,
+fun AdvancedGlobalIfwRuleScreen(
+    draft: AdvancedGlobalIfwRuleDraft,
+    isDirty: Boolean,
     onSave: () -> Unit,
     onBack: () -> Unit,
     onPackageNameChange: (String) -> Unit,
@@ -71,13 +73,11 @@ fun AddRuleScreen(
     onRootGroupChange: (IfwEditorNode.Group) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val editor = editorState.draft
-    val isEditing = editor.editingRuleIndex != null
+    val isEditing = draft.editingRuleIndex != null
     var showUnsavedDialog by remember { mutableStateOf(false) }
-    val canSave = editor.canSave
 
     val handleBack: () -> Unit = {
-        if (editorState.isDirty) {
+        if (isDirty) {
             showUnsavedDialog = true
         } else {
             onBack()
@@ -85,31 +85,17 @@ fun AddRuleScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        BlockerTopAppBar(
+        RuleEditorTopBar(
             title = stringResource(
                 if (isEditing) {
-                    R.string.feature_globalifwrule_impl_edit_rule
+                    R.string.feature_globalifwrule_impl_edit_advanced_rule
                 } else {
-                    R.string.feature_globalifwrule_impl_add_rule
+                    R.string.feature_globalifwrule_impl_add_advanced_rule
                 },
             ),
-            hasNavigationIcon = true,
-            onNavigationClick = handleBack,
-            actions = {
-                IconButton(
-                    enabled = canSave,
-                    onClick = {
-                        if (canSave) {
-                            onSave()
-                        }
-                    },
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.Check,
-                        contentDescription = stringResource(R.string.feature_globalifwrule_impl_save),
-                    )
-                }
-            },
+            canSave = draft.canSave,
+            onSave = onSave,
+            onBack = handleBack,
         )
         Column(
             modifier = Modifier
@@ -119,7 +105,7 @@ fun AddRuleScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = editor.packageName,
+                value = draft.storagePackageName,
                 onValueChange = onPackageNameChange,
                 label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_package)) },
                 supportingText = {
@@ -131,21 +117,26 @@ fun AddRuleScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             ComponentTypeDropdown(
-                selected = editor.componentType,
+                selected = draft.componentType,
                 onSelect = onComponentTypeChange,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
             SwitchRow(
                 label = stringResource(R.string.feature_globalifwrule_impl_block),
-                checked = editor.block,
+                checked = draft.block,
                 onCheckedChange = onBlockChange,
             )
             SwitchRow(
                 label = stringResource(R.string.feature_globalifwrule_impl_log),
-                checked = editor.log,
+                checked = draft.log,
                 onCheckedChange = onLogChange,
             )
+
+            if (draft.hasReadOnlyIntentFilters) {
+                Spacer(modifier = Modifier.height(16.dp))
+                IntentFilterBanner()
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider()
@@ -155,10 +146,10 @@ fun AddRuleScreen(
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
             IfwRuleTreeEditor(
-                rootGroup = editor.rootGroup,
+                rootGroup = draft.rootGroup,
                 onChange = onRootGroupChange,
             )
-            if (!editor.rootGroup.hasTopLevelComponentFilter()) {
+            if (!draft.hasReadOnlyIntentFilters && !draft.rootGroup.hasTopLevelComponentFilter()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.feature_globalifwrule_impl_selector_required),
@@ -185,9 +176,58 @@ fun AddRuleScreen(
     }
 }
 
+@Composable
+internal fun IntentFilterBanner(
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = stringResource(R.string.feature_globalifwrule_impl_intent_filters_preserved),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Composable
+internal fun RuleEditorTopBar(
+    title: String,
+    canSave: Boolean,
+    onSave: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    BlockerTopAppBar(
+        title = title,
+        hasNavigationIcon = true,
+        onNavigationClick = onBack,
+        actions = {
+            IconButton(
+                enabled = canSave,
+                onClick = {
+                    if (canSave) {
+                        onSave()
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = BlockerIcons.Check,
+                    contentDescription = stringResource(R.string.feature_globalifwrule_impl_save),
+                )
+            }
+        },
+        modifier = modifier,
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ComponentTypeDropdown(
+internal fun ComponentTypeDropdown(
     selected: IfwComponentType,
     onSelect: (IfwComponentType) -> Unit,
     modifier: Modifier = Modifier,
@@ -226,7 +266,7 @@ private fun ComponentTypeDropdown(
 }
 
 @Composable
-private fun SwitchRow(
+internal fun SwitchRow(
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,

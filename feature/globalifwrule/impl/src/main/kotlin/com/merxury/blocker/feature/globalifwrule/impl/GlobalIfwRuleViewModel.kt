@@ -21,20 +21,18 @@ import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.editor.IfwEditorNode
-import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
-import com.merxury.core.ifw.editor.toEditorRootGroup
-import com.merxury.core.ifw.editor.toTopLevelFilters
 import com.merxury.core.ifw.model.IfwComponentType
-import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
-import com.merxury.core.ifw.model.toSummary
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -42,11 +40,12 @@ import javax.inject.Inject
 @HiltViewModel
 class GlobalIfwRuleViewModel @Inject constructor(
     private val intentFirewall: IIntentFirewall,
+    private val componentRepository: ComponentRepository,
     private val packageManager: PackageManager,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private companion object {
-        const val EDITOR_VISIBLE_KEY = "editor_visible"
+        const val EDITOR_SCREEN_KEY = "editor_screen"
         const val EDITING_PACKAGE_NAME_KEY = "editing_package_name"
         const val EDITING_RULE_INDEX_KEY = "editing_rule_index"
     }
@@ -54,16 +53,10 @@ class GlobalIfwRuleViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<GlobalIfwRuleUiState>(GlobalIfwRuleUiState.Loading)
     val uiState: StateFlow<GlobalIfwRuleUiState> = _uiState.asStateFlow()
 
-    private val _editorState = MutableStateFlow(
-        GlobalIfwRuleEditorUiState(
-            screen = if (savedStateHandle.get<Boolean>(EDITOR_VISIBLE_KEY) == true) {
-                GlobalIfwRuleScreenState.EDIT
-            } else {
-                GlobalIfwRuleScreenState.LIST
-            },
-        ),
-    )
+    private val _editorState = MutableStateFlow(GlobalIfwRuleEditorUiState())
     val editorState: StateFlow<GlobalIfwRuleEditorUiState> = _editorState.asStateFlow()
+
+    private var componentsJob: Job? = null
 
     init {
         refresh()
@@ -75,119 +68,424 @@ class GlobalIfwRuleViewModel @Inject constructor(
         }
     }
 
-    fun startAddingRule() {
-        savedStateHandle[EDITOR_VISIBLE_KEY] = true
-        savedStateHandle[EDITING_PACKAGE_NAME_KEY] = null
-        savedStateHandle[EDITING_RULE_INDEX_KEY] = null
-        _editorState.value = GlobalIfwRuleEditorUiState(
-            screen = GlobalIfwRuleScreenState.EDIT,
-            draft = AddRuleData(),
+    fun startAddingSimpleRule() {
+        openSimpleDraft(
+            draft = SimpleGlobalIfwRuleDraft(),
+            saveEditingIdentity = false,
         )
     }
 
-    fun startEditingRule(packageName: String, ruleIndex: Int) {
-        val draft = getRuleForEdit(packageName, ruleIndex) ?: return
-        savedStateHandle[EDITOR_VISIBLE_KEY] = true
-        savedStateHandle[EDITING_PACKAGE_NAME_KEY] = packageName
-        savedStateHandle[EDITING_RULE_INDEX_KEY] = ruleIndex
-        _editorState.value = GlobalIfwRuleEditorUiState(
-            screen = GlobalIfwRuleScreenState.EDIT,
-            draft = draft,
+    fun startAddingAdvancedRule() {
+        openAdvancedDraft(
+            draft = AdvancedGlobalIfwRuleDraft(),
+            saveEditingIdentity = false,
+        )
+    }
+
+    fun openRule(packageName: String, ruleIndex: Int) {
+        val state = _uiState.value as? GlobalIfwRuleUiState.Success ?: return
+        val rule = state.groups.findRuleItem(packageName, ruleIndex) ?: return
+        when (rule.editMode) {
+            GlobalIfwRuleEditMode.SIMPLE -> {
+                val draft = rule.simpleDraft ?: return
+                openSimpleDraft(draft)
+            }
+
+            GlobalIfwRuleEditMode.ADVANCED -> {
+                openAdvancedDetail(rule.advancedDraft)
+            }
+        }
+    }
+
+    fun copyAdvancedRule() {
+        val detail = editorState.value.detail ?: return
+        openAdvancedDraft(
+            draft = detail.draft.copy(
+                originStoragePackageName = null,
+                editingRuleIndex = null,
+            ),
+            saveEditingIdentity = false,
         )
     }
 
     fun dismissEditor() {
-        savedStateHandle[EDITOR_VISIBLE_KEY] = false
-        savedStateHandle[EDITING_PACKAGE_NAME_KEY] = null
-        savedStateHandle[EDITING_RULE_INDEX_KEY] = null
+        clearEditorIdentity()
+        componentsJob?.cancel()
         _editorState.value = GlobalIfwRuleEditorUiState()
     }
 
-    fun updatePackageName(packageName: String) = updateDraft { copy(packageName = packageName) }
+    fun updateSimplePackageName(packageName: String) {
+        updateSimpleDraft(resetComponentState = true) {
+            copy(
+                selectedPackageName = packageName.trim(),
+                targets = emptyList(),
+            )
+        }
+        observeSimpleComponents()
+    }
 
-    fun updateComponentType(componentType: IfwComponentType) = updateDraft { copy(componentType = componentType) }
+    fun updateSimpleComponentType(componentType: IfwComponentType) {
+        updateSimpleDraft(resetComponentState = true) {
+            copy(
+                componentType = componentType,
+                targets = emptyList(),
+            )
+        }
+        observeSimpleComponents()
+    }
 
-    fun updateBlock(block: Boolean) = updateDraft { copy(block = block) }
+    fun updateSimpleTargetMode(targetMode: SimpleTargetMode) {
+        updateSimpleDraft {
+            copy(
+                targetMode = targetMode,
+                targets = if (targetMode == SimpleTargetMode.SINGLE) targets.take(1) else targets,
+            )
+        }
+    }
 
-    fun updateLog(log: Boolean) = updateDraft { copy(log = log) }
+    fun updateSimpleBlock(block: Boolean) = updateSimpleDraft { copy(block = block) }
 
-    fun updateRootGroup(rootGroup: IfwEditorNode.Group) = updateDraft { copy(rootGroup = rootGroup) }
+    fun updateSimpleLog(log: Boolean) = updateSimpleDraft { copy(log = log) }
+
+    fun updateSimpleAction(action: String) = updateSimpleDraft { copy(action = action) }
+
+    fun updateSimpleCategory(category: String) = updateSimpleDraft { copy(category = category) }
+
+    fun updateSimpleCallerPackage(callerPackage: String) = updateSimpleDraft { copy(callerPackage = callerPackage) }
+
+    fun updateComponentQuery(query: String) {
+        _editorState.value = _editorState.value.copy(componentQuery = query)
+    }
+
+    fun selectSingleTarget(flattenedName: String) {
+        updateSimpleDraft {
+            copy(targets = listOf(flattenedName))
+        }
+    }
+
+    fun toggleMultiTarget(flattenedName: String) {
+        updateSimpleDraft {
+            copy(
+                targets = if (flattenedName in targets) {
+                    targets - flattenedName
+                } else {
+                    targets + flattenedName
+                }.sorted(),
+            )
+        }
+    }
+
+    fun updateAdvancedPackageName(packageName: String) = updateAdvancedDraft {
+        copy(storagePackageName = packageName.trim())
+    }
+
+    fun updateAdvancedComponentType(componentType: IfwComponentType) = updateAdvancedDraft {
+        copy(componentType = componentType)
+    }
+
+    fun updateAdvancedBlock(block: Boolean) = updateAdvancedDraft { copy(block = block) }
+
+    fun updateAdvancedLog(log: Boolean) = updateAdvancedDraft { copy(log = log) }
+
+    fun updateAdvancedRootGroup(rootGroup: IfwEditorNode.Group) = updateAdvancedDraft {
+        copy(rootGroup = rootGroup)
+    }
 
     fun saveRule() {
-        val draft = editorState.value.draft
-        viewModelScope.launch {
-            if (draft.editingRuleIndex != null) {
-                updateRule(draft)
-            } else {
-                saveNewRule(draft)
+        when (val draft = editorState.value.draft) {
+            is SimpleGlobalIfwRuleDraft -> viewModelScope.launch {
+                saveSimpleRule(draft)
             }
-        }
-    }
-
-    private suspend fun saveNewRule(data: AddRuleData) {
-        try {
-            val newRule = data.toIfwRuleOrNull() ?: return
-            val currentRules = intentFirewall.getRules(data.packageName)
-            intentFirewall.saveRules(
-                data.packageName,
-                IfwRules(currentRules.rules + newRule),
-            )
-            dismissEditor()
-            loadAllRules()
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to save new rule for ${data.packageName}")
-        }
-    }
-
-    fun getRuleForEdit(packageName: String, ruleIndex: Int): AddRuleData? {
-        val state = _uiState.value as? GlobalIfwRuleUiState.Success ?: return null
-        val group = state.groups.find { it.packageName == packageName } ?: return null
-        val ruleItem = group.rules.find { it.ruleIndex == ruleIndex } ?: return null
-        if (ruleItem.isAdvancedRule) return null
-        return AddRuleData(
-            packageName = packageName,
-            componentType = ruleItem.componentType,
-            block = ruleItem.block,
-            log = ruleItem.log,
-            rootGroup = ruleItem.rootGroup,
-            editingRuleIndex = ruleIndex,
-        )
-    }
-
-    private suspend fun updateRule(data: AddRuleData) {
-        try {
-            val ruleIndex = data.editingRuleIndex ?: return
-            val newRule = data.toIfwRuleOrNull() ?: return
-            val currentRules = intentFirewall.getRules(data.packageName)
-            val updatedRules = currentRules.rules.toMutableList()
-            if (ruleIndex in updatedRules.indices) {
-                updatedRules[ruleIndex] = newRule
+            is AdvancedGlobalIfwRuleDraft -> viewModelScope.launch {
+                saveAdvancedRule(draft)
             }
-            intentFirewall.saveRules(data.packageName, IfwRules(updatedRules))
-            dismissEditor()
-            loadAllRules()
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to update rule for ${data.packageName}")
+            null -> Unit
         }
     }
 
     fun deleteRule(packageName: String, ruleIndex: Int) {
         viewModelScope.launch {
-            deleteRuleInternal(packageName, ruleIndex)
+            deleteRuleInternal(
+                packageName = packageName,
+                ruleIndex = ruleIndex,
+                dismissAfterDelete = false,
+            )
         }
     }
 
-    private suspend fun deleteRuleInternal(packageName: String, ruleIndex: Int) {
-        try {
-            val currentRules = intentFirewall.getRules(packageName)
-            val updatedRules = currentRules.rules.toMutableList()
-            if (ruleIndex in updatedRules.indices) {
-                updatedRules.removeAt(ruleIndex)
-                intentFirewall.saveRules(packageName, IfwRules(updatedRules))
-                loadAllRules()
+    fun deleteViewedRule() {
+        val detail = editorState.value.detail ?: return
+        viewModelScope.launch {
+            deleteRuleInternal(
+                packageName = detail.storagePackageName,
+                ruleIndex = detail.ruleIndex,
+                dismissAfterDelete = true,
+            )
+        }
+    }
+
+    private fun openSimpleDraft(
+        draft: SimpleGlobalIfwRuleDraft,
+        saveEditingIdentity: Boolean = true,
+    ) {
+        persistEditorIdentity(
+            screen = GlobalIfwRuleScreenState.SIMPLE_EDIT,
+            packageName = if (saveEditingIdentity) draft.originStoragePackageName else null,
+            ruleIndex = if (saveEditingIdentity) draft.editingRuleIndex else null,
+        )
+        _editorState.value = GlobalIfwRuleEditorUiState(
+            screen = GlobalIfwRuleScreenState.SIMPLE_EDIT,
+            simpleDraft = draft,
+            selectedPackageLabel = resolveAppLabel(draft.selectedPackageName),
+        )
+        observeSimpleComponents()
+    }
+
+    private fun openAdvancedDraft(
+        draft: AdvancedGlobalIfwRuleDraft,
+        saveEditingIdentity: Boolean = true,
+    ) {
+        persistEditorIdentity(
+            screen = GlobalIfwRuleScreenState.ADVANCED_EDIT,
+            packageName = if (saveEditingIdentity) draft.originStoragePackageName else null,
+            ruleIndex = if (saveEditingIdentity) draft.editingRuleIndex else null,
+        )
+        componentsJob?.cancel()
+        _editorState.value = GlobalIfwRuleEditorUiState(
+            screen = GlobalIfwRuleScreenState.ADVANCED_EDIT,
+            advancedDraft = draft,
+            isDirty = false,
+        )
+    }
+
+    private fun openAdvancedDetail(draft: AdvancedGlobalIfwRuleDraft) {
+        persistEditorIdentity(
+            screen = GlobalIfwRuleScreenState.ADVANCED_DETAIL,
+            packageName = draft.originStoragePackageName,
+            ruleIndex = draft.editingRuleIndex,
+        )
+        componentsJob?.cancel()
+        _editorState.value = GlobalIfwRuleEditorUiState(
+            screen = GlobalIfwRuleScreenState.ADVANCED_DETAIL,
+            detail = draft.toDetailUiState(),
+        )
+    }
+
+    private fun updateSimpleDraft(
+        resetComponentState: Boolean = false,
+        markDirty: Boolean = true,
+        transform: SimpleGlobalIfwRuleDraft.() -> SimpleGlobalIfwRuleDraft,
+    ) {
+        val current = editorState.value
+        val draft = current.simpleDraft ?: return
+        val updatedDraft = draft.transform()
+        _editorState.value = current.copy(
+            simpleDraft = updatedDraft,
+            isDirty = current.isDirty || markDirty,
+            selectedPackageLabel = if (resetComponentState) {
+                resolveAppLabel(updatedDraft.selectedPackageName)
+            } else {
+                current.selectedPackageLabel
+            },
+            availableComponents = if (resetComponentState) emptyList() else current.availableComponents,
+            componentQuery = if (resetComponentState) "" else current.componentQuery,
+            isComponentLoading = if (resetComponentState) false else current.isComponentLoading,
+            componentLoadError = if (resetComponentState) null else current.componentLoadError,
+        )
+    }
+
+    private fun updateAdvancedDraft(
+        markDirty: Boolean = true,
+        transform: AdvancedGlobalIfwRuleDraft.() -> AdvancedGlobalIfwRuleDraft,
+    ) {
+        val current = editorState.value
+        val draft = current.advancedDraft ?: return
+        _editorState.value = current.copy(
+            advancedDraft = draft.transform(),
+            isDirty = current.isDirty || markDirty,
+        )
+    }
+
+    private fun observeSimpleComponents() {
+        componentsJob?.cancel()
+        val draft = editorState.value.simpleDraft ?: return
+        if (draft.selectedPackageName.isBlank()) {
+            _editorState.value = _editorState.value.copy(
+                selectedPackageLabel = null,
+                availableComponents = emptyList(),
+                isComponentLoading = false,
+                componentLoadError = null,
+            )
+            return
+        }
+
+        val packageName = draft.selectedPackageName
+        val componentType = draft.componentType.toComponentType()
+        componentsJob = viewModelScope.launch {
+            _editorState.value = _editorState.value.copy(
+                selectedPackageLabel = resolveAppLabel(packageName),
+                isComponentLoading = true,
+                componentLoadError = null,
+                availableComponents = emptyList(),
+            )
+            try {
+                componentRepository.updateComponentList(packageName, componentType).first()
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to refresh components for $packageName")
             }
+
+            try {
+                componentRepository.getComponentList(packageName, componentType).collect { components ->
+                    val currentDraft = editorState.value.simpleDraft ?: return@collect
+                    if (currentDraft.selectedPackageName != packageName || currentDraft.componentType != draft.componentType) {
+                        return@collect
+                    }
+
+                    val availableComponents = components
+                        .sortedBy { component -> component.simpleName.lowercase() }
+                        .map { component ->
+                            val flattenedName = flattenComponentName(component.packageName, component.name)
+                            SimpleRuleComponentUiState(
+                                flattenedName = flattenedName,
+                                componentName = component.name,
+                                simpleName = component.simpleName,
+                                exported = component.exported,
+                                selected = flattenedName in currentDraft.targets,
+                            )
+                        }
+
+                    val validTargets = currentDraft.targets.filter { target ->
+                        availableComponents.any { component -> component.flattenedName == target }
+                    }
+
+                    _editorState.value = _editorState.value.copy(
+                        selectedPackageLabel = resolveAppLabel(packageName),
+                        availableComponents = availableComponents.map { component ->
+                            component.copy(selected = component.flattenedName in validTargets)
+                        },
+                        isComponentLoading = false,
+                        componentLoadError = null,
+                    )
+
+                    if (validTargets != currentDraft.targets) {
+                        updateSimpleDraft(markDirty = false) { copy(targets = validTargets) }
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to observe components for $packageName")
+                _editorState.value = _editorState.value.copy(
+                    selectedPackageLabel = resolveAppLabel(packageName),
+                    availableComponents = emptyList(),
+                    isComponentLoading = false,
+                    componentLoadError = e.message ?: "Unknown error",
+                )
+            }
+        }
+    }
+
+    private suspend fun saveSimpleRule(draft: SimpleGlobalIfwRuleDraft) {
+        if (!draft.canSave) return
+        try {
+            persistRule(
+                originalStoragePackageName = draft.originStoragePackageName,
+                editingRuleIndex = draft.editingRuleIndex,
+                destinationStoragePackageName = draft.storagePackageName,
+                newRule = draft.toIfwRule(),
+            )
+            dismissEditor()
+            loadAllRules()
         } catch (e: Exception) {
-            Timber.e(e, "Failed to delete rule for $packageName at index $ruleIndex")
+            Timber.e(e, "Failed to save simple IFW rule for ${draft.storagePackageName}")
+        }
+    }
+
+    private suspend fun saveAdvancedRule(draft: AdvancedGlobalIfwRuleDraft) {
+        if (!draft.canSave) return
+        try {
+            val newRule = draft.toIfwRuleOrNull() ?: return
+            persistRule(
+                originalStoragePackageName = draft.originStoragePackageName,
+                editingRuleIndex = draft.editingRuleIndex,
+                destinationStoragePackageName = draft.storagePackageName,
+                newRule = newRule,
+            )
+            dismissEditor()
+            loadAllRules()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save advanced IFW rule for ${draft.storagePackageName}")
+        }
+    }
+
+    private suspend fun persistRule(
+        originalStoragePackageName: String?,
+        editingRuleIndex: Int?,
+        destinationStoragePackageName: String,
+        newRule: IfwRule,
+    ) {
+        if (editingRuleIndex == null || originalStoragePackageName == null) {
+            appendRule(destinationStoragePackageName, newRule)
+            return
+        }
+
+        if (originalStoragePackageName == destinationStoragePackageName) {
+            replaceRule(destinationStoragePackageName, editingRuleIndex, newRule)
+            return
+        }
+
+        removeRule(originalStoragePackageName, editingRuleIndex)
+        appendRule(destinationStoragePackageName, newRule)
+    }
+
+    private suspend fun appendRule(
+        packageName: String,
+        newRule: IfwRule,
+    ) {
+        val currentRules = intentFirewall.getRules(packageName)
+        intentFirewall.saveRules(
+            packageName,
+            IfwRules(currentRules.rules + newRule),
+        )
+    }
+
+    private suspend fun replaceRule(
+        packageName: String,
+        ruleIndex: Int,
+        newRule: IfwRule,
+    ) {
+        val currentRules = intentFirewall.getRules(packageName)
+        val updatedRules = currentRules.rules.toMutableList()
+        if (ruleIndex !in updatedRules.indices) {
+            appendRule(packageName, newRule)
+            return
+        }
+        updatedRules[ruleIndex] = newRule
+        intentFirewall.saveRules(packageName, IfwRules(updatedRules))
+    }
+
+    private suspend fun removeRule(
+        packageName: String,
+        ruleIndex: Int,
+    ) {
+        val currentRules = intentFirewall.getRules(packageName)
+        val updatedRules = currentRules.rules.toMutableList()
+        if (ruleIndex !in updatedRules.indices) return
+        updatedRules.removeAt(ruleIndex)
+        intentFirewall.saveRules(packageName, IfwRules(updatedRules))
+    }
+
+    private suspend fun deleteRuleInternal(
+        packageName: String,
+        ruleIndex: Int,
+        dismissAfterDelete: Boolean,
+    ) {
+        try {
+            removeRule(packageName, ruleIndex)
+            if (dismissAfterDelete) {
+                dismissEditor()
+            }
+            loadAllRules()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to delete IFW rule for $packageName at index $ruleIndex")
         }
     }
 
@@ -207,7 +505,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
                         },
                     )
                 }
-                .sortedBy { it.appLabel ?: it.packageName }
+                .sortedBy { group -> group.appLabel ?: group.packageName }
             _uiState.value = GlobalIfwRuleUiState.Success(groups)
             restoreEditorState(groups)
         } catch (e: Exception) {
@@ -217,163 +515,87 @@ class GlobalIfwRuleViewModel @Inject constructor(
     }
 
     private fun restoreEditorState(groups: List<PackageRuleGroup>) {
-        if (savedStateHandle.get<Boolean>(EDITOR_VISIBLE_KEY) != true) return
+        val savedScreen = savedStateHandle.get<String>(EDITOR_SCREEN_KEY)
+            ?.let { screenName -> GlobalIfwRuleScreenState.entries.find { it.name == screenName } }
+            ?: return
 
-        val editingPackageName = savedStateHandle.get<String>(EDITING_PACKAGE_NAME_KEY)
-        val editingRuleIndex = savedStateHandle.get<Int>(EDITING_RULE_INDEX_KEY)
+        when (savedScreen) {
+            GlobalIfwRuleScreenState.LIST -> {
+                _editorState.value = GlobalIfwRuleEditorUiState()
+            }
 
-        if (editingPackageName == null || editingRuleIndex == null) {
-            _editorState.value = GlobalIfwRuleEditorUiState(
-                screen = GlobalIfwRuleScreenState.EDIT,
-                draft = editorState.value.draft,
-                isDirty = editorState.value.isDirty,
-            )
-            return
+            GlobalIfwRuleScreenState.SIMPLE_EDIT -> {
+                val editingPackageName = savedStateHandle.get<String>(EDITING_PACKAGE_NAME_KEY)
+                val editingRuleIndex = savedStateHandle.get<Int>(EDITING_RULE_INDEX_KEY)
+                if (editingPackageName != null && editingRuleIndex != null) {
+                    val rule = groups.findRuleItem(editingPackageName, editingRuleIndex)
+                    val draft = rule?.simpleDraft ?: return dismissEditor()
+                    openSimpleDraft(draft)
+                } else {
+                    val draft = editorState.value.simpleDraft ?: return
+                    _editorState.value = editorState.value.copy(
+                        selectedPackageLabel = resolveAppLabel(draft.selectedPackageName),
+                    )
+                    observeSimpleComponents()
+                }
+            }
+
+            GlobalIfwRuleScreenState.ADVANCED_EDIT -> {
+                val editingPackageName = savedStateHandle.get<String>(EDITING_PACKAGE_NAME_KEY)
+                val editingRuleIndex = savedStateHandle.get<Int>(EDITING_RULE_INDEX_KEY)
+                if (editingPackageName != null && editingRuleIndex != null) {
+                    val rule = groups.findRuleItem(editingPackageName, editingRuleIndex)
+                    val draft = rule?.advancedDraft ?: return dismissEditor()
+                    openAdvancedDraft(draft)
+                }
+            }
+
+            GlobalIfwRuleScreenState.ADVANCED_DETAIL -> {
+                val editingPackageName = savedStateHandle.get<String>(EDITING_PACKAGE_NAME_KEY)
+                val editingRuleIndex = savedStateHandle.get<Int>(EDITING_RULE_INDEX_KEY)
+                if (editingPackageName == null || editingRuleIndex == null) {
+                    dismissEditor()
+                    return
+                }
+                val rule = groups.findRuleItem(editingPackageName, editingRuleIndex) ?: return dismissEditor()
+                openAdvancedDetail(rule.advancedDraft)
+            }
         }
-
-        val ruleItem = groups
-            .find { it.packageName == editingPackageName }
-            ?.rules
-            ?.find { it.ruleIndex == editingRuleIndex }
-
-        if (ruleItem == null) {
-            dismissEditor()
-            return
-        }
-
-        _editorState.value = GlobalIfwRuleEditorUiState(
-            screen = GlobalIfwRuleScreenState.EDIT,
-            draft = AddRuleData(
-                packageName = editingPackageName,
-                componentType = ruleItem.componentType,
-                block = ruleItem.block,
-                log = ruleItem.log,
-                rootGroup = ruleItem.rootGroup,
-                editingRuleIndex = editingRuleIndex,
-            ),
-        )
     }
 
-    private fun updateDraft(transform: AddRuleData.() -> AddRuleData) {
-        val current = editorState.value
-        _editorState.value = current.copy(
-            draft = current.draft.transform(),
-            isDirty = true,
-        )
+    private fun persistEditorIdentity(
+        screen: GlobalIfwRuleScreenState,
+        packageName: String?,
+        ruleIndex: Int?,
+    ) {
+        savedStateHandle[EDITOR_SCREEN_KEY] = screen.name
+        savedStateHandle[EDITING_PACKAGE_NAME_KEY] = packageName
+        savedStateHandle[EDITING_RULE_INDEX_KEY] = ruleIndex
+    }
+
+    private fun clearEditorIdentity() {
+        savedStateHandle[EDITOR_SCREEN_KEY] = GlobalIfwRuleScreenState.LIST.name
+        savedStateHandle[EDITING_PACKAGE_NAME_KEY] = null
+        savedStateHandle[EDITING_RULE_INDEX_KEY] = null
     }
 
     private fun resolveAppLabel(packageName: String): String? = try {
         val appInfo = packageManager.getApplicationInfo(packageName, 0)
         packageManager.getApplicationLabel(appInfo).toString()
-    } catch (_: PackageManager.NameNotFoundException) {
+    } catch (_: Exception) {
         null
     }
 
     private fun resolvePackageInfo(packageName: String): PackageInfo? = try {
         packageManager.getPackageInfo(packageName, 0)
-    } catch (_: PackageManager.NameNotFoundException) {
+    } catch (_: Exception) {
         null
     }
 
-    private fun AddRuleData.toIfwRuleOrNull(): IfwRule? {
-        if (!rootGroup.hasTopLevelComponentFilter()) {
-            Timber.w("Skip saving IFW rule without a top-level component-filter selector")
-            return null
-        }
-        val filters = rootGroup.toTopLevelFilters()
-        if (filters.isEmpty()) return null
-        return IfwRule(
-            componentType = componentType,
-            block = block,
-            log = log,
-            filters = filters,
-        )
-    }
-
-    private fun IfwRule.toRuleItemUiState(index: Int, packageName: String): RuleItemUiState = RuleItemUiState(
-        componentType = componentType,
-        block = block,
-        log = log,
-        filtersSummary = buildList {
-            intentFilters.forEach { intentFilter ->
-                add("intent-filter: ${intentFilter.toSummary()}")
-            }
-            filters.forEach { filter ->
-                add(filter.toDisplaySummary(packageName))
-            }
-        }.joinToString("\n"),
-        filters = filters,
-        rootGroup = filters.toEditorRootGroup() ?: IfwEditorNode.Group(),
-        isAdvancedRule = intentFilters.isNotEmpty(),
-        ruleIndex = index,
-    )
-
-    private fun IfwFilter.toDisplaySummary(packageName: String): String = when (this) {
-        is IfwFilter.ComponentFilter -> {
-            val componentName = name.substringAfter("/")
-            if (componentName.startsWith(packageName)) {
-                componentName.removePrefix(packageName)
-            } else {
-                componentName
-            }
-        }
-        is IfwFilter.And -> filters.joinToString(" AND ") { child -> child.toDisplaySummary(packageName) }
-        is IfwFilter.Or -> filters.joinToString(" OR ") { child -> child.toDisplaySummary(packageName) }
-        is IfwFilter.Not -> "NOT (${filter.toDisplaySummary(packageName)})"
-        else -> toSummary()
-    }
+    private fun List<PackageRuleGroup>.findRuleItem(
+        packageName: String,
+        ruleIndex: Int,
+    ): RuleItemUiState? = find { group -> group.packageName == packageName }
+        ?.rules
+        ?.find { rule -> rule.ruleIndex == ruleIndex }
 }
-
-sealed interface GlobalIfwRuleUiState {
-    data object Loading : GlobalIfwRuleUiState
-    data class Success(val groups: List<PackageRuleGroup>) : GlobalIfwRuleUiState
-    data class Error(val message: String) : GlobalIfwRuleUiState
-}
-
-data class PackageRuleGroup(
-    val packageName: String,
-    val appLabel: String?,
-    val packageInfo: PackageInfo?,
-    val rules: List<RuleItemUiState>,
-)
-
-data class RuleItemUiState(
-    val componentType: IfwComponentType,
-    val block: Boolean,
-    val log: Boolean,
-    val filtersSummary: String,
-    val filters: List<IfwFilter>,
-    val rootGroup: IfwEditorNode.Group,
-    val isAdvancedRule: Boolean,
-    val ruleIndex: Int,
-)
-
-data class GlobalIfwRuleEditorUiState(
-    val screen: GlobalIfwRuleScreenState = GlobalIfwRuleScreenState.LIST,
-    val draft: AddRuleData = AddRuleData(),
-    val isDirty: Boolean = false,
-)
-
-enum class GlobalIfwRuleScreenState {
-    LIST,
-    EDIT,
-}
-
-data class AddRuleData(
-    val packageName: String = "",
-    val componentType: IfwComponentType = IfwComponentType.BROADCAST,
-    val block: Boolean = true,
-    val log: Boolean = true,
-    val rootGroup: IfwEditorNode.Group = IfwEditorNode.Group(),
-    val editingRuleIndex: Int? = null,
-) {
-    val canSave: Boolean
-        get() = packageName.isNotBlank() && rootGroup.hasTopLevelComponentFilter()
-}
-
-val IfwComponentType.labelRes: Int
-    get() = when (this) {
-        IfwComponentType.ACTIVITY -> R.string.feature_globalifwrule_impl_rule_type_activity
-        IfwComponentType.BROADCAST -> R.string.feature_globalifwrule_impl_rule_type_broadcast
-        IfwComponentType.SERVICE -> R.string.feature_globalifwrule_impl_rule_type_service
-    }

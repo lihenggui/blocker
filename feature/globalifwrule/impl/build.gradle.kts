@@ -29,6 +29,7 @@ dependencies {
     implementation(projects.core.data)
 
     testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(projects.core.testing)
