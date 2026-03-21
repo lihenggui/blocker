@@ -113,6 +113,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.PreviewDevices
+import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.component.ComponentList
@@ -166,98 +167,97 @@ fun AppDetailScreen(
     val clipboardManager = LocalClipboard.current
     val context = LocalContext.current
     val cannotLaunchAppMessage = stringResource(string.feature_appdetail_api_cannot_launch_this_app)
-    AppDetailScreen(
-        appInfoUiState = appInfoUiState,
-        topAppBarUiState = topAppBarUiState,
-        componentListUiState = appInfoUiState.componentSearchUiState,
-        tabState = tabState,
-        showComponentDetailDialog = viewModel::showComponentDetailDialog,
-        navigateToRuleDetail = navigateToRuleDetail,
-        showComponentSortBottomSheet = viewModel::showComponentSortBottomSheet,
-        modifier = modifier.fillMaxSize(),
-        onLaunchAppClick = { packageName ->
-            val result = viewModel.launchApp(context, packageName)
-            if (!result) {
+    Box(modifier = modifier.fillMaxSize()) {
+        AppDetailScreen(
+            appInfoUiState = appInfoUiState,
+            topAppBarUiState = topAppBarUiState,
+            componentListUiState = appInfoUiState.componentSearchUiState,
+            tabState = tabState,
+            showComponentDetailDialog = viewModel::showComponentDetailDialog,
+            navigateToRuleDetail = navigateToRuleDetail,
+            showComponentSortBottomSheet = viewModel::showComponentSortBottomSheet,
+            modifier = Modifier.fillMaxSize(),
+            onLaunchAppClick = { packageName ->
+                val result = viewModel.launchApp(context, packageName)
+                if (!result) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = cannotLaunchAppMessage,
+                            duration = Short,
+                            withDismissAction = true,
+                        )
+                    }
+                }
+            },
+            switchTab = viewModel::switchTab,
+            onBackClick = onBackClick,
+            onSearchTextChange = viewModel::search,
+            onSearchModeChange = viewModel::changeSearchMode,
+            blockAllComponentsInPage = { viewModel.controlAllComponentsInPage(false) },
+            enableAllComponentsInPage = { viewModel.controlAllComponentsInPage(true) },
+            onExportRules = viewModel::exportBlockerRule,
+            onImportRules = viewModel::importBlockerRule,
+            onExportIfw = viewModel::exportIfwRule,
+            onImportIfw = viewModel::importIfwRule,
+            onResetIfw = viewModel::resetIfw,
+            onSwitchClick = viewModel::controlComponent,
+            onStopServiceClick = viewModel::stopService,
+            onLaunchActivityClick = viewModel::launchActivity,
+            onCopyNameClick = {
                 scope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = cannotLaunchAppMessage,
-                        duration = Short,
-                        withDismissAction = true,
-                    )
+                    clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
                 }
-            }
-        },
-        switchTab = viewModel::switchTab,
-        onBackClick = onBackClick,
-        onSearchTextChange = viewModel::search,
-        onSearchModeChange = viewModel::changeSearchMode,
-        blockAllComponentsInPage = {
-            viewModel.controlAllComponentsInPage(false) { current, total ->
-                showDisableProgress(context, snackbarHostState, scope, current, total)
-            }
-        },
-        enableAllComponentsInPage = {
-            viewModel.controlAllComponentsInPage(true) { current, total ->
-                showEnableProgress(context, snackbarHostState, scope, current, total)
-            }
-        },
-        onExportRules = viewModel::exportBlockerRule,
-        onImportRules = viewModel::importBlockerRule,
-        onExportIfw = viewModel::exportIfwRule,
-        onImportIfw = viewModel::importIfwRule,
-        onResetIfw = viewModel::resetIfw,
-        onSwitchClick = viewModel::controlComponent,
-        onStopServiceClick = viewModel::stopService,
-        onLaunchActivityClick = viewModel::launchActivity,
-        onCopyNameClick = {
-            scope.launch {
-                clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
-            }
-        },
-        onCopyFullNameClick = {
-            scope.launch {
-                clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
-            }
-        },
-        updateIconThemingState = updateIconThemingState,
-        onSelectAll = viewModel::selectAll,
-        blockAllSelectedComponents = { viewModel.controlAllSelectedComponents(false) },
-        enableAllSelectedComponents = { viewModel.controlAllSelectedComponents(true) },
-        switchSelectedMode = viewModel::switchSelectedMode,
-        onSelect = viewModel::selectItem,
-        onDeselect = viewModel::deselectItem,
-        blockAllInItem = {
-            viewModel.controlAllComponents(it, false) { current, total ->
-                showDisableProgress(context, snackbarHostState, scope, current, total)
-            }
-        },
-        enableAllInItem = {
-            viewModel.controlAllComponents(it, true) { current, total ->
-                showEnableProgress(context, snackbarHostState, scope, current, total)
-            }
-        },
-        shareAppRule = {
-            scope.launch {
-                viewModel.zipAppRule().collect { rule ->
-                    shareFile(context, rule, scope, snackbarHostState)
+            },
+            onCopyFullNameClick = {
+                scope.launch {
+                    clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
                 }
-            }
-        },
-        shareAllRules = {
-            scope.launch {
-                viewModel.zipAllRule().collect { rule ->
-                    shareFile(context, rule, scope, snackbarHostState)
+            },
+            updateIconThemingState = updateIconThemingState,
+            onSelectAll = viewModel::selectAll,
+            blockAllSelectedComponents = { viewModel.controlAllSelectedComponents(false) },
+            enableAllSelectedComponents = { viewModel.controlAllSelectedComponents(true) },
+            switchSelectedMode = viewModel::switchSelectedMode,
+            onSelect = viewModel::selectItem,
+            onDeselect = viewModel::deselectItem,
+            blockAllInItem = { viewModel.controlAllComponents(it, false) },
+            enableAllInItem = { viewModel.controlAllComponents(it, true) },
+            shareAppRule = {
+                scope.launch {
+                    viewModel.zipAppRule().collect { rule ->
+                        shareFile(context, rule, scope, snackbarHostState)
+                    }
                 }
-            }
-        },
-        onShowAppInfoClick = { viewModel.showAppInfo(context) },
-        onEditIfwRuleClick = onEditIfwRuleClick,
-        onRefresh = {
-            viewModel.loadComponentList()
-            viewModel.updateComponentList()
-        },
-        showBackButton = showBackButton,
-    )
+            },
+            shareAllRules = {
+                scope.launch {
+                    viewModel.zipAllRule().collect { rule ->
+                        shareFile(context, rule, scope, snackbarHostState)
+                    }
+                }
+            },
+            onShowAppInfoClick = { viewModel.showAppInfo(context) },
+            onEditIfwRuleClick = onEditIfwRuleClick,
+            onRefresh = {
+                viewModel.loadComponentList()
+                viewModel.updateComponentList()
+            },
+            showBackButton = showBackButton,
+        )
+        val bottomInset = WindowInsets.systemBars.asPaddingValues()
+            .calculateBottomPadding()
+        ProcessingProgressSnackbar(
+            progress = appInfoUiState.processingProgress,
+            onDismiss = viewModel::dismissProcessingProgress,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp + bottomInset,
+                ),
+        )
+    }
     if (appInfoUiState.error != null) {
         BlockerErrorAlertDialog(
             title = appInfoUiState.error?.title.orEmpty(),
@@ -293,62 +293,6 @@ fun AppDetailScreen(
                     withDismissAction = true,
                 )
             }
-        }
-    }
-}
-
-private fun showEnableProgress(
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    scope: CoroutineScope,
-    current: Int,
-    total: Int,
-) {
-    scope.launch {
-        if (current == total) {
-            snackbarHostState.showSnackbar(
-                message = context.getString(uistring.core_ui_operation_completed),
-                duration = Short,
-                withDismissAction = true,
-            )
-        } else {
-            snackbarHostState.showSnackbar(
-                message = context.getString(
-                    uistring.core_ui_enabling_component_hint,
-                    current,
-                    total,
-                ),
-                duration = Short,
-                withDismissAction = false,
-            )
-        }
-    }
-}
-
-private fun showDisableProgress(
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    scope: CoroutineScope,
-    current: Int,
-    total: Int,
-) {
-    scope.launch {
-        if (current == total) {
-            snackbarHostState.showSnackbar(
-                message = context.getString(uistring.core_ui_operation_completed),
-                duration = Short,
-                withDismissAction = true,
-            )
-        } else {
-            snackbarHostState.showSnackbar(
-                message = context.getString(
-                    uistring.core_ui_disabling_component_hint,
-                    current,
-                    total,
-                ),
-                duration = Short,
-                withDismissAction = false,
-            )
         }
     }
 }
