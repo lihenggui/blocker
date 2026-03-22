@@ -79,6 +79,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
+import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
@@ -405,7 +406,7 @@ class AppDetailViewModel @AssistedInject constructor(
         }
     }
 
-    fun controlAllComponentsInPage(enable: Boolean, block: suspend (Int, Int) -> Unit) {
+    fun controlAllComponentsInPage(enable: Boolean) {
         controlComponentJob?.cancel()
         val currentComponentListUiState = _appInfoUiState.value.componentSearchUiState
         if (currentComponentListUiState !is Result.Success) {
@@ -427,7 +428,7 @@ class AppDetailViewModel @AssistedInject constructor(
 
                 else -> return@launch
             }
-            controlAllComponentsInternal(list, enable, block)
+            controlAllComponentsInternal(list, enable)
             analyticsHelper.logBatchOperationPerformed(enable)
         }
     }
@@ -435,11 +436,10 @@ class AppDetailViewModel @AssistedInject constructor(
     fun controlAllComponents(
         list: List<ComponentInfo>,
         enable: Boolean,
-        action: suspend (Int, Int) -> Unit,
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            controlAllComponentsInternal(list, enable, action)
+            controlAllComponentsInternal(list, enable)
             analyticsHelper.logControlAllComponentsInSdkClicked(enable)
         }
     }
@@ -447,7 +447,7 @@ class AppDetailViewModel @AssistedInject constructor(
     private suspend fun controlAllComponentsInternal(
         list: List<ComponentInfo>,
         enable: Boolean,
-        action: suspend (Int, Int) -> Unit,
+        action: suspend (Int, Int) -> Unit = { _, _ -> },
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
         var successCount = 0
@@ -456,6 +456,15 @@ class AppDetailViewModel @AssistedInject constructor(
             newState = enable,
         )
             .onStart {
+                _appInfoUiState.update {
+                    it.copy(
+                        processingProgress = ProcessingProgress(
+                            current = 0,
+                            total = list.size,
+                            isEnabling = enable,
+                        ),
+                    )
+                }
                 changeComponentsUiStatus(
                     changed = list,
                     controllerType = controllerType,
@@ -470,17 +479,33 @@ class AppDetailViewModel @AssistedInject constructor(
                     enabled = !enable,
                 )
                 _appInfoUiState.update {
-                    it.copy(error = exception.toErrorMessage())
+                    it.copy(
+                        error = exception.toErrorMessage(),
+                        processingProgress = null,
+                    )
                 }
             }
             .collect { _ ->
                 successCount++
+                _appInfoUiState.update {
+                    it.copy(
+                        processingProgress = ProcessingProgress(
+                            current = successCount,
+                            total = list.size,
+                            isEnabling = enable,
+                        ),
+                    )
+                }
                 action(successCount, list.size)
             }
     }
 
     fun dismissAlert() = _appInfoUiState.update {
         it.copy(error = null)
+    }
+
+    fun dismissProcessingProgress() = _appInfoUiState.update {
+        it.copy(processingProgress = null)
     }
 
     fun launchActivity(packageName: String, componentName: String) {
@@ -937,4 +962,5 @@ data class AppInfoUiState(
     val showComponentSortBottomSheet: Boolean = false,
     val showComponentDetailDialog: Boolean = false,
     val selectedComponentName: String = "",
+    val processingProgress: ProcessingProgress? = null,
 )
