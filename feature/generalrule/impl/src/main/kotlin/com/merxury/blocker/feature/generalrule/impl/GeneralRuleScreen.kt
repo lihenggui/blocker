@@ -61,6 +61,10 @@ import com.merxury.blocker.feature.generalrule.api.R.string as generalruleString
 fun GeneralRulesScreen(
     navigateToRuleDetail: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+    showTopBar: Boolean = true,
+    title: String? = null,
+    belowTopBar: @Composable () -> Unit = {},
     highlightSelectedRule: Boolean = false,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
@@ -70,6 +74,10 @@ fun GeneralRulesScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     GeneralRulesScreen(
+        modifier = modifier,
+        showTopBar = showTopBar,
+        title = title,
+        belowTopBar = belowTopBar,
         highlightSelectedRule = highlightSelectedRule,
         uiState = uiState,
         isProcessing = isProcessing,
@@ -101,6 +109,9 @@ fun GeneralRulesScreen(
 fun GeneralRulesScreen(
     uiState: GeneralRuleUiState,
     modifier: Modifier = Modifier,
+    showTopBar: Boolean = true,
+    title: String? = null,
+    belowTopBar: @Composable () -> Unit = {},
     highlightSelectedRule: Boolean = false,
     navigateToRuleDetail: (String) -> Unit = {},
     onBlockAllClick: () -> Unit = {},
@@ -109,28 +120,32 @@ fun GeneralRulesScreen(
 ) {
     var showBlockAllDialog by rememberSaveable { mutableStateOf(false) }
     var showEnableAllDialog by rememberSaveable { mutableStateOf(false) }
+    val topBarTitle = title ?: stringResource(id = generalruleString.feature_generalrule_api_sdk_trackers)
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        BlockerTopAppBarWithProgress(
-            title = stringResource(id = generalruleString.feature_generalrule_api_sdk_trackers),
-            progress = if (uiState is GeneralRuleUiState.Success) {
-                uiState.matchProgress
-            } else {
-                null
-            },
-            actions = {
-                if (uiState is GeneralRuleUiState.Success) {
-                    GeneralRulesMoreActionMenu(
-                        enabled = uiState.matchProgress == 1F && !isProcessing,
-                        onBlockAllClick = { showBlockAllDialog = true },
-                        onEnableAllClick = { showEnableAllDialog = true },
-                    )
-                }
-            },
-        )
+        if (showTopBar) {
+            BlockerTopAppBarWithProgress(
+                title = topBarTitle,
+                progress = if (uiState is GeneralRuleUiState.Success) {
+                    uiState.matchProgress
+                } else {
+                    null
+                },
+                actions = {
+                    if (uiState is GeneralRuleUiState.Success) {
+                        GeneralRulesMoreActionMenu(
+                            enabled = uiState.matchProgress == 1F && !isProcessing,
+                            onBlockAllClick = { showBlockAllDialog = true },
+                            onEnableAllClick = { showEnableAllDialog = true },
+                        )
+                    }
+                },
+            )
+            belowTopBar()
+        }
         val analyticsHelper = LocalAnalyticsHelper.current
         when (uiState) {
             GeneralRuleUiState.Loading -> {

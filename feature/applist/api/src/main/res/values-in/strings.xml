@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_applist_api_sort_menu">Menu sortir</string>
+    <string name="feature_applist_api_app_slimming">Perampingan aplikasi</string>
     <string name="feature_applist_api_settings">Pengaturan</string>
     <string name="feature_applist_api_support_and_feedback">Saran dan Tanggapan</string>
     <string name="feature_applist_api_no_applications_to_display">Tidak ada aplikasi tersedia</string>

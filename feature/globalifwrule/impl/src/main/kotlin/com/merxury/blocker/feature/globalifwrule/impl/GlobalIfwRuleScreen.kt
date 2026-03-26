@@ -75,6 +75,9 @@ import com.merxury.blocker.core.ui.screen.LoadingScreen
 @Composable
 fun GlobalIfwRuleRoute(
     modifier: Modifier = Modifier,
+    showListTopBar: Boolean = true,
+    listTitle: String? = null,
+    listBelowTopBar: @Composable () -> Unit = {},
     viewModel: GlobalIfwRuleViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -94,6 +97,9 @@ fun GlobalIfwRuleRoute(
         when (screen) {
             GlobalIfwRuleScreenState.LIST -> GlobalIfwRuleScreen(
                 uiState = uiState,
+                showTopBar = showListTopBar,
+                title = listTitle,
+                belowTopBar = listBelowTopBar,
                 onAddSimpleRuleClick = viewModel::startAddingSimpleRule,
                 onAddAdvancedRuleClick = viewModel::startAddingAdvancedRule,
                 onOpenRuleClick = viewModel::openRule,
@@ -159,20 +165,28 @@ fun GlobalIfwRuleScreen(
     onOpenRuleClick: (String, Int) -> Unit,
     onDeleteRule: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
+    showTopBar: Boolean = true,
+    title: String? = null,
+    belowTopBar: @Composable () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
-            BlockerTopAppBar(
-                title = stringResource(R.string.feature_globalifwrule_impl_title),
-                actions = {
-                    IconButton(onClick = onAddAdvancedRuleClick) {
-                        Icon(
-                            imageVector = BlockerIcons.Rule,
-                            contentDescription = stringResource(R.string.feature_globalifwrule_impl_add_advanced_rule),
-                        )
-                    }
-                },
-            )
+            if (showTopBar) {
+                Column {
+                    BlockerTopAppBar(
+                        title = title ?: stringResource(R.string.feature_globalifwrule_impl_title),
+                        actions = {
+                            IconButton(onClick = onAddAdvancedRuleClick) {
+                                Icon(
+                                    imageVector = BlockerIcons.Rule,
+                                    contentDescription = stringResource(R.string.feature_globalifwrule_impl_add_advanced_rule),
+                                )
+                            }
+                        },
+                    )
+                    belowTopBar()
+                }
+            }
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddSimpleRuleClick) {
