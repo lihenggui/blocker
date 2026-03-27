@@ -16,6 +16,7 @@
   -->
 <resources>
     <string name="feature_applist_api_sort_menu">排序菜單</string>
+    <string name="feature_applist_api_app_slimming">應用精簡</string>
     <string name="feature_applist_api_settings">設置</string>
     <string name="feature_applist_api_support_and_feedback">幫助與反饋</string>
     <string name="feature_applist_api_no_applications_to_display">沒有可顯示的應用程序</string>
