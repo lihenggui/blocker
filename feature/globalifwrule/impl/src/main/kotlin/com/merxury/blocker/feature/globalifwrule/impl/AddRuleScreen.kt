@@ -102,60 +102,20 @@ fun AdvancedGlobalIfwRuleScreen(
             )
         },
     ) { innerPadding ->
-        Column(
+        AdvancedGlobalIfwRuleContent(
+            draft = draft,
+            selectorRequiredMessage = selectorRequiredMessage,
+            onPackageNameChange = onPackageNameChange,
+            onComponentTypeChange = onComponentTypeChange,
+            onBlockChange = onBlockChange,
+            onLogChange = onLogChange,
+            onRootGroupChange = onRootGroupChange,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-            SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_target_section))
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = draft.storagePackageName,
-                onValueChange = onPackageNameChange,
-                label = { Text(stringResource(R.string.feature_globalifwrule_api_target_package)) },
-                supportingText = {
-                    Text(stringResource(R.string.feature_globalifwrule_api_target_package_summary))
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            ComponentTypeDropdown(
-                selected = draft.componentType,
-                onSelect = onComponentTypeChange,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            BehaviorSection(
-                block = draft.block,
-                log = draft.log,
-                onBlockChange = onBlockChange,
-                onLogChange = onLogChange,
-            )
-
-            if (draft.hasReadOnlyIntentFilters) {
-                Spacer(modifier = Modifier.height(12.dp))
-                IntentFilterBanner()
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider()
-            Text(
-                text = stringResource(R.string.feature_globalifwrule_api_conditions),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-            )
-            IfwRuleTreeEditor(
-                rootGroup = draft.rootGroup,
-                onChange = onRootGroupChange,
-                rootValidationMessage = selectorRequiredMessage,
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+        )
     }
 
     if (showUnsavedDialog) {
@@ -167,6 +127,97 @@ fun AdvancedGlobalIfwRuleScreen(
                 showUnsavedDialog = false
                 onBack()
             },
+        )
+    }
+}
+
+@Composable
+private fun AdvancedGlobalIfwRuleContent(
+    draft: AdvancedGlobalIfwRuleDraft,
+    selectorRequiredMessage: String?,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    onBlockChange: (Boolean) -> Unit,
+    onLogChange: (Boolean) -> Unit,
+    onRootGroupChange: (IfwEditorNode.Group) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Spacer(modifier = Modifier.height(8.dp))
+        AdvancedTargetSection(
+            storagePackageName = draft.storagePackageName,
+            componentType = draft.componentType,
+            onPackageNameChange = onPackageNameChange,
+            onComponentTypeChange = onComponentTypeChange,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        BehaviorSection(
+            block = draft.block,
+            log = draft.log,
+            onBlockChange = onBlockChange,
+            onLogChange = onLogChange,
+        )
+        if (draft.hasReadOnlyIntentFilters) {
+            Spacer(modifier = Modifier.height(12.dp))
+            IntentFilterBanner()
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        ConditionsSection(
+            rootGroup = draft.rootGroup,
+            rootValidationMessage = selectorRequiredMessage,
+            onRootGroupChange = onRootGroupChange,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun AdvancedTargetSection(
+    storagePackageName: String,
+    componentType: IfwComponentType,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_target_section))
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = storagePackageName,
+            onValueChange = onPackageNameChange,
+            label = { Text(stringResource(R.string.feature_globalifwrule_api_target_package)) },
+            supportingText = {
+                Text(stringResource(R.string.feature_globalifwrule_api_target_package_summary))
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        ComponentTypeDropdown(
+            selected = componentType,
+            onSelect = onComponentTypeChange,
+        )
+    }
+}
+
+@Composable
+private fun ConditionsSection(
+    rootGroup: IfwEditorNode.Group,
+    rootValidationMessage: String?,
+    onRootGroupChange: (IfwEditorNode.Group) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        HorizontalDivider()
+        Text(
+            text = stringResource(R.string.feature_globalifwrule_api_conditions),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        )
+        IfwRuleTreeEditor(
+            rootGroup = rootGroup,
+            onChange = onRootGroupChange,
+            rootValidationMessage = rootValidationMessage,
         )
     }
 }
