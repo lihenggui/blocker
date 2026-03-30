@@ -113,181 +113,32 @@ fun SimpleGlobalIfwRuleScreen(
             )
         },
     ) { innerPadding ->
-        Column(
+        SimpleGlobalIfwRuleContent(
+            draft = draft,
+            selectedPackageLabel = selectedPackageLabel,
+            componentQuery = componentQuery,
+            visibleComponents = visibleComponents,
+            isComponentLoading = isComponentLoading,
+            componentLoadError = componentLoadError,
+            showOptionalConditions = showOptionalConditions,
+            onPackageNameChange = onPackageNameChange,
+            onComponentTypeChange = onComponentTypeChange,
+            onTargetModeChange = onTargetModeChange,
+            onBlockChange = onBlockChange,
+            onLogChange = onLogChange,
+            onActionChange = onActionChange,
+            onCategoryChange = onCategoryChange,
+            onCallerPackageChange = onCallerPackageChange,
+            onComponentQueryChange = onComponentQueryChange,
+            onSelectSingleTarget = onSelectSingleTarget,
+            onToggleMultiTarget = onToggleMultiTarget,
+            onShowOptionalConditions = { showOptionalConditions = true },
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-            SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_target_section))
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = draft.selectedPackageName,
-                onValueChange = onPackageNameChange,
-                label = { Text(stringResource(R.string.feature_globalifwrule_api_target_app_package)) },
-                singleLine = true,
-                supportingText = {
-                    Text(
-                        text = if (selectedPackageLabel != null) {
-                            stringResource(
-                                R.string.feature_globalifwrule_api_target_app_package_label,
-                                selectedPackageLabel,
-                            )
-                        } else {
-                            stringResource(R.string.feature_globalifwrule_api_target_app_package_summary)
-                        },
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            ComponentTypeDropdown(
-                selected = draft.componentType,
-                onSelect = onComponentTypeChange,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text(
-                        text = stringResource(R.string.feature_globalifwrule_api_target_mode),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    TargetModeRow(
-                        label = stringResource(R.string.feature_globalifwrule_api_target_mode_single),
-                        selected = draft.targetMode == SimpleTargetMode.SINGLE,
-                        onClick = { onTargetModeChange(SimpleTargetMode.SINGLE) },
-                    )
-                    TargetModeRow(
-                        label = stringResource(R.string.feature_globalifwrule_api_target_mode_multiple),
-                        selected = draft.targetMode == SimpleTargetMode.MULTIPLE,
-                        onClick = { onTargetModeChange(SimpleTargetMode.MULTIPLE) },
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.feature_globalifwrule_api_target_component),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    if (draft.selectedPackageName.isBlank()) {
-                        Text(
-                            text = stringResource(R.string.feature_globalifwrule_api_target_component_hint),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    } else {
-                        OutlinedTextField(
-                            value = componentQuery,
-                            onValueChange = onComponentQueryChange,
-                            label = { Text(stringResource(R.string.feature_globalifwrule_api_target_component_search)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        ComponentSelectionContent(
-                            components = visibleComponents,
-                            targetMode = draft.targetMode,
-                            isLoading = isComponentLoading,
-                            error = componentLoadError,
-                            onSelectSingleTarget = onSelectSingleTarget,
-                            onToggleMultiTarget = onToggleMultiTarget,
-                        )
-                        if (draft.targets.isEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = stringResource(R.string.feature_globalifwrule_api_target_required),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_behavior_section))
-            Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    SwitchRow(
-                        label = stringResource(R.string.feature_globalifwrule_api_block),
-                        checked = draft.block,
-                        onCheckedChange = onBlockChange,
-                    )
-                    SwitchRow(
-                        label = stringResource(R.string.feature_globalifwrule_api_log),
-                        checked = draft.log,
-                        onCheckedChange = onLogChange,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_optional_conditions))
-            Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    if (!showOptionalConditions) {
-                        BlockerOutlinedButton(
-                            text = { Text(stringResource(R.string.feature_globalifwrule_api_optional_conditions_show)) },
-                            onClick = { showOptionalConditions = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    } else {
-                        OutlinedTextField(
-                            value = draft.action,
-                            onValueChange = onActionChange,
-                            label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_action)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value = draft.category,
-                            onValueChange = onCategoryChange,
-                            label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_category)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value = draft.callerPackage,
-                            onValueChange = onCallerPackageChange,
-                            label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_caller_package)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+        )
     }
 
     if (showUnsavedDialog) {
@@ -314,6 +165,311 @@ private fun SectionLabel(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier,
     )
+}
+
+@Composable
+private fun SimpleGlobalIfwRuleContent(
+    draft: SimpleGlobalIfwRuleDraft,
+    selectedPackageLabel: String?,
+    componentQuery: String,
+    visibleComponents: List<SimpleRuleComponentUiState>,
+    isComponentLoading: Boolean,
+    componentLoadError: String?,
+    showOptionalConditions: Boolean,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    onTargetModeChange: (SimpleTargetMode) -> Unit,
+    onBlockChange: (Boolean) -> Unit,
+    onLogChange: (Boolean) -> Unit,
+    onActionChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onCallerPackageChange: (String) -> Unit,
+    onComponentQueryChange: (String) -> Unit,
+    onSelectSingleTarget: (String) -> Unit,
+    onToggleMultiTarget: (String) -> Unit,
+    onShowOptionalConditions: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Spacer(modifier = Modifier.height(8.dp))
+        TargetSection(
+            draft = draft,
+            selectedPackageLabel = selectedPackageLabel,
+            componentQuery = componentQuery,
+            visibleComponents = visibleComponents,
+            isComponentLoading = isComponentLoading,
+            componentLoadError = componentLoadError,
+            onPackageNameChange = onPackageNameChange,
+            onComponentTypeChange = onComponentTypeChange,
+            onTargetModeChange = onTargetModeChange,
+            onComponentQueryChange = onComponentQueryChange,
+            onSelectSingleTarget = onSelectSingleTarget,
+            onToggleMultiTarget = onToggleMultiTarget,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        BehaviorSection(
+            block = draft.block,
+            log = draft.log,
+            onBlockChange = onBlockChange,
+            onLogChange = onLogChange,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        OptionalConditionsSection(
+            draft = draft,
+            showOptionalConditions = showOptionalConditions,
+            onActionChange = onActionChange,
+            onCategoryChange = onCategoryChange,
+            onCallerPackageChange = onCallerPackageChange,
+            onShowOptionalConditions = onShowOptionalConditions,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun TargetSection(
+    draft: SimpleGlobalIfwRuleDraft,
+    selectedPackageLabel: String?,
+    componentQuery: String,
+    visibleComponents: List<SimpleRuleComponentUiState>,
+    isComponentLoading: Boolean,
+    componentLoadError: String?,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    onTargetModeChange: (SimpleTargetMode) -> Unit,
+    onComponentQueryChange: (String) -> Unit,
+    onSelectSingleTarget: (String) -> Unit,
+    onToggleMultiTarget: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_target_section))
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = draft.selectedPackageName,
+            onValueChange = onPackageNameChange,
+            label = { Text(stringResource(R.string.feature_globalifwrule_api_target_app_package)) },
+            singleLine = true,
+            supportingText = {
+                Text(
+                    text = if (selectedPackageLabel != null) {
+                        stringResource(
+                            R.string.feature_globalifwrule_api_target_app_package_label,
+                            selectedPackageLabel,
+                        )
+                    } else {
+                        stringResource(R.string.feature_globalifwrule_api_target_app_package_summary)
+                    },
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        ComponentTypeDropdown(
+            selected = draft.componentType,
+            onSelect = onComponentTypeChange,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        TargetModeSection(
+            selectedMode = draft.targetMode,
+            onTargetModeChange = onTargetModeChange,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        TargetComponentSection(
+            selectedPackageName = draft.selectedPackageName,
+            targetMode = draft.targetMode,
+            targets = draft.targets,
+            componentQuery = componentQuery,
+            visibleComponents = visibleComponents,
+            isComponentLoading = isComponentLoading,
+            componentLoadError = componentLoadError,
+            onComponentQueryChange = onComponentQueryChange,
+            onSelectSingleTarget = onSelectSingleTarget,
+            onToggleMultiTarget = onToggleMultiTarget,
+        )
+    }
+}
+
+@Composable
+private fun TargetModeSection(
+    selectedMode: SimpleTargetMode,
+    onTargetModeChange: (SimpleTargetMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier,
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text(
+                text = stringResource(R.string.feature_globalifwrule_api_target_mode),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TargetModeRow(
+                label = stringResource(R.string.feature_globalifwrule_api_target_mode_single),
+                selected = selectedMode == SimpleTargetMode.SINGLE,
+                onClick = { onTargetModeChange(SimpleTargetMode.SINGLE) },
+            )
+            TargetModeRow(
+                label = stringResource(R.string.feature_globalifwrule_api_target_mode_multiple),
+                selected = selectedMode == SimpleTargetMode.MULTIPLE,
+                onClick = { onTargetModeChange(SimpleTargetMode.MULTIPLE) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun TargetComponentSection(
+    selectedPackageName: String,
+    targetMode: SimpleTargetMode,
+    targets: List<String>,
+    componentQuery: String,
+    visibleComponents: List<SimpleRuleComponentUiState>,
+    isComponentLoading: Boolean,
+    componentLoadError: String?,
+    onComponentQueryChange: (String) -> Unit,
+    onSelectSingleTarget: (String) -> Unit,
+    onToggleMultiTarget: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = stringResource(R.string.feature_globalifwrule_api_target_component),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (selectedPackageName.isBlank()) {
+                    Text(
+                        text = stringResource(R.string.feature_globalifwrule_api_target_component_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    OutlinedTextField(
+                        value = componentQuery,
+                        onValueChange = onComponentQueryChange,
+                        label = { Text(stringResource(R.string.feature_globalifwrule_api_target_component_search)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ComponentSelectionContent(
+                        components = visibleComponents,
+                        targetMode = targetMode,
+                        isLoading = isComponentLoading,
+                        error = componentLoadError,
+                        onSelectSingleTarget = onSelectSingleTarget,
+                        onToggleMultiTarget = onToggleMultiTarget,
+                    )
+                    if (targets.isEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.feature_globalifwrule_api_target_required),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BehaviorSection(
+    block: Boolean,
+    log: Boolean,
+    onBlockChange: (Boolean) -> Unit,
+    onLogChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_behavior_section))
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                SwitchRow(
+                    label = stringResource(R.string.feature_globalifwrule_api_block),
+                    checked = block,
+                    onCheckedChange = onBlockChange,
+                )
+                SwitchRow(
+                    label = stringResource(R.string.feature_globalifwrule_api_log),
+                    checked = log,
+                    onCheckedChange = onLogChange,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OptionalConditionsSection(
+    draft: SimpleGlobalIfwRuleDraft,
+    showOptionalConditions: Boolean,
+    onActionChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onCallerPackageChange: (String) -> Unit,
+    onShowOptionalConditions: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_optional_conditions))
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (!showOptionalConditions) {
+                    BlockerOutlinedButton(
+                        text = { Text(stringResource(R.string.feature_globalifwrule_api_optional_conditions_show)) },
+                        onClick = onShowOptionalConditions,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    OutlinedTextField(
+                        value = draft.action,
+                        onValueChange = onActionChange,
+                        label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_action)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = draft.category,
+                        onValueChange = onCategoryChange,
+                        label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_category)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = draft.callerPackage,
+                        onValueChange = onCallerPackageChange,
+                        label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_caller_package)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
