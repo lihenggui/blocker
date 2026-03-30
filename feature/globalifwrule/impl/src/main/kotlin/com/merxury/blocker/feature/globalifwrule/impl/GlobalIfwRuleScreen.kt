@@ -80,8 +80,11 @@ import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
 import com.merxury.blocker.core.model.data.PackageRuleGroup
 import com.merxury.blocker.core.model.data.RuleItemUiState
 import com.merxury.blocker.core.ui.applist.AppIcon
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.AdvancedRuleDetailPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRuleUiStatePreviewParameterProvider
+import com.merxury.blocker.core.ui.screen.EmptyScreen
+import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 
 @Composable
@@ -198,14 +201,18 @@ fun GlobalIfwRuleScreen(
     ) { padding ->
         when (uiState) {
             is GlobalIfwRuleUiState.Loading -> LoadingScreen(modifier = Modifier.padding(padding))
-            is GlobalIfwRuleUiState.Error -> ErrorContent(
-                message = uiState.message,
+            is GlobalIfwRuleUiState.Error -> ErrorScreen(
+                error = UiMessage(title = uiState.message),
                 modifier = Modifier.padding(padding),
             )
 
             is GlobalIfwRuleUiState.Success -> {
                 if (uiState.groups.isEmpty()) {
-                    EmptyContent(modifier = Modifier.padding(padding))
+                    EmptyScreen(
+                        textRes = R.string.feature_globalifwrule_impl_empty,
+                        contentDescriptionRes = R.string.feature_globalifwrule_impl_empty_desc,
+                        modifier = Modifier.padding(padding),
+                    )
                 } else {
                     RuleListContent(
                         groups = uiState.groups,
@@ -331,47 +338,6 @@ private fun AdvancedRuleDetailActions(
             text = { Text(stringResource(R.string.feature_globalifwrule_impl_delete_rule)) },
             onClick = onDelete,
             modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-@Composable
-private fun EmptyContent(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_globalifwrule_impl_empty),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.outline,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.feature_globalifwrule_impl_empty_desc),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.outline,
-        )
-    }
-}
-
-@Composable
-private fun ErrorContent(
-    message: String,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error,
         )
     }
 }
