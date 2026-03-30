@@ -47,10 +47,11 @@ import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
 import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.blocker.feature.globalifwrule.api.R
+import com.merxury.blocker.feature.globalifwrule.impl.components.BehaviorSection
 import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentSelectionContent
 import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentTypeDropdown
 import com.merxury.blocker.feature.globalifwrule.impl.components.RuleEditorTopBar
-import com.merxury.blocker.feature.globalifwrule.impl.components.SwitchRow
+import com.merxury.blocker.feature.globalifwrule.impl.components.SectionLabel
 import com.merxury.blocker.feature.globalifwrule.impl.components.TargetModeRow
 import com.merxury.core.ifw.model.IfwComponentType
 
@@ -152,19 +153,6 @@ fun SimpleGlobalIfwRuleScreen(
             },
         )
     }
-}
-
-@Composable
-private fun SectionLabel(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier,
-    )
 }
 
 @Composable
@@ -380,38 +368,6 @@ private fun TargetComponentSection(
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BehaviorSection(
-    block: Boolean,
-    log: Boolean,
-    onBlockChange: (Boolean) -> Unit,
-    onLogChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_behavior_section))
-        Spacer(modifier = Modifier.height(8.dp))
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            shape = MaterialTheme.shapes.medium,
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                SwitchRow(
-                    label = stringResource(R.string.feature_globalifwrule_api_block),
-                    checked = block,
-                    onCheckedChange = onBlockChange,
-                )
-                SwitchRow(
-                    label = stringResource(R.string.feature_globalifwrule_api_log),
-                    checked = log,
-                    onCheckedChange = onLogChange,
-                )
             }
         }
     }

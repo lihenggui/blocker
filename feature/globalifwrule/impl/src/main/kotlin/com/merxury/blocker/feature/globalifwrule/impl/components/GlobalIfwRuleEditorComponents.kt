@@ -17,10 +17,12 @@
 package com.merxury.blocker.feature.globalifwrule.impl.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
@@ -130,6 +132,51 @@ internal fun ComponentTypeDropdown(
                         onSelect(type)
                         expanded = false
                     },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun SectionLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier,
+    )
+}
+
+@Composable
+internal fun BehaviorSection(
+    block: Boolean,
+    log: Boolean,
+    onBlockChange: (Boolean) -> Unit,
+    onLogChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_behavior_section))
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                SwitchRow(
+                    label = stringResource(R.string.feature_globalifwrule_api_block),
+                    checked = block,
+                    onCheckedChange = onBlockChange,
+                )
+                SwitchRow(
+                    label = stringResource(R.string.feature_globalifwrule_api_log),
+                    checked = log,
+                    onCheckedChange = onLogChange,
                 )
             }
         }
