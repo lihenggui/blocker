@@ -52,6 +52,12 @@ import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.blocker.core.ui.previewparameter.SimpleGlobalIfwRuleScreenPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.SimpleGlobalIfwRuleScreenPreviewState
 import com.merxury.blocker.feature.globalifwrule.api.R
+import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentSelectionContent
+import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentTypeDropdown
+import com.merxury.blocker.feature.globalifwrule.impl.components.RuleEditorTopBar
+import com.merxury.blocker.feature.globalifwrule.impl.components.SectionTitle
+import com.merxury.blocker.feature.globalifwrule.impl.components.SwitchRow
+import com.merxury.blocker.feature.globalifwrule.impl.components.TargetModeRow
 import com.merxury.core.ifw.model.IfwComponentType
 
 @Composable

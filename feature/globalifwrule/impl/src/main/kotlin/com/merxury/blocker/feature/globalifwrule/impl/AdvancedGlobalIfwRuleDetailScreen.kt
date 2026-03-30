@@ -52,6 +52,11 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AdvancedRuleDetailUiState
 import com.merxury.blocker.core.ui.previewparameter.AdvancedRuleDetailPreviewParameterProvider
 import com.merxury.blocker.feature.globalifwrule.api.R
+import com.merxury.blocker.feature.globalifwrule.impl.components.DeleteConfirmationDialog
+import com.merxury.blocker.feature.globalifwrule.impl.components.RuleMetaBadge
+import com.merxury.blocker.feature.globalifwrule.impl.components.RulePrimaryMetadataText
+import com.merxury.blocker.feature.globalifwrule.impl.components.RuleSecondaryMetadataText
+import com.merxury.blocker.feature.globalifwrule.impl.components.labelRes
 
 @Composable
 internal fun AdvancedGlobalIfwRuleDetailScreen(

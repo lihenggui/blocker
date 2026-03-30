@@ -32,6 +32,12 @@ import com.merxury.blocker.core.model.data.RuleItemUiState
 import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
 import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
 import com.merxury.blocker.core.model.data.SimpleTargetMode
+import com.merxury.blocker.feature.globalifwrule.impl.components.flattenComponentName
+import com.merxury.blocker.feature.globalifwrule.impl.components.toComponentType
+import com.merxury.blocker.feature.globalifwrule.impl.components.toDetailUiState
+import com.merxury.blocker.feature.globalifwrule.impl.components.toIfwRule
+import com.merxury.blocker.feature.globalifwrule.impl.components.toIfwRuleOrNull
+import com.merxury.blocker.feature.globalifwrule.impl.components.toRuleItemUiState
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.model.IfwComponentType
@@ -354,7 +360,8 @@ class GlobalIfwRuleViewModel @Inject constructor(
                     val availableComponents = components
                         .sortedBy { component -> component.simpleName.lowercase() }
                         .map { component ->
-                            val flattenedName = flattenComponentName(component.packageName, component.name)
+                            val flattenedName =
+                                flattenComponentName(component.packageName, component.name)
                             SimpleRuleComponentUiState(
                                 flattenedName = flattenedName,
                                 componentName = component.name,

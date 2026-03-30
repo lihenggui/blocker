@@ -84,6 +84,11 @@ import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.globalifwrule.api.R
+import com.merxury.blocker.feature.globalifwrule.impl.components.DeleteConfirmationDialog
+import com.merxury.blocker.feature.globalifwrule.impl.components.RuleMetaBadge
+import com.merxury.blocker.feature.globalifwrule.impl.components.RulePrimaryMetadataText
+import com.merxury.blocker.feature.globalifwrule.impl.components.RuleSecondaryMetadataText
+import com.merxury.blocker.feature.globalifwrule.impl.components.labelRes
 
 @Composable
 fun GlobalIfwRuleRoute(

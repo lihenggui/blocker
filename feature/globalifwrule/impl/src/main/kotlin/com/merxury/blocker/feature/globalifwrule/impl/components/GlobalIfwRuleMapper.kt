@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalifwrule.impl
+package com.merxury.blocker.feature.globalifwrule.impl.components
 
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
