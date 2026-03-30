@@ -100,18 +100,18 @@ private fun ComponentSelectionToggle(
     }
 }
 
-private fun componentSelectionModifier(
+private fun Modifier.componentSelectionModifier(
     targetMode: SimpleTargetMode,
     selected: Boolean,
     onClick: () -> Unit,
 ): Modifier = when (targetMode) {
-    SimpleTargetMode.SINGLE -> Modifier.selectable(
+    SimpleTargetMode.SINGLE -> selectable(
         selected = selected,
         onClick = onClick,
         role = Role.RadioButton,
     )
 
-    SimpleTargetMode.MULTIPLE -> Modifier.toggleable(
+    SimpleTargetMode.MULTIPLE -> toggleable(
         value = selected,
         onValueChange = { onClick() },
         role = Role.Checkbox,
@@ -194,12 +194,10 @@ internal fun ComponentSelectionRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(
-                    componentSelectionModifier(
-                        targetMode = targetMode,
-                        selected = component.selected,
-                        onClick = onSelectionChange,
-                    ),
+                .componentSelectionModifier(
+                    targetMode = targetMode,
+                    selected = component.selected,
+                    onClick = onSelectionChange,
                 )
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
