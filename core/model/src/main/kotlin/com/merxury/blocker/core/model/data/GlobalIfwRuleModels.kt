@@ -40,10 +40,17 @@ data class RuleItemUiState(
     val block: Boolean,
     val log: Boolean,
     val filtersSummary: String,
+    val presentation: RuleItemPresentationUiState,
     val editMode: GlobalIfwRuleEditMode,
     val simpleDraft: SimpleGlobalIfwRuleDraft?,
     val advancedDraft: AdvancedGlobalIfwRuleDraft,
     val ruleIndex: Int,
+)
+
+data class RuleItemPresentationUiState(
+    val title: String?,
+    val targetPath: String?,
+    val supportingText: String?,
 )
 
 data class GlobalIfwRuleEditorUiState(

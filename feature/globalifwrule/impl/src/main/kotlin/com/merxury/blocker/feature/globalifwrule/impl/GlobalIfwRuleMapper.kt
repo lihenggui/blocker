@@ -20,9 +20,11 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
 import com.merxury.blocker.core.model.data.AdvancedRuleDetailUiState
 import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
+import com.merxury.blocker.core.model.data.RuleItemPresentationUiState
 import com.merxury.blocker.core.model.data.RuleItemUiState
 import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
 import com.merxury.blocker.core.model.data.SimpleTargetMode
+import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.editor.toEditorRootGroup
@@ -144,11 +146,17 @@ internal fun IfwRule.toRuleItemUiState(
         storagePackageName = storagePackageName,
         editingRuleIndex = index,
     )
+    val filtersSummary = simpleDraft?.toSummary() ?: toSummary(storagePackageName)
     return RuleItemUiState(
         componentType = componentType,
         block = block,
         log = log,
-        filtersSummary = simpleDraft?.toSummary() ?: toSummary(storagePackageName),
+        filtersSummary = filtersSummary,
+        presentation = buildRuleItemPresentation(
+            simpleDraft = simpleDraft,
+            advancedDraft = advancedDraft,
+            filtersSummary = filtersSummary,
+        ),
         editMode = if (simpleDraft != null) {
             GlobalIfwRuleEditMode.SIMPLE
         } else {
@@ -213,6 +221,48 @@ internal fun flattenComponentName(
     componentName: String,
 ): String = "$packageName/$componentName"
 
+private fun buildRuleItemPresentation(
+    simpleDraft: SimpleGlobalIfwRuleDraft?,
+    advancedDraft: AdvancedGlobalIfwRuleDraft,
+    filtersSummary: String,
+): RuleItemPresentationUiState {
+    val summaryLines = filtersSummary
+        .lineSequence()
+        .map { line -> line.trim() }
+        .filter { line -> line.isNotEmpty() }
+        .toList()
+
+    val packageName = simpleDraft?.selectedPackageName ?: advancedDraft.storagePackageName
+    val rawTargetPath = when {
+        simpleDraft?.targets?.size == 1 -> simpleDraft.targets.first()
+        else -> advancedDraft.rootGroup.findFirstTargetPath()
+    }
+
+    val title = when {
+        simpleDraft?.targets?.size == 1 -> simpleDraft.targets.first().toDisplayName(packageName)
+        (simpleDraft?.targets?.size ?: 0) > 1 -> summaryLines.firstOrNull()
+        rawTargetPath != null -> rawTargetPath.toDisplayName(packageName)
+        else -> summaryLines.firstOrNull()?.takeUnless { line -> line.startsWith("intent-filter:") }
+    }
+
+    val targetPath = rawTargetPath?.takeUnless { target -> target == title }
+
+    val supportingText = summaryLines
+        .filterNot { line ->
+            line == title ||
+                line == rawTargetPath ||
+                (title != null && line.isRuleTargetSummary() && line.toDisplayName(packageName) == title)
+        }
+        .joinToString(separator = " • ")
+        .ifBlank { null }
+
+    return RuleItemPresentationUiState(
+        title = title,
+        targetPath = targetPath,
+        supportingText = supportingText,
+    )
+}
+
 private fun IfwFilter.toDisplaySummary(storagePackageName: String): String = when (this) {
     is IfwFilter.ComponentFilter -> name.toDisplayName(storagePackageName)
     is IfwFilter.And -> filters.joinToString(" AND ") { child -> child.toDisplaySummary(storagePackageName) }
@@ -220,6 +270,29 @@ private fun IfwFilter.toDisplaySummary(storagePackageName: String): String = whe
     is IfwFilter.Not -> "NOT (${filter.toDisplaySummary(storagePackageName)})"
     else -> toSummary()
 }
+
+private fun IfwEditorNode.Group.findFirstTargetPath(): String? = children.firstNotNullOfOrNull { child ->
+    child.findFirstTargetPath()
+}
+
+private fun IfwEditorNode.findFirstTargetPath(): String? = when (this) {
+    is IfwEditorNode.Condition -> when (kind) {
+        IfwEditorConditionKind.COMPONENT,
+        IfwEditorConditionKind.COMPONENT_FILTER,
+        IfwEditorConditionKind.COMPONENT_NAME,
+        -> value.takeIf { target -> target.isNotBlank() }
+
+        else -> null
+    }
+
+    is IfwEditorNode.Group -> findFirstTargetPath()
+}
+
+private fun String.isRuleTargetSummary(): Boolean = !startsWith("intent-filter:") &&
+    !contains(" = ") &&
+    !contains(" AND ") &&
+    !contains(" OR ") &&
+    !startsWith("NOT (")
 
 private fun String.toDisplayName(packageName: String): String {
     val componentName = substringAfter("/")

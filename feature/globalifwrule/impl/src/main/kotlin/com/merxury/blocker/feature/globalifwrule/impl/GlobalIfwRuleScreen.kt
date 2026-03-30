@@ -22,12 +22,15 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -43,13 +46,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +60,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -349,27 +353,56 @@ private fun RuleListContent(
     onDeleteRule: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(modifier = modifier.fillMaxSize()) {
-        groups.forEach { group ->
-            item(key = "header_${group.packageName}") {
-                PackageHeader(group = group)
-            }
-            items(
-                items = group.rules,
-                key = { "${group.packageName}_${it.ruleIndex}" },
-            ) { rule ->
-                RuleItem(
-                    rule = rule,
-                    onClick = { onOpenRuleClick(group.packageName, rule.ruleIndex) },
-                    onDelete = { onDeleteRule(group.packageName, rule.ruleIndex) },
-                )
-            }
-            item(key = "divider_${group.packageName}") {
-                HorizontalDivider()
-            }
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        items(
+            items = groups,
+            key = { group -> group.packageName },
+        ) { group ->
+            PackageRuleSection(
+                group = group,
+                onOpenRuleClick = onOpenRuleClick,
+                onDeleteRule = onDeleteRule,
+            )
         }
         item {
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+        }
+    }
+}
+
+@Composable
+private fun PackageRuleSection(
+    group: PackageRuleGroup,
+    onOpenRuleClick: (String, Int) -> Unit,
+    onDeleteRule: (String, Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            PackageHeader(group = group)
+            Spacer(modifier = Modifier.height(16.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                group.rules.forEach { rule ->
+                    RuleItem(
+                        rule = rule,
+                        onClick = { onOpenRuleClick(group.packageName, rule.ruleIndex) },
+                        onDelete = { onDeleteRule(group.packageName, rule.ruleIndex) },
+                    )
+                }
+            }
         }
     }
 }
@@ -380,14 +413,12 @@ private fun PackageHeader(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AppIcon(
-            info = group.packageInfo,
-            modifier = Modifier.size(40.dp),
+        PackageAvatar(
+            packageInfo = group.packageInfo,
+            fallbackLabel = group.appLabel ?: group.packageName,
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -397,13 +428,60 @@ private fun PackageHeader(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (group.appLabel != null) {
+            Text(
+                text = group.packageName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            shape = MaterialTheme.shapes.large,
+        ) {
+            Text(
+                text = group.rules.size.toString(),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PackageAvatar(
+    packageInfo: android.content.pm.PackageInfo?,
+    fallbackLabel: String,
+    modifier: Modifier = Modifier,
+) {
+    val initial = fallbackLabel
+        .firstOrNull { character -> character.isLetterOrDigit() }
+        ?.uppercase()
+        ?: "#"
+
+    Surface(
+        modifier = modifier.size(48.dp),
+        color = if (packageInfo == null) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+        },
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 2.dp,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (packageInfo != null) {
+                AppIcon(
+                    info = packageInfo,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
                 Text(
-                    text = group.packageName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    text = initial,
+                    style = MaterialTheme.typography.titleMedium,
                 )
             }
         }
@@ -421,8 +499,10 @@ private fun RuleItem(
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
+    val cardPresentation = rule.presentation
+    val ruleTitle = cardPresentation.title ?: stringResource(rule.componentType.labelRes)
 
-    Column(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
@@ -431,78 +511,126 @@ private fun RuleItem(
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     showMenu = true
                 },
-            )
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            ),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+        shape = MaterialTheme.shapes.large,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            AssistChip(
-                onClick = { },
-                label = {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 14.dp, top = 14.dp, end = 8.dp, bottom = 14.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(rule.componentType.labelRes),
-                        style = MaterialTheme.typography.labelSmall,
+                        text = ruleTitle,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                },
-            )
-            if (rule.block) {
-                AssistChip(
-                    onClick = { },
-                    label = {
+                    cardPresentation.targetPath?.let { targetPath ->
                         Text(
-                            text = stringResource(R.string.feature_globalifwrule_impl_block),
-                            style = MaterialTheme.typography.labelSmall,
+                            text = targetPath,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(top = 2.dp),
                         )
-                    },
-                )
+                    }
+                }
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(
+                        imageVector = BlockerIcons.MoreVert,
+                        contentDescription = null,
+                    )
+                }
             }
-            if (rule.log) {
-                AssistChip(
-                    onClick = { },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.feature_globalifwrule_impl_log),
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    },
-                )
-            }
-            if (rule.editMode == GlobalIfwRuleEditMode.ADVANCED) {
-                AssistChip(
-                    onClick = { },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.feature_globalifwrule_impl_advanced_rule),
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    },
-                )
-            }
-        }
-        if (rule.filtersSummary.isNotBlank()) {
-            Text(
-                text = rule.filtersSummary,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
 
-        BlockerDropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false },
-            items = listOf(R.string.feature_globalifwrule_impl_delete_rule),
-            onItemClick = {
-                showMenu = false
-                showDeleteDialog = true
-            },
-            itemText = { item -> Text(stringResource(item)) },
-        )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 12.dp),
+            ) {
+                RuleMetaBadge(
+                    text = stringResource(rule.componentType.labelRes),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                if (rule.block) {
+                    RuleMetaBadge(
+                        text = stringResource(R.string.feature_globalifwrule_impl_block),
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                }
+                if (rule.log) {
+                    RuleMetaBadge(
+                        text = stringResource(R.string.feature_globalifwrule_impl_log),
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    )
+                }
+                if (rule.editMode == GlobalIfwRuleEditMode.ADVANCED) {
+                    RuleMetaBadge(
+                        text = stringResource(R.string.feature_globalifwrule_impl_advanced_rule),
+                    )
+                }
+            }
+
+            cardPresentation.supportingText?.let { supportingText ->
+                Text(
+                    text = supportingText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 12.dp, end = 6.dp),
+                )
+            }
+
+            BlockerDropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                items = listOf(R.string.feature_globalifwrule_impl_delete_rule),
+                onItemClick = {
+                    showMenu = false
+                    showDeleteDialog = true
+                },
+                itemText = { item -> Text(stringResource(item)) },
+            )
+        }
     }
 
     if (showDeleteDialog) {
         DeleteConfirmationDialog(
             onConfirm = onDelete,
             onDismiss = { showDeleteDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun RuleMetaBadge(
+    text: String,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+) {
+    Surface(
+        modifier = modifier,
+        color = containerColor,
+        contentColor = contentColor,
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
         )
     }
 }

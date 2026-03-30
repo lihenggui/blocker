@@ -22,6 +22,7 @@ import com.merxury.blocker.core.model.data.AdvancedRuleDetailUiState
 import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
 import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
 import com.merxury.blocker.core.model.data.PackageRuleGroup
+import com.merxury.blocker.core.model.data.RuleItemPresentationUiState
 import com.merxury.blocker.core.model.data.RuleItemUiState
 import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
 import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
@@ -228,7 +229,7 @@ object GlobalIfwRulePreviewParameterData {
         componentType = IfwComponentType.ACTIVITY,
         block = true,
         log = false,
-        filtersSummary = "component-filter=com.spotify.music/.share.ShareActivity | action=android.intent.action.SEND",
+        filtersSummary = "ShareActivity\naction = android.intent.action.SEND",
         ruleIndex = 1,
         draft = detailDraft,
     )
@@ -243,7 +244,12 @@ object GlobalIfwRulePreviewParameterData {
                     componentType = IfwComponentType.BROADCAST,
                     block = true,
                     log = true,
-                    filtersSummary = "component-filter=$PREVIEW_BOOT_RECEIVER_NAME | action=BOOT_COMPLETED",
+                    filtersSummary = "BootReceiver\naction = android.intent.action.BOOT_COMPLETED",
+                    presentation = RuleItemPresentationUiState(
+                        title = "BootReceiver",
+                        targetPath = PREVIEW_BOOT_RECEIVER_NAME,
+                        supportingText = "action = android.intent.action.BOOT_COMPLETED",
+                    ),
                     editMode = GlobalIfwRuleEditMode.SIMPLE,
                     simpleDraft = listSimpleDraft,
                     advancedDraft = listAdvancedDraft,
@@ -254,6 +260,11 @@ object GlobalIfwRulePreviewParameterData {
                     block = true,
                     log = false,
                     filtersSummary = advancedRuleDetail.filtersSummary,
+                    presentation = RuleItemPresentationUiState(
+                        title = "ShareActivity",
+                        targetPath = "com.spotify.music/.share.ShareActivity",
+                        supportingText = "action = android.intent.action.SEND",
+                    ),
                     editMode = GlobalIfwRuleEditMode.ADVANCED,
                     simpleDraft = null,
                     advancedDraft = detailDraft,
@@ -270,7 +281,12 @@ object GlobalIfwRulePreviewParameterData {
                     componentType = IfwComponentType.SERVICE,
                     block = false,
                     log = true,
-                    filtersSummary = "component-filter=org.example.toolbox/.sync.UploadService",
+                    filtersSummary = "UploadService",
+                    presentation = RuleItemPresentationUiState(
+                        title = "UploadService",
+                        targetPath = "org.example.toolbox/.sync.UploadService",
+                        supportingText = null,
+                    ),
                     editMode = GlobalIfwRuleEditMode.SIMPLE,
                     simpleDraft = SimpleGlobalIfwRuleDraft(
                         selectedPackageName = "org.example.toolbox",
