@@ -18,6 +18,9 @@ package com.merxury.blocker.feature.ifwrule.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.ui.ifwruleeditor.BlockMode
+import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorScreenUiState
+import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.mergeComponentRule
 import com.merxury.blocker.feature.ifwrule.impl.model.toEditorState
 import com.merxury.blocker.feature.ifwrule.impl.model.toIfwFilters
@@ -156,29 +159,4 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
             )
         }
     }
-}
-
-sealed interface RuleEditorScreenUiState {
-    data object Loading : RuleEditorScreenUiState
-    data class Success(
-        val editor: RuleEditorUiState,
-        val hasUnsavedChanges: Boolean = false,
-    ) : RuleEditorScreenUiState
-    data class Error(val message: String) : RuleEditorScreenUiState
-}
-
-data class RuleEditorUiState(
-    val packageName: String,
-    val componentName: String,
-    val componentType: IfwComponentType,
-    val blockMode: BlockMode = BlockMode.ALL,
-    val log: Boolean = true,
-    val blockEnabled: Boolean = true,
-    val rootGroup: IfwEditorNode.Group = IfwEditorNode.Group(),
-    val isAdvancedRule: Boolean = false,
-)
-
-enum class BlockMode {
-    ALL,
-    CONDITIONAL,
 }

@@ -45,15 +45,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerButton
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.ifwruleeditor.BlockMode
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
+import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorScreenUiState
+import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorUiState
+import com.merxury.blocker.core.ui.previewparameter.IfwRuleEditorScreenPreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.ifwrule.api.R
@@ -84,38 +91,68 @@ fun IfwRuleEditorScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    IfwRuleEditorScreen(
+        uiState = uiState,
+        showUnsavedDialog = showUnsavedDialog,
+        onBackClick = handleBack,
+        onSaveClick = viewModel::save,
+        onUpdateBlockMode = viewModel::updateBlockMode,
+        onUpdateLog = viewModel::updateLog,
+        onChangeBlockEnable = viewModel::updateBlockEnabled,
+        onUpdateRootGroup = viewModel::updateRootGroup,
+        onDelete = viewModel::deleteRule,
+        onDiscardUnsavedChanges = {
+            showUnsavedDialog = false
+            onBackClick()
+        },
+        onDismissUnsavedDialog = { showUnsavedDialog = false },
+    )
+}
+
+@Composable
+private fun IfwRuleEditorScreen(
+    uiState: RuleEditorScreenUiState,
+    showUnsavedDialog: Boolean,
+    onBackClick: () -> Unit,
+    onSaveClick: () -> Unit,
+    onUpdateBlockMode: (BlockMode) -> Unit,
+    onUpdateLog: (Boolean) -> Unit,
+    onChangeBlockEnable: (Boolean) -> Unit,
+    onUpdateRootGroup: (IfwEditorNode.Group) -> Unit,
+    onDelete: () -> Unit,
+    onDiscardUnsavedChanges: () -> Unit,
+    onDismissUnsavedDialog: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxSize()) {
         BlockerTopAppBar(
             title = stringResource(R.string.feature_ifwrule_api_title),
             hasNavigationIcon = true,
-            onNavigationClick = handleBack,
+            onNavigationClick = onBackClick,
             actions = {
                 if (uiState is RuleEditorScreenUiState.Success) {
-                    SaveActionButton(onClick = viewModel::save)
+                    SaveActionButton(onClick = onSaveClick)
                 }
             },
         )
-        when (val state = uiState) {
+        when (uiState) {
             RuleEditorScreenUiState.Loading -> LoadingScreen()
-            is RuleEditorScreenUiState.Error -> ErrorScreen(error = UiMessage(state.message))
+            is RuleEditorScreenUiState.Error -> ErrorScreen(error = UiMessage(uiState.message))
             is RuleEditorScreenUiState.Success -> EditorContent(
-                editor = state.editor,
-                onUpdateBlockMode = viewModel::updateBlockMode,
-                onUpdateLog = viewModel::updateLog,
-                onChangeBlockEnable = viewModel::updateBlockEnabled,
-                onUpdateRootGroup = viewModel::updateRootGroup,
-                onDelete = viewModel::deleteRule,
+                editor = uiState.editor,
+                onUpdateBlockMode = onUpdateBlockMode,
+                onUpdateLog = onUpdateLog,
+                onChangeBlockEnable = onChangeBlockEnable,
+                onUpdateRootGroup = onUpdateRootGroup,
+                onDelete = onDelete,
             )
         }
     }
 
     if (showUnsavedDialog) {
         UnsavedChangesDialog(
-            onDiscard = {
-                showUnsavedDialog = false
-                onBackClick()
-            },
-            onCancel = { showUnsavedDialog = false },
+            onDiscard = onDiscardUnsavedChanges,
+            onCancel = onDismissUnsavedDialog,
         )
     }
 }
@@ -365,5 +402,31 @@ private fun SwitchRow(
             checked = checked,
             onCheckedChange = null,
         )
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun IfwRuleEditorScreenPreview(
+    @PreviewParameter(IfwRuleEditorScreenPreviewParameterProvider::class)
+    uiState: RuleEditorScreenUiState,
+) {
+    val showUnsavedDialog = (uiState as? RuleEditorScreenUiState.Success)?.hasUnsavedChanges == true
+    BlockerTheme {
+        Surface {
+            IfwRuleEditorScreen(
+                uiState = uiState,
+                showUnsavedDialog = showUnsavedDialog,
+                onBackClick = {},
+                onSaveClick = {},
+                onUpdateBlockMode = {},
+                onUpdateLog = {},
+                onChangeBlockEnable = {},
+                onUpdateRootGroup = {},
+                onDelete = {},
+                onDiscardUnsavedChanges = {},
+                onDismissUnsavedDialog = {},
+            )
+        }
     }
 }
