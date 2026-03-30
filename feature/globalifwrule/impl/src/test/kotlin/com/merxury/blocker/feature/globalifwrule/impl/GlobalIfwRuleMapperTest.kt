@@ -16,6 +16,10 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
+import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
+import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.IfwEditorStringMatcherMode

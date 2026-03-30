@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalifwrule.impl
+package com.merxury.blocker.core.model.data
 
 import android.content.pm.PackageInfo
 import com.merxury.core.ifw.editor.IfwEditorNode
@@ -148,10 +148,3 @@ data class SimpleRuleComponentUiState(
     val exported: Boolean,
     val selected: Boolean,
 )
-
-val IfwComponentType.labelRes: Int
-    get() = when (this) {
-        IfwComponentType.ACTIVITY -> R.string.feature_globalifwrule_impl_rule_type_activity
-        IfwComponentType.BROADCAST -> R.string.feature_globalifwrule_impl_rule_type_broadcast
-        IfwComponentType.SERVICE -> R.string.feature_globalifwrule_impl_rule_type_service
-    }

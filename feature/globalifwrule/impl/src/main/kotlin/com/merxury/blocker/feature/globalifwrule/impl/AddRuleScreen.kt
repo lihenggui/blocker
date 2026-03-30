@@ -49,12 +49,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
+import com.merxury.blocker.core.ui.previewparameter.AdvancedGlobalIfwRuleScreenPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.AdvancedGlobalIfwRuleScreenPreviewState
+import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.model.IfwComponentType
@@ -286,6 +293,41 @@ internal fun SwitchRow(
         BlockerSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+        )
+    }
+}
+
+@Composable
+private fun AdvancedGlobalIfwRuleScreenPreviewContainer(
+    content: @Composable () -> Unit,
+) {
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            content()
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun AdvancedGlobalIfwRuleScreenPreview(
+    @PreviewParameter(AdvancedGlobalIfwRuleScreenPreviewParameterProvider::class)
+    state: AdvancedGlobalIfwRuleScreenPreviewState?,
+) {
+    val previewState = state ?: AdvancedGlobalIfwRuleScreenPreviewState(
+        draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft,
+    )
+    AdvancedGlobalIfwRuleScreenPreviewContainer {
+        AdvancedGlobalIfwRuleScreen(
+            draft = previewState.draft,
+            isDirty = previewState.isDirty,
+            onSave = {},
+            onBack = {},
+            onPackageNameChange = {},
+            onComponentTypeChange = {},
+            onBlockChange = {},
+            onLogChange = {},
+            onRootGroupChange = {},
         )
     }
 }

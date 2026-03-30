@@ -22,6 +22,16 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
+import com.merxury.blocker.core.model.data.GlobalIfwRuleEditorUiState
+import com.merxury.blocker.core.model.data.GlobalIfwRuleScreenState
+import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
+import com.merxury.blocker.core.model.data.PackageRuleGroup
+import com.merxury.blocker.core.model.data.RuleItemUiState
+import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
+import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.model.IfwComponentType

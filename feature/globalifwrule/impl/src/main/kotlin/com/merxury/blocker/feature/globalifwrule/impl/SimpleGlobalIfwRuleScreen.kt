@@ -47,10 +47,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
+import com.merxury.blocker.core.model.data.SimpleTargetMode
+import com.merxury.blocker.core.ui.previewparameter.SimpleGlobalIfwRuleScreenPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.SimpleGlobalIfwRuleScreenPreviewState
 import com.merxury.core.ifw.model.IfwComponentType
 
 @Composable
@@ -419,5 +427,48 @@ private fun ComponentSelectionRow(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SimpleGlobalIfwRuleScreenPreviewContainer(
+    content: @Composable () -> Unit,
+) {
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            content()
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun SimpleGlobalIfwRuleScreenPreview(
+    @PreviewParameter(SimpleGlobalIfwRuleScreenPreviewParameterProvider::class)
+    state: SimpleGlobalIfwRuleScreenPreviewState,
+) {
+    SimpleGlobalIfwRuleScreenPreviewContainer {
+        SimpleGlobalIfwRuleScreen(
+            draft = state.draft,
+            isDirty = state.isDirty,
+            selectedPackageLabel = state.selectedPackageLabel,
+            componentQuery = state.componentQuery,
+            visibleComponents = state.visibleComponents,
+            isComponentLoading = state.isComponentLoading,
+            componentLoadError = state.componentLoadError,
+            onSave = {},
+            onBack = {},
+            onPackageNameChange = {},
+            onComponentTypeChange = {},
+            onTargetModeChange = {},
+            onBlockChange = {},
+            onLogChange = {},
+            onActionChange = {},
+            onCategoryChange = {},
+            onCallerPackageChange = {},
+            onComponentQueryChange = {},
+            onSelectSingleTarget = {},
+            onToggleMultiTarget = {},
+        )
     }
 }

@@ -48,6 +48,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,6 +61,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,8 +70,18 @@ import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AdvancedRuleDetailUiState
+import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
+import com.merxury.blocker.core.model.data.GlobalIfwRuleScreenState
+import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
+import com.merxury.blocker.core.model.data.PackageRuleGroup
+import com.merxury.blocker.core.model.data.RuleItemUiState
 import com.merxury.blocker.core.ui.applist.AppIcon
+import com.merxury.blocker.core.ui.previewparameter.AdvancedRuleDetailPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRuleUiStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 
 @Composable
@@ -243,10 +255,7 @@ private fun AdvancedGlobalIfwRuleDetailScreen(
 
     if (showDeleteDialog) {
         DeleteConfirmationDialog(
-            onConfirm = {
-                showDeleteDialog = false
-                onDelete()
-            },
+            onConfirm = onDelete,
             onDismiss = { showDeleteDialog = false },
         )
     }
@@ -384,7 +393,6 @@ private fun RuleListContent(
                 key = { "${group.packageName}_${it.ruleIndex}" },
             ) { rule ->
                 RuleItem(
-                    packageName = group.packageName,
                     rule = rule,
                     onClick = { onOpenRuleClick(group.packageName, rule.ruleIndex) },
                     onDelete = { onDeleteRule(group.packageName, rule.ruleIndex) },
@@ -439,7 +447,6 @@ private fun PackageHeader(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun RuleItem(
-    packageName: String,
     rule: RuleItemUiState,
     onClick: () -> Unit,
     onDelete: () -> Unit,
@@ -528,10 +535,7 @@ private fun RuleItem(
 
     if (showDeleteDialog) {
         DeleteConfirmationDialog(
-            onConfirm = {
-                showDeleteDialog = false
-                onDelete()
-            },
+            onConfirm = onDelete,
             onDismiss = { showDeleteDialog = false },
         )
     }
@@ -547,7 +551,54 @@ private fun DeleteConfirmationDialog(
         onDismissRequest = onDismiss,
         title = stringResource(R.string.feature_globalifwrule_impl_delete_confirm),
         text = stringResource(R.string.feature_globalifwrule_impl_delete_confirm_message),
-        onConfirmRequest = onConfirm,
+        onConfirmRequest = {
+            onDismiss()
+            onConfirm()
+        },
         modifier = modifier,
     )
+}
+
+@Composable
+private fun GlobalIfwRuleScreenPreviewContainer(
+    content: @Composable () -> Unit,
+) {
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            content()
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun GlobalIfwRuleScreenPreview(
+    @PreviewParameter(GlobalIfwRuleUiStatePreviewParameterProvider::class)
+    uiState: GlobalIfwRuleUiState,
+) {
+    GlobalIfwRuleScreenPreviewContainer {
+        GlobalIfwRuleScreen(
+            uiState = uiState,
+            onAddSimpleRuleClick = {},
+            onAddAdvancedRuleClick = {},
+            onOpenRuleClick = { _, _ -> },
+            onDeleteRule = { _, _ -> },
+        )
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun AdvancedGlobalIfwRuleDetailScreenPreview(
+    @PreviewParameter(AdvancedRuleDetailPreviewParameterProvider::class)
+    detail: AdvancedRuleDetailUiState,
+) {
+    GlobalIfwRuleScreenPreviewContainer {
+        AdvancedGlobalIfwRuleDetailScreen(
+            detail = detail,
+            onBack = {},
+            onCopyAsNew = {},
+            onDelete = {},
+        )
+    }
 }

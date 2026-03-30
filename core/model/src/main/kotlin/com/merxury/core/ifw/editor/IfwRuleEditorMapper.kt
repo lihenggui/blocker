@@ -17,7 +17,6 @@
 package com.merxury.core.ifw.editor
 
 import com.merxury.core.ifw.model.IfwFilter
-import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
 
 fun List<IfwFilter>.toEditorRootGroup(
