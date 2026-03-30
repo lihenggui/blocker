@@ -43,7 +43,7 @@
     <string name="feature_globalifwrule_api_advanced_detail_summary">Salvo em %1$s.xml</string>
     <string name="feature_globalifwrule_api_copy_as_new_advanced_rule">Duplicar regra</string>
     <string name="feature_globalifwrule_api_intent_filters_preserved">Inclui intent-filters do sistema. Eles serao mantidos ao salvar, mas não podem ser editados aqui.</string>
-    <string name="feature_globalifwrule_api_selector_required">Adicione pelo menos uma condicao Exact target component. O IFW nao pode acionar regras globais baseadas apenas em padroes sem um componente alvo concreto.</string>
+    <string name="feature_globalifwrule_api_selector_required">Adicione pelo menos uma condicao Exact target component. O IFW não pode acionar regras globais baseadas apenas em padroes sem um componente alvo concreto.</string>
     <string name="feature_globalifwrule_api_unsaved_title">Alteracoes não salvas</string>
     <string name="feature_globalifwrule_api_unsaved_message">Voce tem alteracoes não salvas. Tem certeza de que deseja sair?</string>
 </resources>
