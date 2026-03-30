@@ -56,6 +56,7 @@ import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.feature.ifwrule.api.R
 import com.merxury.core.ifw.editor.IfwEditorNode
 
 @Suppress("ktlint:compose:modifier-missing-check")
