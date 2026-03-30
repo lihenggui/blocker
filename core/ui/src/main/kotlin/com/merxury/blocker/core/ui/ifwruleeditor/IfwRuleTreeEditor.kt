@@ -36,6 +36,7 @@ fun IfwRuleTreeEditor(
     rootGroup: IfwEditorNode.Group,
     onChange: (IfwEditorNode.Group) -> Unit,
     modifier: Modifier = Modifier,
+    rootValidationMessage: String? = null,
 ) {
     var pickerTargetGroupId by remember { mutableStateOf<String?>(null) }
 
@@ -44,6 +45,7 @@ fun IfwRuleTreeEditor(
             group = rootGroup,
             depth = 0,
             isRoot = true,
+            validationMessage = rootValidationMessage,
             onUpdate = { updated -> onChange(rootGroup.updateNode(updated)) },
             onDelete = { nodeId -> onChange(rootGroup.removeNode(nodeId)) },
             onAddGroup = { groupId ->

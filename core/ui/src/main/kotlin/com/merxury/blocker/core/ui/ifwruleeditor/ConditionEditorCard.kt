@@ -32,7 +32,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,7 +62,7 @@ internal fun ConditionEditorCard(
     modifier: Modifier = Modifier,
 ) {
     BlockerOutlinedCard(
-        onClick = {},
+        outerPadding = 0.dp,
         modifier = modifier
             .fillMaxWidth()
             .padding(start = (depth * 12).dp, top = 8.dp),
@@ -71,7 +70,7 @@ internal fun ConditionEditorCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.Top,
             ) {
                 ConditionKindDropdown(
@@ -252,6 +251,7 @@ internal fun <T> DropdownSelector(
             value = value,
             onValueChange = {},
             readOnly = true,
+            singleLine = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .fillMaxWidth()

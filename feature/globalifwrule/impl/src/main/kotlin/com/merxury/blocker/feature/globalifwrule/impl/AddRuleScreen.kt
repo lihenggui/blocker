@@ -18,18 +18,16 @@ package com.merxury.blocker.feature.globalifwrule.impl
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,6 +69,11 @@ fun AdvancedGlobalIfwRuleScreen(
     modifier: Modifier = Modifier,
 ) {
     val isEditing = draft.editingRuleIndex != null
+    val selectorRequiredMessage = if (!draft.hasReadOnlyIntentFilters && !draft.rootGroup.hasTopLevelComponentFilter()) {
+        stringResource(R.string.feature_globalifwrule_api_selector_required)
+    } else {
+        null
+    }
     var showUnsavedDialog by remember { mutableStateOf(false) }
 
     val handleBack: () -> Unit = {
@@ -81,23 +84,28 @@ fun AdvancedGlobalIfwRuleScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        RuleEditorTopBar(
-            title = stringResource(
-                if (isEditing) {
-                    R.string.feature_globalifwrule_api_edit_advanced_rule
-                } else {
-                    R.string.feature_globalifwrule_api_add_advanced_rule
-                },
-            ),
-            canSave = draft.canSave,
-            onSave = onSave,
-            onBack = handleBack,
-        )
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            RuleEditorTopBar(
+                title = stringResource(
+                    if (isEditing) {
+                        R.string.feature_globalifwrule_api_edit_advanced_rule
+                    } else {
+                        R.string.feature_globalifwrule_api_add_advanced_rule
+                    },
+                ),
+                canSave = draft.canSave,
+                onSave = onSave,
+                onBack = handleBack,
+            )
+        },
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             Spacer(modifier = Modifier.height(8.dp))
@@ -145,18 +153,9 @@ fun AdvancedGlobalIfwRuleScreen(
             IfwRuleTreeEditor(
                 rootGroup = draft.rootGroup,
                 onChange = onRootGroupChange,
+                rootValidationMessage = selectorRequiredMessage,
             )
-            if (!draft.hasReadOnlyIntentFilters && !draft.rootGroup.hasTopLevelComponentFilter()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.feature_globalifwrule_api_selector_required),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 
