@@ -44,7 +44,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,7 +59,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -70,13 +68,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
-import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.AdvancedRuleDetailUiState
 import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
 import com.merxury.blocker.core.model.data.GlobalIfwRuleScreenState
 import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
@@ -84,7 +79,6 @@ import com.merxury.blocker.core.model.data.PackageRuleGroup
 import com.merxury.blocker.core.model.data.RuleItemUiState
 import com.merxury.blocker.core.ui.applist.AppIcon
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.AdvancedRuleDetailPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRuleUiStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
@@ -225,200 +219,6 @@ fun GlobalIfwRuleScreen(
                         modifier = Modifier.padding(padding),
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AdvancedGlobalIfwRuleDetailScreen(
-    detail: AdvancedRuleDetailUiState,
-    onBack: () -> Unit,
-    onCopyAsNew: () -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    val detailTitle = detail.presentation.title
-        ?: stringResource(R.string.feature_globalifwrule_api_advanced_rule)
-
-    Scaffold(
-        topBar = {
-            BlockerTopAppBar(
-                title = detailTitle,
-                hasNavigationIcon = true,
-                onNavigationClick = onBack,
-            )
-        },
-        modifier = modifier,
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            item {
-                AdvancedRuleOverviewSection(detail = detail)
-            }
-            if (detail.draft.hasReadOnlyIntentFilters) {
-                item {
-                    AdvancedRuleReadOnlyNotice()
-                }
-            }
-            item {
-                AdvancedRuleConditionsSection(detail = detail)
-            }
-            item {
-                AdvancedRuleDetailActions(
-                    onCopyAsNew = onCopyAsNew,
-                    onDelete = { showDeleteDialog = true },
-                )
-            }
-            item {
-                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-            }
-        }
-    }
-
-    if (showDeleteDialog) {
-        DeleteConfirmationDialog(
-            onConfirm = onDelete,
-            onDismiss = { showDeleteDialog = false },
-        )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun AdvancedRuleOverviewSection(
-    detail: AdvancedRuleDetailUiState,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        detail.presentation.targetPath?.let { targetPath ->
-            Text(
-                text = targetPath,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            RuleMetaBadge(
-                text = stringResource(detail.componentType.labelRes),
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-            if (detail.block) {
-                RuleMetaBadge(
-                    text = stringResource(R.string.feature_globalifwrule_api_block),
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                )
-            }
-            if (detail.log) {
-                RuleMetaBadge(
-                    text = stringResource(R.string.feature_globalifwrule_api_log),
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                )
-            }
-        }
-        Text(
-            text = stringResource(
-                R.string.feature_globalifwrule_api_advanced_detail_summary,
-                detail.storagePackageName,
-            ),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun AdvancedRuleReadOnlyNotice(
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        shape = MaterialTheme.shapes.medium,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_globalifwrule_api_intent_filters_preserved),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-        )
-    }
-}
-
-@Composable
-private fun AdvancedRuleConditionsSection(
-    detail: AdvancedRuleDetailUiState,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_globalifwrule_api_conditions),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shape = MaterialTheme.shapes.medium,
-        ) {
-            SelectionContainer {
-                Text(
-                    text = detail.presentation.conditionLines.joinToString(separator = "\n"),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AdvancedRuleDetailActions(
-    onCopyAsNew: () -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-        ) {
-            BlockerTextButton(
-                onClick = onCopyAsNew,
-            ) {
-                Text(
-                    text = stringResource(R.string.feature_globalifwrule_api_copy_as_new_advanced_rule),
-                )
-            }
-            BlockerTextButton(
-                onClick = onDelete,
-            ) {
-                Text(
-                    text = stringResource(R.string.feature_globalifwrule_api_delete_rule),
-                    color = MaterialTheme.colorScheme.error,
-                )
             }
         }
     }
@@ -603,7 +403,10 @@ private fun RuleItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     Text(
                         text = ruleTitle,
                         style = MaterialTheme.typography.titleSmall,
@@ -611,13 +414,9 @@ private fun RuleItem(
                         overflow = TextOverflow.Ellipsis,
                     )
                     cardPresentation.targetPath?.let { targetPath ->
-                        Text(
+                        RulePrimaryMetadataText(
                             text = targetPath,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 2.dp),
                         )
                     }
                 }
@@ -632,7 +431,7 @@ private fun RuleItem(
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 12.dp),
+                modifier = Modifier.padding(top = 10.dp),
             ) {
                 RuleMetaBadge(
                     text = stringResource(rule.componentType.labelRes),
@@ -661,13 +460,10 @@ private fun RuleItem(
             }
 
             cardPresentation.supportingText?.let { supportingText ->
-                Text(
+                RuleSecondaryMetadataText(
                     text = supportingText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 12.dp, end = 6.dp),
+                    modifier = Modifier.padding(top = 10.dp, end = 6.dp),
                 )
             }
 
@@ -690,45 +486,6 @@ private fun RuleItem(
             onDismiss = { showDeleteDialog = false },
         )
     }
-}
-
-@Composable
-private fun RuleMetaBadge(
-    text: String,
-    modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-) {
-    Surface(
-        modifier = modifier,
-        color = containerColor,
-        contentColor = contentColor,
-        shape = MaterialTheme.shapes.large,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-        )
-    }
-}
-
-@Composable
-private fun DeleteConfirmationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    BlockerWarningAlertDialog(
-        onDismissRequest = onDismiss,
-        title = stringResource(R.string.feature_globalifwrule_api_delete_confirm),
-        text = stringResource(R.string.feature_globalifwrule_api_delete_confirm_message),
-        onConfirmRequest = {
-            onDismiss()
-            onConfirm()
-        },
-        modifier = modifier,
-    )
 }
 
 @Composable
@@ -755,22 +512,6 @@ private fun GlobalIfwRuleScreenPreview(
             onAddAdvancedRuleClick = {},
             onOpenRuleClick = { _, _ -> },
             onDeleteRule = { _, _ -> },
-        )
-    }
-}
-
-@Composable
-@PreviewThemes
-private fun AdvancedGlobalIfwRuleDetailScreenPreview(
-    @PreviewParameter(AdvancedRuleDetailPreviewParameterProvider::class)
-    detail: AdvancedRuleDetailUiState,
-) {
-    GlobalIfwRuleScreenPreviewContainer {
-        AdvancedGlobalIfwRuleDetailScreen(
-            detail = detail,
-            onBack = {},
-            onCopyAsNew = {},
-            onDelete = {},
         )
     }
 }
