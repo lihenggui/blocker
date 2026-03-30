@@ -267,16 +267,15 @@ class GlobalIfwRuleScreenScreenshotTests {
         editingRuleIndex = 1,
     )
 
-    private fun advancedEditDraft(): AdvancedGlobalIfwRuleDraft =
-        GlobalIfwRulePreviewParameterData.advancedRuleDraft.copy(
-            intentFilters = listOf(
-                IfwIntentFilter(
-                    actions = listOf("android.intent.action.SEND"),
-                    categories = listOf("android.intent.category.DEFAULT"),
-                ),
+    private fun advancedEditDraft(): AdvancedGlobalIfwRuleDraft = GlobalIfwRulePreviewParameterData.advancedRuleDraft.copy(
+        intentFilters = listOf(
+            IfwIntentFilter(
+                actions = listOf("android.intent.action.SEND"),
+                categories = listOf("android.intent.category.DEFAULT"),
             ),
-            editingRuleIndex = 2,
-        )
+        ),
+        editingRuleIndex = 2,
+    )
 
     @Composable
     private fun GlobalIfwRuleListScreen(

@@ -67,12 +67,12 @@ internal fun GroupEditorCard(
     group: IfwEditorNode.Group,
     depth: Int,
     isRoot: Boolean,
-    modifier: Modifier = Modifier,
-    validationMessage: String? = null,
     onUpdate: (IfwEditorNode) -> Unit,
     onDelete: (String) -> Unit,
     onAddGroup: (String) -> Unit,
     onAddCondition: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    validationMessage: String? = null,
 ) {
     var expanded by rememberSaveable(group.id) {
         mutableStateOf(isRoot || group.children.isEmpty())
@@ -96,7 +96,7 @@ internal fun GroupEditorCard(
                 isRoot = isRoot,
                 canCollapse = canCollapse,
                 expanded = isExpanded,
-                onToggleExpanded = { expanded = !expanded },
+                onToggleExpansion = { expanded = !expanded },
                 onDelete = { onDelete(group.id) },
             )
 
@@ -176,7 +176,7 @@ private fun GroupHeader(
     isRoot: Boolean,
     canCollapse: Boolean,
     expanded: Boolean,
-    onToggleExpanded: () -> Unit,
+    onToggleExpansion: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -190,7 +190,7 @@ private fun GroupHeader(
                 .weight(1f)
                 .then(
                     if (canCollapse) {
-                        Modifier.clickable(onClick = onToggleExpanded)
+                        Modifier.clickable(onClick = onToggleExpansion)
                     } else {
                         Modifier
                     },
@@ -208,7 +208,7 @@ private fun GroupHeader(
             )
         }
         if (canCollapse) {
-            IconButton(onClick = onToggleExpanded) {
+            IconButton(onClick = onToggleExpansion) {
                 Icon(
                     imageVector = if (expanded) BlockerIcons.ExpandLess else BlockerIcons.ExpandMore,
                     contentDescription = stringResource(
