@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -31,24 +35,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
 import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.blocker.feature.globalifwrule.api.R
-
-@Composable
-internal fun SectionTitle(
-    title: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        modifier = modifier.padding(bottom = 8.dp),
-    )
-}
 
 @Composable
 internal fun TargetModeRow(
@@ -63,18 +55,67 @@ internal fun TargetModeRow(
             .selectable(
                 selected = selected,
                 onClick = onClick,
+                role = Role.RadioButton,
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(
             selected = selected,
-            onClick = onClick,
+            onClick = null,
         )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier
+                .defaultMinSize(minHeight = 48.dp)
+                .padding(vertical = 12.dp),
         )
     }
+}
+
+@Composable
+private fun ComponentSelectionToggle(
+    targetMode: SimpleTargetMode,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (targetMode) {
+        SimpleTargetMode.SINGLE -> {
+            RadioButton(
+                selected = selected,
+                onClick = onClick,
+                modifier = modifier,
+            )
+        }
+
+        SimpleTargetMode.MULTIPLE -> {
+            Checkbox(
+                checked = selected,
+                onCheckedChange = { onClick() },
+                modifier = modifier,
+            )
+        }
+    }
+}
+
+private fun componentSelectionModifier(
+    targetMode: SimpleTargetMode,
+    selected: Boolean,
+    onClick: () -> Unit,
+): Modifier = when (targetMode) {
+    SimpleTargetMode.SINGLE -> Modifier.selectable(
+        selected = selected,
+        onClick = onClick,
+        role = Role.RadioButton,
+    )
+
+    SimpleTargetMode.MULTIPLE -> Modifier.toggleable(
+        value = selected,
+        onValueChange = { onClick() },
+        role = Role.Checkbox,
+    )
 }
 
 @Composable
@@ -135,6 +176,14 @@ internal fun ComponentSelectionRow(
     onToggleMultiTarget: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val onSelectionChange = {
+        if (targetMode == SimpleTargetMode.SINGLE) {
+            onSelectSingleTarget(component.flattenedName)
+        } else {
+            onToggleMultiTarget(component.flattenedName)
+        }
+    }
+
     Surface(
         shape = MaterialTheme.shapes.medium,
         tonalElevation = if (component.selected) 2.dp else 0.dp,
@@ -145,26 +194,21 @@ internal fun ComponentSelectionRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
-                    if (targetMode == SimpleTargetMode.SINGLE) {
-                        onSelectSingleTarget(component.flattenedName)
-                    } else {
-                        onToggleMultiTarget(component.flattenedName)
-                    }
-                }
+                .then(
+                    componentSelectionModifier(
+                        targetMode = targetMode,
+                        selected = component.selected,
+                        onClick = onSelectionChange,
+                    ),
+                )
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            BlockerSwitch(
-                checked = component.selected,
-                onCheckedChange = {
-                    if (targetMode == SimpleTargetMode.SINGLE) {
-                        onSelectSingleTarget(component.flattenedName)
-                    } else {
-                        onToggleMultiTarget(component.flattenedName)
-                    }
-                },
+            ComponentSelectionToggle(
+                targetMode = targetMode,
+                selected = component.selected,
+                onClick = onSelectionChange,
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
