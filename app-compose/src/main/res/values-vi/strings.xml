@@ -16,9 +16,9 @@
   -->
 <resources>
     <string name="apps">Ứng dụng</string>
+    <string name="rules">Quy tắc</string>
     <string name="search">Tìm kiếm</string>
-    <string name="sdk_trackers">SDK/Trình theo dõi</string>
-    <string name="feature_apppurification_title">Làm mới ứng dụng</string>
+    <string name="trackers">Trình theo dõi</string>
     <string name="no_permission_hint">Không thể cấp quyền, ứng dụng có thể hoạt động sai cách.</string>
     <string name="shell_permission_hint">Đã được cấp quyền shell. Điều khiển một số thành phần có thể không được</string>
     <string name="close">Đóng</string>

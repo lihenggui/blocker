@@ -20,17 +20,13 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -50,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerFilterChip
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
+import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -60,6 +57,7 @@ import com.merxury.blocker.feature.appdebloater.api.R
 @Composable
 fun DebloaterScreen(
     snackbarHostState: SnackbarHostState,
+    navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DebloaterViewModel = hiltViewModel(),
 ) {
@@ -69,7 +67,6 @@ fun DebloaterScreen(
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val hasRootPermission by viewModel.hasRootPermission.collectAsStateWithLifecycle()
     val context = LocalContext.current
-
     val noRootPermissionWarning = stringResource(R.string.feature_debloater_api_no_root_permission)
 
     LaunchedEffect(hasRootPermission) {
@@ -81,28 +78,48 @@ fun DebloaterScreen(
         }
     }
 
-    DebloaterScreenContent(
+    Scaffold(
         modifier = modifier,
-        debloatableUiState = debloatableUiState,
-        searchQuery = searchQuery,
-        componentTypeFilter = componentTypeFilter,
-        errorState = errorState,
-        onSearchQueryChange = viewModel::updateSearchQuery,
-        onComponentTypeFilterChange = viewModel::updateComponentTypeFilter,
-        onSwitchClick = { uiItem, enabled ->
-            viewModel.controlComponent(uiItem.entity, enabled)
+        topBar = {
+            BlockerTopAppBar(
+                title = stringResource(R.string.feature_debloater_api_title),
+                hasNavigationIcon = true,
+                onNavigationClick = navigateBack,
+                actions = {
+                    IconButton(
+                        onClick = {
+                            viewModel.triggerTestShare(context)
+                        },
+                    ) {
+                        Icon(
+                            imageVector = BlockerIcons.Share,
+                            contentDescription = stringResource(R.string.feature_debloater_api_test_share),
+                        )
+                    }
+                },
+            )
         },
-        onBlockAllInItemClick = { uiItems ->
-            viewModel.controlAllComponents(uiItems.map { it.entity }, enable = false)
-        },
-        onEnableAllInItemClick = { uiItems ->
-            viewModel.controlAllComponents(uiItems.map { it.entity }, enable = true)
-        },
-        onDismissError = viewModel::dismissError,
-        onTestShareClick = {
-            viewModel.triggerTestShare(context)
-        },
-    )
+    ) { padding ->
+        DebloaterScreenContent(
+            modifier = Modifier.padding(padding),
+            debloatableUiState = debloatableUiState,
+            searchQuery = searchQuery,
+            componentTypeFilter = componentTypeFilter,
+            errorState = errorState,
+            onSearchQueryChange = viewModel::updateSearchQuery,
+            onComponentTypeFilterChange = viewModel::updateComponentTypeFilter,
+            onSwitchClick = { uiItem, enabled ->
+                viewModel.controlComponent(uiItem.entity, enabled)
+            },
+            onBlockAllInItemClick = { uiItems ->
+                viewModel.controlAllComponents(uiItems.map { it.entity }, enable = false)
+            },
+            onEnableAllInItemClick = { uiItems ->
+                viewModel.controlAllComponents(uiItems.map { it.entity }, enable = true)
+            },
+            onDismissError = viewModel::dismissError,
+        )
+    }
 }
 
 @Composable
@@ -118,10 +135,8 @@ internal fun DebloaterScreenContent(
     onBlockAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = {},
     onEnableAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = {},
     onDismissError: () -> Unit = {},
-    onTestShareClick: () -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -137,13 +152,6 @@ internal fun DebloaterScreenContent(
                     Text(text = stringResource(R.string.feature_debloater_api_search_hint))
                 },
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            FilledTonalIconButton(onClick = onTestShareClick) {
-                Icon(
-                    imageVector = BlockerIcons.Share,
-                    contentDescription = stringResource(R.string.feature_debloater_api_test_share),
-                )
-            }
         }
         ComponentTypeFilterChips(
             modifier = Modifier
