@@ -103,42 +103,6 @@ class SimpleGlobalIfwRuleScreenPreviewParameterProvider : PreviewParameterProvid
     )
 }
 
-class AdvancedGlobalIfwRuleScreenPreviewParameterProvider : PreviewParameterProvider<AdvancedGlobalIfwRuleScreenPreviewState> {
-    override val values: Sequence<AdvancedGlobalIfwRuleScreenPreviewState> = sequenceOf(
-        AdvancedGlobalIfwRuleScreenPreviewState(
-            draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft,
-        ),
-        AdvancedGlobalIfwRuleScreenPreviewState(
-            draft = AdvancedGlobalIfwRuleDraft(
-                storagePackageName = "com.spotify.music",
-                componentType = IfwComponentType.ACTIVITY,
-                block = true,
-                log = true,
-                rootGroup = IfwEditorNode.Group(
-                    children = listOf(
-                        IfwEditorNode.Condition(
-                            kind = IfwEditorConditionKind.ACTION,
-                            value = "android.intent.action.VIEW",
-                        ),
-                    ),
-                ),
-            ),
-        ),
-        AdvancedGlobalIfwRuleScreenPreviewState(
-            draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft.copy(
-                intentFilters = listOf(
-                    IfwIntentFilter(
-                        actions = listOf("android.intent.action.SEND"),
-                        categories = listOf("android.intent.category.DEFAULT"),
-                    ),
-                ),
-                editingRuleIndex = 2,
-            ),
-            isDirty = true,
-        ),
-    )
-}
-
 data class SimpleGlobalIfwRuleScreenPreviewState(
     val draft: SimpleGlobalIfwRuleDraft,
     val isDirty: Boolean = false,
@@ -147,11 +111,6 @@ data class SimpleGlobalIfwRuleScreenPreviewState(
     val visibleComponents: List<SimpleRuleComponentUiState> = emptyList(),
     val isComponentLoading: Boolean = false,
     val componentLoadError: String? = null,
-)
-
-data class AdvancedGlobalIfwRuleScreenPreviewState(
-    val draft: AdvancedGlobalIfwRuleDraft,
-    val isDirty: Boolean = false,
 )
 
 object GlobalIfwRulePreviewParameterData {

@@ -39,24 +39,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
-import com.merxury.blocker.core.ui.previewparameter.AdvancedGlobalIfwRuleScreenPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.AdvancedGlobalIfwRuleScreenPreviewState
 import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentTypeDropdown
 import com.merxury.blocker.feature.globalifwrule.impl.components.IntentFilterBanner
 import com.merxury.blocker.feature.globalifwrule.impl.components.RuleEditorTopBar
 import com.merxury.blocker.feature.globalifwrule.impl.components.SwitchRow
+import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.model.IfwComponentType
+import com.merxury.core.ifw.model.IfwIntentFilter
 
 @Composable
 fun AdvancedGlobalIfwRuleScreen(
@@ -186,18 +185,14 @@ private fun AdvancedGlobalIfwRuleScreenPreviewContainer(
 }
 
 @Composable
-@PreviewThemes
 private fun AdvancedGlobalIfwRuleScreenPreview(
-    @PreviewParameter(AdvancedGlobalIfwRuleScreenPreviewParameterProvider::class)
-    state: AdvancedGlobalIfwRuleScreenPreviewState?,
+    draft: AdvancedGlobalIfwRuleDraft,
+    isDirty: Boolean = false,
 ) {
-    val previewState = state ?: AdvancedGlobalIfwRuleScreenPreviewState(
-        draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft,
-    )
     AdvancedGlobalIfwRuleScreenPreviewContainer {
         AdvancedGlobalIfwRuleScreen(
-            draft = previewState.draft,
-            isDirty = previewState.isDirty,
+            draft = draft,
+            isDirty = isDirty,
             onSave = {},
             onBack = {},
             onPackageNameChange = {},
@@ -207,4 +202,50 @@ private fun AdvancedGlobalIfwRuleScreenPreview(
             onRootGroupChange = {},
         )
     }
+}
+
+@Composable
+@PreviewThemes
+private fun AdvancedGlobalIfwRuleScreenAddPreview() {
+    AdvancedGlobalIfwRuleScreenPreview(
+        draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft,
+    )
+}
+
+@Composable
+@PreviewThemes
+private fun AdvancedGlobalIfwRuleScreenMissingSelectorPreview() {
+    AdvancedGlobalIfwRuleScreenPreview(
+        draft = AdvancedGlobalIfwRuleDraft(
+            storagePackageName = "com.spotify.music",
+            componentType = IfwComponentType.ACTIVITY,
+            block = true,
+            log = true,
+            rootGroup = IfwEditorNode.Group(
+                children = listOf(
+                    IfwEditorNode.Condition(
+                        kind = IfwEditorConditionKind.ACTION,
+                        value = "android.intent.action.VIEW",
+                    ),
+                ),
+            ),
+        ),
+    )
+}
+
+@Composable
+@PreviewThemes
+private fun AdvancedGlobalIfwRuleScreenEditPreview() {
+    AdvancedGlobalIfwRuleScreenPreview(
+        draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft.copy(
+            intentFilters = listOf(
+                IfwIntentFilter(
+                    actions = listOf("android.intent.action.SEND"),
+                    categories = listOf("android.intent.category.DEFAULT"),
+                ),
+            ),
+            editingRuleIndex = 2,
+        ),
+        isDirty = true,
+    )
 }
