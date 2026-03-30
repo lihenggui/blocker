@@ -86,7 +86,7 @@ fun IfwRuleEditorScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         BlockerTopAppBar(
-            title = stringResource(R.string.feature_ifwrule_impl_title),
+            title = stringResource(R.string.feature_ifwrule_api_title),
             hasNavigationIcon = true,
             onNavigationClick = handleBack,
             actions = {
@@ -128,7 +128,7 @@ private fun SaveActionButton(
     IconButton(onClick = onClick, modifier = modifier) {
         Icon(
             imageVector = BlockerIcons.Check,
-            contentDescription = stringResource(R.string.feature_ifwrule_impl_save),
+            contentDescription = stringResource(R.string.feature_ifwrule_api_save),
         )
     }
 }
@@ -141,8 +141,8 @@ private fun UnsavedChangesDialog(
 ) {
     BlockerWarningAlertDialog(
         onDismissRequest = onCancel,
-        title = stringResource(R.string.feature_ifwrule_impl_unsaved_title),
-        text = stringResource(R.string.feature_ifwrule_impl_unsaved_message),
+        title = stringResource(R.string.feature_ifwrule_api_unsaved_title),
+        text = stringResource(R.string.feature_ifwrule_api_unsaved_message),
         onConfirmRequest = onDiscard,
         modifier = modifier,
     )
@@ -218,17 +218,17 @@ private fun BlockModeSection(
     Column(modifier = modifier) {
         HorizontalDivider()
         Text(
-            text = stringResource(R.string.feature_ifwrule_impl_block_mode),
+            text = stringResource(R.string.feature_ifwrule_api_block_mode),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
         )
         BlockModeRadioRow(
-            label = stringResource(R.string.feature_ifwrule_impl_block_all),
+            label = stringResource(R.string.feature_ifwrule_api_block_all),
             selected = blockMode == BlockMode.ALL,
             onClick = { onUpdateBlockMode(BlockMode.ALL) },
         )
         BlockModeRadioRow(
-            label = stringResource(R.string.feature_ifwrule_impl_block_conditional),
+            label = stringResource(R.string.feature_ifwrule_api_block_conditional),
             selected = blockMode == BlockMode.CONDITIONAL,
             onClick = { onUpdateBlockMode(BlockMode.CONDITIONAL) },
         )
@@ -245,7 +245,7 @@ private fun ConditionalSection(
         Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider()
         Text(
-            text = stringResource(R.string.feature_ifwrule_impl_conditions),
+            text = stringResource(R.string.feature_ifwrule_api_conditions),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
         )
@@ -268,19 +268,19 @@ private fun AdvancedOptionsSection(
         Spacer(modifier = Modifier.height(16.dp))
         HorizontalDivider()
         Text(
-            text = stringResource(R.string.feature_ifwrule_impl_advanced_options),
+            text = stringResource(R.string.feature_ifwrule_api_advanced_options),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
         )
         SwitchRow(
-            label = stringResource(R.string.feature_ifwrule_impl_log),
-            summary = stringResource(R.string.feature_ifwrule_impl_log_summary),
+            label = stringResource(R.string.feature_ifwrule_api_log),
+            summary = stringResource(R.string.feature_ifwrule_api_log_summary),
             checked = log,
             onCheckedChange = onUpdateLog,
         )
         SwitchRow(
-            label = stringResource(R.string.feature_ifwrule_impl_monitor_only),
-            summary = stringResource(R.string.feature_ifwrule_impl_monitor_only_summary),
+            label = stringResource(R.string.feature_ifwrule_api_monitor_only),
+            summary = stringResource(R.string.feature_ifwrule_api_monitor_only_summary),
             checked = !blockEnabled,
             onCheckedChange = { onChangeBlockEnable(!it) },
         )
@@ -301,14 +301,14 @@ private fun AdvancedRuleBanner(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = stringResource(R.string.feature_ifwrule_impl_advanced_rule_banner),
+                text = stringResource(R.string.feature_ifwrule_api_advanced_rule_banner),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Spacer(modifier = Modifier.height(8.dp))
             BlockerButton(
                 onClick = onDelete,
-                text = { Text(stringResource(R.string.feature_ifwrule_impl_advanced_rule_delete)) },
+                text = { Text(stringResource(R.string.feature_ifwrule_api_advanced_rule_delete)) },
             )
         }
     }

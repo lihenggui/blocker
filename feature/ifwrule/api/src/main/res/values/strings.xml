@@ -15,19 +15,19 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_ifwrule_impl_title">Interception rules</string>
-    <string name="feature_ifwrule_impl_block_all">Block all calls (fully disable)</string>
-    <string name="feature_ifwrule_impl_block_conditional">Block by condition (fine control)</string>
-    <string name="feature_ifwrule_impl_block_mode">Block mode</string>
-    <string name="feature_ifwrule_impl_conditions">Conditions</string>
-    <string name="feature_ifwrule_impl_save">Save rule</string>
-    <string name="feature_ifwrule_impl_advanced_options">Advanced options</string>
-    <string name="feature_ifwrule_impl_log">Log matches</string>
-    <string name="feature_ifwrule_impl_log_summary">View matched intents in system log</string>
-    <string name="feature_ifwrule_impl_monitor_only">Monitor only (no blocking)</string>
-    <string name="feature_ifwrule_impl_monitor_only_summary">Rule only logs, does not block. Useful for observation before enabling</string>
-    <string name="feature_ifwrule_impl_advanced_rule_banner">Advanced rule (read-only)</string>
-    <string name="feature_ifwrule_impl_advanced_rule_delete">Delete and recreate</string>
-    <string name="feature_ifwrule_impl_unsaved_title">Unsaved changes</string>
-    <string name="feature_ifwrule_impl_unsaved_message">You have unsaved changes. Are you sure you want to leave?</string>
+    <string name="feature_ifwrule_api_title">Interception rules</string>
+    <string name="feature_ifwrule_api_block_all">Block all calls (fully disable)</string>
+    <string name="feature_ifwrule_api_block_conditional">Block by condition (fine control)</string>
+    <string name="feature_ifwrule_api_block_mode">Block mode</string>
+    <string name="feature_ifwrule_api_conditions">Conditions</string>
+    <string name="feature_ifwrule_api_save">Save rule</string>
+    <string name="feature_ifwrule_api_advanced_options">Advanced options</string>
+    <string name="feature_ifwrule_api_log">Log matches</string>
+    <string name="feature_ifwrule_api_log_summary">View matched intents in system log</string>
+    <string name="feature_ifwrule_api_monitor_only">Monitor only (no blocking)</string>
+    <string name="feature_ifwrule_api_monitor_only_summary">Rule only logs, does not block. Useful for observation before enabling</string>
+    <string name="feature_ifwrule_api_advanced_rule_banner">Advanced rule (read-only)</string>
+    <string name="feature_ifwrule_api_advanced_rule_delete">Delete and recreate</string>
+    <string name="feature_ifwrule_api_unsaved_title">Unsaved changes</string>
+    <string name="feature_ifwrule_api_unsaved_message">You have unsaved changes. Are you sure you want to leave?</string>
 </resources>

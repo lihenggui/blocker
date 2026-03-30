@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_ifwrule_impl_title">Regras de interceção</string>
-    <string name="feature_ifwrule_impl_block_all">Bloquear todas as chamadas (desativação total)</string>
-    <string name="feature_ifwrule_impl_block_conditional">Bloquear por condição (controlo detalhado)</string>
-    <string name="feature_ifwrule_impl_block_mode">Modo de bloqueio</string>
-    <string name="feature_ifwrule_impl_conditions">Condições</string>
-    <string name="feature_ifwrule_impl_save">Guardar regra</string>
-    <string name="feature_ifwrule_impl_advanced_options">Opções avançadas</string>
-    <string name="feature_ifwrule_impl_log">Registar correspondências</string>
-    <string name="feature_ifwrule_impl_log_summary">Ver intents correspondentes no registo do sistema</string>
-    <string name="feature_ifwrule_impl_monitor_only">Apenas monitorizar (sem bloqueio)</string>
-    <string name="feature_ifwrule_impl_monitor_only_summary">A regra apenas regista e não bloqueia. Útil para observar antes de ativar</string>
-    <string name="feature_ifwrule_impl_advanced_rule_banner">Regra avançada (só leitura)</string>
-    <string name="feature_ifwrule_impl_advanced_rule_delete">Eliminar e recriar</string>
-    <string name="feature_ifwrule_impl_unsaved_title">Alterações não guardadas</string>
-    <string name="feature_ifwrule_impl_unsaved_message">Tem alterações não guardadas. Tem a certeza de que quer sair?</string>
+    <string name="feature_ifwrule_api_title">Regras de interceção</string>
+    <string name="feature_ifwrule_api_block_all">Bloquear todas as chamadas (desativação total)</string>
+    <string name="feature_ifwrule_api_block_conditional">Bloquear por condição (controlo detalhado)</string>
+    <string name="feature_ifwrule_api_block_mode">Modo de bloqueio</string>
+    <string name="feature_ifwrule_api_conditions">Condições</string>
+    <string name="feature_ifwrule_api_save">Guardar regra</string>
+    <string name="feature_ifwrule_api_advanced_options">Opções avançadas</string>
+    <string name="feature_ifwrule_api_log">Registar correspondências</string>
+    <string name="feature_ifwrule_api_log_summary">Ver intents correspondentes no registo do sistema</string>
+    <string name="feature_ifwrule_api_monitor_only">Apenas monitorizar (sem bloqueio)</string>
+    <string name="feature_ifwrule_api_monitor_only_summary">A regra apenas regista e não bloqueia. Útil para observar antes de ativar</string>
+    <string name="feature_ifwrule_api_advanced_rule_banner">Regra avançada (só leitura)</string>
+    <string name="feature_ifwrule_api_advanced_rule_delete">Eliminar e recriar</string>
+    <string name="feature_ifwrule_api_unsaved_title">Alterações não guardadas</string>
+    <string name="feature_ifwrule_api_unsaved_message">Tem alterações não guardadas. Tem a certeza de que quer sair?</string>
 </resources>

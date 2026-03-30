@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_ifwrule_impl_title">قواعد الاعتراض</string>
-    <string name="feature_ifwrule_impl_block_all">حظر جميع الاستدعاءات (تعطيل كامل)</string>
-    <string name="feature_ifwrule_impl_block_conditional">الحظر حسب الشرط (تحكم دقيق)</string>
-    <string name="feature_ifwrule_impl_block_mode">وضع الحظر</string>
-    <string name="feature_ifwrule_impl_conditions">الشروط</string>
-    <string name="feature_ifwrule_impl_save">حفظ القاعدة</string>
-    <string name="feature_ifwrule_impl_advanced_options">خيارات متقدمة</string>
-    <string name="feature_ifwrule_impl_log">تسجيل المطابقات</string>
-    <string name="feature_ifwrule_impl_log_summary">عرض الـ Intent المطابق في سجل النظام</string>
-    <string name="feature_ifwrule_impl_monitor_only">مراقبة فقط (بدون حظر)</string>
-    <string name="feature_ifwrule_impl_monitor_only_summary">تسجّل القاعدة فقط ولا تحظر. مفيد للمراقبة قبل التفعيل</string>
-    <string name="feature_ifwrule_impl_advanced_rule_banner">قاعدة متقدمة (للقراءة فقط)</string>
-    <string name="feature_ifwrule_impl_advanced_rule_delete">احذف وأعد الإنشاء</string>
-    <string name="feature_ifwrule_impl_unsaved_title">تغييرات غير محفوظة</string>
-    <string name="feature_ifwrule_impl_unsaved_message">لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟</string>
+    <string name="feature_ifwrule_api_title">قواعد الاعتراض</string>
+    <string name="feature_ifwrule_api_block_all">حظر جميع الاستدعاءات (تعطيل كامل)</string>
+    <string name="feature_ifwrule_api_block_conditional">الحظر حسب الشرط (تحكم دقيق)</string>
+    <string name="feature_ifwrule_api_block_mode">وضع الحظر</string>
+    <string name="feature_ifwrule_api_conditions">الشروط</string>
+    <string name="feature_ifwrule_api_save">حفظ القاعدة</string>
+    <string name="feature_ifwrule_api_advanced_options">خيارات متقدمة</string>
+    <string name="feature_ifwrule_api_log">تسجيل المطابقات</string>
+    <string name="feature_ifwrule_api_log_summary">عرض الـ Intent المطابق في سجل النظام</string>
+    <string name="feature_ifwrule_api_monitor_only">مراقبة فقط (بدون حظر)</string>
+    <string name="feature_ifwrule_api_monitor_only_summary">تسجّل القاعدة فقط ولا تحظر. مفيد للمراقبة قبل التفعيل</string>
+    <string name="feature_ifwrule_api_advanced_rule_banner">قاعدة متقدمة (للقراءة فقط)</string>
+    <string name="feature_ifwrule_api_advanced_rule_delete">احذف وأعد الإنشاء</string>
+    <string name="feature_ifwrule_api_unsaved_title">تغييرات غير محفوظة</string>
+    <string name="feature_ifwrule_api_unsaved_message">لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟</string>
 </resources>

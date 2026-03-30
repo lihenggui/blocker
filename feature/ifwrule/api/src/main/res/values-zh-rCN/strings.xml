@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_ifwrule_impl_title">拦截规则</string>
-    <string name="feature_ifwrule_impl_block_all">阻止所有调用（完全禁用）</string>
-    <string name="feature_ifwrule_impl_block_conditional">按条件拦截（精细控制）</string>
-    <string name="feature_ifwrule_impl_block_mode">拦截方式</string>
-    <string name="feature_ifwrule_impl_conditions">拦截条件</string>
-    <string name="feature_ifwrule_impl_save">保存规则</string>
-    <string name="feature_ifwrule_impl_advanced_options">高级选项</string>
-    <string name="feature_ifwrule_impl_log">记录日志</string>
-    <string name="feature_ifwrule_impl_log_summary">开启后可在系统日志中查看匹配记录</string>
-    <string name="feature_ifwrule_impl_monitor_only">仅记录不阻断</string>
-    <string name="feature_ifwrule_impl_monitor_only_summary">开启后规则只记录不实际拦截，适合先观察再决定</string>
-    <string name="feature_ifwrule_impl_advanced_rule_banner">高级规则（只读）</string>
-    <string name="feature_ifwrule_impl_advanced_rule_delete">删除并重新创建</string>
-    <string name="feature_ifwrule_impl_unsaved_title">未保存的更改</string>
-    <string name="feature_ifwrule_impl_unsaved_message">你有未保存的更改，确定要离开吗？</string>
+    <string name="feature_ifwrule_api_title">拦截规则</string>
+    <string name="feature_ifwrule_api_block_all">阻止所有调用（完全禁用）</string>
+    <string name="feature_ifwrule_api_block_conditional">按条件拦截（精细控制）</string>
+    <string name="feature_ifwrule_api_block_mode">拦截方式</string>
+    <string name="feature_ifwrule_api_conditions">拦截条件</string>
+    <string name="feature_ifwrule_api_save">保存规则</string>
+    <string name="feature_ifwrule_api_advanced_options">高级选项</string>
+    <string name="feature_ifwrule_api_log">记录日志</string>
+    <string name="feature_ifwrule_api_log_summary">开启后可在系统日志中查看匹配记录</string>
+    <string name="feature_ifwrule_api_monitor_only">仅记录不阻断</string>
+    <string name="feature_ifwrule_api_monitor_only_summary">开启后规则只记录不实际拦截，适合先观察再决定</string>
+    <string name="feature_ifwrule_api_advanced_rule_banner">高级规则（只读）</string>
+    <string name="feature_ifwrule_api_advanced_rule_delete">删除并重新创建</string>
+    <string name="feature_ifwrule_api_unsaved_title">未保存的更改</string>
+    <string name="feature_ifwrule_api_unsaved_message">你有未保存的更改，确定要离开吗？</string>
 </resources>
