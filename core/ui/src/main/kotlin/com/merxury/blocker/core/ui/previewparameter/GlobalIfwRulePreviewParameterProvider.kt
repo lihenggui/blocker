@@ -27,7 +27,6 @@ import com.merxury.blocker.core.model.data.RuleItemPresentationUiState
 import com.merxury.blocker.core.model.data.RuleItemUiState
 import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
 import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
-import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
@@ -48,70 +47,6 @@ class AdvancedRuleDetailPreviewParameterProvider : PreviewParameterProvider<Adva
         GlobalIfwRulePreviewParameterData.advancedRuleDetail,
     )
 }
-
-class SimpleGlobalIfwRuleScreenPreviewParameterProvider : PreviewParameterProvider<SimpleGlobalIfwRuleScreenPreviewState> {
-    override val values: Sequence<SimpleGlobalIfwRuleScreenPreviewState> = sequenceOf(
-        SimpleGlobalIfwRuleScreenPreviewState(
-            draft = SimpleGlobalIfwRuleDraft(),
-        ),
-        SimpleGlobalIfwRuleScreenPreviewState(
-            draft = SimpleGlobalIfwRuleDraft(
-                selectedPackageName = GlobalIfwRulePreviewParameterData.PREVIEW_SIMPLE_RULE_PACKAGE_NAME,
-                componentType = IfwComponentType.BROADCAST,
-                targetMode = SimpleTargetMode.MULTIPLE,
-                targets = listOf(
-                    GlobalIfwRulePreviewParameterData.PREVIEW_BOOT_RECEIVER_NAME,
-                    GlobalIfwRulePreviewParameterData.PREVIEW_ALARM_RECEIVER_NAME,
-                ),
-                action = "android.intent.action.BOOT_COMPLETED",
-                category = "android.intent.category.DEFAULT",
-                callerPackage = "android",
-            ),
-            isDirty = true,
-            selectedPackageLabel = "Spotify",
-            visibleComponents = GlobalIfwRulePreviewParameterData.simpleRuleComponents(
-                selectedTargets = setOf(
-                    GlobalIfwRulePreviewParameterData.PREVIEW_BOOT_RECEIVER_NAME,
-                    GlobalIfwRulePreviewParameterData.PREVIEW_ALARM_RECEIVER_NAME,
-                ),
-            ),
-        ),
-        SimpleGlobalIfwRuleScreenPreviewState(
-            draft = SimpleGlobalIfwRuleDraft(
-                selectedPackageName = GlobalIfwRulePreviewParameterData.PREVIEW_SIMPLE_RULE_PACKAGE_NAME,
-                componentType = IfwComponentType.BROADCAST,
-            ),
-            selectedPackageLabel = "Spotify",
-            isComponentLoading = true,
-        ),
-        SimpleGlobalIfwRuleScreenPreviewState(
-            draft = SimpleGlobalIfwRuleDraft(
-                selectedPackageName = GlobalIfwRulePreviewParameterData.PREVIEW_SIMPLE_RULE_PACKAGE_NAME,
-                componentType = IfwComponentType.BROADCAST,
-            ),
-            selectedPackageLabel = "Spotify",
-            componentQuery = "widget",
-        ),
-        SimpleGlobalIfwRuleScreenPreviewState(
-            draft = SimpleGlobalIfwRuleDraft(
-                selectedPackageName = GlobalIfwRulePreviewParameterData.PREVIEW_SIMPLE_RULE_PACKAGE_NAME,
-                componentType = IfwComponentType.BROADCAST,
-            ),
-            selectedPackageLabel = "Spotify",
-            componentLoadError = "Failed to query receivers for this package.",
-        ),
-    )
-}
-
-data class SimpleGlobalIfwRuleScreenPreviewState(
-    val draft: SimpleGlobalIfwRuleDraft,
-    val isDirty: Boolean = false,
-    val selectedPackageLabel: String? = null,
-    val componentQuery: String = "",
-    val visibleComponents: List<SimpleRuleComponentUiState> = emptyList(),
-    val isComponentLoading: Boolean = false,
-    val componentLoadError: String? = null,
-)
 
 object GlobalIfwRulePreviewParameterData {
     const val PREVIEW_SIMPLE_RULE_PACKAGE_NAME = "com.spotify.music"
