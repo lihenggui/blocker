@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
 import com.merxury.blocker.core.model.data.SimpleTargetMode
+import com.merxury.blocker.feature.globalifwrule.api.R
 
 @Composable
 internal fun SectionTitle(
@@ -90,7 +91,7 @@ internal fun ComponentSelectionContent(
         when {
             isLoading -> {
                 Text(
-                    text = stringResource(R.string.feature_globalifwrule_impl_loading_components),
+                    text = stringResource(R.string.feature_globalifwrule_api_loading_components),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -106,7 +107,7 @@ internal fun ComponentSelectionContent(
 
             components.isEmpty() -> {
                 Text(
-                    text = stringResource(R.string.feature_globalifwrule_impl_no_components),
+                    text = stringResource(R.string.feature_globalifwrule_api_no_components),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

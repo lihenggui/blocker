@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.globalifwrule.impl
 
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.core.model.data.AdvancedRuleDetailPresentationUiState
 import com.merxury.blocker.core.model.data.AdvancedRuleDetailUiState
 import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
 import com.merxury.blocker.core.model.data.RuleItemPresentationUiState
@@ -168,15 +169,22 @@ internal fun IfwRule.toRuleItemUiState(
     )
 }
 
-internal fun AdvancedGlobalIfwRuleDraft.toDetailUiState(): AdvancedRuleDetailUiState = AdvancedRuleDetailUiState(
-    storagePackageName = storagePackageName,
-    componentType = componentType,
-    block = block,
-    log = log,
-    filtersSummary = toSummary(),
-    ruleIndex = editingRuleIndex ?: -1,
-    draft = this,
-)
+internal fun AdvancedGlobalIfwRuleDraft.toDetailUiState(): AdvancedRuleDetailUiState {
+    val filtersSummary = toSummary()
+    return AdvancedRuleDetailUiState(
+        storagePackageName = storagePackageName,
+        componentType = componentType,
+        block = block,
+        log = log,
+        filtersSummary = filtersSummary,
+        presentation = buildAdvancedRuleDetailPresentation(
+            advancedDraft = this,
+            filtersSummary = filtersSummary,
+        ),
+        ruleIndex = editingRuleIndex ?: -1,
+        draft = this,
+    )
+}
 
 internal fun SimpleGlobalIfwRuleDraft.toSummary(): String = buildList {
     val names = targets.map { target -> target.toDisplayName(selectedPackageName) }
@@ -226,11 +234,7 @@ private fun buildRuleItemPresentation(
     advancedDraft: AdvancedGlobalIfwRuleDraft,
     filtersSummary: String,
 ): RuleItemPresentationUiState {
-    val summaryLines = filtersSummary
-        .lineSequence()
-        .map { line -> line.trim() }
-        .filter { line -> line.isNotEmpty() }
-        .toList()
+    val summaryLines = filtersSummary.toSummaryLines()
 
     val packageName = simpleDraft?.selectedPackageName ?: advancedDraft.storagePackageName
     val rawTargetPath = when {
@@ -260,6 +264,28 @@ private fun buildRuleItemPresentation(
         title = title,
         targetPath = targetPath,
         supportingText = supportingText,
+    )
+}
+
+private fun buildAdvancedRuleDetailPresentation(
+    advancedDraft: AdvancedGlobalIfwRuleDraft,
+    filtersSummary: String,
+): AdvancedRuleDetailPresentationUiState {
+    val summaryLines = filtersSummary.toSummaryLines()
+    val rawTargetPath = advancedDraft.rootGroup.findFirstTargetPath()
+    val title = when {
+        rawTargetPath != null -> rawTargetPath.toDisplayName(advancedDraft.storagePackageName)
+        else -> summaryLines.firstOrNull()?.takeUnless { line -> line.startsWith("intent-filter:") }
+    }
+    val targetPath = rawTargetPath?.takeUnless { target -> target == title }
+    val conditionLines = summaryLines.ifEmpty {
+        listOfNotNull(rawTargetPath ?: title)
+    }
+
+    return AdvancedRuleDetailPresentationUiState(
+        title = title,
+        targetPath = targetPath,
+        conditionLines = conditionLines,
     )
 }
 
@@ -293,6 +319,11 @@ private fun String.isRuleTargetSummary(): Boolean = !startsWith("intent-filter:"
     !contains(" AND ") &&
     !contains(" OR ") &&
     !startsWith("NOT (")
+
+private fun String.toSummaryLines(): List<String> = lineSequence()
+    .map { line -> line.trim() }
+    .filter { line -> line.isNotEmpty() }
+    .toList()
 
 private fun String.toDisplayName(packageName: String): String {
     val componentName = substringAfter("/")

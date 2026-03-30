@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.core.ifw.model.IfwComponentType
 
 @Composable
@@ -55,7 +56,7 @@ internal fun IntentFilterBanner(
         modifier = modifier.fillMaxWidth(),
     ) {
         Text(
-            text = stringResource(R.string.feature_globalifwrule_impl_intent_filters_preserved),
+            text = stringResource(R.string.feature_globalifwrule_api_intent_filters_preserved),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.padding(16.dp),
@@ -86,7 +87,7 @@ internal fun RuleEditorTopBar(
             ) {
                 Icon(
                     imageVector = BlockerIcons.Check,
-                    contentDescription = stringResource(R.string.feature_globalifwrule_impl_save),
+                    contentDescription = stringResource(R.string.feature_globalifwrule_api_save),
                 )
             }
         },
@@ -115,7 +116,7 @@ internal fun ComponentTypeDropdown(
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-            label = { Text(stringResource(R.string.feature_globalifwrule_impl_rule_type)) },
+            label = { Text(stringResource(R.string.feature_globalifwrule_api_rule_type)) },
         )
         ExposedDropdownMenu(
             expanded = expanded,

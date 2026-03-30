@@ -49,6 +49,7 @@ import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
 import com.merxury.blocker.core.ui.previewparameter.AdvancedGlobalIfwRuleScreenPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.AdvancedGlobalIfwRuleScreenPreviewState
 import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
+import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.model.IfwComponentType
@@ -81,9 +82,9 @@ fun AdvancedGlobalIfwRuleScreen(
         RuleEditorTopBar(
             title = stringResource(
                 if (isEditing) {
-                    R.string.feature_globalifwrule_impl_edit_advanced_rule
+                    R.string.feature_globalifwrule_api_edit_advanced_rule
                 } else {
-                    R.string.feature_globalifwrule_impl_add_advanced_rule
+                    R.string.feature_globalifwrule_api_add_advanced_rule
                 },
             ),
             canSave = draft.canSave,
@@ -100,9 +101,9 @@ fun AdvancedGlobalIfwRuleScreen(
             OutlinedTextField(
                 value = draft.storagePackageName,
                 onValueChange = onPackageNameChange,
-                label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_package)) },
+                label = { Text(stringResource(R.string.feature_globalifwrule_api_target_package)) },
                 supportingText = {
-                    Text(stringResource(R.string.feature_globalifwrule_impl_target_package_summary))
+                    Text(stringResource(R.string.feature_globalifwrule_api_target_package_summary))
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -116,12 +117,12 @@ fun AdvancedGlobalIfwRuleScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_block),
+                label = stringResource(R.string.feature_globalifwrule_api_block),
                 checked = draft.block,
                 onCheckedChange = onBlockChange,
             )
             SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_log),
+                label = stringResource(R.string.feature_globalifwrule_api_log),
                 checked = draft.log,
                 onCheckedChange = onLogChange,
             )
@@ -134,7 +135,7 @@ fun AdvancedGlobalIfwRuleScreen(
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider()
             Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_conditions),
+                text = stringResource(R.string.feature_globalifwrule_api_conditions),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
@@ -145,7 +146,7 @@ fun AdvancedGlobalIfwRuleScreen(
             if (!draft.hasReadOnlyIntentFilters && !draft.rootGroup.hasTopLevelComponentFilter()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = stringResource(R.string.feature_globalifwrule_impl_selector_required),
+                    text = stringResource(R.string.feature_globalifwrule_api_selector_required),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -159,8 +160,8 @@ fun AdvancedGlobalIfwRuleScreen(
     if (showUnsavedDialog) {
         BlockerWarningAlertDialog(
             onDismissRequest = { showUnsavedDialog = false },
-            title = stringResource(R.string.feature_globalifwrule_impl_unsaved_title),
-            text = stringResource(R.string.feature_globalifwrule_impl_unsaved_message),
+            title = stringResource(R.string.feature_globalifwrule_api_unsaved_title),
+            text = stringResource(R.string.feature_globalifwrule_api_unsaved_message),
             onConfirmRequest = {
                 showUnsavedDialog = false
                 onBack()

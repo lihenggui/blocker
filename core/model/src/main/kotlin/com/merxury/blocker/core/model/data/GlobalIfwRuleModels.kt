@@ -144,8 +144,15 @@ data class AdvancedRuleDetailUiState(
     val block: Boolean,
     val log: Boolean,
     val filtersSummary: String,
+    val presentation: AdvancedRuleDetailPresentationUiState,
     val ruleIndex: Int,
     val draft: AdvancedGlobalIfwRuleDraft,
+)
+
+data class AdvancedRuleDetailPresentationUiState(
+    val title: String?,
+    val targetPath: String?,
+    val conditionLines: List<String>,
 )
 
 data class SimpleRuleComponentUiState(

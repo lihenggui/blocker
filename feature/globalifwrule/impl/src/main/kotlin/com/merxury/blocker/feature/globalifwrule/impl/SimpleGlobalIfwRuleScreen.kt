@@ -51,6 +51,7 @@ import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
 import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.blocker.core.ui.previewparameter.SimpleGlobalIfwRuleScreenPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.SimpleGlobalIfwRuleScreenPreviewState
+import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.core.ifw.model.IfwComponentType
 
 @Composable
@@ -99,9 +100,9 @@ fun SimpleGlobalIfwRuleScreen(
         RuleEditorTopBar(
             title = stringResource(
                 if (isEditing) {
-                    R.string.feature_globalifwrule_impl_edit_rule
+                    R.string.feature_globalifwrule_api_edit_rule
                 } else {
-                    R.string.feature_globalifwrule_impl_add_rule
+                    R.string.feature_globalifwrule_api_add_rule
                 },
             ),
             canSave = draft.canSave,
@@ -116,7 +117,7 @@ fun SimpleGlobalIfwRuleScreen(
                 .padding(horizontal = 16.dp),
         ) {
             Spacer(modifier = Modifier.height(8.dp))
-            SectionTitle(title = stringResource(R.string.feature_globalifwrule_impl_target_section))
+            SectionTitle(title = stringResource(R.string.feature_globalifwrule_api_target_section))
             ComponentTypeDropdown(
                 selected = draft.componentType,
                 onSelect = onComponentTypeChange,
@@ -124,16 +125,16 @@ fun SimpleGlobalIfwRuleScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_target_mode),
+                text = stringResource(R.string.feature_globalifwrule_api_target_mode),
                 style = MaterialTheme.typography.titleSmall,
             )
             TargetModeRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_target_mode_single),
+                label = stringResource(R.string.feature_globalifwrule_api_target_mode_single),
                 selected = draft.targetMode == SimpleTargetMode.SINGLE,
                 onClick = { onTargetModeChange(SimpleTargetMode.SINGLE) },
             )
             TargetModeRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_target_mode_multiple),
+                label = stringResource(R.string.feature_globalifwrule_api_target_mode_multiple),
                 selected = draft.targetMode == SimpleTargetMode.MULTIPLE,
                 onClick = { onTargetModeChange(SimpleTargetMode.MULTIPLE) },
             )
@@ -142,17 +143,17 @@ fun SimpleGlobalIfwRuleScreen(
             OutlinedTextField(
                 value = draft.selectedPackageName,
                 onValueChange = onPackageNameChange,
-                label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_app_package)) },
+                label = { Text(stringResource(R.string.feature_globalifwrule_api_target_app_package)) },
                 singleLine = true,
                 supportingText = {
                     Text(
                         text = if (selectedPackageLabel != null) {
                             stringResource(
-                                R.string.feature_globalifwrule_impl_target_app_package_label,
+                                R.string.feature_globalifwrule_api_target_app_package_label,
                                 selectedPackageLabel,
                             )
                         } else {
-                            stringResource(R.string.feature_globalifwrule_impl_target_app_package_summary)
+                            stringResource(R.string.feature_globalifwrule_api_target_app_package_summary)
                         },
                     )
                 },
@@ -162,13 +163,13 @@ fun SimpleGlobalIfwRuleScreen(
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider()
             Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_target_component),
+                text = stringResource(R.string.feature_globalifwrule_api_target_component),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
             if (draft.selectedPackageName.isBlank()) {
                 Text(
-                    text = stringResource(R.string.feature_globalifwrule_impl_target_component_hint),
+                    text = stringResource(R.string.feature_globalifwrule_api_target_component_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -176,7 +177,7 @@ fun SimpleGlobalIfwRuleScreen(
                 OutlinedTextField(
                     value = componentQuery,
                     onValueChange = onComponentQueryChange,
-                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_component_search)) },
+                    label = { Text(stringResource(R.string.feature_globalifwrule_api_target_component_search)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -192,7 +193,7 @@ fun SimpleGlobalIfwRuleScreen(
                 if (draft.targets.isEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = stringResource(R.string.feature_globalifwrule_impl_target_required),
+                        text = stringResource(R.string.feature_globalifwrule_api_target_required),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
                     )
@@ -202,17 +203,17 @@ fun SimpleGlobalIfwRuleScreen(
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider()
             Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_behavior_section),
+                text = stringResource(R.string.feature_globalifwrule_api_behavior_section),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
             SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_block),
+                label = stringResource(R.string.feature_globalifwrule_api_block),
                 checked = draft.block,
                 onCheckedChange = onBlockChange,
             )
             SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_log),
+                label = stringResource(R.string.feature_globalifwrule_api_log),
                 checked = draft.log,
                 onCheckedChange = onLogChange,
             )
@@ -220,20 +221,20 @@ fun SimpleGlobalIfwRuleScreen(
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider()
             Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_optional_conditions),
+                text = stringResource(R.string.feature_globalifwrule_api_optional_conditions),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
             if (!showOptionalConditions) {
                 BlockerOutlinedButton(
-                    text = { Text(stringResource(R.string.feature_globalifwrule_impl_optional_conditions_show)) },
+                    text = { Text(stringResource(R.string.feature_globalifwrule_api_optional_conditions_show)) },
                     onClick = { showOptionalConditions = true },
                 )
             } else {
                 OutlinedTextField(
                     value = draft.action,
                     onValueChange = onActionChange,
-                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_optional_action)) },
+                    label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_action)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -241,7 +242,7 @@ fun SimpleGlobalIfwRuleScreen(
                 OutlinedTextField(
                     value = draft.category,
                     onValueChange = onCategoryChange,
-                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_optional_category)) },
+                    label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_category)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -249,7 +250,7 @@ fun SimpleGlobalIfwRuleScreen(
                 OutlinedTextField(
                     value = draft.callerPackage,
                     onValueChange = onCallerPackageChange,
-                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_optional_caller_package)) },
+                    label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_caller_package)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -263,8 +264,8 @@ fun SimpleGlobalIfwRuleScreen(
     if (showUnsavedDialog) {
         BlockerWarningAlertDialog(
             onDismissRequest = { showUnsavedDialog = false },
-            title = stringResource(R.string.feature_globalifwrule_impl_unsaved_title),
-            text = stringResource(R.string.feature_globalifwrule_impl_unsaved_message),
+            title = stringResource(R.string.feature_globalifwrule_api_unsaved_title),
+            text = stringResource(R.string.feature_globalifwrule_api_unsaved_message),
             onConfirmRequest = {
                 showUnsavedDialog = false
                 onBack()

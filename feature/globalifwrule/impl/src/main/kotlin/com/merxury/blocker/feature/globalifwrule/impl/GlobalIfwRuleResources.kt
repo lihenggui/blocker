@@ -16,11 +16,12 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
+import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.core.ifw.model.IfwComponentType
 
 val IfwComponentType.labelRes: Int
     get() = when (this) {
-        IfwComponentType.ACTIVITY -> R.string.feature_globalifwrule_impl_rule_type_activity
-        IfwComponentType.BROADCAST -> R.string.feature_globalifwrule_impl_rule_type_broadcast
-        IfwComponentType.SERVICE -> R.string.feature_globalifwrule_impl_rule_type_service
+        IfwComponentType.ACTIVITY -> R.string.feature_globalifwrule_api_rule_type_activity
+        IfwComponentType.BROADCAST -> R.string.feature_globalifwrule_api_rule_type_broadcast
+        IfwComponentType.SERVICE -> R.string.feature_globalifwrule_api_rule_type_service
     }

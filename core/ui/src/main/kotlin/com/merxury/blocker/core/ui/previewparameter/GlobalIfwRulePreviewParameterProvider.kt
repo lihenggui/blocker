@@ -18,6 +18,7 @@ package com.merxury.blocker.core.ui.previewparameter
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.core.model.data.AdvancedRuleDetailPresentationUiState
 import com.merxury.blocker.core.model.data.AdvancedRuleDetailUiState
 import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
 import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
@@ -230,6 +231,14 @@ object GlobalIfwRulePreviewParameterData {
         block = true,
         log = false,
         filtersSummary = "ShareActivity\naction = android.intent.action.SEND",
+        presentation = AdvancedRuleDetailPresentationUiState(
+            title = "ShareActivity",
+            targetPath = "com.spotify.music/.share.ShareActivity",
+            conditionLines = listOf(
+                "ShareActivity",
+                "action = android.intent.action.SEND",
+            ),
+        ),
         ruleIndex = 1,
         draft = detailDraft,
     )
