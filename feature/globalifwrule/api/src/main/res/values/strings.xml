@@ -29,13 +29,13 @@
     <string name="feature_globalifwrule_api_target_component_hint">Choose an app package first, then pick the components to intercept.</string>
     <string name="feature_globalifwrule_api_target_component_search">Filter components</string>
     <string name="feature_globalifwrule_api_target_required">Select at least one component.</string>
-    <string name="feature_globalifwrule_api_loading_components">Loading components...</string>
+    <string name="feature_globalifwrule_api_loading_components">Loading components…</string>
     <string name="feature_globalifwrule_api_no_components">No matching components found.</string>
     <string name="feature_globalifwrule_api_behavior_section">Behavior</string>
     <string name="feature_globalifwrule_api_optional_conditions">Optional conditions</string>
     <string name="feature_globalifwrule_api_optional_conditions_show">Add optional conditions</string>
-    <string name="feature_globalifwrule_api_optional_action">Action</string>
-    <string name="feature_globalifwrule_api_optional_category">Category</string>
+    <string name="feature_globalifwrule_api_optional_action">Intent action</string>
+    <string name="feature_globalifwrule_api_optional_category">Intent category</string>
     <string name="feature_globalifwrule_api_optional_caller_package">Caller package</string>
     <string name="feature_globalifwrule_api_target_package">Rule file package</string>
     <string name="feature_globalifwrule_api_target_package_summary">Used to group the IFW XML file. Matching still depends on the conditions below.</string>

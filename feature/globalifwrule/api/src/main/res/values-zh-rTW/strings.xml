@@ -29,13 +29,13 @@
     <string name="feature_globalifwrule_api_target_component_hint">先選擇應用套件名，再選擇要攔截的元件。</string>
     <string name="feature_globalifwrule_api_target_component_search">篩選元件</string>
     <string name="feature_globalifwrule_api_target_required">至少選擇一個元件。</string>
-    <string name="feature_globalifwrule_api_loading_components">正在載入元件...</string>
+    <string name="feature_globalifwrule_api_loading_components">正在載入元件…</string>
     <string name="feature_globalifwrule_api_no_components">找不到相符的元件。</string>
     <string name="feature_globalifwrule_api_behavior_section">行為</string>
     <string name="feature_globalifwrule_api_optional_conditions">附加條件</string>
     <string name="feature_globalifwrule_api_optional_conditions_show">新增附加條件</string>
-    <string name="feature_globalifwrule_api_optional_action">Action</string>
-    <string name="feature_globalifwrule_api_optional_category">Category</string>
+    <string name="feature_globalifwrule_api_optional_action">Intent 動作</string>
+    <string name="feature_globalifwrule_api_optional_category">Intent 類別</string>
     <string name="feature_globalifwrule_api_optional_caller_package">呼叫方套件名</string>
     <string name="feature_globalifwrule_api_target_package">規則檔案套件名</string>
     <string name="feature_globalifwrule_api_target_package_summary">此欄位僅用於歸檔 IFW XML 檔案，實際匹配仍取決於下方條件。</string>

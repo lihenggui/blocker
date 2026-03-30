@@ -9,7 +9,7 @@
     <string name="feature_globalifwrule_api_edit_advanced_rule">Editar regra avancada</string>
     <string name="feature_globalifwrule_api_delete_rule">Excluir regra</string>
     <string name="feature_globalifwrule_api_delete_confirm">Excluir esta regra de intercepcao?</string>
-    <string name="feature_globalifwrule_api_delete_confirm_message">Esta acao nao pode ser desfeita.</string>
+    <string name="feature_globalifwrule_api_delete_confirm_message">Esta acao não pode ser desfeita.</string>
     <string name="feature_globalifwrule_api_rule_type">Tipo de regra</string>
     <string name="feature_globalifwrule_api_rule_type_activity">Atividade</string>
     <string name="feature_globalifwrule_api_rule_type_broadcast">Receptor de transmissao</string>
@@ -20,8 +20,8 @@
     <string name="feature_globalifwrule_api_save">Salvar regra</string>
     <string name="feature_globalifwrule_api_target_section">Alvo de intercepcao</string>
     <string name="feature_globalifwrule_api_target_mode">Modo de alvo</string>
-    <string name="feature_globalifwrule_api_target_mode_single">Componente unico</string>
-    <string name="feature_globalifwrule_api_target_mode_multiple">Varios componentes</string>
+    <string name="feature_globalifwrule_api_target_mode_single">Componente único</string>
+    <string name="feature_globalifwrule_api_target_mode_multiple">Vários componentes</string>
     <string name="feature_globalifwrule_api_target_app_package">Pacote do app de destino</string>
     <string name="feature_globalifwrule_api_target_app_package_summary">Digite o nome de um pacote instalado para carregar os componentes correspondentes.</string>
     <string name="feature_globalifwrule_api_target_app_package_label">App: %1$s</string>
@@ -29,21 +29,21 @@
     <string name="feature_globalifwrule_api_target_component_hint">Escolha primeiro um app e depois os componentes que deseja interceptar.</string>
     <string name="feature_globalifwrule_api_target_component_search">Filtrar componentes</string>
     <string name="feature_globalifwrule_api_target_required">Selecione pelo menos um componente.</string>
-    <string name="feature_globalifwrule_api_loading_components">Carregando componentes...</string>
+    <string name="feature_globalifwrule_api_loading_components">Carregando componentes…</string>
     <string name="feature_globalifwrule_api_no_components">Nenhum componente correspondente encontrado.</string>
     <string name="feature_globalifwrule_api_behavior_section">Comportamento</string>
     <string name="feature_globalifwrule_api_optional_conditions">Condicoes opcionais</string>
     <string name="feature_globalifwrule_api_optional_conditions_show">Adicionar condicoes opcionais</string>
-    <string name="feature_globalifwrule_api_optional_action">Acao</string>
-    <string name="feature_globalifwrule_api_optional_category">Categoria</string>
+    <string name="feature_globalifwrule_api_optional_action">Ação do intent</string>
+    <string name="feature_globalifwrule_api_optional_category">Categoria do intent</string>
     <string name="feature_globalifwrule_api_optional_caller_package">Pacote chamador</string>
     <string name="feature_globalifwrule_api_target_package">Pacote do arquivo de regras</string>
     <string name="feature_globalifwrule_api_target_package_summary">Usado para agrupar o arquivo XML do IFW. A correspondencia real ainda depende das condicoes abaixo.</string>
     <string name="feature_globalifwrule_api_advanced_rule">Regra avancada</string>
     <string name="feature_globalifwrule_api_advanced_detail_summary">Salvo em %1$s.xml</string>
     <string name="feature_globalifwrule_api_copy_as_new_advanced_rule">Duplicar regra</string>
-    <string name="feature_globalifwrule_api_intent_filters_preserved">Inclui intent-filters do sistema. Eles serao mantidos ao salvar, mas nao podem ser editados aqui.</string>
+    <string name="feature_globalifwrule_api_intent_filters_preserved">Inclui intent-filters do sistema. Eles serao mantidos ao salvar, mas não podem ser editados aqui.</string>
     <string name="feature_globalifwrule_api_selector_required">Adicione pelo menos uma condicao Exact target component. O IFW nao pode acionar regras globais baseadas apenas em padroes sem um componente alvo concreto.</string>
-    <string name="feature_globalifwrule_api_unsaved_title">Alteracoes nao salvas</string>
-    <string name="feature_globalifwrule_api_unsaved_message">Voce tem alteracoes nao salvas. Tem certeza de que deseja sair?</string>
+    <string name="feature_globalifwrule_api_unsaved_title">Alteracoes não salvas</string>
+    <string name="feature_globalifwrule_api_unsaved_message">Voce tem alteracoes não salvas. Tem certeza de que deseja sair?</string>
 </resources>

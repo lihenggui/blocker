@@ -29,13 +29,13 @@
     <string name="feature_globalifwrule_api_target_component_hint">先选择应用包名，再选择要拦截的组件。</string>
     <string name="feature_globalifwrule_api_target_component_search">筛选组件</string>
     <string name="feature_globalifwrule_api_target_required">至少选择一个组件。</string>
-    <string name="feature_globalifwrule_api_loading_components">正在加载组件...</string>
+    <string name="feature_globalifwrule_api_loading_components">正在加载组件…</string>
     <string name="feature_globalifwrule_api_no_components">没有找到匹配的组件。</string>
     <string name="feature_globalifwrule_api_behavior_section">行为</string>
     <string name="feature_globalifwrule_api_optional_conditions">附加条件</string>
     <string name="feature_globalifwrule_api_optional_conditions_show">添加附加条件</string>
-    <string name="feature_globalifwrule_api_optional_action">Action</string>
-    <string name="feature_globalifwrule_api_optional_category">Category</string>
+    <string name="feature_globalifwrule_api_optional_action">Intent 动作</string>
+    <string name="feature_globalifwrule_api_optional_category">Intent 类别</string>
     <string name="feature_globalifwrule_api_optional_caller_package">调用方包名</string>
     <string name="feature_globalifwrule_api_target_package">规则文件包名</string>
     <string name="feature_globalifwrule_api_target_package_summary">这个字段只用于归档 IFW XML 文件，真正的匹配仍取决于下面的条件。</string>

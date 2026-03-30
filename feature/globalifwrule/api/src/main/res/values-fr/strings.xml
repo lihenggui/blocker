@@ -29,13 +29,13 @@
     <string name="feature_globalifwrule_api_target_component_hint">Choisissez d&apos;abord une application, puis les composants a intercepter.</string>
     <string name="feature_globalifwrule_api_target_component_search">Filtrer les composants</string>
     <string name="feature_globalifwrule_api_target_required">Selectionnez au moins un composant.</string>
-    <string name="feature_globalifwrule_api_loading_components">Chargement des composants...</string>
+    <string name="feature_globalifwrule_api_loading_components">Chargement des composants…</string>
     <string name="feature_globalifwrule_api_no_components">Aucun composant correspondant trouve.</string>
     <string name="feature_globalifwrule_api_behavior_section">Comportement</string>
     <string name="feature_globalifwrule_api_optional_conditions">Conditions facultatives</string>
     <string name="feature_globalifwrule_api_optional_conditions_show">Ajouter des conditions facultatives</string>
-    <string name="feature_globalifwrule_api_optional_action">Action</string>
-    <string name="feature_globalifwrule_api_optional_category">Categorie</string>
+    <string name="feature_globalifwrule_api_optional_action">Action de l’intent</string>
+    <string name="feature_globalifwrule_api_optional_category">Catégorie de l’intent</string>
     <string name="feature_globalifwrule_api_optional_caller_package">Package appelant</string>
     <string name="feature_globalifwrule_api_target_package">Package du fichier de regles</string>
     <string name="feature_globalifwrule_api_target_package_summary">Utilise pour regrouper le fichier XML IFW. La correspondance reelle depend toujours des conditions ci-dessous.</string>

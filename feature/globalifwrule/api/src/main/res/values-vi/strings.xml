@@ -29,13 +29,13 @@
     <string name="feature_globalifwrule_api_target_component_hint">Chon goi ung dung truoc, sau do chon cac thanh phan can chan.</string>
     <string name="feature_globalifwrule_api_target_component_search">Loc thanh phan</string>
     <string name="feature_globalifwrule_api_target_required">Hay chon it nhat mot thanh phan.</string>
-    <string name="feature_globalifwrule_api_loading_components">Dang tai thanh phan...</string>
+    <string name="feature_globalifwrule_api_loading_components">Dang tai thanh phan…</string>
     <string name="feature_globalifwrule_api_no_components">Khong tim thay thanh phan phu hop.</string>
     <string name="feature_globalifwrule_api_behavior_section">Hanh vi</string>
     <string name="feature_globalifwrule_api_optional_conditions">Dieu kien tuy chon</string>
     <string name="feature_globalifwrule_api_optional_conditions_show">Them dieu kien tuy chon</string>
-    <string name="feature_globalifwrule_api_optional_action">Action</string>
-    <string name="feature_globalifwrule_api_optional_category">Category</string>
+    <string name="feature_globalifwrule_api_optional_action">Hành động intent</string>
+    <string name="feature_globalifwrule_api_optional_category">Danh mục intent</string>
     <string name="feature_globalifwrule_api_optional_caller_package">Goi trinh goi</string>
     <string name="feature_globalifwrule_api_target_package">Goi tep quy tac</string>
     <string name="feature_globalifwrule_api_target_package_summary">Duoc dung de nhom tep XML IFW. Viec khop van phu thuoc vao cac dieu kien ben duoi.</string>

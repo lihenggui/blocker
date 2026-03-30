@@ -237,7 +237,7 @@ private fun AdvancedGlobalIfwRuleDetailScreen(
     onCopyAsNew: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
-    ) {
+) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     val detailTitle = detail.presentation.title
         ?: stringResource(R.string.feature_globalifwrule_api_advanced_rule)

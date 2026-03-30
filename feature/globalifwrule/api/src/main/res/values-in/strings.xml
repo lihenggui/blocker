@@ -29,13 +29,13 @@
     <string name="feature_globalifwrule_api_target_component_hint">Pilih paket aplikasi terlebih dahulu, lalu pilih komponen yang akan diintersep.</string>
     <string name="feature_globalifwrule_api_target_component_search">Filter komponen</string>
     <string name="feature_globalifwrule_api_target_required">Pilih setidaknya satu komponen.</string>
-    <string name="feature_globalifwrule_api_loading_components">Memuat komponen...</string>
+    <string name="feature_globalifwrule_api_loading_components">Memuat komponen…</string>
     <string name="feature_globalifwrule_api_no_components">Tidak ada komponen yang cocok.</string>
     <string name="feature_globalifwrule_api_behavior_section">Perilaku</string>
     <string name="feature_globalifwrule_api_optional_conditions">Kondisi opsional</string>
     <string name="feature_globalifwrule_api_optional_conditions_show">Tambahkan kondisi opsional</string>
-    <string name="feature_globalifwrule_api_optional_action">Action</string>
-    <string name="feature_globalifwrule_api_optional_category">Category</string>
+    <string name="feature_globalifwrule_api_optional_action">Aksi intent</string>
+    <string name="feature_globalifwrule_api_optional_category">Kategori intent</string>
     <string name="feature_globalifwrule_api_optional_caller_package">Paket pemanggil</string>
     <string name="feature_globalifwrule_api_target_package">Paket file aturan</string>
     <string name="feature_globalifwrule_api_target_package_summary">Digunakan untuk mengelompokkan file XML IFW. Pencocokan sebenarnya tetap bergantung pada kondisi di bawah.</string>

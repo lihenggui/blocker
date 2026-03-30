@@ -29,13 +29,13 @@
     <string name="feature_globalifwrule_api_target_component_hint">Сначала выберите пакет приложения, затем компоненты для перехвата.</string>
     <string name="feature_globalifwrule_api_target_component_search">Фильтр компонентов</string>
     <string name="feature_globalifwrule_api_target_required">Выберите хотя бы один компонент.</string>
-    <string name="feature_globalifwrule_api_loading_components">Загрузка компонентов...</string>
+    <string name="feature_globalifwrule_api_loading_components">Загрузка компонентов…</string>
     <string name="feature_globalifwrule_api_no_components">Подходящие компоненты не найдены.</string>
     <string name="feature_globalifwrule_api_behavior_section">Поведение</string>
     <string name="feature_globalifwrule_api_optional_conditions">Необязательные условия</string>
     <string name="feature_globalifwrule_api_optional_conditions_show">Добавить необязательные условия</string>
-    <string name="feature_globalifwrule_api_optional_action">Action</string>
-    <string name="feature_globalifwrule_api_optional_category">Category</string>
+    <string name="feature_globalifwrule_api_optional_action">Действие intent</string>
+    <string name="feature_globalifwrule_api_optional_category">Категория intent</string>
     <string name="feature_globalifwrule_api_optional_caller_package">Пакет отправителя</string>
     <string name="feature_globalifwrule_api_target_package">Пакет файла правил</string>
     <string name="feature_globalifwrule_api_target_package_summary">Используется для группировки XML-файла IFW. Фактическое совпадение по-прежнему зависит от условий ниже.</string>
