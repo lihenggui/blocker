@@ -49,8 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
@@ -67,12 +67,12 @@ internal fun GroupEditorCard(
     group: IfwEditorNode.Group,
     depth: Int,
     isRoot: Boolean,
+    modifier: Modifier = Modifier,
     validationMessage: String? = null,
     onUpdate: (IfwEditorNode) -> Unit,
     onDelete: (String) -> Unit,
     onAddGroup: (String) -> Unit,
     onAddCondition: (String) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     var expanded by rememberSaveable(group.id) {
         mutableStateOf(isRoot || group.children.isEmpty())

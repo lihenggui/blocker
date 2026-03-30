@@ -33,8 +33,8 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerOutlinedCard(
-    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     color: Color = Color.Transparent,
     outerPadding: Dp = 8.dp,
     content: @Composable ColumnScope.() -> Unit = {},
