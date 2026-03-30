@@ -109,6 +109,8 @@ fun AdvancedGlobalIfwRuleScreen(
                 .padding(horizontal = 16.dp),
         ) {
             Spacer(modifier = Modifier.height(8.dp))
+            SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_target_section))
+            Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = draft.storagePackageName,
                 onValueChange = onPackageNameChange,
@@ -127,19 +129,29 @@ fun AdvancedGlobalIfwRuleScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_api_block),
-                checked = draft.block,
-                onCheckedChange = onBlockChange,
-            )
-            SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_api_log),
-                checked = draft.log,
-                onCheckedChange = onLogChange,
-            )
+            SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_behavior_section))
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shape = MaterialTheme.shapes.medium,
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    SwitchRow(
+                        label = stringResource(R.string.feature_globalifwrule_api_block),
+                        checked = draft.block,
+                        onCheckedChange = onBlockChange,
+                    )
+                    SwitchRow(
+                        label = stringResource(R.string.feature_globalifwrule_api_log),
+                        checked = draft.log,
+                        onCheckedChange = onLogChange,
+                    )
+                }
+            }
 
             if (draft.hasReadOnlyIntentFilters) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 IntentFilterBanner()
             }
 
@@ -170,6 +182,19 @@ fun AdvancedGlobalIfwRuleScreen(
             },
         )
     }
+}
+
+@Composable
+private fun SectionLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier,
+    )
 }
 
 @Composable

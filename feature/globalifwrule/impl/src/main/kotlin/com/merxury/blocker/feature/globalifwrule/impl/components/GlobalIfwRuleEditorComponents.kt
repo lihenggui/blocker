@@ -29,8 +29,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -46,8 +44,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
+import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.core.ifw.model.IfwComponentType
 
@@ -56,15 +54,15 @@ internal fun IntentFilterBanner(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         shape = MaterialTheme.shapes.medium,
         modifier = modifier.fillMaxWidth(),
     ) {
         Text(
             text = stringResource(R.string.feature_globalifwrule_api_intent_filters_preserved),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         )
     }
 }
@@ -82,7 +80,7 @@ internal fun RuleEditorTopBar(
         hasNavigationIcon = true,
         onNavigationClick = onBack,
         actions = {
-            IconButton(
+            BlockerTextButton(
                 enabled = canSave,
                 onClick = {
                     if (canSave) {
@@ -90,10 +88,7 @@ internal fun RuleEditorTopBar(
                     }
                 },
             ) {
-                Icon(
-                    imageVector = BlockerIcons.Check,
-                    contentDescription = stringResource(R.string.feature_globalifwrule_api_save),
-                )
+                Text(text = stringResource(R.string.feature_globalifwrule_api_save))
             }
         },
         modifier = modifier,

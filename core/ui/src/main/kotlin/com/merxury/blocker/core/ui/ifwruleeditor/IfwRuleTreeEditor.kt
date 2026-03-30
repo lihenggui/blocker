@@ -19,12 +19,22 @@
 package com.merxury.blocker.core.ui.ifwruleeditor
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
+import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.addNode
 import com.merxury.core.ifw.editor.newIfwEditorId
@@ -78,4 +88,53 @@ fun IfwRuleTreeEditor(
             },
         )
     }
+}
+
+@Composable
+private fun IfwRuleTreeEditorPreview(
+    initialRootGroup: IfwEditorNode.Group,
+    validationMessage: String? = null,
+) {
+    var previewRootGroup by remember { mutableStateOf(initialRootGroup) }
+
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                IfwRuleTreeEditor(
+                    rootGroup = previewRootGroup,
+                    onChange = { updated -> previewRootGroup = updated },
+                    rootValidationMessage = validationMessage,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun IfwRuleTreeEditorValidPreview() {
+    IfwRuleTreeEditorPreview(
+        initialRootGroup = GlobalIfwRulePreviewParameterData.advancedRuleDraft.rootGroup,
+    )
+}
+
+@Composable
+@PreviewThemes
+private fun IfwRuleTreeEditorSelectorRequiredPreview() {
+    IfwRuleTreeEditorPreview(
+        initialRootGroup = IfwEditorNode.Group(
+            children = listOf(
+                IfwEditorNode.Condition(
+                    kind = IfwEditorConditionKind.ACTION,
+                    value = "android.intent.action.VIEW",
+                ),
+            ),
+        ),
+        validationMessage = "Add at least one Exact target component condition.",
+    )
 }
