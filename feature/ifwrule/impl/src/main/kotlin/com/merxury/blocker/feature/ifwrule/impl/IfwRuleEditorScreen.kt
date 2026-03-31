@@ -109,7 +109,7 @@ fun IfwRuleEditorScreen(
 }
 
 @Composable
-private fun IfwRuleEditorScreen(
+internal fun IfwRuleEditorScreen(
     uiState: RuleEditorScreenUiState,
     showUnsavedDialog: Boolean,
     onBackClick: () -> Unit,

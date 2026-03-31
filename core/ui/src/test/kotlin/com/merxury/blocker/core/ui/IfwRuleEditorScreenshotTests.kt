@@ -75,7 +75,7 @@ class IfwRuleEditorScreenshotTests {
                 LocalInspectionMode provides true,
             ) {
                 DeviceConfigurationOverride(
-                    DeviceConfigurationOverride.Companion.FontScale(2f),
+                    DeviceConfigurationOverride.FontScale(2f),
                 ) {
                     BlockerTheme {
                         Surface {
