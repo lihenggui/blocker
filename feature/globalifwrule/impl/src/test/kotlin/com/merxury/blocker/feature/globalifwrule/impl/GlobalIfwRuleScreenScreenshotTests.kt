@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
 import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedGlobalIfwRuleDraft
@@ -43,6 +42,8 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.LooperMode
 import java.util.TimeZone
+
+private const val PHONE_DEVICE_SPEC = "spec:shape=Normal,width=640,height=360,unit=dp,dpi=480"
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -70,7 +71,12 @@ class GlobalIfwRuleScreenScreenshotTests {
 
     @Test
     fun globalIfwRuleScreen_dark() {
-        capturePhoneDark("GlobalIfwRuleScreen") {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "GlobalIfwRuleScreen",
+            darkMode = true,
+        ) {
             GlobalIfwRuleListScreen(
                 uiState = GlobalIfwRuleUiState.Success(
                     groups = GlobalIfwRulePreviewParameterData.packageRuleGroups,
@@ -90,7 +96,12 @@ class GlobalIfwRuleScreenScreenshotTests {
 
     @Test
     fun globalIfwRuleScreenEmpty_dark() {
-        capturePhoneDark("GlobalIfwRuleScreenEmpty") {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "GlobalIfwRuleScreenEmpty",
+            darkMode = true,
+        ) {
             GlobalIfwRuleListScreen(
                 uiState = GlobalIfwRuleUiState.Success(groups = emptyList()),
             )
@@ -106,7 +117,12 @@ class GlobalIfwRuleScreenScreenshotTests {
 
     @Test
     fun globalIfwRuleScreenLoading_dark() {
-        capturePhoneDark("GlobalIfwRuleScreenLoading") {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "GlobalIfwRuleScreenLoading",
+            darkMode = true,
+        ) {
             GlobalIfwRuleListScreen(uiState = GlobalIfwRuleUiState.Loading)
         }
     }
@@ -124,7 +140,12 @@ class GlobalIfwRuleScreenScreenshotTests {
 
     @Test
     fun globalIfwRuleScreenError_dark() {
-        capturePhoneDark("GlobalIfwRuleScreenError") {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "GlobalIfwRuleScreenError",
+            darkMode = true,
+        ) {
             GlobalIfwRuleListScreen(
                 uiState = GlobalIfwRuleUiState.Error(
                     message = "Failed to load IFW rules from local storage.",
@@ -149,7 +170,12 @@ class GlobalIfwRuleScreenScreenshotTests {
     @Test
     fun simpleGlobalIfwRuleScreenAdd_dark() {
         val draft = simpleAddDraft()
-        capturePhoneDark("SimpleGlobalIfwRuleScreenAdd") {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "SimpleGlobalIfwRuleScreenAdd",
+            darkMode = true,
+        ) {
             SimpleRuleEditorScreen(
                 draft = draft,
                 visibleComponents = GlobalIfwRulePreviewParameterData.simpleRuleComponents(
@@ -172,7 +198,12 @@ class GlobalIfwRuleScreenScreenshotTests {
 
     @Test
     fun simpleGlobalIfwRuleScreenLoadError_dark() {
-        capturePhoneDark("SimpleGlobalIfwRuleScreenLoadError") {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "SimpleGlobalIfwRuleScreenLoadError",
+            darkMode = true,
+        ) {
             SimpleRuleEditorScreen(
                 draft = simpleLoadErrorDraft(),
                 visibleComponents = emptyList(),
@@ -192,7 +223,12 @@ class GlobalIfwRuleScreenScreenshotTests {
 
     @Test
     fun advancedGlobalIfwRuleScreenAdd_dark() {
-        capturePhoneDark("AdvancedGlobalIfwRuleScreenAdd") {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "AdvancedGlobalIfwRuleScreenAdd",
+            darkMode = true,
+        ) {
             AdvancedRuleEditorScreen(
                 draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft,
             )
@@ -211,7 +247,12 @@ class GlobalIfwRuleScreenScreenshotTests {
 
     @Test
     fun advancedGlobalIfwRuleScreenEdit_dark() {
-        capturePhoneDark("AdvancedGlobalIfwRuleScreenEdit") {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "AdvancedGlobalIfwRuleScreenEdit",
+            darkMode = true,
+        ) {
             AdvancedRuleEditorScreen(
                 draft = advancedEditDraft(),
                 isDirty = true,
@@ -228,22 +269,14 @@ class GlobalIfwRuleScreenScreenshotTests {
 
     @Test
     fun advancedGlobalIfwRuleDetailScreen_dark() {
-        capturePhoneDark("AdvancedGlobalIfwRuleDetailScreen") {
-            AdvancedRuleDetailScreen()
-        }
-    }
-
-    private fun capturePhoneDark(
-        screenshotName: String,
-        body: @Composable () -> Unit,
-    ) {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = screenshotName,
+            deviceSpec = PHONE_DEVICE_SPEC,
+            screenshotName = "AdvancedGlobalIfwRuleDetailScreen",
             darkMode = true,
-            body = body,
-        )
+        ) {
+            AdvancedRuleDetailScreen()
+        }
     }
 
     private fun simpleAddDraft(): SimpleGlobalIfwRuleDraft = SimpleGlobalIfwRuleDraft(
@@ -277,91 +310,91 @@ class GlobalIfwRuleScreenScreenshotTests {
         ),
         editingRuleIndex = 2,
     )
+}
 
-    @Composable
-    private fun GlobalIfwRuleListScreen(
-        uiState: GlobalIfwRuleUiState,
-    ) {
-        BlockerTheme {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                GlobalIfwRuleScreen(
-                    uiState = uiState,
-                    onAddSimpleRuleClick = {},
-                    onAddAdvancedRuleClick = {},
-                    onOpenRuleClick = { _, _ -> },
-                    onDeleteRule = { _, _ -> },
-                )
-            }
+@Composable
+private fun GlobalIfwRuleListScreen(
+    uiState: GlobalIfwRuleUiState,
+) {
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            GlobalIfwRuleScreen(
+                uiState = uiState,
+                onAddSimpleRuleClick = {},
+                onAddAdvancedRuleClick = {},
+                onOpenRuleClick = { _, _ -> },
+                onDeleteRule = { _, _ -> },
+            )
         }
     }
+}
 
-    @Composable
-    private fun SimpleRuleEditorScreen(
-        draft: SimpleGlobalIfwRuleDraft,
-        visibleComponents: List<SimpleRuleComponentUiState>,
-        componentLoadError: String? = null,
-    ) {
-        BlockerTheme {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                SimpleGlobalIfwRuleScreen(
-                    draft = draft,
-                    isDirty = false,
-                    selectedPackageLabel = "Spotify",
-                    componentQuery = "",
-                    visibleComponents = visibleComponents,
-                    isComponentLoading = false,
-                    componentLoadError = componentLoadError,
-                    onSave = {},
-                    onBack = {},
-                    onPackageNameChange = {},
-                    onComponentTypeChange = {},
-                    onTargetModeChange = {},
-                    onBlockChange = {},
-                    onLogChange = {},
-                    onActionChange = {},
-                    onCategoryChange = {},
-                    onCallerPackageChange = {},
-                    onComponentQueryChange = {},
-                    onSelectSingleTarget = {},
-                    onToggleMultiTarget = {},
-                )
-            }
+@Composable
+private fun SimpleRuleEditorScreen(
+    draft: SimpleGlobalIfwRuleDraft,
+    visibleComponents: List<SimpleRuleComponentUiState>,
+    componentLoadError: String? = null,
+) {
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            SimpleGlobalIfwRuleScreen(
+                draft = draft,
+                isDirty = false,
+                selectedPackageLabel = "Spotify",
+                componentQuery = "",
+                visibleComponents = visibleComponents,
+                isComponentLoading = false,
+                componentLoadError = componentLoadError,
+                onSave = {},
+                onBack = {},
+                onPackageNameChange = {},
+                onComponentTypeChange = {},
+                onTargetModeChange = {},
+                onBlockChange = {},
+                onLogChange = {},
+                onActionChange = {},
+                onCategoryChange = {},
+                onCallerPackageChange = {},
+                onComponentQueryChange = {},
+                onSelectSingleTarget = {},
+                onToggleMultiTarget = {},
+            )
         }
     }
+}
 
-    @Composable
-    private fun AdvancedRuleEditorScreen(
-        draft: AdvancedGlobalIfwRuleDraft,
-        isDirty: Boolean = false,
-    ) {
-        BlockerTheme {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                AdvancedGlobalIfwRuleScreen(
-                    draft = draft,
-                    isDirty = isDirty,
-                    onSave = {},
-                    onBack = {},
-                    onPackageNameChange = {},
-                    onComponentTypeChange = {},
-                    onBlockChange = {},
-                    onLogChange = {},
-                    onRootGroupChange = {},
-                )
-            }
+@Composable
+private fun AdvancedRuleEditorScreen(
+    draft: AdvancedGlobalIfwRuleDraft,
+    isDirty: Boolean = false,
+) {
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            AdvancedGlobalIfwRuleScreen(
+                draft = draft,
+                isDirty = isDirty,
+                onSave = {},
+                onBack = {},
+                onPackageNameChange = {},
+                onComponentTypeChange = {},
+                onBlockChange = {},
+                onLogChange = {},
+                onRootGroupChange = {},
+            )
         }
     }
+}
 
-    @Composable
-    private fun AdvancedRuleDetailScreen() {
-        BlockerTheme {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                AdvancedGlobalIfwRuleDetailScreen(
-                    detail = GlobalIfwRulePreviewParameterData.advancedRuleDetail,
-                    onBack = {},
-                    onCopyAsNew = {},
-                    onDelete = {},
-                )
-            }
+@Composable
+private fun AdvancedRuleDetailScreen() {
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            AdvancedGlobalIfwRuleDetailScreen(
+                detail = GlobalIfwRulePreviewParameterData.advancedRuleDetail,
+                onBack = {},
+                onCopyAsNew = {},
+                onDelete = {},
+            )
         }
     }
 }
