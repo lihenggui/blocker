@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.previewparameter
+package com.merxury.blocker.feature.ifwrule.impl.previewparameter
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.merxury.blocker.core.ui.ifwruleeditor.BlockMode
-import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorScreenUiState
 import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorUiState
+import com.merxury.blocker.feature.ifwrule.impl.RuleEditorScreenUiState
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode

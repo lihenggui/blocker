@@ -29,10 +29,13 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
-import com.merxury.blocker.core.ui.previewparameter.IfwRuleEditorScreenPreviewParameterProvider
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
+import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.IfwEditorPortMode
+import com.merxury.core.ifw.editor.IfwEditorStringMatcherMode
+import com.merxury.core.ifw.model.IfwComponentType
+import com.merxury.core.ifw.model.SenderType
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -148,9 +151,37 @@ class IfwRuleEditorScreenshotTests {
         )
     }
 
-    private fun conditionalEditorState(): RuleEditorUiState = IfwRuleEditorScreenPreviewParameterProvider()
-        .values
-        .filterIsInstance<RuleEditorScreenUiState.Success>()
-        .first { it.editor.blockMode == BlockMode.CONDITIONAL }
-        .editor
+    private fun conditionalEditorState(): RuleEditorUiState = RuleEditorUiState(
+        packageName = "com.example.social",
+        componentName = "com.example.social.ShareReceiver",
+        componentType = IfwComponentType.BROADCAST,
+        blockMode = BlockMode.CONDITIONAL,
+        log = false,
+        blockEnabled = false,
+        rootGroup = IfwEditorNode.Group(
+            mode = IfwEditorGroupMode.ALL,
+            children = listOf(
+                IfwEditorNode.Condition(
+                    kind = IfwEditorConditionKind.ACTION,
+                    matcherMode = IfwEditorStringMatcherMode.EXACT,
+                    value = "android.intent.action.SEND",
+                ),
+                IfwEditorNode.Group(
+                    mode = IfwEditorGroupMode.ANY,
+                    children = listOf(
+                        IfwEditorNode.Condition(
+                            kind = IfwEditorConditionKind.CALLER_TYPE,
+                            senderType = SenderType.SYSTEM,
+                            excluded = true,
+                        ),
+                        IfwEditorNode.Condition(
+                            kind = IfwEditorConditionKind.HOST,
+                            matcherMode = IfwEditorStringMatcherMode.CONTAINS,
+                            value = "example.com",
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    )
 }

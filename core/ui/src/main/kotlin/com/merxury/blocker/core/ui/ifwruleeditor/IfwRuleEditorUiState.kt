@@ -19,16 +19,6 @@ package com.merxury.blocker.core.ui.ifwruleeditor
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.model.IfwComponentType
 
-sealed interface RuleEditorScreenUiState {
-    data object Loading : RuleEditorScreenUiState
-    data class Success(
-        val editor: RuleEditorUiState,
-        val hasUnsavedChanges: Boolean = false,
-    ) : RuleEditorScreenUiState
-
-    data class Error(val message: String) : RuleEditorScreenUiState
-}
-
 data class RuleEditorUiState(
     val packageName: String,
     val componentName: String,

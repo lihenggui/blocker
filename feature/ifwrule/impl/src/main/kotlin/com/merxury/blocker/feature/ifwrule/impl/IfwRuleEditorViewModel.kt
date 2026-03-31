@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.ifwrule.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.ui.ifwruleeditor.BlockMode
-import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorScreenUiState
 import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorUiState
 import com.merxury.blocker.feature.ifwrule.impl.model.mergeComponentRule
 import com.merxury.blocker.feature.ifwrule.impl.model.toEditorState
@@ -159,4 +158,14 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
             )
         }
     }
+}
+
+sealed interface RuleEditorScreenUiState {
+    data object Loading : RuleEditorScreenUiState
+    data class Success(
+        val editor: RuleEditorUiState,
+        val hasUnsavedChanges: Boolean = false,
+    ) : RuleEditorScreenUiState
+
+    data class Error(val message: String) : RuleEditorScreenUiState
 }
