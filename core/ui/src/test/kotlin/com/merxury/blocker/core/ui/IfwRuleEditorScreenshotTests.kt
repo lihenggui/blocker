@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.ifwruleeditor
+package com.merxury.blocker.core.ui
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
@@ -23,12 +23,18 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.FontScale
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
+import com.merxury.blocker.core.ui.ifwruleeditor.BlockMode
+import com.merxury.blocker.core.ui.ifwruleeditor.ConditionEditorCard
+import com.merxury.blocker.core.ui.ifwruleeditor.ConditionPickerSheet
+import com.merxury.blocker.core.ui.ifwruleeditor.GroupEditorCard
+import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
+import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorUiState
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
@@ -69,7 +75,7 @@ class IfwRuleEditorScreenshotTests {
                 LocalInspectionMode provides true,
             ) {
                 DeviceConfigurationOverride(
-                    DeviceConfigurationOverride.FontScale(2f),
+                    DeviceConfigurationOverride.Companion.FontScale(2f),
                 ) {
                     BlockerTheme {
                         Surface {
