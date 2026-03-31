@@ -72,14 +72,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
-import com.merxury.blocker.core.model.data.GlobalIfwRuleScreenState
-import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
-import com.merxury.blocker.core.model.data.PackageRuleGroup
-import com.merxury.blocker.core.model.data.RuleItemUiState
 import com.merxury.blocker.core.ui.applist.AppIcon
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRuleUiStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -89,6 +83,12 @@ import com.merxury.blocker.feature.globalifwrule.impl.components.RuleMetaBadge
 import com.merxury.blocker.feature.globalifwrule.impl.components.RulePrimaryMetadataText
 import com.merxury.blocker.feature.globalifwrule.impl.components.RuleSecondaryMetadataText
 import com.merxury.blocker.feature.globalifwrule.impl.components.labelRes
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleEditMode
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleScreenState
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.PackageRuleGroup
+import com.merxury.blocker.feature.globalifwrule.impl.model.RuleItemUiState
+import com.merxury.blocker.feature.globalifwrule.impl.previewparameter.GlobalIfwRuleUiStatePreviewParameterProvider
 
 @Composable
 fun GlobalIfwRuleRoute(

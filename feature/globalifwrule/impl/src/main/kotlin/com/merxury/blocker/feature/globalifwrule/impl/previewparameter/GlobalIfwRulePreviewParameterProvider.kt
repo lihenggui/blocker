@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.previewparameter
+package com.merxury.blocker.feature.globalifwrule.impl.previewparameter
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
-import com.merxury.blocker.core.model.data.AdvancedRuleDetailPresentationUiState
-import com.merxury.blocker.core.model.data.AdvancedRuleDetailUiState
-import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
-import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
-import com.merxury.blocker.core.model.data.PackageRuleGroup
-import com.merxury.blocker.core.model.data.RuleItemPresentationUiState
-import com.merxury.blocker.core.model.data.RuleItemUiState
-import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
-import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedRuleDetailPresentationUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedRuleDetailUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleEditMode
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.PackageRuleGroup
+import com.merxury.blocker.feature.globalifwrule.impl.model.RuleItemPresentationUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.RuleItemUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleRuleComponentUiState
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode

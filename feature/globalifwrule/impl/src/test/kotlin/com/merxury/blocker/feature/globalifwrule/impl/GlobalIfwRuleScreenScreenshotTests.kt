@@ -23,14 +23,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
-import com.merxury.blocker.core.model.data.GlobalIfwRuleUiState
-import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
-import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
+import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleRuleComponentUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleTargetMode
+import com.merxury.blocker.feature.globalifwrule.impl.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.core.ifw.model.IfwIntentFilter
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
@@ -297,7 +298,7 @@ class GlobalIfwRuleScreenScreenshotTests {
     @Composable
     private fun SimpleRuleEditorScreen(
         draft: SimpleGlobalIfwRuleDraft,
-        visibleComponents: List<com.merxury.blocker.core.model.data.SimpleRuleComponentUiState>,
+        visibleComponents: List<SimpleRuleComponentUiState>,
         componentLoadError: String? = null,
     ) {
         BlockerTheme {

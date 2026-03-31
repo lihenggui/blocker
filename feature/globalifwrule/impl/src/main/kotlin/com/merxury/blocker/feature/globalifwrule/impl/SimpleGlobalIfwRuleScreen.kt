@@ -42,10 +42,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
-import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
-import com.merxury.blocker.core.model.data.SimpleTargetMode
-import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.blocker.feature.globalifwrule.impl.components.BehaviorSection
 import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentSelectionContent
@@ -53,6 +49,10 @@ import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentTypeDr
 import com.merxury.blocker.feature.globalifwrule.impl.components.RuleEditorTopBar
 import com.merxury.blocker.feature.globalifwrule.impl.components.SectionLabel
 import com.merxury.blocker.feature.globalifwrule.impl.components.TargetModeRow
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleRuleComponentUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleTargetMode
+import com.merxury.blocker.feature.globalifwrule.impl.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.core.ifw.model.IfwComponentType
 
 @Composable

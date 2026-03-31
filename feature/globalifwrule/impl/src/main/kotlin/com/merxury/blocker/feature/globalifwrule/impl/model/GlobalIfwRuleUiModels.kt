@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,61 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.feature.globalifwrule.impl.model
 
 import android.content.pm.PackageInfo
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwIntentFilter
+
+enum class SimpleTargetMode {
+    SINGLE,
+    MULTIPLE,
+}
+
+sealed interface GlobalIfwRuleDraft {
+    val editingRuleIndex: Int?
+    val canSave: Boolean
+}
+
+data class SimpleGlobalIfwRuleDraft(
+    val originStoragePackageName: String? = null,
+    val selectedPackageName: String = "",
+    val componentType: IfwComponentType = IfwComponentType.BROADCAST,
+    val targetMode: SimpleTargetMode = SimpleTargetMode.SINGLE,
+    val targets: List<String> = emptyList(),
+    val block: Boolean = true,
+    val log: Boolean = true,
+    val action: String = "",
+    val category: String = "",
+    val callerPackage: String = "",
+    override val editingRuleIndex: Int? = null,
+) : GlobalIfwRuleDraft {
+    val storagePackageName: String
+        get() = selectedPackageName.trim()
+
+    override val canSave: Boolean
+        get() = storagePackageName.isNotBlank() && targets.isNotEmpty()
+}
+
+data class AdvancedGlobalIfwRuleDraft(
+    val originStoragePackageName: String? = null,
+    val storagePackageName: String = "",
+    val componentType: IfwComponentType = IfwComponentType.BROADCAST,
+    val block: Boolean = true,
+    val log: Boolean = true,
+    val intentFilters: List<IfwIntentFilter> = emptyList(),
+    val rootGroup: IfwEditorNode.Group = IfwEditorNode.Group(),
+    override val editingRuleIndex: Int? = null,
+) : GlobalIfwRuleDraft {
+    val hasReadOnlyIntentFilters: Boolean
+        get() = intentFilters.isNotEmpty()
+
+    override val canSave: Boolean
+        get() = storagePackageName.isNotBlank() &&
+            (hasReadOnlyIntentFilters || rootGroup.hasTopLevelComponentFilter())
+}
 
 sealed interface GlobalIfwRuleUiState {
     data object Loading : GlobalIfwRuleUiState
@@ -88,54 +136,6 @@ enum class GlobalIfwRuleScreenState {
 enum class GlobalIfwRuleEditMode {
     SIMPLE,
     ADVANCED,
-}
-
-enum class SimpleTargetMode {
-    SINGLE,
-    MULTIPLE,
-}
-
-sealed interface GlobalIfwRuleDraft {
-    val editingRuleIndex: Int?
-    val canSave: Boolean
-}
-
-data class SimpleGlobalIfwRuleDraft(
-    val originStoragePackageName: String? = null,
-    val selectedPackageName: String = "",
-    val componentType: IfwComponentType = IfwComponentType.BROADCAST,
-    val targetMode: SimpleTargetMode = SimpleTargetMode.SINGLE,
-    val targets: List<String> = emptyList(),
-    val block: Boolean = true,
-    val log: Boolean = true,
-    val action: String = "",
-    val category: String = "",
-    val callerPackage: String = "",
-    override val editingRuleIndex: Int? = null,
-) : GlobalIfwRuleDraft {
-    val storagePackageName: String
-        get() = selectedPackageName.trim()
-
-    override val canSave: Boolean
-        get() = storagePackageName.isNotBlank() && targets.isNotEmpty()
-}
-
-data class AdvancedGlobalIfwRuleDraft(
-    val originStoragePackageName: String? = null,
-    val storagePackageName: String = "",
-    val componentType: IfwComponentType = IfwComponentType.BROADCAST,
-    val block: Boolean = true,
-    val log: Boolean = true,
-    val intentFilters: List<IfwIntentFilter> = emptyList(),
-    val rootGroup: IfwEditorNode.Group = IfwEditorNode.Group(),
-    override val editingRuleIndex: Int? = null,
-) : GlobalIfwRuleDraft {
-    val hasReadOnlyIntentFilters: Boolean
-        get() = intentFilters.isNotEmpty()
-
-    override val canSave: Boolean
-        get() = storagePackageName.isNotBlank() &&
-            (hasReadOnlyIntentFilters || rootGroup.hasTopLevelComponentFilter())
 }
 
 data class AdvancedRuleDetailUiState(

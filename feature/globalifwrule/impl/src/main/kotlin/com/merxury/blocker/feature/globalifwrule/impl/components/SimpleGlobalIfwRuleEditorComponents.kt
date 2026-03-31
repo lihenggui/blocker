@@ -38,9 +38,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.model.data.SimpleRuleComponentUiState
-import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.blocker.feature.globalifwrule.api.R
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleRuleComponentUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleTargetMode
 
 @Composable
 internal fun TargetModeRow(

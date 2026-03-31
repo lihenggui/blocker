@@ -30,7 +30,7 @@ android {
 
 dependencies {
     implementation(projects.core.common)
-    api(projects.core.model)
+    implementation(projects.core.model)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
 

@@ -16,14 +16,14 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
-import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
-import com.merxury.blocker.core.model.data.GlobalIfwRuleEditMode
-import com.merxury.blocker.core.model.data.SimpleGlobalIfwRuleDraft
-import com.merxury.blocker.core.model.data.SimpleTargetMode
 import com.merxury.blocker.feature.globalifwrule.impl.components.toIfwRule
 import com.merxury.blocker.feature.globalifwrule.impl.components.toIfwRuleOrNull
 import com.merxury.blocker.feature.globalifwrule.impl.components.toRuleItemUiState
 import com.merxury.blocker.feature.globalifwrule.impl.components.toSimpleDraftOrNull
+import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleEditMode
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleTargetMode
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.IfwEditorStringMatcherMode

@@ -33,8 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
+import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.addNode
 import com.merxury.core.ifw.editor.newIfwEditorId
@@ -119,7 +119,27 @@ private fun IfwRuleTreeEditorPreview(
 @PreviewThemes
 private fun IfwRuleTreeEditorValidPreview() {
     IfwRuleTreeEditorPreview(
-        initialRootGroup = GlobalIfwRulePreviewParameterData.advancedRuleDraft.rootGroup,
+        initialRootGroup = IfwEditorNode.Group(
+            children = listOf(
+                IfwEditorNode.Condition(
+                    kind = IfwEditorConditionKind.COMPONENT_FILTER,
+                    value = "com.spotify.music/.receiver.BootReceiver",
+                ),
+                IfwEditorNode.Group(
+                    mode = IfwEditorGroupMode.ANY,
+                    children = listOf(
+                        IfwEditorNode.Condition(
+                            kind = IfwEditorConditionKind.ACTION,
+                            value = "android.intent.action.BOOT_COMPLETED",
+                        ),
+                        IfwEditorNode.Condition(
+                            kind = IfwEditorConditionKind.ACTION,
+                            value = "android.intent.action.QUICKBOOT_POWERON",
+                        ),
+                    ),
+                ),
+            ),
+        ),
     )
 }
 

@@ -41,15 +41,15 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.AdvancedGlobalIfwRuleDraft
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
-import com.merxury.blocker.core.ui.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.blocker.feature.globalifwrule.impl.components.BehaviorSection
 import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentTypeDropdown
 import com.merxury.blocker.feature.globalifwrule.impl.components.IntentFilterBanner
 import com.merxury.blocker.feature.globalifwrule.impl.components.RuleEditorTopBar
 import com.merxury.blocker.feature.globalifwrule.impl.components.SectionLabel
+import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
