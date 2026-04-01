@@ -30,4 +30,8 @@ dependencies {
     implementation(projects.core.model)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.timber)
+
+    testImplementation(projects.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 }
