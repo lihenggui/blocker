@@ -18,10 +18,12 @@ plugins {
     alias(libs.plugins.blocker.android.feature.impl)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
     namespace = "com.merxury.blocker.feature.globalifwrule.impl"
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 dependencies {
     implementation(projects.feature.globalifwrule.api)
@@ -32,6 +34,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
+    testImplementation(projects.core.screenshotTesting)
     testImplementation(projects.core.testing)
 
     androidTestImplementation(projects.core.testing)

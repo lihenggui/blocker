@@ -16,29 +16,18 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,20 +35,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerSwitch
-import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
+import com.merxury.blocker.feature.globalifwrule.api.R
+import com.merxury.blocker.feature.globalifwrule.impl.components.BehaviorSection
+import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentTypeDropdown
+import com.merxury.blocker.feature.globalifwrule.impl.components.IntentFilterBanner
+import com.merxury.blocker.feature.globalifwrule.impl.components.RuleEditorTopBar
+import com.merxury.blocker.feature.globalifwrule.impl.components.SectionLabel
+import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.previewparameter.GlobalIfwRulePreviewParameterData
+import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.model.IfwComponentType
+import com.merxury.core.ifw.model.IfwIntentFilter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedGlobalIfwRuleScreen(
     draft: AdvancedGlobalIfwRuleDraft,
@@ -74,6 +70,11 @@ fun AdvancedGlobalIfwRuleScreen(
     modifier: Modifier = Modifier,
 ) {
     val isEditing = draft.editingRuleIndex != null
+    val selectorRequiredMessage = if (!draft.hasReadOnlyIntentFilters && !draft.rootGroup.hasTopLevelComponentFilter()) {
+        stringResource(R.string.feature_globalifwrule_api_selector_required)
+    } else {
+        null
+    }
     var showUnsavedDialog by remember { mutableStateOf(false) }
 
     val handleBack: () -> Unit = {
@@ -84,90 +85,44 @@ fun AdvancedGlobalIfwRuleScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        RuleEditorTopBar(
-            title = stringResource(
-                if (isEditing) {
-                    R.string.feature_globalifwrule_impl_edit_advanced_rule
-                } else {
-                    R.string.feature_globalifwrule_impl_add_advanced_rule
-                },
-            ),
-            canSave = draft.canSave,
-            onSave = onSave,
-            onBack = handleBack,
-        )
-        Column(
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            RuleEditorTopBar(
+                title = stringResource(
+                    if (isEditing) {
+                        R.string.feature_globalifwrule_api_edit_advanced_rule
+                    } else {
+                        R.string.feature_globalifwrule_api_add_advanced_rule
+                    },
+                ),
+                canSave = draft.canSave,
+                onSave = onSave,
+                onBack = handleBack,
+            )
+        },
+    ) { innerPadding ->
+        AdvancedGlobalIfwRuleContent(
+            draft = draft,
+            selectorRequiredMessage = selectorRequiredMessage,
+            onPackageNameChange = onPackageNameChange,
+            onComponentTypeChange = onComponentTypeChange,
+            onBlockChange = onBlockChange,
+            onLogChange = onLogChange,
+            onRootGroupChange = onRootGroupChange,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
                 .padding(horizontal = 16.dp),
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = draft.storagePackageName,
-                onValueChange = onPackageNameChange,
-                label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_package)) },
-                supportingText = {
-                    Text(stringResource(R.string.feature_globalifwrule_impl_target_package_summary))
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            ComponentTypeDropdown(
-                selected = draft.componentType,
-                onSelect = onComponentTypeChange,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_block),
-                checked = draft.block,
-                onCheckedChange = onBlockChange,
-            )
-            SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_log),
-                checked = draft.log,
-                onCheckedChange = onLogChange,
-            )
-
-            if (draft.hasReadOnlyIntentFilters) {
-                Spacer(modifier = Modifier.height(16.dp))
-                IntentFilterBanner()
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider()
-            Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_conditions),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-            )
-            IfwRuleTreeEditor(
-                rootGroup = draft.rootGroup,
-                onChange = onRootGroupChange,
-            )
-            if (!draft.hasReadOnlyIntentFilters && !draft.rootGroup.hasTopLevelComponentFilter()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.feature_globalifwrule_impl_selector_required),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-        }
+        )
     }
 
     if (showUnsavedDialog) {
         BlockerWarningAlertDialog(
             onDismissRequest = { showUnsavedDialog = false },
-            title = stringResource(R.string.feature_globalifwrule_impl_unsaved_title),
-            text = stringResource(R.string.feature_globalifwrule_impl_unsaved_message),
+            title = stringResource(R.string.feature_globalifwrule_api_unsaved_title),
+            text = stringResource(R.string.feature_globalifwrule_api_unsaved_message),
             onConfirmRequest = {
                 showUnsavedDialog = false
                 onBack()
@@ -177,115 +132,169 @@ fun AdvancedGlobalIfwRuleScreen(
 }
 
 @Composable
-internal fun IntentFilterBanner(
+private fun AdvancedGlobalIfwRuleContent(
+    draft: AdvancedGlobalIfwRuleDraft,
+    selectorRequiredMessage: String?,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    onBlockChange: (Boolean) -> Unit,
+    onLogChange: (Boolean) -> Unit,
+    onRootGroupChange: (IfwEditorNode.Group) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        shape = MaterialTheme.shapes.medium,
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Text(
-            text = stringResource(R.string.feature_globalifwrule_impl_intent_filters_preserved),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(16.dp),
+    Column(modifier = modifier) {
+        Spacer(modifier = Modifier.height(8.dp))
+        AdvancedTargetSection(
+            storagePackageName = draft.storagePackageName,
+            componentType = draft.componentType,
+            onPackageNameChange = onPackageNameChange,
+            onComponentTypeChange = onComponentTypeChange,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        BehaviorSection(
+            block = draft.block,
+            log = draft.log,
+            onBlockChange = onBlockChange,
+            onLogChange = onLogChange,
+        )
+        if (draft.hasReadOnlyIntentFilters) {
+            Spacer(modifier = Modifier.height(12.dp))
+            IntentFilterBanner()
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        ConditionsSection(
+            rootGroup = draft.rootGroup,
+            rootValidationMessage = selectorRequiredMessage,
+            onRootGroupChange = onRootGroupChange,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun AdvancedTargetSection(
+    storagePackageName: String,
+    componentType: IfwComponentType,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_target_section))
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = storagePackageName,
+            onValueChange = onPackageNameChange,
+            label = { Text(stringResource(R.string.feature_globalifwrule_api_target_package)) },
+            supportingText = {
+                Text(stringResource(R.string.feature_globalifwrule_api_target_package_summary))
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        ComponentTypeDropdown(
+            selected = componentType,
+            onSelect = onComponentTypeChange,
         )
     }
 }
 
 @Composable
-internal fun RuleEditorTopBar(
-    title: String,
-    canSave: Boolean,
-    onSave: () -> Unit,
-    onBack: () -> Unit,
+private fun ConditionsSection(
+    rootGroup: IfwEditorNode.Group,
+    rootValidationMessage: String?,
+    onRootGroupChange: (IfwEditorNode.Group) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BlockerTopAppBar(
-        title = title,
-        hasNavigationIcon = true,
-        onNavigationClick = onBack,
-        actions = {
-            IconButton(
-                enabled = canSave,
-                onClick = {
-                    if (canSave) {
-                        onSave()
-                    }
-                },
-            ) {
-                Icon(
-                    imageVector = BlockerIcons.Check,
-                    contentDescription = stringResource(R.string.feature_globalifwrule_impl_save),
-                )
-            }
-        },
-        modifier = modifier,
-    )
+    Column(modifier = modifier) {
+        HorizontalDivider()
+        Text(
+            text = stringResource(R.string.feature_globalifwrule_api_conditions),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        )
+        IfwRuleTreeEditor(
+            rootGroup = rootGroup,
+            onChange = onRootGroupChange,
+            rootValidationMessage = rootValidationMessage,
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ComponentTypeDropdown(
-    selected: IfwComponentType,
-    onSelect: (IfwComponentType) -> Unit,
-    modifier: Modifier = Modifier,
+private fun AdvancedGlobalIfwRuleScreenPreviewContainer(
+    content: @Composable () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier,
-    ) {
-        OutlinedTextField(
-            value = stringResource(selected.labelRes),
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-            label = { Text(stringResource(R.string.feature_globalifwrule_impl_rule_type)) },
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            IfwComponentType.entries.forEach { type ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(type.labelRes)) },
-                    onClick = {
-                        onSelect(type)
-                        expanded = false
-                    },
-                )
-            }
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            content()
         }
     }
 }
 
 @Composable
-internal fun SwitchRow(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
+private fun AdvancedGlobalIfwRuleScreenPreview(
+    draft: AdvancedGlobalIfwRuleDraft,
+    isDirty: Boolean = false,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        BlockerSwitch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
+    AdvancedGlobalIfwRuleScreenPreviewContainer {
+        AdvancedGlobalIfwRuleScreen(
+            draft = draft,
+            isDirty = isDirty,
+            onSave = {},
+            onBack = {},
+            onPackageNameChange = {},
+            onComponentTypeChange = {},
+            onBlockChange = {},
+            onLogChange = {},
+            onRootGroupChange = {},
         )
     }
+}
+
+@Composable
+@PreviewThemes
+private fun AdvancedGlobalIfwRuleScreenAddPreview() {
+    AdvancedGlobalIfwRuleScreenPreview(
+        draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft,
+    )
+}
+
+@Composable
+@PreviewThemes
+private fun AdvancedGlobalIfwRuleScreenMissingSelectorPreview() {
+    AdvancedGlobalIfwRuleScreenPreview(
+        draft = AdvancedGlobalIfwRuleDraft(
+            storagePackageName = "com.spotify.music",
+            componentType = IfwComponentType.ACTIVITY,
+            block = true,
+            log = true,
+            rootGroup = IfwEditorNode.Group(
+                children = listOf(
+                    IfwEditorNode.Condition(
+                        kind = IfwEditorConditionKind.ACTION,
+                        value = "android.intent.action.VIEW",
+                    ),
+                ),
+            ),
+        ),
+    )
+}
+
+@Composable
+@PreviewThemes
+private fun AdvancedGlobalIfwRuleScreenEditPreview() {
+    AdvancedGlobalIfwRuleScreenPreview(
+        draft = GlobalIfwRulePreviewParameterData.advancedRuleDraft.copy(
+            intentFilters = listOf(
+                IfwIntentFilter(
+                    actions = listOf("android.intent.action.SEND"),
+                    categories = listOf("android.intent.category.DEFAULT"),
+                ),
+            ),
+            editingRuleIndex = 2,
+        ),
+        isDirty = true,
+    )
 }

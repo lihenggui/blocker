@@ -110,6 +110,7 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
             }
         }
     }
+    this.waitForIdle()
     // Run Accessibility checks first so logging is included
     val accessibilityException = try {
         this.onRoot().checkRoboAccessibility(
@@ -195,6 +196,7 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
             }
         }
     }
+    this.waitForIdle()
 
     // Create permutations
     darkModeValues.forEach { isDarkMode ->
@@ -213,6 +215,7 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
                 val dynamicThemingDesc = if (isDynamicTheming) "dynamic" else "notDynamic"
 
                 val filename = overrideFileName ?: name
+                this.waitForIdle()
 
                 this.onRoot()
                     .captureRoboImage(

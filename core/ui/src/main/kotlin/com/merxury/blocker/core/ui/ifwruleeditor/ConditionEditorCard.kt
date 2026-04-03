@@ -34,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,7 +46,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.R
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
@@ -62,23 +62,18 @@ internal fun ConditionEditorCard(
     onDelete: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BlockerOutlinedCard(
-        onClick = {},
+    Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = (depth * 12).dp, top = 8.dp),
+            .padding(start = (depth * 8).dp, top = 8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+        shape = MaterialTheme.shapes.medium,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.End,
             ) {
-                ConditionKindDropdown(
-                    selected = condition.kind,
-                    onSelect = { kind -> onUpdate(condition.copy(kind = kind)) },
-                    modifier = Modifier.weight(1f),
-                )
                 IconButton(onClick = { onDelete(condition.id) }) {
                     Icon(
                         imageVector = BlockerIcons.Close,
@@ -86,6 +81,11 @@ internal fun ConditionEditorCard(
                     )
                 }
             }
+            ConditionKindDropdown(
+                selected = condition.kind,
+                onSelect = { kind -> onUpdate(condition.copy(kind = kind)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
             SwitchRow(
@@ -252,6 +252,7 @@ internal fun <T> DropdownSelector(
             value = value,
             onValueChange = {},
             readOnly = true,
+            singleLine = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .fillMaxWidth()

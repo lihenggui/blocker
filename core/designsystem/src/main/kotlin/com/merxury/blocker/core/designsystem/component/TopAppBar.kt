@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -64,7 +65,7 @@ fun BlockerTopAppBar(
                 IconButton(onClick = onNavigationClick) {
                     Icon(
                         imageVector = BlockerIcons.Back,
-                        contentDescription = null,
+                        contentDescription = stringResource(id = R.string.core_designsystem_back),
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }

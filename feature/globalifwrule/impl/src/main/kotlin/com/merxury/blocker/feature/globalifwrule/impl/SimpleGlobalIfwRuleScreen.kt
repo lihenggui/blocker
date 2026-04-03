@@ -16,25 +16,17 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,14 +35,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
-import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.feature.globalifwrule.api.R
+import com.merxury.blocker.feature.globalifwrule.impl.components.BehaviorSection
+import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentSelectionContent
+import com.merxury.blocker.feature.globalifwrule.impl.components.ComponentTypeDropdown
+import com.merxury.blocker.feature.globalifwrule.impl.components.RuleEditorTopBar
+import com.merxury.blocker.feature.globalifwrule.impl.components.SectionLabel
+import com.merxury.blocker.feature.globalifwrule.impl.components.TargetModeRow
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleRuleComponentUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleTargetMode
+import com.merxury.blocker.feature.globalifwrule.impl.previewparameter.GlobalIfwRulePreviewParameterData
 import com.merxury.core.ifw.model.IfwComponentType
 
 @Composable
@@ -95,176 +97,56 @@ fun SimpleGlobalIfwRuleScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        RuleEditorTopBar(
-            title = stringResource(
-                if (isEditing) {
-                    R.string.feature_globalifwrule_impl_edit_rule
-                } else {
-                    R.string.feature_globalifwrule_impl_add_rule
-                },
-            ),
-            canSave = draft.canSave,
-            onSave = onSave,
-            onBack = handleBack,
-        )
-
-        Column(
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            RuleEditorTopBar(
+                title = stringResource(
+                    if (isEditing) {
+                        R.string.feature_globalifwrule_api_edit_rule
+                    } else {
+                        R.string.feature_globalifwrule_api_add_rule
+                    },
+                ),
+                canSave = draft.canSave,
+                onSave = onSave,
+                onBack = handleBack,
+            )
+        },
+    ) { innerPadding ->
+        SimpleGlobalIfwRuleContent(
+            draft = draft,
+            selectedPackageLabel = selectedPackageLabel,
+            componentQuery = componentQuery,
+            visibleComponents = visibleComponents,
+            isComponentLoading = isComponentLoading,
+            componentLoadError = componentLoadError,
+            showOptionalConditions = showOptionalConditions,
+            onPackageNameChange = onPackageNameChange,
+            onComponentTypeChange = onComponentTypeChange,
+            onTargetModeChange = onTargetModeChange,
+            onBlockChange = onBlockChange,
+            onLogChange = onLogChange,
+            onActionChange = onActionChange,
+            onCategoryChange = onCategoryChange,
+            onCallerPackageChange = onCallerPackageChange,
+            onComponentQueryChange = onComponentQueryChange,
+            onSelectSingleTarget = onSelectSingleTarget,
+            onToggleMultiTarget = onToggleMultiTarget,
+            onShowOptionalConditions = { showOptionalConditions = true },
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
                 .padding(horizontal = 16.dp),
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-            SectionTitle(title = stringResource(R.string.feature_globalifwrule_impl_target_section))
-            ComponentTypeDropdown(
-                selected = draft.componentType,
-                onSelect = onComponentTypeChange,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_target_mode),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            TargetModeRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_target_mode_single),
-                selected = draft.targetMode == SimpleTargetMode.SINGLE,
-                onClick = { onTargetModeChange(SimpleTargetMode.SINGLE) },
-            )
-            TargetModeRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_target_mode_multiple),
-                selected = draft.targetMode == SimpleTargetMode.MULTIPLE,
-                onClick = { onTargetModeChange(SimpleTargetMode.MULTIPLE) },
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = draft.selectedPackageName,
-                onValueChange = onPackageNameChange,
-                label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_app_package)) },
-                singleLine = true,
-                supportingText = {
-                    Text(
-                        text = if (selectedPackageLabel != null) {
-                            stringResource(
-                                R.string.feature_globalifwrule_impl_target_app_package_label,
-                                selectedPackageLabel,
-                            )
-                        } else {
-                            stringResource(R.string.feature_globalifwrule_impl_target_app_package_summary)
-                        },
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider()
-            Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_target_component),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-            )
-            if (draft.selectedPackageName.isBlank()) {
-                Text(
-                    text = stringResource(R.string.feature_globalifwrule_impl_target_component_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                OutlinedTextField(
-                    value = componentQuery,
-                    onValueChange = onComponentQueryChange,
-                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_target_component_search)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                ComponentSelectionContent(
-                    components = visibleComponents,
-                    targetMode = draft.targetMode,
-                    isLoading = isComponentLoading,
-                    error = componentLoadError,
-                    onSelectSingleTarget = onSelectSingleTarget,
-                    onToggleMultiTarget = onToggleMultiTarget,
-                )
-                if (draft.targets.isEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.feature_globalifwrule_impl_target_required),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider()
-            Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_behavior_section),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-            )
-            SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_block),
-                checked = draft.block,
-                onCheckedChange = onBlockChange,
-            )
-            SwitchRow(
-                label = stringResource(R.string.feature_globalifwrule_impl_log),
-                checked = draft.log,
-                onCheckedChange = onLogChange,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider()
-            Text(
-                text = stringResource(R.string.feature_globalifwrule_impl_optional_conditions),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-            )
-            if (!showOptionalConditions) {
-                BlockerOutlinedButton(
-                    text = { Text(stringResource(R.string.feature_globalifwrule_impl_optional_conditions_show)) },
-                    onClick = { showOptionalConditions = true },
-                )
-            } else {
-                OutlinedTextField(
-                    value = draft.action,
-                    onValueChange = onActionChange,
-                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_optional_action)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = draft.category,
-                    onValueChange = onCategoryChange,
-                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_optional_category)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = draft.callerPackage,
-                    onValueChange = onCallerPackageChange,
-                    label = { Text(stringResource(R.string.feature_globalifwrule_impl_optional_caller_package)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-        }
+        )
     }
 
     if (showUnsavedDialog) {
         BlockerWarningAlertDialog(
             onDismissRequest = { showUnsavedDialog = false },
-            title = stringResource(R.string.feature_globalifwrule_impl_unsaved_title),
-            text = stringResource(R.string.feature_globalifwrule_impl_unsaved_message),
+            title = stringResource(R.string.feature_globalifwrule_api_unsaved_title),
+            text = stringResource(R.string.feature_globalifwrule_api_unsaved_message),
             onConfirmRequest = {
                 showUnsavedDialog = false
                 onBack()
@@ -274,150 +156,382 @@ fun SimpleGlobalIfwRuleScreen(
 }
 
 @Composable
-private fun SectionTitle(
-    title: String,
+private fun SimpleGlobalIfwRuleContent(
+    draft: SimpleGlobalIfwRuleDraft,
+    selectedPackageLabel: String?,
+    componentQuery: String,
+    visibleComponents: List<SimpleRuleComponentUiState>,
+    isComponentLoading: Boolean,
+    componentLoadError: String?,
+    showOptionalConditions: Boolean,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    onTargetModeChange: (SimpleTargetMode) -> Unit,
+    onBlockChange: (Boolean) -> Unit,
+    onLogChange: (Boolean) -> Unit,
+    onActionChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onCallerPackageChange: (String) -> Unit,
+    onComponentQueryChange: (String) -> Unit,
+    onSelectSingleTarget: (String) -> Unit,
+    onToggleMultiTarget: (String) -> Unit,
+    onShowOptionalConditions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        modifier = modifier.padding(bottom = 8.dp),
+    Column(modifier = modifier) {
+        Spacer(modifier = Modifier.height(8.dp))
+        TargetSection(
+            draft = draft,
+            selectedPackageLabel = selectedPackageLabel,
+            componentQuery = componentQuery,
+            visibleComponents = visibleComponents,
+            isComponentLoading = isComponentLoading,
+            componentLoadError = componentLoadError,
+            onPackageNameChange = onPackageNameChange,
+            onComponentTypeChange = onComponentTypeChange,
+            onTargetModeChange = onTargetModeChange,
+            onComponentQueryChange = onComponentQueryChange,
+            onSelectSingleTarget = onSelectSingleTarget,
+            onToggleMultiTarget = onToggleMultiTarget,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        BehaviorSection(
+            block = draft.block,
+            log = draft.log,
+            onBlockChange = onBlockChange,
+            onLogChange = onLogChange,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        OptionalConditionsSection(
+            draft = draft,
+            showOptionalConditions = showOptionalConditions,
+            onActionChange = onActionChange,
+            onCategoryChange = onCategoryChange,
+            onCallerPackageChange = onCallerPackageChange,
+            onShowOptionalConditions = onShowOptionalConditions,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun TargetSection(
+    draft: SimpleGlobalIfwRuleDraft,
+    selectedPackageLabel: String?,
+    componentQuery: String,
+    visibleComponents: List<SimpleRuleComponentUiState>,
+    isComponentLoading: Boolean,
+    componentLoadError: String?,
+    onPackageNameChange: (String) -> Unit,
+    onComponentTypeChange: (IfwComponentType) -> Unit,
+    onTargetModeChange: (SimpleTargetMode) -> Unit,
+    onComponentQueryChange: (String) -> Unit,
+    onSelectSingleTarget: (String) -> Unit,
+    onToggleMultiTarget: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_target_section))
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = draft.selectedPackageName,
+            onValueChange = onPackageNameChange,
+            label = { Text(stringResource(R.string.feature_globalifwrule_api_target_app_package)) },
+            singleLine = true,
+            supportingText = {
+                Text(
+                    text = if (selectedPackageLabel != null) {
+                        stringResource(
+                            R.string.feature_globalifwrule_api_target_app_package_label,
+                            selectedPackageLabel,
+                        )
+                    } else {
+                        stringResource(R.string.feature_globalifwrule_api_target_app_package_summary)
+                    },
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        ComponentTypeDropdown(
+            selected = draft.componentType,
+            onSelect = onComponentTypeChange,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        TargetModeSection(
+            selectedMode = draft.targetMode,
+            onTargetModeChange = onTargetModeChange,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        TargetComponentSection(
+            selectedPackageName = draft.selectedPackageName,
+            targetMode = draft.targetMode,
+            targets = draft.targets,
+            componentQuery = componentQuery,
+            visibleComponents = visibleComponents,
+            isComponentLoading = isComponentLoading,
+            componentLoadError = componentLoadError,
+            onComponentQueryChange = onComponentQueryChange,
+            onSelectSingleTarget = onSelectSingleTarget,
+            onToggleMultiTarget = onToggleMultiTarget,
+        )
+    }
+}
+
+@Composable
+private fun TargetModeSection(
+    selectedMode: SimpleTargetMode,
+    onTargetModeChange: (SimpleTargetMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier,
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text(
+                text = stringResource(R.string.feature_globalifwrule_api_target_mode),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TargetModeRow(
+                label = stringResource(R.string.feature_globalifwrule_api_target_mode_single),
+                selected = selectedMode == SimpleTargetMode.SINGLE,
+                onClick = { onTargetModeChange(SimpleTargetMode.SINGLE) },
+            )
+            TargetModeRow(
+                label = stringResource(R.string.feature_globalifwrule_api_target_mode_multiple),
+                selected = selectedMode == SimpleTargetMode.MULTIPLE,
+                onClick = { onTargetModeChange(SimpleTargetMode.MULTIPLE) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun TargetComponentSection(
+    selectedPackageName: String,
+    targetMode: SimpleTargetMode,
+    targets: List<String>,
+    componentQuery: String,
+    visibleComponents: List<SimpleRuleComponentUiState>,
+    isComponentLoading: Boolean,
+    componentLoadError: String?,
+    onComponentQueryChange: (String) -> Unit,
+    onSelectSingleTarget: (String) -> Unit,
+    onToggleMultiTarget: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = stringResource(R.string.feature_globalifwrule_api_target_component),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (selectedPackageName.isBlank()) {
+                    Text(
+                        text = stringResource(R.string.feature_globalifwrule_api_target_component_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    OutlinedTextField(
+                        value = componentQuery,
+                        onValueChange = onComponentQueryChange,
+                        label = { Text(stringResource(R.string.feature_globalifwrule_api_target_component_search)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ComponentSelectionContent(
+                        components = visibleComponents,
+                        targetMode = targetMode,
+                        isLoading = isComponentLoading,
+                        error = componentLoadError,
+                        onSelectSingleTarget = onSelectSingleTarget,
+                        onToggleMultiTarget = onToggleMultiTarget,
+                    )
+                    if (targets.isEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.feature_globalifwrule_api_target_required),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OptionalConditionsSection(
+    draft: SimpleGlobalIfwRuleDraft,
+    showOptionalConditions: Boolean,
+    onActionChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onCallerPackageChange: (String) -> Unit,
+    onShowOptionalConditions: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        SectionLabel(text = stringResource(R.string.feature_globalifwrule_api_optional_conditions))
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (!showOptionalConditions) {
+                    BlockerOutlinedButton(
+                        text = { Text(stringResource(R.string.feature_globalifwrule_api_optional_conditions_show)) },
+                        onClick = onShowOptionalConditions,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    OutlinedTextField(
+                        value = draft.action,
+                        onValueChange = onActionChange,
+                        label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_action)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = draft.category,
+                        onValueChange = onCategoryChange,
+                        label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_category)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = draft.callerPackage,
+                        onValueChange = onCallerPackageChange,
+                        label = { Text(stringResource(R.string.feature_globalifwrule_api_optional_caller_package)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SimpleGlobalIfwRuleScreenPreviewContainer(
+    content: @Composable () -> Unit,
+) {
+    BlockerTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun SimpleGlobalIfwRuleScreenPreview(
+    draft: SimpleGlobalIfwRuleDraft,
+    selectedPackageLabel: String? = null,
+    componentQuery: String = "",
+    visibleComponents: List<SimpleRuleComponentUiState> = emptyList(),
+    isComponentLoading: Boolean = false,
+    componentLoadError: String? = null,
+    isDirty: Boolean = false,
+) {
+    SimpleGlobalIfwRuleScreenPreviewContainer {
+        SimpleGlobalIfwRuleScreen(
+            draft = draft,
+            isDirty = isDirty,
+            selectedPackageLabel = selectedPackageLabel,
+            componentQuery = componentQuery,
+            visibleComponents = visibleComponents,
+            isComponentLoading = isComponentLoading,
+            componentLoadError = componentLoadError,
+            onSave = {},
+            onBack = {},
+            onPackageNameChange = {},
+            onComponentTypeChange = {},
+            onTargetModeChange = {},
+            onBlockChange = {},
+            onLogChange = {},
+            onActionChange = {},
+            onCategoryChange = {},
+            onCallerPackageChange = {},
+            onComponentQueryChange = {},
+            onSelectSingleTarget = {},
+            onToggleMultiTarget = {},
+        )
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun SimpleGlobalIfwRuleScreenAddPreview() {
+    SimpleGlobalIfwRuleScreenPreview(
+        draft = SimpleGlobalIfwRuleDraft(),
     )
 }
 
 @Composable
-private fun TargetModeRow(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .selectable(
-                selected = selected,
-                onClick = onClick,
+@PreviewThemes
+private fun SimpleGlobalIfwRuleScreenMultiTargetPreview() {
+    SimpleGlobalIfwRuleScreenPreview(
+        draft = SimpleGlobalIfwRuleDraft(
+            selectedPackageName = GlobalIfwRulePreviewParameterData.PREVIEW_SIMPLE_RULE_PACKAGE_NAME,
+            componentType = IfwComponentType.BROADCAST,
+            targetMode = SimpleTargetMode.MULTIPLE,
+            targets = listOf(
+                GlobalIfwRulePreviewParameterData.PREVIEW_BOOT_RECEIVER_NAME,
+                GlobalIfwRulePreviewParameterData.PREVIEW_ALARM_RECEIVER_NAME,
             ),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick,
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-    }
+            action = "android.intent.action.BOOT_COMPLETED",
+            category = "android.intent.category.DEFAULT",
+            callerPackage = "android",
+        ),
+        isDirty = true,
+        selectedPackageLabel = "Spotify",
+        visibleComponents = GlobalIfwRulePreviewParameterData.simpleRuleComponents(
+            selectedTargets = setOf(
+                GlobalIfwRulePreviewParameterData.PREVIEW_BOOT_RECEIVER_NAME,
+                GlobalIfwRulePreviewParameterData.PREVIEW_ALARM_RECEIVER_NAME,
+            ),
+        ),
+    )
 }
 
 @Composable
-private fun ComponentSelectionContent(
-    components: List<SimpleRuleComponentUiState>,
-    targetMode: SimpleTargetMode,
-    isLoading: Boolean,
-    error: String?,
-    onSelectSingleTarget: (String) -> Unit,
-    onToggleMultiTarget: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        when {
-            isLoading -> {
-                Text(
-                    text = stringResource(R.string.feature_globalifwrule_impl_loading_components),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            error != null -> {
-                Text(
-                    text = error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-
-            components.isEmpty() -> {
-                Text(
-                    text = stringResource(R.string.feature_globalifwrule_impl_no_components),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            else -> {
-                components.forEach { component ->
-                    ComponentSelectionRow(
-                        component = component,
-                        targetMode = targetMode,
-                        onSelectSingleTarget = onSelectSingleTarget,
-                        onToggleMultiTarget = onToggleMultiTarget,
-                    )
-                }
-            }
-        }
-    }
+@PreviewThemes
+private fun SimpleGlobalIfwRuleScreenLoadingPreview() {
+    SimpleGlobalIfwRuleScreenPreview(
+        draft = SimpleGlobalIfwRuleDraft(
+            selectedPackageName = GlobalIfwRulePreviewParameterData.PREVIEW_SIMPLE_RULE_PACKAGE_NAME,
+            componentType = IfwComponentType.BROADCAST,
+        ),
+        selectedPackageLabel = "Spotify",
+        isComponentLoading = true,
+    )
 }
 
 @Composable
-private fun ComponentSelectionRow(
-    component: SimpleRuleComponentUiState,
-    targetMode: SimpleTargetMode,
-    onSelectSingleTarget: (String) -> Unit,
-    onToggleMultiTarget: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = if (component.selected) 2.dp else 0.dp,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    if (targetMode == SimpleTargetMode.SINGLE) {
-                        onSelectSingleTarget(component.flattenedName)
-                    } else {
-                        onToggleMultiTarget(component.flattenedName)
-                    }
-                }
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            BlockerSwitch(
-                checked = component.selected,
-                onCheckedChange = {
-                    if (targetMode == SimpleTargetMode.SINGLE) {
-                        onSelectSingleTarget(component.flattenedName)
-                    } else {
-                        onToggleMultiTarget(component.flattenedName)
-                    }
-                },
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = component.simpleName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (component.simpleName != component.componentName) {
-                    Text(
-                        text = component.componentName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-    }
+@PreviewThemes
+private fun SimpleGlobalIfwRuleScreenLoadErrorPreview() {
+    SimpleGlobalIfwRuleScreenPreview(
+        draft = SimpleGlobalIfwRuleDraft(
+            selectedPackageName = GlobalIfwRulePreviewParameterData.PREVIEW_SIMPLE_RULE_PACKAGE_NAME,
+            componentType = IfwComponentType.BROADCAST,
+        ),
+        selectedPackageLabel = "Spotify",
+        componentLoadError = "Failed to query receivers for this package.",
+    )
 }
