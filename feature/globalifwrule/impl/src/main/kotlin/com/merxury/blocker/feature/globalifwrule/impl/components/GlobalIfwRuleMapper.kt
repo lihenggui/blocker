@@ -34,7 +34,7 @@ import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.StringMatcher
-import com.merxury.core.ifw.model.toSummary
+import com.merxury.core.ifw.model.toSummary as toIntentFilterSummary
 
 internal fun SimpleGlobalIfwRuleDraft.toIfwRule(): IfwRule = IfwRule(
     componentType = componentType,
@@ -202,7 +202,7 @@ internal fun SimpleGlobalIfwRuleDraft.toSummary(): String = buildList {
 
 internal fun AdvancedGlobalIfwRuleDraft.toSummary(): String = buildList {
     intentFilters.forEach { intentFilter ->
-        add("intent-filter: ${intentFilter.toSummary()}")
+        add("intent-filter: ${intentFilter.toIntentFilterSummary()}")
     }
     rootGroup.toTopLevelFilters().forEach { filter ->
         add(filter.toDisplaySummary(storagePackageName))
@@ -211,7 +211,7 @@ internal fun AdvancedGlobalIfwRuleDraft.toSummary(): String = buildList {
 
 internal fun IfwRule.toSummary(storagePackageName: String): String = buildList {
     intentFilters.forEach { intentFilter ->
-        add("intent-filter: ${intentFilter.toSummary()}")
+        add("intent-filter: ${intentFilter.toIntentFilterSummary()}")
     }
     filters.forEach { filter ->
         add(filter.toDisplaySummary(storagePackageName))
