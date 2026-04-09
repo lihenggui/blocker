@@ -213,7 +213,7 @@ fun GlobalIfwRuleScreen(
                 if (uiState.groups.isEmpty()) {
                     EmptyScreen(
                         textRes = R.string.feature_globalifwrule_api_empty,
-                        contentDescriptionRes = R.string.feature_globalifwrule_api_empty_desc,
+                        descriptionRes = R.string.feature_globalifwrule_api_empty_desc,
                         modifier = Modifier.padding(padding),
                     )
                 } else {

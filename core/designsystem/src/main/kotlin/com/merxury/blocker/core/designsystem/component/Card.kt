@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -58,7 +57,6 @@ fun BlockerOutlinedCard(
     } else {
         OutlinedCard(
             modifier = cardModifier,
-            colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent),
         ) {
             Column(
                 modifier = Modifier

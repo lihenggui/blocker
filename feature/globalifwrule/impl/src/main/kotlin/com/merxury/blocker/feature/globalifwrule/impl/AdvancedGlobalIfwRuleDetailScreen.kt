@@ -51,6 +51,7 @@ import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.blocker.feature.globalifwrule.impl.components.DeleteConfirmationDialog
+import com.merxury.blocker.feature.globalifwrule.impl.components.IntentFilterBanner
 import com.merxury.blocker.feature.globalifwrule.impl.components.RuleMetaBadge
 import com.merxury.blocker.feature.globalifwrule.impl.components.RulePrimaryMetadataText
 import com.merxury.blocker.feature.globalifwrule.impl.components.RuleSecondaryMetadataText
@@ -92,7 +93,7 @@ internal fun AdvancedGlobalIfwRuleDetailScreen(
             }
             if (detail.draft.hasReadOnlyIntentFilters) {
                 item {
-                    AdvancedRuleReadOnlyNotice()
+                    IntentFilterBanner()
                 }
             }
             item {
@@ -164,24 +165,6 @@ private fun AdvancedRuleOverviewSection(
                 detail.storagePackageName,
             ),
             maxLines = 2,
-        )
-    }
-}
-
-@Composable
-private fun AdvancedRuleReadOnlyNotice(
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        shape = MaterialTheme.shapes.medium,
-    ) {
-        Text(
-            text = stringResource(R.string.feature_globalifwrule_api_intent_filters_preserved),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         )
     }
 }

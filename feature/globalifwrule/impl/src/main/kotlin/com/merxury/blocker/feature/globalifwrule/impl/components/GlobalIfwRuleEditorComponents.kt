@@ -16,16 +16,12 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -40,14 +36,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.ui.ifwruleeditor.SwitchRow
 import com.merxury.blocker.feature.globalifwrule.api.R
 import com.merxury.core.ifw.model.IfwComponentType
 
@@ -172,46 +166,17 @@ internal fun BehaviorSection(
                     label = stringResource(R.string.feature_globalifwrule_api_block),
                     checked = block,
                     onCheckedChange = onBlockChange,
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    contentPadding = PaddingValues(vertical = 12.dp),
                 )
                 SwitchRow(
                     label = stringResource(R.string.feature_globalifwrule_api_log),
                     checked = log,
                     onCheckedChange = onLogChange,
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    contentPadding = PaddingValues(vertical = 12.dp),
                 )
             }
         }
-    }
-}
-
-@Composable
-internal fun SwitchRow(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 56.dp)
-            .toggleable(
-                value = checked,
-                onValueChange = onCheckedChange,
-                role = Role.Switch,
-            )
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f),
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        BlockerSwitch(
-            checked = checked,
-            onCheckedChange = null,
-        )
     }
 }

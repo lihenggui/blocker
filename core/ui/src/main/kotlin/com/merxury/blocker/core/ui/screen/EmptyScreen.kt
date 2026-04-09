@@ -41,7 +41,7 @@ import com.merxury.blocker.core.ui.R
 fun EmptyScreen(
     @StringRes textRes: Int,
     modifier: Modifier = Modifier,
-    @StringRes contentDescriptionRes: Int? = null,
+    @StringRes descriptionRes: Int? = null,
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -61,10 +61,10 @@ fun EmptyScreen(
                 text = stringResource(id = textRes),
                 color = MaterialTheme.colorScheme.outline,
             )
-            if (contentDescriptionRes != null) {
+            if (descriptionRes != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = stringResource(id = contentDescriptionRes),
+                    text = stringResource(id = descriptionRes),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.outline,
                 )
@@ -90,7 +90,7 @@ private fun EmptyScreenWithDescPreview() {
         Surface {
             EmptyScreen(
                 textRes = R.string.core_ui_not_found_icon,
-                contentDescriptionRes = R.string.core_ui_not_found_icon,
+                descriptionRes = R.string.core_ui_not_found_icon,
             )
         }
     }

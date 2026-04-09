@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -50,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
@@ -58,6 +60,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.R
+import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.IfwEditorPortMode
@@ -317,10 +320,10 @@ private fun collapsedNodeSummary(node: IfwEditorNode): String = when (node) {
 private fun collapsedConditionSummary(condition: IfwEditorNode.Condition): String {
     val label = stringResource(condition.kind.labelRes)
     val detail = when (condition.kind) {
-        com.merxury.core.ifw.editor.IfwEditorConditionKind.CALLER_TYPE -> {
+        IfwEditorConditionKind.CALLER_TYPE -> {
             stringResource(condition.senderType.labelRes)
         }
-        com.merxury.core.ifw.editor.IfwEditorConditionKind.PORT -> when (condition.portMode) {
+        IfwEditorConditionKind.PORT -> when (condition.portMode) {
             IfwEditorPortMode.EXACT -> condition.exactPort?.toString().orEmpty()
             IfwEditorPortMode.RANGE -> listOfNotNull(
                 condition.minPort?.toString(),
@@ -391,11 +394,13 @@ internal fun GroupModeOption(
 }
 
 @Composable
-internal fun SwitchRow(
+fun SwitchRow(
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     Row(
         modifier = modifier
@@ -405,13 +410,14 @@ internal fun SwitchRow(
                 value = checked,
                 onValueChange = onCheckedChange,
                 role = Role.Switch,
-            ),
+            )
+            .padding(contentPadding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = textStyle,
             modifier = Modifier.weight(1f),
         )
         Spacer(modifier = Modifier.width(16.dp))
