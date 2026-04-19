@@ -24,6 +24,7 @@ import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
@@ -73,6 +74,13 @@ class TestComponentRepository : ComponentRepository {
 
     override suspend fun deleteComponents(packageName: String) {
         componentList.emit(emptyList())
+    }
+
+    override fun restorePmBlockedComponents(): Flow<ComponentInfo> = flow {
+        componentList.replayCache.firstOrNull()
+            .orEmpty()
+            .filter { it.pmBlocked }
+            .forEach { emit(it) }
     }
 
     fun sendComponentList(componentList: List<ComponentInfo>) {

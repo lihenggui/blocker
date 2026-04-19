@@ -21,4 +21,8 @@ import android.content.pm.PackageManager
 enum class ComponentState(val pmValue: Int) {
     ENABLED(PackageManager.COMPONENT_ENABLED_STATE_ENABLED),
     DISABLED(PackageManager.COMPONENT_ENABLED_STATE_DISABLED),
+
+    // Clears user overrides in package-restrictions.xml so the component falls back
+    // to its AndroidManifest default. Matches `pm default-state`.
+    DEFAULT(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT),
 }
