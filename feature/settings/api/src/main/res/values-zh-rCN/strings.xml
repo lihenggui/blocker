@@ -69,4 +69,9 @@
     <string name="feature_settings_api_others">其他</string>
     <string name="feature_settings_api_anonymous_statistics">匿名统计</string>
     <string name="feature_settings_api_anonymous_statistics_summary">我们使用 Firebase Analytics 收集和分析关于用户行为和最常用功能的数据，以改进 Blocker 的功能。</string>
+    <string name="feature_settings_api_pm_rules">PM</string>
+    <string name="feature_settings_api_reset_pm">恢复 PM 修改</string>
+    <string name="feature_settings_api_reset_pm_summary">将所有通过 PM 禁用的组件恢复为应用的默认状态</string>
+    <string name="feature_settings_api_reset_pm_dialog_title">恢复 PM 修改？</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">将对 Blocker 通过 PM 禁用过的每个组件执行 pm default-state，把它们恢复为应用清单中声明的状态。IFW 规则不受影响。要继续吗？</string>
 </resources>
