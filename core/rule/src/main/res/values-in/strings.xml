@@ -3,6 +3,7 @@
     <string name="core_rule_copying_rules_to_internal_storage">Salin pengaturan ke penyimpanan lokal…</string>
     <string name="core_rule_update_rules_notification">Membarui pengaturan notifikasi</string>
     <string name="core_rule_reset_ifw_please_wait">Atur ulang IFW, harap tunggu…</string>
+    <string name="core_rule_reset_pm_please_wait">Mengembalikan komponen ke status default, harap tunggu…</string>
     <string name="core_rule_backing_up_ifw_please_wait">Cadangkan pengaturan IFW, harap tunggu…</string>
     <string name="core_rule_import_ifw_please_wait">Impor pengaturan IFW, harap tunggu…</string>
     <string name="core_rule_import_mat_rule_please_wait">Impor pengaturan MAT, harap tunggu…</string>
