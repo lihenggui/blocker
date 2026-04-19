@@ -73,5 +73,5 @@
     <string name="feature_settings_api_reset_pm">恢复 PM 修改</string>
     <string name="feature_settings_api_reset_pm_summary">将所有通过 PM 禁用的组件恢复为应用的默认状态</string>
     <string name="feature_settings_api_reset_pm_dialog_title">恢复 PM 修改？</string>
-    <string name="feature_settings_api_reset_pm_dialog_message">将对 Blocker 通过 PM 禁用过的每个组件执行 pm default-state，把它们恢复为应用清单中声明的状态。IFW 规则不受影响。要继续吗？</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">将 Blocker 通过 PM 禁用过的所有组件恢复为默认状态。IFW 规则不受影响。要继续吗？</string>
 </resources>

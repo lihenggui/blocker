@@ -66,5 +66,5 @@
     <string name="feature_settings_api_reset_pm">還原 PM 修改</string>
     <string name="feature_settings_api_reset_pm_summary">將所有透過 PM 停用的元件還原為應用程式的預設狀態</string>
     <string name="feature_settings_api_reset_pm_dialog_title">還原 PM 修改？</string>
-    <string name="feature_settings_api_reset_pm_dialog_message">將對 Blocker 透過 PM 停用過的每個元件執行 pm default-state，把它們還原為應用程式資訊清單中宣告的狀態。IFW 規則不受影響。要繼續嗎？</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">將 Blocker 透過 PM 停用過的所有元件還原為預設狀態。IFW 規則不受影響。要繼續嗎？</string>
 </resources>
