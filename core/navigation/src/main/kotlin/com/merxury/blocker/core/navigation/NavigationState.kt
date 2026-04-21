@@ -26,6 +26,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -79,16 +80,21 @@ class NavigationState(
 
 /**
  * Convert NavigationState into NavEntries.
+ *
+ * @param extraDecorators decorators prepended before the built-in saveable-state and
+ * ViewModel decorators, applied outermost-first. Use this to inject cross-cutting
+ * wrappers (e.g. an opaque Surface background) without touching individual screens.
  */
 @Composable
 fun NavigationState.toEntries(
     entryProvider: (NavKey) -> NavEntry<NavKey>,
+    extraDecorators: List<NavEntryDecorator<NavKey>> = emptyList(),
 ): SnapshotStateList<NavEntry<NavKey>> {
     val decoratedEntries = subStacks.mapValues { (_, stack) ->
         val decorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
             rememberViewModelStoreNavEntryDecorator<NavKey>(),
-        )
+        ) + extraDecorators
         rememberDecoratedNavEntries(
             backStack = stack,
             entryDecorators = decorators,
