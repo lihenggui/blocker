@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,74 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalifwrule.impl
+package com.merxury.blocker.feature.globalifwrule.impl.model
 
 import android.content.pm.PackageInfo
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.hasTopLevelComponentFilter
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwIntentFilter
-
-sealed interface GlobalIfwRuleUiState {
-    data object Loading : GlobalIfwRuleUiState
-    data class Success(val groups: List<PackageRuleGroup>) : GlobalIfwRuleUiState
-    data class Error(val message: String) : GlobalIfwRuleUiState
-}
-
-data class PackageRuleGroup(
-    val packageName: String,
-    val appLabel: String?,
-    val packageInfo: PackageInfo?,
-    val rules: List<RuleItemUiState>,
-)
-
-data class RuleItemUiState(
-    val componentType: IfwComponentType,
-    val block: Boolean,
-    val log: Boolean,
-    val filtersSummary: String,
-    val editMode: GlobalIfwRuleEditMode,
-    val simpleDraft: SimpleGlobalIfwRuleDraft?,
-    val advancedDraft: AdvancedGlobalIfwRuleDraft,
-    val ruleIndex: Int,
-)
-
-data class GlobalIfwRuleEditorUiState(
-    val screen: GlobalIfwRuleScreenState = GlobalIfwRuleScreenState.LIST,
-    val simpleDraft: SimpleGlobalIfwRuleDraft? = null,
-    val advancedDraft: AdvancedGlobalIfwRuleDraft? = null,
-    val detail: AdvancedRuleDetailUiState? = null,
-    val isDirty: Boolean = false,
-    val selectedPackageLabel: String? = null,
-    val availableComponents: List<SimpleRuleComponentUiState> = emptyList(),
-    val componentQuery: String = "",
-    val isComponentLoading: Boolean = false,
-    val componentLoadError: String? = null,
-) {
-    val draft: GlobalIfwRuleDraft?
-        get() = simpleDraft ?: advancedDraft
-
-    val visibleComponents: List<SimpleRuleComponentUiState>
-        get() {
-            if (componentQuery.isBlank()) return availableComponents
-            return availableComponents.filter { component ->
-                component.componentName.contains(componentQuery, ignoreCase = true) ||
-                    component.simpleName.contains(componentQuery, ignoreCase = true)
-            }
-        }
-}
-
-enum class GlobalIfwRuleScreenState {
-    LIST,
-    SIMPLE_EDIT,
-    ADVANCED_EDIT,
-    ADVANCED_DETAIL,
-}
-
-enum class GlobalIfwRuleEditMode {
-    SIMPLE,
-    ADVANCED,
-}
 
 enum class SimpleTargetMode {
     SINGLE,
@@ -131,14 +70,89 @@ data class AdvancedGlobalIfwRuleDraft(
             (hasReadOnlyIntentFilters || rootGroup.hasTopLevelComponentFilter())
 }
 
+sealed interface GlobalIfwRuleUiState {
+    data object Loading : GlobalIfwRuleUiState
+    data class Success(val groups: List<PackageRuleGroup>) : GlobalIfwRuleUiState
+    data class Error(val message: String) : GlobalIfwRuleUiState
+}
+
+data class PackageRuleGroup(
+    val packageName: String,
+    val appLabel: String?,
+    val packageInfo: PackageInfo?,
+    val rules: List<RuleItemUiState>,
+)
+
+data class RuleItemUiState(
+    val componentType: IfwComponentType,
+    val block: Boolean,
+    val log: Boolean,
+    val filtersSummary: String,
+    val presentation: RuleItemPresentationUiState,
+    val editMode: GlobalIfwRuleEditMode,
+    val simpleDraft: SimpleGlobalIfwRuleDraft?,
+    val advancedDraft: AdvancedGlobalIfwRuleDraft,
+    val ruleIndex: Int,
+)
+
+data class RuleItemPresentationUiState(
+    val title: String?,
+    val targetPath: String?,
+    val supportingText: String?,
+)
+
+data class GlobalIfwRuleEditorUiState(
+    val screen: GlobalIfwRuleScreenState = GlobalIfwRuleScreenState.LIST,
+    val simpleDraft: SimpleGlobalIfwRuleDraft? = null,
+    val advancedDraft: AdvancedGlobalIfwRuleDraft? = null,
+    val detail: AdvancedRuleDetailUiState? = null,
+    val isDirty: Boolean = false,
+    val selectedPackageLabel: String? = null,
+    val availableComponents: List<SimpleRuleComponentUiState> = emptyList(),
+    val componentQuery: String = "",
+    val isComponentLoading: Boolean = false,
+    val componentLoadError: String? = null,
+) {
+    val draft: GlobalIfwRuleDraft?
+        get() = simpleDraft ?: advancedDraft
+
+    val visibleComponents: List<SimpleRuleComponentUiState>
+        get() {
+            if (componentQuery.isBlank()) return availableComponents
+            return availableComponents.filter { component ->
+                component.componentName.contains(componentQuery, ignoreCase = true) ||
+                    component.simpleName.contains(componentQuery, ignoreCase = true)
+            }
+        }
+}
+
+enum class GlobalIfwRuleScreenState {
+    LIST,
+    SIMPLE_EDIT,
+    ADVANCED_EDIT,
+    ADVANCED_DETAIL,
+}
+
+enum class GlobalIfwRuleEditMode {
+    SIMPLE,
+    ADVANCED,
+}
+
 data class AdvancedRuleDetailUiState(
     val storagePackageName: String,
     val componentType: IfwComponentType,
     val block: Boolean,
     val log: Boolean,
     val filtersSummary: String,
+    val presentation: AdvancedRuleDetailPresentationUiState,
     val ruleIndex: Int,
     val draft: AdvancedGlobalIfwRuleDraft,
+)
+
+data class AdvancedRuleDetailPresentationUiState(
+    val title: String?,
+    val targetPath: String?,
+    val conditionLines: List<String>,
 )
 
 data class SimpleRuleComponentUiState(
@@ -148,10 +162,3 @@ data class SimpleRuleComponentUiState(
     val exported: Boolean,
     val selected: Boolean,
 )
-
-val IfwComponentType.labelRes: Int
-    get() = when (this) {
-        IfwComponentType.ACTIVITY -> R.string.feature_globalifwrule_impl_rule_type_activity
-        IfwComponentType.BROADCAST -> R.string.feature_globalifwrule_impl_rule_type_broadcast
-        IfwComponentType.SERVICE -> R.string.feature_globalifwrule_impl_rule_type_service
-    }

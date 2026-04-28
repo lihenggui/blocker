@@ -18,7 +18,7 @@ package com.merxury.blocker.core.designsystem
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel

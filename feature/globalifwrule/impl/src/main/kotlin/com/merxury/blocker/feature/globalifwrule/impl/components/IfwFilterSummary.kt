@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.core.ifw.model
+package com.merxury.blocker.feature.globalifwrule.impl.components
+
+import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.StringMatcher
 
 /**
- * Generates a human-readable summary of an IFW filter.
+ * Generates human-readable summary strings for IFW filters in the global rule UI.
  */
-fun IfwFilter.toSummary(): String = when (this) {
+internal fun IfwFilter.toSummary(): String = when (this) {
     is IfwFilter.ComponentFilter -> name.substringAfter("/")
     is IfwFilter.Action -> "action ${matcher.toSummary()}"
     is IfwFilter.Component -> "component ${matcher.toSummary()}"

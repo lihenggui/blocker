@@ -22,6 +22,22 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.feature.globalifwrule.impl.components.flattenComponentName
+import com.merxury.blocker.feature.globalifwrule.impl.components.toComponentType
+import com.merxury.blocker.feature.globalifwrule.impl.components.toDetailUiState
+import com.merxury.blocker.feature.globalifwrule.impl.components.toIfwRule
+import com.merxury.blocker.feature.globalifwrule.impl.components.toIfwRuleOrNull
+import com.merxury.blocker.feature.globalifwrule.impl.components.toRuleItemUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.AdvancedGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleEditMode
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleEditorUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleScreenState
+import com.merxury.blocker.feature.globalifwrule.impl.model.GlobalIfwRuleUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.PackageRuleGroup
+import com.merxury.blocker.feature.globalifwrule.impl.model.RuleItemUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleGlobalIfwRuleDraft
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleRuleComponentUiState
+import com.merxury.blocker.feature.globalifwrule.impl.model.SimpleTargetMode
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.model.IfwComponentType
@@ -344,7 +360,8 @@ class GlobalIfwRuleViewModel @Inject constructor(
                     val availableComponents = components
                         .sortedBy { component -> component.simpleName.lowercase() }
                         .map { component ->
-                            val flattenedName = flattenComponentName(component.packageName, component.name)
+                            val flattenedName =
+                                flattenComponentName(component.packageName, component.name)
                             SimpleRuleComponentUiState(
                                 flattenedName = flattenedName,
                                 componentName = component.name,

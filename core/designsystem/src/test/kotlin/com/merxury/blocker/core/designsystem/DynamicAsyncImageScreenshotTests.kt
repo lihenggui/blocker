@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.DynamicAsyncImage
 import com.merxury.blocker.core.testing.util.captureMultiTheme
