@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_ifwrule_api_title">攔截規則</string>
+    <string name="feature_ifwrule_api_block_all">阻止所有呼叫（完全停用）</string>
+    <string name="feature_ifwrule_api_block_conditional">按條件攔截（精細控制）</string>
+    <string name="feature_ifwrule_api_block_mode">攔截方式</string>
+    <string name="feature_ifwrule_api_conditions">攔截條件</string>
+    <string name="feature_ifwrule_api_save">儲存規則</string>
+    <string name="feature_ifwrule_api_advanced_options">進階選項</string>
+    <string name="feature_ifwrule_api_log">記錄日誌</string>
+    <string name="feature_ifwrule_api_log_summary">開啟後可在系統日誌中查看匹配記錄</string>
+    <string name="feature_ifwrule_api_monitor_only">僅記錄不阻擋</string>
+    <string name="feature_ifwrule_api_monitor_only_summary">開啟後規則只記錄而不實際攔截，適合先觀察再決定</string>
+    <string name="feature_ifwrule_api_advanced_rule_banner">進階規則（唯讀）</string>
+    <string name="feature_ifwrule_api_advanced_rule_delete">刪除並重新建立</string>
+    <string name="feature_ifwrule_api_unsaved_title">未儲存的變更</string>
+    <string name="feature_ifwrule_api_unsaved_message">你有未儲存的變更，確定要離開嗎？</string>
+</resources>
