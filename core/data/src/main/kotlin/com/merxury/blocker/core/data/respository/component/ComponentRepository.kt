@@ -51,4 +51,12 @@ interface ComponentRepository {
     suspend fun saveComponents(components: List<ComponentInfo>)
 
     suspend fun deleteComponents(packageName: String)
+
+    /**
+     * Reverts every component that was disabled via PM back to its manifest-declared default
+     * state by invoking `pm default-state`. Emits each processed [ComponentInfo] so callers can
+     * report progress. The PM entry in the database is cleared when the restore succeeds.
+     * IFW rules are not touched.
+     */
+    fun restorePmBlockedComponents(): Flow<ComponentInfo>
 }

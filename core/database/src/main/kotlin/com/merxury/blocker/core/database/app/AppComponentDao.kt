@@ -50,6 +50,9 @@ interface AppComponentDao {
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName")
     fun getByPackageName(packageName: String): Flow<List<AppComponentEntity>>
 
+    @Query("SELECT * FROM app_component WHERE pm_blocked = 1")
+    suspend fun getPmBlockedComponents(): List<AppComponentEntity>
+
     @Query(
         "SELECT * FROM app_component WHERE package_name LIKE :packageName " +
             "AND component_name LIKE :componentName",
