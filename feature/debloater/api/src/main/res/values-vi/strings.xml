@@ -15,6 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
+    <string name="feature_debloater_api_title">Tinh gọn ứng dụng</string>
     <string name="feature_debloater_api_search_hint">Gõ để tìm kiếm</string>
     <string name="feature_debloater_api_no_root_permission">Quyền root là cần thiết để vô hiệu hóa các thành phần</string>
     <string name="feature_debloater_api_test_share">Kiểm tra quyền chia sẻ</string>

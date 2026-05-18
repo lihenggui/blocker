@@ -15,6 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
+    <string name="feature_debloater_api_title">App Slimming</string>
     <string name="feature_debloater_api_search_hint">Type to search</string>
     <string name="feature_debloater_api_no_root_permission">Root permission is required to enable or disable components</string>
     <string name="feature_debloater_api_test_share">Test share</string>
