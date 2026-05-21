@@ -26,28 +26,45 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerOutlinedCard(
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     color: Color = Color.Transparent,
+    outerPadding: Dp = 8.dp,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
-    OutlinedCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        onClick = onClick,
-    ) {
-        Column(
-            modifier = Modifier
-                .background(color = color)
-                .fillMaxWidth(),
+    val cardModifier = modifier
+        .fillMaxWidth()
+        .padding(outerPadding)
+    if (onClick != null) {
+        OutlinedCard(
+            modifier = cardModifier,
+            onClick = onClick,
         ) {
-            content()
+            Column(
+                modifier = Modifier
+                    .background(color = color)
+                    .fillMaxWidth(),
+            ) {
+                content()
+            }
+        }
+    } else {
+        OutlinedCard(
+            modifier = cardModifier,
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(color = color)
+                    .fillMaxWidth(),
+            ) {
+                content()
+            }
         }
     }
 }
