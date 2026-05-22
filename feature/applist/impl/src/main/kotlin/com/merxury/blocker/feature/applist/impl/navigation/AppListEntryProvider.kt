@@ -30,13 +30,17 @@ import com.merxury.blocker.feature.settings.api.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.api.navigation.navigateToSupportAndFeedback
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.appListEntry(navigator: Navigator) {
+fun EntryProviderScope<NavKey>.appListEntry(
+    navigator: Navigator,
+    navigateToAppSlimming: () -> Unit,
+) {
     entry<AppListNavKey>(
         metadata = ListDetailSceneStrategy.listPane(),
     ) { key ->
         val initialPackageName = key.initialPackageName
         AppListScreen(
             navigateToAppDetail = navigator::navigateToAppDetail,
+            navigateToAppSlimming = navigateToAppSlimming,
             navigateToSettings = navigator::navigateToSettings,
             navigateToSupportAndFeedback = navigator::navigateToSupportAndFeedback,
             viewModel = hiltViewModel<AppListViewModel, AppListViewModel.Factory>(

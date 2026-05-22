@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_applist_api_sort_menu">Menu Trier</string>
+    <string name="feature_applist_api_app_slimming">Allègement des applications</string>
     <string name="feature_applist_api_settings">Paramètres</string>
     <string name="feature_applist_api_support_and_feedback">Assistance et commentaires</string>
     <string name="feature_applist_api_no_applications_to_display">Aucune application à afficher</string>
