@@ -64,6 +64,15 @@ internal class RootController @Inject constructor(
                     componentName,
                 ),
             )
+
+            ComponentState.DEFAULT -> removeEscapeCharacter(
+                String.format(
+                    DEFAULT_STATE_COMPONENT_TEMPLATE,
+                    context.userId,
+                    packageName,
+                    componentName,
+                ),
+            )
         }
         Timber.d("command:$comm, componentState is $state")
         return withContext(Dispatchers.IO) {
@@ -94,5 +103,6 @@ internal class RootController @Inject constructor(
     companion object {
         private const val DISABLE_COMPONENT_TEMPLATE = "pm disable --user %s %s/%s"
         private const val ENABLE_COMPONENT_TEMPLATE = "pm enable --user %s %s/%s"
+        private const val DEFAULT_STATE_COMPONENT_TEMPLATE = "pm default-state --user %s %s/%s"
     }
 }

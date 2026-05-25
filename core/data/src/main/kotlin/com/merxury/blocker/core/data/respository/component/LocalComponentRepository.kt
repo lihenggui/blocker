@@ -27,6 +27,7 @@ import com.merxury.blocker.core.database.app.toAppComponentEntity
 import com.merxury.blocker.core.database.app.toComponentInfo
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
@@ -213,6 +214,23 @@ internal class LocalComponentRepository @Inject constructor(
     override suspend fun deleteComponents(packageName: String) {
         appComponentDao.deleteByPackageName(packageName)
     }
+
+    override fun restorePmBlockedComponents(): Flow<ComponentInfo> = flow {
+        val entities = appComponentDao.getPmBlockedComponents()
+        Timber.i("Restoring ${entities.size} PM-blocked components to default state")
+        if (entities.isEmpty()) return@flow
+        val useShizuku = userDataRepository.userData.first().controllerType == SHIZUKU
+        val controller = if (useShizuku) shizukuController else pmController
+        controller.init()
+        // ComponentState.DEFAULT maps to `pm default-state`, which clears user overrides so the
+        // component falls back to its manifest-declared state. Errors propagate to the caller.
+        entities.forEach { entity ->
+            val component = entity.toComponentInfo()
+            controller.switchComponent(component, ComponentState.DEFAULT)
+            appComponentDao.update(entity.copy(pmBlocked = false))
+            emit(component)
+        }
+    }.flowOn(ioDispatcher)
 
     private suspend fun controlInIfwMode(
         component: ComponentInfo,
