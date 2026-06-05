@@ -18,6 +18,7 @@ package com.merxury.blocker.core.controllers.root.api
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IAppController
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -57,6 +58,12 @@ internal class RootApiAppController @Inject constructor(
     override suspend fun refreshRunningAppList() {
         Timber.d("Refresh running app list")
         runningPackages.clear()
-        runningPackages.addAll(rootApiClient.execute(RefreshRunningAppListCommand()).value)
+        try {
+            runningPackages.addAll(rootApiClient.execute(RefreshRunningAppListCommand()).value)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to refresh running app list")
+        }
     }
 }

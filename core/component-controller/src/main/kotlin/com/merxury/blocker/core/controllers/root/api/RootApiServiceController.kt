@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.controllers.root.api
 
 import com.merxury.blocker.core.controllers.IServiceController
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,8 +32,15 @@ internal class RootApiServiceController @Inject constructor(
 
     override suspend fun load(): Boolean {
         runningServices.clear()
-        runningServices.addAll(rootApiClient.execute(RefreshRunningServiceListCommand()).services)
-        return true
+        return try {
+            runningServices.addAll(rootApiClient.execute(RefreshRunningServiceListCommand()).services)
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to refresh running service list")
+            false
+        }
     }
 
     override fun isServiceRunning(packageName: String, serviceName: String): Boolean = runningServices.any {
