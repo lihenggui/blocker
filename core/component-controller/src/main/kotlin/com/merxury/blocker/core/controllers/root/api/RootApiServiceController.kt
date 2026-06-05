@@ -23,37 +23,25 @@ import javax.inject.Singleton
 
 @Singleton
 internal class RootApiServiceController @Inject constructor(
-    private val rootServiceConnection: RootServiceConnection,
+    private val rootApiClient: RootApiClient,
 ) : IServiceController {
+    private val runningServices = mutableListOf<RunningServiceState>()
 
-    override suspend fun init() = rootServiceConnection.ensureConnected()
+    override suspend fun init() = rootApiClient.ensureAvailable()
 
     override suspend fun load(): Boolean {
-        val rootService = rootServiceConnection.rootService ?: return false
-        rootService.refreshRunningServiceList()
+        runningServices.clear()
+        runningServices.addAll(rootApiClient.execute(RefreshRunningServiceListCommand()).services)
         return true
     }
 
-    override fun isServiceRunning(packageName: String, serviceName: String): Boolean {
-        val rootService = rootServiceConnection.rootService ?: return false
-        return rootService.isServiceRunning(packageName, serviceName)
+    override fun isServiceRunning(packageName: String, serviceName: String): Boolean = runningServices.any {
+        it.packageName == packageName &&
+            it.className == serviceName &&
+            it.started
     }
 
-    override suspend fun stopService(packageName: String, serviceName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot stop service, rootService is null")
-            return false
-        }
-        return rootService.stopService(packageName, serviceName)
-    }
+    override suspend fun stopService(packageName: String, serviceName: String): Boolean = rootApiClient.execute(StopServiceCommand(packageName, serviceName)).value
 
-    override suspend fun startService(packageName: String, serviceName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot start service, rootService is null")
-            return false
-        }
-        return rootService.startService(packageName, serviceName)
-    }
+    override suspend fun startService(packageName: String, serviceName: String): Boolean = rootApiClient.execute(StartServiceCommand(packageName, serviceName)).value
 }

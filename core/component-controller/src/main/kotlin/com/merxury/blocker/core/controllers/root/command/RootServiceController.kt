@@ -18,10 +18,10 @@ package com.merxury.blocker.core.controllers.root.command
 
 import com.merxury.blocker.core.controllers.IServiceController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.extension.exec
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.utils.RootAvailabilityChecker
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -33,8 +33,8 @@ private const val SERVICE_REGEX = """ServiceRecord\{(.*?) %s\/%s\}"""
 @Singleton
 internal class RootServiceController @Inject constructor(
     private val rootChecker: RootAvailabilityChecker,
+    private val rootCommandExecutor: RootCommandExecutor,
     @Dispatcher(DEFAULT) private val defaultDispatcher: CoroutineDispatcher,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IServiceController {
 
     private val runningServices = mutableListOf<String>()
@@ -44,8 +44,7 @@ internal class RootServiceController @Inject constructor(
         }
         runningServices.clear()
         try {
-            val serviceInfo = "dumpsys activity services"
-                .exec(ioDispatcher)
+            val serviceInfo = rootCommandExecutor.run("/system/bin/dumpsys", "activity", "services")
                 .out
                 .joinToString("\n")
             if (serviceInfo.contains("(nothing)")) {
@@ -59,6 +58,8 @@ internal class RootServiceController @Inject constructor(
             Timber.d("Found ${list.size} running services")
             runningServices.addAll(list)
             return@withContext true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Cannot get running service list:")
             return@withContext false
@@ -85,8 +86,7 @@ internal class RootServiceController @Inject constructor(
 
     override suspend fun stopService(packageName: String, serviceName: String): Boolean {
         Timber.d("Stopping service $packageName/$serviceName")
-        val result = "am stopservice $packageName/$serviceName"
-            .exec(ioDispatcher)
+        val result = rootCommandExecutor.run("/system/bin/am", "stopservice", "$packageName/$serviceName")
         val output = result.out.joinToString("\n")
         return if (output.contains("Service stopped")) {
             Timber.d("Service $packageName/$serviceName stopped")
@@ -99,8 +99,7 @@ internal class RootServiceController @Inject constructor(
 
     override suspend fun startService(packageName: String, serviceName: String): Boolean {
         Timber.d("Starting service $packageName/$serviceName")
-        val result = "am startservice $packageName/$serviceName"
-            .exec(ioDispatcher)
+        val result = rootCommandExecutor.run("/system/bin/am", "startservice", "$packageName/$serviceName")
         return if (result.isSuccess) {
             Timber.d("Service $packageName/$serviceName started")
             true

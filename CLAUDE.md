@@ -8,7 +8,7 @@ Blocker is an Android component controller that enables users to manage (enable/
 
 **Three Control Mechanisms:**
 
-1. **PackageManager (Root)**: Uses `pm` commands via libsu to directly modify component states. Changes are persisted in `/data/system/users/0/package_restrictions.xml`. Components are actually disabled, but apps can detect this and potentially re-enable them.
+1. **PackageManager (Root)**: Uses typed librootkotlinx root commands to directly modify component states through PackageManager/ActivityManager APIs, with command-style fallbacks for legacy paths. Changes are persisted in `/data/system/users/0/package_restrictions.xml`. Components are actually disabled, but apps can detect this and potentially re-enable them.
 
 2. **Intent Firewall (IFW)**: Generates XML rules in `/data/system/ifw/` to filter intents at the framework level (Android 4.4.2+). Components appear enabled to the app but cannot start. Requires root access but provides stealthier blocking.
 
@@ -191,7 +191,7 @@ interface IController {
 ```
 
 **Implementations**:
-- `root/RootController.kt`: Uses libsu for root shell execution
+- `root/api/RootApiController.kt`: Uses librootkotlinx typed root commands for PackageManager-backed control
 - `ifw/IfwController.kt`: Generates Intent Firewall XML rules
 - `shizuku/ShizukuController.kt`: Integrates Shizuku API
 

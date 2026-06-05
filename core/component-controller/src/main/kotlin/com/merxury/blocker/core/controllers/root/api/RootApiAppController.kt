@@ -24,84 +24,39 @@ import javax.inject.Singleton
 
 @Singleton
 internal class RootApiAppController @Inject constructor(
-    private val rootServiceConnection: RootServiceConnection,
+    private val rootApiClient: RootApiClient,
 ) : IAppController {
+    private val runningPackages = mutableSetOf<String>()
 
-    override suspend fun init() = rootServiceConnection.ensureConnected()
+    override suspend fun init() = rootApiClient.ensureAvailable()
 
-    override suspend fun disable(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot disable app: root server is not initialized")
-            return false
-        }
-        rootService.setApplicationEnabledSetting(
+    override suspend fun disable(packageName: String): Boolean = rootApiClient.execute(
+        SetApplicationEnabledSettingCommand(
             packageName,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER,
-        )
-        return true
-    }
+        ),
+    ).value
 
-    override suspend fun enable(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot enable app: root server is not initialized")
-            return false
-        }
-        rootService.setApplicationEnabledSetting(
+    override suspend fun enable(packageName: String): Boolean = rootApiClient.execute(
+        SetApplicationEnabledSettingCommand(
             packageName,
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-        )
-        return true
-    }
+        ),
+    ).value
 
-    override suspend fun forceStop(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot force stop app: root server is not initialized")
-            return false
-        }
-        rootService.forceStop(packageName)
-        return true
-    }
+    override suspend fun forceStop(packageName: String): Boolean = rootApiClient.execute(ForceStopCommand(packageName)).value
 
-    override suspend fun clearCache(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot clear cache: root server is not initialized")
-            return false
-        }
-        rootService.clearCache(packageName)
-        return true
-    }
+    override suspend fun clearCache(packageName: String): Boolean = rootApiClient.execute(ClearCacheCommand(packageName)).value
 
-    override suspend fun clearData(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot clear data: root server is not initialized")
-            return false
-        }
-        rootService.clearData(packageName)
-        return true
-    }
+    override suspend fun clearData(packageName: String): Boolean = rootApiClient.execute(ClearDataCommand(packageName)).value
 
-    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot uninstall app: root server is not initialized")
-            return false
-        }
-        rootService.uninstallApp(packageName, versionCode)
-        return true
-    }
+    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean = rootApiClient.execute(UninstallAppCommand(packageName, versionCode)).value
 
-    override fun isAppRunning(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService ?: return false
-        return rootService.isAppRunning(packageName)
-    }
+    override fun isAppRunning(packageName: String): Boolean = packageName in runningPackages
 
     override suspend fun refreshRunningAppList() {
         Timber.d("Refresh running app list")
-        rootServiceConnection.rootService?.refreshRunningAppList()
+        runningPackages.clear()
+        runningPackages.addAll(rootApiClient.execute(RefreshRunningAppListCommand()).value)
     }
 }

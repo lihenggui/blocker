@@ -16,4 +16,4 @@
 
 package com.merxury.blocker.core.exception
 
-class RootUnavailableException : RuntimeException("Root unavailable")
+class RootUnavailableException(cause: Throwable? = null) : RuntimeException("Root unavailable", cause)
