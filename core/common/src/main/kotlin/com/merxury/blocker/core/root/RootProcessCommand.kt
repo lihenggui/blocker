@@ -16,12 +16,18 @@
 
 package com.merxury.blocker.core.root
 
+import android.os.Handler
+import android.os.Looper
 import android.os.Parcelable
 import be.mygod.librootkotlinx.RootCommand
+import be.mygod.librootkotlinx.io.awaitExit
+import be.mygod.librootkotlinx.io.openReadChannel
+import be.mygod.librootkotlinx.io.startPipes
+import be.mygod.librootkotlinx.io.useLines
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 
@@ -40,27 +46,29 @@ data class RootProcessCommand(
 ) : RootCommand<ShellResult> {
     override suspend fun execute(): ShellResult = withContext(Dispatchers.IO) {
         require(command.isNotEmpty()) { "Root process command must not be empty" }
-        val process = ProcessBuilder(command).start()
-        try {
-            coroutineScope {
-                val stdout = async {
-                    process.inputStream.bufferedReader().use { it.readLines() }
+        ProcessBuilder(command)
+            .startPipes(stdin = false)
+            .use { pipes ->
+                val handler = Handler(Looper.getMainLooper())
+                val stdout = pipes.stdout!!.openReadChannel(handler)
+                val stderr = pipes.stderr!!.openReadChannel(handler)
+                coroutineScope {
+                    val stdoutLines = async { stdout.readLines() }
+                    val stderrLines = async { stderr.readLines() }
+                    val code = pipes.process.awaitExit()
+                    ShellResult(
+                        out = stdoutLines.await(),
+                        err = stderrLines.await(),
+                        code = code,
+                        isSuccess = code == 0,
+                    )
                 }
-                val stderr = async {
-                    process.errorStream.bufferedReader().use { it.readLines() }
-                }
-                val code = runInterruptible {
-                    process.waitFor()
-                }
-                ShellResult(
-                    out = stdout.await(),
-                    err = stderr.await(),
-                    code = code,
-                    isSuccess = code == 0,
-                )
             }
-        } finally {
-            process.destroy()
-        }
+    }
+
+    private suspend fun ByteReadChannel.readLines(): List<String> {
+        val lines = mutableListOf<String>()
+        useLines(lines::add)
+        return lines
     }
 }
