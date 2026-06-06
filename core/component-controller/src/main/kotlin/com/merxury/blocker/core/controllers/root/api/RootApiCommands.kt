@@ -46,10 +46,12 @@ private object RootApiServices {
     val packageName get() = context.packageName
 
     private val hiddenApiAccess by lazy {
-        try {
-            HiddenApiBypass.addHiddenApiExemptions("")
-        } catch (e: Throwable) {
-            Timber.w(e, "Failed to add hidden API exemptions in root process")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                HiddenApiBypass.addHiddenApiExemptions("")
+            } catch (e: Throwable) {
+                Timber.w(e, "Failed to add hidden API exemptions in root process")
+            }
         }
     }
 
