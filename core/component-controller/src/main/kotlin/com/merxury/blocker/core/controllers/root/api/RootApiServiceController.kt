@@ -17,6 +17,8 @@
 package com.merxury.blocker.core.controllers.root.api
 
 import com.merxury.blocker.core.controllers.IServiceController
+import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
@@ -24,16 +26,17 @@ import javax.inject.Singleton
 
 @Singleton
 internal class RootApiServiceController @Inject constructor(
-    private val rootApiClient: RootApiClient,
+    private val rootChecker: RootAvailabilityChecker,
+    private val rootCommandExecutor: RootCommandExecutor,
 ) : IServiceController {
     private val runningServices = mutableListOf<RunningServiceState>()
 
-    override suspend fun init() = rootApiClient.ensureAvailable()
+    override suspend fun init() = rootChecker.ensureAvailable()
 
     override suspend fun load(): Boolean {
         runningServices.clear()
         return try {
-            runningServices.addAll(rootApiClient.execute(RefreshRunningServiceListCommand()).services)
+            runningServices.addAll(rootCommandExecutor.execute(RefreshRunningServiceListCommand()).services)
             true
         } catch (e: CancellationException) {
             throw e
@@ -49,7 +52,7 @@ internal class RootApiServiceController @Inject constructor(
             it.started
     }
 
-    override suspend fun stopService(packageName: String, serviceName: String): Boolean = rootApiClient.execute(StopServiceCommand(packageName, serviceName)).value
+    override suspend fun stopService(packageName: String, serviceName: String): Boolean = rootCommandExecutor.execute(StopServiceCommand(packageName, serviceName)).value
 
-    override suspend fun startService(packageName: String, serviceName: String): Boolean = rootApiClient.execute(StartServiceCommand(packageName, serviceName)).value
+    override suspend fun startService(packageName: String, serviceName: String): Boolean = rootCommandExecutor.execute(StartServiceCommand(packageName, serviceName)).value
 }

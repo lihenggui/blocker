@@ -20,18 +20,21 @@ import android.content.ComponentName
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.utils.PackageInfoDataSource
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 internal class RootApiController @Inject constructor(
-    private val rootApiClient: RootApiClient,
+    private val rootChecker: RootAvailabilityChecker,
+    private val rootCommandExecutor: RootCommandExecutor,
     private val packageInfoDataSource: PackageInfoDataSource,
 ) : IController {
 
-    override suspend fun init() = rootApiClient.ensureAvailable()
+    override suspend fun init() = rootChecker.ensureAvailable()
 
     override suspend fun switchComponent(
         component: ComponentInfo,
@@ -40,7 +43,7 @@ internal class RootApiController @Inject constructor(
         val packageName = component.packageName
         val componentName = component.name
         Timber.d("Switch component: $packageName/$componentName, state: $state")
-        return rootApiClient.execute(
+        return rootCommandExecutor.execute(
             SetComponentEnabledSettingCommand(
                 packageName = packageName,
                 componentName = componentName,

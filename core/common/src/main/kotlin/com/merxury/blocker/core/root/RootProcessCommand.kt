@@ -37,8 +37,9 @@ data class ShellResult(
     val out: List<String>,
     val err: List<String>,
     val code: Int,
-    val isSuccess: Boolean,
-) : Parcelable
+) : Parcelable {
+    val isSuccess get() = code == 0
+}
 
 @Parcelize
 data class RootProcessCommand(
@@ -60,7 +61,6 @@ data class RootProcessCommand(
                         out = stdoutLines.await(),
                         err = stderrLines.await(),
                         code = code,
-                        isSuccess = code == 0,
                     )
                 }
             }

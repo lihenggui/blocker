@@ -18,6 +18,8 @@ package com.merxury.blocker.core.controllers.root.api
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IAppController
+import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
@@ -25,33 +27,34 @@ import javax.inject.Singleton
 
 @Singleton
 internal class RootApiAppController @Inject constructor(
-    private val rootApiClient: RootApiClient,
+    private val rootChecker: RootAvailabilityChecker,
+    private val rootCommandExecutor: RootCommandExecutor,
 ) : IAppController {
     private val runningPackages = mutableSetOf<String>()
 
-    override suspend fun init() = rootApiClient.ensureAvailable()
+    override suspend fun init() = rootChecker.ensureAvailable()
 
-    override suspend fun disable(packageName: String): Boolean = rootApiClient.execute(
+    override suspend fun disable(packageName: String): Boolean = rootCommandExecutor.execute(
         SetApplicationEnabledSettingCommand(
             packageName,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER,
         ),
     ).value
 
-    override suspend fun enable(packageName: String): Boolean = rootApiClient.execute(
+    override suspend fun enable(packageName: String): Boolean = rootCommandExecutor.execute(
         SetApplicationEnabledSettingCommand(
             packageName,
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
         ),
     ).value
 
-    override suspend fun forceStop(packageName: String): Boolean = rootApiClient.execute(ForceStopCommand(packageName)).value
+    override suspend fun forceStop(packageName: String): Boolean = rootCommandExecutor.execute(ForceStopCommand(packageName)).value
 
-    override suspend fun clearCache(packageName: String): Boolean = rootApiClient.execute(ClearCacheCommand(packageName)).value
+    override suspend fun clearCache(packageName: String): Boolean = rootCommandExecutor.execute(ClearCacheCommand(packageName)).value
 
-    override suspend fun clearData(packageName: String): Boolean = rootApiClient.execute(ClearDataCommand(packageName)).value
+    override suspend fun clearData(packageName: String): Boolean = rootCommandExecutor.execute(ClearDataCommand(packageName)).value
 
-    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean = rootApiClient.execute(UninstallAppCommand(packageName, versionCode)).value
+    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean = rootCommandExecutor.execute(UninstallAppCommand(packageName, versionCode)).value
 
     override fun isAppRunning(packageName: String): Boolean = packageName in runningPackages
 
@@ -59,7 +62,7 @@ internal class RootApiAppController @Inject constructor(
         Timber.d("Refresh running app list")
         runningPackages.clear()
         try {
-            runningPackages.addAll(rootApiClient.execute(RefreshRunningAppListCommand()).value)
+            runningPackages.addAll(rootCommandExecutor.execute(RefreshRunningAppListCommand()).value)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

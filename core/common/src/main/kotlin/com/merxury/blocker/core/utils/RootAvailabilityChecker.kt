@@ -16,8 +16,16 @@
 
 package com.merxury.blocker.core.utils
 
+import com.merxury.blocker.core.exception.RootUnavailableException
+
 /** Contract for checking whether root access is available on the device. */
 interface RootAvailabilityChecker {
     /** Returns `true` if root access is available. */
     suspend fun isRootAvailable(): Boolean
+
+    suspend fun ensureAvailable() {
+        if (!isRootAvailable()) {
+            throw RootUnavailableException()
+        }
+    }
 }

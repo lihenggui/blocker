@@ -34,7 +34,6 @@ import be.mygod.librootkotlinx.systemContext
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.parcelize.Parcelize
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 import timber.log.Timber
 
 private const val MAX_SERVICE_COUNT = 10000
@@ -44,18 +43,7 @@ private object RootApiServices {
     val userId get() = context.userId
     val packageName get() = context.packageName
 
-    private val hiddenApiAccess by lazy {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            try {
-                HiddenApiBypass.addHiddenApiExemptions("")
-            } catch (e: Throwable) {
-                Timber.w(e, "Failed to add hidden API exemptions in root process")
-            }
-        }
-    }
-
     val pm: IPackageManager by lazy {
-        hiddenApiAccess
         Timber.d("Get package manager service")
         IPackageManager.Stub.asInterface(
             SystemServiceHelper.getSystemService("package"),
@@ -63,7 +51,6 @@ private object RootApiServices {
     }
 
     val am: IActivityManager by lazy {
-        hiddenApiAccess
         Timber.d("Get activity manager service")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             IActivityManager.Stub.asInterface(
