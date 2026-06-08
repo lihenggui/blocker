@@ -51,8 +51,8 @@ data class RootProcessCommand(
             .startPipes(stdin = false)
             .use { pipes ->
                 val handler = Handler(Looper.getMainLooper())
-                val stdout = pipes.stdout!!.openReadChannel(handler)
-                val stderr = pipes.stderr!!.openReadChannel(handler)
+                val stdout = pipes.requireStdout().openReadChannel(handler)
+                val stderr = pipes.requireStderr().openReadChannel(handler)
                 coroutineScope {
                     val stdoutLines = async { stdout.readLines() }
                     val stderrLines = async { stderr.readLines() }

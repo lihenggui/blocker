@@ -18,6 +18,7 @@ package com.merxury.blocker.core.controllers.root.api
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IAppController
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import kotlinx.coroutines.CancellationException
@@ -32,7 +33,11 @@ internal class RootApiAppController @Inject constructor(
 ) : IAppController {
     private val runningPackages = mutableSetOf<String>()
 
-    override suspend fun init() = rootChecker.ensureAvailable()
+    override suspend fun init() {
+        if (!rootChecker.isRootAvailable()) {
+            throw RootUnavailableException()
+        }
+    }
 
     override suspend fun disable(packageName: String): Boolean = rootCommandExecutor.execute(
         SetApplicationEnabledSettingCommand(

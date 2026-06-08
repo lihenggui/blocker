@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.controllers.root.api
 
 import com.merxury.blocker.core.controllers.IServiceController
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import kotlinx.coroutines.CancellationException
@@ -31,7 +32,11 @@ internal class RootApiServiceController @Inject constructor(
 ) : IServiceController {
     private val runningServices = mutableListOf<RunningServiceState>()
 
-    override suspend fun init() = rootChecker.ensureAvailable()
+    override suspend fun init() {
+        if (!rootChecker.isRootAvailable()) {
+            throw RootUnavailableException()
+        }
+    }
 
     override suspend fun load(): Boolean {
         runningServices.clear()

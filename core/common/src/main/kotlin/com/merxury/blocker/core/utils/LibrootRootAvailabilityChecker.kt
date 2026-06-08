@@ -36,10 +36,11 @@ class LibrootRootAvailabilityChecker @Inject constructor(
             return true
         }
         return try {
-            rootSession.use { }
-            rooted.set(true)
-            Timber.i("Root server acquired")
-            true
+            rootSession.use {
+                rooted.set(true)
+                Timber.i("Root server acquired")
+                true
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: NoShellException) {

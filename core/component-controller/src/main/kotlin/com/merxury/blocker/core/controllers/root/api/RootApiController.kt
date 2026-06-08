@@ -18,6 +18,7 @@ package com.merxury.blocker.core.controllers.root.api
 
 import android.content.ComponentName
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.root.RootCommandExecutor
@@ -34,7 +35,11 @@ internal class RootApiController @Inject constructor(
     private val packageInfoDataSource: PackageInfoDataSource,
 ) : IController {
 
-    override suspend fun init() = rootChecker.ensureAvailable()
+    override suspend fun init() {
+        if (!rootChecker.isRootAvailable()) {
+            throw RootUnavailableException()
+        }
+    }
 
     override suspend fun switchComponent(
         component: ComponentInfo,
