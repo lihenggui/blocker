@@ -188,7 +188,7 @@ androidx.window:window-core:1.5.1
 androidx.window:window:1.5.1
 androidx.work:work-runtime-ktx:2.11.2
 androidx.work:work-runtime:2.11.2
-be.mygod.librootkotlinx:librootkotlinx:2.0.0-alpha09
+be.mygod.librootkotlinx:librootkotlinx:2.0.0-alpha11
 com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0
 com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0
 com.atlassian.commonmark:commonmark:0.13.0
