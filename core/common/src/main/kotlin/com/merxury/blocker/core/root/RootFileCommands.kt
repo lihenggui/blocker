@@ -18,7 +18,6 @@ package com.merxury.blocker.core.root
 
 import android.system.Os
 import be.mygod.librootkotlinx.ParcelableBoolean
-import be.mygod.librootkotlinx.ParcelableLong
 import be.mygod.librootkotlinx.ParcelableString
 import be.mygod.librootkotlinx.ParcelableStringList
 import be.mygod.librootkotlinx.RootCommand
@@ -29,7 +28,7 @@ import kotlinx.parcelize.Parcelize
 import java.io.File
 
 @Parcelize
-internal data class RootListFilesCommand(
+data class RootListFilesCommand(
     private val path: String,
 ) : RootCommand<ParcelableStringList> {
     override suspend fun execute(): ParcelableStringList = withContext(Dispatchers.IO) {
@@ -45,7 +44,7 @@ internal data class RootListFilesCommand(
 }
 
 @Parcelize
-internal data class RootReadFileCommand(
+data class RootReadFileCommand(
     private val path: String,
 ) : RootCommand<ParcelableString> {
     override suspend fun execute(): ParcelableString = withContext(Dispatchers.IO) {
@@ -54,7 +53,7 @@ internal data class RootReadFileCommand(
 }
 
 @Parcelize
-internal data class RootWriteFileCommand(
+data class RootWriteFileCommand(
     private val path: String,
     private val content: String,
 ) : RootCommandNoResult {
@@ -65,7 +64,7 @@ internal data class RootWriteFileCommand(
 }
 
 @Parcelize
-internal data class RootDeleteFileCommand(
+data class RootDeleteFileCommand(
     private val path: String,
     private val recursively: Boolean,
 ) : RootCommand<ParcelableBoolean> {
@@ -82,7 +81,7 @@ internal data class RootDeleteFileCommand(
 }
 
 @Parcelize
-internal data class RootFileExistsCommand(
+data class RootFileExistsCommand(
     private val path: String,
 ) : RootCommand<ParcelableBoolean> {
     override suspend fun execute(): ParcelableBoolean = withContext(Dispatchers.IO) {
@@ -91,17 +90,7 @@ internal data class RootFileExistsCommand(
 }
 
 @Parcelize
-internal data class RootFileSizeCommand(
-    private val path: String,
-) : RootCommand<ParcelableLong> {
-    override suspend fun execute(): ParcelableLong = withContext(Dispatchers.IO) {
-        val file = File(path)
-        ParcelableLong(if (file.exists()) file.length() else 0L)
-    }
-}
-
-@Parcelize
-internal data class RootChmodCommand(
+data class RootChmodCommand(
     private val path: String,
     private val permission: Int,
     private val recursively: Boolean,

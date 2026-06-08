@@ -18,7 +18,13 @@ package com.merxury.core.ifw
 
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.root.RootChmodCommand
 import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.root.RootDeleteFileCommand
+import com.merxury.blocker.core.root.RootFileExistsCommand
+import com.merxury.blocker.core.root.RootListFilesCommand
+import com.merxury.blocker.core.root.RootReadFileCommand
+import com.merxury.blocker.core.root.RootWriteFileCommand
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -34,12 +40,12 @@ internal class LibrootIfwFileSystem @Inject constructor(
     override suspend fun readRules(packageName: String): String? = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
-        if (!rootCommandExecutor.fileExists(path)) {
+        if (!rootCommandExecutor.execute(RootFileExistsCommand(path)).value) {
             Timber.v("Rule file $filename does not exist")
             return@withContext null
         }
         return@withContext try {
-            rootCommandExecutor.readFile(path)
+            rootCommandExecutor.execute(RootReadFileCommand(path)).value
         } catch (e: Exception) {
             Timber.e(e, "Error reading rules file $path")
             null
@@ -49,17 +55,17 @@ internal class LibrootIfwFileSystem @Inject constructor(
     override suspend fun writeRules(packageName: String, content: String) = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
-        rootCommandExecutor.writeFile(path, content)
-        rootCommandExecutor.chmod(path, 644, recursively = false)
+        rootCommandExecutor.execute(RootWriteFileCommand(path, content))
+        rootCommandExecutor.execute(RootChmodCommand(path, 644, recursively = false))
         Timber.i("Saved IFW rules to $path")
     }
 
     override suspend fun deleteRules(packageName: String): Boolean = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
-        if (rootCommandExecutor.fileExists(path)) {
+        if (rootCommandExecutor.execute(RootFileExistsCommand(path)).value) {
             Timber.d("Deleting IFW rule file $filename")
-            rootCommandExecutor.deleteFile(path, recursively = false)
+            rootCommandExecutor.execute(RootDeleteFileCommand(path, recursively = false)).value
         } else {
             false
         }
@@ -67,11 +73,11 @@ internal class LibrootIfwFileSystem @Inject constructor(
 
     override suspend fun fileExists(packageName: String): Boolean = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
-        rootCommandExecutor.fileExists(IfwStorageUtils.ifwFolder + filename)
+        rootCommandExecutor.execute(RootFileExistsCommand(IfwStorageUtils.ifwFolder + filename)).value
     }
 
     override suspend fun listRuleFiles(): List<String> = withContext(dispatcher) {
-        rootCommandExecutor.listFiles(IfwStorageUtils.ifwFolder)
+        rootCommandExecutor.execute(RootListFilesCommand(IfwStorageUtils.ifwFolder)).value
             .filter { it.endsWith(EXTENSION) }
             .map { it.removeSuffix(EXTENSION) }
     }

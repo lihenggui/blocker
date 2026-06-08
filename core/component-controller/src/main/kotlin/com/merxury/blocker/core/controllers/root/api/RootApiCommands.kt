@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.controllers.root.api
 
-import android.app.ActivityManager
 import android.app.ActivityManagerNative
 import android.app.IActivityManager
 import android.app.PendingIntent
@@ -80,18 +79,6 @@ private object RootApiServices {
     val packageInstaller: IPackageInstaller by lazy {
         IPackageInstaller.Stub.asInterface(
             pm.packageInstaller.asBinder(),
-        )
-    }
-
-    fun isSystemApp(packageName: String): Boolean = ApplicationUtil.isSystemApp(context.packageManager, packageName)
-
-    fun uninstallResultIntent(): PendingIntent {
-        val broadcastIntent = Intent("com.merxury.blocker.UNINSTALL_APP_RESULT_ACTION")
-        return PendingIntent.getBroadcast(
-            context,
-            0,
-            broadcastIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
 }
@@ -181,8 +168,14 @@ internal data class UninstallAppCommand(
     private val versionCode: Long,
 ) : RootCommand<ParcelableBoolean> {
     override suspend fun execute(): ParcelableBoolean {
-        val intent = RootApiServices.uninstallResultIntent()
-        val flags = if (RootApiServices.isSystemApp(packageName)) {
+        val context = systemContext
+        val resultIntent = PendingIntent.getBroadcast(
+            context,
+            0,
+            Intent("com.merxury.blocker.UNINSTALL_APP_RESULT_ACTION"),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val flags = if (ApplicationUtil.isSystemApp(context.packageManager, packageName)) {
             0x00000004
         } else {
             0x00000002
@@ -192,7 +185,7 @@ internal data class UninstallAppCommand(
                 VersionedPackage(packageName, versionCode),
                 RootApiServices.packageName,
                 flags,
-                intent.intentSender,
+                resultIntent.intentSender,
                 RootApiServices.userId,
             )
         } else {
@@ -200,7 +193,7 @@ internal data class UninstallAppCommand(
                 packageName,
                 RootApiServices.packageName,
                 flags,
-                intent.intentSender,
+                resultIntent.intentSender,
                 RootApiServices.userId,
             )
         }
@@ -247,7 +240,13 @@ internal data class RunningServiceList(
 internal class RefreshRunningServiceListCommand : RootCommand<RunningServiceList> {
     override suspend fun execute(): RunningServiceList {
         val services = RootApiServices.am.getServices(MAX_SERVICE_COUNT, 0)
-            .map(ActivityManager.RunningServiceInfo::toRunningServiceState)
+            .map { service ->
+                RunningServiceState(
+                    packageName = service.service.packageName,
+                    className = service.service.className,
+                    started = service.started,
+                )
+            }
         Timber.v("Loaded ${services.size} running services")
         return RunningServiceList(services)
     }
@@ -324,9 +323,3 @@ internal data class StopServiceCommand(
         )
     }
 }
-
-private fun ActivityManager.RunningServiceInfo.toRunningServiceState() = RunningServiceState(
-    packageName = service.packageName,
-    className = service.className,
-    started = started,
-)

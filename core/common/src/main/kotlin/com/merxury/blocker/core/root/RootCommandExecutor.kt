@@ -35,25 +35,5 @@ class RootCommandExecutor @Inject constructor(
         throw RootUnavailableException(e)
     }
 
-    suspend fun run(vararg command: String): ShellResult = run(command.toList())
-
-    suspend fun run(command: List<String>): ShellResult = execute(RootProcessCommand(command))
-
-    suspend fun listFiles(path: String): List<String> = execute(RootListFilesCommand(path)).value
-
-    suspend fun readFile(path: String): String = execute(RootReadFileCommand(path)).value
-
-    suspend fun writeFile(path: String, content: String) {
-        execute(RootWriteFileCommand(path, content))
-    }
-
-    suspend fun deleteFile(path: String, recursively: Boolean): Boolean = execute(RootDeleteFileCommand(path, recursively)).value
-
-    suspend fun fileExists(path: String): Boolean = execute(RootFileExistsCommand(path)).value
-
-    suspend fun fileSize(path: String): Long = execute(RootFileSizeCommand(path)).value
-
-    suspend fun chmod(path: String, permission: Int, recursively: Boolean) {
-        execute(RootChmodCommand(path, permission, recursively))
-    }
+    suspend fun run(vararg command: String): ShellResult = execute(RootProcessCommand(command.toList()))
 }

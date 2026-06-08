@@ -23,6 +23,7 @@ import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.root.RootDeleteFileCommand
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -75,10 +76,7 @@ internal class RootAppController @Inject constructor(
                 return@withContext false
             }
         Timber.d("Delete cache folder: $cacheFolder")
-        return@withContext rootCommandExecutor.deleteFile(
-            path = cacheFolder.absolutePath,
-            recursively = true,
-        )
+        return@withContext rootCommandExecutor.execute(RootDeleteFileCommand(cacheFolder.absolutePath, recursively = true)).value
     }
 
     override suspend fun clearData(packageName: String): Boolean {
