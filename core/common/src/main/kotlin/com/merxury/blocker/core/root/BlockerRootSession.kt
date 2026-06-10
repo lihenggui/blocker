@@ -14,6 +14,18 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.exception
+package com.merxury.blocker.core.root
 
-class RootUnavailableException(cause: Throwable? = null) : RuntimeException("Root unavailable", cause)
+import android.content.Context
+import be.mygod.librootkotlinx.RootSession
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class BlockerRootSession @Inject constructor(
+    @ApplicationContext private val appContext: Context,
+) : RootSession() {
+    override val context: Context
+        get() = appContext
+}

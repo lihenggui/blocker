@@ -11,9 +11,9 @@ androidx.arch.core:core-runtime:2.2.0
 androidx.autofill:autofill:1.0.0
 androidx.browser:browser:1.10.0
 androidx.cardview:cardview:1.0.0
-androidx.collection:collection-jvm:1.5.0
-androidx.collection:collection-ktx:1.5.0
-androidx.collection:collection:1.5.0
+androidx.collection:collection-jvm:1.6.0
+androidx.collection:collection-ktx:1.6.0
+androidx.collection:collection:1.6.0
 androidx.compose.animation:animation-android:1.11.0-beta02
 androidx.compose.animation:animation-core-android:1.11.0-beta02
 androidx.compose.animation:animation-core:1.11.0-beta02
@@ -188,6 +188,7 @@ androidx.window:window-core:1.5.1
 androidx.window:window:1.5.1
 androidx.work:work-runtime-ktx:2.11.2
 androidx.work:work-runtime:2.11.2
+be.mygod.librootkotlinx:librootkotlinx:2.0.0-alpha12
 com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0
 com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0
 com.atlassian.commonmark:commonmark:0.13.0
@@ -196,10 +197,6 @@ com.github.ajalt.colormath:colormath-jvm:3.6.1
 com.github.ajalt.colormath:colormath:3.6.1
 com.github.jeziellago:Markwon:58aa5aba6a
 com.github.jeziellago:compose-markdown:0.7.0
-com.github.topjohnwu.libsu:core:6.0.0
-com.github.topjohnwu.libsu:io:6.0.0
-com.github.topjohnwu.libsu:nio:6.0.0
-com.github.topjohnwu.libsu:service:6.0.0
 com.google.accompanist:accompanist-drawablepainter:0.32.0
 com.google.accompanist:accompanist-permissions:0.37.3
 com.google.android.datatransport:transport-api:3.2.0
@@ -281,6 +278,7 @@ io.coil-kt:coil:2.7.0
 io.github.pdvrieze.xmlutil:core-jvmcommon:v0.91.3
 io.github.pdvrieze.xmlutil:core:v0.91.3
 io.github.pdvrieze.xmlutil:serialization-jvm:v0.91.3
+io.ktor:ktor-io-jvm:3.4.3
 io.noties.markwon:core:4.6.2
 io.noties.markwon:ext-strikethrough:4.6.2
 io.noties.markwon:ext-tables:4.6.2
@@ -320,11 +318,11 @@ org.jetbrains.compose.ui:ui-unit:1.10.0
 org.jetbrains.compose.ui:ui-util:1.10.0
 org.jetbrains.compose.ui:ui:1.10.0
 org.jetbrains.kotlin:kotlin-bom:1.8.22
-org.jetbrains.kotlin:kotlin-parcelize-runtime:2.3.20
-org.jetbrains.kotlin:kotlin-stdlib-common:2.3.20
+org.jetbrains.kotlin:kotlin-parcelize-runtime:2.3.21
+org.jetbrains.kotlin:kotlin-stdlib-common:2.3.21
 org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0
 org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0
-org.jetbrains.kotlin:kotlin-stdlib:2.3.20
+org.jetbrains.kotlin:kotlin-stdlib:2.3.21
 org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2
 org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.10.2
 org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2
@@ -333,6 +331,10 @@ org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2
 org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2
 org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.7.1
 org.jetbrains.kotlinx:kotlinx-datetime:0.7.1
+org.jetbrains.kotlinx:kotlinx-io-bytestring-jvm:0.8.2
+org.jetbrains.kotlinx:kotlinx-io-bytestring:0.8.2
+org.jetbrains.kotlinx:kotlinx-io-core-jvm:0.8.2
+org.jetbrains.kotlinx:kotlinx-io-core:0.8.2
 org.jetbrains.kotlinx:kotlinx-serialization-bom:1.11.0
 org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.11.0
 org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0

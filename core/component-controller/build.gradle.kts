@@ -19,6 +19,7 @@ plugins {
     alias(libs.plugins.blocker.android.library.jacoco)
     alias(libs.plugins.blocker.android.hilt)
     id("kotlinx-serialization")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -26,9 +27,6 @@ android {
         consumerProguardFiles("consumer-proguard-rules.pro")
     }
     namespace = "com.merxury.blocker.core.controller"
-    buildFeatures {
-        aidl = true
-    }
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 
@@ -39,9 +37,6 @@ dependencies {
 
     implementation(libs.hiddenapibypass)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.libsu.core)
-    implementation(libs.libsu.io)
-    implementation(libs.libsu.service)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
 

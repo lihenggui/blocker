@@ -16,12 +16,6 @@
 
 package com.merxury.blocker.core.utils
 
-import com.merxury.blocker.core.extension.exec
-import com.topjohnwu.superuser.io.SuFile
-import com.topjohnwu.superuser.io.SuFileInputStream
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -35,74 +29,6 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 object FileUtils {
-
-    /** Copies a file from [source] to [dest] using root-accessible [SuFile]. */
-    @JvmStatic
-    fun copy(source: String, dest: String): File {
-        val sourceFile = SuFile(source)
-        val destFile = SuFile(dest)
-        return sourceFile.copyTo(destFile)
-    }
-
-    /** Lists file names in the directory at [path] using root access. Returns an empty list if the path does not exist. */
-    @JvmStatic
-    fun listFiles(path: String): List<String> {
-        val file = SuFile(path)
-        if (!file.exists()) {
-            Timber.w("File $path not exists")
-            return ArrayList()
-        }
-        return file.list()?.toList() ?: ArrayList()
-    }
-
-    /** Changes file permissions of [path] to [permission] via a root shell command. */
-    @JvmStatic
-    suspend fun chmod(path: String, permission: Int, recursively: Boolean) {
-        val comm = when (recursively) {
-            true -> "chmod -R $permission '$path'"
-            false -> "chmod $permission '$path'"
-        }
-        comm.exec()
-    }
-
-    /** Reads and returns the entire content of the file at [path] as a UTF-8 string using root access. */
-    @JvmStatic
-    fun read(path: String): String {
-        SuFileInputStream.open(path).use {
-            return it.readBytes().toString(Charsets.UTF_8)
-        }
-    }
-
-    /** Deletes the file or directory at [path] using root access. If [recursively] is true, deletes all contents. */
-    @JvmStatic
-    @Throws(IOException::class)
-    suspend fun delete(
-        path: String,
-        recursively: Boolean,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): Boolean = withContext(dispatcher) {
-        val file = SuFile(path)
-        if (!file.exists()) {
-            Timber.e("Can't delete $path since it doesn't exist")
-            return@withContext false
-        }
-        return@withContext if (recursively) {
-            file.deleteRecursive()
-        } else {
-            file.delete()
-        }
-    }
-
-    /** Returns the size of the file at [path] in bytes, or 0 if the file does not exist. */
-    fun getFileSize(path: String): Long {
-        val file = SuFile(path)
-        return if (file.exists()) {
-            file.length()
-        } else {
-            0L
-        }
-    }
-
     /** Extracts all entries from a ZIP file at [zipFilePath] into [destDirectory]. */
     @Throws(IOException::class)
     fun unzip(zipFilePath: File, destDirectory: String) {

@@ -21,37 +21,40 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.utils.PackageInfoDataSource
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 internal class RootApiController @Inject constructor(
-    private val rootServiceConnection: RootServiceConnection,
+    private val rootChecker: RootAvailabilityChecker,
+    private val rootCommandExecutor: RootCommandExecutor,
     private val packageInfoDataSource: PackageInfoDataSource,
 ) : IController {
 
-    override suspend fun init() = rootServiceConnection.ensureConnected()
+    override suspend fun init() {
+        if (!rootChecker.isRootAvailable()) {
+            throw RootUnavailableException()
+        }
+    }
 
     override suspend fun switchComponent(
         component: ComponentInfo,
         state: ComponentState,
     ): Boolean {
-        val rootService = rootServiceConnection.rootService
         val packageName = component.packageName
         val componentName = component.name
-        if (rootService == null) {
-            Timber.e("Cannot switch component: root server is not initialized")
-            throw RootUnavailableException()
-        }
         Timber.d("Switch component: $packageName/$componentName, state: $state")
-        rootService.setComponentEnabledSetting(
-            packageName,
-            componentName,
-            state.pmValue,
-        )
-        return true
+        return rootCommandExecutor.execute(
+            SetComponentEnabledSettingCommand(
+                packageName = packageName,
+                componentName = componentName,
+                state = state.pmValue,
+            ),
+        ).value
     }
 
     override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(

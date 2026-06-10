@@ -42,13 +42,13 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -96,6 +96,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val appRepository: AppRepository,
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
+    private val rootCommandExecutor: RootCommandExecutor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
@@ -337,14 +338,14 @@ class RuleDetailViewModel @AssistedInject constructor(
 
     fun launchActivity(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am start -n $packageName/$componentName".exec(ioDispatcher)
+            rootCommandExecutor.run("/system/bin/am", "start", "-n", "$packageName/$componentName")
             analyticsHelper.logLaunchActivityClicked()
         }
     }
 
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am stopservice $packageName/$componentName".exec(ioDispatcher)
+            rootCommandExecutor.run("/system/bin/am", "stopservice", "$packageName/$componentName")
             analyticsHelper.logStopServiceClicked()
         }
     }

@@ -52,7 +52,6 @@ import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
 import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.domain.model.ComponentSearchResult
 import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -60,6 +59,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.asResult
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -131,6 +131,7 @@ class AppDetailViewModel @AssistedInject constructor(
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
     private val zipAppRuleUseCase: ZipAppRuleUseCase,
     private val searchMatchedRuleInAppUseCase: SearchMatchedRuleInAppUseCase,
+    private val rootCommandExecutor: RootCommandExecutor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
@@ -510,7 +511,7 @@ class AppDetailViewModel @AssistedInject constructor(
 
     fun launchActivity(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am start -n $packageName/$componentName".exec(ioDispatcher)
+            rootCommandExecutor.run("/system/bin/am", "start", "-n", "$packageName/$componentName")
             analyticsHelper.logStartActivityClicked()
         }
     }

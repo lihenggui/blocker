@@ -31,7 +31,6 @@ import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
 import android.os.Build
 import com.merxury.blocker.core.Application
-import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getApplicationInfoCompat
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
@@ -391,18 +390,6 @@ object ApplicationUtil {
             Timber.w(packageName + "is not installed.")
         }
         return false
-    }
-
-    suspend fun isRunning(
-        packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): Boolean = withContext(dispatcher) {
-        val result = "pidof $packageName".exec(dispatcher)
-        return@withContext result.isSuccess &&
-            result.out
-                .joinToString(separator = "")
-                .trim()
-                .isNotEmpty()
     }
 
     suspend fun isProvider(

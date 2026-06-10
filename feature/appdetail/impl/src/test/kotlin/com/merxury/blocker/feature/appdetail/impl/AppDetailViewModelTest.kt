@@ -40,6 +40,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.testing.controller.FakePackageInfoDataSource
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
@@ -97,6 +98,7 @@ class AppDetailViewModelTest {
     private val generalRuleRepository = TestGeneralRuleRepository()
     private val componentDetailRepository = TestComponentDetailRepository()
     private val serviceController = FakeServiceController()
+    private val rootCommandExecutor = mock<RootCommandExecutor>()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
 
     private val packageInfo = mock<PackageInfo> {
@@ -165,6 +167,7 @@ class AppDetailViewModelTest {
             analyticsHelper = analyticsHelper,
             workerManager = workerManager,
             searchMatchedRuleInAppUseCase = searchMatchedRuleInAppUseCase,
+            rootCommandExecutor = rootCommandExecutor,
             zipAppRuleUseCase = zipAppRuleUseCase,
             zipAllRuleUseCase = zipAllRuleUseCase,
             ioDispatcher = dispatcher,

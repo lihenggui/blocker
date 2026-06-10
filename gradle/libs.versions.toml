@@ -55,7 +55,7 @@ kotlinxSerializationJson = "1.11.0"
 ksp = "2.3.6"
 ktlint = "1.7.1"
 kxml = "2.3.0"
-libsu = "6.0.0"
+librootkotlinx = "2.0.0-alpha12"
 licensee = "1.14.1"
 logbackClassic = "1.5.32"
 materialKolor = "4.1.1"
@@ -169,9 +169,7 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kxml = { group = "net.sf.kxml", name = "kxml2", version.ref = "kxml" }
-libsu-core = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "libsu" }
-libsu-io = { group = "com.github.topjohnwu.libsu", name = "io", version.ref = "libsu" }
-libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", version.ref = "libsu" }
+librootkotlinx = { group = "be.mygod.librootkotlinx", name = "librootkotlinx", version.ref = "librootkotlinx" }
 lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "androidTools" }
 lint-checks = { group = "com.android.tools.lint", name = "lint-checks", version.ref = "androidTools" }
 lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "androidTools" }

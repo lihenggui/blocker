@@ -29,10 +29,9 @@ import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
-import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.IfwStorageUtils
+import com.merxury.core.ifw.IfwFileSystem
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,6 +43,7 @@ import java.io.IOException
 class ResetIfwWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     private val intentFirewall: IIntentFirewall,
+    private val ifwFileSystem: IfwFileSystem,
     private val rootChecker: RootAvailabilityChecker,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -65,17 +65,13 @@ class ResetIfwWorker @AssistedInject constructor(
         var count = 0
         val total: Int
         try {
-            val ifwFolder = IfwStorageUtils.ifwFolder
-            val files = FileUtils.listFiles(ifwFolder)
-            total = files.count()
-            files.forEach {
-                updateNotification(it, count, total)
-                Timber.i("Delete $it")
-                FileUtils.delete(
-                    path = ifwFolder + it,
-                    recursively = false,
-                    dispatcher = ioDispatcher,
-                )
+            val packages = ifwFileSystem.listRuleFiles()
+            total = packages.count()
+            packages.forEach { packageName ->
+                val filename = packageName + IFW_EXTENSION
+                updateNotification(filename, count, total)
+                Timber.i("Delete $filename")
+                ifwFileSystem.deleteRules(packageName)
                 count++
             }
             intentFirewall.resetCache()
@@ -99,17 +95,10 @@ class ResetIfwWorker @AssistedInject constructor(
     private suspend fun clearIfwRuleForPackage(packageName: String): Result {
         try {
             Timber.d("Start clearing IFW rules for package $packageName")
-            val ifwFolder = IfwStorageUtils.ifwFolder
-            val files = FileUtils.listFiles(ifwFolder)
-            val filename = packageName + IFW_EXTENSION
-            if (files.contains(filename)) {
+            if (ifwFileSystem.fileExists(packageName)) {
                 updateNotification(packageName, 1, 1)
                 Timber.d("Delete IFW rules for $packageName")
-                FileUtils.delete(
-                    path = ifwFolder + filename,
-                    recursively = false,
-                    dispatcher = ioDispatcher,
-                )
+                ifwFileSystem.deleteRules(packageName)
                 intentFirewall.resetCache()
             }
         } catch (e: RuntimeException) {

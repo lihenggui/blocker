@@ -36,7 +36,6 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.Sync
-import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -102,14 +101,8 @@ class BlockerApplication :
                     }
                     .build(),
             )
-            Shell.enableVerboseLogging = true
         }
         Timber.plant(releaseTree)
-        Shell.setDefaultBuilder(
-            Shell.Builder.create()
-                .setFlags(Shell.FLAG_MOUNT_MASTER)
-                .setTimeout(10),
-        )
         initAppSettings()
         addApiExemptions()
         profileVerifierLogger()

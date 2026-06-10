@@ -150,7 +150,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.libsu.core)
     implementation(libs.timber)
 
     ksp(libs.hilt.compiler)
