@@ -23,7 +23,6 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -35,7 +34,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 internal class IntentFirewall @Inject constructor(
-    private val rootChecker: RootAvailabilityChecker,
+    private val accessChecker: IfwAccessChecker,
     private val componentTypeResolver: ComponentTypeResolver,
     private val fileSystem: IfwFileSystem,
     private val serializer: IfwXmlSerializer,
@@ -49,7 +48,7 @@ internal class IntentFirewall @Inject constructor(
 
     override suspend fun getRules(packageName: String): IfwRules {
         cache[packageName]?.let { return it }
-        if (!rootChecker.isRootAvailable()) {
+        if (!accessChecker.isIfwWritable()) {
             Timber.v("Root unavailable, cannot load rules")
             return cacheEmpty(packageName)
         }
@@ -84,7 +83,7 @@ internal class IntentFirewall @Inject constructor(
     }
 
     override suspend fun clear(packageName: String) {
-        if (!rootChecker.isRootAvailable()) {
+        if (!accessChecker.isIfwWritable()) {
             throw RootUnavailableException()
         }
         Timber.d("Clear IFW rule for $packageName")
@@ -103,7 +102,7 @@ internal class IntentFirewall @Inject constructor(
         packageName: String,
         componentName: String,
     ): Boolean {
-        if (!rootChecker.isRootAvailable()) {
+        if (!accessChecker.isIfwWritable()) {
             throw RootUnavailableException()
         }
         val ifwComponentType = resolveIfwComponentType(packageName, componentName) ?: return false
@@ -120,7 +119,7 @@ internal class IntentFirewall @Inject constructor(
         packageName: String,
         componentName: String,
     ): Boolean {
-        if (!rootChecker.isRootAvailable()) {
+        if (!accessChecker.isIfwWritable()) {
             throw RootUnavailableException()
         }
         val ifwComponentType = resolveIfwComponentType(packageName, componentName) ?: return false
@@ -137,7 +136,7 @@ internal class IntentFirewall @Inject constructor(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
-        if (!rootChecker.isRootAvailable()) {
+        if (!accessChecker.isIfwWritable()) {
             throw RootUnavailableException()
         }
         Timber.i("Add component filters for ${list.size} components")
@@ -163,7 +162,7 @@ internal class IntentFirewall @Inject constructor(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
-        if (!rootChecker.isRootAvailable()) {
+        if (!accessChecker.isIfwWritable()) {
             throw RootUnavailableException()
         }
         Timber.i("Remove component filters for ${list.size} components")
@@ -199,7 +198,7 @@ internal class IntentFirewall @Inject constructor(
     // ── Global Query ───────────────────────────────────────────────────
 
     override suspend fun getAllRules(): Map<String, IfwRules> {
-        if (!rootChecker.isRootAvailable()) {
+        if (!accessChecker.isIfwWritable()) {
             Timber.v("Root unavailable, cannot list rules")
             return emptyMap()
         }
