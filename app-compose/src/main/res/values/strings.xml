@@ -24,6 +24,5 @@
     <string name="no_permission_hint">Unable to obtain permission, the application may not function properly.</string>
     <string name="shell_permission_hint">Granted shell permission. Controlling components may not function properly.</string>
     <string name="system_permission_hint">Running in system mode (UID 1000). Intent Firewall is available.</string>
-    <string name="ifw_requires_privilege_hint">Shell mode can\'t write Intent Firewall rules. Use PackageManager mode, or a root/system Shizuku.</string>
     <string name="close">Close</string>
 </resources>

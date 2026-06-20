@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.controllers.ifw.shizuku
 
+import android.os.Build
 import android.system.Os
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import timber.log.Timber
@@ -58,13 +59,14 @@ object IfwFileOps {
 
     private fun restorecon(path: String) {
         try {
-            // android.os.SELinux.restorecon(String) is @hide; reachable via HiddenApiBypass.
-            HiddenApiBypass.invoke(
-                Class.forName("android.os.SELinux"),
-                null,
-                "restorecon",
-                path,
-            )
+            // android.os.SELinux.restorecon(String) is @hide. The hidden-API blacklist only
+            // exists on API 28+, so use HiddenApiBypass there and plain reflection below it.
+            val selinux = Class.forName("android.os.SELinux")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                HiddenApiBypass.invoke(selinux, null, "restorecon", path)
+            } else {
+                selinux.getMethod("restorecon", String::class.java).invoke(null, path)
+            }
         } catch (e: Throwable) {
             Timber.w(e, "restorecon unavailable for $path (continuing)")
         }
