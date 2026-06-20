@@ -31,6 +31,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
 import timber.log.Timber
 import javax.inject.Inject
@@ -38,6 +39,7 @@ import kotlin.coroutines.resume
 
 private const val EXTENSION = ".xml"
 private const val SERVICE_VERSION = 1
+private const val BIND_TIMEOUT_MS = 10_000L
 
 internal class ShizukuIfwFileSystem @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -57,22 +59,36 @@ internal class ShizukuIfwFileSystem @Inject constructor(
         service?.let { return it }
         return bindMutex.withLock {
             service?.let { return it }
-            val bound = suspendCancellableCoroutine<IIfwFileService?> { cont ->
-                val connection = object : ServiceConnection {
-                    override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
-                        if (binder != null && binder.pingBinder()) {
-                            cont.resume(IIfwFileService.Stub.asInterface(binder))
-                        } else {
-                            cont.resume(null)
+            var pendingConnection: ServiceConnection? = null
+            val bound = withTimeoutOrNull(BIND_TIMEOUT_MS) {
+                suspendCancellableCoroutine<IIfwFileService?> { cont ->
+                    val connection = object : ServiceConnection {
+                        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                            if (binder != null && binder.pingBinder()) {
+                                cont.resume(IIfwFileService.Stub.asInterface(binder))
+                            } else {
+                                cont.resume(null)
+                            }
+                        }
+
+                        override fun onServiceDisconnected(name: ComponentName?) {
+                            service = null
+                            runCatching { Shizuku.unbindUserService(userServiceArgs, this, true) }
                         }
                     }
-
-                    override fun onServiceDisconnected(name: ComponentName?) {
-                        service = null
+                    pendingConnection = connection
+                    cont.invokeOnCancellation {
+                        runCatching { Shizuku.unbindUserService(userServiceArgs, connection, true) }
                     }
+                    Shizuku.bindUserService(userServiceArgs, connection)
                 }
-                Shizuku.bindUserService(userServiceArgs, connection)
-            } ?: throw IfwUnavailableException("Failed to bind Shizuku IFW user service")
+            }
+            if (bound == null) {
+                pendingConnection?.let { conn ->
+                    runCatching { Shizuku.unbindUserService(userServiceArgs, conn, true) }
+                }
+                throw IfwUnavailableException("Failed to bind Shizuku IFW user service")
+            }
             service = bound
             bound
         }
