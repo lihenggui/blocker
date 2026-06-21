@@ -17,6 +17,7 @@
 package com.merxury.blocker
 
 import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.configure
@@ -32,10 +33,19 @@ internal fun Project.configureKotlinAndroid(
     commonExtension: CommonExtension,
 ) {
     commonExtension.apply {
-        compileSdk = 36
+        compileSdk = 37
 
         defaultConfig.apply {
             minSdk = 23
+        }
+
+        // Robolectric (4.16.1) has no android-all jar for API 37, so run unit tests
+        // against SDK 36. testOptions.targetSdk drives the Robolectric SDK and avoids a
+        // per-module robolectric.properties. It is only valid on library modules;
+        // application modules already pin defaultConfig.targetSdk to 36. Remove once
+        // Robolectric supports API 37.
+        if (this is LibraryExtension) {
+            testOptions.targetSdk = 36
         }
 
         compileOptions.apply {
