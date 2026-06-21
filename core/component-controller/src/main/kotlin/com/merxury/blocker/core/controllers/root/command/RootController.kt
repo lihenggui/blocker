@@ -48,6 +48,7 @@ internal class RootController @Inject constructor(
         val action = when (state) {
             ComponentState.ENABLED -> "enable"
             ComponentState.DISABLED -> "disable"
+            ComponentState.DEFAULT -> "default-state"
         }
         Timber.d("Set component $packageName/$componentName to $state")
         return rootCommandExecutor.run(

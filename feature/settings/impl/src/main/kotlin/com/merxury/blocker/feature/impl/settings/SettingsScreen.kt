@@ -67,6 +67,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
+import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_PM
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.PreviewDevices
@@ -78,6 +79,7 @@ import com.merxury.blocker.feature.impl.settings.item.BackupSettings
 import com.merxury.blocker.feature.impl.settings.item.BlockerRulesSettings
 import com.merxury.blocker.feature.impl.settings.item.BlockerSettings
 import com.merxury.blocker.feature.impl.settings.item.IfwRulesSettings
+import com.merxury.blocker.feature.impl.settings.item.PmRulesSettings
 import com.merxury.blocker.feature.impl.settings.item.SwitchSettingItem
 import com.merxury.blocker.feature.impl.settings.item.ThemeSettings
 import com.merxury.blocker.feature.settings.api.R.string
@@ -116,6 +118,7 @@ fun SettingsScreen(
         importIfwRules = viewModel::importIfwRules,
         exportIfwRules = viewModel::exportIfwRules,
         resetIfwRules = viewModel::resetIfwRules,
+        resetPmRules = viewModel::resetPmRules,
         importMatRules = viewModel::importMyAndroidToolsRules,
     )
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -136,6 +139,7 @@ fun SettingsScreen(
                 EXPORT_IFW_RULES -> CoreRuleR.core_rule_backing_up_ifw_please_wait
                 IMPORT_IFW_RULES -> CoreRuleR.core_rule_import_ifw_please_wait
                 RESET_IFW -> CoreRuleR.core_rule_reset_ifw_please_wait
+                RESET_PM -> CoreRuleR.core_rule_reset_pm_please_wait
             }
 
             RuleWorkResult.FINISHED -> CoreRuleR.core_rule_done
@@ -190,6 +194,7 @@ fun SettingsScreen(
     exportIfwRules: () -> Unit = { },
     importIfwRules: () -> Unit = { },
     resetIfwRules: () -> Unit = { },
+    resetPmRules: () -> Unit = { },
     importMatRules: (Uri?) -> Unit = { },
 ) {
     Column(
@@ -230,6 +235,7 @@ fun SettingsScreen(
                     exportIfwRules = exportIfwRules,
                     importIfwRules = importIfwRules,
                     resetIfwRules = resetIfwRules,
+                    resetPmRules = resetPmRules,
                     importMatRules = importMatRules,
                 )
             }
@@ -261,6 +267,7 @@ fun SettingsContent(
     exportIfwRules: () -> Unit = { },
     importIfwRules: () -> Unit = { },
     resetIfwRules: () -> Unit = { },
+    resetPmRules: () -> Unit = { },
     importMatRules: (Uri?) -> Unit = { },
 ) {
     LocalContext.current
@@ -315,6 +322,8 @@ fun SettingsContent(
             importIfwRules = importIfwRules,
             resetIfwRules = resetIfwRules,
         )
+        HorizontalDivider()
+        PmRulesSettings(resetPmRules = resetPmRules)
         HorizontalDivider()
         ItemHeader(
             title = stringResource(id = string.feature_settings_api_others),

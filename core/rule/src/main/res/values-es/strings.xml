@@ -20,6 +20,7 @@
     <string name="core_rule_backing_up_ifw_please_wait">Haciendo copia de seguridad de IFW, Por favor espere…</string>
     <string name="core_rule_import_ifw_please_wait">Importando reglas de IFW, por favor espere…</string>
     <string name="core_rule_reset_ifw_please_wait">Restableciendo IFW, por favor espere…</string>
+    <string name="core_rule_reset_pm_please_wait">Restaurando los componentes al estado predeterminado, por favor espere…</string>
     <string name="core_rule_import_mat_rule_please_wait">Importando reglas MAT, por favor espere…</string>
     <string name="core_rule_import_app_rules_please_wait">Importando reglas de la aplicación, por favor espere…</string>
     <string name="core_rule_cancel">Cancelar</string>

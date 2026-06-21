@@ -22,6 +22,7 @@
     <string name="core_rule_import_ifw_please_wait">正在導入IFW應用規則，請稍等…</string>
     <string name="core_rule_import_mat_rule_please_wait">正在導入MAT應用規則，請稍等…</string>
     <string name="core_rule_reset_ifw_please_wait">重置IFW中，請稍等…</string>
+    <string name="core_rule_reset_pm_please_wait">正在將元件還原為預設狀態，請稍等…</string>
     <string name="core_rule_import_app_rules_please_wait">正在導入應用規則，請稍等…</string>
     <string name="core_rule_cancel">取消</string>
     <string name="core_rule_processing_please_wait">正在處理，請稍等…</string>
