@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Long
+import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -61,6 +62,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
+import com.merxury.blocker.core.data.util.PermissionStatus.SYSTEM_USER
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationSuiteScaffold
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
@@ -95,20 +97,28 @@ fun BlockerApp(
         val appPermission by appState.currentPermission.collectAsStateWithLifecycle()
         val noPermissionHint = stringResource(R.string.no_permission_hint)
         val shellPermissionHint = stringResource(R.string.shell_permission_hint)
+        val systemPermissionHint = stringResource(R.string.system_permission_hint)
         val actionLabel = stringResource(R.string.close)
         LaunchedEffect(appPermission) {
-            if (appPermission == NO_PERMISSION) {
-                snackbarHostState.showSnackbar(
+            when (appPermission) {
+                NO_PERMISSION -> snackbarHostState.showSnackbar(
                     message = noPermissionHint,
                     actionLabel = actionLabel,
                     duration = Long,
                 )
-            } else if (appPermission == SHELL_USER) {
-                snackbarHostState.showSnackbar(
+
+                SHELL_USER -> snackbarHostState.showSnackbar(
                     message = shellPermissionHint,
                     actionLabel = actionLabel,
                     duration = Long,
                 )
+
+                SYSTEM_USER -> snackbarHostState.showSnackbar(
+                    message = systemPermissionHint,
+                    duration = Short,
+                )
+
+                else -> Unit
             }
         }
         CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {

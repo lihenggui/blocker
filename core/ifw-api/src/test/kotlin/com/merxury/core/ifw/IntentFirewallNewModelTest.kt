@@ -18,8 +18,8 @@ package com.merxury.core.ifw
 
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.testing.controller.FakeComponentTypeResolver
+import com.merxury.blocker.core.testing.controller.FakeIfwAccessChecker
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
-import com.merxury.blocker.core.testing.controller.FakeRootAvailabilityChecker
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -46,18 +46,18 @@ class IntentFirewallNewModelTest {
     private val testActivity = "com.example.MainActivity"
     private val testProvider = "com.example.DataProvider"
 
-    private lateinit var rootChecker: FakeRootAvailabilityChecker
+    private lateinit var accessChecker: FakeIfwAccessChecker
     private lateinit var componentTypeResolver: FakeComponentTypeResolver
     private lateinit var fileSystem: FakeIfwFileSystem
     private lateinit var intentFirewall: IntentFirewall
 
     @Before
     fun setUp() {
-        rootChecker = FakeRootAvailabilityChecker(rootAvailable = true)
+        accessChecker = FakeIfwAccessChecker(writable = true)
         componentTypeResolver = FakeComponentTypeResolver()
         fileSystem = FakeIfwFileSystem()
         intentFirewall = IntentFirewall(
-            rootChecker = rootChecker,
+            accessChecker = accessChecker,
             componentTypeResolver = componentTypeResolver,
             fileSystem = fileSystem,
             serializer = IfwXmlSerializer(),
@@ -79,7 +79,7 @@ class IntentFirewallNewModelTest {
 
     @Test
     fun givenNoRoot_whenGetRules_thenReturnsEmpty() = runTest {
-        rootChecker.rootAvailable = false
+        accessChecker.writable = false
         val rules = intentFirewall.getRules(testPackage)
         assertTrue(rules.isEmpty())
     }
