@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.retrofit
+package com.merxury.blocker.core.network.okhttp
 
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
