@@ -19,15 +19,24 @@ package com.merxury.blocker.core.testing.controller
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
 
-class FakeShizukuInitializer : IShizukuInitializer {
+class FakeShizukuInitializer(
+    var shizukuUid: Int = 0,
+    var permissionGranted: Boolean = true,
+) : IShizukuInitializer {
 
-    override suspend fun registerShizuku(): RegisterShizukuResult = RegisterShizukuResult(true, 0)
+    var registerCallCount = 0
+        private set
+
+    override suspend fun registerShizuku(): RegisterShizukuResult {
+        registerCallCount++
+        return RegisterShizukuResult(permissionGranted, if (permissionGranted) shizukuUid else -1)
+    }
 
     override fun unregisterShizuku() {
         // Do nothing
     }
 
-    override fun hasPermission(): Boolean = true
+    override fun hasPermission(): Boolean = permissionGranted
 
-    override fun getUid(): Int = 0
+    override fun getUid(): Int = shizukuUid
 }
