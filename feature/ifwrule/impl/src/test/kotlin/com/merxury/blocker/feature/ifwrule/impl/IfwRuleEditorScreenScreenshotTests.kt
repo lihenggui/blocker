@@ -168,13 +168,9 @@ class IfwRuleEditorScreenScreenshotTests {
         }
     }
 
-    private fun blockAllState(): RuleEditorScreenUiState =
-        IfwRuleEditorScreenPreviewParameterProvider().values.first()
+    private fun blockAllState(): RuleEditorScreenUiState = IfwRuleEditorScreenPreviewParameterProvider().values.first()
 
-    private fun conditionalState(): RuleEditorScreenUiState =
-        IfwRuleEditorScreenPreviewParameterProvider().values.drop(1).first()
+    private fun conditionalState(): RuleEditorScreenUiState = IfwRuleEditorScreenPreviewParameterProvider().values.drop(1).first()
 
-    private fun advancedState(): RuleEditorScreenUiState =
-        IfwRuleEditorScreenPreviewParameterProvider().values.drop(2).first()
-
+    private fun advancedState(): RuleEditorScreenUiState = IfwRuleEditorScreenPreviewParameterProvider().values.drop(2).first()
 }
