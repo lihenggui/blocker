@@ -29,20 +29,19 @@ import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
-import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.core.ifw.IfwStorageUtils
+import com.merxury.core.ifw.IfwFileSystem
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 import java.io.IOException
 
 @HiltWorker
 class ExportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
+    private val ifwFileSystem: IfwFileSystem,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
     override fun getNotificationTitle(): Int = R.string.core_rule_backing_up_ifw_please_wait
@@ -74,14 +73,13 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         Timber.i("Start to export IFW rules.")
         var current = 0
         try {
-            val ifwFolder = IfwStorageUtils.ifwFolder
-            val files = FileUtils.listFiles(ifwFolder)
-            val total = files.count()
-            files.forEach {
-                Timber.i("Export $it")
-                val filename = it.split(File.separator).last()
+            val packages = ifwFileSystem.listRuleFiles()
+            val total = packages.count()
+            packages.forEach { packageName ->
+                val filename = "$packageName$IFW_EXTENSION"
+                Timber.i("Export $filename")
                 setForeground(updateNotification(filename, current, total))
-                val content = FileUtils.read(ifwFolder + it)
+                val content = ifwFileSystem.readRules(packageName) ?: return@forEach
                 StorageUtil.saveIfwToStorage(context, folderPath, filename, content, ioDispatcher)
                 current++
             }
@@ -107,11 +105,9 @@ class ExportIfwRulesWorker @AssistedInject constructor(
     private suspend fun exportForSingleApplication(packageName: String, backupFolder: String): Int {
         Timber.d("Export IFW rules for $packageName")
         return withContext(ioDispatcher) {
-            val ifwFolder = IfwStorageUtils.ifwFolder
-            val files = FileUtils.listFiles(ifwFolder)
             val targetFileName = packageName + IFW_EXTENSION
-            if (files.contains(targetFileName)) {
-                val content = FileUtils.read(ifwFolder + targetFileName)
+            if (ifwFileSystem.fileExists(packageName)) {
+                val content = ifwFileSystem.readRules(packageName) ?: return@withContext 0
                 StorageUtil.saveIfwToStorage(
                     context = context,
                     baseFolder = backupFolder,

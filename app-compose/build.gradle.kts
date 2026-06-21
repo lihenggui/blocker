@@ -75,8 +75,6 @@ android {
             } else {
                 signingConfigs.named("debug").get()
             }
-            // Ensure Baseline Profile is fresh for release builds.
-            baselineProfile.automaticGenerationDuringBuild = true
         }
     }
     packaging {
@@ -150,7 +148,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.libsu.core)
     implementation(libs.timber)
 
     ksp(libs.hilt.compiler)
@@ -185,8 +182,10 @@ dependencies {
 }
 
 baselineProfile {
-    // Don't build on every iteration of a full assemble.
-    // Instead enable generation directly for the release build variant.
+    // Don't regenerate the baseline profile on every assemble; generation requires a
+    // managed device and is produced separately (see the NightlyBaselineProfiles
+    // workflow). This preserves the prior effective behavior: the old per-release
+    // override bound to this same project-level extension and was reset to false here.
     automaticGenerationDuringBuild = false
     // Make use of Dex Layout Optimizations via Startup Profiles
     dexLayoutOptimization = true

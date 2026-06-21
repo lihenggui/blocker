@@ -31,8 +31,6 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.model)
-    implementation(libs.libsu.core)
-    implementation(libs.libsu.io)
 
     testImplementation(projects.core.testing)
     testImplementation(libs.robolectric)

@@ -25,18 +25,17 @@ import android.content.ComponentName
 import android.content.Context
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
-import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 internal class RootController @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val rootCommandExecutor: RootCommandExecutor,
     private val packageInfoDataSource: PackageInfoDataSource,
 ) : IController {
 
@@ -46,39 +45,19 @@ internal class RootController @Inject constructor(
     ): Boolean {
         val packageName = component.packageName
         val componentName = component.name
-        val comm: String = when (state) {
-            ComponentState.ENABLED -> removeEscapeCharacter(
-                String.format(
-                    ENABLE_COMPONENT_TEMPLATE,
-                    context.userId,
-                    packageName,
-                    componentName,
-                ),
-            )
-
-            ComponentState.DISABLED -> removeEscapeCharacter(
-                String.format(
-                    DISABLE_COMPONENT_TEMPLATE,
-                    context.userId,
-                    packageName,
-                    componentName,
-                ),
-            )
-
-            ComponentState.DEFAULT -> removeEscapeCharacter(
-                String.format(
-                    DEFAULT_STATE_COMPONENT_TEMPLATE,
-                    context.userId,
-                    packageName,
-                    componentName,
-                ),
-            )
+        val action = when (state) {
+            ComponentState.ENABLED -> "enable"
+            ComponentState.DISABLED -> "disable"
+            ComponentState.DEFAULT -> "default-state"
         }
-        Timber.d("command:$comm, componentState is $state")
-        return withContext(Dispatchers.IO) {
-            val commandOutput = comm.exec()
-            commandOutput.isSuccess
-        }
+        Timber.d("Set component $packageName/$componentName to $state")
+        return rootCommandExecutor.run(
+            "/system/bin/pm",
+            action,
+            "--user",
+            context.userId.toString(),
+            "$packageName/$componentName",
+        ).isSuccess
     }
 
     override suspend fun enable(component: ComponentInfo): Boolean = switchComponent(
@@ -91,18 +70,10 @@ internal class RootController @Inject constructor(
         ComponentState.DISABLED,
     )
 
-    private fun removeEscapeCharacter(comm: String): String = comm.replace("$", "\\$")
-
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
     ): Boolean = packageInfoDataSource.checkComponentIsEnabled(
         ComponentName(packageName, componentName),
     )
-
-    companion object {
-        private const val DISABLE_COMPONENT_TEMPLATE = "pm disable --user %s %s/%s"
-        private const val ENABLE_COMPONENT_TEMPLATE = "pm enable --user %s %s/%s"
-        private const val DEFAULT_STATE_COMPONENT_TEMPLATE = "pm default-state --user %s %s/%s"
-    }
 }

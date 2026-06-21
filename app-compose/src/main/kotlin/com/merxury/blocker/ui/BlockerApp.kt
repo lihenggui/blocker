@@ -52,6 +52,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -70,8 +72,7 @@ import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.impl.navigation.appDetailEntry
 import com.merxury.blocker.feature.applist.impl.navigation.appListEntry
 import com.merxury.blocker.feature.debloater.impl.navigation.debloaterEntry
-import com.merxury.blocker.feature.generalrule.impl.navigation.generalRuleEntry
-import com.merxury.blocker.feature.globalifwrule.impl.navigation.globalIfwRuleEntry
+import com.merxury.blocker.feature.debloator.api.navigation.navigateToDebloater
 import com.merxury.blocker.feature.ifwrule.api.navigation.navigateToIfwRuleEditor
 import com.merxury.blocker.feature.ifwrule.impl.navigation.ifwRuleEditorEntry
 import com.merxury.blocker.feature.impl.helpandfeedback.navigation.supportAndFeedbackEntry
@@ -173,7 +174,14 @@ internal fun BlockerApp(
                             }
                         }
                     },
-                    label = { Text(stringResource(navItem.iconTextId)) },
+                    label = {
+                        Text(
+                            text = stringResource(navItem.iconTextId),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                        )
+                    },
                     modifier =
                     Modifier
                         .testTag("BlockerNavItem"),
@@ -215,7 +223,10 @@ internal fun BlockerApp(
                 )
 
                 val entryProvider = entryProvider {
-                    appListEntry(navigator)
+                    appListEntry(
+                        navigator = navigator,
+                        navigateToAppSlimming = navigator::navigateToDebloater,
+                    )
                     appDetailEntry(
                         navigator = navigator,
                         updateIconThemingState = updateIconThemingState,
@@ -223,11 +234,10 @@ internal fun BlockerApp(
                             navigator.navigateToIfwRuleEditor(packageName, componentName, componentType)
                         },
                     )
-                    generalRuleEntry(navigator)
-                    globalIfwRuleEntry()
+                    rulesEntry(navigator)
                     ifwRuleEditorEntry(navigator)
                     ruleDetailEntry(navigator)
-                    debloaterEntry()
+                    debloaterEntry(navigator)
                     searchEntry(navigator)
                     supportAndFeedbackEntry(navigator)
                     licensesEntry(navigator)

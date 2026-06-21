@@ -18,90 +18,60 @@ package com.merxury.blocker.core.controllers.root.api
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IAppController
+import com.merxury.blocker.core.exception.RootUnavailableException
+import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 internal class RootApiAppController @Inject constructor(
-    private val rootServiceConnection: RootServiceConnection,
+    private val rootChecker: RootAvailabilityChecker,
+    private val rootCommandExecutor: RootCommandExecutor,
 ) : IAppController {
+    private val runningPackages = mutableSetOf<String>()
 
-    override suspend fun init() = rootServiceConnection.ensureConnected()
-
-    override suspend fun disable(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot disable app: root server is not initialized")
-            return false
+    override suspend fun init() {
+        if (!rootChecker.isRootAvailable()) {
+            throw RootUnavailableException()
         }
-        rootService.setApplicationEnabledSetting(
+    }
+
+    override suspend fun disable(packageName: String): Boolean = rootCommandExecutor.execute(
+        SetApplicationEnabledSettingCommand(
             packageName,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER,
-        )
-        return true
-    }
+        ),
+    ).value
 
-    override suspend fun enable(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot enable app: root server is not initialized")
-            return false
-        }
-        rootService.setApplicationEnabledSetting(
+    override suspend fun enable(packageName: String): Boolean = rootCommandExecutor.execute(
+        SetApplicationEnabledSettingCommand(
             packageName,
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-        )
-        return true
-    }
+        ),
+    ).value
 
-    override suspend fun forceStop(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot force stop app: root server is not initialized")
-            return false
-        }
-        rootService.forceStop(packageName)
-        return true
-    }
+    override suspend fun forceStop(packageName: String): Boolean = rootCommandExecutor.execute(ForceStopCommand(packageName)).value
 
-    override suspend fun clearCache(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot clear cache: root server is not initialized")
-            return false
-        }
-        rootService.clearCache(packageName)
-        return true
-    }
+    override suspend fun clearCache(packageName: String): Boolean = rootCommandExecutor.execute(ClearCacheCommand(packageName)).value
 
-    override suspend fun clearData(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot clear data: root server is not initialized")
-            return false
-        }
-        rootService.clearData(packageName)
-        return true
-    }
+    override suspend fun clearData(packageName: String): Boolean = rootCommandExecutor.execute(ClearDataCommand(packageName)).value
 
-    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot uninstall app: root server is not initialized")
-            return false
-        }
-        rootService.uninstallApp(packageName, versionCode)
-        return true
-    }
+    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean = rootCommandExecutor.execute(UninstallAppCommand(packageName, versionCode)).value
 
-    override fun isAppRunning(packageName: String): Boolean {
-        val rootService = rootServiceConnection.rootService ?: return false
-        return rootService.isAppRunning(packageName)
-    }
+    override fun isAppRunning(packageName: String): Boolean = packageName in runningPackages
 
     override suspend fun refreshRunningAppList() {
         Timber.d("Refresh running app list")
-        rootServiceConnection.rootService?.refreshRunningAppList()
+        runningPackages.clear()
+        try {
+            runningPackages.addAll(rootCommandExecutor.execute(RefreshRunningAppListCommand()).value)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to refresh running app list")
+        }
     }
 }

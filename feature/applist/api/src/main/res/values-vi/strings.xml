@@ -16,6 +16,7 @@
   -->
 <resources>
     <string name="feature_applist_api_sort_menu">Thứ tự sắp xếp</string>
+    <string name="feature_applist_api_app_slimming">Tinh gọn ứng dụng</string>
     <string name="feature_applist_api_settings">Cài đặt</string>
     <string name="feature_applist_api_support_and_feedback">Hỗ trợ và góp ý</string>
 <string name="feature_applist_api_no_applications_to_display">Không có ứng dụng nào để hiện</string>

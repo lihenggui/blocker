@@ -518,10 +518,15 @@ object ManifestParser {
         apkFile: File,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): ParserContext = withContext(dispatcher) {
+        if (!apkFile.isFile) {
+            throw IOException("APK file does not exist: ${apkFile.absolutePath}")
+        }
         val assetManagerInstance = assetManager
             ?: throw IOException("Failed to create AssetManager")
+        // AssetManager.addAssetPath returns 0 on failure (and the reflection fallback
+        // returns -1), so treat any non-positive cookie as a failure.
         val cookie = addAssets(apkFile, assetManagerInstance)
-        if (cookie == -1) {
+        if (cookie <= 0) {
             throw IOException("Failed to add assets for ${apkFile.absolutePath}")
         }
         val typedAssetManager = assetManagerInstance as AssetManager

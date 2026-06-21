@@ -27,6 +27,7 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.ROOT_USER
 import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
+import com.merxury.blocker.core.data.util.PermissionStatus.SYSTEM_USER
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.PM
@@ -43,6 +44,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val SHELL_UID = 2000
+private const val SYSTEM_UID = 1000
 private const val ROOT_UID = 0
 
 @Singleton
@@ -75,9 +77,18 @@ class AppPermissionMonitor @Inject constructor(
     private suspend fun initController(type: ControllerType) {
         Timber.d("Initialize controller: $type")
         if (type == SHIZUKU) {
-            if (controllerStatus[SHIZUKU] == ROOT_USER || controllerStatus[SHIZUKU] == SHELL_USER) {
-                Timber.i("No need to re-initialize shizuku controller")
-                return
+            when (controllerStatus[SHIZUKU]) {
+                ROOT_USER,
+                SYSTEM_USER,
+                SHELL_USER,
+                -> {
+                    Timber.i("No need to re-initialize shizuku controller")
+                    return
+                }
+
+                NO_PERMISSION,
+                null,
+                -> Unit
             }
             if (!shizukuInitializer.hasPermission()) {
                 val result = shizukuInitializer.registerShizuku()
@@ -114,6 +125,7 @@ class AppPermissionMonitor @Inject constructor(
     private fun updatePermissionStatusFromUid(uid: Int) {
         when (uid) {
             ROOT_UID -> controllerStatus[SHIZUKU] = ROOT_USER
+            SYSTEM_UID -> controllerStatus[SHIZUKU] = SYSTEM_USER
             SHELL_UID -> controllerStatus[SHIZUKU] = SHELL_USER
             else -> controllerStatus[SHIZUKU] = NO_PERMISSION
         }

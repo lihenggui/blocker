@@ -18,10 +18,13 @@ package com.merxury.core.ifw
 
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.utils.FileUtils
-import com.topjohnwu.superuser.io.SuFile
-import com.topjohnwu.superuser.io.SuFileInputStream
-import com.topjohnwu.superuser.io.SuFileOutputStream
+import com.merxury.blocker.core.root.RootChmodCommand
+import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.root.RootDeleteFileCommand
+import com.merxury.blocker.core.root.RootFileExistsCommand
+import com.merxury.blocker.core.root.RootListFilesCommand
+import com.merxury.blocker.core.root.RootReadFileCommand
+import com.merxury.blocker.core.root.RootWriteFileCommand
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -29,42 +32,40 @@ import javax.inject.Inject
 
 private const val EXTENSION = ".xml"
 
-internal class SuIfwFileSystem @Inject constructor(
+internal class LibrootIfwFileSystem @Inject constructor(
+    private val rootCommandExecutor: RootCommandExecutor,
     @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
 ) : IfwFileSystem {
 
     override suspend fun readRules(packageName: String): String? = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
-        val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
-        if (!destFile.exists()) {
+        val path = IfwStorageUtils.ifwFolder + filename
+        if (!rootCommandExecutor.execute(RootFileExistsCommand(path)).value) {
             Timber.v("Rule file $filename does not exist")
             return@withContext null
         }
         return@withContext try {
-            val input = SuFileInputStream.open(destFile)
-            input.readBytes().toString(Charsets.UTF_8)
+            rootCommandExecutor.execute(RootReadFileCommand(path)).value
         } catch (e: Exception) {
-            Timber.e(e, "Error reading rules file $destFile")
+            Timber.e(e, "Error reading rules file $path")
             null
         }
     }
 
     override suspend fun writeRules(packageName: String, content: String) = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
-        val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
-        SuFileOutputStream.open(destFile).use {
-            it.write(content.toByteArray(Charsets.UTF_8))
-        }
-        FileUtils.chmod(destFile.absolutePath, 644, false)
-        Timber.i("Saved IFW rules to $destFile")
+        val path = IfwStorageUtils.ifwFolder + filename
+        rootCommandExecutor.execute(RootWriteFileCommand(path, content))
+        rootCommandExecutor.execute(RootChmodCommand(path, 644, recursively = false))
+        Timber.i("Saved IFW rules to $path")
     }
 
     override suspend fun deleteRules(packageName: String): Boolean = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
-        val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
-        if (destFile.exists()) {
+        val path = IfwStorageUtils.ifwFolder + filename
+        if (rootCommandExecutor.execute(RootFileExistsCommand(path)).value) {
             Timber.d("Deleting IFW rule file $filename")
-            destFile.delete()
+            rootCommandExecutor.execute(RootDeleteFileCommand(path, recursively = false)).value
         } else {
             false
         }
@@ -72,16 +73,12 @@ internal class SuIfwFileSystem @Inject constructor(
 
     override suspend fun fileExists(packageName: String): Boolean = withContext(dispatcher) {
         val filename = "$packageName$EXTENSION"
-        val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
-        destFile.exists()
+        rootCommandExecutor.execute(RootFileExistsCommand(IfwStorageUtils.ifwFolder + filename)).value
     }
 
     override suspend fun listRuleFiles(): List<String> = withContext(dispatcher) {
-        val ifwDir = SuFile(IfwStorageUtils.ifwFolder)
-        if (!ifwDir.exists()) return@withContext emptyList()
-        ifwDir.list()
-            ?.filter { it.endsWith(EXTENSION) }
-            ?.map { it.removeSuffix(EXTENSION) }
-            ?: emptyList()
+        rootCommandExecutor.execute(RootListFilesCommand(IfwStorageUtils.ifwFolder)).value
+            .filter { it.endsWith(EXTENSION) }
+            .map { it.removeSuffix(EXTENSION) }
     }
 }
