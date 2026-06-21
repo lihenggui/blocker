@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.ruledetail.impl
 
 import android.content.ClipData
-import android.content.Context
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -39,7 +38,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,7 +57,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -88,6 +85,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Loading
 import com.merxury.blocker.core.result.Result.Success
+import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -107,7 +105,6 @@ import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
 import com.merxury.blocker.feature.ruledetail.impl.RuleInfoUiState.Error
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleDescription
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleMatchedAppList
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.ui.R.string as uistring
@@ -119,6 +116,7 @@ fun RuleDetailScreen(
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
     updateIconThemingState: (IconThemingState) -> Unit,
+    modifier: Modifier = Modifier,
     showBackButton: Boolean = true,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
@@ -127,46 +125,53 @@ fun RuleDetailScreen(
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val appBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val sortType by viewModel.sortType.collectAsStateWithLifecycle()
+    val processingProgress by viewModel.processingProgress.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboard.current
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    RuleDetailScreen(
-        ruleInfoUiState = ruleInfoUiState,
-        showBackButton = showBackButton,
-        onBackClick = onBackClick,
-        tabState = tabState,
-        switchTab = viewModel::switchTab,
-        appBarUiState = appBarUiState,
-        sortType = sortType,
-        onSortTypeChange = viewModel::updateSortType,
-        onStopServiceClick = viewModel::stopService,
-        onLaunchActivityClick = viewModel::launchActivity,
-        onCopyNameClick = {
-            scope.launch {
-                clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
-            }
-        },
-        onCopyFullNameClick = {
-            scope.launch {
-                clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
-            }
-        },
-        onBlockAllInItemClick = {
-            handleBlockAllInItemClick(context, viewModel, it, scope, snackbarHostState)
-        },
-        onEnableAllInItemClick = {
-            handleEnableAllInItemClick(viewModel, it, scope, snackbarHostState, context)
-        },
-        onBlockAllInPageClick = {
-            handleBlockAllInPageClick(viewModel, scope, snackbarHostState, context)
-        },
-        onEnableAllInPageClick = {
-            handleEnableAllInPageClick(viewModel, scope, snackbarHostState, context)
-        },
-        onSwitch = viewModel::controlComponent,
-        navigateToAppDetail = navigateToAppDetail,
-        updateIconThemingState = updateIconThemingState,
-    )
+    Box(modifier = modifier.fillMaxSize()) {
+        RuleDetailScreen(
+            ruleInfoUiState = ruleInfoUiState,
+            showBackButton = showBackButton,
+            onBackClick = onBackClick,
+            tabState = tabState,
+            switchTab = viewModel::switchTab,
+            appBarUiState = appBarUiState,
+            sortType = sortType,
+            onSortTypeChange = viewModel::updateSortType,
+            onStopServiceClick = viewModel::stopService,
+            onLaunchActivityClick = viewModel::launchActivity,
+            onCopyNameClick = {
+                scope.launch {
+                    clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
+                }
+            },
+            onCopyFullNameClick = {
+                scope.launch {
+                    clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
+                }
+            },
+            onBlockAllInItemClick = { viewModel.controlAllComponents(it, false) },
+            onEnableAllInItemClick = { viewModel.controlAllComponents(it, true) },
+            onBlockAllInPageClick = { viewModel.controlAllComponentsInPage(false) },
+            onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
+            onSwitch = viewModel::controlComponent,
+            navigateToAppDetail = navigateToAppDetail,
+            updateIconThemingState = updateIconThemingState,
+        )
+        val bottomInset = WindowInsets.systemBars.asPaddingValues()
+            .calculateBottomPadding()
+        ProcessingProgressSnackbar(
+            progress = processingProgress,
+            onDismiss = viewModel::dismissProcessingProgress,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp + bottomInset,
+                ),
+        )
+    }
     if (errorState != null) {
         BlockerErrorAlertDialog(
             title = errorState?.title.orEmpty(),
@@ -177,114 +182,6 @@ fun RuleDetailScreen(
     DisposableEffect(Unit) {
         onDispose {
             updateIconThemingState(IconThemingState())
-        }
-    }
-}
-
-private fun handleEnableAllInPageClick(
-    viewModel: RuleDetailViewModel,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-    context: Context,
-) {
-    viewModel.controlAllComponentsInPage(true) { current, total ->
-        showEnableProgress(context, snackbarHostState, scope, current, total)
-    }
-}
-
-private fun handleBlockAllInPageClick(
-    viewModel: RuleDetailViewModel,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-    context: Context,
-) {
-    viewModel.controlAllComponentsInPage(false) { current, total ->
-        showDisableProgress(
-            context,
-            snackbarHostState,
-            scope,
-            current,
-            total,
-        )
-    }
-}
-
-private fun handleEnableAllInItemClick(
-    viewModel: RuleDetailViewModel,
-    it: List<ComponentInfo>,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-    context: Context,
-) {
-    viewModel.controlAllComponents(it, true) { current, total ->
-        showEnableProgress(context, snackbarHostState, scope, current, total)
-    }
-}
-
-private fun handleBlockAllInItemClick(
-    context: Context,
-    viewModel: RuleDetailViewModel,
-    it: List<ComponentInfo>,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-) {
-    viewModel.controlAllComponents(it, false) { current, total ->
-        showDisableProgress(context, snackbarHostState, scope, current, total)
-    }
-}
-
-private fun showEnableProgress(
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    scope: CoroutineScope,
-    current: Int,
-    total: Int,
-) {
-    scope.launch {
-        if (current == total) {
-            snackbarHostState.showSnackbar(
-                message = context.getString(uistring.core_ui_operation_completed),
-                duration = Short,
-                withDismissAction = true,
-            )
-        } else {
-            snackbarHostState.showSnackbar(
-                message = context.getString(
-                    uistring.core_ui_enabling_component_hint,
-                    current,
-                    total,
-                ),
-                duration = Short,
-                withDismissAction = false,
-            )
-        }
-    }
-}
-
-private fun showDisableProgress(
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    scope: CoroutineScope,
-    current: Int,
-    total: Int,
-) {
-    scope.launch {
-        if (current == total) {
-            snackbarHostState.showSnackbar(
-                message = context.getString(uistring.core_ui_operation_completed),
-                duration = Short,
-                withDismissAction = true,
-            )
-        } else {
-            snackbarHostState.showSnackbar(
-                message = context.getString(
-                    uistring.core_ui_disabling_component_hint,
-                    current,
-                    total,
-                ),
-                duration = Short,
-                withDismissAction = false,
-            )
         }
     }
 }

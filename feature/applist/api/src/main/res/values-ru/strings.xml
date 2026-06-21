@@ -15,6 +15,7 @@
   ~ limitations under the License.
   --><resources>
     <string name="feature_applist_api_sort_menu">Сортировка</string>
+    <string name="feature_applist_api_app_slimming">Оптимизация приложений</string>
     <string name="feature_applist_api_settings">Настройки</string>
     <string name="feature_applist_api_support_and_feedback">Поддержка и обратная связь</string>
     <string name="feature_applist_api_no_applications_to_display">Нет приложений для отображения</string>
@@ -30,6 +31,4 @@
     <string name="feature_applist_api_none">Нет</string>
     <string name="feature_applist_api_running_apps">Работающие приложения</string>
     <string name="feature_applist_api_disabled_apps">Отключенные приложения</string>
-    <string name="feature_applist_api_on">Вкл.</string>
-    <string name="feature_applist_api_off">Выкл.</string>
 </resources>

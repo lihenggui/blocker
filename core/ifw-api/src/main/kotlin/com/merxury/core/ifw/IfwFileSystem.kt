@@ -21,4 +21,5 @@ interface IfwFileSystem {
     suspend fun writeRules(packageName: String, content: String)
     suspend fun deleteRules(packageName: String): Boolean
     suspend fun fileExists(packageName: String): Boolean
+    suspend fun listRuleFiles(): List<String>
 }

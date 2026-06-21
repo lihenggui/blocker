@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="feature_debloater_api_title">Simplificação de aplicativos</string>
     <string name="feature_debloater_api_search_hint">Digite para pesquisar</string>
     <string name="feature_debloater_api_no_root_permission">Permissão root é necessária para ativar ou desativar componentes</string>
     <string name="feature_debloater_api_test_share">Testar compartilhamento</string>

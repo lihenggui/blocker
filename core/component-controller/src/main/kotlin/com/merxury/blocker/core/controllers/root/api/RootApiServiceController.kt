@@ -17,43 +17,47 @@
 package com.merxury.blocker.core.controllers.root.api
 
 import com.merxury.blocker.core.controllers.IServiceController
+import com.merxury.blocker.core.exception.RootUnavailableException
+import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 internal class RootApiServiceController @Inject constructor(
-    private val rootServiceConnection: RootServiceConnection,
+    private val rootChecker: RootAvailabilityChecker,
+    private val rootCommandExecutor: RootCommandExecutor,
 ) : IServiceController {
+    private val runningServices = mutableListOf<RunningServiceState>()
 
-    override suspend fun init() = rootServiceConnection.ensureConnected()
+    override suspend fun init() {
+        if (!rootChecker.isRootAvailable()) {
+            throw RootUnavailableException()
+        }
+    }
 
     override suspend fun load(): Boolean {
-        val rootService = rootServiceConnection.rootService ?: return false
-        rootService.refreshRunningServiceList()
-        return true
-    }
-
-    override fun isServiceRunning(packageName: String, serviceName: String): Boolean {
-        val rootService = rootServiceConnection.rootService ?: return false
-        return rootService.isServiceRunning(packageName, serviceName)
-    }
-
-    override suspend fun stopService(packageName: String, serviceName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot stop service, rootService is null")
-            return false
+        runningServices.clear()
+        return try {
+            runningServices.addAll(rootCommandExecutor.execute(RefreshRunningServiceListCommand()).services)
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to refresh running service list")
+            false
         }
-        return rootService.stopService(packageName, serviceName)
     }
 
-    override suspend fun startService(packageName: String, serviceName: String): Boolean {
-        val rootService = rootServiceConnection.rootService
-        if (rootService == null) {
-            Timber.w("Cannot start service, rootService is null")
-            return false
-        }
-        return rootService.startService(packageName, serviceName)
+    override fun isServiceRunning(packageName: String, serviceName: String): Boolean = runningServices.any {
+        it.packageName == packageName &&
+            it.className == serviceName &&
+            it.started
     }
+
+    override suspend fun stopService(packageName: String, serviceName: String): Boolean = rootCommandExecutor.execute(StopServiceCommand(packageName, serviceName)).value
+
+    override suspend fun startService(packageName: String, serviceName: String): Boolean = rootCommandExecutor.execute(StartServiceCommand(packageName, serviceName)).value
 }

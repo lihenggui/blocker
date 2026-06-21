@@ -27,7 +27,6 @@ fun Project.configureLicensee() {
         allowUrl("https://github.com/RikkaApps/Shizuku-API/blob/master/LICENSE") // MIT
         ignoreDependencies("com.github.jeziellago", "Markwon") // MIT
         ignoreDependencies("com.github.jeziellago", "compose-markdown") // MIT
-        ignoreDependencies("com.github.topjohnwu.libsu") // Apache-2.0
         unusedAction(UnusedAction.IGNORE)
         bundleAndroidAsset.set(true)
     }

@@ -42,13 +42,14 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
@@ -95,6 +96,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val appRepository: AppRepository,
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
+    private val rootCommandExecutor: RootCommandExecutor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
@@ -123,6 +125,8 @@ class RuleDetailViewModel @AssistedInject constructor(
     val tabState: StateFlow<TabState<RuleDetailTabs>> = _tabState.asStateFlow()
     private val _appBarUiState = MutableStateFlow(AppBarUiState(actions = getAppBarAction()))
     val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
+    private val _processingProgress = MutableStateFlow<ProcessingProgress?>(null)
+    val processingProgress: StateFlow<ProcessingProgress?> = _processingProgress.asStateFlow()
     private var currentSearchKeyword: List<String> = emptyList()
     private var loadRuleDetailJob: Job? = null
     private var controlComponentJob: Job? = null
@@ -171,7 +175,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         }
     }
 
-    fun controlAllComponentsInPage(enable: Boolean, action: (Int, Int) -> Unit) {
+    fun controlAllComponentsInPage(enable: Boolean) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
             analyticsHelper.logControlAllInPageClicked(newState = enable)
@@ -188,26 +192,24 @@ class RuleDetailViewModel @AssistedInject constructor(
             }
             val list = matchedAppState.data
                 .flatMap { it.componentList }
-            controlAllComponentsInternal(list, enable, action)
+            controlAllComponentsInternal(list, enable)
         }
     }
 
     fun controlAllComponents(
         list: List<ComponentInfo>,
         enable: Boolean,
-        action: (Int, Int) -> Unit,
     ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
             analyticsHelper.logControlAllComponentsClicked(newState = enable)
-            controlAllComponentsInternal(list, enable, action)
+            controlAllComponentsInternal(list, enable)
         }
     }
 
     private suspend fun controlAllComponentsInternal(
         list: List<ComponentInfo>,
         enable: Boolean,
-        action: suspend (Int, Int) -> Unit,
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
         var successCount = 0
@@ -216,15 +218,25 @@ class RuleDetailViewModel @AssistedInject constructor(
             newState = enable,
         )
             .onStart {
+                _processingProgress.value = ProcessingProgress(
+                    current = 0,
+                    total = list.size,
+                    isEnabling = enable,
+                )
                 changeComponentUiStatus(list, controllerType, enable)
             }
             .catch { exception ->
                 changeComponentUiStatus(list, controllerType, !enable)
+                _processingProgress.value = null
                 _errorState.emit(exception.toErrorMessage())
             }
             .collect { _ ->
                 successCount++
-                action(successCount, list.size)
+                _processingProgress.value = ProcessingProgress(
+                    current = successCount,
+                    total = list.size,
+                    isEnabling = enable,
+                )
             }
     }
 
@@ -320,16 +332,20 @@ class RuleDetailViewModel @AssistedInject constructor(
         _errorState.emit(null)
     }
 
+    fun dismissProcessingProgress() {
+        _processingProgress.value = null
+    }
+
     fun launchActivity(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am start -n $packageName/$componentName".exec(ioDispatcher)
+            rootCommandExecutor.run("/system/bin/am", "start", "-n", "$packageName/$componentName")
             analyticsHelper.logLaunchActivityClicked()
         }
     }
 
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am stopservice $packageName/$componentName".exec(ioDispatcher)
+            rootCommandExecutor.run("/system/bin/am", "stopservice", "$packageName/$componentName")
             analyticsHelper.logStopServiceClicked()
         }
     }

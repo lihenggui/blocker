@@ -68,6 +68,7 @@ graph TB
   :core:ui --> :core:analytics
   :core:ui --> :core:designsystem
   :core:ui -.-> :core:domain
+  :core:ui --> :core:ifw-api
   :core:ui --> :core:model
   :feature:search:api -.-> :core:component-controller
   :feature:search:api -.-> :core:data

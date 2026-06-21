@@ -29,10 +29,15 @@ import com.merxury.blocker.core.ui.R as UiR
 
 @Composable
 fun TopAppBarMoreMenu(
+    navigateToAppSlimming: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToFeedback: () -> Unit,
 ) {
     val items = listOf(
+        DropDownMenuItem(
+            R.string.feature_applist_api_app_slimming,
+            navigateToAppSlimming,
+        ),
         DropDownMenuItem(
             R.string.feature_applist_api_settings,
             navigateToSettings,
@@ -55,7 +60,11 @@ fun TopAppBarMoreMenu(
 private fun MoreMenuPreview() {
     BlockerTheme {
         Surface {
-            TopAppBarMoreMenu(navigateToSettings = {}, navigateToFeedback = {})
+            TopAppBarMoreMenu(
+                navigateToAppSlimming = {},
+                navigateToSettings = {},
+                navigateToFeedback = {},
+            )
         }
     }
 }

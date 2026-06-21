@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.util
 
 enum class PermissionStatus {
     ROOT_USER,
+    SYSTEM_USER,
     SHELL_USER,
     NO_PERMISSION,
 }

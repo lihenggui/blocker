@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_applist_api_sort_menu">Opções de menu</string>
+    <string name="feature_applist_api_app_slimming">Simplificação de aplicativos</string>
     <string name="feature_applist_api_settings">Configurações</string>
     <string name="feature_applist_api_support_and_feedback">Suporte e feedback</string>
     <string name="feature_applist_api_no_applications_to_display">Sem aplicativos para exibir</string>
@@ -15,7 +16,5 @@
     <string name="feature_applist_api_none">Nenhum</string>
     <string name="feature_applist_api_running_apps">Aplicativos em execução</string>
     <string name="feature_applist_api_disabled_apps">Aplicativos desativados</string>
-    <string name="feature_applist_api_on">Ligado</string>
-    <string name="feature_applist_api_off">Desligado</string>
     <string name="feature_applist_api_ascending">Crescente</string>
 </resources>

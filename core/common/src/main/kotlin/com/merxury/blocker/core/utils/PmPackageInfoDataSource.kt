@@ -26,6 +26,7 @@ import android.content.pm.ServiceInfo
 import com.merxury.blocker.core.Application
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.root.RootCommandExecutor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -39,6 +40,7 @@ import javax.inject.Singleton
 class PmPackageInfoDataSource @Inject constructor(
     @ApplicationContext private val context: Context,
     private val pm: PackageManager,
+    private val rootCommandExecutor: RootCommandExecutor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : PackageInfoDataSource {
 
@@ -68,5 +70,12 @@ class PmPackageInfoDataSource @Inject constructor(
 
     override fun isSystemApp(packageName: String?): Boolean = ApplicationUtil.isSystemApp(pm, packageName)
 
-    override suspend fun isRunning(packageName: String): Boolean = ApplicationUtil.isRunning(packageName, ioDispatcher)
+    override suspend fun isRunning(packageName: String): Boolean {
+        val result = rootCommandExecutor.run("/system/bin/pidof", packageName)
+        return result.isSuccess &&
+            result.out
+                .joinToString(separator = "")
+                .trim()
+                .isNotEmpty()
+    }
 }

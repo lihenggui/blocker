@@ -41,9 +41,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.head_ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           submodules: 'true'
           fetch-depth: 0
 
@@ -86,7 +87,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
@@ -304,9 +305,10 @@ jobs:
           large-packages: false # includes google-cloud-sdk and it's slow
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.head_ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           submodules: 'true'
           fetch-depth: 0
 
@@ -327,7 +329,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
@@ -385,7 +387,7 @@ jobs:
       - name: Display local test coverage (only API 30)
         if: matrix.api-level == 30
         id: jacoco
-        uses: madrapps/jacoco-report@v1.7.2
+        uses: madrapps/jacoco-report@v1.8.0
         with:
           title: Combined test coverage report
           min-coverage-overall: 40

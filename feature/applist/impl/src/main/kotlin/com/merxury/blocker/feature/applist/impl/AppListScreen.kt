@@ -58,6 +58,7 @@ import com.merxury.blocker.feature.applist.impl.component.TopAppBarMoreMenu
 @Composable
 fun AppListScreen(
     navigateToAppDetail: (String) -> Unit,
+    navigateToAppSlimming: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     modifier: Modifier = Modifier,
@@ -82,6 +83,7 @@ fun AppListScreen(
         onUninstallClick = viewModel::uninstall,
         onEnableClick = viewModel::enable,
         onDisableClick = viewModel::disable,
+        navigateToAppSlimming = navigateToAppSlimming,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         showAppSortBottomSheet = viewModel::showAppSortBottomSheet,
@@ -123,6 +125,7 @@ fun AppListScreen(
     onEnableClick: (String) -> Unit = {},
     onDisableClick: (String) -> Unit = {},
     showAppSortBottomSheet: (Boolean) -> Unit = {},
+    navigateToAppSlimming: () -> Unit = {},
     navigateToSettings: () -> Unit = {},
     navigateToSupportAndFeedback: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -145,6 +148,7 @@ fun AppListScreen(
                     }
                 }
                 TopAppBarMoreMenu(
+                    navigateToAppSlimming = navigateToAppSlimming,
                     navigateToSettings = navigateToSettings,
                     navigateToFeedback = navigateToSupportAndFeedback,
                 )

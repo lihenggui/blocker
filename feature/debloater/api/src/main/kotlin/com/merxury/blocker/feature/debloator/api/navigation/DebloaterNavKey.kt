@@ -17,7 +17,12 @@
 package com.merxury.blocker.feature.debloator.api.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
 import kotlinx.serialization.Serializable
 
 @Serializable
 object DebloaterNavKey : NavKey
+
+fun Navigator.navigateToDebloater() {
+    navigate(DebloaterNavKey)
+}

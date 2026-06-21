@@ -29,6 +29,7 @@ android {
 dependencies {
     api(projects.core.analytics)
     api(projects.core.designsystem)
+    api(projects.core.ifwApi)
     api(projects.core.model)
     api(libs.androidx.metrics)
     api(libs.appiconloader)

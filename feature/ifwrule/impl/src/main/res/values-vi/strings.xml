@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_ifwrule_impl_title">Quy tắc chặn</string>
+    <string name="feature_ifwrule_impl_block_all">Chặn mọi cuộc gọi (vô hiệu hóa hoàn toàn)</string>
+    <string name="feature_ifwrule_impl_block_conditional">Chặn theo điều kiện (kiểm soát chi tiết)</string>
+    <string name="feature_ifwrule_impl_block_mode">Chế độ chặn</string>
+    <string name="feature_ifwrule_impl_conditions">Điều kiện</string>
+    <string name="feature_ifwrule_impl_save">Lưu quy tắc</string>
+    <string name="feature_ifwrule_impl_advanced_options">Tùy chọn nâng cao</string>
+    <string name="feature_ifwrule_impl_log">Ghi nhật ký khớp</string>
+    <string name="feature_ifwrule_impl_log_summary">Xem các intent khớp trong nhật ký hệ thống</string>
+    <string name="feature_ifwrule_impl_monitor_only">Chỉ giám sát (không chặn)</string>
+    <string name="feature_ifwrule_impl_monitor_only_summary">Quy tắc chỉ ghi nhật ký, không chặn. Hữu ích để quan sát trước khi bật</string>
+    <string name="feature_ifwrule_impl_advanced_rule_banner">Quy tắc nâng cao (chỉ đọc)</string>
+    <string name="feature_ifwrule_impl_advanced_rule_delete">Xóa và tạo lại</string>
+    <string name="feature_ifwrule_impl_unsaved_title">Thay đổi chưa lưu</string>
+    <string name="feature_ifwrule_impl_unsaved_message">Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời đi không?</string>
+</resources>

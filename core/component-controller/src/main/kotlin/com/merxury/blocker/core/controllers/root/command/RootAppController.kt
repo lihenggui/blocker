@@ -22,9 +22,10 @@ import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.extension.exec
-import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.root.RootDeleteFileCommand
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -36,21 +37,32 @@ import javax.inject.Singleton
 internal class RootAppController @Inject constructor(
     @ApplicationContext private val context: Context,
     @FilesDir private val filesDir: File,
+    private val rootCommandExecutor: RootCommandExecutor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IAppController {
     private val runningAppList = mutableSetOf<String>()
 
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disabling $packageName")
-        val result = "pm disable --user ${context.userId} $packageName"
-            .exec(ioDispatcher)
+        val result = rootCommandExecutor.run(
+            "/system/bin/pm",
+            "disable",
+            "--user",
+            context.userId.toString(),
+            packageName,
+        )
         return result.isSuccess
     }
 
     override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enabling $packageName")
-        val result = "pm enable --user ${context.userId} $packageName"
-            .exec(ioDispatcher)
+        val result = rootCommandExecutor.run(
+            "/system/bin/pm",
+            "enable",
+            "--user",
+            context.userId.toString(),
+            packageName,
+        )
         return result.isSuccess
     }
 
@@ -64,46 +76,52 @@ internal class RootAppController @Inject constructor(
                 return@withContext false
             }
         Timber.d("Delete cache folder: $cacheFolder")
-        return@withContext FileUtils.delete(
-            cacheFolder.absolutePath,
-            recursively = true,
-            ioDispatcher,
-        )
+        return@withContext rootCommandExecutor.execute(RootDeleteFileCommand(cacheFolder.absolutePath, recursively = true)).value
     }
 
     override suspend fun clearData(packageName: String): Boolean {
         Timber.i("Clearing data for $packageName")
-        val result = "pm clear --user ${context.userId} $packageName"
-            .exec(ioDispatcher)
+        val result = rootCommandExecutor.run(
+            "/system/bin/pm",
+            "clear",
+            "--user",
+            context.userId.toString(),
+            packageName,
+        )
         return result.isSuccess
     }
 
     override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean {
         Timber.i("Uninstalling $packageName")
-        val result = "pm uninstall --user ${context.userId} $packageName"
-            .exec(ioDispatcher)
+        val result = rootCommandExecutor.run(
+            "/system/bin/pm",
+            "uninstall",
+            "--user",
+            context.userId.toString(),
+            packageName,
+        )
         return result.isSuccess
     }
 
     override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stopping $packageName")
-        val result = "am force-stop $packageName"
-            .exec(ioDispatcher)
+        val result = rootCommandExecutor.run("/system/bin/am", "force-stop", packageName)
         return result.isSuccess
     }
 
     override suspend fun refreshRunningAppList() {
         try {
-            val commandResult = "ps -A -o NAME"
-                .exec(ioDispatcher)
+            val commandResult = rootCommandExecutor.run("/system/bin/ps", "-A", "-o", "NAME")
             if (!commandResult.isSuccess) {
                 Timber.e("Failed to get running app list: ${commandResult.err}")
                 return
             }
             runningAppList.clear()
             runningAppList.addAll(commandResult.out)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            Timber.w("Failed to refresh running app list")
+            Timber.w(e, "Failed to refresh running app list")
         }
     }
 
