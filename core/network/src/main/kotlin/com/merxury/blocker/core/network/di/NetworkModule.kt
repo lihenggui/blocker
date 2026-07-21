@@ -17,17 +17,17 @@
 
 package com.merxury.blocker.core.network.di
 
-import android.content.Context
 import androidx.tracing.trace
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.BuildConfig
-import com.merxury.blocker.core.network.fake.FakeAssetManager
-import com.merxury.blocker.core.network.retrofit.RetrofitBlockerNetwork
+import com.merxury.blocker.core.network.okhttp.OkHttpBlockerNetwork
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -66,11 +66,7 @@ internal object NetworkModule {
     @Singleton
     fun provideBlockerNetworkDataSource(
         okHttpCallFactory: dagger.Lazy<Call.Factory>,
-    ): BlockerNetworkDataSource = RetrofitBlockerNetwork(okHttpCallFactory)
-
-    @Provides
-    @Singleton
-    fun providesFakeAssetManager(
-        @ApplicationContext context: Context,
-    ): FakeAssetManager = FakeAssetManager(context.assets::open)
+        networkJson: Json,
+        @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
+    ): BlockerNetworkDataSource = OkHttpBlockerNetwork(okHttpCallFactory, networkJson, ioDispatcher)
 }

@@ -22,7 +22,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
-private const val CHUNK_SIZE = 1024
+private const val CHUNK_SIZE = 8192
 
 class BinaryFileWriter(
     private val outputStream: OutputStream,
@@ -31,19 +31,18 @@ class BinaryFileWriter(
 
     @Throws(IOException::class)
     fun write(inputStream: InputStream?, length: Long): Long {
-        if (length.toInt() == 0) {
-            Timber.w("Nothing to write, file length is 0")
+        if (length <= 0L) {
+            Timber.w("Nothing to write, file length is $length")
             return 0
         }
         BufferedInputStream(inputStream).use { input ->
-            val dataBuffer =
-                ByteArray(CHUNK_SIZE)
+            val dataBuffer = ByteArray(CHUNK_SIZE)
             var readBytes: Int
             var totalBytes: Long = 0
             while (input.read(dataBuffer).also { readBytes = it } != -1) {
                 totalBytes += readBytes.toLong()
                 outputStream.write(dataBuffer, 0, readBytes)
-                onProgressUpdate.invoke(totalBytes / length * 100.0)
+                onProgressUpdate.invoke(totalBytes.toDouble() / length * 100.0)
             }
             return totalBytes
         }
