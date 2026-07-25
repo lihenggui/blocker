@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_ifwrule_api_title">Reglas de interceptación</string>
+    <string name="feature_ifwrule_api_block_all">Bloquear todas las llamadas (desactivar por completo)</string>
+    <string name="feature_ifwrule_api_block_conditional">Bloquear por condición (control detallado)</string>
+    <string name="feature_ifwrule_api_block_mode">Modo de bloqueo</string>
+    <string name="feature_ifwrule_api_conditions">Condiciones</string>
+    <string name="feature_ifwrule_api_save">Guardar regla</string>
+    <string name="feature_ifwrule_api_advanced_options">Opciones avanzadas</string>
+    <string name="feature_ifwrule_api_log">Registrar coincidencias</string>
+    <string name="feature_ifwrule_api_log_summary">Ver intents coincidentes en el registro del sistema</string>
+    <string name="feature_ifwrule_api_monitor_only">Solo monitorizar (sin bloqueo)</string>
+    <string name="feature_ifwrule_api_monitor_only_summary">La regla solo registra y no bloquea. Útil para observar antes de activarla</string>
+    <string name="feature_ifwrule_api_advanced_rule_banner">Regla avanzada (solo lectura)</string>
+    <string name="feature_ifwrule_api_advanced_rule_delete">Eliminar y recrear</string>
+    <string name="feature_ifwrule_api_unsaved_title">Cambios sin guardar</string>
+    <string name="feature_ifwrule_api_unsaved_message">Tienes cambios sin guardar. ¿Seguro que quieres salir?</string>
+</resources>

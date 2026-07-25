@@ -45,17 +45,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerButton
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
+import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.ifwruleeditor.BlockMode
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
+import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorUiState
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.feature.ifwrule.api.R
+import com.merxury.blocker.feature.ifwrule.impl.previewparameter.IfwRuleEditorScreenPreviewParameterProvider
 import com.merxury.core.ifw.editor.IfwEditorNode
 
 @Suppress("ktlint:compose:modifier-missing-check")
@@ -83,38 +90,68 @@ fun IfwRuleEditorScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    IfwRuleEditorScreen(
+        uiState = uiState,
+        showUnsavedDialog = showUnsavedDialog,
+        onBackClick = handleBack,
+        onSaveClick = viewModel::save,
+        onUpdateBlockMode = viewModel::updateBlockMode,
+        onUpdateLog = viewModel::updateLog,
+        onChangeBlockEnable = viewModel::updateBlockEnabled,
+        onUpdateRootGroup = viewModel::updateRootGroup,
+        onDelete = viewModel::deleteRule,
+        onDiscardUnsavedChanges = {
+            showUnsavedDialog = false
+            onBackClick()
+        },
+        onDismissUnsavedDialog = { showUnsavedDialog = false },
+    )
+}
+
+@Composable
+internal fun IfwRuleEditorScreen(
+    uiState: RuleEditorScreenUiState,
+    showUnsavedDialog: Boolean,
+    onBackClick: () -> Unit,
+    onSaveClick: () -> Unit,
+    onUpdateBlockMode: (BlockMode) -> Unit,
+    onUpdateLog: (Boolean) -> Unit,
+    onChangeBlockEnable: (Boolean) -> Unit,
+    onUpdateRootGroup: (IfwEditorNode.Group) -> Unit,
+    onDelete: () -> Unit,
+    onDiscardUnsavedChanges: () -> Unit,
+    onDismissUnsavedDialog: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxSize()) {
         BlockerTopAppBar(
-            title = stringResource(R.string.feature_ifwrule_impl_title),
+            title = stringResource(R.string.feature_ifwrule_api_title),
             hasNavigationIcon = true,
-            onNavigationClick = handleBack,
+            onNavigationClick = onBackClick,
             actions = {
                 if (uiState is RuleEditorScreenUiState.Success) {
-                    SaveActionButton(onClick = viewModel::save)
+                    SaveActionButton(onClick = onSaveClick)
                 }
             },
         )
-        when (val state = uiState) {
+        when (uiState) {
             RuleEditorScreenUiState.Loading -> LoadingScreen()
-            is RuleEditorScreenUiState.Error -> ErrorScreen(error = UiMessage(state.message))
+            is RuleEditorScreenUiState.Error -> ErrorScreen(error = UiMessage(uiState.message))
             is RuleEditorScreenUiState.Success -> EditorContent(
-                editor = state.editor,
-                onUpdateBlockMode = viewModel::updateBlockMode,
-                onUpdateLog = viewModel::updateLog,
-                onChangeBlockEnable = viewModel::updateBlockEnabled,
-                onUpdateRootGroup = viewModel::updateRootGroup,
-                onDelete = viewModel::deleteRule,
+                editor = uiState.editor,
+                onUpdateBlockMode = onUpdateBlockMode,
+                onUpdateLog = onUpdateLog,
+                onChangeBlockEnable = onChangeBlockEnable,
+                onUpdateRootGroup = onUpdateRootGroup,
+                onDelete = onDelete,
             )
         }
     }
 
     if (showUnsavedDialog) {
         UnsavedChangesDialog(
-            onDiscard = {
-                showUnsavedDialog = false
-                onBackClick()
-            },
-            onCancel = { showUnsavedDialog = false },
+            onDiscard = onDiscardUnsavedChanges,
+            onCancel = onDismissUnsavedDialog,
         )
     }
 }
@@ -127,7 +164,7 @@ private fun SaveActionButton(
     IconButton(onClick = onClick, modifier = modifier) {
         Icon(
             imageVector = BlockerIcons.Check,
-            contentDescription = stringResource(R.string.feature_ifwrule_impl_save),
+            contentDescription = stringResource(R.string.feature_ifwrule_api_save),
         )
     }
 }
@@ -140,8 +177,8 @@ private fun UnsavedChangesDialog(
 ) {
     BlockerWarningAlertDialog(
         onDismissRequest = onCancel,
-        title = stringResource(R.string.feature_ifwrule_impl_unsaved_title),
-        text = stringResource(R.string.feature_ifwrule_impl_unsaved_message),
+        title = stringResource(R.string.feature_ifwrule_api_unsaved_title),
+        text = stringResource(R.string.feature_ifwrule_api_unsaved_message),
         onConfirmRequest = onDiscard,
         modifier = modifier,
     )
@@ -217,17 +254,17 @@ private fun BlockModeSection(
     Column(modifier = modifier) {
         HorizontalDivider()
         Text(
-            text = stringResource(R.string.feature_ifwrule_impl_block_mode),
+            text = stringResource(R.string.feature_ifwrule_api_block_mode),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
         )
         BlockModeRadioRow(
-            label = stringResource(R.string.feature_ifwrule_impl_block_all),
+            label = stringResource(R.string.feature_ifwrule_api_block_all),
             selected = blockMode == BlockMode.ALL,
             onClick = { onUpdateBlockMode(BlockMode.ALL) },
         )
         BlockModeRadioRow(
-            label = stringResource(R.string.feature_ifwrule_impl_block_conditional),
+            label = stringResource(R.string.feature_ifwrule_api_block_conditional),
             selected = blockMode == BlockMode.CONDITIONAL,
             onClick = { onUpdateBlockMode(BlockMode.CONDITIONAL) },
         )
@@ -244,7 +281,7 @@ private fun ConditionalSection(
         Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider()
         Text(
-            text = stringResource(R.string.feature_ifwrule_impl_conditions),
+            text = stringResource(R.string.feature_ifwrule_api_conditions),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
         )
@@ -267,19 +304,19 @@ private fun AdvancedOptionsSection(
         Spacer(modifier = Modifier.height(16.dp))
         HorizontalDivider()
         Text(
-            text = stringResource(R.string.feature_ifwrule_impl_advanced_options),
+            text = stringResource(R.string.feature_ifwrule_api_advanced_options),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
         )
         SwitchRow(
-            label = stringResource(R.string.feature_ifwrule_impl_log),
-            summary = stringResource(R.string.feature_ifwrule_impl_log_summary),
+            label = stringResource(R.string.feature_ifwrule_api_log),
+            summary = stringResource(R.string.feature_ifwrule_api_log_summary),
             checked = log,
             onCheckedChange = onUpdateLog,
         )
         SwitchRow(
-            label = stringResource(R.string.feature_ifwrule_impl_monitor_only),
-            summary = stringResource(R.string.feature_ifwrule_impl_monitor_only_summary),
+            label = stringResource(R.string.feature_ifwrule_api_monitor_only),
+            summary = stringResource(R.string.feature_ifwrule_api_monitor_only_summary),
             checked = !blockEnabled,
             onCheckedChange = { onChangeBlockEnable(!it) },
         )
@@ -300,14 +337,14 @@ private fun AdvancedRuleBanner(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = stringResource(R.string.feature_ifwrule_impl_advanced_rule_banner),
+                text = stringResource(R.string.feature_ifwrule_api_advanced_rule_banner),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Spacer(modifier = Modifier.height(8.dp))
             BlockerButton(
                 onClick = onDelete,
-                text = { Text(stringResource(R.string.feature_ifwrule_impl_advanced_rule_delete)) },
+                text = { Text(stringResource(R.string.feature_ifwrule_api_advanced_rule_delete)) },
             )
         }
     }
@@ -364,5 +401,31 @@ private fun SwitchRow(
             checked = checked,
             onCheckedChange = null,
         )
+    }
+}
+
+@Composable
+@PreviewThemes
+private fun IfwRuleEditorScreenPreview(
+    @PreviewParameter(IfwRuleEditorScreenPreviewParameterProvider::class)
+    uiState: RuleEditorScreenUiState,
+) {
+    val showUnsavedDialog = (uiState as? RuleEditorScreenUiState.Success)?.hasUnsavedChanges == true
+    BlockerTheme {
+        Surface {
+            IfwRuleEditorScreen(
+                uiState = uiState,
+                showUnsavedDialog = showUnsavedDialog,
+                onBackClick = {},
+                onSaveClick = {},
+                onUpdateBlockMode = {},
+                onUpdateLog = {},
+                onChangeBlockEnable = {},
+                onUpdateRootGroup = {},
+                onDelete = {},
+                onDiscardUnsavedChanges = {},
+                onDismissUnsavedDialog = {},
+            )
+        }
     }
 }

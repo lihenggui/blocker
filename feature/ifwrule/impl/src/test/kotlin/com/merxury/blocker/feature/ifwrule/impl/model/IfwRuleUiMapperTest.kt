@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.feature.ifwrule.impl.model
 
-import com.merxury.blocker.feature.ifwrule.impl.BlockMode
-import com.merxury.blocker.feature.ifwrule.impl.RuleEditorUiState
+import com.merxury.blocker.core.ui.ifwruleeditor.BlockMode
+import com.merxury.blocker.core.ui.ifwruleeditor.RuleEditorUiState
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorGroupMode
 import com.merxury.core.ifw.editor.IfwEditorNode
