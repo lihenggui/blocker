@@ -96,6 +96,7 @@ private fun tryParseRule(
             componentType = componentType,
             isAdvancedRule = true,
         )
+
         is ComponentRuleExtraction.Success -> {
             if (extraction.filters.isEmpty()) {
                 RuleEditorUiState(
@@ -157,6 +158,7 @@ private fun extractConditionsForComponent(
             }
 
             filter.containsComponentFilter(filterName) -> return ComponentRuleExtraction.Unsupported
+
             else -> remaining += filter
         }
     }

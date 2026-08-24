@@ -193,7 +193,9 @@ class GeneralRulesViewModel @AssistedInject constructor(
             .collect { result ->
                 when (result) {
                     is Result.Success -> updateMatchedAppInfo()
+
                     is Result.Error -> _errorState.emit(result.exception.toErrorMessage())
+
                     else -> {
                         // Do nothing
                     }

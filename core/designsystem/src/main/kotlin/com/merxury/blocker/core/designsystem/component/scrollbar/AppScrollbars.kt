@@ -242,6 +242,7 @@ private fun scrollbarThumbColor(
     LaunchedEffect(active) {
         when (active) {
             true -> state = Active
+
             false -> if (state == Active) {
                 state = Inactive
                 delay(SCROLLBAR_INACTIVE_TO_DORMANT_TIME_IN_MS)

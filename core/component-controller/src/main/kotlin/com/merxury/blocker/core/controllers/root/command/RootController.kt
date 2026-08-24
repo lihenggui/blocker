@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * Created by Mercury on 2017/12/31.
- * A class that controls the state of application components
- */
-
 package com.merxury.blocker.core.controllers.root.command
 
 import android.content.ComponentName
@@ -33,6 +28,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
 
+/**
+ * Created by Mercury on 2017/12/31.
+ * A class that controls the state of application components
+ */
 internal class RootController @Inject constructor(
     @ApplicationContext private val context: Context,
     private val rootCommandExecutor: RootCommandExecutor,

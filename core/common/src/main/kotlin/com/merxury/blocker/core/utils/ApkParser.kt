@@ -228,6 +228,7 @@ object ApkParser {
                                         }
                                     }
                                 }
+
                                 "intent-filter" -> {
                                     if (insideActivity) {
                                         insideIntentFilter = true
@@ -236,6 +237,7 @@ object ApkParser {
                                         currentFilterData.clear()
                                     }
                                 }
+
                                 "action" -> {
                                     if (insideIntentFilter) {
                                         for (i in 0 until parser.attributeCount) {
@@ -245,6 +247,7 @@ object ApkParser {
                                         }
                                     }
                                 }
+
                                 "category" -> {
                                     if (insideIntentFilter) {
                                         for (i in 0 until parser.attributeCount) {
@@ -254,6 +257,7 @@ object ApkParser {
                                         }
                                     }
                                 }
+
                                 "data" -> {
                                     if (insideIntentFilter) {
                                         var scheme: String? = null
@@ -291,6 +295,7 @@ object ApkParser {
                                 }
                             }
                         }
+
                         XmlPullParser.END_TAG -> {
                             when (parser.name) {
                                 "intent-filter" -> {
@@ -305,6 +310,7 @@ object ApkParser {
                                         insideIntentFilter = false
                                     }
                                 }
+
                                 "activity" -> {
                                     if (insideActivity && currentDepth == activityDepth) {
                                         val shouldInclude = currentActivityIntentFilters.any { filter ->

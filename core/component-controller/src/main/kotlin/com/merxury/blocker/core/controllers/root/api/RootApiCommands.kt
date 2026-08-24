@@ -263,18 +263,22 @@ internal data class StartServiceCommand(
                     Timber.e("Error: Cannot found $packageName/$serviceName; no service started.")
                     false
                 }
+
                 cn.packageName == "!" -> {
                     Timber.e("Error in launching $packageName/$serviceName: Requires permission ${cn.className}")
                     false
                 }
+
                 cn.packageName == "!!" -> {
                     Timber.e("Error in launching $packageName/$serviceName:: ${cn.className}")
                     false
                 }
+
                 cn.packageName == "?" -> {
                     Timber.e("Error in launching $packageName/$serviceName:: ${cn.className}")
                     false
                 }
+
                 else -> true
             },
         )
@@ -297,14 +301,17 @@ internal data class StopServiceCommand(
                     Timber.w("Service $packageName/$serviceName not stopped: was not running.")
                     false
                 }
+
                 1 -> {
                     Timber.i("Service $packageName/$serviceName stopped")
                     true
                 }
+
                 -1 -> {
                     Timber.e("Error stopping service $packageName/$serviceName")
                     false
                 }
+
                 else -> true
             },
         )

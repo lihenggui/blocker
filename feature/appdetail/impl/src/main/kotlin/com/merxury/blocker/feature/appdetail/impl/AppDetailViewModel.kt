@@ -419,9 +419,13 @@ class AppDetailViewModel @AssistedInject constructor(
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val list = when (tabState.value.selectedItem) {
                 Receiver -> componentList.receiver
+
                 Service -> componentList.service
+
                 Activity -> componentList.activity
+
                 Provider -> componentList.provider
+
                 Sdk -> (sdkUiState as? Result.Success)
                     ?.data
                     ?.flatMap { it.componentList }

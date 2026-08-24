@@ -139,13 +139,17 @@ fun SettingsScreen(
             }
 
             RuleWorkResult.FINISHED -> CoreRuleR.core_rule_done
+
             RuleWorkResult.FOLDER_NOT_DEFINED,
             RuleWorkResult.MISSING_STORAGE_PERMISSION,
             -> CoreRuleR.core_rule_error_msg_folder_not_defined
 
             RuleWorkResult.MISSING_ROOT_PERMISSION -> CoreRuleR.core_rule_error_msg_missing_root_permission
+
             RuleWorkResult.UNEXPECTED_EXCEPTION -> CoreRuleR.core_rule_error_msg_unexpected_exception
+
             RuleWorkResult.CANCELLED -> CoreRuleR.core_rule_task_cancelled
+
             else -> CoreRuleR.core_rule_error_msg_unexpected_exception
         }
         val message = stringResource(id = messageRes)

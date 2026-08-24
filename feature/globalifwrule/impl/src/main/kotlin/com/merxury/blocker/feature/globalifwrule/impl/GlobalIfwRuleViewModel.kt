@@ -196,9 +196,11 @@ class GlobalIfwRuleViewModel @Inject constructor(
             is SimpleGlobalIfwRuleDraft -> viewModelScope.launch {
                 saveSimpleRule(draft)
             }
+
             is AdvancedGlobalIfwRuleDraft -> viewModelScope.launch {
                 saveAdvancedRule(draft)
             }
+
             null -> Unit
         }
     }

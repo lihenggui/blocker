@@ -103,18 +103,21 @@ object ManifestParser {
                         .takeIf { it != -1 }
                     versionName = parser.getAttributeValue(NAMESPACE_ANDROID, "versionName")
                 }
+
                 "uses-sdk" -> {
                     minSdkVersion = parser.getAttributeIntValue(NAMESPACE_ANDROID, "minSdkVersion", -1)
                         .takeIf { it != -1 }
                     targetSdkVersion = parser.getAttributeIntValue(NAMESPACE_ANDROID, "targetSdkVersion", -1)
                         .takeIf { it != -1 }
                 }
+
                 "uses-permission" -> {
                     val name = parser.getAttributeValue(NAMESPACE_ANDROID, "name")
                     if (name != null) {
                         usesPermissions.add(ManifestPermission(name = name))
                     }
                 }
+
                 "permission" -> {
                     val name = parser.getAttributeValue(NAMESPACE_ANDROID, "name")
                     val protectionLevel = parser.getAttributeValue(NAMESPACE_ANDROID, "protectionLevel")
@@ -129,6 +132,7 @@ object ManifestParser {
                         )
                     }
                 }
+
                 "application" -> {
                     application = parseApplication(parser, resources, packageName)
                 }
@@ -409,12 +413,14 @@ object ManifestParser {
                         actions.add(actionName)
                     }
                 }
+
                 "category" -> {
                     val categoryName = parser.getAttributeValue(NAMESPACE_ANDROID, "name")
                     if (categoryName != null) {
                         categories.add(categoryName)
                     }
                 }
+
                 "data" -> {
                     dataList.add(parseIntentFilterData(parser))
                 }
@@ -464,10 +470,12 @@ object ManifestParser {
         val resourceId = try {
             when {
                 rawLabel.startsWith("@0x") -> rawLabel.substring(1).toLong(16).toInt()
+
                 rawLabel.contains("/") -> {
                     val (type, name) = rawLabel.substring(1).split("/", limit = 2)
                     resources.getIdentifier(name, type, null)
                 }
+
                 else -> {
                     val idString = rawLabel.substring(1)
                     if (idString.all { it.isDigit() }) {

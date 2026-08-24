@@ -63,39 +63,55 @@ fun IfwEditorNode.toIfwFilterOrNull(): IfwFilter? = when (this) {
     is IfwEditorNode.Condition -> {
         val base = when (kind) {
             IfwEditorConditionKind.ACTION -> IfwFilter.Action(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.CATEGORY -> {
                 if (value.isBlank()) return null
                 IfwFilter.Category(value)
             }
+
             IfwEditorConditionKind.CALLER_TYPE -> IfwFilter.Sender(senderType)
+
             IfwEditorConditionKind.CALLER_PACKAGE -> {
                 if (value.isBlank()) return null
                 IfwFilter.SenderPackage(value)
             }
+
             IfwEditorConditionKind.CALLER_PERMISSION -> {
                 if (value.isBlank()) return null
                 IfwFilter.SenderPermission(value)
             }
+
             IfwEditorConditionKind.COMPONENT -> IfwFilter.Component(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.COMPONENT_NAME -> IfwFilter.ComponentName(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.COMPONENT_PACKAGE -> IfwFilter.ComponentPackage(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.COMPONENT_FILTER -> {
                 if (value.isBlank()) return null
                 IfwFilter.ComponentFilter(value)
             }
+
             IfwEditorConditionKind.HOST -> IfwFilter.Host(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.SCHEME -> IfwFilter.Scheme(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.SCHEME_SPECIFIC_PART -> {
                 IfwFilter.SchemeSpecificPart(matcherMode.toStringMatcher(value))
             }
+
             IfwEditorConditionKind.PATH -> IfwFilter.Path(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.DATA -> IfwFilter.Data(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.MIME_TYPE -> IfwFilter.MimeType(matcherMode.toStringMatcher(value))
+
             IfwEditorConditionKind.PORT -> when (portMode) {
                 IfwEditorPortMode.EXACT -> {
                     val port = exactPort ?: return null
                     IfwFilter.Port(equals = port)
                 }
+
                 IfwEditorPortMode.RANGE -> {
                     if (minPort == null && maxPort == null) return null
                     IfwFilter.Port(min = minPort, max = maxPort)
@@ -118,6 +134,7 @@ fun IfwFilter.toEditorNodeOrNull(): IfwEditorNode? = when (this) {
             children = children,
         )
     }
+
     is IfwFilter.Or -> {
         val children = filters.map { child -> child.toEditorNodeOrNull() ?: return null }
         IfwEditorNode.Group(
@@ -125,6 +142,7 @@ fun IfwFilter.toEditorNodeOrNull(): IfwEditorNode? = when (this) {
             children = children,
         )
     }
+
     is IfwFilter.Not -> {
         val child = filter.toEditorNodeOrNull() ?: return null
         when (child) {
@@ -132,36 +150,52 @@ fun IfwFilter.toEditorNodeOrNull(): IfwEditorNode? = when (this) {
             is IfwEditorNode.Group -> child.copy(excluded = !child.excluded)
         }
     }
+
     is IfwFilter.Action -> stringCondition(IfwEditorConditionKind.ACTION, matcher)
+
     is IfwFilter.Category -> IfwEditorNode.Condition(
         kind = IfwEditorConditionKind.CATEGORY,
         value = name,
     )
+
     is IfwFilter.Sender -> IfwEditorNode.Condition(
         kind = IfwEditorConditionKind.CALLER_TYPE,
         senderType = type,
     )
+
     is IfwFilter.SenderPackage -> IfwEditorNode.Condition(
         kind = IfwEditorConditionKind.CALLER_PACKAGE,
         value = name,
     )
+
     is IfwFilter.SenderPermission -> IfwEditorNode.Condition(
         kind = IfwEditorConditionKind.CALLER_PERMISSION,
         value = name,
     )
+
     is IfwFilter.Component -> stringCondition(IfwEditorConditionKind.COMPONENT, matcher)
+
     is IfwFilter.ComponentName -> stringCondition(IfwEditorConditionKind.COMPONENT_NAME, matcher)
+
     is IfwFilter.ComponentPackage -> stringCondition(IfwEditorConditionKind.COMPONENT_PACKAGE, matcher)
+
     is IfwFilter.ComponentFilter -> IfwEditorNode.Condition(
         kind = IfwEditorConditionKind.COMPONENT_FILTER,
         value = name,
     )
+
     is IfwFilter.Host -> stringCondition(IfwEditorConditionKind.HOST, matcher)
+
     is IfwFilter.Scheme -> stringCondition(IfwEditorConditionKind.SCHEME, matcher)
+
     is IfwFilter.SchemeSpecificPart -> stringCondition(IfwEditorConditionKind.SCHEME_SPECIFIC_PART, matcher)
+
     is IfwFilter.Path -> stringCondition(IfwEditorConditionKind.PATH, matcher)
+
     is IfwFilter.Data -> stringCondition(IfwEditorConditionKind.DATA, matcher)
+
     is IfwFilter.MimeType -> stringCondition(IfwEditorConditionKind.MIME_TYPE, matcher)
+
     is IfwFilter.Port -> IfwEditorNode.Condition(
         kind = IfwEditorConditionKind.PORT,
         portMode = if (equals != null) IfwEditorPortMode.EXACT else IfwEditorPortMode.RANGE,
@@ -185,6 +219,7 @@ private fun IfwEditorNode.asRootGroup(): IfwEditorNode.Group = when (this) {
         mode = IfwEditorGroupMode.ALL,
         children = listOf(this),
     )
+
     is IfwEditorNode.Group -> this
 }
 
@@ -200,10 +235,15 @@ private fun IfwEditorStringMatcherMode.toStringMatcher(value: String): StringMat
 
 private fun StringMatcher.toEditorMatcherMode(): IfwEditorStringMatcherMode = when (this) {
     is StringMatcher.Equals -> IfwEditorStringMatcherMode.EXACT
+
     is StringMatcher.StartsWith -> IfwEditorStringMatcherMode.STARTS_WITH
+
     is StringMatcher.Contains -> IfwEditorStringMatcherMode.CONTAINS
+
     is StringMatcher.Pattern -> IfwEditorStringMatcherMode.PATTERN
+
     is StringMatcher.Regex -> IfwEditorStringMatcherMode.REGEX
+
     is StringMatcher.IsNull -> if (isNull) {
         IfwEditorStringMatcherMode.IS_NULL
     } else {
