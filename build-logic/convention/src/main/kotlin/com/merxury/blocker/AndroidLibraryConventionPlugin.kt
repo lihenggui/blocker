@@ -16,6 +16,7 @@
 
 package com.merxury.blocker
 
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import org.gradle.api.Project
 
@@ -28,6 +29,13 @@ import org.gradle.api.Project
  * Note: this could be improved by checking other potential sourceSets based on buildTypes and flavors.
  */
 internal fun LibraryAndroidComponentsExtension.disableUnnecessaryAndroidTests(
+    project: Project,
+) = beforeVariants {
+    it.androidTest.enable = it.androidTest.enable
+        && project.hasAndroidTestSources()
+}
+
+internal fun ApplicationAndroidComponentsExtension.disableUnnecessaryAndroidTests(
     project: Project,
 ) = beforeVariants {
     it.androidTest.enable = it.androidTest.enable
