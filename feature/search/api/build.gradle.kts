@@ -34,5 +34,4 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
 
-    androidTestImplementation(projects.core.testing)
 }

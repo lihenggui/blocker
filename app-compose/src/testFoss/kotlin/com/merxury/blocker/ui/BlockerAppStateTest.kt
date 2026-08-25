@@ -31,6 +31,7 @@ import com.merxury.blocker.feature.generalrule.api.navigation.GeneralRuleNavKey
 import com.merxury.blocker.feature.search.api.navigation.SearchNavKey
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -49,6 +50,7 @@ import kotlin.test.assertEquals
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltTestApplication::class)
 @HiltAndroidTest
+@OptIn(ExperimentalCoroutinesApi::class)
 class BlockerAppStateTest {
 
     @get:Rule

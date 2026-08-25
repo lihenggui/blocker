@@ -43,5 +43,4 @@ dependencies {
     testImplementation(projects.core.dataTest)
     testFossImplementation(projects.core.screenshotTesting)
 
-    androidTestImplementation(projects.core.testing)
 }

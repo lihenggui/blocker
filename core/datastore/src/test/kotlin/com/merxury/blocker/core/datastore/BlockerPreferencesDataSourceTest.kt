@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.TopAppType
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -36,6 +37,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class BlockerPreferencesDataSourceTest {
 
     private val testScope = TestScope(UnconfinedTestDispatcher())

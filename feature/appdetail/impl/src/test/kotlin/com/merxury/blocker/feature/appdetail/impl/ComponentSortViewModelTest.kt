@@ -27,6 +27,7 @@ import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -36,6 +37,7 @@ import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ComponentSortViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()

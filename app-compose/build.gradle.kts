@@ -171,14 +171,6 @@ dependencies {
     testFossImplementation(projects.core.screenshotTesting)
     testFossImplementation(projects.core.testing)
 
-    androidTestImplementation(projects.core.testing)
-    androidTestImplementation(projects.core.dataTest)
-    androidTestImplementation(projects.core.datastoreTest)
-    androidTestImplementation(libs.androidx.test.espresso.core)
-    androidTestImplementation(libs.androidx.navigation.testing)
-    androidTestImplementation(libs.androidx.compose.ui.test)
-    androidTestImplementation(libs.hilt.android.testing)
-
     baselineProfile(projects.benchmarks)
 }
 

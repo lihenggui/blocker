@@ -37,7 +37,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
@@ -87,7 +87,7 @@ fun BlockerApp(
     appState: BlockerAppState,
     modifier: Modifier = Modifier,
     updateIconThemingState: (IconThemingState) -> Unit = {},
-    windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
+    windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfoV2(),
 ) {
     BlockerBackground(modifier = modifier) {
         val snackbarHostState = remember { SnackbarHostState() }
@@ -129,7 +129,7 @@ internal fun BlockerApp(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     updateIconThemingState: (IconThemingState) -> Unit = {},
-    windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
+    windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfoV2(),
 ) {
     val navigator = remember { Navigator(appState.navigationState) }
 

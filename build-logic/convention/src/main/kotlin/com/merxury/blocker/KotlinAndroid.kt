@@ -78,7 +78,6 @@ inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() = configu
         allWarningsAsErrors = warningsAsErrors
         optIn.addAll(
             "kotlin.time.ExperimentalTime",
-            "kotlinx.coroutines.ExperimentalCoroutinesApi",
         )
     }
 }

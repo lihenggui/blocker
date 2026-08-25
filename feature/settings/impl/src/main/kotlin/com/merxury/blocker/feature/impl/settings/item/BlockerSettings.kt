@@ -80,9 +80,9 @@ fun BlockerSettings(
                 Locale.ENGLISH.toLanguageTag() to string.feature_settings_api_english,
                 Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_api_simplifed_chinese,
                 Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_api_traditional_chinese,
-                Locale("ru").toLanguageTag() to string.feature_settings_api_russian,
-                Locale("es").toLanguageTag() to string.feature_settings_api_spanish,
-                Locale("fr").toLanguageTag() to string.feature_settings_api_french,
+                Locale.forLanguageTag("ru").toLanguageTag() to string.feature_settings_api_russian,
+                Locale.forLanguageTag("es").toLanguageTag() to string.feature_settings_api_spanish,
+                Locale.forLanguageTag("fr").toLanguageTag() to string.feature_settings_api_french,
             ),
             onValueChange = onChangeAppDisplayLanguage,
         )
