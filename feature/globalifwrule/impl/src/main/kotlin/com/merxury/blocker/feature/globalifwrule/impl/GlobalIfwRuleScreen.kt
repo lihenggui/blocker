@@ -200,6 +200,7 @@ fun GlobalIfwRuleScreen(
     ) { padding ->
         when (uiState) {
             is GlobalIfwRuleUiState.Loading -> LoadingScreen(modifier = Modifier.padding(padding))
+
             is GlobalIfwRuleUiState.Error -> ErrorContent(
                 message = uiState.message,
                 modifier = Modifier.padding(padding),

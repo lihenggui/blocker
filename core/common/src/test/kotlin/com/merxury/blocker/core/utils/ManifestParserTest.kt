@@ -225,7 +225,7 @@ class ManifestParserTest {
         assertNotNull(manifest)
         val services = manifest.application.services
         if (services.isNotEmpty()) {
-            assertTrue(services.all { it is ManifestService })
+            assertTrue(services.all(ManifestService::class::isInstance))
         }
     }
 
@@ -237,7 +237,7 @@ class ManifestParserTest {
         assertNotNull(manifest)
         val receivers = manifest.application.receivers
         if (receivers.isNotEmpty()) {
-            assertTrue(receivers.all { it is ManifestReceiver })
+            assertTrue(receivers.all(ManifestReceiver::class::isInstance))
         }
     }
 
@@ -249,7 +249,7 @@ class ManifestParserTest {
         assertNotNull(manifest)
         val providers = manifest.application.providers
         if (providers.isNotEmpty()) {
-            assertTrue(providers.all { it is ManifestProvider })
+            assertTrue(providers.all(ManifestProvider::class::isInstance))
             val provider = providers.first()
             assertNotNull(provider.authorities, "Provider should have authorities")
         }

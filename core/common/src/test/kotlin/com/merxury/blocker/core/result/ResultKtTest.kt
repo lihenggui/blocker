@@ -40,6 +40,7 @@ class ResultKtTest {
                         "Test Done",
                         errorResult.exception.message,
                     )
+
                     Result.Loading,
                     is Result.Success,
                     -> throw IllegalStateException(

@@ -65,12 +65,13 @@ android {
 
             // To publish on the Play store a private signing key is required, but to allow anyone
             // who clones the code to sign and run the release variant, use the debug signing key.
-            signingConfig = if (project.hasProperty("releaseStoreFile")) {
+            val releaseStoreFile = providers.gradleProperty("releaseStoreFile")
+            signingConfig = if (releaseStoreFile.isPresent) {
                 signingConfigs.create("release") {
-                    storeFile = File(project.properties["releaseStoreFile"] as String)
-                    storePassword = project.properties["releaseStorePassword"] as String
-                    keyAlias = project.properties["releaseKeyAlias"] as String
-                    keyPassword = project.properties["releaseKeyPassword"] as String
+                    storeFile = File(releaseStoreFile.get())
+                    storePassword = providers.gradleProperty("releaseStorePassword").get()
+                    keyAlias = providers.gradleProperty("releaseKeyAlias").get()
+                    keyPassword = providers.gradleProperty("releaseKeyPassword").get()
                 }
             } else {
                 signingConfigs.named("debug").get()

@@ -62,16 +62,23 @@ internal fun parseIntentFilter(parser: XmlPullParser): IfwIntentFilter {
             XmlPullParser.START_TAG -> {
                 when (parser.name) {
                     TAG_ACTION -> parser.getAttributeValue(null, ATTR_NAME)?.let(actions::add)
+
                     TAG_INTENT_CATEGORY -> parser.getAttributeValue(null, ATTR_NAME)?.let(categories::add)
+
                     TAG_INTENT_STATIC_TYPE -> parser.getAttributeValue(null, ATTR_NAME)?.let { value ->
                         dataTypes += IfwMimeTypeEntry(value = value, kind = IfwMimeTypeKind.STATIC)
                     }
+
                     TAG_INTENT_TYPE -> parser.getAttributeValue(null, ATTR_NAME)?.let { value ->
                         dataTypes += IfwMimeTypeEntry(value = value, kind = IfwMimeTypeKind.DYNAMIC)
                     }
+
                     TAG_INTENT_GROUP -> parser.getAttributeValue(null, ATTR_NAME)?.let(mimeGroups::add)
+
                     TAG_SCHEME -> parser.getAttributeValue(null, ATTR_NAME)?.let(schemes::add)
+
                     TAG_INTENT_SSP -> parsePatternMatcher(parser)?.let(schemeSpecificParts::add)
+
                     TAG_INTENT_AUTH -> {
                         val host = parser.getAttributeValue(null, ATTR_HOST)
                         if (host != null) {
@@ -81,7 +88,9 @@ internal fun parseIntentFilter(parser: XmlPullParser): IfwIntentFilter {
                             )
                         }
                     }
+
                     TAG_PATH -> parsePatternMatcher(parser)?.let(paths::add)
+
                     TAG_INTENT_EXTRAS -> {
                         extras = restorePersistableBundle(parser)
                         continue
@@ -178,22 +187,27 @@ private fun parsePatternMatcher(parser: XmlPullParser): IfwPatternMatcher? = whe
         value = requireNotNull(parser.getAttributeValue(null, ATTR_LITERAL)),
         type = IfwPatternMatcherType.LITERAL,
     )
+
     parser.getAttributeValue(null, ATTR_PREFIX) != null -> IfwPatternMatcher(
         value = requireNotNull(parser.getAttributeValue(null, ATTR_PREFIX)),
         type = IfwPatternMatcherType.PREFIX,
     )
+
     parser.getAttributeValue(null, ATTR_SGLOB) != null -> IfwPatternMatcher(
         value = requireNotNull(parser.getAttributeValue(null, ATTR_SGLOB)),
         type = IfwPatternMatcherType.SIMPLE_GLOB,
     )
+
     parser.getAttributeValue(null, ATTR_AGLOB) != null -> IfwPatternMatcher(
         value = requireNotNull(parser.getAttributeValue(null, ATTR_AGLOB)),
         type = IfwPatternMatcherType.ADVANCED_GLOB,
     )
+
     parser.getAttributeValue(null, ATTR_SUFFIX) != null -> IfwPatternMatcher(
         value = requireNotNull(parser.getAttributeValue(null, ATTR_SUFFIX)),
         type = IfwPatternMatcherType.SUFFIX,
     )
+
     else -> null
 }
 

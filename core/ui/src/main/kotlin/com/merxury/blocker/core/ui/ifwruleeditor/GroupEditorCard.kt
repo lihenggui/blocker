@@ -113,6 +113,7 @@ internal fun GroupEditorCard(
                             onUpdate = onUpdate,
                             onDelete = onDelete,
                         )
+
                         is IfwEditorNode.Group -> GroupEditorCard(
                             group = child,
                             depth = depth + 1,

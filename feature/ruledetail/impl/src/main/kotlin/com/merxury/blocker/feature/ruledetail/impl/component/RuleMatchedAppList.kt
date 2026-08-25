@@ -57,7 +57,9 @@ fun RuleMatchedAppList(
 ) {
     when (ruleMatchedAppListUiState) {
         is Result.Loading -> LoadingScreen()
+
         is Result.Error -> ErrorScreen(error = ruleMatchedAppListUiState.exception.toErrorMessage())
+
         is Result.Success -> {
             if (ruleMatchedAppListUiState.data.isEmpty()) {
                 NoApplicableAppScreen()

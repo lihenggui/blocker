@@ -20,7 +20,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.component.BlockerViewToggleButton
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import dagger.hilt.android.testing.HiltTestApplication

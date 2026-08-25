@@ -273,14 +273,19 @@ fun AppDetailScreen(
     event?.let {
         val messageRes = when (it.second) {
             STARTED -> rulestring.core_rule_processing_please_wait
+
             FINISHED -> rulestring.core_rule_done
+
             FOLDER_NOT_DEFINED,
             MISSING_STORAGE_PERMISSION,
             -> rulestring.core_rule_error_msg_folder_not_defined
 
             MISSING_ROOT_PERMISSION -> rulestring.core_rule_error_msg_missing_root_permission
+
             UNEXPECTED_EXCEPTION -> rulestring.core_rule_error_msg_unexpected_exception
+
             CANCELLED -> rulestring.core_rule_task_cancelled
+
             else -> rulestring.core_rule_error_msg_unexpected_exception
         }
         val message = stringResource(id = messageRes)
@@ -834,6 +839,7 @@ fun AppDetailTabContent(
                 else -> {
                     when (componentListUiState) {
                         is Loading -> LoadingScreen()
+
                         is Error -> ErrorScreen(
                             error = componentListUiState.exception.toErrorMessage(),
                         )

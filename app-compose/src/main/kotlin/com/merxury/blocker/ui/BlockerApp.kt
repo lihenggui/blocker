@@ -246,7 +246,7 @@ internal fun BlockerApp(
 
                 NavDisplay(
                     entries = appState.navigationState.toEntries(entryProvider),
-                    sceneStrategy = listDetailStrategy,
+                    sceneStrategies = listOf(listDetailStrategy),
                     onBack = { navigator.goBack() },
                 )
             }

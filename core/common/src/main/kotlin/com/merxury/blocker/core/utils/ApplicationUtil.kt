@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * Created by Mercury on 2017/12/30.
- * A class that gets activities, broadcasts, content providers, and services
- */
-
 package com.merxury.blocker.core.utils
 
 import android.content.ComponentName
@@ -43,6 +38,10 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Collections
 
+/**
+ * Created by Mercury on 2017/12/30.
+ * A class that gets activities, broadcasts, content providers, and services
+ */
 object ApplicationUtil {
 
     /**

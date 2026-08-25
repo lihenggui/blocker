@@ -29,29 +29,29 @@ object IfwStorageUtils {
         return if (path == null) File(defaultPath) else File(path)
     }
 
+    /**
+     * Gets the system directory available for secure storage.
+     * If Encrypted File system is enabled, it returns an encrypted directory (/data/secure/system).
+     * Otherwise, it returns the unencrypted /data/system directory.
+     *
+     * @return File object representing the secure storage system directory.
+     */
     @get:SuppressWarnings("WeakerAccess")
     val systemSecureDirectory: File
-        /**
-         * Gets the system directory available for secure storage.
-         * If Encrypted File system is enabled, it returns an encrypted directory (/data/secure/system).
-         * Otherwise, it returns the unencrypted /data/system directory.
-         *
-         * @return File object representing the secure storage system directory.
-         */
         get() = if (isEncryptedFilesystemEnabled) {
             File(SECURE_DATA_DIRECTORY, "system")
         } else {
             File(DATA_DIRECTORY, "system")
         }
 
+    /**
+     * Returns whether the Encrypted File System feature is enabled on the device or not.
+     *
+     * @return `true` if Encrypted File System feature is enabled, `false`
+     * if disabled.
+     */
     @get:SuppressWarnings("WeakerAccess")
     val isEncryptedFilesystemEnabled: Boolean
-        /**
-         * Returns whether the Encrypted File System feature is enabled on the device or not.
-         *
-         * @return `true` if Encrypted File System feature is enabled, `false`
-         * if disabled.
-         */
         get() = try {
             Class.forName("android.os.SystemProperties")
                 .getMethod("getBoolean", String::class.java, Boolean::class.javaPrimitiveType)

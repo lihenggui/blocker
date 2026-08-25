@@ -76,19 +76,23 @@ internal fun IfwRule.toSimpleDraftOrNull(
     for (filter in filters) {
         when (filter) {
             is IfwFilter.ComponentFilter -> targets += filter.name
+
             is IfwFilter.Action -> {
                 val value = (filter.matcher as? StringMatcher.Equals)?.value ?: return null
                 if (action != null) return null
                 action = value
             }
+
             is IfwFilter.Category -> {
                 if (category != null) return null
                 category = filter.name
             }
+
             is IfwFilter.SenderPackage -> {
                 if (callerPackage != null) return null
                 callerPackage = filter.name
             }
+
             else -> return null
         }
     }

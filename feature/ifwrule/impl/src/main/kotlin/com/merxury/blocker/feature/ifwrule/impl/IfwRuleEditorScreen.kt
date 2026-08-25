@@ -96,7 +96,9 @@ fun IfwRuleEditorScreen(
         )
         when (val state = uiState) {
             RuleEditorScreenUiState.Loading -> LoadingScreen()
+
             is RuleEditorScreenUiState.Error -> ErrorScreen(error = UiMessage(state.message))
+
             is RuleEditorScreenUiState.Success -> EditorContent(
                 editor = state.editor,
                 onUpdateBlockMode = viewModel::updateBlockMode,

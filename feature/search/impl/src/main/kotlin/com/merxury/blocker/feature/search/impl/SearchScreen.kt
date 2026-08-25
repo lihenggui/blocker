@@ -256,8 +256,11 @@ fun SearchScreen(
         )
         when (localSearchUiState) {
             is LocalSearchUiState.Idle -> EmptyScreen(textRes = string.feature_search_api_no_search_result)
+
             is LocalSearchUiState.Loading -> SearchingScreen()
+
             is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.uiMessage)
+
             is LocalSearchUiState.Initializing ->
                 InitializingScreen(localSearchUiState.processingName)
 

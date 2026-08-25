@@ -128,6 +128,7 @@ class IfwXmlDeserializer {
                         filters += parseFilter(parser)
                     }
                 }
+
                 XmlPullParser.END_TAG -> {
                     if (parser.depth == outerDepth) {
                         break
@@ -140,12 +141,16 @@ class IfwXmlDeserializer {
 
     private fun parseFilter(parser: XmlPullParser): IfwFilter = when (parser.name) {
         TAG_AND -> IfwFilter.And(parseFilterChildren(parser))
+
         TAG_OR -> IfwFilter.Or(parseFilterChildren(parser))
+
         TAG_NOT -> {
             val children = parseFilterChildren(parser)
             when (children.size) {
                 0 -> throw IfwXmlParseException("<not> must contain a child filter at line ${parser.lineNumber}")
+
                 1 -> IfwFilter.Not(children.first())
+
                 else -> throw IfwXmlParseException(
                     "<not> can only contain a single child filter at line ${parser.lineNumber}",
                 )
@@ -154,24 +159,39 @@ class IfwXmlDeserializer {
 
         // Leaf filters — read attributes, then skip to closing tag
         TAG_ACTION -> parseLeaf(parser) { IfwFilter.Action(parseStringMatcher(parser)) }
+
         TAG_COMPONENT -> parseLeaf(parser) { IfwFilter.Component(parseStringMatcher(parser)) }
+
         TAG_COMPONENT_NAME -> parseLeaf(parser) { IfwFilter.ComponentName(parseStringMatcher(parser)) }
+
         TAG_COMPONENT_PACKAGE -> parseLeaf(parser) { IfwFilter.ComponentPackage(parseStringMatcher(parser)) }
+
         TAG_DATA -> parseLeaf(parser) { IfwFilter.Data(parseStringMatcher(parser)) }
+
         TAG_HOST -> parseLeaf(parser) { IfwFilter.Host(parseStringMatcher(parser)) }
+
         TAG_MIME_TYPE -> parseLeaf(parser) { IfwFilter.MimeType(parseStringMatcher(parser)) }
+
         TAG_SCHEME -> parseLeaf(parser) { IfwFilter.Scheme(parseStringMatcher(parser)) }
+
         TAG_SCHEME_SPECIFIC_PART -> parseLeaf(parser) { IfwFilter.SchemeSpecificPart(parseStringMatcher(parser)) }
+
         TAG_PATH -> parseLeaf(parser) { IfwFilter.Path(parseStringMatcher(parser)) }
+
         TAG_CATEGORY -> parseLeaf(parser) { IfwFilter.Category(name = requireAttr(parser, ATTR_NAME)) }
+
         TAG_PORT -> parseLeaf(parser) { parsePort(parser) }
+
         TAG_SENDER -> parseLeaf(parser) {
             IfwFilter.Sender(type = SenderType.fromXmlValue(requireAttr(parser, ATTR_TYPE)))
         }
+
         TAG_SENDER_PACKAGE -> parseLeaf(parser) { IfwFilter.SenderPackage(name = requireAttr(parser, ATTR_NAME)) }
+
         TAG_SENDER_PERMISSION -> parseLeaf(parser) {
             IfwFilter.SenderPermission(name = requireAttr(parser, ATTR_NAME))
         }
+
         TAG_COMPONENT_FILTER -> parseLeaf(parser) {
             IfwFilter.ComponentFilter(name = requireAttr(parser, ATTR_NAME))
         }

@@ -18,7 +18,7 @@ package com.merxury.blocker.core.designsystem
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import dagger.hilt.android.testing.HiltTestApplication

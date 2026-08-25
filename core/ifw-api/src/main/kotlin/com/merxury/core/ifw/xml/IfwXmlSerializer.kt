@@ -116,18 +116,29 @@ class IfwXmlSerializer {
     ) {
         when (filter) {
             is IfwFilter.And -> serializeComposite(serializer, TAG_AND, filter.filters, indent)
+
             is IfwFilter.Or -> serializeComposite(serializer, TAG_OR, filter.filters, indent)
+
             is IfwFilter.Not -> serializeComposite(serializer, TAG_NOT, listOf(filter.filter), indent)
 
             is IfwFilter.Action -> serializeStringFilter(serializer, "action", filter.matcher)
+
             is IfwFilter.Component -> serializeStringFilter(serializer, "component", filter.matcher)
+
             is IfwFilter.ComponentName -> serializeStringFilter(serializer, "component-name", filter.matcher)
+
             is IfwFilter.ComponentPackage -> serializeStringFilter(serializer, "component-package", filter.matcher)
+
             is IfwFilter.Data -> serializeStringFilter(serializer, "data", filter.matcher)
+
             is IfwFilter.Host -> serializeStringFilter(serializer, "host", filter.matcher)
+
             is IfwFilter.MimeType -> serializeStringFilter(serializer, "mime-type", filter.matcher)
+
             is IfwFilter.Scheme -> serializeStringFilter(serializer, "scheme", filter.matcher)
+
             is IfwFilter.SchemeSpecificPart -> serializeStringFilter(serializer, "scheme-specific-part", filter.matcher)
+
             is IfwFilter.Path -> serializeStringFilter(serializer, "path", filter.matcher)
 
             is IfwFilter.Category -> {

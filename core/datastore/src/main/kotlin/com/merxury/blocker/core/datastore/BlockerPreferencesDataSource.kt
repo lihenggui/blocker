@@ -55,6 +55,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                     DarkThemeConfig.FOLLOW_SYSTEM
 
                 DarkThemeConfigProto.DARK_THEME_CONFIG_LIGHT -> DarkThemeConfig.LIGHT
+
                 DarkThemeConfigProto.DARK_THEME_CONFIG_DARK -> DarkThemeConfig.DARK
             },
             controllerType = when (it.controllerType) {
@@ -64,7 +65,9 @@ class BlockerPreferencesDataSource @Inject constructor(
                 -> ControllerType.IFW
 
                 ControllerTypeProto.PM -> ControllerType.PM
+
                 ControllerTypeProto.SHIZUKU -> ControllerType.SHIZUKU
+
                 ControllerTypeProto.IFW_PLUS_PM -> ControllerType.IFW_PLUS_PM
             },
             ruleServerProvider = when (it.ruleServerProvider) {
@@ -87,6 +90,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 -> NAME
 
                 AppSortingProto.FIRST_INSTALL_TIME -> FIRST_INSTALL_TIME
+
                 AppSortingProto.LAST_UPDATE_TIME -> LAST_UPDATE_TIME
             },
             appSortingOrder = when (it.appSortingOrder) {
@@ -135,6 +139,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 -> TopAppType.NONE
 
                 TopAppTypeProto.TOP_APP_TYPE_RUNNING -> TopAppType.RUNNING
+
                 TopAppTypeProto.TOP_APP_TYPE_DISABLED -> TopAppType.DISABLED
             },
             isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
@@ -154,6 +159,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                         DarkThemeConfigProto.DARK_THEME_CONFIG_FOLLOW_SYSTEM
 
                     DarkThemeConfig.LIGHT -> DarkThemeConfigProto.DARK_THEME_CONFIG_LIGHT
+
                     DarkThemeConfig.DARK -> DarkThemeConfigProto.DARK_THEME_CONFIG_DARK
                 }
             }
@@ -225,6 +231,7 @@ class BlockerPreferencesDataSource @Inject constructor(
             it.copy {
                 this.appSorting = when (sorting) {
                     NAME -> AppSortingProto.APP_NAME
+
                     FIRST_INSTALL_TIME ->
                         AppSortingProto.FIRST_INSTALL_TIME
 

@@ -21,26 +21,44 @@ package com.merxury.core.ifw.model
  */
 fun IfwFilter.toSummary(): String = when (this) {
     is IfwFilter.ComponentFilter -> name.substringAfter("/")
+
     is IfwFilter.Action -> "action ${matcher.toSummary()}"
+
     is IfwFilter.Component -> "component ${matcher.toSummary()}"
+
     is IfwFilter.ComponentName -> "class name ${matcher.toSummary()}"
+
     is IfwFilter.ComponentPackage -> "package ${matcher.toSummary()}"
+
     is IfwFilter.Data -> "data ${matcher.toSummary()}"
+
     is IfwFilter.Host -> "host ${matcher.toSummary()}"
+
     is IfwFilter.MimeType -> "MIME type ${matcher.toSummary()}"
+
     is IfwFilter.Scheme -> "scheme ${matcher.toSummary()}"
+
     is IfwFilter.SchemeSpecificPart -> "SSP ${matcher.toSummary()}"
+
     is IfwFilter.Path -> "path ${matcher.toSummary()}"
+
     is IfwFilter.Category -> "category: $name"
+
     is IfwFilter.Port -> when {
         equals != null -> "port = $equals"
         else -> "port $min..$max"
     }
+
     is IfwFilter.Sender -> "sender: ${type.xmlValue}"
+
     is IfwFilter.SenderPackage -> "sender package: $name"
+
     is IfwFilter.SenderPermission -> "sender permission: $name"
+
     is IfwFilter.And -> filters.joinToString(" AND ") { it.toSummary() }
+
     is IfwFilter.Or -> filters.joinToString(" OR ") { it.toSummary() }
+
     is IfwFilter.Not -> "NOT (${filter.toSummary()})"
 }
 

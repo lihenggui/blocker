@@ -76,11 +76,6 @@ inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() = configu
     }.apply {
         jvmToolchain(21)
         allWarningsAsErrors = warningsAsErrors
-        freeCompilerArgs.add(
-            //  Suppress warning: This annotation is currently applied to the value parameter only,
-            //  but in the future it will also be applied to field.
-            "-Xannotation-default-target=param-property",
-        )
         optIn.addAll(
             "kotlin.time.ExperimentalTime",
             "kotlinx.coroutines.ExperimentalCoroutinesApi",
