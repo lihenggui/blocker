@@ -17,6 +17,7 @@
 
 import com.android.build.api.dsl.LibraryExtension
 import com.merxury.blocker.configureGradleManagedDevices
+import com.merxury.blocker.hasAndroidTestSources
 import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -45,9 +46,11 @@ class AndroidFeatureImplConventionPlugin : Plugin<Project> {
                 "implementation"(libs.findLibrary("androidx.navigation3.runtime").get())
                 "implementation"(libs.findLibrary("androidx.tracing.ktx").get())
 
-                "androidTestImplementation"(
-                    libs.findLibrary("androidx.lifecycle.runtimeTesting").get(),
-                )
+                if (hasAndroidTestSources()) {
+                    "androidTestImplementation"(
+                        libs.findLibrary("androidx.lifecycle.runtimeTesting").get(),
+                    )
+                }
             }
         }
     }

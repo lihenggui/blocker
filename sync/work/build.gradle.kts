@@ -37,7 +37,4 @@ dependencies {
     implementation(projects.core.git)
     implementation(projects.core.rule)
 
-    androidTestImplementation(libs.androidx.work.testing)
-    androidTestImplementation(libs.hilt.android.testing)
-    androidTestImplementation(projects.core.testing)
 }

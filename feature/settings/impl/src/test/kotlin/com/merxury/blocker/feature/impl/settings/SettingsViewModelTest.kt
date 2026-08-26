@@ -30,6 +30,7 @@ import com.merxury.blocker.core.testing.util.TestSyncManager
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -45,6 +46,7 @@ import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()

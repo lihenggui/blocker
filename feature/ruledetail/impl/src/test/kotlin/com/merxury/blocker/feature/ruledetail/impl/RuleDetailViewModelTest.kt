@@ -47,6 +47,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
 import com.merxury.blocker.feature.ruledetail.impl.RuleInfoUiState.Loading
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -65,6 +66,7 @@ import kotlin.test.assertEquals
  * https://developer.android.com/kotlin/flow/test#statein
  *
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class RuleDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()

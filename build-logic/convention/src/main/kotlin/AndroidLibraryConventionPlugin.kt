@@ -22,6 +22,7 @@ import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configurePrintApksTask
 import com.merxury.blocker.disableUnnecessaryAndroidTests
+import com.merxury.blocker.hasAndroidTestSources
 import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -66,7 +67,9 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 "testImplementation"(libs.findLibrary("kotlin.test").get())
                 "testImplementation"(libs.findLibrary("kotlin.test.junit").get())
                 "testImplementation"(libs.findLibrary("junit4").get())
-                "androidTestImplementation"(libs.findLibrary("kotlin.test").get())
+                if (hasAndroidTestSources()) {
+                    "androidTestImplementation"(libs.findLibrary("kotlin.test").get())
+                }
             }
             configureSpotlessForAndroid()
         }

@@ -25,6 +25,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -58,6 +59,7 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
     override fun getRuleHash(): Flow<String> = dataSource.getGeneralRules()
         .map { it.hashCode().toString() }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun updateGeneralRule(): Flow<Result<Unit>> = dataSource.getGeneralRules()
         .map { list ->
             list.map { it.fromExternalModel() }

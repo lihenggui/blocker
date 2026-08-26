@@ -23,6 +23,7 @@ import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configureLicensee
 import com.merxury.blocker.configurePrintApksTask
 import com.merxury.blocker.configureRenameBuildOutputTask
+import com.merxury.blocker.disableUnnecessaryAndroidTests
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
@@ -45,6 +46,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 configureGradleManagedDevices(this)
             }
             extensions.configure<ApplicationAndroidComponentsExtension> {
+                disableUnnecessaryAndroidTests(target)
                 configurePrintApksTask(this)
                 configureRenameBuildOutputTask(this)
                 configureBadgingTasks(extensions.getByType<ApplicationExtension>(), this)

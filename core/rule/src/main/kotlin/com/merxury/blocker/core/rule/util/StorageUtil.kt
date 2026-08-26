@@ -68,10 +68,6 @@ object StorageUtil {
     ): Boolean = withContext(dispatcher) {
         // Get base dir
         val destUri = baseFolder.toUri()
-        if (destUri == null) {
-            Timber.w("No dest folder defined")
-            return@withContext false
-        }
         val dir = DocumentFile.fromTreeUri(context, destUri)
         if (dir == null) {
             Timber.e("Cannot open $destUri")
