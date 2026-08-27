@@ -6,6 +6,7 @@
     <string name="close">Kapat</string>
     <string name="apps">Uygulamalar</string>
     <string name="no_permission_hint">İzin alınamadığında uygulama düzgün çalışmayabilir.</string>
+    <string name="system_permission_hint">Sistem modunda çalışıyor (UID 1000). Intent Firewall kullanılabilir.</string>
     <string name="trackers">Takipçiler</string>
     <string name="firewall">Güvenlik duvarı</string>
 </resources>

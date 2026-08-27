@@ -6,6 +6,7 @@
     <string name="close">Tutup</string>
     <string name="no_permission_hint">Tidak mendapat izin akses, aplikasi tidak berfungsi normal.</string>
     <string name="shell_permission_hint">Berikan akses shell. Kontrol ke komponen aplikasi tidak berfungsi normal.</string>
+    <string name="system_permission_hint">Berjalan dalam mode sistem (UID 1000). Intent Firewall tersedia.</string>
     <string name="trackers">Pelacak</string>
     <string name="firewall">Tembok api</string>
 </resources>
