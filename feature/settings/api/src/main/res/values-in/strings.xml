@@ -55,4 +55,9 @@
     <string name="feature_settings_api_others">Lainnya</string>
     <string name="feature_settings_api_anonymous_statistics">Data anonim</string>
     <string name="feature_settings_api_anonymous_statistics_summary">Untuk meningkatkan fungsi dari Blocker, kami menggunakan Firebase Analytics untuk mengelola data perilaku pengguna dan fitur yang digunakan.</string>
+    <string name="feature_settings_api_pm_rules">PM</string>
+    <string name="feature_settings_api_reset_pm">Pulihkan modifikasi PM</string>
+    <string name="feature_settings_api_reset_pm_summary">Kembalikan semua komponen yang dinonaktifkan melalui PM ke status default aplikasi</string>
+    <string name="feature_settings_api_reset_pm_dialog_title">Pulihkan modifikasi PM?</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">Kembalikan semua komponen yang dinonaktifkan Blocker melalui PM ke status default-nya. Aturan IFW tidak terpengaruh. Lanjutkan?</string>
 </resources>

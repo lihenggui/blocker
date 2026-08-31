@@ -20,6 +20,7 @@
     <string name="core_rule_backing_up_ifw_please_wait">Резервное копирование правил IFW, подождите…</string>
     <string name="core_rule_import_ifw_please_wait">Импорт правил IFW, подождите…</string>
     <string name="core_rule_reset_ifw_please_wait">Сброс IFW, подождите…</string>
+    <string name="core_rule_reset_pm_please_wait">Восстановление компонентов до состояния по умолчанию, подождите…</string>
     <string name="core_rule_import_mat_rule_please_wait">Импорт правил MAT, подождите…</string>
     <string name="core_rule_import_app_rules_please_wait">Импорт правил приложения, подождите…</string>
     <string name="core_rule_cancel">Отмена</string>

@@ -27,6 +27,11 @@
     <string name="feature_settings_api_export_rules">Export Rules</string>
     <string name="feature_settings_api_import_rules">Import Rules</string>
     <string name="feature_settings_api_reset_ifw">Reset IFW</string>
+    <string name="feature_settings_api_pm_rules">PM</string>
+    <string name="feature_settings_api_reset_pm">Restore PM modifications</string>
+    <string name="feature_settings_api_reset_pm_summary">Revert all components disabled via PM back to the app\'s default state</string>
+    <string name="feature_settings_api_reset_pm_dialog_title">Restore PM modifications?</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">Restore every component Blocker has disabled via PM back to its default state. IFW rules are not affected. Continue?</string>
     <string name="feature_settings_api_file_manager_required">You need to install a file manager from store first.</string>
     <string name="feature_settings_api_backup">Backup</string>
     <string name="feature_settings_api_folder_to_save">Folder to save</string>

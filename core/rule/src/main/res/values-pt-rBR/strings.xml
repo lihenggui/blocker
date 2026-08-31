@@ -3,6 +3,7 @@
     <string name="core_rule_update_rules_notification">Notificação de Regras de Atualização</string>
     <string name="core_rule_backing_up_ifw_please_wait">Fazendo backup das regras IFW, por favor, aguarde…</string>
     <string name="core_rule_reset_ifw_please_wait">Redefinindo o IFW, por favor, aguarde…</string>
+    <string name="core_rule_reset_pm_please_wait">Restaurando componentes ao estado padrão, por favor, aguarde…</string>
     <string name="core_rule_import_mat_rule_please_wait">Importando regras MAT, por favor, aguarde…</string>
     <string name="core_rule_import_ifw_please_wait">Importando regras do IFW, por favor, aguarde…</string>
     <string name="core_rule_import_app_rules_please_wait">Importando as regras do aplicativo, por favor, aguarde…</string>

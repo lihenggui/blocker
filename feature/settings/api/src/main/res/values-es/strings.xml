@@ -68,4 +68,9 @@
     <string name="feature_settings_api_others">Otros</string>
     <string name="feature_settings_api_anonymous_statistics">Estadísticas anónimas</string>
     <string name="feature_settings_api_anonymous_statistics_summary">Utilizamos Firebase Analytics para recopilar y analizar datos sobre las funciones más utilizadas y el comportamiento del usuario con el fin de mejorar la funcionalidad de Blocker.</string>
+    <string name="feature_settings_api_pm_rules">PM</string>
+    <string name="feature_settings_api_reset_pm">Restaurar modificaciones de PM</string>
+    <string name="feature_settings_api_reset_pm_summary">Restablecer todos los componentes desactivados mediante PM al estado predeterminado de la aplicación</string>
+    <string name="feature_settings_api_reset_pm_dialog_title">¿Restaurar modificaciones de PM?</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">Restablecer al estado predeterminado todos los componentes que Blocker haya desactivado mediante PM. Las reglas IFW no se verán afectadas. ¿Continuar?</string>
 </resources>

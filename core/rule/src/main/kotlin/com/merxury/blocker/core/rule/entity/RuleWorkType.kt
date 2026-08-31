@@ -22,4 +22,5 @@ enum class RuleWorkType {
     EXPORT_IFW_RULES,
     IMPORT_IFW_RULES,
     RESET_IFW,
+    RESET_PM,
 }

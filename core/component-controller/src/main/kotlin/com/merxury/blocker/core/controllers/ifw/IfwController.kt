@@ -38,7 +38,10 @@ internal class IfwController @Inject constructor(
         val componentName = component.name
         return when (state) {
             ComponentState.DISABLED -> intentFirewall.addComponentFilter(packageName, componentName)
-            ComponentState.ENABLED -> intentFirewall.removeComponentFilter(packageName, componentName)
+            // IFW has no manifest default; DEFAULT means "stop intercepting" — same as ENABLED.
+            ComponentState.ENABLED,
+            ComponentState.DEFAULT,
+            -> intentFirewall.removeComponentFilter(packageName, componentName)
         }
     }
 

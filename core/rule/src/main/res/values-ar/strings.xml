@@ -6,6 +6,7 @@
     <string name="core_rule_backing_up_ifw_please_wait">جارٍ النسخ الاحتياطي لقواعد IFW، يرجى الانتظار…</string>
     <string name="core_rule_import_ifw_please_wait">جارٍ استيراد قواعد IFW، يرجى الانتظار…</string>
     <string name="core_rule_reset_ifw_please_wait">جارٍ إعادة تعيين IFW، يرجى الانتظار…</string>
+    <string name="core_rule_reset_pm_please_wait">جارٍ استعادة المكوّنات إلى الحالة الافتراضية، يرجى الانتظار…</string>
     <string name="core_rule_import_mat_rule_please_wait">جارٍ استيراد قواعد MAT، يرجى الانتظار…</string>
     <string name="core_rule_import_app_rules_please_wait">جارٍ استيراد قواعد التطبيقات، يرجى الانتظار…</string>
     <string name="core_rule_cancel">إلغاء</string>

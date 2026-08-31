@@ -54,4 +54,9 @@
     <string name="feature_settings_api_others">Diğer</string>
     <string name="feature_settings_api_anonymous_statistics">Anonim İstatistikler</string>
     <string name="feature_settings_api_anonymous_statistics_summary">Blocker işlevselliğini geliştirmek için en sık kullanılan işlevler ve kullanıcı davranışları hakkında veri toplamak ve analiz etmek için Firebase Analytics\'i kullanıyoruz.</string>
+    <string name="feature_settings_api_pm_rules">PM</string>
+    <string name="feature_settings_api_reset_pm">PM değişikliklerini geri al</string>
+    <string name="feature_settings_api_reset_pm_summary">PM ile devre dışı bırakılan tüm bileşenleri uygulamanın varsayılan durumuna geri yükle</string>
+    <string name="feature_settings_api_reset_pm_dialog_title">PM değişiklikleri geri alınsın mı?</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">Blocker\'ın PM ile devre dışı bıraktığı tüm bileşenleri varsayılan durumuna geri yükle. IFW kuralları etkilenmez. Devam edilsin mi?</string>
 </resources>

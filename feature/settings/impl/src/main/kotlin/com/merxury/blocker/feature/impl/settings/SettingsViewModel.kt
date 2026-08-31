@@ -56,12 +56,14 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
+import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_PM
 import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
+import com.merxury.blocker.core.rule.work.ResetPmWorker
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -343,6 +345,24 @@ class SettingsViewModel @Inject constructor(
                     if (workInfoList.isEmpty()) return@collect
                     val workInfo = workInfoList.first()
                     listenWorkInfo(RESET_IFW, workInfo)
+                }
+        }
+    }
+
+    fun resetPmRules() = viewModelScope.launch {
+        val taskName = "ResetPm"
+        WorkManager.getInstance(getApplication()).apply {
+            enqueueUniqueWork(
+                taskName,
+                ExistingWorkPolicy.KEEP,
+                ResetPmWorker.resetPmWork(),
+            )
+            getWorkInfosForUniqueWorkLiveData(taskName)
+                .asFlow()
+                .collect { workInfoList ->
+                    if (workInfoList.isEmpty()) return@collect
+                    val workInfo = workInfoList.first()
+                    listenWorkInfo(RESET_PM, workInfo)
                 }
         }
     }

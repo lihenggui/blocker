@@ -69,4 +69,9 @@
     <string name="feature_settings_api_others">Khác</string>
     <string name="feature_settings_api_anonymous_statistics">Thống kê ẩn danh</string>
     <string name="feature_settings_api_anonymous_statistics_summary">Chúng tôi sử dụng Firebase Analytics của Google để thu thập và xử lý dữ liệu về những tính năng được dùng nhiều nhất và phản hồi của người dùng giúp tôi có thể cải thiện Blocker.</string>
+    <string name="feature_settings_api_pm_rules">PM</string>
+    <string name="feature_settings_api_reset_pm">Khôi phục thay đổi PM</string>
+    <string name="feature_settings_api_reset_pm_summary">Khôi phục tất cả thành phần đã bị tắt qua PM về trạng thái mặc định của ứng dụng</string>
+    <string name="feature_settings_api_reset_pm_dialog_title">Khôi phục thay đổi PM?</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">Khôi phục tất cả thành phần mà Blocker đã tắt qua PM về trạng thái mặc định. Luật IFW không bị ảnh hưởng. Tiếp tục?</string>
 </resources>

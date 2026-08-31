@@ -68,4 +68,9 @@
     <string name="feature_settings_api_others">Другие</string>
     <string name="feature_settings_api_anonymous_statistics">Анонимная статистика</string>
     <string name="feature_settings_api_anonymous_statistics_summary">Мы используем Firebase Analytics для сбора и анализа данных о наиболее часто используемых функциях и поведении пользователей с целью улучшения функциональности Blocker.</string>
+    <string name="feature_settings_api_pm_rules">PM</string>
+    <string name="feature_settings_api_reset_pm">Восстановить изменения PM</string>
+    <string name="feature_settings_api_reset_pm_summary">Вернуть все компоненты, отключённые через PM, к состоянию по умолчанию, заданному приложением</string>
+    <string name="feature_settings_api_reset_pm_dialog_title">Восстановить изменения PM?</string>
+    <string name="feature_settings_api_reset_pm_dialog_message">Вернуть все компоненты, отключённые Blocker через PM, к состоянию по умолчанию. Правила IFW не затрагиваются. Продолжить?</string>
 </resources>
