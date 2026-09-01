@@ -5,6 +5,7 @@
     <string name="rules">Règles</string>
     <string name="no_permission_hint">Impossible d\'obtenir l\'autorisation, l\'application peut ne pas fonctionner correctement.</string>
     <string name="shell_permission_hint">Autorisation shell accordée. Les composants de contrôle peuvent ne pas fonctionner correctement.</string>
+    <string name="system_permission_hint">Exécution en mode système (UID 1000). Le pare-feu d’intents est disponible.</string>
     <string name="search">Recherche</string>
     <string name="trackers">Trackers</string>
     <string name="firewall">Pare-feu</string>

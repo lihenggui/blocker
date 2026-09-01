@@ -19,13 +19,14 @@ package com.merxury.core.ifw.di
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.utils.PackageInfoDataSource
-import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.merxury.core.ifw.ComponentTypeResolver
 import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.core.ifw.IfwAccessChecker
 import com.merxury.core.ifw.IfwFileSystem
 import com.merxury.core.ifw.IntentFirewall
 import com.merxury.core.ifw.LibrootIfwFileSystem
 import com.merxury.core.ifw.PmComponentTypeResolver
+import com.merxury.core.ifw.RootIfwFs
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import dagger.Module
@@ -54,20 +55,21 @@ object IfwModule {
 
     @Singleton
     @Provides
-    internal fun providesIfwFileSystem(
+    @RootIfwFs
+    internal fun providesRootIfwFileSystem(
         impl: LibrootIfwFileSystem,
     ): IfwFileSystem = impl
 
     @Singleton
     @Provides
     fun providesIntentFirewall(
-        rootChecker: RootAvailabilityChecker,
+        accessChecker: IfwAccessChecker,
         componentTypeResolver: ComponentTypeResolver,
         fileSystem: IfwFileSystem,
         serializer: IfwXmlSerializer,
         deserializer: IfwXmlDeserializer,
     ): IIntentFirewall = IntentFirewall(
-        rootChecker,
+        accessChecker,
         componentTypeResolver,
         fileSystem,
         serializer,
