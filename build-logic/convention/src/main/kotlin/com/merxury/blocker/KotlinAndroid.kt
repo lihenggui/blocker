@@ -36,16 +36,29 @@ internal fun Project.configureKotlinAndroid(
         compileSdk = 37
 
         defaultConfig.apply {
-            minSdk = 23
+            minSdk = 24
         }
 
-        // Robolectric (4.16.1) has no android-all jar for API 37, so run unit tests
-        // against SDK 36. testOptions.targetSdk drives the Robolectric SDK and avoids a
-        // per-module robolectric.properties. It is only valid on library modules;
-        // application modules already pin defaultConfig.targetSdk to 36. Remove once
-        // Robolectric supports API 37.
+        // Keep unit tests on SDK 36 to match the existing screenshot baselines.
+        // testOptions.targetSdk is only valid on library modules; application modules
+        // already pin defaultConfig.targetSdk to 36.
         if (this is LibraryExtension) {
             testOptions.targetSdk = 36
+        }
+
+        // https://robolectric.org/getting-started/#running-with-java-17-and-higher
+        testOptions.unitTests.all {
+            it.jvmArgs(
+                "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                "--add-opens=java.base/java.util=ALL-UNNAMED",
+                "--add-opens=java.base/java.io=ALL-UNNAMED",
+                "--add-opens=java.base/java.net=ALL-UNNAMED",
+                "--add-opens=java.base/java.security=ALL-UNNAMED",
+                "--add-opens=java.base/java.text=ALL-UNNAMED",
+                "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED",
+                "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            )
         }
 
         compileOptions.apply {

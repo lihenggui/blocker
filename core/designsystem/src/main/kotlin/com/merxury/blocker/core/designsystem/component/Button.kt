@@ -18,8 +18,10 @@
 package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -249,21 +252,27 @@ private fun BlockerButtonContent(
     leadingIcon: @Composable (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    if (leadingIcon != null) {
-        Box(Modifier.sizeIn(maxHeight = ButtonDefaults.IconSize)) {
-            leadingIcon()
-        }
-    }
-    Box(
-        modifier.padding(
-            start = if (leadingIcon != null) {
-                ButtonDefaults.IconSpacing
-            } else {
-                0.dp
-            },
-        ),
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        text()
+        if (leadingIcon != null) {
+            Box(Modifier.sizeIn(maxHeight = ButtonDefaults.IconSize)) {
+                leadingIcon()
+            }
+        }
+        Box(
+            Modifier.padding(
+                start = if (leadingIcon != null) {
+                    ButtonDefaults.IconSpacing
+                } else {
+                    0.dp
+                },
+            ),
+        ) {
+            text()
+        }
     }
 }
 
