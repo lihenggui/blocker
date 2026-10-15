@@ -28,7 +28,6 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
@@ -116,6 +115,21 @@ abstract class CheckBadgingTask : DefaultTask() {
     }
 }
 
+@CacheableTask
+abstract class UpdateBadgingTask : DefaultTask() {
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFile
+    abstract val generatedBadging: RegularFileProperty
+
+    @get:OutputFile
+    abstract val goldenBadging: RegularFileProperty
+
+    @TaskAction
+    fun taskAction() {
+        generatedBadging.get().asFile.copyTo(goldenBadging.get().asFile, overwrite = true)
+    }
+}
+
 private fun String.dropFirstLine(): String {
     return this.substringAfter('\n')
 }
@@ -152,9 +166,9 @@ fun Project.configureBadgingTasks(
             )
         }
         val updateBadgingTaskName = "update${capitalizedVariantName}Badging"
-        tasks.register<Copy>(updateBadgingTaskName) {
-            from(generateBadging.map(GenerateBadgingTask::badging))
-            into(project.layout.projectDirectory)
+        tasks.register<UpdateBadgingTask>(updateBadgingTaskName) {
+            generatedBadging.set(generateBadging.flatMap(GenerateBadgingTask::badging))
+            goldenBadging = project.layout.projectDirectory.file("${variant.name}-badging.txt")
         }
 
         val checkBadgingTaskName = "check${capitalizedVariantName}Badging"

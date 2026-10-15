@@ -41,6 +41,9 @@ dependencies {
     compileOnly(libs.spotless.gradlePlugin)
     implementation(libs.truth)
     lintChecks(libs.androidx.lint.gradle)
+
+    testImplementation(gradleTestKit())
+    testImplementation(libs.junit4)
 }
 
 tasks {
