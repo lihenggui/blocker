@@ -45,8 +45,11 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest.Builder
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest.Builder
+import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons

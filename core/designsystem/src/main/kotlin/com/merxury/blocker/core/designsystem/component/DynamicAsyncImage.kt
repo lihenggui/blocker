@@ -34,13 +34,16 @@ import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter.State.Error
-import coil.compose.AsyncImagePainter.State.Loading
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter.State.Error
+import coil3.compose.AsyncImagePainter.State.Loading
+import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.rememberConstraintsSizeResolver
+import coil3.request.ImageRequest
 import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.LocalTintTheme
@@ -58,8 +61,13 @@ fun DynamicAsyncImage(
     val iconTint = LocalTintTheme.current.iconTint
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
+    val sizeResolver = rememberConstraintsSizeResolver()
     val imageLoader = rememberAsyncImagePainter(
-        model = imageUrl,
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(imageUrl)
+            .size(sizeResolver)
+            .build(),
+        contentScale = ContentScale.Crop,
         onState = { state ->
             isLoading = state is Loading
             isError = state is Error
@@ -80,6 +88,7 @@ fun DynamicAsyncImage(
             )
         }
         Image(
+            modifier = Modifier.then(sizeResolver),
             contentScale = ContentScale.Crop,
             painter = if (isError.not() && !isLocalInspection) imageLoader else placeholder,
             contentDescription = contentDescription,
