@@ -44,7 +44,7 @@ private fun Project.configureSpotlessCommon() {
             ktlint(libs.findVersion("ktlint").get().requiredVersion).editorConfigOverride(
                 mapOf("android" to "true"),
             ).customRuleSets(
-                listOf("io.nlopez.compose.rules:ktlint:0.4.5"),
+                listOf("io.nlopez.compose.rules:ktlint:${libs.findVersion("composeRules").get().requiredVersion}"),
             )
             endWithNewline()
         }

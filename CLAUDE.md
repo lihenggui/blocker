@@ -18,12 +18,12 @@ The architecture follows [Now in Android](https://github.com/android/nowinandroi
 
 ## Build Configuration
 
-- **Compile SDK**: 36
+- **Compile SDK**: 37
 - **Target SDK**: 36
-- **Min SDK**: 23
+- **Min SDK**: 24
 - **JDK**: 21
-- **Gradle**: 9.1.0
-- **Kotlin**: 2.2.0
+- **Gradle**: 9.8.1
+- **Kotlin**: 2.4.21
 
 ## Build Commands
 
@@ -301,7 +301,7 @@ marketImplementation(libs.market.variant)
 ## Code Quality Tools
 
 ### Spotless
-Kotlin code formatting with ktlint 1.7.1. Configuration in `spotless/` directory.
+Kotlin code formatting with ktlint 1.8.0. Configuration in `spotless/` directory.
 ```bash
 ./gradlew spotlessApply  # Format code
 ./gradlew spotlessCheck  # Verify formatting

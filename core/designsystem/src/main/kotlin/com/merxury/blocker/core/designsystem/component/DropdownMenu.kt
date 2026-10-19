@@ -17,8 +17,10 @@
 package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
@@ -180,23 +182,27 @@ private fun BlockerDropdownMenuButtonContent(
     text: @Composable () -> Unit,
     trailingIcon: @Composable (() -> Unit)?,
 ) {
-    Box(
-        Modifier
-            .padding(
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier.padding(
                 end = if (trailingIcon != null) {
                     ButtonDefaults.IconSpacing
                 } else {
                     0.dp
                 },
             ),
-    ) {
-        ProvideTextStyle(value = MaterialTheme.typography.labelSmall) {
-            text()
+        ) {
+            ProvideTextStyle(value = MaterialTheme.typography.labelSmall) {
+                text()
+            }
         }
-    }
-    if (trailingIcon != null) {
-        Box(Modifier.sizeIn(maxHeight = ButtonDefaults.IconSize)) {
-            trailingIcon()
+        if (trailingIcon != null) {
+            Box(Modifier.sizeIn(maxHeight = ButtonDefaults.IconSize)) {
+                trailingIcon()
+            }
         }
     }
 }
