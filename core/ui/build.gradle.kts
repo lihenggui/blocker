@@ -33,7 +33,6 @@ dependencies {
     api(projects.core.model)
     api(libs.androidx.metrics)
     api(libs.appiconloader)
-    api(libs.appiconloader.coil)
 
     implementation(projects.core.domain)
     implementation(libs.coil.kt)

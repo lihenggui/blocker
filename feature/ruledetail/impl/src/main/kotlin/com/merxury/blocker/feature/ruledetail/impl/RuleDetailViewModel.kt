@@ -22,13 +22,14 @@ import android.content.pm.PackageManager
 import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.imageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
-import coil.size.Scale
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
+import coil3.size.Scale
+import coil3.toBitmap
 import com.materialkolor.ktx.themeColorOrNull
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.di.RuleBaseFolder
@@ -426,7 +427,7 @@ class RuleDetailViewModel @AssistedInject constructor(
             .build()
 
         val bitmap = when (val result = context.imageLoader.execute(request)) {
-            is SuccessResult -> result.drawable.toBitmap()
+            is SuccessResult -> result.image.toBitmap()
             else -> null
         }
         return@withContext bitmap?.asImageBitmap()

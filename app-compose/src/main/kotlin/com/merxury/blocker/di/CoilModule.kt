@@ -18,16 +18,18 @@ package com.merxury.blocker.di
 
 import android.content.Context
 import androidx.tracing.trace
-import coil.ImageLoader
-import coil.decode.SvgDecoder
+import coil3.ImageLoader
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.request.addLastModifiedToFileCacheKey
+import coil3.svg.SvgDecoder
 import com.merxury.blocker.R
+import com.merxury.blocker.core.ui.coil.AppIconFetcher
+import com.merxury.blocker.core.ui.coil.AppIconKeyer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import me.zhanghai.android.appiconloader.coil.AppIconFetcher
-import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import okhttp3.Call
 import javax.inject.Singleton
 
@@ -36,10 +38,9 @@ import javax.inject.Singleton
 object CoilModule {
     /**
      * Since we're displaying SVGs in the app, Coil needs an ImageLoader which supports this
-     * format. During Coil's initialization it will call `applicationContext.newImageLoader()` to
-     * obtain an ImageLoader.
+     * format. Coil obtains this loader through BlockerApplication's SingletonImageLoader.Factory.
      *
-     * @see <a href="https://github.com/coil-kt/coil/blob/main/coil-singleton/src/main/java/coil/Coil.kt">Coil</a>
+     * @see <a href="https://coil-kt.github.io/coil/image_loaders/">Coil image loaders</a>
      */
     @Provides
     @Singleton
@@ -50,15 +51,14 @@ object CoilModule {
     ): ImageLoader = trace("BlockerImageLoader") {
         val iconSize = application.resources.getDimensionPixelSize(R.dimen.app_icon_size)
         ImageLoader.Builder(application)
-            .callFactory(okHttpCallFactory.get())
+            // Refresh local rule icons when their files change after synchronization.
+            .addLastModifiedToFileCacheKey(true)
             .components {
+                add(OkHttpNetworkFetcherFactory(callFactory = { okHttpCallFactory.get() }))
                 add(SvgDecoder.Factory())
                 add(AppIconKeyer())
                 add(AppIconFetcher.Factory(iconSize, true, application))
             }
-            // Assume most content images are versioned urls
-            // but some problematic images are fetching each time
-            .respectCacheHeaders(false)
             .build()
     }
 }

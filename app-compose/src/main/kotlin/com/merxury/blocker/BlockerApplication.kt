@@ -18,14 +18,15 @@
 package com.merxury.blocker
 
 import android.app.Application
+import android.content.Context
 import android.os.Build
 import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.ExistingWorkPolicy.KEEP
 import androidx.work.WorkManager
-import coil.ImageLoader
-import coil.ImageLoaderFactory
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.StubAnalyticsHelper
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -51,7 +52,7 @@ import javax.inject.Inject
 @HiltAndroidApp
 class BlockerApplication :
     Application(),
-    ImageLoaderFactory,
+    SingletonImageLoader.Factory,
     Configuration.Provider {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
@@ -109,7 +110,7 @@ class BlockerApplication :
         Sync.initialize(context = this)
     }
 
-    override fun newImageLoader(): ImageLoader = imageLoader.get()
+    override fun newImageLoader(context: Context): ImageLoader = imageLoader.get()
 
     private fun initAppSettings() {
         applicationScope.launch {

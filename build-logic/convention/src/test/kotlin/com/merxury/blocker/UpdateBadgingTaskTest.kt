@@ -20,6 +20,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -29,8 +30,13 @@ class UpdateBadgingTaskTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
-    @Test
-    fun updatesOnlyBaselineAlongsideUnrelatedProjectFileConsumer() {
+    private lateinit var runner: GradleRunner
+    private lateinit var mappingInput: File
+    private lateinit var generatedBadging: File
+    private lateinit var goldenBadging: File
+
+    @Before
+    fun setUp() {
         val projectDirectory = temporaryFolder.root
         val taskClasspath = File(UpdateBadgingTask::class.java.protectionDomain.codeSource.location.toURI())
             .absolutePath.replace("\\", "\\\\").replace("'", "\\'")
@@ -55,16 +61,16 @@ class UpdateBadgingTaskTest {
             }
             """.trimIndent(),
         )
-        val mappingInput = projectDirectory.resolve("compose-mapping-errors.txt").apply {
+        mappingInput = projectDirectory.resolve("compose-mapping-errors.txt").apply {
             writeText("Unrelated mapping input")
         }
-        val generatedBadging = projectDirectory.resolve("generated-badging.txt").apply {
+        generatedBadging = projectDirectory.resolve("generated-badging.txt").apply {
             writeText("minSdkVersion:'24'")
         }
-        val goldenBadging = projectDirectory.resolve("marketRelease-badging.txt").apply {
+        goldenBadging = projectDirectory.resolve("marketRelease-badging.txt").apply {
             writeText("minSdkVersion:'23'")
         }
-        val runner = GradleRunner.create()
+        runner = GradleRunner.create()
             .withProjectDir(projectDirectory)
             .withArguments(
                 "reportComposeMappingErrors",
@@ -74,18 +80,45 @@ class UpdateBadgingTaskTest {
                 "--offline",
                 "--stacktrace",
             )
+    }
 
-        val first = runner.build()
-        assertEquals(TaskOutcome.SUCCESS, first.task(":updateBadging")?.outcome)
-        assertEquals(generatedBadging.readText(), goldenBadging.readText())
+    @Test
+    fun givenUnrelatedFileConsumer_whenUpdatingBadging_thenOnlyBaselineChanges() {
+        // Given
+        val expectedBadging = generatedBadging.readText()
+
+        // When
+        val result = runner.build()
+
+        // Then
+        assertEquals(TaskOutcome.SUCCESS, result.task(":updateBadging")?.outcome)
+        assertEquals(expectedBadging, goldenBadging.readText())
         assertEquals("Unrelated mapping input", mappingInput.readText())
+    }
 
+    @Test
+    fun givenCompletedUpdate_whenRunningAgain_thenReusesConfigurationCacheAndIsUpToDate() {
+        // Given
+        runner.build()
+
+        // When
         val cached = runner.build()
+
+        // Then
         assertTrue(cached.output.contains("Reusing configuration cache."))
         assertEquals(TaskOutcome.UP_TO_DATE, cached.task(":updateBadging")?.outcome)
+    }
 
+    @Test
+    fun givenUpdatedBaseline_whenGeneratedBadgingChanges_thenRegeneratesBaseline() {
+        // Given
+        runner.build()
         generatedBadging.writeText("minSdkVersion:'24'\ntargetSdkVersion:'36'")
+
+        // When
         val changed = runner.build()
+
+        // Then
         assertEquals(TaskOutcome.SUCCESS, changed.task(":updateBadging")?.outcome)
         assertEquals(generatedBadging.readText(), goldenBadging.readText())
     }

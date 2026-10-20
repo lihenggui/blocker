@@ -38,6 +38,7 @@ dependencies {
     api(libs.androidx.compose.ui.util)
 
     implementation(libs.androidx.palette)
+    implementation(platform(libs.coil.kt.bom))
     implementation(libs.coil.kt.compose)
     implementation(libs.google.android.material)
     implementation(libs.material.kolor)

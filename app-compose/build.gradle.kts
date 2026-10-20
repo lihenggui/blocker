@@ -143,6 +143,7 @@ dependencies {
     implementation(libs.androidx.work.ktx)
     implementation(libs.androidx.profileinstaller)
     implementation(libs.coil.kt)
+    implementation(libs.coil.kt.network.okhttp)
     implementation(libs.coil.kt.svg)
     implementation(libs.hilt.ext.work)
     implementation(libs.hiddenapibypass)
