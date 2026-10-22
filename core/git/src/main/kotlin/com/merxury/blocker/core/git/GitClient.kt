@@ -27,7 +27,7 @@ interface GitClient {
     suspend fun createBranch(branchName: String): Boolean
     suspend fun renameBranch(name: String): Boolean
     suspend fun getCurrentBranch(): String?
-    suspend fun pull(): Boolean
+    suspend fun getHeadCommitId(): String?
     suspend fun fetchAndMergeFromMain(): MergeStatus
     suspend fun setRemote(url: String, name: String): Boolean
     suspend fun resetToRemote(remoteName: String, branch: String): Boolean

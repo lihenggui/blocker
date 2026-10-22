@@ -37,4 +37,9 @@ dependencies {
     implementation(projects.core.git)
     implementation(projects.core.rule)
 
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.truth)
+    testImplementation(projects.core.datastoreTest)
+
 }

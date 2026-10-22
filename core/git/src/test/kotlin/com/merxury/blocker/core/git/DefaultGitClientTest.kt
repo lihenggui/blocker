@@ -261,7 +261,7 @@ class DefaultGitClientTest {
     }
 
     @Test
-    fun givenValidRemoteRepository_whenPull_thenRepositoryIsPulled() = runTest {
+    fun givenValidRemoteRepository_whenResetToRemote_thenRepositoryIsUpdated() = runTest {
         gitAction.cloneRepository()
 
         // Add a new commit on the remote repository
@@ -276,11 +276,11 @@ class DefaultGitClientTest {
             .setMessage("New commit")
             .call()
 
-        // Pull the changes
-        val result = gitAction.pull()
+        // Fetch and reset the cache
+        val result = gitAction.resetToRemote(repositoryInfo.remoteName, repositoryInfo.branch)
         assertTrue(result)
 
-        // Check the file is pulled in the local folder
+        // Check the file is fetched into the local folder
         val targetFile = File(tempDir, "${repositoryInfo.repoName}/$newFileName")
         assertTrue(targetFile.exists())
 
@@ -422,12 +422,6 @@ class DefaultGitClientTest {
     }
 
     // ── Other methods: no-git-folder error paths ─────────────────────────
-
-    @Test
-    fun givenNoGitFolder_whenPull_thenReturnsFalse() = runTest {
-        val result = noGitAction.pull()
-        assertFalse(result)
-    }
 
     @Test
     fun givenNoGitFolder_whenFetchAndMergeFromMain_thenReturnsFailed() = runTest {
