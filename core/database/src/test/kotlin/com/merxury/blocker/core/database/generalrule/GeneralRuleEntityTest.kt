@@ -23,7 +23,7 @@ import org.junit.Test
 class GeneralRuleEntityTest {
 
     @Test
-    fun entityRoundTrip_preservesNetworkSignatureAndWebsite() {
+    fun givenEntityWithNetworkSignatureAndWebsite_whenMappedToExternalModelAndBack_thenPreservesBothFields() {
         val entity = GeneralRuleEntity(
             id = 1,
             name = "Rule",
@@ -40,7 +40,7 @@ class GeneralRuleEntityTest {
     }
 
     @Test
-    fun externalModelRoundTrip_preservesNetworkSignatureAndWebsite() {
+    fun givenExternalModelWithNetworkSignatureAndWebsite_whenMappedToEntityAndBack_thenPreservesBothFields() {
         val model = GeneralRule(
             id = 1,
             name = "Rule",
@@ -57,7 +57,7 @@ class GeneralRuleEntityTest {
     }
 
     @Test
-    fun roundTrip_preservesEmptyNetworkSignatureAndNullWebsite() {
+    fun givenEmptyNetworkSignatureAndNullWebsite_whenRoundTripped_thenPreservesEmptyValues() {
         val model = GeneralRule(id = 1, name = "Rule")
 
         assertThat(model.fromExternalModel().asExternalModel()).isEqualTo(model)

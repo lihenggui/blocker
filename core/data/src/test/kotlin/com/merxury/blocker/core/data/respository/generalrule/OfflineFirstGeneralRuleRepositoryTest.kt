@@ -71,7 +71,7 @@ class OfflineFirstGeneralRuleRepositoryTest {
     }
 
     @Test
-    fun updateGeneralRule_duplicateIdsKeepsFirstAndAllUniqueRules() = runTest {
+    fun givenDuplicateRuleIds_whenUpdateGeneralRule_thenKeepsFirstOccurrenceAndAllUniqueRules() = runTest {
         val secondRule = GeneralRule(id = 2, name = "Second rule")
         val thirdRule = GeneralRule(id = 3, name = "Third rule")
         val duplicates = listOf(
@@ -114,7 +114,7 @@ class OfflineFirstGeneralRuleRepositoryTest {
     }
 
     @Test
-    fun updateGeneralRule_networkSignatureChangeRefreshesCacheAndPreservesMatchedAppCount() = runTest {
+    fun givenChangedNetworkSignature_whenUpdateGeneralRule_thenRefreshesCacheAndPreservesMatchedAppCount() = runTest {
         val updated = rule.copy(networkSignature = listOf("new.example.com"))
         whenever(dataSource.getGeneralRules()).thenReturn(flowOf(listOf(updated)))
 
@@ -126,7 +126,7 @@ class OfflineFirstGeneralRuleRepositoryTest {
     }
 
     @Test
-    fun updateGeneralRule_websiteChangeRefreshesCacheAndPreservesMatchedAppCount() = runTest {
+    fun givenChangedWebsite_whenUpdateGeneralRule_thenRefreshesCacheAndPreservesMatchedAppCount() = runTest {
         val updated = rule.copy(website = "https://new.example.com")
         whenever(dataSource.getGeneralRules()).thenReturn(flowOf(listOf(updated)))
 
@@ -136,7 +136,7 @@ class OfflineFirstGeneralRuleRepositoryTest {
     }
 
     @Test
-    fun updateGeneralRule_clearedFieldsRefreshCache() = runTest {
+    fun givenClearedNetworkSignatureAndWebsite_whenUpdateGeneralRule_thenRefreshesCache() = runTest {
         whenever(dataSource.getGeneralRules()).thenReturn(
             flowOf(listOf(rule.copy(networkSignature = emptyList(), website = null))),
         )
@@ -147,7 +147,7 @@ class OfflineFirstGeneralRuleRepositoryTest {
     }
 
     @Test
-    fun updateGeneralRule_unchangedDataSkipsSavingDespiteDifferentMatchedAppCount() = runTest {
+    fun givenUnchangedRuleData_whenUpdateGeneralRule_thenSkipsSavingDespiteDifferentMatchedAppCount() = runTest {
         whenever(dataSource.getGeneralRules()).thenReturn(flowOf(listOf(rule)))
 
         val results = repository.updateGeneralRule().toList()

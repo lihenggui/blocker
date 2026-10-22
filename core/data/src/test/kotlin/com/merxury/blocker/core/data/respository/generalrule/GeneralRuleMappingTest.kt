@@ -27,7 +27,7 @@ import org.junit.Test
 class GeneralRuleMappingTest {
 
     @Test
-    fun jsonToCacheRoundTrip_preservesNetworkSignatureAndWebsite() {
+    fun givenRuleJsonWithNetworkSignatureAndWebsite_whenMappedToCacheAndBack_thenPreservesBothFields() {
         val rules = Json.decodeFromString<List<NetworkGeneralRule>>(
             """
             [{
@@ -52,7 +52,7 @@ class GeneralRuleMappingTest {
     }
 
     @Test
-    fun jsonWithoutOptionalFields_usesEmptyNetworkSignatureAndNullWebsite() {
+    fun givenRuleJsonWithoutOptionalFields_whenDecoded_thenUsesEmptyNetworkSignatureAndNullWebsite() {
         val rule = Json.decodeFromString<NetworkGeneralRule>("""{"id": 1, "name": "Rule"}""")
 
         assertThat(rule.asExternalModel()).isEqualTo(GeneralRule(id = 1, name = "Rule"))
