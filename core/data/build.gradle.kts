@@ -39,5 +39,6 @@ dependencies {
     testImplementation(projects.core.testing)
     testImplementation(projects.core.datastoreTest)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.truth)
     testImplementation(libs.turbine)
 }
