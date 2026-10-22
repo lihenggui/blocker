@@ -24,6 +24,12 @@ plugins {
 
 android {
     namespace = "com.merxury.blocker.core.rule"
+    androidResources {
+        // Preserve aapt defaults while excluding rule-repository tooling from packaged assets.
+        ignoreAssetsPattern =
+            "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:" +
+                "<dir>src:<dir>scripts:<dir>upstream:README.md"
+    }
 }
 
 dependencies {

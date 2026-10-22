@@ -62,7 +62,18 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun updateGeneralRule(): Flow<Result<Unit>> = dataSource.getGeneralRules()
         .map { list ->
-            list.map { it.fromExternalModel() }
+            val rulesById = mutableMapOf<Int, GeneralRule>()
+            list.mapNotNull { rule ->
+                val firstRule = rulesById.putIfAbsent(rule.id, rule)
+                if (firstRule != null) {
+                    Timber.w(
+                        "Duplicate general rule id ${rule.id}: keeping '${firstRule.name}', ignoring '${rule.name}'.",
+                    )
+                    null
+                } else {
+                    rule.fromExternalModel()
+                }
+            }
         }
         .flatMapConcat { list ->
             compareAndUpdateCache(list)
@@ -122,8 +133,10 @@ private fun GeneralRuleEntity.equalsInData(other: GeneralRuleEntity): Boolean = 
     this.iconUrl == other.iconUrl &&
     this.company == other.company &&
     this.searchKeyword == other.searchKeyword &&
+    this.networkSignature == other.networkSignature &&
     this.useRegexSearch == other.useRegexSearch &&
     this.description == other.description &&
     this.safeToBlock == other.safeToBlock &&
     this.sideEffect == other.sideEffect &&
+    this.website == other.website &&
     this.contributors == other.contributors
