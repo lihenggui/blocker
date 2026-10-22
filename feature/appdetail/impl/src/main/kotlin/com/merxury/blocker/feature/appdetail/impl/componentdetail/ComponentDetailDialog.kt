@@ -176,6 +176,7 @@ fun ComponentDetailPanel(
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = stringResource(id = string.feature_appdetail_api_recommended_blocking))
         }
+        val unknownSdkName = stringResource(id = string.feature_appdetail_api_unknown)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
                 checked = componentDetailInfo.sdkName.isNullOrEmpty().not(),
@@ -183,7 +184,7 @@ fun ComponentDetailPanel(
                     onInfoChange.invoke(
                         componentDetailInfo.copy(
                             sdkName = if (it) {
-                                string.feature_appdetail_api_unknown.toString()
+                                unknownSdkName
                             } else {
                                 null
                             },
