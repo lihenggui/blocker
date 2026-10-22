@@ -35,4 +35,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.logback.classic)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.truth)
 }

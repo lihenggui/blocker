@@ -28,7 +28,6 @@ class FakeGitClient : GitClient {
     var createBranchResult: Boolean = true
     var renameBranchResult: Boolean = true
     var currentBranch: String? = "main"
-    var pullResult: Boolean = true
     var fetchAndMergeResult: MergeStatus = MergeStatus.MERGED
     var setRemoteResult: Boolean = true
     var resetToRemoteResult: Boolean = true
@@ -42,7 +41,7 @@ class FakeGitClient : GitClient {
     override suspend fun createBranch(branchName: String): Boolean = createBranchResult
     override suspend fun renameBranch(name: String): Boolean = renameBranchResult
     override suspend fun getCurrentBranch(): String? = currentBranch
-    override suspend fun pull(): Boolean = pullResult
+    override suspend fun getHeadCommitId(): String? = null
     override suspend fun fetchAndMergeFromMain(): MergeStatus = fetchAndMergeResult
     override suspend fun setRemote(url: String, name: String): Boolean = setRemoteResult
     override suspend fun resetToRemote(remoteName: String, branch: String): Boolean = resetToRemoteResult

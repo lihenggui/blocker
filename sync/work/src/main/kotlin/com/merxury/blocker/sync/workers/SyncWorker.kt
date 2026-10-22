@@ -38,7 +38,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.git.GitClient
 import com.merxury.blocker.core.git.RepositoryInfo
-import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.SyncConstraints
@@ -53,6 +52,7 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Instant
 
 private const val PREF_SYNC_RULE = "sync_rule"
@@ -69,7 +69,6 @@ internal class SyncWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val userDataRepository: UserDataRepository,
     @FilesDir private val filesDir: File,
-    private val network: BlockerNetworkDataSource,
     private val blockerPreferences: BlockerPreferencesDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
@@ -91,6 +90,7 @@ internal class SyncWorker @AssistedInject constructor(
 
             syncSubscriber.subscribe()
 
+            waitForCopyTaskFinish()
             val syncedSuccessfully = syncRule()
 
             analyticsHelper.logSyncFinished(syncedSuccessfully)
@@ -110,21 +110,9 @@ internal class SyncWorker @AssistedInject constructor(
         update: ChangeListVersions.() -> ChangeListVersions,
     ) = blockerPreferences.updateChangeListVersion(update)
 
-    private suspend fun syncRule(): Boolean {
+    internal suspend fun syncRule(): Boolean {
         Timber.d("Syncing rule...")
         val provider = userDataRepository.userData.first().ruleServerProvider
-        val localCommitId = getChangeListVersions().ruleCommitId
-        val latestCommitId = network.getRuleLatestCommitId(provider)
-            .ruleCommitId
-        if (localCommitId.isNotBlank() && localCommitId == latestCommitId) {
-            Timber.i("Local rule is up to date, skip syncing rules.")
-            return true
-        }
-        Timber.i(
-            "Last synced commit id: $localCommitId, latest commit id: $latestCommitId" +
-                ", start pulling rule...",
-        )
-        waitForCopyTaskFinish()
         val mainBranchName = "main"
         val repoInfo = RepositoryInfo(
             remoteName = provider.name,
@@ -133,45 +121,40 @@ internal class SyncWorker @AssistedInject constructor(
             branch = mainBranchName,
         )
         val gitClient = gitClientFactory.create(repoInfo, filesDir)
-        // Detect the folder is a git repository or not
         val projectFolder = filesDir.resolve(repoInfo.repoName)
         val gitFolder = projectFolder.resolve(".git")
         try {
-            if (projectFolder.exists()) {
-                if (!gitFolder.exists()) {
-                    // Repo not initialized, delete the folder and clone again
-                    Timber.i("Local rule folder is not a git repository, delete and clone again")
-                    projectFolder.deleteRecursively()
-                    gitClient.cloneRepository()
-                } else {
-                    val trackingRemote = gitClient.getTrackingRemote()
-                    if (trackingRemote != null && trackingRemote != provider.name) {
-                        Timber.i(
-                            "Provider changed from $trackingRemote to ${provider.name}," +
-                                " switching remote",
-                        )
-                        gitClient.setRemote(repoInfo.url, provider.name)
-                        gitClient.resetToRemote(provider.name, mainBranchName)
-                    } else {
-                        gitClient.setRemote(repoInfo.url, provider.name)
-                        gitClient.pull()
-                    }
+            if (!gitFolder.exists()) {
+                Timber.i("Cloning the rules cache")
+                if (!projectFolder.deleteRecursively() || !gitClient.cloneRepository()) {
+                    return false
                 }
             } else {
-                // Repo not exists, clone the repository
-                gitClient.cloneRepository()
+                // The checkout is a read-only cache, so discard local changes instead of merging.
+                val resetSuccessfully = try {
+                    if (!gitClient.setRemote(repoInfo.url, provider.name)) return false
+                    gitClient.resetToRemote(provider.name, mainBranchName)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.w(e, "Failed to reset the rules cache, deleting and cloning once")
+                    projectFolder.deleteRecursively() && gitClient.cloneRepository()
+                }
+                if (!resetSuccessfully) return false
             }
+            val headCommitId = gitClient.getHeadCommitId()
+            if (headCommitId == null) {
+                Timber.e("The rules cache has no HEAD commit")
+                return false
+            }
+            updateChangeListVersions {
+                copy(ruleCommitId = headCommitId)
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            // If it is in the debug mode, throw the exception
-            if (appDebugChecker.isDebugMode()) {
-                throw e
-            }
             Timber.e(e, "Failed to sync rules from remote")
             return false
-        }
-        // write latest commit id to preference
-        updateChangeListVersions {
-            copy(ruleCommitId = latestCommitId)
         }
         return true
     }

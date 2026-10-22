@@ -19,10 +19,8 @@ package com.merxury.blocker.core.network.di
 
 import android.content.Context
 import androidx.tracing.trace
-import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.BuildConfig
 import com.merxury.blocker.core.network.fake.FakeAssetManager
-import com.merxury.blocker.core.network.retrofit.RetrofitBlockerNetwork
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -61,12 +59,6 @@ internal object NetworkModule {
         encodeDefaults = true
         explicitNulls = false
     }
-
-    @Provides
-    @Singleton
-    fun provideBlockerNetworkDataSource(
-        okHttpCallFactory: dagger.Lazy<Call.Factory>,
-    ): BlockerNetworkDataSource = RetrofitBlockerNetwork(okHttpCallFactory)
 
     @Provides
     @Singleton

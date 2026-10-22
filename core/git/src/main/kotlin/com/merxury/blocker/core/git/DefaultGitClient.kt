@@ -22,7 +22,6 @@ import com.merxury.blocker.core.git.MergeStatus.MERGED
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ResetCommand.ResetType
 import org.eclipse.jgit.internal.storage.file.FileRepository
-import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.transport.URIish
 import org.jetbrains.annotations.TestOnly
 import timber.log.Timber
@@ -57,6 +56,8 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
             .setURI(repoInfo.url)
             .setRemote(repoInfo.remoteName)
             .setDirectory(gitRepository)
+            .setBranch(repoInfo.branch)
+            .setDepth(1)
             .call()
         git.close()
         Timber.d("Repository cloned successfully")
@@ -123,14 +124,9 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         git.repository.branch
     }
 
-    override suspend fun pull(): Boolean = withGit { git ->
-        val currentBranch = git.repository.branch
-        Timber.d("Pulling changes on branch $currentBranch from $repoInfo")
-        git.pull()
-            .setRemote(repoInfo.remoteName)
-            .call()
-        true
-    } ?: false
+    override suspend fun getHeadCommitId(): String? = withGit { git ->
+        git.repository.resolve("HEAD")?.name
+    }
 
     override suspend fun fetchAndMergeFromMain(): MergeStatus = withGit { git ->
         val branch = repoInfo.branch
@@ -176,12 +172,10 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
 
     override suspend fun resetToRemote(remoteName: String, branch: String): Boolean = withGit { git ->
         Timber.i("Resetting to $remoteName/$branch")
-        val remoteConfig = git.remoteList().call().find { it.name == remoteName }
-        val refSpecs = remoteConfig?.fetchRefSpecs
-            ?: listOf(RefSpec("+refs/heads/*:refs/remotes/$remoteName/*"))
         git.fetch()
             .setRemote(remoteName)
-            .setRefSpecs(refSpecs)
+            .setRefSpecs("+refs/heads/$branch:refs/remotes/$remoteName/$branch")
+            .setDepth(1)
             .call()
         git.reset()
             .setMode(ResetType.HARD)
