@@ -25,7 +25,7 @@
     <string name="feature_history_impl_close">Close</string>
     <string name="feature_history_impl_details">Details</string>
     <string name="feature_history_impl_failures">Components that could not be restored</string>
-    <string name="feature_history_impl_failure">%1$s/%2$s: %3$s</string>
+    <string name="feature_history_impl_failure" translatable="false">%1$s/%2$s: %3$s</string>
     <string name="feature_history_impl_failure_component_missing">Component missing</string>
     <string name="feature_history_impl_failure_pm">PM controller failed</string>
     <string name="feature_history_impl_failure_ifw_permission">IFW permission unavailable</string>

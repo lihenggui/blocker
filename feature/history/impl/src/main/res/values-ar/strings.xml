@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">سجل العمليات</string>
+    <string name="feature_history_impl_empty">لم يتم تسجيل أي عمليات على المكونات بعد.</string>
+    <string name="feature_history_impl_no_snapshots">لا تتوفر لقطات لحالة المكونات.</string>
+    <string name="feature_history_impl_undo_operation">التراجع عن هذه العملية</string>
+    <string name="feature_history_impl_undo_since">التراجع عن كل شيء منذ هذا اليوم</string>
+    <string name="feature_history_impl_undo">تراجع</string>
+    <string name="feature_history_impl_cancel">إلغاء</string>
+    <string name="feature_history_impl_close">إغلاق</string>
+    <string name="feature_history_impl_details">التفاصيل</string>
+    <string name="feature_history_impl_failures">المكونات التي تعذرت استعادتها</string>
+    <string name="feature_history_impl_failure_component_missing">المكون غير موجود</string>
+    <string name="feature_history_impl_failure_pm">فشل متحكم PM</string>
+    <string name="feature_history_impl_failure_ifw_permission">إذن IFW غير متاح</string>
+    <string name="feature_history_impl_failure_ifw">فشل متحكم IFW</string>
+    <string name="feature_history_impl_failure_error">تعذرت استعادة المكون</string>
+    <string name="feature_history_impl_confirm_title">هل تريد التراجع عن تغييرات المكونات؟</string>
+    <string name="feature_history_impl_undoing">جارٍ استعادة المكونات…</string>
+    <string name="feature_history_impl_undone">تم التراجع</string>
+    <string name="feature_history_impl_expand">إظهار تغييرات المكونات</string>
+    <string name="feature_history_impl_collapse">إخفاء تغييرات المكونات</string>
+    <string name="feature_history_impl_blocked">محظور</string>
+    <string name="feature_history_impl_allowed">مسموح</string>
+    <string name="feature_history_impl_pm_state">PM: %1$s → %2$s</string>
+    <string name="feature_history_impl_ifw_state">IFW: %1$s → %2$s</string>
+    <string name="feature_history_impl_undo_result">تمت الاستعادة: %1$d · في الحالة المطلوبة بالفعل: %2$d · فشل: %3$d</string>
+    <string name="feature_history_impl_error">تعذر تحميل سجل العمليات أو استعادته.</string>
+    <string name="feature_history_impl_source_app_detail">تفاصيل البرنامج</string>
+    <string name="feature_history_impl_source_search">البحث</string>
+    <string name="feature_history_impl_source_general_rule">قاعدة عامة</string>
+    <string name="feature_history_impl_source_rule_detail">تفاصيل القاعدة</string>
+    <string name="feature_history_impl_source_debloater">تبسيط التطبيق</string>
+    <string name="feature_history_impl_source_provider">موفر خارجي</string>
+    <string name="feature_history_impl_source_import_blocker">استيراد قواعد Blocker</string>
+    <string name="feature_history_impl_source_import_ifw">استيراد قواعد IFW</string>
+    <string name="feature_history_impl_source_import_mat">استيراد قواعد MAT</string>
+    <string name="feature_history_impl_source_reset_ifw">إعادة تعيين قواعد IFW</string>
+    <string name="feature_history_impl_source_undo">تراجع</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="zero">لا مكونات (%d)</item>
+        <item quantity="one">مكون واحد (%d)</item>
+        <item quantity="two">مكونان (%d)</item>
+        <item quantity="few">%d مكونات</item>
+        <item quantity="many">%d مكونًا</item>
+        <item quantity="other">%d مكون</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="zero">هل تريد استعادة المكونات (%d) إلى حالتها قبل هذه العملية؟</item>
+        <item quantity="one">هل تريد استعادة مكون واحد (%d) إلى حالته قبل هذه العملية؟</item>
+        <item quantity="two">هل تريد استعادة مكونين (%d) إلى حالتهما قبل هذه العملية؟</item>
+        <item quantity="few">هل تريد استعادة %d مكونات إلى حالتها قبل هذه العملية؟</item>
+        <item quantity="many">هل تريد استعادة %d مكونًا إلى حالته قبل هذه العملية؟</item>
+        <item quantity="other">هل تريد استعادة %d مكون إلى حالته قبل هذه العملية؟</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_since">
+        <item quantity="zero">هل تريد استعادة المكونات (%1$d) إلى حالتها قبل أول عملية في %2$s أو بعده؟</item>
+        <item quantity="one">هل تريد استعادة مكون واحد (%1$d) إلى حالته قبل أول عملية في %2$s أو بعده؟</item>
+        <item quantity="two">هل تريد استعادة مكونين (%1$d) إلى حالتهما قبل أول عملية في %2$s أو بعده؟</item>
+        <item quantity="few">هل تريد استعادة %1$d مكونات إلى حالتها قبل أول عملية في %2$s أو بعده؟</item>
+        <item quantity="many">هل تريد استعادة %1$d مكونًا إلى حالته قبل أول عملية في %2$s أو بعده؟</item>
+        <item quantity="other">هل تريد استعادة %1$d مكون إلى حالته قبل أول عملية في %2$s أو بعده؟</item>
+    </plurals>
+</resources>
