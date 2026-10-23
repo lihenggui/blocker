@@ -44,7 +44,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,13 +52,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.domain.history.UndoFailureReason
@@ -88,15 +88,15 @@ fun HistoryScreen(
     val entries by viewModel.expandedEntries.collectAsStateWithLifecycle()
     val request by viewModel.undoRequest.collectAsStateWithLifecycle()
     val isUndoing by viewModel.isUndoing.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val resources = LocalResources.current
     var failureReasons by remember { mutableStateOf<Map<ComponentInfo, List<UndoFailureReason>>?>(null) }
-    LaunchedEffect(viewModel, snackbarHostState, context) {
+    LaunchedEffect(viewModel, snackbarHostState, resources) {
         viewModel.undoResults.collect { result ->
             result.fold(
                 onSuccess = { undo ->
                     val response = snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.feature_history_impl_undo_result, undo.restored, undo.skipped, undo.failed),
-                        actionLabel = if (undo.failureReasons.isNotEmpty()) context.getString(R.string.feature_history_impl_details) else null,
+                        message = resources.getString(R.string.feature_history_impl_undo_result, undo.restored, undo.skipped, undo.failed),
+                        actionLabel = if (undo.failureReasons.isNotEmpty()) resources.getString(R.string.feature_history_impl_details) else null,
                         withDismissAction = true,
                     )
                     if (response == SnackbarResult.ActionPerformed) failureReasons = undo.failureReasons
@@ -104,7 +104,7 @@ fun HistoryScreen(
                 onFailure = { error ->
                     Timber.e(error, "Operation history failed")
                     snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.feature_history_impl_error),
+                        message = resources.getString(R.string.feature_history_impl_error),
                         withDismissAction = true,
                     )
                 },
@@ -130,17 +130,17 @@ fun HistoryScreen(
             title = { Text(stringResource(R.string.feature_history_impl_failures)) },
             text = {
                 val message = reasons.entries.joinToString("\n\n") { (component, failures) ->
-                    context.getString(
+                    resources.getString(
                         R.string.feature_history_impl_failure,
                         component.packageName,
                         component.name,
-                        failures.joinToString { context.getString(it.stringRes()) },
+                        failures.joinToString { resources.getString(it.stringRes()) },
                     )
                 }
                 Text(message, Modifier.verticalScroll(rememberScrollState()))
             },
             confirmButton = {
-                TextButton(onClick = { failureReasons = null }) { Text(stringResource(R.string.feature_history_impl_close)) }
+                BlockerTextButton(onClick = { failureReasons = null }) { Text(stringResource(R.string.feature_history_impl_close)) }
             },
         )
     }
@@ -211,7 +211,7 @@ internal fun HistoryScreen(
                             Column(Modifier.fillMaxWidth()) {
                                 Text(dateFormatter.format(day), style = MaterialTheme.typography.titleMedium)
                                 if (operations.any { it.timestamp >= since && it.isUndoable() }) {
-                                    TextButton(
+                                    BlockerTextButton(
                                         onClick = { onUndoSince(since) },
                                         enabled = !isUndoing,
                                         modifier = Modifier.align(Alignment.End),
@@ -256,10 +256,10 @@ internal fun HistoryScreen(
             title = { Text(stringResource(R.string.feature_history_impl_confirm_title)) },
             text = { Text(message) },
             confirmButton = {
-                TextButton(onClick = onConfirmUndo, enabled = !isUndoing) { Text(stringResource(R.string.feature_history_impl_undo)) }
+                BlockerTextButton(onClick = onConfirmUndo, enabled = !isUndoing) { Text(stringResource(R.string.feature_history_impl_undo)) }
             },
             dismissButton = {
-                TextButton(onClick = onDismissUndo) { Text(stringResource(R.string.feature_history_impl_cancel)) }
+                BlockerTextButton(onClick = onDismissUndo) { Text(stringResource(R.string.feature_history_impl_cancel)) }
             },
         )
     }
@@ -324,7 +324,7 @@ private fun OperationRow(
             }
         }
         if (operation.isUndoable()) {
-            TextButton(
+            BlockerTextButton(
                 onClick = onUndo,
                 enabled = !isUndoing,
                 modifier = Modifier.align(Alignment.End).padding(horizontal = 8.dp),

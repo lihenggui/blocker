@@ -23,6 +23,7 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.history.OperationHistoryRepository
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -33,6 +34,7 @@ import com.merxury.blocker.core.data.test.repository.FakeComponentRepository
 import com.merxury.blocker.core.data.test.repository.FakeDebloatableComponentRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.test.repository.FakeLicensesRepository
+import com.merxury.blocker.core.data.test.repository.FakeOperationHistoryRepository
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -105,4 +107,9 @@ internal interface TestDataModule {
     fun bindsDebloatableComponentRepository(
         debloatableRepository: FakeDebloatableComponentRepository,
     ): DebloatableComponentRepository
+
+    @Binds
+    fun bindsOperationHistoryRepository(
+        operationHistoryRepository: FakeOperationHistoryRepository,
+    ): OperationHistoryRepository
 }
