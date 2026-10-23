@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">Operation history</string>
+    <string name="feature_history_impl_empty">No component operations recorded yet.</string>
+    <string name="feature_history_impl_no_snapshots">No component snapshots available.</string>
+    <string name="feature_history_impl_undo_operation">Undo this operation</string>
+    <string name="feature_history_impl_undo_since">Undo everything since this day</string>
+    <string name="feature_history_impl_undo">Undo</string>
+    <string name="feature_history_impl_cancel">Cancel</string>
+    <string name="feature_history_impl_close">Close</string>
+    <string name="feature_history_impl_details">Details</string>
+    <string name="feature_history_impl_failures">Components that could not be restored</string>
+    <string name="feature_history_impl_failure">%1$s/%2$s: %3$s</string>
+    <string name="feature_history_impl_failure_component_missing">Component missing</string>
+    <string name="feature_history_impl_failure_pm">PM controller failed</string>
+    <string name="feature_history_impl_failure_ifw_permission">IFW permission unavailable</string>
+    <string name="feature_history_impl_failure_ifw">IFW controller failed</string>
+    <string name="feature_history_impl_failure_error">Could not restore component</string>
+    <string name="feature_history_impl_confirm_title">Undo component changes?</string>
+    <string name="feature_history_impl_undoing">Restoring components…</string>
+    <string name="feature_history_impl_undone">Undone</string>
+    <string name="feature_history_impl_expand">Show component changes</string>
+    <string name="feature_history_impl_collapse">Hide component changes</string>
+    <string name="feature_history_impl_blocked">Blocked</string>
+    <string name="feature_history_impl_allowed">Allowed</string>
+    <string name="feature_history_impl_pm_state">PM: %1$s → %2$s</string>
+    <string name="feature_history_impl_ifw_state">IFW: %1$s → %2$s</string>
+    <string name="feature_history_impl_undo_result">Restored: %1$d · Already at target: %2$d · Failed: %3$d</string>
+    <string name="feature_history_impl_error">Could not load or restore operation history.</string>
+    <string name="feature_history_impl_source_app_detail">App detail</string>
+    <string name="feature_history_impl_source_search">Search</string>
+    <string name="feature_history_impl_source_general_rule">General rule</string>
+    <string name="feature_history_impl_source_rule_detail">Rule detail</string>
+    <string name="feature_history_impl_source_debloater">Debloater</string>
+    <string name="feature_history_impl_source_provider">External provider</string>
+    <string name="feature_history_impl_source_import_blocker">Import Blocker rules</string>
+    <string name="feature_history_impl_source_import_ifw">Import IFW rules</string>
+    <string name="feature_history_impl_source_import_mat">Import MAT rules</string>
+    <string name="feature_history_impl_source_reset_ifw">Reset IFW rules</string>
+    <string name="feature_history_impl_source_undo">Undo</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="one">%d component</item>
+        <item quantity="other">%d components</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="one">Restore %d component to its state before this operation?</item>
+        <item quantity="other">Restore %d components to their state before this operation?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_since">
+        <item quantity="one">Restore %1$d component to its state before the first operation on or after %2$s?</item>
+        <item quantity="other">Restore %1$d components to their state before the first operation on or after %2$s?</item>
+    </plurals>
+</resources>

@@ -22,8 +22,10 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.merxury.blocker.core.data.respository.history.OperationRecorder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.data.OperationSource.RESET_IFW
 import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
@@ -45,51 +47,58 @@ class ResetIfwWorker @AssistedInject constructor(
     private val intentFirewall: IIntentFirewall,
     private val ifwFileSystem: IfwFileSystem,
     private val rootChecker: RootAvailabilityChecker,
+    private val recorder: OperationRecorder,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
     override fun getNotificationTitle(): Int = R.string.core_rule_import_ifw_please_wait
 
-    override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        Timber.i("Clear IFW rules")
-        if (!rootChecker.isRootAvailable()) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
-            )
-        }
-        val packageName = inputData.getString(PARAM_RESET_PACKAGE_NAME)
-        if (!packageName.isNullOrEmpty()) {
-            return@withContext clearIfwRuleForPackage(packageName)
-        }
-        var count = 0
-        val total: Int
-        try {
-            val packages = ifwFileSystem.listRuleFiles()
-            total = packages.count()
-            packages.forEach { packageName ->
-                val filename = packageName + IFW_EXTENSION
-                updateNotification(filename, count, total)
-                Timber.i("Delete $filename")
-                ifwFileSystem.deleteRules(packageName)
-                count++
+    override suspend fun doWork(): Result = recorder.withOperation(
+        RESET_IFW,
+        ref = inputData.getString(PARAM_RESET_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
+    ) {
+        withContext(ioDispatcher) {
+            Timber.i("Clear IFW rules")
+            if (!rootChecker.isRootAvailable()) {
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
+                )
             }
-            intentFirewall.resetCache()
-        } catch (e: RuntimeException) {
-            Timber.e(e, "Failed to clear IFW rules")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
-            )
-        } catch (e: IOException) {
-            Timber.e(e, "Failed to clear IFW rules, IO exception occurred")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
+            val packageName = inputData.getString(PARAM_RESET_PACKAGE_NAME)
+            if (!packageName.isNullOrEmpty()) {
+                return@withContext clearIfwRuleForPackage(packageName)
+            }
+            var count = 0
+            val total: Int
+            try {
+                val packages = ifwFileSystem.listRuleFiles()
+                total = packages.count()
+                packages.forEach { packageName ->
+                    val filename = packageName + IFW_EXTENSION
+                    updateNotification(filename, count, total)
+                    Timber.i("Delete $filename")
+                    check(ifwFileSystem.deleteRules(packageName)) { "Cannot delete IFW rules for $packageName" }
+                    count++
+                }
+                intentFirewall.resetCache()
+            } catch (e: RuntimeException) {
+                Timber.e(e, "Failed to clear IFW rules")
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
+                )
+            } catch (e: IOException) {
+                Timber.e(e, "Failed to clear IFW rules, IO exception occurred")
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
+                )
+            }
+            recorder.logOnly(RESET_IFW)
+            Timber.i("Cleared $count IFW rules.")
+            return@withContext Result.success(
+                workDataOf(PARAM_CLEAR_COUNT to count),
             )
         }
-        Timber.i("Cleared $count IFW rules.")
-        return@withContext Result.success(
-            workDataOf(PARAM_CLEAR_COUNT to count),
-        )
     }
 
     private suspend fun clearIfwRuleForPackage(packageName: String): Result {
@@ -98,7 +107,7 @@ class ResetIfwWorker @AssistedInject constructor(
             if (ifwFileSystem.fileExists(packageName)) {
                 updateNotification(packageName, 1, 1)
                 Timber.d("Delete IFW rules for $packageName")
-                ifwFileSystem.deleteRules(packageName)
+                check(ifwFileSystem.deleteRules(packageName)) { "Cannot delete IFW rules for $packageName" }
                 intentFirewall.resetCache()
             }
         } catch (e: RuntimeException) {
@@ -112,6 +121,7 @@ class ResetIfwWorker @AssistedInject constructor(
                 workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
             )
         }
+        recorder.logOnly(RESET_IFW, ref = packageName)
         return Result.success(workDataOf(PARAM_CLEAR_COUNT to 1))
     }
 

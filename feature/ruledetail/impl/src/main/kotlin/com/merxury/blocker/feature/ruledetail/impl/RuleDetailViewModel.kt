@@ -48,6 +48,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.data.OperationSource.RULE_DETAIL
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.ui.ProcessingProgress
@@ -215,6 +216,8 @@ class RuleDetailViewModel @AssistedInject constructor(
         val controllerType = userDataRepository.userData.first().controllerType
         var successCount = 0
         componentRepository.batchControlComponent(
+            source = RULE_DETAIL,
+            ref = ruleId,
             components = list,
             newState = enable,
         )
@@ -391,7 +394,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         enabled: Boolean,
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
-        componentRepository.controlComponent(component, enabled)
+        componentRepository.controlComponent(component, enabled, source = RULE_DETAIL, ref = ruleId)
             .onStart {
                 changeComponentUiStatus(listOf(component), controllerType, enabled)
             }

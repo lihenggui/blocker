@@ -73,6 +73,8 @@ import com.merxury.blocker.feature.appdetail.impl.navigation.appDetailEntry
 import com.merxury.blocker.feature.applist.impl.navigation.appListEntry
 import com.merxury.blocker.feature.debloater.impl.navigation.debloaterEntry
 import com.merxury.blocker.feature.debloator.api.navigation.navigateToDebloater
+import com.merxury.blocker.feature.history.api.navigation.navigateToHistory
+import com.merxury.blocker.feature.history.impl.navigation.historyEntry
 import com.merxury.blocker.feature.ifwrule.api.navigation.navigateToIfwRuleEditor
 import com.merxury.blocker.feature.ifwrule.impl.navigation.ifwRuleEditorEntry
 import com.merxury.blocker.feature.impl.helpandfeedback.navigation.supportAndFeedbackEntry
@@ -241,7 +243,8 @@ internal fun BlockerApp(
                     searchEntry(navigator)
                     supportAndFeedbackEntry(navigator)
                     licensesEntry(navigator)
-                    settingsEntry(navigator)
+                    historyEntry(navigator)
+                    settingsEntry(navigator, navigateToHistory = navigator::navigateToHistory)
                 }
 
                 NavDisplay(

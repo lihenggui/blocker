@@ -32,6 +32,7 @@ import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.UpdateRuleMatchedAppUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.OperationSource.GENERAL_RULE
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
@@ -114,6 +115,8 @@ class GeneralRulesViewModel @AssistedInject constructor(
                 _isProcessing.value = true
                 var successCount = 0
                 componentRepository.batchControlComponent(
+                    source = GENERAL_RULE,
+                    ref = null,
                     components = list,
                     newState = enable,
                 )
