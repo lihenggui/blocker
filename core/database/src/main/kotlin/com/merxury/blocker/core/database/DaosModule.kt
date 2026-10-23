@@ -23,6 +23,8 @@ import com.merxury.blocker.core.database.debloater.DebloatableComponentDao
 import com.merxury.blocker.core.database.debloater.DebloaterDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
+import com.merxury.blocker.core.database.history.OperationHistoryDao
+import com.merxury.blocker.core.database.history.OperationHistoryDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -44,4 +46,7 @@ internal object DaosModule {
 
     @Provides
     fun provideDebloatableComponentDao(database: DebloaterDatabase): DebloatableComponentDao = database.DebloatableComponentDao()
+
+    @Provides
+    fun provideOperationHistoryDao(database: OperationHistoryDatabase): OperationHistoryDao = database.operationHistoryDao()
 }

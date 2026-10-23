@@ -73,4 +73,5 @@
     <string name="feature_settings_api_reset_pm_summary">Вернуть все компоненты, отключённые через PM, к состоянию по умолчанию, заданному приложением</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Восстановить изменения PM?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Вернуть все компоненты, отключённые Blocker через PM, к состоянию по умолчанию. Правила IFW не затрагиваются. Продолжить?</string>
+    <string name="feature_settings_api_operation_history">История операций</string>
 </resources>

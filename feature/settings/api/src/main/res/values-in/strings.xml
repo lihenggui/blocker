@@ -60,4 +60,5 @@
     <string name="feature_settings_api_reset_pm_summary">Kembalikan semua komponen yang dinonaktifkan melalui PM ke status default aplikasi</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Pulihkan modifikasi PM?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Kembalikan semua komponen yang dinonaktifkan Blocker melalui PM ke status default-nya. Aturan IFW tidak terpengaruh. Lanjutkan?</string>
+    <string name="feature_settings_api_operation_history">Riwayat operasi</string>
 </resources>

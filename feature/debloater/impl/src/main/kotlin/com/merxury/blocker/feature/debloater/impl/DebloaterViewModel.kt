@@ -33,6 +33,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.data.OperationSource.DEBLOATER
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
@@ -163,6 +164,7 @@ class DebloaterViewModel @Inject constructor(
             )
             val componentInfo = entity.toComponentInfo()
             componentRepository.controlComponent(
+                source = DEBLOATER,
                 component = componentInfo,
                 newState = enabled,
                 controllerType = ControllerType.IFW_PLUS_PM,
@@ -210,6 +212,7 @@ class DebloaterViewModel @Inject constructor(
             userDataRepository.userData.first().controllerType
             var successCount = 0
             componentRepository.batchControlComponent(
+                source = DEBLOATER,
                 components = components,
                 newState = enable,
                 controllerType = ControllerType.IFW_PLUS_PM,

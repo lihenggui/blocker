@@ -42,6 +42,7 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.OperationSource.SEARCH
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.SearchScreenTabs
@@ -287,6 +288,7 @@ class SearchViewModel @AssistedInject constructor(
             var current = 0
             val list = searchUiState.value.selectedComponentList
             componentRepository.batchControlComponent(
+                source = SEARCH,
                 components = list,
                 newState = enable,
             )

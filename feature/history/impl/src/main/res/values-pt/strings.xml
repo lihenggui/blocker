@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">Histórico de operações</string>
+    <string name="feature_history_impl_empty">Ainda não foram registadas operações de componentes.</string>
+    <string name="feature_history_impl_no_snapshots">Não há instantâneos de componentes disponíveis.</string>
+    <string name="feature_history_impl_undo_operation">Desfazer esta operação</string>
+    <string name="feature_history_impl_undo_since">Desfazer tudo desde este dia</string>
+    <string name="feature_history_impl_undo">Desfazer</string>
+    <string name="feature_history_impl_cancel">Cancelar</string>
+    <string name="feature_history_impl_close">Fechar</string>
+    <string name="feature_history_impl_details">Detalhes</string>
+    <string name="feature_history_impl_failures">Componentes que não foi possível restaurar</string>
+    <string name="feature_history_impl_failure_component_missing">Componente não encontrado</string>
+    <string name="feature_history_impl_failure_pm">Falha do controlador PM</string>
+    <string name="feature_history_impl_failure_ifw_permission">Permissão IFW indisponível</string>
+    <string name="feature_history_impl_failure_ifw">Falha do controlador IFW</string>
+    <string name="feature_history_impl_failure_error">Não foi possível restaurar o componente</string>
+    <string name="feature_history_impl_confirm_title">Desfazer as alterações dos componentes?</string>
+    <string name="feature_history_impl_undoing">A restaurar componentes…</string>
+    <string name="feature_history_impl_undone">Desfeito</string>
+    <string name="feature_history_impl_expand">Mostrar alterações dos componentes</string>
+    <string name="feature_history_impl_collapse">Ocultar alterações dos componentes</string>
+    <string name="feature_history_impl_blocked">Bloqueado</string>
+    <string name="feature_history_impl_allowed">Permitido</string>
+    <string name="feature_history_impl_pm_state">PM: %1$s → %2$s</string>
+    <string name="feature_history_impl_ifw_state">IFW: %1$s → %2$s</string>
+    <string name="feature_history_impl_undo_result">Restaurados: %1$d · Já no estado pretendido: %2$d · Falhas: %3$d</string>
+    <string name="feature_history_impl_error">Não foi possível carregar ou restaurar o histórico de operações.</string>
+    <string name="feature_history_impl_source_app_detail">Detalhes do app</string>
+    <string name="feature_history_impl_source_search">Pesquisar</string>
+    <string name="feature_history_impl_source_general_rule">Regra geral</string>
+    <string name="feature_history_impl_source_rule_detail">Detalhes da regra</string>
+    <string name="feature_history_impl_source_debloater">Simplificação de aplicativos</string>
+    <string name="feature_history_impl_source_provider">Fornecedor externo</string>
+    <string name="feature_history_impl_source_import_blocker">Importar regras Blocker</string>
+    <string name="feature_history_impl_source_import_ifw">Importar regras IFW</string>
+    <string name="feature_history_impl_source_import_mat">Importar regras MAT</string>
+    <string name="feature_history_impl_source_reset_ifw">Resetar regras IFW</string>
+    <string name="feature_history_impl_source_undo">Desfazer</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="one">%d componente</item>
+        <item quantity="many">%d componentes</item>
+        <item quantity="other">%d componentes</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="one">Restaurar %d componente para o estado anterior a esta operação?</item>
+        <item quantity="many">Restaurar %d componentes para o estado anterior a esta operação?</item>
+        <item quantity="other">Restaurar %d componentes para o estado anterior a esta operação?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_since">
+        <item quantity="one">Restaurar %1$d componente para o estado anterior à primeira operação realizada em %2$s ou depois?</item>
+        <item quantity="many">Restaurar %1$d componentes para o estado anterior à primeira operação realizada em %2$s ou depois?</item>
+        <item quantity="other">Restaurar %1$d componentes para o estado anterior à primeira operação realizada em %2$s ou depois?</item>
+    </plurals>
+</resources>

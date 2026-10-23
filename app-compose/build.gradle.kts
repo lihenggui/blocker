@@ -100,6 +100,8 @@ dependencies {
     implementation(projects.feature.generalrule.impl)
     implementation(projects.feature.globalifwrule.api)
     implementation(projects.feature.globalifwrule.impl)
+    implementation(projects.feature.history.api)
+    implementation(projects.feature.history.impl)
     implementation(projects.feature.ifwrule.api)
     implementation(projects.feature.ifwrule.impl)
     implementation(projects.feature.ruledetail.api)
