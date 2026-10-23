@@ -33,6 +33,11 @@ graph TB
       :feature:globalifwrule:api[api]:::android-library
       :feature:globalifwrule:impl[impl]:::android-library
     end
+    subgraph :feature:history
+      direction TB
+      :feature:history:api[api]:::android-library
+      :feature:history:impl[impl]:::android-library
+    end
     subgraph :feature:ifwrule
       direction TB
       :feature:ifwrule:api[api]:::android-library
@@ -107,6 +112,8 @@ graph TB
   :app-compose -.-> :feature:generalrule:impl
   :app-compose -.-> :feature:globalifwrule:api
   :app-compose -.-> :feature:globalifwrule:impl
+  :app-compose -.-> :feature:history:api
+  :app-compose -.-> :feature:history:impl
   :app-compose -.-> :feature:ifwrule:api
   :app-compose -.-> :feature:ifwrule:impl
   :app-compose -.-> :feature:ruledetail:api
@@ -197,6 +204,13 @@ graph TB
   :feature:globalifwrule:impl -.-> :core:ifw-api
   :feature:globalifwrule:impl -.-> :core:ui
   :feature:globalifwrule:impl -.-> :feature:globalifwrule:api
+  :feature:history:api --> :core:navigation
+  :feature:history:api -.-> :core:ui
+  :feature:history:impl -.-> :core:data
+  :feature:history:impl -.-> :core:designsystem
+  :feature:history:impl -.-> :core:domain
+  :feature:history:impl -.-> :core:ui
+  :feature:history:impl -.-> :feature:history:api
   :feature:ifwrule:api --> :core:navigation
   :feature:ifwrule:api -.-> :core:ui
   :feature:ifwrule:impl -.-> :core:data
