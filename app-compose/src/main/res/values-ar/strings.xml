@@ -6,6 +6,7 @@
     <string name="trackers">المتعقبات</string>
     <string name="no_permission_hint">تعذر الحصول على الإذن اللازم، مما قد يؤثر على أداء التطبيق.</string>
     <string name="shell_permission_hint">تم منح صلاحية الوصول إلى القشرة(Shell). قد يؤثر ذلك على أداء المكونات التحكمية.</string>
+    <string name="system_permission_hint">يعمل في وضع النظام (UID 1000). جدار حماية النوايا متاح.</string>
     <string name="close">إغلاق</string>
     <string name="firewall">جدار الحماية</string>
 </resources>

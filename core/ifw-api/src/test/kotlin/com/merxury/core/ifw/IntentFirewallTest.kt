@@ -20,8 +20,8 @@ import android.content.ComponentName
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.testing.controller.FakeComponentTypeResolver
+import com.merxury.blocker.core.testing.controller.FakeIfwAccessChecker
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
-import com.merxury.blocker.core.testing.controller.FakeRootAvailabilityChecker
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.test.runTest
@@ -43,18 +43,18 @@ class IntentFirewallTest {
     private val testActivity = "com.example.MainActivity"
     private val testProvider = "com.example.DataProvider"
 
-    private lateinit var rootChecker: FakeRootAvailabilityChecker
+    private lateinit var accessChecker: FakeIfwAccessChecker
     private lateinit var componentTypeResolver: FakeComponentTypeResolver
     private lateinit var fileSystem: FakeIfwFileSystem
     private lateinit var intentFirewall: IntentFirewall
 
     @Before
     fun setUp() {
-        rootChecker = FakeRootAvailabilityChecker(rootAvailable = true)
+        accessChecker = FakeIfwAccessChecker(writable = true)
         componentTypeResolver = FakeComponentTypeResolver()
         fileSystem = FakeIfwFileSystem()
         intentFirewall = IntentFirewall(
-            rootChecker = rootChecker,
+            accessChecker = accessChecker,
             componentTypeResolver = componentTypeResolver,
             fileSystem = fileSystem,
             serializer = IfwXmlSerializer(),
@@ -96,7 +96,7 @@ class IntentFirewallTest {
 
     @Test
     fun givenNoRootAccess_whenAddRule_thenThrowsRootUnavailableException() = runTest {
-        rootChecker.rootAvailable = false
+        accessChecker.writable = false
         assertFailsWith<RootUnavailableException> {
             intentFirewall.addComponentFilter(testPackage, testReceiver)
         }
@@ -113,7 +113,7 @@ class IntentFirewallTest {
 
     @Test
     fun givenNoRootAccess_whenRemoveRule_thenThrowsRootUnavailableException() = runTest {
-        rootChecker.rootAvailable = false
+        accessChecker.writable = false
         assertFailsWith<RootUnavailableException> {
             intentFirewall.removeComponentFilter(testPackage, testReceiver)
         }
@@ -157,7 +157,7 @@ class IntentFirewallTest {
 
     @Test
     fun givenNoRootAccess_whenAddAll_thenThrowsRootUnavailableException() = runTest {
-        rootChecker.rootAvailable = false
+        accessChecker.writable = false
         val components = listOf(ComponentName(testPackage, testReceiver))
         assertFailsWith<RootUnavailableException> {
             intentFirewall.addAllComponentFilters(components)
@@ -198,7 +198,7 @@ class IntentFirewallTest {
 
     @Test
     fun givenNoRootAccess_whenClear_thenThrowsRootUnavailableException() = runTest {
-        rootChecker.rootAvailable = false
+        accessChecker.writable = false
         assertFailsWith<RootUnavailableException> {
             intentFirewall.clear(testPackage)
         }
@@ -206,7 +206,7 @@ class IntentFirewallTest {
 
     @Test
     fun givenNoRootAccess_whenLoad_thenReturnsEmptyRule() = runTest {
-        rootChecker.rootAvailable = false
+        accessChecker.writable = false
         assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))
     }
 }

@@ -21,6 +21,7 @@
     <string name="trackers">Trình theo dõi</string>
     <string name="no_permission_hint">Không thể cấp quyền, ứng dụng có thể hoạt động sai cách.</string>
     <string name="shell_permission_hint">Đã được cấp quyền shell. Điều khiển một số thành phần có thể không được</string>
+    <string name="system_permission_hint">Đang chạy ở chế độ hệ thống (UID 1000). Tường lửa Intent khả dụng.</string>
     <string name="close">Đóng</string>
     <string name="firewall">Tường lửa</string>
 </resources>
