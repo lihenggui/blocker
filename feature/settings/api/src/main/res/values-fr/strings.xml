@@ -59,4 +59,5 @@
     <string name="feature_settings_api_reset_pm_summary">Rétablir à l\'état par défaut tous les composants désactivés via PM</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Restaurer les modifications PM ?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Rétablir à leur état par défaut tous les composants que Blocker a désactivés via PM. Les règles IFW ne sont pas affectées. Continuer ?</string>
+    <string name="feature_settings_api_operation_history">Historique des opérations</string>
 </resources>

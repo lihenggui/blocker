@@ -78,4 +78,5 @@
     <string name="feature_settings_api_others">Others</string>
     <string name="feature_settings_api_anonymous_statistics">Anonymous statistics</string>
     <string name="feature_settings_api_anonymous_statistics_summary">We utilize Firebase Analytics to gather and analyze data on the most frequently used features and user behavior in order to enhance the functionality of Blocker.</string>
+    <string name="feature_settings_api_operation_history">Operation history</string>
 </resources>

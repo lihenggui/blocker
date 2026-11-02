@@ -73,4 +73,5 @@
     <string name="feature_settings_api_reset_pm_summary">Restablecer todos los componentes desactivados mediante PM al estado predeterminado de la aplicación</string>
     <string name="feature_settings_api_reset_pm_dialog_title">¿Restaurar modificaciones de PM?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Restablecer al estado predeterminado todos los componentes que Blocker haya desactivado mediante PM. Las reglas IFW no se verán afectadas. ¿Continuar?</string>
+    <string name="feature_settings_api_operation_history">Historial de operaciones</string>
 </resources>

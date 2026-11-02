@@ -21,6 +21,7 @@ import com.merxury.blocker.core.controllers.di.CombinedControl
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.ShizukuControl
+import com.merxury.blocker.core.data.respository.history.OperationRecorder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.toAppComponentEntity
@@ -35,10 +36,12 @@ import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.IFW_PLUS_PM
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.data.OperationSource
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -52,6 +55,7 @@ internal class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
     private val appComponentDao: AppComponentDao,
     private val userDataRepository: UserDataRepository,
+    private val recorder: OperationRecorder,
     @RootApiControl private val pmController: IController,
     @IfwControl private val ifwController: IController,
     @ShizukuControl private val shizukuController: IController,
@@ -130,75 +134,78 @@ internal class LocalComponentRepository @Inject constructor(
     override fun controlComponent(
         component: ComponentInfo,
         newState: Boolean,
+        source: OperationSource,
+        ref: String?,
         controllerType: ControllerType?,
     ): Flow<Boolean> = flow {
-        val packageName = component.packageName
-        val componentName = component.name
-        Timber.d("Control $packageName/$componentName to state $newState")
-        val effectiveControllerType = controllerType ?: userDataRepository.userData.first().controllerType
-        val result = when (effectiveControllerType) {
-            IFW -> controlInIfwMode(component, newState)
-            PM -> controlInPmMode(component, newState)
-            SHIZUKU -> controlInShizukuMode(component, newState)
-            IFW_PLUS_PM -> controlInCombinedMode(component, newState)
+        val result = recorder.withOperation(source, ref) {
+            track(listOf(component)) {
+                val effectiveControllerType = controllerType ?: userDataRepository.userData.first().controllerType
+                val result = when (effectiveControllerType) {
+                    IFW -> controlInIfwMode(component, newState)
+                    PM -> controlInPmMode(component, newState)
+                    SHIZUKU -> controlInShizukuMode(component, newState)
+                    IFW_PLUS_PM -> controlInCombinedMode(component, newState)
+                }
+                updateComponentStatus(component.packageName, component.name)
+                result
+            }
         }
-        updateComponentStatus(packageName, componentName)
         emit(result)
-    }
+    }.flowOn(ioDispatcher)
 
     override fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
+        source: OperationSource,
+        ref: String?,
         controllerType: ControllerType?,
-    ): Flow<ComponentInfo> = flow {
-        Timber.i("Batch control ${components.size} components to state $newState")
-        val effectiveControllerType = controllerType ?: userDataRepository.userData.first().controllerType
-        val controller = when (effectiveControllerType) {
-            IFW -> ifwController
-            PM -> pmController
-            SHIZUKU -> shizukuController
-            IFW_PLUS_PM -> combinedController
-        }
-        // Filter providers first in the list if preferred controller is IFW
-        if (effectiveControllerType == IFW) {
-            // IFW doesn't have the ability to enable/disable providers
-            val providers = components.filter { it.type == ComponentType.PROVIDER }
-            providers.forEach {
-                if (newState) {
-                    pmController.enable(it)
-                } else {
-                    pmController.disable(it)
+    ): Flow<ComponentInfo> = channelFlow {
+        recorder.withOperation(source, ref) {
+            Timber.i("Batch control ${components.size} components to state $newState")
+            val effectiveControllerType = controllerType ?: userDataRepository.userData.first().controllerType
+            val controller = when (effectiveControllerType) {
+                IFW -> ifwController
+                PM -> pmController
+                SHIZUKU -> shizukuController
+                IFW_PLUS_PM -> combinedController
+            }
+            components.groupBy { it.packageName }.values.forEach { packageComponents ->
+                track(packageComponents) {
+                    val controlledComponents = if (effectiveControllerType == IFW) {
+                        // IFW cannot control providers; record their actual PM changes.
+                        val providers = packageComponents.filter { it.type == ComponentType.PROVIDER }
+                        providers.forEach {
+                            if (newState) pmController.enable(it) else pmController.disable(it)
+                            send(it)
+                        }
+                        val supported = packageComponents.filter { it.type != ComponentType.PROVIDER }
+                        if (newState) {
+                            supported.forEach {
+                                if (!pmController.checkComponentEnableState(it.packageName, it.name)) {
+                                    pmController.enable(it)
+                                }
+                            }
+                        }
+                        supported
+                    } else {
+                        packageComponents
+                    }
+                    if (controlledComponents.isNotEmpty()) {
+                        if (newState) {
+                            controller.batchEnable(controlledComponents) { send(it) }
+                        } else {
+                            controller.batchDisable(controlledComponents) { send(it) }
+                        }
+                    }
+                    val updatedComponents = packageComponents.map {
+                        recorder.readComponentState(it).toAppComponentEntity()
+                    }
+                    appComponentDao.upsertComponentList(updatedComponents)
                 }
-                emit(it)
-            }
-            // if users want to enable the component, check if it's blocked by PM controller
-            if (newState) {
-                val blockedByPm = components.filter {
-                    it.pmBlocked && it.type != ComponentType.PROVIDER
-                }
-                blockedByPm.forEach {
-                    pmController.enable(it)
-                }
             }
         }
-        if (newState) {
-            controller.batchEnable(components) {
-                emit(it)
-            }
-        } else {
-            controller.batchDisable(components) {
-                emit(it)
-            }
-        }
-        val updatedComponents = components.map {
-            it.copy(
-                pmBlocked = !pmController.checkComponentEnableState(it.packageName, it.name),
-                ifwBlocked = !ifwController.checkComponentEnableState(it.packageName, it.name),
-            ).toAppComponentEntity()
-        }
-        appComponentDao.upsertComponentList(updatedComponents)
-    }
-        .flowOn(ioDispatcher)
+    }.flowOn(ioDispatcher)
 
     override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
         .map { list ->
@@ -303,11 +310,8 @@ internal class LocalComponentRepository @Inject constructor(
             Timber.e("Component $packageName/$componentName not found in database")
             return null
         }
-        val newState = component.copy(
-            pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
-            ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
-        )
-        appComponentDao.update(newState)
-        return newState.toComponentInfo()
+        val newState = recorder.readComponentState(component.toComponentInfo())
+        appComponentDao.update(newState.toAppComponentEntity())
+        return newState
     }
 }

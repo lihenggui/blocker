@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">Lịch sử thao tác</string>
+    <string name="feature_history_impl_empty">Chưa có thao tác nào với thành phần được ghi lại.</string>
+    <string name="feature_history_impl_no_snapshots">Không có ảnh chụp trạng thái thành phần.</string>
+    <string name="feature_history_impl_undo_operation">Hoàn tác thao tác này</string>
+    <string name="feature_history_impl_undo_since">Hoàn tác mọi thứ kể từ ngày này</string>
+    <string name="feature_history_impl_undo">Hoàn tác</string>
+    <string name="feature_history_impl_cancel">Hủy</string>
+    <string name="feature_history_impl_close">Đóng</string>
+    <string name="feature_history_impl_details">Chi tiết</string>
+    <string name="feature_history_impl_failures">Các thành phần không thể khôi phục</string>
+    <string name="feature_history_impl_failure_component_missing">Không tìm thấy thành phần</string>
+    <string name="feature_history_impl_failure_pm">Bộ điều khiển PM thất bại</string>
+    <string name="feature_history_impl_failure_ifw_permission">Quyền IFW không khả dụng</string>
+    <string name="feature_history_impl_failure_ifw">Bộ điều khiển IFW thất bại</string>
+    <string name="feature_history_impl_failure_error">Không thể khôi phục thành phần</string>
+    <string name="feature_history_impl_confirm_title">Hoàn tác các thay đổi của thành phần?</string>
+    <string name="feature_history_impl_undoing">Đang khôi phục các thành phần…</string>
+    <string name="feature_history_impl_undone">Đã hoàn tác</string>
+    <string name="feature_history_impl_expand">Hiện các thay đổi của thành phần</string>
+    <string name="feature_history_impl_collapse">Ẩn các thay đổi của thành phần</string>
+    <string name="feature_history_impl_blocked">Đã chặn</string>
+    <string name="feature_history_impl_allowed">Được phép</string>
+    <string name="feature_history_impl_pm_state">PM: %1$s → %2$s</string>
+    <string name="feature_history_impl_ifw_state">IFW: %1$s → %2$s</string>
+    <string name="feature_history_impl_undo_result">Đã khôi phục: %1$d · Đã ở trạng thái đích: %2$d · Thất bại: %3$d</string>
+    <string name="feature_history_impl_error">Không thể tải hoặc khôi phục lịch sử thao tác.</string>
+    <string name="feature_history_impl_source_app_detail">Chi tiết ứng dụng</string>
+    <string name="feature_history_impl_source_search">Tìm kiếm</string>
+    <string name="feature_history_impl_source_general_rule">Luật chung</string>
+    <string name="feature_history_impl_source_rule_detail">Chi tiết luật</string>
+    <string name="feature_history_impl_source_debloater">Tinh gọn ứng dụng</string>
+    <string name="feature_history_impl_source_provider">Nhà cung cấp bên ngoài</string>
+    <string name="feature_history_impl_source_import_blocker">Nhập luật Blocker</string>
+    <string name="feature_history_impl_source_import_ifw">Nhập luật IFW</string>
+    <string name="feature_history_impl_source_import_mat">Nhập luật MAT</string>
+    <string name="feature_history_impl_source_reset_ifw">Khôi phục lại luật IFW</string>
+    <string name="feature_history_impl_source_undo">Hoàn tác</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="other">%d thành phần</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="other">Khôi phục %d thành phần về trạng thái trước thao tác này?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_since">
+        <item quantity="other">Khôi phục %1$d thành phần về trạng thái trước thao tác đầu tiên vào hoặc sau %2$s?</item>
+    </plurals>
+</resources>

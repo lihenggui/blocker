@@ -21,6 +21,7 @@ import androidx.room.Room
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
 import com.merxury.blocker.core.database.debloater.DebloaterDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
+import com.merxury.blocker.core.database.history.OperationHistoryDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,5 +54,10 @@ internal object DatabaseModule {
     @Singleton
     fun provideDebloaterDatabase(@ApplicationContext context: Context): DebloaterDatabase = Room.databaseBuilder(context, DebloaterDatabase::class.java, "share_target")
         .fallbackToDestructiveMigration(true)
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideOperationHistoryDatabase(@ApplicationContext context: Context): OperationHistoryDatabase = Room.databaseBuilder(context, OperationHistoryDatabase::class.java, "operation_history")
         .build()
 }

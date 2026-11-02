@@ -32,6 +32,8 @@ import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSour
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.LocalGeneralRuleDataSource
 import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
+import com.merxury.blocker.core.data.respository.history.LocalOperationHistoryRepository
+import com.merxury.blocker.core.data.respository.history.OperationHistoryRepository
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.data.respository.licenses.LocalLicensesRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
@@ -52,6 +54,11 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
+    @Binds
+    internal abstract fun bindOperationHistoryRepository(
+        operationHistoryRepository: LocalOperationHistoryRepository,
+    ): OperationHistoryRepository
+
     @Binds
     internal abstract fun bindUserDataRepository(
         userDataRepository: LocalUserDataRepository,

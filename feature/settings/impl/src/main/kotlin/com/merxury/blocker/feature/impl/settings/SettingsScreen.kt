@@ -91,6 +91,7 @@ import com.merxury.blocker.core.rule.R.string as CoreRuleR
 @Composable
 fun SettingsScreen(
     onNavigationClick: () -> Unit,
+    onHistoryClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -99,6 +100,7 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     SettingsScreen(
         onNavigationClick = onNavigationClick,
+        onHistoryClick = onHistoryClick,
         uiState = settingsUiState,
         snackbarHostState = snackbarHostState,
         onChangeControllerType = viewModel::updateControllerType,
@@ -200,6 +202,7 @@ fun SettingsScreen(
     resetIfwRules: () -> Unit = { },
     resetPmRules: () -> Unit = { },
     importMatRules: (Uri?) -> Unit = { },
+    onHistoryClick: () -> Unit = { },
 ) {
     Column(
         modifier = modifier,
@@ -241,6 +244,7 @@ fun SettingsScreen(
                     resetIfwRules = resetIfwRules,
                     resetPmRules = resetPmRules,
                     importMatRules = importMatRules,
+                    onHistoryClick = onHistoryClick,
                 )
             }
         }
@@ -273,6 +277,7 @@ fun SettingsContent(
     resetIfwRules: () -> Unit = { },
     resetPmRules: () -> Unit = { },
     importMatRules: (Uri?) -> Unit = { },
+    onHistoryClick: () -> Unit = { },
 ) {
     LocalContext.current
     val scope = rememberCoroutineScope()
@@ -351,6 +356,11 @@ fun SettingsContent(
             extraIconPadding = true,
         )
 
+        BlockerSettingItem(
+            title = stringResource(id = string.feature_settings_api_operation_history),
+            onItemClick = onHistoryClick,
+            extraIconPadding = true,
+        )
         SwitchSettingItem(
             itemRes = string.feature_settings_api_anonymous_statistics,
             itemSummaryRes = string.feature_settings_api_anonymous_statistics_summary,

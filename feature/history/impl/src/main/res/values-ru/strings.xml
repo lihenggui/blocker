@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">История операций</string>
+    <string name="feature_history_impl_empty">Операции с компонентами ещё не записаны.</string>
+    <string name="feature_history_impl_no_snapshots">Снимки состояния компонентов недоступны.</string>
+    <string name="feature_history_impl_undo_operation">Отменить эту операцию</string>
+    <string name="feature_history_impl_undo_since">Отменить всё начиная с этого дня</string>
+    <string name="feature_history_impl_undo">Отменить</string>
+    <string name="feature_history_impl_cancel">Отмена</string>
+    <string name="feature_history_impl_close">Закрыть</string>
+    <string name="feature_history_impl_details">Подробности</string>
+    <string name="feature_history_impl_failures">Компоненты, которые не удалось восстановить</string>
+    <string name="feature_history_impl_failure_component_missing">Компонент не найден</string>
+    <string name="feature_history_impl_failure_pm">Сбой контроллера PM</string>
+    <string name="feature_history_impl_failure_ifw_permission">Разрешение IFW недоступно</string>
+    <string name="feature_history_impl_failure_ifw">Сбой контроллера IFW</string>
+    <string name="feature_history_impl_failure_error">Не удалось восстановить компонент</string>
+    <string name="feature_history_impl_confirm_title">Отменить изменения компонентов?</string>
+    <string name="feature_history_impl_undoing">Восстановление компонентов…</string>
+    <string name="feature_history_impl_undone">Отменено</string>
+    <string name="feature_history_impl_expand">Показать изменения компонентов</string>
+    <string name="feature_history_impl_collapse">Скрыть изменения компонентов</string>
+    <string name="feature_history_impl_blocked">Заблокирован</string>
+    <string name="feature_history_impl_allowed">Разрешён</string>
+    <string name="feature_history_impl_pm_state">PM: %1$s → %2$s</string>
+    <string name="feature_history_impl_ifw_state">IFW: %1$s → %2$s</string>
+    <string name="feature_history_impl_undo_result">Восстановлено: %1$d · Уже в целевом состоянии: %2$d · Ошибок: %3$d</string>
+    <string name="feature_history_impl_error">Не удалось загрузить или восстановить историю операций.</string>
+    <string name="feature_history_impl_source_app_detail">Детали приложения</string>
+    <string name="feature_history_impl_source_search">Поиск</string>
+    <string name="feature_history_impl_source_general_rule">Общее правило</string>
+    <string name="feature_history_impl_source_rule_detail">Сведения о правиле</string>
+    <string name="feature_history_impl_source_debloater">Оптимизация приложений</string>
+    <string name="feature_history_impl_source_provider">Внешний провайдер</string>
+    <string name="feature_history_impl_source_import_blocker">Импорт правил Blocker</string>
+    <string name="feature_history_impl_source_import_ifw">Импорт правил IFW</string>
+    <string name="feature_history_impl_source_import_mat">Импорт правил MAT</string>
+    <string name="feature_history_impl_source_reset_ifw">Сброс правил IFW</string>
+    <string name="feature_history_impl_source_undo">Отменить</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="one">%d компонент</item>
+        <item quantity="few">%d компонента</item>
+        <item quantity="many">%d компонентов</item>
+        <item quantity="other">%d компонента</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="one">Вернуть %d компонент в состояние до этой операции?</item>
+        <item quantity="few">Вернуть %d компонента в состояние до этой операции?</item>
+        <item quantity="many">Вернуть %d компонентов в состояние до этой операции?</item>
+        <item quantity="other">Вернуть %d компонента в состояние до этой операции?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_since">
+        <item quantity="one">Вернуть %1$d компонент в состояние до первой операции, выполненной %2$s или позже?</item>
+        <item quantity="few">Вернуть %1$d компонента в состояние до первой операции, выполненной %2$s или позже?</item>
+        <item quantity="many">Вернуть %1$d компонентов в состояние до первой операции, выполненной %2$s или позже?</item>
+        <item quantity="other">Вернуть %1$d компонента в состояние до первой операции, выполненной %2$s или позже?</item>
+    </plurals>
+</resources>
