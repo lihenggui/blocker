@@ -59,4 +59,5 @@
     <string name="feature_settings_api_reset_pm_summary">PM ile devre dışı bırakılan tüm bileşenleri uygulamanın varsayılan durumuna geri yükle</string>
     <string name="feature_settings_api_reset_pm_dialog_title">PM değişiklikleri geri alınsın mı?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Blocker\'ın PM ile devre dışı bıraktığı tüm bileşenleri varsayılan durumuna geri yükle. IFW kuralları etkilenmez. Devam edilsin mi?</string>
+    <string name="feature_settings_api_operation_history">İşlem geçmişi</string>
 </resources>

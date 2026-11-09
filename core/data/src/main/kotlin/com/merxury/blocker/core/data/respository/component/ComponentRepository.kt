@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.respository.component
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.data.OperationSource
 import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
@@ -37,12 +38,16 @@ interface ComponentRepository {
     fun controlComponent(
         component: ComponentInfo,
         newState: Boolean,
+        source: OperationSource,
+        ref: String? = null,
         controllerType: ControllerType? = null,
     ): Flow<Boolean>
 
     fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
+        source: OperationSource,
+        ref: String? = null,
         controllerType: ControllerType? = null,
     ): Flow<ComponentInfo>
 

@@ -56,6 +56,7 @@ import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.data.OperationSource.APP_DETAIL
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.asResult
@@ -457,6 +458,8 @@ class AppDetailViewModel @AssistedInject constructor(
         val controllerType = userDataRepository.userData.first().controllerType
         var successCount = 0
         componentRepository.batchControlComponent(
+            source = APP_DETAIL,
+            ref = packageName,
             components = list,
             newState = enable,
         )
@@ -664,7 +667,7 @@ class AppDetailViewModel @AssistedInject constructor(
         enabled: Boolean,
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
-        componentRepository.controlComponent(component, enabled)
+        componentRepository.controlComponent(component, enabled, source = APP_DETAIL, ref = packageName)
             .onStart {
                 changeComponentsUiStatus(
                     changed = listOf(component),

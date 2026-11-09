@@ -30,12 +30,15 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.ShizukuControl
+import com.merxury.blocker.core.data.respository.history.OperationRecorder
+import com.merxury.blocker.core.data.respository.history.OperationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.data.OperationSource.IMPORT_BLOCKER_RULE
 import com.merxury.blocker.core.model.rule.BlockerRule
 import com.merxury.blocker.core.rule.EXTENSION
 import com.merxury.blocker.core.rule.R
@@ -45,6 +48,7 @@ import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -62,91 +66,95 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     @IfwControl private val ifwController: IController,
     @ShizukuControl private val shizukuController: IController,
     private val json: Json,
+    private val recorder: OperationRecorder,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
     override fun getNotificationTitle(): Int = R.string.core_rule_import_app_rules_please_wait
 
     @OptIn(ExperimentalSerializationApi::class)
-    override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        // Check storage permission first
-        val backupPath = inputData.getString(PARAM_FOLDER_PATH)
-        if (backupPath.isNullOrEmpty()) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
-            )
-        }
-        if (!StorageUtil.isFolderReadable(context, backupPath)) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
-            )
-        }
-        val controllerOrdinal =
-            inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
-        val controllerType = ControllerType.entries[controllerOrdinal]
-        val packageManager = context.packageManager
-        val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
-        val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
-        val documentDir = DocumentFile.fromTreeUri(context, backupPath.toUri())
-        if (documentDir == null) {
-            Timber.e("Cannot create DocumentFile")
-            return@withContext Result.failure()
-        }
-        if (!backupPackageName.isNullOrEmpty()) {
-            return@withContext importSingleRule(
-                packageManager,
-                documentDir,
-                backupPackageName,
-                controllerType,
-            )
-        }
-        Timber.i("Start to import app rules")
-        var successCount = 0
-        try {
-            val files = documentDir.listFiles()
-                .filter { it.name?.endsWith(EXTENSION) == true }
-            val total = files.count()
-            var current = 1
-            files.forEach {
-                Timber.i("Import ${it.uri}")
-                context.contentResolver.openInputStream(it.uri)?.use { input ->
-                    val rule = json.decodeFromStream<BlockerRule>(input)
-                    val appInstalled =
-                        packageInfoDataSource.isAppInstalled(rule.packageName)
-                    val isSystemApp = packageInfoDataSource.isSystemApp(rule.packageName)
-                    if (!appInstalled) {
-                        Timber.w("App ${rule.packageName} is not installed, skipping")
-                        current++
-                        return@forEach
-                    }
-                    if (!shouldRestoreSystemApp && isSystemApp) {
-                        Timber.d("App ${rule.packageName} is a system app, skipping")
-                        current++
-                        return@forEach
-                    }
-                    setForeground(updateNotification(rule.packageName ?: "", current, total))
-                    val restoredComponentCount = import(rule, controllerType)
-                    if (restoredComponentCount > 0) {
-                        successCount++
-                    }
-                    current++
-                }
+    override suspend fun doWork(): Result = recorder.withOperation(IMPORT_BLOCKER_RULE) {
+        withContext(ioDispatcher) {
+            // Check storage permission first
+            val backupPath = inputData.getString(PARAM_FOLDER_PATH)
+            if (backupPath.isNullOrEmpty()) {
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
+                )
             }
-            Timber.i("Import rules finished.")
-        } catch (e: RuntimeException) {
-            Timber.e(e, "Failed to import blocker rules")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
+            if (!StorageUtil.isFolderReadable(context, backupPath)) {
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
+                )
+            }
+            val controllerOrdinal =
+                inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
+            val controllerType = ControllerType.entries[controllerOrdinal]
+            val packageManager = context.packageManager
+            val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
+            val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
+            val documentDir = DocumentFile.fromTreeUri(context, backupPath.toUri())
+            if (documentDir == null) {
+                Timber.e("Cannot create DocumentFile")
+                return@withContext Result.failure()
+            }
+            if (!backupPackageName.isNullOrEmpty()) {
+                return@withContext importSingleRule(
+                    packageManager,
+                    documentDir,
+                    backupPackageName,
+                    controllerType,
+                )
+            }
+            Timber.i("Start to import app rules")
+            var successCount = 0
+            try {
+                val files = documentDir.listFiles()
+                    .filter { it.name?.endsWith(EXTENSION) == true }
+                val total = files.count()
+                var current = 1
+                files.forEach {
+                    Timber.i("Import ${it.uri}")
+                    context.contentResolver.openInputStream(it.uri)?.use { input ->
+                        val rule = json.decodeFromStream<BlockerRule>(input)
+                        val appInstalled =
+                            packageInfoDataSource.isAppInstalled(rule.packageName)
+                        val isSystemApp = packageInfoDataSource.isSystemApp(rule.packageName)
+                        if (!appInstalled) {
+                            Timber.w("App ${rule.packageName} is not installed, skipping")
+                            current++
+                            return@forEach
+                        }
+                        if (!shouldRestoreSystemApp && isSystemApp) {
+                            Timber.d("App ${rule.packageName} is a system app, skipping")
+                            current++
+                            return@forEach
+                        }
+                        setForeground(updateNotification(rule.packageName ?: "", current, total))
+                        val restoredComponentCount = import(rule, controllerType)
+                        if (restoredComponentCount > 0) {
+                            successCount++
+                        }
+                        current++
+                    }
+                }
+                Timber.i("Import rules finished.")
+            } catch (e: RuntimeException) {
+                if (e is CancellationException) throw e
+                Timber.e(e, "Failed to import blocker rules")
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
+                )
+            }
+            Timber.i("Imported $successCount rules.")
+            return@withContext Result.success(
+                workDataOf(PARAM_IMPORT_COUNT to successCount),
             )
         }
-        Timber.i("Imported $successCount rules.")
-        return@withContext Result.success(
-            workDataOf(PARAM_IMPORT_COUNT to successCount),
-        )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    private suspend fun importSingleRule(
+    private suspend fun OperationScope.importSingleRule(
         pm: PackageManager,
         documentDir: DocumentFile,
         packageName: String,
@@ -172,6 +180,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                 }
             }
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Timber.e(e, "Failed to import blocker rules for $packageName")
             return Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
@@ -182,47 +191,51 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         )
     }
 
-    private suspend fun import(rule: BlockerRule, type: ControllerType): Int {
+    private suspend fun OperationScope.import(rule: BlockerRule, type: ControllerType): Int {
         val fallbackController = if (type == SHIZUKU) {
             shizukuController
         } else {
             rootController
         }
         var count = 0
-        rule.components.forEach {
-            if (it.method == IFW) {
-                if (it.type == PROVIDER) {
-                    // IFW controller did not support disabling provider
-                    // Fallback to other controller
-                    if (!it.state) {
-                        fallbackController.enable(it.toComponentInfo())
+        rule.components.groupBy { it.packageName }.values.forEach { components ->
+            track(components.map { it.toComponentInfo() }) {
+                components.forEach {
+                    if (it.method == IFW) {
+                        if (it.type == PROVIDER) {
+                            // IFW controller did not support disabling provider
+                            // Fallback to other controller
+                            if (!it.state) {
+                                fallbackController.enable(it.toComponentInfo())
+                            } else {
+                                fallbackController.disable(it.toComponentInfo())
+                            }
+                        } else {
+                            val currentState = ifwController.checkComponentEnableState(
+                                it.packageName,
+                                it.name,
+                            )
+                            if (currentState == it.state) return@forEach
+                            if (it.state) {
+                                ifwController.enable(it.toComponentInfo())
+                            } else {
+                                ifwController.disable(it.toComponentInfo())
+                            }
+                        }
+                        count++
                     } else {
-                        fallbackController.disable(it.toComponentInfo())
-                    }
-                } else {
-                    val currentState = ifwController.checkComponentEnableState(
-                        it.packageName,
-                        it.name,
-                    )
-                    if (currentState == it.state) return@forEach
-                    if (it.state) {
-                        ifwController.enable(it.toComponentInfo())
-                    } else {
-                        ifwController.disable(it.toComponentInfo())
+                        val currentState = packageInfoDataSource.checkComponentIsEnabled(
+                            ComponentName(it.packageName, it.name),
+                        )
+                        if (currentState == it.state) return@forEach
+                        if (it.state) {
+                            fallbackController.enable(it.toComponentInfo())
+                        } else {
+                            fallbackController.disable(it.toComponentInfo())
+                        }
+                        count++
                     }
                 }
-                count++
-            } else {
-                val currentState = packageInfoDataSource.checkComponentIsEnabled(
-                    ComponentName(it.packageName, it.name),
-                )
-                if (currentState == it.state) return@forEach
-                if (it.state) {
-                    fallbackController.enable(it.toComponentInfo())
-                } else {
-                    fallbackController.disable(it.toComponentInfo())
-                }
-                count++
             }
         }
         return count

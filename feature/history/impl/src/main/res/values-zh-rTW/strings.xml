@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">操作記錄</string>
+    <string name="feature_history_impl_empty">尚無元件操作記錄。</string>
+    <string name="feature_history_impl_no_snapshots">暫無可用的元件快照。</string>
+    <string name="feature_history_impl_undo_operation">復原此操作</string>
+    <string name="feature_history_impl_undo_since">復原自此日起的所有操作</string>
+    <string name="feature_history_impl_undo">復原</string>
+    <string name="feature_history_impl_cancel">取消</string>
+    <string name="feature_history_impl_close">關閉</string>
+    <string name="feature_history_impl_details">詳情</string>
+    <string name="feature_history_impl_failures">無法還原的元件</string>
+    <string name="feature_history_impl_failure_component_missing">元件不存在</string>
+    <string name="feature_history_impl_failure_pm">PM 控制器操作失敗</string>
+    <string name="feature_history_impl_failure_ifw_permission">IFW 權限無法使用</string>
+    <string name="feature_history_impl_failure_ifw">IFW 控制器操作失敗</string>
+    <string name="feature_history_impl_failure_error">無法還原元件</string>
+    <string name="feature_history_impl_confirm_title">復原元件變更？</string>
+    <string name="feature_history_impl_undoing">正在還原元件…</string>
+    <string name="feature_history_impl_undone">已復原</string>
+    <string name="feature_history_impl_expand">顯示元件變更</string>
+    <string name="feature_history_impl_collapse">隱藏元件變更</string>
+    <string name="feature_history_impl_blocked">已阻擋</string>
+    <string name="feature_history_impl_allowed">已允許</string>
+    <string name="feature_history_impl_pm_state">PM: %1$s → %2$s</string>
+    <string name="feature_history_impl_ifw_state">IFW: %1$s → %2$s</string>
+    <string name="feature_history_impl_undo_result">已還原：%1$d · 已處於目標狀態：%2$d · 失敗：%3$d</string>
+    <string name="feature_history_impl_error">無法載入或還原操作記錄。</string>
+    <string name="feature_history_impl_source_app_detail">應用詳情</string>
+    <string name="feature_history_impl_source_search">搜尋</string>
+    <string name="feature_history_impl_source_general_rule">通用規則</string>
+    <string name="feature_history_impl_source_rule_detail">規則詳情</string>
+    <string name="feature_history_impl_source_debloater">應用精簡</string>
+    <string name="feature_history_impl_source_provider">外部提供者</string>
+    <string name="feature_history_impl_source_import_blocker">匯入 Blocker 規則</string>
+    <string name="feature_history_impl_source_import_ifw">匯入 IFW 規則</string>
+    <string name="feature_history_impl_source_import_mat">匯入 MAT 規則</string>
+    <string name="feature_history_impl_source_reset_ifw">重設 IFW 規則</string>
+    <string name="feature_history_impl_source_undo">復原</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="other">%d 個元件</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="other">將 %d 個元件還原到此次操作前的狀態？</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_since">
+        <item quantity="other">將 %1$d 個元件還原到 %2$s 當日或之後首次操作前的狀態？</item>
+    </plurals>
+</resources>

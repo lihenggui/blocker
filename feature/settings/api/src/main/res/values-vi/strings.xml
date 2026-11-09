@@ -74,4 +74,5 @@
     <string name="feature_settings_api_reset_pm_summary">Khôi phục tất cả thành phần đã bị tắt qua PM về trạng thái mặc định của ứng dụng</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Khôi phục thay đổi PM?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Khôi phục tất cả thành phần mà Blocker đã tắt qua PM về trạng thái mặc định. Luật IFW không bị ảnh hưởng. Tiếp tục?</string>
+    <string name="feature_settings_api_operation_history">Lịch sử thao tác</string>
 </resources>

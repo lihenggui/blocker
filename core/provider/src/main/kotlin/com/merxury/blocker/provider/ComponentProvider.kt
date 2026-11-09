@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.provider
 
+import android.content.ComponentName
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.database.Cursor
@@ -24,8 +25,8 @@ import android.os.Bundle
 import androidx.core.os.bundleOf
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.data.respository.history.OperationRecorder
+import com.merxury.blocker.core.model.data.OperationSource.EXTERNAL_PROVIDER
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -44,6 +45,8 @@ class ComponentProvider : ContentProvider() {
         fun componentRepository(): ComponentRepository
 
         fun analyticsHelper(): AnalyticsHelper
+
+        fun operationRecorder(): OperationRecorder
     }
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? = when (method) {
@@ -87,20 +90,25 @@ class ComponentProvider : ContentProvider() {
         try {
             val shareCmpInfo = Json.decodeFromString<ShareCmpInfo>(rawString)
             Timber.d("controlComponent: $shareCmpInfo")
-            shareCmpInfo.components.forEach { component ->
-                val blockerComponent = ComponentInfo(
-                    name = component.name,
-                    packageName = packageName,
-                    // The controller doesn't care about the type of the component
-                    // It will query internally, so we just set it to ACTIVITY
-                    // Just to avoid compilation error
-                    type = ACTIVITY,
-                )
-                componentRepository.controlComponent(
-                    blockerComponent,
-                    newState = !component.block,
-                ).first()
-                analyticsHelper.logControlComponentViaProvider(newState = !component.block)
+            val caller = callingPackage
+            val components = componentRepository.getComponentList(packageName).first()
+                .associateBy { it.name }
+            hintEntryPoint.operationRecorder().withOperation(EXTERNAL_PROVIDER, ref = caller) {
+                shareCmpInfo.components.forEach { component ->
+                    val name = ComponentName.createRelative(packageName, component.name).className
+                    val blockerComponent = components[name]
+                    if (blockerComponent == null) {
+                        Timber.w("Component $packageName/$name not found")
+                        return@forEach
+                    }
+                    componentRepository.controlComponent(
+                        blockerComponent,
+                        newState = !component.block,
+                        source = EXTERNAL_PROVIDER,
+                        ref = caller,
+                    ).first()
+                    analyticsHelper.logControlComponentViaProvider(newState = !component.block)
+                }
             }
             // Returned, but seems that it's not used.
             return@runBlocking data
