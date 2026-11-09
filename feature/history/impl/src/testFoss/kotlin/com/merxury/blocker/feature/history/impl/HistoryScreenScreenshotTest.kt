@@ -144,7 +144,7 @@ class HistoryScreenScreenshotTest {
     }
 
     @Test
-    fun resetUndoAndUndoneRows_hideUndoActions() {
+    fun givenResetUndoAndUndoneOperations_whenShowHistory_thenOnlyUndoableOperationShowsUndo() {
         composeTestRule.setContent {
             ThemedHistory {
                 HistoryScreen(operations = operations + Operation(5, timestamp, UNDO, entryCount = 1))
@@ -154,7 +154,7 @@ class HistoryScreenScreenshotTest {
     }
 
     @Test
-    fun expandedSnapshot_showsIndependentPmAndIfwChanges() {
+    fun givenExpandedOperation_whenShowHistory_thenShowsPmAndIfwChangesSeparately() {
         composeTestRule.setContent {
             ThemedHistory { HistoryScreen(operations = operations.take(1), expandedOperationId = 4, entries = entries) }
         }
@@ -163,7 +163,7 @@ class HistoryScreenScreenshotTest {
     }
 
     @Test
-    fun dayAction_usesLocalMidnight() {
+    fun givenNonUtcTimeZone_whenUndoSinceDay_thenUsesLocalMidnight() {
         var since: Instant? = null
         composeTestRule.setContent {
             CompositionLocalProvider(LocalTimeZone provides TimeZone.of("America/Los_Angeles")) {

@@ -51,7 +51,7 @@ class HistoryViewModelTest {
     private val viewModel = HistoryViewModel(history, undo)
 
     @Test
-    fun operations_loadAndFollowRepositoryChanges() = runTest {
+    fun givenRepositoryChanges_whenObserveOperations_thenEmitsLatestOperations() = runTest {
         viewModel.operations.test {
             assertNull(awaitItem())
             assertEquals(emptyList(), awaitItem())
@@ -61,7 +61,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun expansion_loadsComponentSnapshotsAndTogglesClosed() = runTest {
+    fun givenOperation_whenToggleOperationTwice_thenLoadsEntriesAndCollapses() = runTest {
         val id = history.insertOperation(operation, listOf(entry))
         viewModel.toggleOperation(id)
         viewModel.expandedEntries.test {
@@ -74,7 +74,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun sinceConfirmation_countsDistinctComponentsFromNonUndoneOperations() = runTest {
+    fun givenUndoneOperation_whenRequestUndoSince_thenCountsDistinctComponentsOfRemainingOperations() = runTest {
         val first = history.insertOperation(operation, listOf(entry))
         history.insertOperation(operation, listOf(entry))
         history.markUndone(listOf(first), 99)
@@ -88,7 +88,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun noControllerChangeUntilConfirmation_andUndoRunsOnce() = runTest {
+    fun givenUndoRequest_whenConfirmUndoTwice_thenUndoRunsOnce() = runTest {
         val result = UndoResult(1, 0, 0, emptyMap())
         whenever(undo(operation.id)).thenReturn(result)
         viewModel.requestUndo(operation)
@@ -104,7 +104,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun undoFailure_isReportedAndClearsProgress() = runTest {
+    fun givenUndoThrows_whenConfirmUndo_thenReportsFailureAndClearsProgress() = runTest {
         whenever(undo(operation.id)).thenAnswer { throw IllegalStateException("Database unavailable") }
         viewModel.requestUndo(operation)
         viewModel.undoResults.test {
@@ -115,7 +115,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun resetUndoAndUndoneRows_doNotOfferUndo() {
+    fun givenResetUndoOrUndoneOperation_whenRequestUndo_thenNoUndoIsRequested() {
         listOf(
             operation.copy(source = RESET_IFW),
             operation.copy(source = UNDO),

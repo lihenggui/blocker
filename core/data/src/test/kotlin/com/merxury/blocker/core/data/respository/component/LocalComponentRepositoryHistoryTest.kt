@@ -89,7 +89,7 @@ class LocalComponentRepositoryHistoryTest {
     }
 
     @Test
-    fun ifwProvider_usesPmFallbackAndRecordsPmSnapshot() = runTest {
+    fun givenIfwModeAndProvider_whenControlComponent_thenUsesPmAndRecordsPmSnapshot() = runTest {
         val provider = component.copy(type = PROVIDER)
         repository.controlComponent(provider, false, source = APP_DETAIL, ref = provider.packageName).first()
         val operation = history.observeOperations().first().single()
@@ -105,7 +105,7 @@ class LocalComponentRepositoryHistoryTest {
     }
 
     @Test
-    fun ifwBatchProvider_doesNotPassProviderToIfwController() = runTest {
+    fun givenIfwModeAndProvider_whenBatchControlComponent_thenSkipsIfwControllerAndRecordsPmSnapshot() = runTest {
         val provider = component.copy(type = PROVIDER)
         assertEquals(listOf(provider), repository.batchControlComponent(listOf(provider), false, source = APP_DETAIL).toList())
         verify(ifw, never()).batchDisable(any(), any())
@@ -117,7 +117,7 @@ class LocalComponentRepositoryHistoryTest {
     }
 
     @Test
-    fun providerCall_enclosesMultipleRepositoryFlowsInOneOperation() = runTest {
+    fun givenEnclosingProviderOperation_whenControlMultipleComponents_thenRecordsOneOperation() = runTest {
         val other = component.copy(name = "com.example.app.Other", type = PROVIDER)
         recorder.withOperation(EXTERNAL_PROVIDER, "com.example.caller") {
             listOf(component.copy(type = PROVIDER), other).forEach { target ->
@@ -130,7 +130,7 @@ class LocalComponentRepositoryHistoryTest {
     }
 
     @Test
-    fun failedControllerCall_withoutStateChangeLeavesNoRow() = runTest {
+    fun givenControllerFailsWithoutStateChange_whenControlComponent_thenRecordsNoOperation() = runTest {
         val provider = component.copy(type = PROVIDER)
         whenever(pm.disable(provider)).thenReturn(false)
         assertFalse(repository.controlComponent(provider, false, source = APP_DETAIL).first())
@@ -138,7 +138,7 @@ class LocalComponentRepositoryHistoryTest {
     }
 
     @Test
-    fun combinedSingleChange_recordsBothDimensionsWithDebloaterSource() = runTest {
+    fun givenIfwPlusPmController_whenControlComponentFromDebloater_thenRecordsBothDimensions() = runTest {
         whenever(combined.disable(component)).thenAnswer {
             pmBlocked.add(component.name)
             ifwBlocked.add(component.name)

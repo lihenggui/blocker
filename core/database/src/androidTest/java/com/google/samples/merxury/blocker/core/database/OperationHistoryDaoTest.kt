@@ -64,7 +64,7 @@ class OperationHistoryDaoTest {
     fun closeDb() = db.close()
 
     @Test
-    fun insertOperation_roundTripsTimestampEnumsAndSnapshots() = runTest {
+    fun givenOperationWithEntry_whenInsertOperation_thenRoundTripsAllFields() = runTest {
         val id = dao.insertOperation(OperationEntity(timestamp = timestamp, source = APP_DETAIL, ref = entry.packageName), listOf(entry))
         val operation = dao.observeOperations().first().single()
         assertEquals(id, operation.id)
@@ -76,7 +76,7 @@ class OperationHistoryDaoTest {
     }
 
     @Test
-    fun incrementalEntries_preserveFirstBeforeAndLatestAfter() = runTest {
+    fun givenExistingEntry_whenInsertEntries_thenMergesSnapshotsAndDropsUnchanged() = runTest {
         val id = dao.insertOperation(OperationEntity(timestamp = timestamp, source = APP_DETAIL), listOf(entry))
         dao.insertEntries(listOf(entry.copy(operationId = id, beforePm = true, afterIfw = true)))
         assertEquals(listOf(entry.copy(operationId = id, afterIfw = true)), dao.getEntries(id))
@@ -86,7 +86,7 @@ class OperationHistoryDaoTest {
     }
 
     @Test
-    fun incrementalEntries_removeUnchangedEntriesOnlyFromWrittenOperations() = runTest {
+    fun givenUnchangedEntryInOtherOperation_whenInsertEntries_thenOnlyCleansWrittenOperations() = runTest {
         val untouched = dao.insertOperation(OperationEntity(timestamp = timestamp, source = APP_DETAIL), listOf(entry))
         val first = dao.insertOperation(OperationEntity(timestamp = timestamp, source = APP_DETAIL), listOf(entry))
         val second = dao.insertOperation(OperationEntity(timestamp = timestamp, source = APP_DETAIL), listOf(entry))
@@ -107,7 +107,7 @@ class OperationHistoryDaoTest {
     }
 
     @Test
-    fun operations_orderNewestFirstIncludingLogOnlyEntries() = runTest {
+    fun givenOperationsWithAndWithoutEntries_whenObserveOperations_thenOrdersNewestFirst() = runTest {
         val older = dao.insertOperation(OperationEntity(timestamp = Instant.parse("2026-10-22T12:00:00Z"), source = APP_DETAIL), listOf(entry))
         val newer = dao.insertOperation(OperationEntity(timestamp = timestamp, source = RESET_IFW), emptyList())
         assertEquals(listOf(newer, older), dao.observeOperations().first().map { it.id })
@@ -115,7 +115,7 @@ class OperationHistoryDaoTest {
     }
 
     @Test
-    fun entriesSince_excludesUndoneAndUndoAndIncludesBoundary() = runTest {
+    fun givenUndoneAndUndoOperations_whenGetEntriesSince_thenExcludesThemAndIncludesBoundary() = runTest {
         val older = dao.insertOperation(OperationEntity(timestamp = Instant.parse("2026-10-22T12:00:00Z"), source = APP_DETAIL), listOf(entry))
         val id = dao.insertOperation(OperationEntity(timestamp = timestamp, source = APP_DETAIL), listOf(entry))
         val undo = dao.insertOperation(OperationEntity(timestamp = timestamp, source = UNDO), listOf(entry))
@@ -129,7 +129,7 @@ class OperationHistoryDaoTest {
     }
 
     @Test
-    fun retention_deletesOnlyOlderOperationsAndCascadesEntries() = runTest {
+    fun givenOldAndRecentOperations_whenDeleteOlderThan_thenDeletesOldOperationsAndEntries() = runTest {
         val older = dao.insertOperation(OperationEntity(timestamp = Instant.parse("2026-10-22T12:00:00Z"), source = APP_DETAIL), listOf(entry))
         val retained = dao.insertOperation(OperationEntity(timestamp = timestamp, source = APP_DETAIL), listOf(entry))
         dao.deleteOlderThan(timestamp)

@@ -137,7 +137,7 @@ class UndoOperationsUseCaseTest {
     )
 
     @Test
-    fun singleOperation_restoresBothDimensionsAndLogsUndo() = runTest {
+    fun givenSingleOperation_whenUndo_thenRestoresBothDimensionsAndRecordsUndo() = runTest {
         val id = record(afterIfw = true)
         pmBlocked.add(component.name)
         ifwBlocked.add(component.name)
@@ -154,7 +154,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun sinceDay_usesEarliestSnapshotAndDeduplicatesComponents() = runTest {
+    fun givenMultipleOperationsSinceDay_whenUndoSince_thenRestoresEarliestSnapshotOncePerComponent() = runTest {
         val first = record()
         val second = record(timestamp = timestamp + 1.minutes, beforePm = true, afterPm = false)
         val third = record(timestamp = timestamp + 2.minutes, afterIfw = true)
@@ -167,7 +167,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun undoingEnable_restoresBlockedStateInEachDimension() = runTest {
+    fun givenEnableOperation_whenUndo_thenBlocksComponentInEachDimension() = runTest {
         val id = record(beforePm = true, afterPm = false, beforeIfw = true)
         assertEquals(UndoResult(1, 0, 0, emptyMap()), undo(id))
         verify(pm).disable(component)
@@ -175,7 +175,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun providerRecordedInIfwMode_restoresPmDimension() = runTest {
+    fun givenProviderRecordedInIfwMode_whenUndo_thenRestoresPmOnly() = runTest {
         userData.setControllerType(IFW)
         val provider = component.copy(type = PROVIDER)
         packages.components = mapOf(
@@ -191,7 +191,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun activeShizuku_restoresPmWithoutRoot() = runTest {
+    fun givenShizukuWithoutRoot_whenUndo_thenRestoresPmThroughShizuku() = runTest {
         userData.setControllerType(SHIZUKU)
         rootChecker.rootAvailable = false
         val id = record()
@@ -203,7 +203,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun alreadyInTarget_afterReset_createsZeroEntryUndoAndMarksOriginal() = runTest {
+    fun givenComponentAlreadyInTargetAfterReset_whenUndo_thenRecordsEmptyUndoAndMarksOriginal() = runTest {
         val id = record(afterPm = false, afterIfw = true)
         recorder.logOnly(RESET_IFW)
         assertEquals(UndoResult(0, 1, 0, emptyMap()), undo(id))
@@ -217,7 +217,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun missingComponent_reportsFailureAndLeavesOriginalRetryable() = runTest {
+    fun givenMissingComponent_whenUndo_thenReportsFailureAndKeepsOriginalUndoable() = runTest {
         val id = record()
         packages.components = mapOf(component.packageName to mock<PackageInfo>())
         val result = undo(id)
@@ -228,7 +228,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun missingIfwPermission_stillRestoresPmAndReportsFailure() = runTest {
+    fun givenIfwPermissionUnavailable_whenUndo_thenRestoresPmAndReportsIfwFailure() = runTest {
         val id = record(afterIfw = true)
         userData.setControllerType(SHIZUKU)
         rootChecker.rootAvailable = false
@@ -244,7 +244,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun failedPmRestore_stillRestoresIfwAndKeepsOriginalRetryable() = runTest {
+    fun givenPmRestoreFails_whenUndo_thenRestoresIfwAndKeepsOriginalUndoable() = runTest {
         val id = record(afterIfw = true)
         pmBlocked.add(component.name)
         ifwBlocked.add(component.name)
@@ -263,7 +263,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun sinceDay_marksOnlyOperationsWhoseComponentsSucceeded() = runTest {
+    fun givenPartialFailureSinceDay_whenUndoSince_thenMarksOnlySucceededOperations() = runTest {
         val succeeded = record()
         val missing = record(component = component.copy(name = "com.example.app.Missing"))
         pmBlocked.add(component.name)
@@ -276,7 +276,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun eachRun_cachesComponentsPerPackageAndInitializesControllersOnce() = runTest {
+    fun givenComponentsInMultiplePackages_whenUndoSince_thenLooksUpPackagesAndInitializesControllersOncePerRun() = runTest {
         val other = component.copy(name = "com.example.app.OtherService")
         val otherPackage = component.copy(packageName = "com.example.other", name = "com.example.other.Service")
         packages.components = mapOf(
@@ -305,7 +305,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun failedPmInitialization_stillRestoresIfwAndReportsPmFailure() = runTest {
+    fun givenPmInitializationFails_whenUndo_thenRestoresIfwAndReportsPmFailure() = runTest {
         val id = record(afterIfw = true)
         pmBlocked.add(component.name)
         ifwBlocked.add(component.name)
@@ -321,7 +321,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun failedIfwRestore_stillRestoresPmAndReportsIfwFailure() = runTest {
+    fun givenIfwRestoreFails_whenUndo_thenRestoresPmAndReportsIfwFailure() = runTest {
         val id = record(afterIfw = true)
         pmBlocked.add(component.name)
         ifwBlocked.add(component.name)
@@ -336,7 +336,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun packageLookupFailure_isCachedAndReportsErrorForEachComponent() = runTest {
+    fun givenPackageLookupFails_whenUndoSince_thenLooksUpOnceAndReportsErrorForEachComponent() = runTest {
         val other = ComponentInfo(component.packageName, "com.example.app.OtherService", SERVICE)
         record()
         record(component = other)
@@ -352,7 +352,7 @@ class UndoOperationsUseCaseTest {
     }
 
     @Test
-    fun undoneResetAndUndoOperations_areNotReversedAgain() = runTest {
+    fun givenUndoneResetOrUndoOperation_whenUndo_thenNothingIsReverted() = runTest {
         val id = record()
         pmBlocked.add(component.name)
         undo(id)

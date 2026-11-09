@@ -82,13 +82,13 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun unchangedAndFailedControllerCalls_leaveNoOperation() = runTest {
+    fun givenActionWithoutStateChange_whenWithOperation_thenRecordsNoOperation() = runTest {
         recorder.withOperation(APP_DETAIL) { track(listOf(component)) { false } }
         assertTrue(history.observeOperations().first().isEmpty())
     }
 
     @Test
-    fun readsRealStatesInsteadOfCachedFlags_andRecordsBothDimensions() = runTest {
+    fun givenStaleCachedPmFlag_whenTrack_thenRecordsRealStatesForBothDimensions() = runTest {
         val result = recorder.withOperation(APP_DETAIL, component.packageName) {
             track(listOf(component.copy(pmBlocked = true))) {
                 pm.disable(component)
@@ -108,7 +108,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun eachTrackFlushesBeforeOperationCompletes_andFailureKeepsPartialWork() = runTest {
+    fun givenLaterFailureInOperation_whenTrackCompletes_thenEntriesAreFlushedAndKept() = runTest {
         assertFailsWith<IllegalStateException> {
             recorder.withOperation(IMPORT_BLOCKER_RULE) {
                 track(listOf(component)) { pm.disable(component) }
@@ -120,7 +120,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun failingAction_recordsItsPartialChangesAndRethrows() = runTest {
+    fun givenActionThrowsAfterPmChange_whenTrack_thenRecordsPartialChangeAndRethrows() = runTest {
         assertFailsWith<IllegalStateException> {
             recorder.withOperation(APP_DETAIL) {
                 track(listOf(component)) {
@@ -135,7 +135,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun cancellation_flushesChangesBeforeJobFinishes() = runTest {
+    fun givenTrackedChange_whenJobIsCancelled_thenChangeIsFlushed() = runTest {
         val started = CompletableDeferred<Unit>()
         val job = launch {
             recorder.withOperation(IMPORT_BLOCKER_RULE) {
@@ -153,7 +153,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun nestedRepositoryCalls_shareOneProviderOperation() = runTest {
+    fun givenOuterProviderOperation_whenNestedOperationsRun_thenSharesOuterOperation() = runTest {
         val other = component.copy(name = "com.example.app.OtherService")
         recorder.withOperation(EXTERNAL_PROVIDER, "com.example.caller") {
             listOf(component, other).forEach { target ->
@@ -169,7 +169,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun repeatedComponent_preservesFirstBeforeStateAcrossFlushes() = runTest {
+    fun givenComponentTrackedTwice_whenOperationCompletes_thenKeepsFirstBeforeAndLatestAfter() = runTest {
         recorder.withOperation(IMPORT_BLOCKER_RULE) {
             track(listOf(component)) { pm.disable(component) }
             track(listOf(component)) { ifw.disable(component) }
@@ -181,7 +181,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun repositoryAfterState_isReadOnlyOnce() = runTest {
+    fun givenStateReadInsideTrack_whenTrack_thenEachDimensionIsReadOnceBeforeAndOnceAfter() = runTest {
         recorder.withOperation(APP_DETAIL) {
             track(listOf(component)) {
                 pm.disable(component)
@@ -193,7 +193,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun logOnly_createsResetAndZeroEntryUndoRows() = runTest {
+    fun givenLogOnlyCalls_whenRecorded_thenCreatesZeroEntryResetAndSingleUndoOperation() = runTest {
         recorder.logOnly(RESET_IFW, component.packageName)
         recorder.withOperation(UNDO) {
             val id = recorder.logOnly(UNDO)
@@ -206,7 +206,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun startingOperation_prunesNinetyDayHistory() = runTest {
+    fun givenOperationsOlderThanNinetyDays_whenStartOperation_thenPrunesThem() = runTest {
         val now = Clock.System.now()
         val old = history.insertOperation(Operation(0, now - 91.days, APP_DETAIL), emptyList())
         val retained = history.insertOperation(Operation(0, now - 89.days, APP_DETAIL), emptyList())
@@ -216,7 +216,7 @@ class OperationRecorderTest {
     }
 
     @Test
-    fun overlappingOperations_doNotBlockAndKeepSeparateScopes() = runTest {
+    fun givenOperationInProgress_whenAnotherOperationStarts_thenNeitherBlocksAndScopesStaySeparate() = runTest {
         val entered = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
         val first = async {
