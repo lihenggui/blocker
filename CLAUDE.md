@@ -22,7 +22,7 @@ The architecture follows [Now in Android](https://github.com/android/nowinandroi
 - **Target SDK**: 36
 - **Min SDK**: 24
 - **JDK**: 21
-- **Gradle**: 9.8.1
+- **Gradle**: 9.9.0
 - **Kotlin**: 2.4.21
 
 ## Build Commands
