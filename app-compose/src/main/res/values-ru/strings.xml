@@ -20,6 +20,7 @@
     <string name="trackers">Трекеры</string>
     <string name="no_permission_hint">Не удалось получить разрешение, приложение может работать некорректно.</string>
     <string name="shell_permission_hint">Предоставлено разрешение оболочки. Компоненты управления могут работать некорректно.</string>
+    <string name="system_permission_hint">Запущено в системном режиме (UID 1000). Intent Firewall доступен.</string>
     <string name="close">Закрыть</string>
     <string name="firewall">Брандмауэр</string>
 </resources>
