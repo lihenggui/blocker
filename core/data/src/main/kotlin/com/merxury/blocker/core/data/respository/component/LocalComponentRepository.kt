@@ -38,6 +38,7 @@ import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -45,8 +46,10 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.zip
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.TimeSource
 
 internal class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
@@ -58,6 +61,10 @@ internal class LocalComponentRepository @Inject constructor(
     @CombinedControl private val combinedController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentRepository {
+
+    override fun getAllComponents(): Flow<List<ComponentInfo>> = appComponentDao.getAll()
+        .map { list -> list.map { it.toComponentInfo() } }
+        .flowOn(ioDispatcher)
 
     override fun getComponent(name: String): Flow<ComponentInfo?> = appComponentDao.getByName(name)
         .map { it?.toComponentInfo() }
@@ -159,46 +166,76 @@ internal class LocalComponentRepository @Inject constructor(
             SHIZUKU -> shizukuController
             IFW_PLUS_PM -> combinedController
         }
-        // Filter providers first in the list if preferred controller is IFW
-        if (effectiveControllerType == IFW) {
-            // IFW doesn't have the ability to enable/disable providers
-            val providers = components.filter { it.type == ComponentType.PROVIDER }
-            providers.forEach {
-                if (newState) {
-                    pmController.enable(it)
+        val packages = components.distinctBy { it.packageName to it.name }.groupBy { it.packageName }
+        packages.values.forEach { packageComponents ->
+            val started = TimeSource.Monotonic.markNow()
+            var reconciled = emptyList<ComponentInfo>()
+            var controlFailure: Throwable? = null
+            val applied = mutableSetOf<Pair<String, String>>()
+            val onApplied: suspend (ComponentInfo) -> Unit = { applied.add(it.packageName to it.name) }
+            try {
+                if (effectiveControllerType == IFW) {
+                    val providers = packageComponents.filter { it.type == ComponentType.PROVIDER }
+                    if (newState) pmController.batchEnable(providers, onApplied) else pmController.batchDisable(providers, onApplied)
+                    val ifwComponents = packageComponents.filter { it.type != ComponentType.PROVIDER }
+                    if (newState) {
+                        val pmStates = pmController.checkComponentEnableStates(ifwComponents)
+                        pmController.batchEnable(ifwComponents.filter { pmStates[it] == false }) {}
+                        controller.batchEnable(ifwComponents, onApplied)
+                    } else {
+                        controller.batchDisable(ifwComponents, onApplied)
+                    }
                 } else {
-                    pmController.disable(it)
+                    if (newState) controller.batchEnable(packageComponents, onApplied) else controller.batchDisable(packageComponents, onApplied)
                 }
-                emit(it)
-            }
-            // if users want to enable the component, check if it's blocked by PM controller
-            if (newState) {
-                val blockedByPm = components.filter {
-                    it.pmBlocked && it.type != ComponentType.PROVIDER
+                Timber.d("Controlled ${packageComponents.size} components in ${started.elapsedNow()}")
+            } catch (exception: Throwable) {
+                controlFailure = exception
+                throw exception
+            } finally {
+                try {
+                    // A cancellation can arrive after a controller has already changed the device.
+                    // Finish reconciliation for this package before propagating it to the caller.
+                    withContext(NonCancellable) {
+                        val verificationStarted = TimeSource.Monotonic.markNow()
+                        val pmStates = pmController.checkComponentEnableStates(packageComponents)
+                        val ifwStates = ifwController.checkComponentEnableStates(packageComponents)
+                        reconciled = packageComponents.map {
+                            it.copy(pmBlocked = !pmStates.getValue(it), ifwBlocked = !ifwStates.getValue(it))
+                        }
+                        val verificationTime = verificationStarted.elapsedNow()
+                        val saveStarted = TimeSource.Monotonic.markNow()
+                        appComponentDao.upsertComponentList(reconciled.map { it.toAppComponentEntity() })
+                        Timber.d("Reconciled ${packageComponents.size} components: verification=$verificationTime, save=${saveStarted.elapsedNow()}")
+                    }
+                } catch (exception: Throwable) {
+                    val previousFailure = controlFailure
+                    if (previousFailure == null) throw exception else previousFailure.addSuppressed(exception)
                 }
-                blockedByPm.forEach {
-                    pmController.enable(it)
-                }
             }
+            val failed = reconciled.count { (it.packageName to it.name) !in applied || !it.hasRequestedState(effectiveControllerType, newState) }
+            if (failed > 0) error("Failed to change $failed components in ${packageComponents.first().packageName}")
+            reconciled.forEach { emit(it) }
+            Timber.d("Controlled and reconciled ${packageComponents.size} components in ${started.elapsedNow()}")
         }
-        if (newState) {
-            controller.batchEnable(components) {
-                emit(it)
-            }
-        } else {
-            controller.batchDisable(components) {
-                emit(it)
-            }
-        }
-        val updatedComponents = components.map {
-            it.copy(
-                pmBlocked = !pmController.checkComponentEnableState(it.packageName, it.name),
-                ifwBlocked = !ifwController.checkComponentEnableState(it.packageName, it.name),
-            ).toAppComponentEntity()
-        }
-        appComponentDao.upsertComponentList(updatedComponents)
     }
         .flowOn(ioDispatcher)
+
+    private fun ComponentInfo.hasRequestedState(controllerType: ControllerType, enabled: Boolean): Boolean = when (controllerType) {
+        IFW -> if (type == ComponentType.PROVIDER) {
+            pmBlocked != enabled
+        } else if (enabled) {
+            !pmBlocked && !ifwBlocked
+        } else {
+            ifwBlocked
+        }
+
+        PM -> pmBlocked != enabled
+
+        SHIZUKU -> pmBlocked != enabled
+
+        IFW_PLUS_PM -> pmBlocked != enabled && (type == ComponentType.PROVIDER || ifwBlocked != enabled)
+    }
 
     override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
         .map { list ->

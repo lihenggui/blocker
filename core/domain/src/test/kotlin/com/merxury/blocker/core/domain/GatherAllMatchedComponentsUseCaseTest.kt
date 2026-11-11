@@ -44,10 +44,12 @@ class GatherAllMatchedComponentsUseCaseTest {
 
     private val useCase = GatherAllMatchedComponentsUseCase(
         generalRuleRepository = generalRuleRepository,
-        componentRepository = componentRepository,
-        appRepository = appRepository,
-        userDataRepository = userDataRepository,
-        ioDispatcher = mainDispatcherRule.testDispatcher,
+        matchGeneralRules = MatchGeneralRulesUseCase(
+            componentRepository = componentRepository,
+            appRepository = appRepository,
+            userDataRepository = userDataRepository,
+            cpuDispatcher = mainDispatcherRule.testDispatcher,
+        ),
     )
 
     @Test
@@ -187,7 +189,7 @@ class GatherAllMatchedComponentsUseCaseTest {
     }
 
     @Test
-    fun rulesWithZeroMatches_areSkipped() = runTest {
+    fun unmatchedKeywords_returnNoAdditionalComponents() = runTest {
         userDataRepository.sendUserData(defaultUserData.copy(showSystemApps = true))
         val components = listOf(
             ComponentInfo(

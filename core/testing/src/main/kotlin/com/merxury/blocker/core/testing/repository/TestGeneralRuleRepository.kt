@@ -44,6 +44,11 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
         // no-op
     }
 
+    override suspend fun updateMatchedAppCounts(counts: Map<Int, Int>) {
+        val rules = rulesFlow.replayCache.firstOrNull().orEmpty()
+        rulesFlow.emit(rules.map { rule -> rule.copy(matchedAppCount = counts[rule.id] ?: rule.matchedAppCount) })
+    }
+
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = rulesFlow.map { rules ->
         rules.filter { rule ->
             rule.name.contains(keyword, ignoreCase = true) ||

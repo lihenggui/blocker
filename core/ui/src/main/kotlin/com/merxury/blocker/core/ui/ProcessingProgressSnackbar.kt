@@ -48,6 +48,7 @@ data class ProcessingProgress(
     val current: Int,
     val total: Int,
     val isEnabling: Boolean,
+    val isComplete: Boolean = current >= total,
 )
 
 @Composable
@@ -56,7 +57,7 @@ fun ProcessingProgressSnackbar(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isCompleted = progress != null && progress.current >= progress.total
+    val isCompleted = progress?.isComplete == true
     val context = LocalContext.current
     LaunchedEffect(isCompleted) {
         if (isCompleted) {
@@ -76,8 +77,10 @@ fun ProcessingProgressSnackbar(
         exit = fadeOut() + slideOutVertically { it },
     ) {
         lastProgress?.let { displayProgress ->
-            val message = if (displayProgress.current >= displayProgress.total) {
+            val message = if (displayProgress.isComplete) {
                 stringResource(uistring.core_ui_operation_completed)
+            } else if (displayProgress.total == 0) {
+                stringResource(uistring.core_ui_loading)
             } else if (displayProgress.isEnabling) {
                 stringResource(
                     uistring.core_ui_enabling_component_hint,

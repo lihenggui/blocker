@@ -20,4 +20,6 @@ import com.merxury.blocker.core.model.ComponentType
 
 interface ComponentTypeResolver {
     suspend fun getComponentType(packageName: String, componentName: String): ComponentType
+
+    suspend fun getComponentTypes(packageName: String, componentNames: List<String>): Map<String, ComponentType> = componentNames.associateWith { getComponentType(packageName, it) }
 }

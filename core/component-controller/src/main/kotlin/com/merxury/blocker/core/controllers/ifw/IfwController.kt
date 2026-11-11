@@ -21,6 +21,7 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.core.ifw.model.IfwComponentType
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -65,11 +66,10 @@ internal class IfwController @Inject constructor(
             return 0
         }
         var succeededCount = 0
-        val list = componentList.map { ComponentName(it.packageName, it.name) }
-        intentFirewall.removeAllComponentFilters(list) {
+        val componentsByName = componentList.associateBy { ComponentName(it.packageName, it.name) }
+        intentFirewall.removeAllComponentFilters(componentsByName.keys.toList()) {
             succeededCount++
-            val component = componentList
-                .find { info -> info.packageName == it.packageName && info.name == it.className }
+            val component = componentsByName[it]
             if (component != null) {
                 action(component)
             }
@@ -86,11 +86,10 @@ internal class IfwController @Inject constructor(
             return 0
         }
         var succeededCount = 0
-        val list = componentList.map { ComponentName(it.packageName, it.name) }
-        intentFirewall.addAllComponentFilters(list) {
+        val componentsByName = componentList.associateBy { ComponentName(it.packageName, it.name) }
+        intentFirewall.addAllComponentFilters(componentsByName.keys.toList()) {
             succeededCount++
-            val component = componentList
-                .find { info -> info.packageName == it.packageName && info.name == it.className }
+            val component = componentsByName[it]
             if (component != null) {
                 action(component)
             }
@@ -102,4 +101,12 @@ internal class IfwController @Inject constructor(
         packageName: String,
         componentName: String,
     ): Boolean = intentFirewall.getComponentEnableState(packageName, componentName)
+
+    override suspend fun checkComponentEnableStates(components: List<ComponentInfo>): Map<ComponentInfo, Boolean> = buildMap {
+        components.groupBy { it.packageName }.forEach { (packageName, packageComponents) ->
+            val rules = intentFirewall.getRules(packageName)
+            val blocked = IfwComponentType.entries.flatMap { rules.componentFiltersFor(it) }.toSet()
+            packageComponents.forEach { put(it, "$packageName/${it.name}" !in blocked) }
+        }
+    }
 }

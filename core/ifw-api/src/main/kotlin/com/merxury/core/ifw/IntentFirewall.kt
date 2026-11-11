@@ -137,52 +137,52 @@ internal class IntentFirewall @Inject constructor(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
-        if (!rootChecker.isRootAvailable()) {
-            throw RootUnavailableException()
-        }
-        Timber.i("Add component filters for ${list.size} components")
-        val groupedMap = list.groupBy { it.packageName }
-        groupedMap.keys.forEach { packageName ->
-            var rules = getRules(packageName)
-            groupedMap[packageName]?.forEach componentLoop@{ component ->
-                val type = componentTypeResolver.getComponentType(packageName, component.className)
-                if (type == PROVIDER) {
-                    Timber.d("Cannot add IFW rule for $component")
-                    return@componentLoop
-                }
-                val ifwType = type.toIfwComponentType() ?: return@componentLoop
-                val formattedName = component.flattenToString()
-                rules = rules.addComponentFilter(ifwType, formattedName)
-                callback(component)
-            }
-            saveRules(packageName, rules)
-        }
+        updateComponentFilters(list, remove = false, callback)
     }
 
     override suspend fun removeAllComponentFilters(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
-        if (!rootChecker.isRootAvailable()) {
-            throw RootUnavailableException()
-        }
-        Timber.i("Remove component filters for ${list.size} components")
-        val groupedMap = list.groupBy { it.packageName }
-        groupedMap.keys.forEach { packageName ->
-            var rules = getRules(packageName)
-            groupedMap[packageName]?.forEach componentLoop@{ component ->
-                val type = componentTypeResolver.getComponentType(packageName, component.className)
-                if (type == PROVIDER) {
-                    Timber.d("Cannot remove IFW rule for $component")
-                    return@componentLoop
+        updateComponentFilters(list, remove = true, callback)
+    }
+
+    private suspend fun updateComponentFilters(
+        list: List<ComponentName>,
+        remove: Boolean,
+        callback: suspend (ComponentName) -> Unit,
+    ) {
+        if (!rootChecker.isRootAvailable()) throw RootUnavailableException()
+        list.distinct().groupBy { it.packageName }.forEach { (packageName, components) ->
+            val types = componentTypeResolver.getComponentTypes(packageName, components.map { it.className })
+            val original = getRules(packageName)
+            val rules = original.rules.map { MutableComponentRule(it) }.toMutableList()
+            val applied = mutableListOf<ComponentName>()
+            components.forEach componentLoop@{ component ->
+                val type = types[component.className]?.toIfwComponentType() ?: return@componentLoop
+                val filter = IfwFilter.ComponentFilter(component.flattenToString())
+                val existing = rules.firstOrNull { it.original.componentType == type }
+                if (remove) {
+                    if (existing != null && existing.filters.remove(filter) && existing.filters.isEmpty() && existing.original.intentFilters.isEmpty()) {
+                        rules.remove(existing)
+                    }
+                } else if (existing != null) {
+                    if (existing.membership.add(filter)) existing.filters.add(filter)
+                } else {
+                    rules.add(MutableComponentRule(IfwRule(componentType = type, filters = listOf(filter))))
                 }
-                val ifwType = type.toIfwComponentType() ?: return@componentLoop
-                val formattedName = component.flattenToString()
-                rules = rules.removeComponentFilter(ifwType, formattedName)
-                callback(component)
+                applied.add(component)
             }
-            saveRules(packageName, rules)
+            val updated = IfwRules(rules.map { it.original.copy(filters = it.filters.toList()) })
+            if (updated != original) saveRules(packageName, updated)
+            // A callback describes a persisted change, including the already-at-target case.
+            applied.forEach { callback(it) }
         }
+    }
+
+    private class MutableComponentRule(val original: IfwRule) {
+        val filters = original.filters.toMutableList()
+        val membership = original.filters.toMutableSet()
     }
 
     override suspend fun getComponentEnableState(

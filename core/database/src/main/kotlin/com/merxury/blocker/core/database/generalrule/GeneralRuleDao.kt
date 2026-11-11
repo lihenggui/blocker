@@ -21,12 +21,21 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GeneralRuleDao {
+    @Query("UPDATE general_rules SET matchedAppCount = :count WHERE id = :id AND matchedAppCount != :count")
+    suspend fun updateMatchedAppCount(id: Int, count: Int)
+
+    @Transaction
+    suspend fun updateMatchedAppCounts(counts: Map<Int, Int>) {
+        counts.forEach { (id, count) -> updateMatchedAppCount(id, count) }
+    }
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(generalRule: GeneralRuleEntity)
 

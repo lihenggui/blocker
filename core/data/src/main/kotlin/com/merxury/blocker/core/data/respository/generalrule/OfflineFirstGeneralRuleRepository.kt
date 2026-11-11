@@ -92,6 +92,10 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
         generalRuleDao.upsertGeneralRule(rule.fromExternalModel())
     }
 
+    override suspend fun updateMatchedAppCounts(counts: Map<Int, Int>) {
+        generalRuleDao.updateMatchedAppCounts(counts)
+    }
+
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = generalRuleDao.searchGeneralRule(keyword)
         .map { it.map(GeneralRuleEntity::asExternalModel) }
 

@@ -32,6 +32,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.truth)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.runner)
