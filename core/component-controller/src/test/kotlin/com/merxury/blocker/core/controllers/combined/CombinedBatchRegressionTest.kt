@@ -26,7 +26,7 @@ import kotlin.test.assertEquals
 
 class CombinedBatchRegressionTest {
     @Test
-    fun batchDisable_delegatesOneBatchToEachController() = runTest {
+    fun givenComponents_whenBatchDisabling_thenDelegatesOneBatchToEachController() = runTest {
         val ifw = RecordingController()
         val pm = RecordingController()
         val components = List(20) {

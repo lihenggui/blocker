@@ -25,9 +25,21 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 @Dao
 interface GeneralRuleDao {
+    /** Keeps rules populated by a concurrent sync instead of overwriting them with fallback data. */
+    @Transaction
+    suspend fun getOrInitializeGeneralRules(fallbackRules: List<GeneralRuleEntity>): List<GeneralRuleEntity> {
+        val cachedRules = getGeneralRuleEntities().first()
+        if (cachedRules.isNotEmpty()) return cachedRules
+
+        val initialRules = fallbackRules.distinctBy(GeneralRuleEntity::id)
+        insertAll(initialRules)
+        return initialRules
+    }
+
     @Query("UPDATE general_rules SET matchedAppCount = :count WHERE id = :id AND matchedAppCount != :count")
     suspend fun updateMatchedAppCount(id: Int, count: Int)
 

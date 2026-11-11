@@ -69,7 +69,7 @@ class MatchGeneralRulesUseCaseTest {
     }
 
     @Test
-    fun hundredsOfRules_useOneSnapshotAndCountDistinctApplications() = runTest {
+    fun givenHundredsOfRules_whenMatching_thenUsesOneSnapshotAndCountsDistinctApps() = runTest {
         val manyRules = List(512) { rules.first().copy(id = it) }
         val result = matcher(manyRules).first()
 
@@ -80,7 +80,7 @@ class MatchGeneralRulesUseCaseTest {
     }
 
     @Test
-    fun cachedMatch_reusesMembershipButReturnsFreshControllerStates() = runTest {
+    fun givenCachedMatches_whenControllerStatesChange_thenReusesMembershipWithFreshStates() = runTest {
         val first = matcher(rules).first()
         components.sendComponentList(
             components.getAllComponents().first().map { it.copy(pmBlocked = true, ifwBlocked = true) },
@@ -93,7 +93,7 @@ class MatchGeneralRulesUseCaseTest {
     }
 
     @Test
-    fun systemVisibilityAndMetadataChanges_invalidateTheMatch() = runTest {
+    fun givenCachedMatches_whenSystemVisibilityOrMetadataChanges_thenInvalidatesMatches() = runTest {
         val hidden = matcher(rules).first()
         users.sendUserData(defaultUserData.copy(showSystemApps = true))
         val shown = matcher(rules).first()
@@ -109,7 +109,7 @@ class MatchGeneralRulesUseCaseTest {
     }
 
     @Test
-    fun applicationInstallUninstallAndRuleChanges_invalidateTheMatch() = runTest {
+    fun givenCachedMatches_whenAppsOrRulesChange_thenInvalidatesMatches() = runTest {
         val initial = matcher(rules).first()
         val installed = userComponent.copy(packageName = "com.installed")
         components.sendComponentList(initial.components + installed)
@@ -121,7 +121,7 @@ class MatchGeneralRulesUseCaseTest {
     }
 
     @Test
-    fun gatherAndCountUpdate_shareTheSameMatchAndDoNotTrustPersistedCounts() = runTest {
+    fun givenStaleCounts_whenGatheringAndUpdatingCounts_thenSharesFreshMatches() = runTest {
         val generalRules = TestGeneralRuleRepository()
         generalRules.sendRuleList(rules)
         UpdateRuleMatchedAppsUseCase(generalRules, matcher)().first()

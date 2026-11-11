@@ -20,10 +20,12 @@ import android.util.Log
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
+import com.merxury.blocker.core.database.generalrule.asExternalModel
 import com.merxury.blocker.core.database.generalrule.fromExternalModel
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -32,10 +34,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import timber.log.Timber
 
@@ -68,6 +72,44 @@ class OfflineFirstGeneralRuleRepositoryTest {
     @Before
     fun setup() {
         whenever(generalRuleDao.getGeneralRuleEntities()).thenReturn(flowOf(listOf(cachedRule)))
+    }
+
+    @Test
+    fun givenEmptyCache_whenReadingRulesAndUpdatingCounts_thenInitializesFallbackBeforeCountUpdate() = runTest {
+        val fallbackRules = listOf(rule)
+        val fallbackEntities = fallbackRules.map(GeneralRule::fromExternalModel)
+        whenever(generalRuleDao.getGeneralRuleEntities()).thenReturn(flowOf(emptyList()))
+        whenever(dataSource.getGeneralRules()).thenReturn(flowOf(fallbackRules))
+        whenever(generalRuleDao.getOrInitializeGeneralRules(fallbackEntities)).thenReturn(fallbackEntities)
+
+        assertThat(repository.getGeneralRules().first()).containsExactlyElementsIn(fallbackRules)
+        repository.updateMatchedAppCounts(mapOf(rule.id to 3))
+
+        inOrder(generalRuleDao) {
+            verify(generalRuleDao).getOrInitializeGeneralRules(fallbackEntities)
+            verify(generalRuleDao).updateMatchedAppCounts(mapOf(rule.id to 3))
+        }
+    }
+
+    @Test
+    fun givenCachePopulatedDuringFallbackLoad_whenReadingRules_thenReturnsCurrentCache() = runTest {
+        val fallbackEntities = listOf(rule.fromExternalModel())
+        whenever(generalRuleDao.getGeneralRuleEntities()).thenReturn(flowOf(emptyList()))
+        whenever(dataSource.getGeneralRules()).thenReturn(flowOf(listOf(rule)))
+        whenever(generalRuleDao.getOrInitializeGeneralRules(fallbackEntities)).thenReturn(listOf(cachedRule))
+
+        val rules = repository.getGeneralRules().first()
+
+        assertThat(rules).containsExactly(cachedRule.asExternalModel())
+    }
+
+    @Test
+    fun givenPopulatedCache_whenReadingRules_thenSkipsFallbackInitialization() = runTest {
+        val rules = repository.getGeneralRules().first()
+
+        assertThat(rules).containsExactly(cachedRule.asExternalModel())
+        verifyNoInteractions(dataSource)
+        verify(generalRuleDao, never()).getOrInitializeGeneralRules(any())
     }
 
     @Test

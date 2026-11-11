@@ -28,7 +28,7 @@ import kotlin.test.assertEquals
 @Config(sdk = [26, 35], manifest = Config.NONE)
 class SqlLikePatternTest {
     @Test
-    fun matchesExistingSqlForLiteralWildcardCaseAndUnicodePatterns() {
+    fun givenLiteralWildcardCaseAndUnicodePatterns_whenMatching_thenAgreesWithSql() {
         val random = Random(1565)
         val alphabet = listOf("a", "b", "A", "B", ".", "_", "%", "\\", "å", "Å", "😀", "\n")
         fun generated(maxLength: Int) = buildString {

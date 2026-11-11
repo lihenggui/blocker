@@ -38,7 +38,7 @@ import kotlin.test.assertFailsWith
 @Config(sdk = [26, 33, 35])
 class RootApiBatchTest {
     @Test
-    fun nativeBatchIsUsedOnApi33AndLegacyCallsAreRetainedOnApi26() = runTest {
+    fun givenDifferentApiLevels_whenDisablingComponents_thenUsesNativeOrLegacyBatch() = runTest {
         val executor = mock<RootCommandExecutor>()
         whenever(executor.execute(any<SetComponentsEnabledSettingCommand>())).thenReturn(ParcelableBoolean(true))
         whenever(executor.execute(any<SetComponentEnabledSettingCommand>())).thenReturn(ParcelableBoolean(true))
@@ -58,7 +58,7 @@ class RootApiBatchTest {
 
     @Test
     @Config(sdk = [33])
-    fun failedBatchDoesNotReportSuccess() = runTest {
+    fun givenFailedBatch_whenDisablingComponents_thenDoesNotReportSuccess() = runTest {
         val executor = mock<RootCommandExecutor>()
         whenever(executor.execute(any<SetComponentsEnabledSettingCommand>())).thenThrow(IllegalStateException("denied"))
         val controller = RootApiController(mock(), executor, mock())

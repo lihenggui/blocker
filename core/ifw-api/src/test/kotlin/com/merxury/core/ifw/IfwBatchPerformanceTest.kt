@@ -44,7 +44,7 @@ import kotlin.test.assertTrue
 @Config(sdk = [35])
 class IfwBatchPerformanceTest {
     @Test
-    fun removingComponentFiltersPreservesIndependentIntentSelectorsAndRuleFlags() = runTest {
+    fun givenIntentSelectorsAndRuleFlags_whenRemovingComponentFilters_thenPreservesIndependentRules() = runTest {
         val storage = FakeIfwFileSystem()
         val component = ComponentName("com.example", "com.example.Receiver")
         val resolver = object : ComponentTypeResolver {
@@ -66,7 +66,7 @@ class IfwBatchPerformanceTest {
     }
 
     @Test
-    fun hundredComponentsResolveTypesOnceAndWriteOnceBeforeReportingSuccess() = runTest {
+    fun givenHundredComponents_whenApplyingIfwBatch_thenResolvesAndWritesOnceBeforeReportingSuccess() = runTest {
         val storage = FakeIfwFileSystem()
         var writes = 0
         var resolutions = 0
@@ -102,7 +102,7 @@ class IfwBatchPerformanceTest {
     }
 
     @Test
-    fun pmTypeResolverReadsOnePackageInfoForAllComponentTypes() = runTest {
+    fun givenAllComponentTypes_whenResolvingTypes_thenReadsPackageInfoOnce() = runTest {
         var packageReads = 0
         val source = object : PackageInfoDataSource by FakePackageInfoDataSource() {
             override suspend fun getApplicationComponents(packageName: String): PackageInfo {

@@ -34,7 +34,7 @@ import kotlin.test.assertFailsWith
 @RunWith(RobolectricTestRunner::class)
 class IfwBatchCommitRegressionTest {
     @Test
-    fun failedWrite_doesNotReportComponentsAsApplied() = runTest {
+    fun givenFailedWrite_whenApplyingIfwBatch_thenDoesNotReportComponentsAsApplied() = runTest {
         val storage = FakeIfwFileSystem()
         val fileSystem = object : IfwFileSystem by storage {
             override suspend fun writeRules(packageName: String, content: String): Unit = throw IOException("write failed")

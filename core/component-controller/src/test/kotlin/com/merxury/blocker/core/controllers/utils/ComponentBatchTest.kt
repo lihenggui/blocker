@@ -38,7 +38,7 @@ import kotlin.test.assertTrue
 @Config(sdk = [33, 35])
 class ComponentBatchTest {
     @Test
-    fun systemBatchUsesVersionedSignatureAndPreservesFlags() {
+    fun givenDifferentApiLevels_whenCallingSystemBatch_thenUsesVersionedSignatureAndPreservesFlags() {
         val pm = mock<IPackageManager>()
         val components = List(3) { ComponentName("com.example", "com.example.Service$it") }
 
@@ -55,7 +55,7 @@ class ComponentBatchTest {
     }
 
     @Test
-    fun batchesAreDeduplicatedBoundedAndSeparatedByApplication() = runTest {
+    fun givenDuplicateComponentsAcrossApps_whenCreatingBatches_thenDeduplicatesBoundsAndGroupsByApp() = runTest {
         val firstPackage = List(450) { ComponentInfo("com.first", "com.tracker.Service$it", SERVICE) }
         val secondPackage = firstPackage.first().copy(packageName = "com.second")
         val batches = mutableListOf<List<ComponentInfo>>()

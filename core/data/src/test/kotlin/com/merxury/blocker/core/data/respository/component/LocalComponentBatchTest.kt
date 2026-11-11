@@ -56,7 +56,7 @@ class LocalComponentBatchTest {
     private val second = first.copy(name = "com.tracker.Second")
 
     @Test
-    fun failedCommandWithAlreadyEnabledStateDoesNotReportSuccess() = runTest {
+    fun givenAlreadyEnabledComponentAndFailedCommand_whenEnabling_thenDoesNotReportSuccess() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         pm.failures.add(first.name)
 
@@ -66,7 +66,7 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun pmBatchPreservesTheExistingIndependentIfwState() = runTest {
+    fun givenIndependentIfwState_whenApplyingPmBatch_thenPreservesIfwState() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         pm.states[first.name] = false
         ifw.states[first.name] = false
@@ -79,7 +79,7 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun ifwProvidersOnlyUsePmAndEachComponentIsEmittedOnce() = runTest {
+    fun givenProvidersAndOtherComponents_whenApplyingIfwBatch_thenRoutesProvidersToPmAndEmitsOnce() = runTest {
         users.sendUserData(defaultUserData)
         val provider = first.copy(name = "com.tracker.Provider", type = PROVIDER)
 
@@ -94,7 +94,7 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun enablingIfwUsesFreshPmStateInsteadOfStaleDatabaseFlags() = runTest {
+    fun givenStaleDatabaseFlags_whenEnablingIfw_thenUsesFreshPmState() = runTest {
         users.sendUserData(defaultUserData)
         pm.states[first.name] = false
         ifw.states[first.name] = false
@@ -107,7 +107,7 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun cancellationPersistsAlreadyChangedComponentsBeforeReturning() = runTest {
+    fun givenPartiallyAppliedBatch_whenCancelled_thenPersistsChangedComponentsBeforeReturning() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         val changed = CompletableDeferred<Unit>()
         val hold = CompletableDeferred<Unit>()
@@ -126,7 +126,7 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun failedComponentIsReconciledAndDoesNotReportCompletion() = runTest {
+    fun givenFailedComponent_whenApplyingBatch_thenReconcilesStateWithoutReportingCompletion() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         pm.failures.add(second.name)
         val emitted = mutableListOf<ComponentInfo>()

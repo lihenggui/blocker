@@ -123,7 +123,7 @@ class GeneralRuleBatchProgressTest {
     }
 
     @Test
-    fun gatheringMarksProcessingImmediatelyAndIgnoresDuplicateClicks() = runTest {
+    fun givenPendingGathering_whenStartingBatch_thenMarksProcessingAndIgnoresDuplicateClicks() = runTest {
         runCurrent()
         gatherGate = CompletableDeferred()
         viewModel.controlAllComponents(false)
@@ -141,7 +141,7 @@ class GeneralRuleBatchProgressTest {
     }
 
     @Test
-    fun lastComponentCallbackDoesNotCompleteBeforeReconciliation() = runTest {
+    fun givenLastComponentCallback_whenReconciliationIsPending_thenDoesNotCompleteProgress() = runTest {
         runCurrent()
         commitGate = CompletableDeferred()
         viewModel.controlAllComponents(false)
@@ -160,7 +160,7 @@ class GeneralRuleBatchProgressTest {
     }
 
     @Test
-    fun gatheringFailureClearsProgressAndRestoresActions() = runTest {
+    fun givenGatheringFailure_whenStartingBatch_thenClearsProgressAndRestoresActions() = runTest {
         runCurrent()
         snapshotFailure = IllegalStateException("snapshot failed")
         viewModel.controlAllComponents(false)

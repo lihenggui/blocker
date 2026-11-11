@@ -53,7 +53,7 @@ class GatherAllMatchedComponentsUseCaseTest {
     )
 
     @Test
-    fun emptyRules_returnsEmptyList() = runTest {
+    fun givenEmptyRules_whenGatheringComponents_thenReturnsEmptyList() = runTest {
         userDataRepository.sendUserData(defaultUserData)
         generalRuleRepository.sendRuleList(emptyList())
         componentRepository.sendComponentList(emptyList())
@@ -65,7 +65,7 @@ class GatherAllMatchedComponentsUseCaseTest {
     }
 
     @Test
-    fun singleRuleWithKeywords_returnsMatchingComponents() = runTest {
+    fun givenSingleRuleWithKeywords_whenGatheringComponents_thenReturnsMatches() = runTest {
         userDataRepository.sendUserData(defaultUserData.copy(showSystemApps = true))
         val components = listOf(
             ComponentInfo(
@@ -103,7 +103,7 @@ class GatherAllMatchedComponentsUseCaseTest {
     }
 
     @Test
-    fun multipleRulesWithOverlappingKeywords_deduplicates() = runTest {
+    fun givenRulesWithOverlappingKeywords_whenGatheringComponents_thenDeduplicatesMatches() = runTest {
         userDataRepository.sendUserData(defaultUserData.copy(showSystemApps = true))
         val components = listOf(
             ComponentInfo(
@@ -147,7 +147,7 @@ class GatherAllMatchedComponentsUseCaseTest {
     }
 
     @Test
-    fun systemAppFiltering_excludesSystemApps() = runTest {
+    fun givenHiddenSystemApps_whenGatheringComponents_thenExcludesSystemApps() = runTest {
         userDataRepository.sendUserData(defaultUserData.copy(showSystemApps = false))
         val components = listOf(
             ComponentInfo(
@@ -189,7 +189,7 @@ class GatherAllMatchedComponentsUseCaseTest {
     }
 
     @Test
-    fun unmatchedKeywords_returnNoAdditionalComponents() = runTest {
+    fun givenUnmatchedKeywords_whenGatheringComponents_thenReturnsNoAdditionalComponents() = runTest {
         userDataRepository.sendUserData(defaultUserData.copy(showSystemApps = true))
         val components = listOf(
             ComponentInfo(

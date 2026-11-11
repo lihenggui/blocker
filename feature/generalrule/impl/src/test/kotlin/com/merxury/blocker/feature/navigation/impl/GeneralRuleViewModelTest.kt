@@ -121,12 +121,12 @@ class GeneralRuleViewModelTest {
     }
 
     @Test
-    fun uiState_whenInitial_thenShowLoading() = runTest {
+    fun givenInitialState_whenObservingUiState_thenShowsLoading() = runTest {
         assertEquals(Loading, viewModel.uiState.value)
     }
 
     @Test
-    fun uiState_whenSuccess_thenShowData() = runTest {
+    fun givenAvailableRules_whenObservingUiState_thenShowsData() = runTest {
         appPropertiesRepository.sendAppProperties(
             AppPropertiesData(componentDatabaseInitialized = true, generalRuleDatabaseInitialized = true),
         )
