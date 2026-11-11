@@ -29,6 +29,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppComponentDao {
+    @Query("SELECT * FROM app_component")
+    fun getAll(): Flow<List<AppComponentEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg appComponentEntities: AppComponentEntity)
 

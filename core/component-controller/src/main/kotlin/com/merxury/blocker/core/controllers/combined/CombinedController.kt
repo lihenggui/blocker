@@ -20,8 +20,8 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.model.ComponentState
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.data.ComponentInfo
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -65,39 +65,34 @@ internal class CombinedController @Inject constructor(
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        if (componentList.isEmpty()) {
-            Timber.w("No component to enable")
-            return 0
-        }
-        var succeededCount = 0
-        componentList.forEach { component ->
-            val ifwResult = ifwController.enable(component)
-            val pmResult = pmController.enable(component)
-            if (ifwResult && pmResult) {
-                succeededCount++
-                action(component)
-            }
-        }
-        return succeededCount
-    }
+    ): Int = batchControl(componentList, enable = true, action)
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
+    ): Int = batchControl(componentList, enable = false, action)
+
+    private suspend fun batchControl(
+        componentList: List<ComponentInfo>,
+        enable: Boolean,
+        action: suspend (ComponentInfo) -> Unit,
     ): Int {
-        if (componentList.isEmpty()) {
-            Timber.w("No component to disable")
-            return 0
-        }
         var succeededCount = 0
-        componentList.forEach { component ->
-            val ifwResult = ifwController.disable(component)
-            val pmResult = pmController.disable(component)
-            if (ifwResult && pmResult) {
-                succeededCount++
-                action(component)
+        componentList.distinctBy { it.packageName to it.name }.groupBy { it.packageName }.values.forEach { components ->
+            val ifwSucceeded = mutableSetOf<ComponentInfo>()
+            val ifwComponents = components.filter { it.type != PROVIDER }
+            if (enable) {
+                ifwController.batchEnable(ifwComponents) { ifwSucceeded.add(it) }
+            } else {
+                ifwController.batchDisable(ifwComponents) { ifwSucceeded.add(it) }
             }
+            val onPmApplied: suspend (ComponentInfo) -> Unit = { component ->
+                if (component.type == PROVIDER || component in ifwSucceeded) {
+                    succeededCount++
+                    action(component)
+                }
+            }
+            if (enable) pmController.batchEnable(components, onPmApplied) else pmController.batchDisable(components, onPmApplied)
         }
         return succeededCount
     }

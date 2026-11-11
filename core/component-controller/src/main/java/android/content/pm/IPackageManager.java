@@ -19,6 +19,7 @@ package android.content.pm;
 import android.content.ComponentName;
 import android.os.*;
 import androidx.annotation.RequiresApi;
+import java.util.List;
 
 public interface IPackageManager extends IInterface {
 
@@ -42,6 +43,14 @@ public interface IPackageManager extends IInterface {
      * @param flags Optional behavior flags.
      */
     void setComponentEnabledSetting(ComponentName componentName, int newState, int flags, int userId)
+            throws RemoteException;
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    void setComponentEnabledSettings(List<PackageManager.ComponentEnabledSetting> settings, int userId)
+            throws RemoteException;
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    void setComponentEnabledSettings(List<PackageManager.ComponentEnabledSetting> settings, int userId, String callingPackage)
             throws RemoteException;
 
     int getComponentEnabledSetting(ComponentName componentName, int userId)

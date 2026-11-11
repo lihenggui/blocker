@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface ComponentRepository {
 
+    fun getAllComponents(): Flow<List<ComponentInfo>>
+
     fun getComponent(name: String): Flow<ComponentInfo?>
 
     fun getComponentList(packageName: String): Flow<List<ComponentInfo>>

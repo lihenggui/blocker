@@ -16,21 +16,17 @@
 
 package com.merxury.blocker.feature.generalrule.impl
 
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.SnackbarDuration.Short
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -46,21 +42,19 @@ import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import com.merxury.blocker.core.ui.R.string as uistring
 import com.merxury.blocker.feature.generalrule.api.R.string as generalruleString
 
 @Composable
 fun GeneralRulesScreen(
     navigateToRuleDetail: (String) -> Unit,
-    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     showTopBar: Boolean = true,
     title: String? = null,
@@ -71,31 +65,28 @@ fun GeneralRulesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val isProcessing by viewModel.isProcessing.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    GeneralRulesScreen(
-        modifier = modifier,
-        showTopBar = showTopBar,
-        title = title,
-        belowTopBar = belowTopBar,
-        highlightSelectedRule = highlightSelectedRule,
-        uiState = uiState,
-        isProcessing = isProcessing,
-        navigateToRuleDetail = {
-            viewModel.onRuleClick(it)
-            navigateToRuleDetail(it)
-        },
-        onBlockAllClick = {
-            viewModel.controlAllComponents(false) { current, total ->
-                showDisableProgress(context, snackbarHostState, scope, current, total)
-            }
-        },
-        onEnableAllClick = {
-            viewModel.controlAllComponents(true) { current, total ->
-                showEnableProgress(context, snackbarHostState, scope, current, total)
-            }
-        },
-    )
+    val progress by viewModel.processingProgress.collectAsStateWithLifecycle()
+    Box(modifier = modifier) {
+        GeneralRulesScreen(
+            showTopBar = showTopBar,
+            title = title,
+            belowTopBar = belowTopBar,
+            highlightSelectedRule = highlightSelectedRule,
+            uiState = uiState,
+            isProcessing = isProcessing,
+            navigateToRuleDetail = {
+                viewModel.onRuleClick(it)
+                navigateToRuleDetail(it)
+            },
+            onBlockAllClick = { viewModel.controlAllComponents(false) },
+            onEnableAllClick = { viewModel.controlAllComponents(true) },
+        )
+        ProcessingProgressSnackbar(
+            progress = progress,
+            onDismiss = viewModel::dismissProcessingProgress,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
+    }
     if (errorState != null) {
         BlockerErrorAlertDialog(
             title = errorState?.title.orEmpty(),
@@ -215,62 +206,6 @@ private fun GeneralRulesMoreActionMenu(
         menuIconDesc = uistring.core_ui_more_menu,
         menuList = items,
     )
-}
-
-private fun showEnableProgress(
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    scope: CoroutineScope,
-    current: Int,
-    total: Int,
-) {
-    scope.launch {
-        if (current == total) {
-            snackbarHostState.showSnackbar(
-                message = context.getString(uistring.core_ui_operation_completed),
-                duration = Short,
-                withDismissAction = true,
-            )
-        } else {
-            snackbarHostState.showSnackbar(
-                message = context.getString(
-                    uistring.core_ui_enabling_component_hint,
-                    current,
-                    total,
-                ),
-                duration = Short,
-                withDismissAction = false,
-            )
-        }
-    }
-}
-
-private fun showDisableProgress(
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    scope: CoroutineScope,
-    current: Int,
-    total: Int,
-) {
-    scope.launch {
-        if (current == total) {
-            snackbarHostState.showSnackbar(
-                message = context.getString(uistring.core_ui_operation_completed),
-                duration = Short,
-                withDismissAction = true,
-            )
-        } else {
-            snackbarHostState.showSnackbar(
-                message = context.getString(
-                    uistring.core_ui_disabling_component_hint,
-                    current,
-                    total,
-                ),
-                duration = Short,
-                withDismissAction = false,
-            )
-        }
-    }
 }
 
 @Composable

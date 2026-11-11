@@ -22,6 +22,8 @@ import android.content.pm.IPackageManager
 import android.os.Build
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
+import com.merxury.blocker.core.controllers.utils.controlComponentBatches
+import com.merxury.blocker.core.controllers.utils.setComponentsEnabled
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.utils.PackageInfoDataSource
@@ -79,6 +81,28 @@ internal class ShizukuController @Inject constructor(
         component,
         ComponentState.DISABLED,
     )
+
+    override suspend fun batchEnable(componentList: List<ComponentInfo>, action: suspend (ComponentInfo) -> Unit): Int = batchControl(componentList, ComponentState.ENABLED, action)
+
+    override suspend fun batchDisable(componentList: List<ComponentInfo>, action: suspend (ComponentInfo) -> Unit): Int = batchControl(componentList, ComponentState.DISABLED, action)
+
+    private suspend fun batchControl(
+        components: List<ComponentInfo>,
+        state: ComponentState,
+        action: suspend (ComponentInfo) -> Unit,
+    ): Int {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return if (state == ComponentState.ENABLED) super.batchEnable(components, action) else super.batchDisable(components, action)
+        }
+        return controlComponentBatches(
+            components,
+            applyBatch = { batch ->
+                pm.setComponentsEnabled(batch.map { ComponentName(it.packageName, it.name) }, state.pmValue, context.userId, context.packageName)
+                true
+            },
+            onApplied = action,
+        )
+    }
 
     override suspend fun checkComponentEnableState(
         packageName: String,

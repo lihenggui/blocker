@@ -51,8 +51,8 @@ interface IController {
         componentList.forEach {
             if (enable(it)) {
                 succeededCount++
+                action(it)
             }
-            action(it)
         }
         return succeededCount
     }
@@ -65,11 +65,13 @@ interface IController {
         componentList.forEach {
             if (disable(it)) {
                 succeededCount++
+                action(it)
             }
-            action(it)
         }
         return succeededCount
     }
 
     suspend fun checkComponentEnableState(packageName: String, componentName: String): Boolean
+
+    suspend fun checkComponentEnableStates(components: List<ComponentInfo>): Map<ComponentInfo, Boolean> = components.associateWith { checkComponentEnableState(it.packageName, it.name) }
 }

@@ -34,6 +34,20 @@ internal class PmComponentTypeResolver @Inject constructor(
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ComponentTypeResolver {
 
+    override suspend fun getComponentTypes(
+        packageName: String,
+        componentNames: List<String>,
+    ): Map<String, ComponentType> {
+        val info = packageInfoDataSource.getApplicationComponents(packageName)
+        val types = buildMap {
+            info.receivers?.forEach { putIfAbsent(it.name, RECEIVER) }
+            info.services?.forEach { putIfAbsent(it.name, SERVICE) }
+            info.activities?.forEach { putIfAbsent(it.name, ACTIVITY) }
+            info.providers?.forEach { putIfAbsent(it.name, PROVIDER) }
+        }
+        return componentNames.associateWith { types[it] ?: PROVIDER }
+    }
+
     override suspend fun getComponentType(
         packageName: String,
         componentName: String,

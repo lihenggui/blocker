@@ -19,11 +19,11 @@ package com.merxury.blocker.feature.navigation.impl
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkManager
-import app.cash.turbine.test
 import com.merxury.blocker.core.domain.GatherAllMatchedComponentsUseCase
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
+import com.merxury.blocker.core.domain.MatchGeneralRulesUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
-import com.merxury.blocker.core.domain.UpdateRuleMatchedAppUseCase
+import com.merxury.blocker.core.domain.UpdateRuleMatchedAppsUseCase
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
@@ -45,6 +45,7 @@ import com.merxury.blocker.feature.generalrule.impl.GeneralRuleUiState.Success
 import com.merxury.blocker.feature.generalrule.impl.GeneralRulesViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -94,20 +95,14 @@ class GeneralRuleViewModelTest {
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = tempFolder.newFolder().absolutePath,
         )
-        val updateRule = UpdateRuleMatchedAppUseCase(
-            generalRuleRepository = generalRuleRepository,
-            appRepository = appRepository,
-            userDataRepository = userDataRepository,
-            componentRepository = componentRepository,
-            ioDispatcher = dispatcher,
-        )
-        val gatherAllMatchedComponents = GatherAllMatchedComponentsUseCase(
-            generalRuleRepository = generalRuleRepository,
+        val matcher = MatchGeneralRulesUseCase(
             componentRepository = componentRepository,
             appRepository = appRepository,
             userDataRepository = userDataRepository,
-            ioDispatcher = dispatcher,
+            cpuDispatcher = dispatcher,
         )
+        val updateRules = UpdateRuleMatchedAppsUseCase(generalRuleRepository, matcher)
+        val gatherAllMatchedComponents = GatherAllMatchedComponentsUseCase(generalRuleRepository, matcher)
 
         viewModel = GeneralRulesViewModel(
             appRepository = appRepository,
@@ -116,7 +111,7 @@ class GeneralRuleViewModelTest {
             componentRepository = componentRepository,
             initGeneralRuleUseCase = initGeneralRuleUseCase,
             searchRule = searchRule,
-            updateRule = updateRule,
+            updateRules = updateRules,
             gatherAllMatchedComponents = gatherAllMatchedComponents,
             analyticsHelper = analyticsHelper,
             savedStateHandle = savedStateHandle,
@@ -126,49 +121,28 @@ class GeneralRuleViewModelTest {
     }
 
     @Test
-    fun uiState_whenInitial_thenShowLoading() = runTest {
+    fun givenInitialState_whenObservingUiState_thenShowsLoading() = runTest {
         assertEquals(Loading, viewModel.uiState.value)
     }
 
     @Test
-    fun uiState_whenSuccess_thenShowData() = runTest {
-        viewModel.uiState.test {
-            appPropertiesRepository.sendAppProperties(
-                AppPropertiesData(
-                    componentDatabaseInitialized = true,
-                    generalRuleDatabaseInitialized = true,
-                ),
-            )
-            appRepository.sendAppList(sampleAppList)
-            userDataRepository.sendUserData(defaultUserData)
-            componentRepository.sendComponentList(sampleComponentList)
-            generalRuleRepository.sendRuleList(sampleRuleList)
-            val matchedRules = sampleRuleList.filter { it.matchedAppCount > 0 }
-                .sortedByDescending { it.matchedAppCount }
-            val unmatchedRules = sampleRuleList.filter { it.matchedAppCount == 0 }
-            assertEquals(Loading, awaitItem())
-            assertEquals(
-                Success(
-                    matchedRules = matchedRules,
-                    unmatchedRules = unmatchedRules,
-                    matchProgress = 0F,
-                ),
-                awaitItem(),
-            )
-            // Discard the progress update
-            // 0.33
-            awaitItem()
-            // 0.66
-            awaitItem()
-            assertEquals(
-                Success(
-                    matchedRules = matchedRules,
-                    unmatchedRules = unmatchedRules,
-                    matchProgress = 1F,
-                ),
-                awaitItem(),
-            )
-        }
+    fun givenAvailableRules_whenObservingUiState_thenShowsData() = runTest {
+        appPropertiesRepository.sendAppProperties(
+            AppPropertiesData(componentDatabaseInitialized = true, generalRuleDatabaseInitialized = true),
+        )
+        appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(defaultUserData)
+        componentRepository.sendComponentList(sampleComponentList)
+        generalRuleRepository.sendRuleList(sampleRuleList)
+        runCurrent()
+        assertEquals(
+            Success(
+                matchedRules = emptyList(),
+                unmatchedRules = sampleRuleList.map { it.copy(matchedAppCount = 0) },
+                matchProgress = 1F,
+            ),
+            viewModel.uiState.value,
+        )
     }
 }
 
