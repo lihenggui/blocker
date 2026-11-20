@@ -17,8 +17,11 @@
 package com.merxury.blocker.feature.search.impl
 
 import android.content.Context
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.SeekableTransitionState
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
@@ -38,8 +41,11 @@ import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -83,6 +89,7 @@ import com.merxury.blocker.feature.search.impl.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.impl.component.SearchBar
 import com.merxury.blocker.feature.search.impl.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.impl.screen.SearchingScreen
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.ui.R.string as uistring
@@ -289,12 +296,10 @@ fun SearchScreen(
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
     }
 
-    BackHandler(enabled = searchUiState.isSelectedMode) {
-        switchSelectedMode(false)
-    }
     TrackScreenViewEvent(screenName = "SearchScreen")
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun TopBar(
     searchUiState: SearchUiState,
@@ -306,10 +311,25 @@ fun TopBar(
     onBlockAll: () -> Unit = {},
     onEnableAll: () -> Unit = {},
 ) {
-    Crossfade(
-        searchUiState.isSelectedMode,
+    val selected = searchUiState.isSelectedMode
+    val latestSelected by rememberUpdatedState(selected)
+    val state = remember { SeekableTransitionState(selected) }
+    val transition = rememberTransition(state, label = "topBar")
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(selected) { state.animateTo(selected) }
+
+    PredictiveBackHandler(enabled = selected) { events ->
+        try {
+            events.collect { if (selected) state.seekTo(it.progress, false) }
+        } catch (cancelled: CancellationException) {
+            scope.launch { state.animateTo(latestSelected) }
+            throw cancelled
+        }
+        if (selected) onNavigationClick()
+    }
+
+    transition.Crossfade(
         animationSpec = tween(500),
-        label = "topBar",
         modifier = modifier,
     ) { targetState ->
         if (targetState) {

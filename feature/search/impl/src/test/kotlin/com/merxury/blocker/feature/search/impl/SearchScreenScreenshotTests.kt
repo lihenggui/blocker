@@ -16,10 +16,14 @@
 
 package com.merxury.blocker.feature.search.impl
 
+import androidx.activity.BackEventCompat
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
@@ -32,6 +36,7 @@ import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvi
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.SearchTabStatePreviewParameterProvider
+import com.merxury.blocker.feature.search.api.R
 import com.merxury.blocker.feature.search.impl.LocalSearchUiState.Error
 import com.merxury.blocker.feature.search.impl.LocalSearchUiState.Idle
 import com.merxury.blocker.feature.search.impl.LocalSearchUiState.Initializing
@@ -65,6 +70,43 @@ class SearchScreenScreenshotTests {
     fun setTimeZone() {
         // Make time zone deterministic in tests
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+    }
+
+    @Test
+    @Config(qualifiers = "en-rUS-w412dp-h880dp")
+    fun givenSelectedSearchResults_whenPredictiveBackCancelsThenCommits_thenOnlyCommitExitsSelection() {
+        val selected = mutableStateOf(true)
+        composeTestRule.setContent {
+            BlockerTheme {
+                TopBar(
+                    searchUiState = SearchUiState(isSelectedMode = selected.value),
+                    onNavigationClick = { selected.value = false },
+                )
+            }
+        }
+        val dispatcher = composeTestRule.activity.onBackPressedDispatcher
+        val search = composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.feature_search_api_search_hint))
+        search.assertDoesNotExist()
+
+        fun swipeBack() {
+            composeTestRule.runOnUiThread {
+                dispatcher.dispatchOnBackStarted(BackEventCompat(1f, 400f, 0f, BackEventCompat.EDGE_LEFT))
+                dispatcher.dispatchOnBackProgressed(BackEventCompat(160f, 400f, 0.65f, BackEventCompat.EDGE_LEFT))
+            }
+            composeTestRule.waitForIdle()
+        }
+
+        swipeBack()
+        search.assertExists()
+        composeTestRule.runOnIdle { check(selected.value) }
+        composeTestRule.runOnUiThread { dispatcher.dispatchOnBackCancelled() }
+        search.assertDoesNotExist()
+        composeTestRule.runOnIdle { check(selected.value) }
+
+        swipeBack()
+        composeTestRule.runOnUiThread { dispatcher.onBackPressed() }
+        search.assertIsDisplayed()
+        composeTestRule.runOnIdle { check(!selected.value) }
     }
 
     @Test
