@@ -44,7 +44,7 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
             } else {
                 val observed = requests.mapNotNull { event ->
                     val target = byUid[event.targetUid]?.singleOrNull() ?: return@mapNotNull null
-                    target.packageName.takeIf { matchesEvent(event, it, proof, method, component, action) }
+                    target.packageName.takeIf { matchesEvent(event, it, proof, method, component, action, firewallResets) }
                 }
                 (observed + previous.filter { it.component == component && it.proof == review }.map { it.target }).toSet()
             }
@@ -69,7 +69,6 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                     }
                 }
                 for (event in requests) {
-                    if (method == "IFW" && event.wallMillis <= maxOf(firewallResets[""] ?: 0, firewallResets[target.packageName] ?: 0)) continue
                     if (event.targetUid != target.uid || target.firstSeen > event.wallMillis ||
                         (event.targetPackage != null && event.targetPackage != target.packageName)
                     ) {
@@ -79,7 +78,7 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                     if (caller.firstSeen > event.wallMillis || (method == "IFW" && event.callerPackage != null && event.callerPackage != caller.packageName)) continue
                     if (proof.optBoolean("peerSdk") && (caller.uid == target.uid || caller.uid < 10000 || !matchesSdk(caller, proof))) continue
                     if (proof.has("caller") && proof.getString("caller") != caller.packageName) continue
-                    if (!matchesEvent(event, target.packageName, proof, method, component, action)) continue
+                    if (!matchesEvent(event, target.packageName, proof, method, component, action, firewallResets)) continue
                     val id = listOf(caller.packageName, caller.signatures, target.packageName, target.signatures, component, action, method).joinToString("|")
                     val old = previous.find { it.pathId == id && it.targetRevision == target.revision && it.callerRevision == caller.revision }
                     if (old?.disabledByUser == true) continue
@@ -93,11 +92,28 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
         return paths.values.toList()
     }
 
-    private fun matchesEvent(event: WakeRecord, target: String, proof: JSONObject, method: String, component: String, action: String): Boolean {
+    private fun matchesEvent(
+        event: WakeRecord,
+        target: String,
+        proof: JSONObject,
+        method: String,
+        component: String,
+        action: String,
+        firewallResets: Map<String, Long>,
+    ): Boolean {
         if (event.action.orEmpty() != action || qualifiedWakeComponent(target, event.component) != component) return false
         return when (method) {
-            "IFW" -> (event.source == "statsd" && event.kind == "ServiceRequestEventReported") ||
-                (action.isNotEmpty() && event.source == "SERVICES" && event.kind == "HeldConnection")
+            "IFW" -> {
+                val resetAt = listOfNotNull(firewallResets[""], firewallResets[target]).maxOrNull()
+                when (event.source) {
+                    "statsd" -> event.kind == "ServiceRequestEventReported" && event.wallMillis > (resetAt ?: 0L)
+
+                    // A held binding records the inspection time. Its start may predate the reset.
+                    "SERVICES" -> event.kind == "HeldConnection" && action.isNotEmpty() && resetAt == null
+
+                    else -> false
+                }
+            }
 
             // Only a review covering every invocation can authorize a component-wide change.
             "PM" -> proof.optBoolean("dedicated") && event.kind in setOf("ProcessStartTime", "am_proc_start", "ServiceRequestEventReported")
