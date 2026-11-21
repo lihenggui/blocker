@@ -30,6 +30,7 @@ dependencies {
     implementation(projects.core.componentController)
     implementation(projects.core.ifwApi)
     implementation(projects.core.rule)
+    implementation(libs.smali.dexlib)
 
     implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.datetime)
@@ -40,6 +41,9 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.truth)
+    testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(libs.mockito.kotlin)
 }

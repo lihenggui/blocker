@@ -1,0 +1,40 @@
+// Copyright 2026 Blocker
+// SPDX-License-Identifier: Apache-2.0
+// Wire-compatible subset of AOSP statsd_config.proto and stats_log.proto.
+syntax = "proto2";
+package blocker.wake;
+option java_package = "com.merxury.blocker.core.wake.proto";
+option java_outer_classname = "WakeStats";
+
+message Config {
+  optional int64 id = 1;
+  repeated EventMetric event_metric = 2;
+  repeated Matcher atom_matcher = 7;
+  repeated string allowed_log_source = 12;
+  optional bool hash_strings_in_metric_report = 16;
+}
+message EventMetric { optional int64 id = 1; optional int64 what = 2; }
+message Matcher { optional int64 id = 1; optional Simple simple_atom_matcher = 2; }
+message Simple { optional int32 atom_id = 1; }
+
+message ReportList { optional ConfigKey config_key = 1; repeated Report reports = 2; }
+message ConfigKey { optional int32 uid = 1; optional int64 id = 2; }
+message Report {
+  repeated Metric metrics = 1;
+  optional int64 current_report_elapsed_nanos = 4;
+  optional int64 current_report_wall_clock_nanos = 6;
+  repeated int32 data_corrupted_reason = 11;
+}
+message Metric {
+  optional int64 metric_id = 1;
+  optional Events event_metrics = 4;
+  optional bool is_active = 14;
+  repeated int32 data_corrupted_reason = 19;
+}
+message Events { repeated Event data = 1; }
+message Event {
+  optional int64 elapsed_timestamp_nanos = 1;
+  optional bytes atom = 2;
+  optional Aggregate aggregated_atom_info = 4;
+}
+message Aggregate { optional bytes atom = 1; repeated int64 elapsed_timestamp_nanos = 2; }
