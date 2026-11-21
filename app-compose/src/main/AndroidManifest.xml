@@ -7,6 +7,8 @@
 
     <application
         android:name=".BlockerApplication"
+        android:fullBackupContent="@xml/wake_backup_exclusions"
+        android:dataExtractionRules="@xml/wake_data_extraction"
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="tiramisu"
         android:icon="@mipmap/ic_launcher"

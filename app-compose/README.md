@@ -119,6 +119,7 @@ graph TB
   :benchmarks -.->|testedApks| :app-compose
   :core:common -.-> :core:model
   :core:component-controller -.-> :core:common
+  :core:component-controller -.-> :core:datastore-proto
   :core:component-controller -.-> :core:ifw-api
   :core:component-controller -.-> :core:model
   :core:data -.-> :core:analytics
@@ -235,7 +236,9 @@ graph TB
   :feature:settings:impl -.-> :core:ui
   :feature:settings:impl --> :feature:settings:api
   :sync:work -.-> :core:analytics
+  :sync:work -.-> :core:component-controller
   :sync:work -.-> :core:data
+  :sync:work -.-> :core:domain
   :sync:work -.-> :core:git
   :sync:work -.-> :core:rule
 

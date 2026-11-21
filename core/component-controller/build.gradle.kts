@@ -23,6 +23,7 @@ plugins {
 }
 
 android {
+    buildFeatures.aidl = true
     defaultConfig {
         consumerProguardFiles("consumer-proguard-rules.pro")
     }
@@ -33,6 +34,7 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.model)
+    implementation(projects.core.datastoreProto)
     implementation(projects.core.ifwApi)
 
     implementation(libs.hiddenapibypass)
@@ -41,5 +43,8 @@ dependencies {
     implementation(libs.shizuku.provider)
 
     testImplementation(projects.core.testing)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.truth)
     testImplementation(libs.robolectric)
 }

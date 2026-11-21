@@ -1,0 +1,11 @@
+[
+  {
+    "component": "cn.jpush.android.service.DaemonService",
+    "action": "cn.jpush.android.intent.DaemonService",
+    "sdkNamespace": "Lcn/jpush/",
+    "sdkFingerprint": "809e8ab278495fa3e98f30ba8301d3a970fcbd526ca36c0b55e1f30693aea445",
+    "peerSdk": true,
+    "artifactSha256": "4e212a6994bd8f5d09f8dcee45d89534e50d4960f123e66593a182f8de188f24",
+    "review": "https://repo.maven.apache.org/maven2/cn/jiguang/jpush/2.1.8/jpush-2.1.8.aar"
+  }
+]

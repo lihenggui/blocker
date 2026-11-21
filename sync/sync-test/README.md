@@ -25,6 +25,7 @@ graph TB
     :core:database[database]:::android-library
     :core:datastore[datastore]:::android-library
     :core:datastore-proto[datastore-proto]:::jvm-library
+    :core:domain[domain]:::android-library
     :core:git[git]:::android-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
@@ -34,6 +35,7 @@ graph TB
 
   :core:common -.-> :core:model
   :core:component-controller -.-> :core:common
+  :core:component-controller -.-> :core:datastore-proto
   :core:component-controller -.-> :core:ifw-api
   :core:component-controller -.-> :core:model
   :core:data -.-> :core:analytics
@@ -46,6 +48,12 @@ graph TB
   :core:datastore -.-> :core:common
   :core:datastore --> :core:datastore-proto
   :core:datastore --> :core:model
+  :core:domain -.-> :core:common
+  :core:domain -.-> :core:component-controller
+  :core:domain --> :core:data
+  :core:domain -.-> :core:ifw-api
+  :core:domain --> :core:model
+  :core:domain -.-> :core:rule
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
@@ -57,7 +65,9 @@ graph TB
   :sync:sync-test -.-> :core:data
   :sync:sync-test -.-> :sync:work
   :sync:work -.-> :core:analytics
+  :sync:work -.-> :core:component-controller
   :sync:work -.-> :core:data
+  :sync:work -.-> :core:domain
   :sync:work -.-> :core:git
   :sync:work -.-> :core:rule
 

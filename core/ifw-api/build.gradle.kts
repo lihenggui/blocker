@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.jacoco)
     alias(libs.plugins.blocker.android.hilt)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -34,4 +35,5 @@ dependencies {
 
     testImplementation(projects.core.testing)
     testImplementation(libs.robolectric)
+    testImplementation(libs.mockito.kotlin)
 }
