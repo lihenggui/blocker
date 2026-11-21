@@ -1,0 +1,9 @@
+<full-backup-content>
+    <exclude domain="database" path="wake_history" />
+    <exclude domain="database" path="wake_history-shm" />
+    <exclude domain="database" path="wake_history-wal" />
+    <exclude domain="database" path="wake_history-journal" />
+    <exclude domain="sharedpref" path="wake_protection.xml" />
+    <exclude domain="sharedpref" path="wake_stats_owner.xml" />
+    <exclude domain="sharedpref" path="wake_reviewed_sdk.xml" />
+</full-backup-content>

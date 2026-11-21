@@ -40,6 +40,9 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.truth)
+    testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(libs.mockito.kotlin)
 }

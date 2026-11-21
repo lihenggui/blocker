@@ -37,6 +37,7 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.Sync
+import com.merxury.blocker.sync.workers.WakeWork
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -54,6 +55,9 @@ class BlockerApplication :
     Application(),
     SingletonImageLoader.Factory,
     Configuration.Provider {
+    @Inject
+    lateinit var wakeWork: WakeWork
+
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
@@ -107,7 +111,7 @@ class BlockerApplication :
         initAppSettings()
         addApiExemptions()
         profileVerifierLogger()
-        Sync.initialize(context = this)
+        Sync.initialize(context = this, wakeWork = wakeWork)
     }
 
     override fun newImageLoader(context: Context): ImageLoader = imageLoader.get()

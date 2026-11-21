@@ -38,7 +38,7 @@ import timber.log.Timber
 
 private const val MAX_SERVICE_COUNT = 10000
 
-private object RootApiServices {
+internal object RootApiServices {
     private val context get() = systemContext
     val userId get() = context.userId
     val packageName get() = context.packageName
