@@ -41,11 +41,7 @@ class WakeProtectionManager @Inject constructor(
             val alreadyPending = repository.rulesPending
             repository.markRulesPending(true)
             repository.resetFirewall(packageName)
-            if (packageName == null) {
-                rules.replace(emptyList())
-            } else {
-                rules.removePackage(packageName)
-            }
+            rules.resetWithRoot(packageName)
             repository.markRulesPending(packageName != null && alreadyPending)
         }
     }

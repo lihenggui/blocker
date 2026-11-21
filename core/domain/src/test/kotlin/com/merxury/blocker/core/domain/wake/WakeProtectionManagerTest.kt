@@ -195,10 +195,10 @@ class WakeProtectionManagerTest {
         val manager = manager
         manager.resetFirewall(first.target)
         verify(repository).resetFirewall(first.target)
-        verify(rules).removePackage(first.target)
+        verify(rules).resetWithRoot(first.target)
         manager.resetFirewall(null)
         verify(repository).resetFirewall(null)
-        verify(rules).replace(emptyList())
+        verify(rules).resetWithRoot(null)
         verifyNoInteractions(components)
     }
 

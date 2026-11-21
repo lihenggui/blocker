@@ -3,12 +3,17 @@
 
 package com.merxury.core.ifw
 
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
@@ -18,6 +23,17 @@ import kotlin.test.assertTrue
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
 class ManagedWakeRulesTest {
+    @Test fun givenDirectRootWhenResettingThenShizukuAvailabilityDoesNotAffectEitherScope() = runTest {
+        val root = mock<RootCommandExecutor>()
+        val transport = mock<WakeRuleWriter>()
+        val rules = ManagedWakeRules(transport, root, mock())
+        for (target in listOf(null, "a.pkg")) {
+            rules.resetWithRoot(target)
+            verify(root).execute(ResetWakeRules(target))
+        }
+        verifyNoInteractions(transport)
+    }
+
     @Test fun givenASharedManagedFileWhenResettingOneTargetThenOtherPackagesKeepTheirRules() {
         val first = WakeServiceFilter("a.pkg", "a.pkg", "a.pkg.Wake", "")
         val second = WakeServiceFilter("b.pkg", "b.pkg", "b.pkg.Wake", "")

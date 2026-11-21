@@ -126,19 +126,10 @@ class WakeUserService @JvmOverloads constructor(private val context: Context? = 
         return reader
     }
 
-    private fun requireRootCaller() {
+    override fun writeManagedFirewall(xml: String?, probe: Boolean) {
         check(android.os.Process.myUid() == 0 && android.os.Binder.getCallingUid() == context?.applicationInfo?.uid) {
             "Authorized Blocker root user service required"
         }
-    }
-
-    override fun removeManagedPackage(packageName: String) {
-        requireRootCaller()
-        com.merxury.core.ifw.removeManagedWakePackage(packageName)
-    }
-
-    override fun writeManagedFirewall(xml: String?, probe: Boolean) {
-        requireRootCaller()
         com.merxury.core.ifw.writeManagedWakeFile(xml, probe)
     }
 
@@ -170,11 +161,6 @@ internal class WakeSession(val uid: Int, private val remote: IWakeReader?, val g
     fun componentJournal(replacement: String?): String {
         check(uid == 0)
         return checkNotNull(remote) { "Root user service unavailable" }.componentJournal(replacement)
-    }
-
-    fun removeFirewallPackage(packageName: String) {
-        check(uid == 0)
-        checkNotNull(remote).removeManagedPackage(packageName)
     }
 
     fun writeFirewall(xml: String?, probe: Boolean) {

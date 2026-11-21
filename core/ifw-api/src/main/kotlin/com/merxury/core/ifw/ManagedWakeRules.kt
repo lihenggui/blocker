@@ -8,6 +8,7 @@ import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
 import be.mygod.librootkotlinx.RootCommandNoResult
+import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -31,13 +32,19 @@ fun interface ManagedWakeReset {
     suspend fun resetFirewall(packageName: String?)
 }
 
-interface WakeRuleWriter {
-    suspend fun removePackage(packageName: String)
+fun interface WakeRuleWriter {
     suspend fun write(xml: String?, probe: Boolean)
 }
 
-class ManagedWakeRules @Inject constructor(private val writer: WakeRuleWriter, @param:ApplicationContext private val context: Context) {
-    suspend fun removePackage(packageName: String) = writer.removePackage(packageName)
+class ManagedWakeRules @Inject constructor(
+    private val writer: WakeRuleWriter,
+    private val root: RootCommandExecutor,
+    @param:ApplicationContext private val context: Context,
+) {
+    // ResetIfwWorker already authorized direct root for the manual rule store.
+    suspend fun resetWithRoot(packageName: String?) {
+        root.execute(ResetWakeRules(packageName))
+    }
 
     suspend fun supportsPeerFilter(): Boolean = testPeerFilter(context, writer)
 
@@ -77,9 +84,14 @@ class WriteWakeRules(private val xml: String?, private val probe: Boolean = fals
 }
 
 @Parcelize
-class RemovePackageWakeRules(private val packageName: String) : RootCommandNoResult {
+internal data class ResetWakeRules(val packageName: String?) : RootCommandNoResult {
     override suspend fun execute() = withContext(Dispatchers.IO) {
-        removeManagedWakePackage(packageName)
+        if (packageName == null) {
+            writeManagedWakeFile(null, false)
+            writeManagedWakeFile(null, true)
+        } else {
+            removeManagedWakePackage(packageName)
+        }
         null
     }
 }
@@ -93,7 +105,7 @@ internal fun withoutWakePackage(xml: String, target: String): String? {
     return if (remaining.isEmpty()) null else IfwXmlSerializer().serialize(IfwRules(remaining))
 }
 
-fun removeManagedWakePackage(packageName: String) {
+private fun removeManagedWakePackage(packageName: String) {
     val file = File(IfwStorageUtils.ifwFolder, "$AUTOMATIC_FILE.xml")
     try {
         Os.stat(file.path)

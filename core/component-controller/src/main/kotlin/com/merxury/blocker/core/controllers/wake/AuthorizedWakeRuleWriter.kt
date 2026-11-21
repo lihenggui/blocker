@@ -4,7 +4,6 @@
 package com.merxury.blocker.core.controllers.wake
 
 import com.merxury.blocker.core.root.RootCommandExecutor
-import com.merxury.core.ifw.RemovePackageWakeRules
 import com.merxury.core.ifw.WakeRuleWriter
 import com.merxury.core.ifw.WriteWakeRules
 import dagger.Binds
@@ -17,14 +16,6 @@ internal class AuthorizedWakeRuleWriter @Inject constructor(
     private val reader: WakeSystemReader,
     private val root: RootCommandExecutor,
 ) : WakeRuleWriter {
-    override suspend fun removePackage(packageName: String) {
-        when (val access = reader.access()) {
-            WakeAccess.DIRECT_ROOT -> root.execute(RemovePackageWakeRules(packageName))
-            WakeAccess.SHIZUKU_ROOT -> reader.withSession(access) { it.removeFirewallPackage(packageName) }
-            else -> error("Root authorization unavailable")
-        }
-    }
-
     override suspend fun write(xml: String?, probe: Boolean) {
         when (val access = reader.access()) {
             WakeAccess.DIRECT_ROOT -> root.execute(WriteWakeRules(xml, probe))
