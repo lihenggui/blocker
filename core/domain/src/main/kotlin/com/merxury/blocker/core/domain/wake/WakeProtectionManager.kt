@@ -57,11 +57,19 @@ class WakeProtectionManager @Inject constructor(
                 val knownIds = previous.map { it.pathId }.toSet()
                 val newPaths = candidates.filter { it.pathId !in knownIds }
                 if (newPaths.isNotEmpty()) repository.saveProtections(newPaths)
+                if (access != WakeAccess.SHIZUKU_SHELL) {
+                    reconcileComponents(previous, candidates.filter { it.method == "PM" })
+                }
+                if (capture.binderFallback) {
+                    // Binder diagnostics can survive a user-service timeout. Retry the missing
+                    // event sources and firewall transport without discarding collected evidence.
+                    repository.reportStatus(WakeSourceStatus("protection", now, "SHIZUKU_USER_SERVICE_UNAVAILABLE"))
+                    return@withLock false
+                }
                 if (access == WakeAccess.SHIZUKU_SHELL) {
                     repository.reportStatus(WakeSourceStatus("protection", now, "OBSERVING_WITH_SHELL"))
                     return@withLock true
                 }
-                reconcileComponents(previous, candidates.filter { it.method == "PM" })
                 val status = reconcileFirewall(access, previous.filter { it.method == "IFW" }, candidates.filter { it.method == "IFW" })
                 repository.reportStatus(WakeSourceStatus("protection", now, status))
                 true

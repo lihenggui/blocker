@@ -19,6 +19,7 @@ data class WakeCapture(
     val packages: List<WakePackageUid>,
     val profiles: List<Int>,
     val batches: List<WakeBatch>,
+    val binderFallback: Boolean,
 )
 
 class WakeCollector @Inject constructor(
@@ -34,8 +35,10 @@ class WakeCollector @Inject constructor(
         val packages = mutableListOf<WakePackageUid>()
         val profiles = mutableListOf<Int>()
         val batches = mutableListOf<WakeBatch>()
+        var binderFallback = false
         try {
             reader.withSession(access) { session ->
+                binderFallback = !session.supportsRecorder
                 batches += WakeBatch("authorization", emptyList())
                 fun read(command: WakeCommand, profile: Int = 0, handle: (String) -> Unit) {
                     val source = if (profile == 0) command.name else "${command.name}/$profile"
@@ -110,7 +113,7 @@ class WakeCollector @Inject constructor(
             if (e is CancellationException) throw e
             batches += WakeBatch("authorization", emptyList(), listOf(e.message ?: "unavailable"))
         }
-        return WakeCapture(boot, SystemClock.elapsedRealtimeNanos(), System.currentTimeMillis(), packages, profiles, batches)
+        return WakeCapture(boot, SystemClock.elapsedRealtimeNanos(), System.currentTimeMillis(), packages, profiles, batches, binderFallback)
     }
 
     /** Called after the non-destructive copy has committed to Room. Import the returned tail too. */

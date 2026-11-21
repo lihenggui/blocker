@@ -20,6 +20,7 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -77,6 +78,18 @@ class WakeProtectionManagerTest {
         verify(repository).reportStatus(argThat { status == "IFW_REQUIRES_ROOT_OR_SHIZUKU_13" })
         verify(repository, never()).saveProtections(any())
         verifyNoInteractions(rules)
+    }
+
+    @Test fun givenUserServiceTimeoutWhenOnlyBinderDiagnosticsRemainThenRetryAndPreserveFirewall() = runTest {
+        val configured = path.copy(method = "IFW", configured = true)
+        for (access in listOf(WakeAccess.SHIZUKU_SHELL, WakeAccess.SHIZUKU_ROOT)) {
+            authorizedWith(configured, access = access)
+            whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), listOf(0), binderFallback = true))
+            assertThat(manager.reconcile()).isFalse()
+        }
+        verify(repository, times(2)).reportStatus(argThat { status == "SHIZUKU_USER_SERVICE_UNAVAILABLE" })
+        verify(repository, never()).saveProtections(any())
+        verifyNoInteractions(rules, components)
     }
 
     @Test fun incompleteProfileInformationPreservesTheJournalAndRetries() = runTest {

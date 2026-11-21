@@ -22,7 +22,7 @@ import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class WakeImport(val boot: String, val identities: List<WakeIdentity>, val profiles: List<Int>)
+data class WakeImport(val boot: String, val identities: List<WakeIdentity>, val profiles: List<Int>, val binderFallback: Boolean = false)
 
 @Singleton
 class WakeRepository @Inject constructor(
@@ -83,7 +83,7 @@ class WakeRepository @Inject constructor(
         if (diagnostic && capture.profiles.isNotEmpty()) preferences.edit().putLong("last_diagnostic", capture.wallMillis).apply()
         val identities = index.refresh(local, capture.packages, capture.wallMillis)
         history.status(WakeSourceStatus("package index", System.currentTimeMillis(), "${identities.size} packages"))
-        return WakeImport(capture.boot, identities, capture.profiles)
+        return WakeImport(capture.boot, identities, capture.profiles, capture.binderFallback)
     }
 
     private suspend fun importBatches(batches: List<WakeBatch>, capture: WakeCapture, byUid: Map<Int, List<WakePackageLabel>>) {
