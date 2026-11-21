@@ -20,33 +20,46 @@ import org.mockito.kotlin.whenever
 class WakeComponentOwnershipTest {
     private val dao = mock<WakeHistoryDao>()
     private val journal = mock<WakeComponentJournal>()
-    private val repository = WakeRepository(mock(), dao, mock(), mock(), journal)
+    private val ownership = WakeComponentOwnership(dao, journal)
     private val owned = WakeProtection(
         "path", "caller", "package", "package.Service", "", "proof", false, true, "PM",
         "1/20/10", "1/20/10", "signer", 0,
     )
 
-    @Test fun givenClearedAppStorageWhenRecoveringThenTheOwnedInstallationAndOriginalStateReturn() = runTest {
+    @Test fun givenClearedAppStorage_whenRecoveringOwnership_thenInstallationAndOriginalStateAreRestored() = runTest {
         whenever(dao.readProtections()).thenReturn(emptyList())
-        repository.saveComponentProtection(owned)
+        ownership.save(owned)
         val encoded = argumentCaptor<String>()
         verify(journal).write(encoded.capture())
         whenever(journal.read()).thenReturn(encoded.firstValue)
-        repository.recoverComponentOwnership()
+        ownership.recover()
         verify(dao, times(2)).putProtections(listOf(owned))
     }
 
-    @Test fun givenInterruptedReleaseWhenRecoveringThenALocalEntryCannotReclaimTheComponent() = runTest {
+    @Test fun givenInterruptedRelease_whenRecoveringOwnership_thenLocalEntryCannotReclaimComponent() = runTest {
         whenever(dao.readProtections()).thenReturn(listOf(owned))
         whenever(journal.read()).thenReturn("[]")
-        repository.recoverComponentOwnership()
+        ownership.recover()
         verify(dao).putProtections(listOf(owned.copy(configured = false)))
     }
 
-    @Test fun givenUnwritableJournalWhenPreparingAChangeThenNoLocalOwnershipIsClaimed() = runTest {
+    @Test fun givenManualOverrideInJournal_whenLocalWriteWasInterrupted_thenRecoveryPreservesUserChoice() = runTest {
+        whenever(dao.readProtections()).thenReturn(listOf(owned))
+        val override = owned.copy(configured = false, disabledByUser = true)
+        ownership.save(override)
+        val encoded = argumentCaptor<String>()
+        verify(journal).write(encoded.capture())
+        whenever(journal.read()).thenReturn(encoded.firstValue)
+
+        ownership.recover()
+
+        verify(dao, times(2)).putProtections(listOf(override))
+    }
+
+    @Test fun givenUnwritableJournal_whenPreparingChange_thenNoOwnershipIsClaimed() = runTest {
         whenever(dao.readProtections()).thenReturn(emptyList())
         whenever(journal.write(any())).thenThrow(IllegalStateException("full"))
-        assertThat(runCatching { repository.saveComponentProtection(owned) }.isFailure).isTrue()
+        assertThat(runCatching { ownership.save(owned) }.isFailure).isTrue()
         verify(dao, never()).putProtections(any())
     }
 }

@@ -1,7 +1,7 @@
 // Copyright 2026 Blocker
 // SPDX-License-Identifier: Apache-2.0
 
-package com.merxury.blocker.core.domain.wake;
+package com.merxury.blocker.core.data.wake;
 
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;

@@ -65,8 +65,16 @@ internal object WakeBinderReader {
             }
         }
         val timeout = timer.schedule({
-            runCatching { writer.closeWithError("System service timeout") }
-            runCatching { reader.close() }
+            try {
+                writer.closeWithError("System service timeout")
+            } catch (e: IOException) {
+                timber.log.Timber.d(e, "Wake dump writer already closed")
+            }
+            try {
+                reader.close()
+            } catch (e: IOException) {
+                timber.log.Timber.d(e, "Cannot close timed-out wake dump reader")
+            }
         }, 20, TimeUnit.SECONDS)
         try {
             return ParcelFileDescriptor.AutoCloseInputStream(reader).use { input ->

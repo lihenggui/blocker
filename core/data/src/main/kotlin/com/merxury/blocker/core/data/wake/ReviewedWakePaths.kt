@@ -1,19 +1,20 @@
 // Copyright 2026 Blocker
 // SPDX-License-Identifier: Apache-2.0
 
-package com.merxury.blocker.core.domain.wake
+package com.merxury.blocker.core.data.wake
 
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
 import androidx.core.content.edit
 import com.merxury.blocker.core.database.wake.WakeIdentity
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.json.JSONArray
 import org.json.JSONObject
+import timber.log.Timber
 import java.io.File
 import java.security.MessageDigest
 import javax.inject.Inject
@@ -93,9 +94,10 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
     }
 
     private fun matchesEvent(event: WakeRecord, target: String, proof: JSONObject, method: String, component: String, action: String): Boolean {
-        if (event.action.orEmpty() != action || WakeAttribution.qualified(target, event.component) != component) return false
+        if (event.action.orEmpty() != action || qualifiedWakeComponent(target, event.component) != component) return false
         return when (method) {
-            "IFW" -> event.kind == "ServiceRequestEventReported"
+            "IFW" -> (event.source == "statsd" && event.kind == "ServiceRequestEventReported") ||
+                (action.isNotEmpty() && event.source == "SERVICES" && event.kind == "HeldConnection")
 
             // Only a review covering every invocation can authorize a component-wide change.
             "PM" -> proof.optBoolean("dedicated") && event.kind in setOf("ProcessStartTime", "am_proc_start", "ServiceRequestEventReported")
@@ -123,9 +125,12 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
         val files = (listOf(app.sourceDir) + app.splitSourceDirs.orEmpty()).map(::File)
         val fingerprint = try {
             SdkDexFingerprint.compute(files, prefix)
-        } catch (_: java.io.IOException) {
+        } catch (e: java.io.IOException) {
+            Timber.w(e, "Cannot read SDK fingerprint for %s", identity.packageName)
             return false
-        } catch (_: RuntimeException) {
+        } catch (e: RuntimeException) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Timber.w(e, "Invalid SDK fingerprint input for %s", identity.packageName)
             return false
         }
         val matches = fingerprint == expected
@@ -147,8 +152,7 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
             } catch (_: PackageManager.NameNotFoundException) {
                 return null
             }
-            val version = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
-            return "$version/${info.lastUpdateTime}/${info.firstInstallTime}"
+            return info.wakeRevision
         }
         return revision(path.target) == path.targetRevision && (path.caller == path.target || revision(path.caller) == path.callerRevision)
     }
@@ -156,15 +160,14 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
     @Suppress("DEPRECATION")
     fun sameInstallation(path: WakeProtection): Boolean {
         val pm = context.packageManager
-        val flag = if (Build.VERSION.SDK_INT >= 28) PackageManager.GET_SIGNING_CERTIFICATES else PackageManager.GET_SIGNATURES
+        val flag = wakeSigningFlags
         val info = try {
             pm.getPackageInfo(path.target, flag)
         } catch (_: PackageManager.NameNotFoundException) {
             return false
         }
         if (path.targetRevision.substringAfterLast('/').toLongOrNull() != info.firstInstallTime) return false
-        val signatures = if (Build.VERSION.SDK_INT >= 28) info.signingInfo?.apkContentsSigners else info.signatures
-        return signatures.orEmpty().map { sha256(it.toByteArray()) }.sorted().joinToString(",") == path.targetSigners
+        return info.wakeSigners == path.targetSigners
     }
 
     @Suppress("DEPRECATION")
@@ -180,11 +183,9 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                     digest.update(buf, 0, count)
                 }
             }
-            digest.digest().hex()
+            digest.digest().toHexString()
         }.toSet()
     }
 
-    private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes).hex()
-    private fun ByteArray.hex() = joinToString("") { "%02x".format(it) }
     private fun JSONArray.strings(): Set<String> = (0 until length()).map { getString(it) }.toSet()
 }

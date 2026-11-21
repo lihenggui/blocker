@@ -27,7 +27,7 @@ class WakeAttributionTest {
         attributes = """{"hosting_type_id":"16"}""",
     )
 
-    @Test fun requiresUniqueComponentAndBootScopedProcessEvidence() {
+    @Test fun givenColdStartRequests_whenLinkingToProcessStarts_thenOnlyUniqueSameBootMatchesQualify() {
         assertThat(WakeAttribution.relationships(listOf(start, request)).single().requestId).isEqualTo("request")
         assertThat(WakeAttribution.relationships(listOf(start, request, request.copy(id = "other")))).isEmpty()
         assertThat(WakeAttribution.relationships(listOf(start, request.copy(boot = "another")))).isEmpty()
@@ -35,7 +35,18 @@ class WakeAttributionTest {
         assertThat(WakeAttribution.relationships(listOf(start, request.copy(component = ".Payment")))).isEmpty()
     }
 
-    @Test fun joinsSequentialColdStartsOnlyForTheSameLiveCallerProcess() {
+    @Test fun givenRequestsOnWindowBoundaries_whenLinkingStarts_thenEqualTimestampsPreserveAmbiguity() {
+        val window = 5_000_000_000L
+        val middle = start.copy(elapsedNanos = 2 * window)
+        for (edge in listOf(window, 3 * window)) {
+            val match = request.copy(elapsedNanos = edge)
+            val outside = request.copy(id = "outside", elapsedNanos = if (edge == window) edge - 1 else edge + 1)
+            assertThat(WakeAttribution.relationships(listOf(middle, outside, match))).hasSize(1)
+            assertThat(WakeAttribution.relationships(listOf(middle, match.copy(id = "duplicate"), outside, match))).isEmpty()
+        }
+    }
+
+    @Test fun givenSequentialColdStarts_whenJoiningThem_thenIntermediateCallerMustBeTheSameLiveProcess() {
         val middle = start.copy(processName = "target.app")
         val witness = middle.copy(id = "system", source = SYSTEM_WAKE_EVENTS, kind = "am_proc_start", processName = "target.app:peer")
         val outgoing = request.copy(
@@ -77,7 +88,7 @@ class WakeAttributionTest {
         assertThat(links(request, middle, witness, outgoing, last.copy(boot = "other"))).isEmpty()
     }
 
-    @Test fun jobsRequireMatchingRegistrationAndCancelBreaksTheLink() {
+    @Test fun givenJobEvents_whenLinkingExecution_thenOnlyAnUncancelledMatchingRegistrationQualifies() {
         fun job(id: String, state: Int, time: Long) = request.copy(
             id = id,
             kind = "ScheduledJobStateChanged",

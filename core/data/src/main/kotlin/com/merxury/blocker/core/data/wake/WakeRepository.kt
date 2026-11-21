@@ -8,10 +8,8 @@ import android.content.Context
 import android.os.Process
 import android.os.UserHandle
 import androidx.core.content.edit
-import com.merxury.blocker.core.controllers.wake.WakeAccess
 import com.merxury.blocker.core.controllers.wake.WakeCapture
 import com.merxury.blocker.core.controllers.wake.WakeCollector
-import com.merxury.blocker.core.controllers.wake.WakeComponentJournal
 import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeIdentity
@@ -19,12 +17,14 @@ import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.database.wake.WakeRelation
 import com.merxury.blocker.core.database.wake.WakeSourceStatus
+import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.blocker.core.model.wake.WakeBatch
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
+
+internal const val WAKE_HISTORY_RETENTION_MILLIS = 14L * 24 * 60 * 60 * 1_000
 
 data class WakeImport(val boot: String, val identities: List<WakeIdentity>, val profiles: List<Int>, val binderFallback: Boolean = false)
 
@@ -34,7 +34,6 @@ class WakeRepository @Inject constructor(
     private val history: WakeHistoryDao,
     private val index: WakeIdentityIndex,
     private val collector: WakeCollector,
-    private val journal: WakeComponentJournal,
 ) {
     private val preferences = context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE)
     val isOwnerProfile get() = Process.myUserHandle() == UserHandle.getUserHandleForUid(0)
@@ -60,28 +59,6 @@ class WakeRepository @Inject constructor(
     suspend fun firewallResets() = history.firewallResets().associate { it.source.substringAfter('/') to it.checkedAt }
     suspend fun protections() = history.readProtections()
     suspend fun saveProtections(paths: List<WakeProtection>) = history.putProtections(paths)
-    private fun WakeProtection.ownedComponent() = method == "PM" && (configured || pendingChange)
-
-    suspend fun recoverComponentOwnership() {
-        val local = history.readProtections().filter { it.ownedComponent() }.associateBy { it.pathId }
-        val stored = journal.read()
-        if (stored.isEmpty()) {
-            // Migrate an existing local journal before making further PackageManager changes.
-            if (local.isNotEmpty()) journal.write(Json.encodeToString(local.values.toList()))
-            return
-        }
-        val durable = Json.decodeFromString<List<WakeProtection>>(stored).associateBy { it.pathId }
-        check(durable.values.all { it.ownedComponent() && it.previousState != null })
-        val released = (local.keys - durable.keys).map { local.getValue(it).copy(configured = false, pendingChange = false) }
-        history.putProtections(released + durable.values.filter { it != local[it.pathId] })
-    }
-
-    suspend fun saveComponentProtection(path: WakeProtection) {
-        val owned = history.readProtections().filter { it.ownedComponent() && it.pathId != path.pathId }
-        val next = if (path.ownedComponent()) owned + path else owned
-        journal.write(Json.encodeToString(next))
-        history.putProtections(listOf(path))
-    }
 
     suspend fun reportStatus(status: WakeSourceStatus) = history.status(status)
 
@@ -120,7 +97,7 @@ class WakeRepository @Inject constructor(
     }
 
     private suspend fun importBatches(batches: List<WakeBatch>, capture: WakeCapture, byUid: Map<Int, List<WakePackageLabel>>) {
-        val cutoff = capture.wallMillis - 14L * 86400000
+        val cutoff = capture.wallMillis - WAKE_HISTORY_RETENTION_MILLIS
         val records = mutableListOf<WakeRecord>()
         for (batch in batches) {
             records += batch.observations.map { event ->

@@ -9,28 +9,17 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
-import android.os.Build
 import com.merxury.blocker.core.controllers.wake.WakePackageUid
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeIdentity
+import com.merxury.blocker.core.extension.getVersionCode
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 import org.json.JSONObject
 import org.xmlpull.v1.XmlPullParser
-import java.security.MessageDigest
+import timber.log.Timber
 import javax.inject.Inject
-
-internal fun ByteArray.hexDigest(): String {
-    val digest = MessageDigest.getInstance("SHA-256").digest(this)
-    val alphabet = "0123456789abcdef"
-    val text = CharArray(digest.size * 2)
-    digest.forEachIndexed { i, byte ->
-        val value = byte.toInt() and 255
-        text[i * 2] = alphabet[value ushr 4]
-        text[i * 2 + 1] = alphabet[value and 15]
-    }
-    return text.concatToString()
-}
 
 internal data class WakePackageLabel(val uid: Int, val packageName: String, val since: Long)
 
@@ -53,8 +42,8 @@ class WakeIdentityIndex @Inject constructor(
     @Suppress("DEPRECATION")
     internal suspend fun refresh(local: List<PackageInfo>, remote: List<WakePackageUid>, now: Long): List<WakeIdentity> {
         val pm = context.packageManager
-        val known = dao.identities(now - 14L * 86400000).associateBy { Triple(it.uid, it.packageName, it.revision) }
-        val signaturesFlag = if (Build.VERSION.SDK_INT >= 28) PackageManager.GET_SIGNING_CERTIFICATES else PackageManager.GET_SIGNATURES
+        val known = dao.identities(now - WAKE_HISTORY_RETENTION_MILLIS).associateBy { Triple(it.uid, it.packageName, it.revision) }
+        val signaturesFlag = wakeSigningFlags
         val flags = signaturesFlag or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or
             PackageManager.GET_PROVIDERS or PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS
         val result = mutableListOf<WakeIdentity>()
@@ -70,8 +59,8 @@ class WakeIdentityIndex @Inject constructor(
         }
         for (summary in local) {
             val uid = summary.applicationInfo?.uid ?: continue
-            val version = if (Build.VERSION.SDK_INT >= 28) summary.longVersionCode else summary.versionCode.toLong()
-            val revision = "$version/${summary.lastUpdateTime}/${summary.firstInstallTime}"
+            val version = summary.getVersionCode()
+            val revision = summary.wakeRevision
             val previous = known[Triple(uid, summary.packageName, revision)]
             if (previous != null) {
                 record(previous.copy(lastSeen = now))
@@ -82,14 +71,13 @@ class WakeIdentityIndex @Inject constructor(
             } catch (_: PackageManager.NameNotFoundException) {
                 continue
             }
-            val signatures = if (Build.VERSION.SDK_INT >= 28) info.signingInfo?.apkContentsSigners else info.signatures
             record(
                 WakeIdentity(
                     uid,
                     info.packageName,
                     revision,
                     version,
-                    signatures.orEmpty().map { it.toByteArray().hexDigest() }.sorted().joinToString(","),
+                    info.wakeSigners,
                     components(info).toString(),
                     maxOf(info.firstInstallTime, info.lastUpdateTime).takeIf { it in 1..now } ?: now,
                     now,
@@ -105,20 +93,14 @@ class WakeIdentityIndex @Inject constructor(
                 record(prior.copy(lastSeen = now))
                 continue
             }
-            val archive = other.apkPath?.let { path ->
-                runCatching { pm.getPackageArchiveInfo(path, flags) }.getOrNull()?.takeIf { it.packageName == other.packageName }?.apply {
-                    applicationInfo?.sourceDir = path
-                    applicationInfo?.publicSourceDir = path
-                }
-            }
-            val signers = if (Build.VERSION.SDK_INT >= 28) archive?.signingInfo?.apkContentsSigners else archive?.signatures
+            val archive = packageArchive(other, flags)
             record(
                 WakeIdentity(
                     other.uid,
                     other.packageName,
                     revision,
                     other.version ?: -1L,
-                    signers.orEmpty().map { it.toByteArray().hexDigest() }.sorted().joinToString(","),
+                    archive?.wakeSigners.orEmpty(),
                     archive?.let { components(it).toString() } ?: "[]",
                     prior?.firstSeen ?: now,
                     now,
@@ -127,6 +109,21 @@ class WakeIdentityIndex @Inject constructor(
         }
         if (pending.isNotEmpty()) dao.index(pending)
         return result
+    }
+
+    @Suppress("DEPRECATION")
+    private fun packageArchive(other: WakePackageUid, flags: Int): PackageInfo? {
+        val path = other.apkPath ?: return null
+        val info = try {
+            context.packageManager.getPackageArchiveInfo(path, flags)
+        } catch (e: SecurityException) {
+            Timber.w(e, "Cannot read archive metadata for %s", other.packageName)
+            return null
+        }
+        return info?.takeIf { it.packageName == other.packageName }?.apply {
+            applicationInfo?.sourceDir = path
+            applicationInfo?.publicSourceDir = path
+        }
     }
 
     private fun components(info: PackageInfo): JSONArray {
@@ -154,8 +151,9 @@ class WakeIdentityIndex @Inject constructor(
                     }
                 }
             }
-        } catch (_: Exception) {
-            // Package visibility and split resources can limit manifest metadata.
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Timber.w(e, "Manifest actions unavailable for %s", info.packageName)
         }
         val array = JSONArray()
         fun add(type: String, items: Array<out ComponentInfo>?) {

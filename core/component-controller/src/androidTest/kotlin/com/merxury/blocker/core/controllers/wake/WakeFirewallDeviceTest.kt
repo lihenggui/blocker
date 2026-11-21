@@ -24,7 +24,7 @@ class WakeFirewallDeviceTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val context get() = instrumentation.targetContext
 
-    @Test fun exactActionIsBlockedAndRemovingManagedFilePreservesIndependentRule() {
+    @Test fun givenManualAndManagedRules_whenRemovingManagedRule_thenOnlyItsActionBecomesAvailable() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("wakeFirewallTest") == "true")
         assumeTrue(Build.VERSION.SDK_INT >= 31)
         val directory = "/data/system/ifw"

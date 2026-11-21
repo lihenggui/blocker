@@ -8,6 +8,7 @@ import android.content.Context
 import android.os.SystemClock
 import android.provider.Settings
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
+import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.blocker.core.model.wake.WakeBatch
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -41,8 +42,9 @@ class WakeCollector @Inject constructor(
             reader.withSession(access) { session ->
                 binderFallback = !session.supportsRecorder
                 batches += WakeBatch("authorization", emptyList())
+                fun WakeCommand.source(profile: Int) = if (profile == 0) name else "$name/$profile"
                 fun read(command: WakeCommand, profile: Int = 0, handle: (String) -> Unit) {
-                    val source = if (profile == 0) command.name else "${command.name}/$profile"
+                    val source = command.source(profile)
                     try {
                         val output = session.read(command, profile).decodeToString()
                         check(!output.startsWith("Permission Denial") && !output.startsWith("Can't find service") && !output.contains("DUMP TIMEOUT")) { "Service unavailable" }
@@ -55,46 +57,10 @@ class WakeCollector @Inject constructor(
                 }
                 if (boot != "unavailable") {
                     try {
-                        check(session.supportsRecorder) { "The system recorder requires the Shizuku user service" }
-                        check(android.os.Build.VERSION.SDK_INT >= 28) { "statsd metrics unavailable on this Android release" }
-                        // A statsd configuration is owned by the UID that installed it.
-                        val legacyOwner = metadata.getInt("uid", -1) == session.uid
-                        val generationKey = "generation/${session.uid}"
-                        val installedKey = "key/${session.uid}"
-                        val priorBoot = metadata.getInt(generationKey, if (legacyOwner) metadata.getInt("generation", session.generation) else session.generation)
-                        if (priorBoot != session.generation) session.read(WakeCommand.REMOVE, boot = priorBoot)
-                        val id = WakeStatsCodec.configId(android.os.Process.myUid(), session.generation)
-                        if (android.os.Build.VERSION.SDK_INT == 28) {
-                            // Pie ignores metric activations. Retire any old, unbounded config.
-                            session.read(WakeCommand.REMOVE)
-                            error("bounded statsd recording requires Android 10")
-                        }
-                        val configKey = "$boot/${session.uid}/${WakeStatsCodec.config(id, session.uid).contentHashCode()}"
-
-                        // The recorder generation must survive process death before installing the config.
-                        @SuppressLint("UseKtx")
-                        fun install() {
-                            check(metadata.edit().putInt(generationKey, session.generation).commit())
-                            session.read(WakeCommand.INSTALL)
-                            check(metadata.edit().putString(installedKey, configKey).commit())
-                        }
-                        if (metadata.getString(installedKey, if (legacyOwner) metadata.getString("key", null) else null) != configKey) install()
-                        fun report(): WakeBatch {
-                            session.read(WakeCommand.RENEW)
-                            val bytes = session.read(WakeCommand.REPORT)
-                            val elapsed = SystemClock.elapsedRealtimeNanos()
-                            val origin = System.currentTimeMillis() * 1_000_000 - elapsed
-                            return WakeStatsCodec.decode(bytes, origin, elapsed, session.uid, id)
-                        }
-                        batches += try {
-                            report()
-                        } catch (e: IllegalArgumentException) {
-                            install()
-                            report().let { it.copy(gaps = it.gaps + "configuration restored") }
-                        }
+                        batches += readStatsReport(session, boot)
                     } catch (e: Exception) {
                         if (e is CancellationException) throw e
-                        batches += WakeBatch("statsd", emptyList(), listOf(e.message ?: "unavailable"))
+                        batches += WakeBatch("statsd", emptyList(), listOf(e.message ?: e.javaClass.simpleName))
                     }
                     read(WakeCommand.EVENTS) { output ->
                         batches += WakeBatch(SYSTEM_WAKE_EVENTS, WakeSystemEvidence.logcat(output, System.currentTimeMillis(), SystemClock.elapsedRealtimeNanos()), listOf("bounded event log"))
@@ -108,8 +74,7 @@ class WakeCollector @Inject constructor(
                 }
                 val now = SystemClock.elapsedRealtimeNanos()
                 fun snapshot(cmd: WakeCommand, profile: Int = 0) = read(cmd, profile) {
-                    val name = if (profile == 0) cmd.name else "${cmd.name}/$profile"
-                    batches += WakeBatch(name, WakeSystemEvidence.snapshot(cmd, it, now, profile))
+                    batches += WakeBatch(cmd.source(profile), WakeSystemEvidence.snapshot(cmd, it, now, profile))
                 }
                 for (cmd in listOf(WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES)) snapshot(cmd)
                 if (diagnostic) {
@@ -124,6 +89,46 @@ class WakeCollector @Inject constructor(
             batches += WakeBatch("authorization", emptyList(), listOf(e.message ?: "unavailable"))
         }
         return WakeCapture(boot, SystemClock.elapsedRealtimeNanos(), System.currentTimeMillis(), packages, profiles, batches, binderFallback)
+    }
+
+    private fun readStatsReport(session: WakeSession, boot: String): WakeBatch {
+        check(session.supportsRecorder) { "The system recorder requires the Shizuku user service" }
+        check(android.os.Build.VERSION.SDK_INT >= 28) { "statsd metrics unavailable on this Android release" }
+        // A statsd configuration is owned by the UID that installed it.
+        val legacyOwner = metadata.getInt("uid", -1) == session.uid
+        val generationKey = "generation/${session.uid}"
+        val installedKey = "key/${session.uid}"
+        val priorBoot = metadata.getInt(generationKey, if (legacyOwner) metadata.getInt("generation", session.generation) else session.generation)
+        if (priorBoot != session.generation) session.read(WakeCommand.REMOVE, boot = priorBoot)
+        val id = WakeStatsCodec.configId(android.os.Process.myUid(), session.generation)
+        if (android.os.Build.VERSION.SDK_INT == 28) {
+            // Pie ignores metric activations. Retire any old, unbounded config.
+            session.read(WakeCommand.REMOVE)
+            error("bounded statsd recording requires Android 10")
+        }
+        val configKey = "$boot/${session.uid}/${WakeStatsCodec.config(id, session.uid).contentHashCode()}"
+
+        // The recorder generation must survive process death before installing the config.
+        @SuppressLint("UseKtx")
+        fun install() {
+            check(metadata.edit().putInt(generationKey, session.generation).commit())
+            session.read(WakeCommand.INSTALL)
+            check(metadata.edit().putString(installedKey, configKey).commit())
+        }
+        if (metadata.getString(installedKey, if (legacyOwner) metadata.getString("key", null) else null) != configKey) install()
+        fun report(): WakeBatch {
+            session.read(WakeCommand.RENEW)
+            val bytes = session.read(WakeCommand.REPORT)
+            val elapsed = SystemClock.elapsedRealtimeNanos()
+            val origin = System.currentTimeMillis() * 1_000_000 - elapsed
+            return WakeStatsCodec.decode(bytes, origin, elapsed, session.uid, id)
+        }
+        return try {
+            report()
+        } catch (e: IllegalArgumentException) {
+            install()
+            report().let { it.copy(gaps = it.gaps + "configuration restored") }
+        }
     }
 
     /** Called after the non-destructive copy has committed to Room. Import the returned tail too. */

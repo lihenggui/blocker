@@ -83,198 +83,255 @@ internal object WakeSystemEvidence {
         }.copy(eventWallNanos = eventWall)
     }.toList()
 
-    fun snapshot(source: WakeCommand, output: String, now: Long, profile: Int = 0): List<WakeObservation> {
+    private fun heldConnections(source: WakeCommand, output: String, now: Long): List<WakeObservation> {
         val facts = mutableSetOf<WakeObservation>()
         var host: String? = null
-        var client: String? = null
-        var clientUid: Int? = null
         var hostUid: Int? = null
-        var pending: MatchResult? = null
-        var creatorUid: Int? = null
-        var sourceUser = profile
-        val meta = mapOf("user" to profile.toString())
+        var bindingIndent = -1
+        var action: String? = null
         for (line in output.lineSequence()) {
             val text = line.trim()
-            when (source) {
-                WakeCommand.SERVICES, WakeCommand.PROVIDERS -> {
-                    if (text.startsWith("* ServiceRecord{") || text.startsWith("* ContentProviderRecord{")) {
-                        host = component.find(text)?.value
-                        client = null
-                        clientUid = null
-                        hostUid = null
-                    }
-                    if (text.startsWith("uid=")) hostUid = text.substringAfter('=').substringBefore(' ').toIntOrNull()
-                    if (text.startsWith("app=ProcessRecord{") || text.startsWith("proc=ProcessRecord{")) {
-                        hostUid = process.find(text)?.groupValues?.get(3)?.let(::uidFromDump) ?: hostUid
-                    }
-                    if (text.startsWith("* Client AppBindRecord{") || text.startsWith("client=ProcessRecord{")) {
-                        val match = process.find(text)
-                        client = match?.groupValues?.get(2)
-                        clientUid = match?.groupValues?.get(3)?.let(::uidFromDump)
-                    }
-                    if (source == WakeCommand.PROVIDERS && text.startsWith("->")) {
-                        val match = connectionClient.find(text)
-                        client = match?.groupValues?.get(1)
-                        clientUid = match?.groupValues?.get(2)?.let(::uidFromDump)
-                    }
-                    if (host != null && client != null) {
-                        facts += WakeObservation(
-                            "HeldConnection",
-                            now,
-                            callerUid = clientUid,
-                            targetUid = hostUid,
-                            targetPackage = host.substringBefore('/'),
-                            component = host,
-                            attributes = mapOf("client_process" to client, "type" to source.name),
-                        )
-                        client = null
-                    }
+            if (text.isEmpty()) continue
+            val indent = line.indexOfFirst { !it.isWhitespace() }
+            if (indent <= bindingIndent) {
+                bindingIndent = -1
+                action = null
+            }
+            when {
+                text.startsWith("* ServiceRecord{") || text.startsWith("* ContentProviderRecord{") -> {
+                    host = component.find(text)?.value
+                    hostUid = null
                 }
 
-                WakeCommand.PROCESSES -> {
-                    val match = importance.find(text)
-                    if (match != null) {
-                        client = match.groupValues[2]
-                        host = match.groupValues[4]
-                    }
-                    if (client != null && text.startsWith("oom:")) {
-                        val adj = Regex("""\bset=(-?\d+)""").find(text)?.groupValues?.get(1)
-                        facts += WakeObservation(
-                            "ProcessImportance",
-                            now,
-                            processName = client,
-                            attributes = mapOf("oom_adj" to adj.orEmpty(), "reason" to host.orEmpty()),
-                        )
-                        client = null
-                    }
+                text.startsWith("uid=") -> hostUid = text.substringAfter('=').substringBefore(' ').toIntOrNull()
+
+                text.startsWith("app=ProcessRecord{") || text.startsWith("proc=ProcessRecord{") ->
+                    hostUid = process.find(text)?.groupValues?.get(3)?.let(::uidFromDump) ?: hostUid
+
+                source == WakeCommand.SERVICES && text.startsWith("* IntentBindRecord{") -> bindingIndent = indent
+
+                bindingIndent >= 0 && text.startsWith("intent={") -> {
+                    // ActivityManager prints the action first inside this binding's own intent.
+                    action = text.takeIf { it.startsWith("intent={act=") }?.substringAfter("intent={act=")
+                        ?.substringBefore(' ')?.substringBefore('}')?.let(::wakeAction)
                 }
 
-                WakeCommand.WIDGETS -> {
-                    if (text.startsWith("provider=")) {
-                        component.find(text)?.value?.let {
-                            facts += WakeObservation("WidgetProvider", now, component = it, targetPackage = it.substringBefore('/'))
-                        }
-                    }
-                }
+                else -> {
+                    val (client, uid) = when {
+                        text.startsWith("* Client AppBindRecord{") || text.startsWith("client=ProcessRecord{") ->
+                            process.find(text)?.destructured?.let { (_, name, uid) -> name to uid }
 
-                WakeCommand.ROLES -> {
-                    if (text.startsWith("user_id=")) sourceUser = text.substringAfter('=').toIntOrNull() ?: profile
-                    if (text.startsWith("name=android.app.role.")) host = text.substringAfter('=')
-                    if (text.startsWith("holders=") && host != null) {
-                        for (pkg in text.substringAfter('=').trim('[', ']').split(", ")) {
-                            if (pkg.matches(Regex("""[\w.]+"""))) facts += WakeObservation("RoleHolder", now, targetPackage = pkg, action = host, attributes = mapOf("user" to sourceUser.toString()))
-                        }
-                    }
-                }
+                        source == WakeCommand.PROVIDERS && text.startsWith("->") ->
+                            connectionClient.find(text)?.destructured?.let { (name, uid) -> name to uid }
 
-                WakeCommand.INPUT, WakeCommand.LISTENERS, WakeCommand.ACCESSIBILITY, WakeCommand.VPN -> {
-                    for (item in text.split(':')) {
-                        if (item.matches(Regex("""[a-zA-Z][\w.]+(?:/[\w.$]+)?""")) && item != "null") {
-                            facts += WakeObservation(
-                                "SystemBinding",
-                                now,
-                                targetPackage = item.substringBefore('/'),
-                                component = item,
-                                action = source.name,
-                                attributes = meta,
-                            )
-                        }
-                    }
+                        else -> null
+                    } ?: continue
+                    val target = host ?: continue
+                    facts += WakeObservation(
+                        "HeldConnection",
+                        now,
+                        callerUid = uidFromDump(uid),
+                        targetUid = hostUid,
+                        targetPackage = target.substringBefore('/'),
+                        component = target,
+                        action = action.takeIf { text.startsWith("* Client AppBindRecord{") },
+                        attributes = mapOf("client_process" to client, "type" to source.name),
+                    )
                 }
-
-                WakeCommand.JOBS -> {
-                    if (text.startsWith("JOB #")) {
-                        component.find(text.substringAfter(": "))?.value?.let {
-                            facts += WakeObservation(
-                                "ScheduledJobSnapshot",
-                                now,
-                                component = it,
-                                targetPackage = it.substringBefore('/'),
-                                attributes = mapOf("job" to text.substringAfter('#').substringBefore(':').take(64)),
-                            )
-                        }
-                    }
-                }
-
-                WakeCommand.INTENTS -> {
-                    if ("PendingIntentRecord{" in text && text.startsWith("#")) {
-                        pending = pendingRecord.find(text)
-                        creatorUid = null
-                    }
-                    if (text.startsWith("uid=")) creatorUid = text.substringAfter('=').substringBefore(' ').toIntOrNull()
-                    if (text.startsWith("requestIntent=") && pending != null) {
-                        val fields = token.findAll(text.substringAfter('=')).associate { it.groupValues[1] to it.groupValues[2] }
-                        facts += WakeObservation(
-                            "PendingIntentRegistration",
-                            now,
-                            callerUid = creatorUid,
-                            callerPackage = pending.groupValues[2],
-                            targetPackage = fields["pkg"] ?: fields["cmp"]?.substringBefore('/'),
-                            component = fields["cmp"],
-                            action = wakeAction(fields["act"]),
-                            attributes = mapOf("record" to pending.groupValues[1], "type" to pending.groupValues[3]),
-                        )
-                        pending = null
-                    }
-                }
-
-                WakeCommand.ALARMS -> {
-                    if ("Alarm{" in text) host = Regex("""whenElapsed\s+\d+\s+([\w.]+)}""").find(text)?.groupValues?.get(1)
-                    if (text.startsWith("operation=") && host != null) {
-                        val operation = pendingRecord.find(text)
-                        facts += WakeObservation(
-                            "PendingAlarm",
-                            now,
-                            callerPackage = host,
-                            attributes = operation?.let { mapOf("record" to it.groupValues[1], "creator_package" to it.groupValues[2]) }.orEmpty(),
-                        )
-                        host = null
-                    }
-                }
-
-                WakeCommand.COMPANIONS -> {
-                    if ("Association" in text) {
-                        Regex("""(?:packageName|package)=([\w.]+)""").find(text)?.let {
-                            facts += WakeObservation("CompanionAssociation", now, targetPackage = it.groupValues[1])
-                        }
-                    }
-                }
-
-                WakeCommand.WALLPAPER -> {
-                    if ("mWallpaperComponent=" in text) {
-                        component.find(text.substringAfter("mWallpaperComponent="))?.let {
-                            facts += WakeObservation("WallpaperBinding", now, component = it.value, targetPackage = it.value.substringBefore('/'))
-                        }
-                    }
-                }
-
-                WakeCommand.SYNCS -> if ("SyncAdapterType" in text) {
-                    Regex("""packageName[=: ]+([\w.]+)""").find(text)?.groupValues?.get(1)?.let {
-                        facts += WakeObservation("SyncAdapter", now, targetPackage = it)
-                    }
-                }
-
-                WakeCommand.BATTERY -> {
-                    val values = text.split(',')
-                    if (values.getOrNull(3) == "pr" && values.size >= 7) {
-                        val uid = values[1].toIntOrNull() ?: continue
-                        val proc = values[4].trim('"')
-                        if (proc.matches(Regex("""[\w.:]+"""))) {
-                            facts += WakeObservation(
-                                "ProcessCpuSnapshot",
-                                now,
-                                targetUid = uid,
-                                processName = proc,
-                                attributes = mapOf("user_ms" to values[5], "system_ms" to values[6]),
-                            )
-                        }
-                    }
-                }
-
-                else -> Unit
             }
         }
         return facts.toList()
+    }
+
+    fun snapshot(source: WakeCommand, output: String, now: Long, profile: Int = 0): List<WakeObservation> {
+        val lines = output.lineSequence().map(String::trim)
+        return when (source) {
+            WakeCommand.SERVICES, WakeCommand.PROVIDERS -> heldConnections(source, output, now)
+            WakeCommand.PROCESSES -> processImportance(lines, now)
+            WakeCommand.WIDGETS -> widgetProviders(lines, now)
+            WakeCommand.ROLES -> roleHolders(lines, now, profile)
+            WakeCommand.INPUT, WakeCommand.LISTENERS, WakeCommand.ACCESSIBILITY, WakeCommand.VPN -> systemBindings(lines, now, source, profile)
+            WakeCommand.JOBS -> scheduledJobs(lines, now)
+            WakeCommand.INTENTS -> pendingIntents(lines, now)
+            WakeCommand.ALARMS -> pendingAlarms(lines, now)
+            WakeCommand.COMPANIONS -> companionAssociations(lines, now)
+            WakeCommand.WALLPAPER -> wallpaperBindings(lines, now)
+            WakeCommand.SYNCS -> syncAdapters(lines, now)
+            WakeCommand.BATTERY -> processCpu(lines, now)
+            else -> emptyList()
+        }.distinct()
+    }
+
+    private fun processImportance(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        var host: String? = null
+        var client: String? = null
+        for (text in lines) {
+            val match = importance.find(text)
+            if (match != null) {
+                client = match.groupValues[2]
+                host = match.groupValues[4]
+            }
+            if (client != null && text.startsWith("oom:")) {
+                val adj = Regex("""\bset=(-?\d+)""").find(text)?.groupValues?.get(1)
+                this += WakeObservation(
+                    "ProcessImportance",
+                    now,
+                    processName = client,
+                    attributes = mapOf("oom_adj" to adj.orEmpty(), "reason" to host.orEmpty()),
+                )
+                client = null
+            }
+        }
+    }
+
+    private fun widgetProviders(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        for (text in lines) {
+            if (text.startsWith("provider=")) {
+                component.find(text)?.value?.let {
+                    this += WakeObservation("WidgetProvider", now, component = it, targetPackage = it.substringBefore('/'))
+                }
+            }
+        }
+    }
+
+    private fun roleHolders(lines: Sequence<String>, now: Long, profile: Int): List<WakeObservation> = buildList {
+        var host: String? = null
+        var sourceUser = profile
+        for (text in lines) {
+            if (text.startsWith("user_id=")) sourceUser = text.substringAfter('=').toIntOrNull() ?: profile
+            if (text.startsWith("name=android.app.role.")) host = text.substringAfter('=')
+            if (text.startsWith("holders=") && host != null) {
+                for (pkg in text.substringAfter('=').trim('[', ']').split(", ")) {
+                    if (pkg.matches(Regex("""[\w.]+"""))) this += WakeObservation("RoleHolder", now, targetPackage = pkg, action = host, attributes = mapOf("user" to sourceUser.toString()))
+                }
+            }
+        }
+    }
+
+    private fun systemBindings(lines: Sequence<String>, now: Long, source: WakeCommand, profile: Int): List<WakeObservation> = buildList {
+        val meta = mapOf("user" to profile.toString())
+        for (text in lines) {
+            for (item in text.split(':')) {
+                if (item.matches(Regex("""[a-zA-Z][\w.]+(?:/[\w.$]+)?""")) && item != "null") {
+                    this += WakeObservation(
+                        "SystemBinding",
+                        now,
+                        targetPackage = item.substringBefore('/'),
+                        component = item,
+                        action = source.name,
+                        attributes = meta,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun scheduledJobs(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        for (text in lines) {
+            if (text.startsWith("JOB #")) {
+                component.find(text.substringAfter(": "))?.value?.let {
+                    this += WakeObservation(
+                        "ScheduledJobSnapshot",
+                        now,
+                        component = it,
+                        targetPackage = it.substringBefore('/'),
+                        attributes = mapOf("job" to text.substringAfter('#').substringBefore(':').take(64)),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun pendingIntents(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        var pending: MatchResult? = null
+        var creatorUid: Int? = null
+        for (text in lines) {
+            if ("PendingIntentRecord{" in text && text.startsWith("#")) {
+                pending = pendingRecord.find(text)
+                creatorUid = null
+            }
+            if (text.startsWith("uid=")) creatorUid = text.substringAfter('=').substringBefore(' ').toIntOrNull()
+            if (text.startsWith("requestIntent=") && pending != null) {
+                val fields = token.findAll(text.substringAfter('=')).associate { it.groupValues[1] to it.groupValues[2] }
+                this += WakeObservation(
+                    "PendingIntentRegistration",
+                    now,
+                    callerUid = creatorUid,
+                    callerPackage = pending.groupValues[2],
+                    targetPackage = fields["pkg"] ?: fields["cmp"]?.substringBefore('/'),
+                    component = fields["cmp"],
+                    action = wakeAction(fields["act"]),
+                    attributes = mapOf("record" to pending.groupValues[1], "type" to pending.groupValues[3]),
+                )
+                pending = null
+            }
+        }
+    }
+
+    private fun pendingAlarms(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        var host: String? = null
+        for (text in lines) {
+            if ("Alarm{" in text) host = Regex("""whenElapsed\s+\d+\s+([\w.]+)}""").find(text)?.groupValues?.get(1)
+            if (text.startsWith("operation=") && host != null) {
+                val operation = pendingRecord.find(text)
+                this += WakeObservation(
+                    "PendingAlarm",
+                    now,
+                    callerPackage = host,
+                    attributes = operation?.let { mapOf("record" to it.groupValues[1], "creator_package" to it.groupValues[2]) }.orEmpty(),
+                )
+                host = null
+            }
+        }
+    }
+
+    private fun companionAssociations(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        for (text in lines) {
+            if ("Association" in text) {
+                Regex("""(?:packageName|package)=([\w.]+)""").find(text)?.let {
+                    this += WakeObservation("CompanionAssociation", now, targetPackage = it.groupValues[1])
+                }
+            }
+        }
+    }
+
+    private fun wallpaperBindings(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        for (text in lines) {
+            if ("mWallpaperComponent=" in text) {
+                component.find(text.substringAfter("mWallpaperComponent="))?.let {
+                    this += WakeObservation("WallpaperBinding", now, component = it.value, targetPackage = it.value.substringBefore('/'))
+                }
+            }
+        }
+    }
+
+    private fun syncAdapters(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        for (text in lines) {
+            if ("SyncAdapterType" in text) {
+                Regex("""packageName[=: ]+([\w.]+)""").find(text)?.groupValues?.get(1)?.let {
+                    this += WakeObservation("SyncAdapter", now, targetPackage = it)
+                }
+            }
+        }
+    }
+
+    private fun processCpu(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
+        for (text in lines) {
+            val values = text.split(',')
+            if (values.getOrNull(3) == "pr" && values.size >= 7) {
+                val uid = values[1].toIntOrNull() ?: continue
+                val proc = values[4].trim('"')
+                if (proc.matches(Regex("""[\w.:]+"""))) {
+                    this += WakeObservation(
+                        "ProcessCpuSnapshot",
+                        now,
+                        targetUid = uid,
+                        processName = proc,
+                        attributes = mapOf("user_ms" to values[5], "system_ms" to values[6]),
+                    )
+                }
+            }
+        }
     }
 }
 

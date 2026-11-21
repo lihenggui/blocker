@@ -7,10 +7,22 @@ import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.database.wake.WakeRelation
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
+import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import org.json.JSONObject
 
 internal object WakeAttribution {
     private const val WINDOW = 5_000_000_000L
+
+    // Find the first included timestamp even when several records share an endpoint.
+    private inline fun <T> List<T>.within(from: Long, through: Long, crossinline timestamp: (T) -> Long): Sequence<T> {
+        var low = 0
+        var high = size
+        while (low < high) {
+            val middle = (low + high).ushr(1)
+            if (timestamp(this[middle]) < from) low = middle + 1 else high = middle
+        }
+        return subList(low, size).asSequence().takeWhile { timestamp(it) <= through }
+    }
 
     fun relationships(records: List<WakeRecord>): List<WakeRelation> {
         val links = mutableListOf<WakeRelation>()
@@ -19,22 +31,13 @@ internal object WakeAttribution {
             val requests = group.filter { it.kind != "ProcessStartTime" && it.startType == 3 }.sortedBy { it.elapsedNanos }
             for (start in starts) {
                 val fields = JSONObject(start.attributes)
-                val elapsed = actualStart(start)
-                val begin = requests.binarySearchBy(elapsed - WINDOW) { it.elapsedNanos }.let { found ->
-                    if (found < 0) {
-                        -found - 1
-                    } else {
-                        var i = found
-                        while (i > 0 && requests[i - 1].elapsedNanos == elapsed - WINDOW) i--
-                        i
-                    }
-                }
-                val adjacent = requests.subList(begin, requests.size).asSequence().takeWhile { it.elapsedNanos <= elapsed + WINDOW }
+                val elapsed = actualStart(start, fields)
+                val adjacent = requests.within(elapsed - WINDOW, elapsed + WINDOW) { it.elapsedNanos }
                 val matches = adjacent.filter { request ->
                     if (request.callerUid != null && start.callerUid != null && request.callerUid != start.callerUid) return@filter false
                     val sameCaller = request.callerUid != null && request.callerUid == start.callerUid
-                    val sameComponent = qualified(request.targetPackage, request.component)?.let { name ->
-                        name == qualified(request.targetPackage, start.component)
+                    val sameComponent = qualifiedWakeComponent(request.targetPackage, request.component)?.let { name ->
+                        name == qualifiedWakeComponent(request.targetPackage, start.component)
                     } == true
                     when (request.kind) {
                         "ServiceRequestEventReported" -> fields.optInt("hosting_type_id") in setOf(11, 15, 16) && sameComponent
@@ -52,9 +55,13 @@ internal object WakeAttribution {
         return links.groupBy { it.requestId }.values.mapNotNull { it.singleOrNull() }
     }
 
+    private data class Launch(val request: WakeRecord, val start: WakeRecord, val time: Long)
+
     // A continuation describes two observed cold starts in sequence, not the intent of the apps.
     fun continuations(records: List<WakeRecord>, relations: List<WakeRelation>): List<WakeContinuation> {
         val byId = records.associateBy { it.id }
+        val statsStarts = records.filter { it.kind == "ProcessStartTime" }
+        val startTimes = statsStarts.associate { it.id to actualStart(it) }
         val launches = relations.mapNotNull { link ->
             val request = byId[link.requestId] ?: return@mapNotNull null
             val start = byId[link.processId] ?: return@mapNotNull null
@@ -63,24 +70,24 @@ internal object WakeAttribution {
             ) {
                 return@mapNotNull null
             }
-            request to start
+            Launch(request, start, startTimes.getValue(start.id))
         }
         val system = records.filter { it.source == SYSTEM_WAKE_EVENTS }
         val starts = system.filter { it.kind == "am_proc_start" && it.pid != null && it.targetUid != null }
         val byPid = starts.groupBy { it.boot to it.pid }
-        val statsStarts = records.filter { it.kind == "ProcessStartTime" }.groupBy { it.boot to it.pid }
+        val statsByPid = statsStarts.groupBy { it.boot to it.pid }
         val byProcess = starts.groupBy { Triple(it.boot, it.targetUid, it.processName) }
         val deaths = system.filter { it.kind == "am_proc_died" }.groupBy { it.boot to it.pid }
         val exits = records.filter { it.source == "statsd" && it.kind == "AppProcessDied" }
             .groupBy { Triple(it.boot, it.targetUid, it.processName) }
-        val incoming = launches.groupBy { it.first.boot to it.first.targetUid }
-        return launches.mapNotNull { (request, start) ->
-            val time = actualStart(start)
+        val incoming = launches.sortedBy { it.time }.groupBy { it.request.boot to it.request.targetUid }
+        return launches.mapNotNull { (request, start, time) ->
+            if (request.elapsedNanos > time + WINDOW) return@mapNotNull null
             val fields = JSONObject(request.attributes)
             val reported = JSONObject(start.attributes).optString("caller_process_name")
-            val prior = incoming[request.boot to request.callerUid].orEmpty().singleOrNull { (_, middle) ->
-                val firstTime = actualStart(middle)
-                if (time - firstTime !in 1..WINDOW || request.elapsedNanos !in firstTime..(time + WINDOW)) return@singleOrNull false
+            val candidates = incoming[request.boot to request.callerUid].orEmpty()
+                .within(time - WINDOW, minOf(time - 1, request.elapsedNanos)) { it.time }
+            val prior = candidates.singleOrNull { (_, middle, firstTime) ->
                 val pidKey = middle.boot to middle.pid
                 val instances = byPid[pidKey].orEmpty()
                 val witness = instances.singleOrNull { it.targetUid == middle.targetUid && it.elapsedNanos in (firstTime - WINDOW)..minOf(firstTime + WINDOW, request.elapsedNanos) }
@@ -91,11 +98,11 @@ internal object WakeAttribution {
                 val key = Triple(middle.boot, middle.targetUid, process)
                 deaths[pidKey].orEmpty().none { it.elapsedNanos in lifetime } &&
                     instances.none { it.id != witness.id && it.elapsedNanos in lifetime } &&
-                    statsStarts[pidKey].orEmpty().none { it.id != middle.id && actualStart(it) in firstTime..request.elapsedNanos } &&
+                    statsByPid[pidKey].orEmpty().none { it.id != middle.id && startTimes.getValue(it.id) in firstTime..request.elapsedNanos } &&
                     exits[key].orEmpty().none { it.elapsedNanos in lifetime } &&
                     byProcess[key].orEmpty().none { it.id != witness.id && it.elapsedNanos in lifetime }
             } ?: return@mapNotNull null
-            WakeContinuation(request.id, prior.first.id)
+            WakeContinuation(request.id, prior.request.id)
         }
     }
 
@@ -111,7 +118,7 @@ internal object WakeAttribution {
         return short.isNotEmpty() || fields.optInt("request_type") == 2 || state in 0..19 || state in 1000..1019
     }
 
-    private fun actualStart(start: WakeRecord): Long = JSONObject(start.attributes).optLong("process_start_time_millis", -1)
+    private fun actualStart(start: WakeRecord, fields: JSONObject = JSONObject(start.attributes)): Long = fields.optLong("process_start_time_millis", -1)
         .takeIf { it >= 0 }?.times(1_000_000) ?: start.elapsedNanos
 
     private fun scheduledWork(records: List<WakeRecord>): List<WakeRelation> {
@@ -143,18 +150,5 @@ internal object WakeAttribution {
             }
         }
         return links
-    }
-
-    fun qualified(pkg: String?, name: String?): String? {
-        if (name == null || pkg == null) return null
-        val parts = name.removePrefix("ComponentInfo{").removePrefix("{").removeSuffix("}").split('/')
-        if (parts.size > 2 || (parts.size == 2 && parts[0] != pkg)) return null
-        val clazz = parts.last()
-        if (clazz.isBlank()) return null
-        return when {
-            clazz.startsWith('.') -> pkg + clazz
-            '.' in clazz -> clazz
-            else -> "$pkg.$clazz"
-        }
     }
 }

@@ -38,7 +38,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
 ) : IfwFileSystem {
 
     override suspend fun readRules(packageName: String): String? = withContext(dispatcher) {
-        require(packageName != AUTOMATIC_FILE && packageName != PROBE_FILE && '/' !in packageName)
+        require(!isManagedWakeName(packageName) && '/' !in packageName)
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
         if (!rootCommandExecutor.execute(RootFileExistsCommand(path)).value) {
@@ -54,7 +54,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
     }
 
     override suspend fun writeRules(packageName: String, content: String) = withContext(dispatcher) {
-        require(packageName != AUTOMATIC_FILE && packageName != PROBE_FILE && '/' !in packageName)
+        require(!isManagedWakeName(packageName) && '/' !in packageName)
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
         rootCommandExecutor.execute(RootWriteFileCommand(path, content))
@@ -63,7 +63,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
     }
 
     override suspend fun deleteRules(packageName: String): Boolean = withContext(dispatcher) {
-        require(packageName != AUTOMATIC_FILE && packageName != PROBE_FILE && '/' !in packageName)
+        require(!isManagedWakeName(packageName) && '/' !in packageName)
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
         if (rootCommandExecutor.execute(RootFileExistsCommand(path)).value) {
@@ -75,14 +75,14 @@ internal class LibrootIfwFileSystem @Inject constructor(
     }
 
     override suspend fun fileExists(packageName: String): Boolean = withContext(dispatcher) {
-        require(packageName != AUTOMATIC_FILE && packageName != PROBE_FILE && '/' !in packageName)
+        require(!isManagedWakeName(packageName) && '/' !in packageName)
         val filename = "$packageName$EXTENSION"
         rootCommandExecutor.execute(RootFileExistsCommand(IfwStorageUtils.ifwFolder + filename)).value
     }
 
     override suspend fun listRuleFiles(): List<String> = withContext(dispatcher) {
         rootCommandExecutor.execute(RootListFilesCommand(IfwStorageUtils.ifwFolder)).value
-            .filter { it.endsWith(EXTENSION) && it != "$AUTOMATIC_FILE$EXTENSION" && it != "$PROBE_FILE$EXTENSION" }
+            .filter { it.endsWith(EXTENSION) && !isManagedWakeName(it.removeSuffix(EXTENSION)) }
             .map { it.removeSuffix(EXTENSION) }
     }
 }

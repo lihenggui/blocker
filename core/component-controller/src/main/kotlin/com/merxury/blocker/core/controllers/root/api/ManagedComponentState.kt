@@ -10,8 +10,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import be.mygod.librootkotlinx.ParcelableBoolean
 import be.mygod.librootkotlinx.RootCommand
-import com.merxury.blocker.core.controllers.wake.WakeAccess
 import com.merxury.blocker.core.controllers.wake.WakeSystemReader
+import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.blocker.core.root.RootCommandExecutor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.parcelize.Parcelize

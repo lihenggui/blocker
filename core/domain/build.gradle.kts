@@ -30,7 +30,6 @@ dependencies {
     implementation(projects.core.componentController)
     implementation(projects.core.ifwApi)
     implementation(projects.core.rule)
-    implementation(libs.smali.dexlib)
 
     implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.datetime)

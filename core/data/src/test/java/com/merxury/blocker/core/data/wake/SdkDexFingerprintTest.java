@@ -1,7 +1,7 @@
 // Copyright 2026 Blocker
 // SPDX-License-Identifier: Apache-2.0
 
-package com.merxury.blocker.core.domain.wake;
+package com.merxury.blocker.core.data.wake;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -43,7 +43,7 @@ public class SdkDexFingerprintTest {
         return file;
     }
 
-    @Test public void hostClassesDoNotChangeEvidenceAndShadowedSdkIsRejected() throws Exception {
+    @Test public void givenHostAndSdkClasses_whenFingerprinting_thenHostClassesAreIgnoredAndDuplicateSdkClassesRejected() throws Exception {
         File original = apk("Llibrary/Service;");
         File host = apk("Lhost/App;", "Llibrary/Service;");
         String expected = SdkDexFingerprint.compute(Collections.singletonList(original), "Llibrary/");

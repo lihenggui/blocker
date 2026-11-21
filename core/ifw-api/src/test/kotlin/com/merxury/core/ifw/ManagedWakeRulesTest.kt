@@ -3,17 +3,12 @@
 
 package com.merxury.core.ifw
 
-import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
-import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
@@ -23,18 +18,7 @@ import kotlin.test.assertTrue
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
 class ManagedWakeRulesTest {
-    @Test fun givenDirectRootWhenResettingThenShizukuAvailabilityDoesNotAffectEitherScope() = runTest {
-        val root = mock<RootCommandExecutor>()
-        val transport = mock<WakeRuleWriter>()
-        val rules = ManagedWakeRules(transport, root, mock())
-        for (target in listOf(null, "a.pkg")) {
-            rules.resetWithRoot(target)
-            verify(root).execute(ResetWakeRules(target))
-        }
-        verifyNoInteractions(transport)
-    }
-
-    @Test fun givenASharedManagedFileWhenResettingOneTargetThenOtherPackagesKeepTheirRules() {
+    @Test fun givenSharedManagedFile_whenResettingOneTarget_thenOtherPackagesKeepTheirRules() {
         val first = WakeServiceFilter("a.pkg", "a.pkg", "a.pkg.Wake", "")
         val second = WakeServiceFilter("b.pkg", "b.pkg", "b.pkg.Wake", "")
         val both = requireNotNull(renderWakeRules(listOf(first, second)))
@@ -43,7 +27,7 @@ class ManagedWakeRulesTest {
         assertNull(withoutWakePackage(requireNotNull(renderWakeRules(listOf(first))), first.target))
     }
 
-    @Test fun sameUidRulesExcludeSystemAndCheckTheActionFirst() {
+    @Test fun givenSameUidPath_whenRenderingRules_thenActionPrecedesSenderAndSystemIsExcluded() {
         val path = WakeServiceFilter("same.app", "same.app", "same.app.Service", "sdk.WAKE")
         val xml = requireNotNull(renderWakeRules(listOf(path)))
         val filters = IfwXmlDeserializer().deserialize(xml).rules.single().filters
@@ -58,7 +42,7 @@ class ManagedWakeRulesTest {
         )
     }
 
-    @Test fun managedFileContainsOnlyExactSenderComponentAndAction() {
+    @Test fun givenPeerPaths_whenRenderingRules_thenSenderComponentAndActionMustMatch() {
         val path = WakeServiceFilter("sender.app", "target.app", "target.app.Remote", "sdk.WAKE")
         val xml = requireNotNull(renderWakeRules(listOf(path, path, path.copy(action = ""))))
         val rules = IfwXmlDeserializer().deserialize(xml).rules

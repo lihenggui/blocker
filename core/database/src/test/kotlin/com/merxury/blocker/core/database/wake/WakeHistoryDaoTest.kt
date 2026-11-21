@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
 class WakeHistoryDaoTest {
-    @Test fun refreshingAnIdentityPreservesItsManifestAndCanFillMissingArchiveMetadata() = runTest {
+    @Test fun givenPartialIdentity_whenRefreshing_thenSignaturesAreFilledAndManifestIsRetained() = runTest {
         val db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
             .allowMainThreadQueries().build()
         try {
@@ -41,7 +41,7 @@ class WakeHistoryDaoTest {
         }
     }
 
-    @Test fun recurringPeersRequireTwoDistinctConfirmedColdStartsInEachDirection() = runTest {
+    @Test fun givenBidirectionalRequests_whenQueryingRecurringPeers_thenTwoColdStartsEachWayAreRequired() = runTest {
         val db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
             .allowMainThreadQueries().build()
         try {
@@ -65,7 +65,7 @@ class WakeHistoryDaoTest {
         }
     }
 
-    @Test fun largeReconciliationStaysWithinTheLegacySqliteBindLimit() = runTest {
+    @Test fun givenManyRelations_whenReplacingThem_thenDeletesRespectSqliteBindLimit() = runTest {
         val sizes = mutableListOf<Int>()
         val callback = RoomDatabase.QueryCallback { sql, args ->
             if (sql.startsWith("DELETE FROM WakeContinuation WHERE incoming IN")) sizes.add(args.size)
@@ -81,7 +81,21 @@ class WakeHistoryDaoTest {
         }
     }
 
-    @Test fun storedProcessStartsRequireVerifiedSystemEventProvenance() = runTest {
+    @Test fun givenBindingSnapshots_whenSelectingProtectionEvidence_thenOnlyServiceRecordsWithActionsQualify() = runTest {
+        val db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
+            .allowMainThreadQueries().build()
+        try {
+            val dao = db.history()
+            val binding = WakeRecord("binding", "boot", 10, 10, "SERVICES", "HeldConnection", 10111, 10122, "a", "b", "b.Service", "peer.WAKE", null, null, null, "{}")
+            dao.insertRecords(listOf(binding, binding.copy(id = "provider", source = "PROVIDERS"), binding.copy(id = "unknown", action = null)))
+
+            assertThat(dao.componentRequests(10)).containsExactly(binding)
+        } finally {
+            db.close()
+        }
+    }
+
+    @Test fun givenMixedEventSources_whenQueryingComponentStarts_thenOnlyVerifiedSystemEventsQualify() = runTest {
         val db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
             .allowMainThreadQueries().build()
         try {
@@ -94,7 +108,7 @@ class WakeHistoryDaoTest {
         }
     }
 
-    @Test fun overlappingReportsAndTrimmedPayloadsDoNotInflateTotals() = runTest {
+    @Test fun givenOverlappingReports_whenReimportingAfterExpiry_thenTotalsCountEachEventOnce() = runTest {
         val db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
             .allowMainThreadQueries().build()
         try {

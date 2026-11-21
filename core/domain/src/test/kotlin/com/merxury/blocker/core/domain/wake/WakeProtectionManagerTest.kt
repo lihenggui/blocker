@@ -6,16 +6,21 @@ package com.merxury.blocker.core.domain.wake
 import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.controllers.root.api.ManagedComponentState
-import com.merxury.blocker.core.controllers.wake.WakeAccess
+import com.merxury.blocker.core.data.wake.ReviewedWakePaths
+import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeImport
+import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
 import com.merxury.blocker.core.database.wake.WakeProtection
+import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.core.ifw.ManagedWakeRules
+import com.merxury.core.ifw.WakeResetTransport
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
@@ -27,16 +32,18 @@ import org.mockito.kotlin.whenever
 
 class WakeProtectionManagerTest {
     private val repository = mock<WakeRepository>()
+    private val ownership = mock<WakeComponentOwnership>()
     private val catalogue = mock<ReviewedWakePaths>()
     private val rules = mock<ManagedWakeRules>()
     private val components = mock<ManagedComponentState>()
-    private val TestScope.manager get() = WakeProtectionManager(repository, catalogue, rules, components, StandardTestDispatcher(testScheduler))
+    private val TestScope.manager get() = WakeProtectionManager(repository, WakeProtectionRepository(repository, ownership, catalogue, rules, components), StandardTestDispatcher(testScheduler))
     private val path = WakeProtection(
         "id", "client", "target", "target.Wake", "", "proof", false, false,
         method = "PM", previousState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, pendingChange = true,
     )
 
     private suspend fun authorizedWith(vararg previous: WakeProtection, access: WakeAccess = WakeAccess.DIRECT_ROOT, profiles: List<Int> = listOf(0)) {
+        whenever(rules.reset(anyOrNull(), any())).thenReturn(false)
         whenever(repository.isOwnerProfile).thenReturn(true)
         whenever(catalogue.isCurrent(any())).thenReturn(true)
         whenever(repository.access()).thenReturn(access)
@@ -48,7 +55,7 @@ class WakeProtectionManagerTest {
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(emptyList())
     }
 
-    @Test fun waitsWithoutScanningOrChangingExistingRulesUntilPermissionArrives() = runTest {
+    @Test fun givenNoPermission_whenReconciling_thenScanningAndProtectionWaitForAuthorization() = runTest {
         authorizedWith(path, access = WakeAccess.NONE)
         assertThat(manager.reconcile()).isTrue()
         verify(repository, never()).collect(any(), any())
@@ -63,7 +70,7 @@ class WakeProtectionManagerTest {
         verify(rules).replace(argThat { single().service == "target.Wake" })
     }
 
-    @Test fun shellRecordsCandidatesWithoutWritingOrClearingExistingProtections() = runTest {
+    @Test fun givenShellAccess_whenReconciling_thenCandidatesAreRecordedAndProtectionsArePreserved() = runTest {
         authorizedWith(path.copy(configured = true), access = WakeAccess.SHIZUKU_SHELL)
         val candidate = path.copy(pathId = "new", configured = false, pendingChange = false)
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(candidate))
@@ -73,7 +80,7 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(rules, components)
     }
 
-    @Test fun olderRootShizukuLeavesFirewallJournalPendingUntilFileWritesCanBeAuthenticated() = runTest {
+    @Test fun givenLegacyRootShizuku_whenReconciling_thenFirewallChangesRemainPending() = runTest {
         authorizedWith(path.copy(method = "IFW", configured = true), access = WakeAccess.SHIZUKU_LEGACY_ROOT)
         assertThat(manager.reconcile()).isTrue()
         verify(repository).reportStatus(argThat { status == "IFW_REQUIRES_ROOT_OR_SHIZUKU_13" })
@@ -81,7 +88,7 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(rules)
     }
 
-    @Test fun givenUserServiceTimeoutWhenOnlyBinderDiagnosticsRemainThenRetryAndPreserveFirewall() = runTest {
+    @Test fun givenUserServiceTimeout_whenOnlyBinderDiagnosticsRemain_thenReconciliationRetriesWithoutChangingRules() = runTest {
         val configured = path.copy(method = "IFW", configured = true)
         for (access in listOf(WakeAccess.SHIZUKU_SHELL, WakeAccess.SHIZUKU_ROOT)) {
             authorizedWith(configured, access = access)
@@ -93,14 +100,14 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(rules, components)
     }
 
-    @Test fun incompleteProfileInformationPreservesTheJournalAndRetries() = runTest {
+    @Test fun givenUnknownProfiles_whenReconciling_thenJournalIsPreservedForRetry() = runTest {
         authorizedWith(path, profiles = emptyList())
         assertThat(manager.reconcile()).isFalse()
         verify(repository, never()).saveProtections(any())
         verifyNoInteractions(catalogue, rules, components)
     }
 
-    @Test fun recoversInterruptedComponentWriteAndRestoresPreviousState() = runTest {
+    @Test fun givenInterruptedComponentWrite_whenPathNoLongerQualifies_thenOriginalStateIsRestored() = runTest {
         authorizedWith(path)
         whenever(catalogue.sameInstallation(path)).thenReturn(true)
         whenever(catalogue.currentState(path)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
@@ -110,7 +117,7 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(rules)
     }
 
-    @Test fun userChangeAndReplacementInstallationArePreserved() = runTest {
+    @Test fun givenUserChangeOrReinstall_whenRestoring_thenComponentStateIsPreserved() = runTest {
         val other = path.copy(pathId = "second", target = "replacement")
         authorizedWith(path, other)
         whenever(catalogue.sameInstallation(path)).thenReturn(true)
@@ -120,34 +127,35 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(components)
     }
 
-    @Test fun givenSecondaryProfileWhenReconcilingThenNoGlobalStateIsTouched() = runTest {
+    @Test fun givenSecondaryProfile_whenReconciling_thenGlobalProtectionsArePreserved() = runTest {
         authorizedWith(path.copy(configured = true))
+        whenever(rules.reset(anyOrNull(), any())).thenReturn(false)
         whenever(repository.isOwnerProfile).thenReturn(false)
         assertThat(manager.reconcile()).isTrue()
         verify(repository, never()).collect(any(), any())
         verifyNoInteractions(rules, components)
     }
 
-    @Test fun givenPendingWriteWhenTheUserExplicitlyEnablesTheComponentThenTheJournalYields() = runTest {
+    @Test fun givenPendingWrite_whenUserEnablesComponent_thenJournalRecordsManualOverride() = runTest {
         authorizedWith(path)
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(path))
         whenever(catalogue.currentState(path)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
         assertThat(manager.reconcile()).isTrue()
-        verify(repository).saveComponentProtection(path.copy(pendingChange = false, disabledByUser = true))
+        verify(ownership).save(path.copy(pendingChange = false, disabledByUser = true))
         verifyNoInteractions(components)
     }
 
-    @Test fun givenManualOverrideWhenAFreshInstallationIsReviewedThenItsOwnEvidenceCanApply() = runTest {
+    @Test fun givenManualOverride_whenReviewingFreshInstallation_thenNewEvidenceCanApply() = runTest {
         authorizedWith(path.copy(disabledByUser = true, pendingChange = false, targetRevision = "old"))
         val fresh = path.copy(pendingChange = false, previousState = null, targetRevision = "new")
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(fresh))
         whenever(catalogue.currentState(fresh)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
         whenever(components.compareAndSet("target", "target.Wake", 0, 2)).thenReturn(true)
         assertThat(manager.reconcile()).isTrue()
-        verify(repository).saveComponentProtection(fresh.copy(configured = true, previousState = 0))
+        verify(ownership).save(fresh.copy(configured = true, previousState = 0))
     }
 
-    @Test fun givenOwnedComponentWhenItsInstallationUpdatesThenRestorationStateSurvives() = runTest {
+    @Test fun givenOwnedComponent_whenInstallationUpdates_thenOriginalStateIsRetained() = runTest {
         val old = path.copy(targetRevision = "old", configured = true, pendingChange = false)
         val fresh = old.copy(targetRevision = "new", configured = false, previousState = null)
         val retained = fresh.copy(configured = true, previousState = 0)
@@ -156,11 +164,11 @@ class WakeProtectionManagerTest {
         whenever(catalogue.sameInstallation(old)).thenReturn(true)
         whenever(catalogue.currentState(retained)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
         assertThat(manager.reconcile()).isTrue()
-        verify(repository).saveComponentProtection(retained)
+        verify(ownership).save(retained)
         verifyNoInteractions(components)
     }
 
-    @Test fun givenPackageReplacedAfterCollectionWhenApplyingThenThereIsNoComponentWrite() = runTest {
+    @Test fun givenPackageReplacedAfterCollection_whenApplyingProtection_thenComponentStateIsPreserved() = runTest {
         authorizedWith(path)
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(path))
         whenever(catalogue.isCurrent(path)).thenReturn(false)
@@ -168,7 +176,7 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(components)
     }
 
-    @Test fun failedRestoreKeepsTheJournalForRetry() = runTest {
+    @Test fun givenFailedRestore_whenReconciling_thenJournalIsRetainedForRetry() = runTest {
         authorizedWith(path)
         whenever(catalogue.sameInstallation(path)).thenReturn(true)
         whenever(catalogue.currentState(path)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
@@ -177,7 +185,7 @@ class WakeProtectionManagerTest {
         verify(repository, never()).saveProtections(any())
     }
 
-    @Test fun frameworkRejectingPeerChecksKeepsThatPathObservationOnly() = runTest {
+    @Test fun givenUnsupportedPeerFilter_whenReconciling_thenPeerPathRemainsObservationOnly() = runTest {
         val candidate = path.copy(method = "IFW", pendingChange = false, previousState = null)
         authorizedWith()
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(candidate))
@@ -188,21 +196,36 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(components)
     }
 
-    @Test fun givenManualResetWhenClearingManagedPathsThenTheJournalAndFileAgree() = runTest {
+    @Test fun givenManagedRules_whenResettingFirewall_thenJournalAndFileUseTheSameScope() = runTest {
         val first = path.copy(method = "IFW", configured = true, pendingChange = false)
         val second = first.copy(pathId = "second", target = "other")
         authorizedWith(first, second)
         val manager = manager
-        manager.resetFirewall(first.target)
+        manager.resetFirewall(first.target, WakeResetTransport.SHIZUKU_ROOT)
         verify(repository).resetFirewall(first.target)
-        verify(rules).resetWithRoot(first.target)
-        manager.resetFirewall(null)
+        verify(rules).reset(first.target, WakeResetTransport.SHIZUKU_ROOT)
+        manager.resetFirewall(null, WakeResetTransport.DIRECT_ROOT)
         verify(repository).resetFirewall(null)
-        verify(rules).resetWithRoot(null)
+        verify(rules).reset(null, WakeResetTransport.DIRECT_ROOT)
         verifyNoInteractions(components)
     }
 
-    @Test fun removingLastFirewallPathClearsOnlyManagedRules() = runTest {
+    @Test fun givenReplacedFirewallPeer_whenCollectionFails_thenStaleTargetIsClearedBeforeRetry() = runTest {
+        val stale = path.copy(method = "IFW", configured = true, pendingChange = false)
+        val current = stale.copy(pathId = "other", target = "unrelated")
+        authorizedWith(stale, current)
+        whenever(catalogue.isCurrent(stale)).thenReturn(false)
+        whenever(repository.collect(any(), any())).thenThrow(IllegalStateException("recorder unavailable"))
+
+        assertThat(manager.reconcile()).isFalse()
+
+        verify(rules).reset(stale.target, WakeResetTransport.DIRECT_ROOT)
+        verify(rules, never()).reset(current.target, WakeResetTransport.DIRECT_ROOT)
+        verify(repository).saveProtections(listOf(stale.copy(configured = false)))
+        verify(repository, never()).resetFirewall(any())
+    }
+
+    @Test fun givenLastFirewallPathRemoved_whenReconciling_thenManagedRulesAreCleared() = runTest {
         authorizedWith(path.copy(method = "IFW", configured = true, pendingChange = false))
         assertThat(manager.reconcile()).isTrue()
         verify(rules).replace(emptyList())

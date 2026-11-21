@@ -9,6 +9,7 @@ import android.system.Os
 import android.system.OsConstants
 import be.mygod.librootkotlinx.ParcelableString
 import be.mygod.librootkotlinx.RootCommand
+import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.blocker.core.root.RootCommandExecutor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.parcelize.Parcelize

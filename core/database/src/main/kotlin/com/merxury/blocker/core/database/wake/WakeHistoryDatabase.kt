@@ -294,7 +294,7 @@ abstract class WakeHistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun putProtections(rows: List<WakeProtection>)
 
-    @Query("SELECT * FROM WakeRecord WHERE ((source = 'statsd' AND kind IN ('ServiceRequestEventReported','BroadcastDeliveryEventReported','ProviderAcquisitionEventReported','ProcessStartTime')) OR (source = '$SYSTEM_WAKE_EVENTS' AND kind = 'am_proc_start')) AND wallMillis >= :since ORDER BY wallMillis DESC")
+    @Query("SELECT * FROM WakeRecord WHERE ((source = 'statsd' AND kind IN ('ServiceRequestEventReported','BroadcastDeliveryEventReported','ProviderAcquisitionEventReported','ProcessStartTime')) OR (source = '$SYSTEM_WAKE_EVENTS' AND kind = 'am_proc_start') OR (source = 'SERVICES' AND kind = 'HeldConnection' AND action IS NOT NULL)) AND wallMillis >= :since ORDER BY wallMillis DESC")
     abstract suspend fun componentRequests(since: Long): List<WakeRecord>
 }
 

@@ -6,6 +6,9 @@ package com.merxury.blocker.sync.workers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.hilt.work.HiltWorker
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -17,22 +20,17 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.merxury.blocker.core.controllers.wake.authorizedShizukuUid
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.wake.WakeAuthorizationRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.wake.WakeProtectionManager
-import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.utils.LibrootRootAvailabilityChecker
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import rikka.shizuku.Shizuku
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,8 +47,7 @@ class WakeHistoryWorker @AssistedInject constructor(
 @Singleton
 class WakeWork @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val root: LibrootRootAvailabilityChecker,
-    private val userData: UserDataRepository,
+    private val authorization: WakeAuthorizationRepository,
     @param:ApplicationScope private val scope: CoroutineScope,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : DefaultLifecycleObserver {
@@ -64,27 +61,33 @@ class WakeWork @Inject constructor(
                 .setInitialDelay(30, TimeUnit.MINUTES)
                 .setInputData(WakeHistoryWorker::class.delegatedData()).build(),
         )
+        // Android 8+ restricts manifest delivery for other packages' installs and updates.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.registerReceiver(
+                context,
+                WakePackagesChangedReceiver(),
+                IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") },
+                ContextCompat.RECEIVER_NOT_EXPORTED,
+            )
+        }
         enqueue(context)
         // Binder and permission callbacks arrive on the main thread. They only inspect existing grants.
-        Shizuku.addBinderReceivedListenerSticky { refreshShizuku() }
-        Shizuku.addBinderDeadListener { onShizukuChanged(null) }
-        Shizuku.addRequestPermissionResultListener { _, _ -> refreshShizuku() }
+        authorization.observeShizukuAuthorization(::onShizukuChanged)
         scope.launch {
-            root.rootGranted.collect { if (it) enqueue(context, ExistingWorkPolicy.REPLACE) }
+            authorization.rootGranted.collect { if (it) enqueue(context, ExistingWorkPolicy.REPLACE) }
         }
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        refreshShizuku()
-        val needsDirectRoot = shizukuUid != 0
-        scope.launch(ioDispatcher) {
-            // Ask the existing controller about direct root only while Blocker is in the foreground.
-            if (userData.userData.first().controllerType != ControllerType.SHIZUKU && needsDirectRoot) root.isRootAvailable()
+        onShizukuChanged(authorization.shizukuUid)
+        if (shizukuUid != 0) {
+            scope.launch(ioDispatcher) {
+                // Ask the existing controller about direct root only while Blocker is in the foreground.
+                authorization.checkForegroundRoot()
+            }
         }
     }
-
-    private fun refreshShizuku() = onShizukuChanged(authorizedShizukuUid())
 
     private fun onShizukuChanged(uid: Int?) {
         if (shizukuUid == uid) return
@@ -94,8 +97,12 @@ class WakeWork @Inject constructor(
     }
 
     companion object {
-        internal fun enqueue(context: Context, policy: ExistingWorkPolicy = ExistingWorkPolicy.KEEP) = WorkManager.getInstance(context).enqueueUniqueWork(
-            "wake-history-update",
+        internal fun enqueue(
+            context: Context,
+            policy: ExistingWorkPolicy = ExistingWorkPolicy.KEEP,
+            name: String = "wake-history-update",
+        ) = WorkManager.getInstance(context).enqueueUniqueWork(
+            name,
             policy,
             OneTimeWorkRequestBuilder<DelegatingWorker>().setInputData(WakeHistoryWorker::class.delegatedData()).build(),
         )
@@ -105,13 +112,14 @@ class WakeWork @Inject constructor(
 class WakePackagesChangedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
-            Intent.ACTION_PACKAGE_ADDED, Intent.ACTION_PACKAGE_REPLACED, Intent.ACTION_PACKAGE_FULLY_REMOVED,
+            Intent.ACTION_PACKAGE_ADDED, Intent.ACTION_PACKAGE_FULLY_REMOVED,
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, Intent.ACTION_MANAGED_PROFILE_ADDED,
             Intent.ACTION_MANAGED_PROFILE_REMOVED, Intent.ACTION_MANAGED_PROFILE_AVAILABLE, Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE,
             -> {
                 val pending = goAsync()
                 try {
-                    WakeWork.enqueue(context).result.addListener(pending::finish, Runnable::run)
+                    // A package update must run even if the regular collector is backing off.
+                    WakeWork.enqueue(context, ExistingWorkPolicy.REPLACE, "wake-history-package-change").result.addListener(pending::finish, Runnable::run)
                 } catch (e: RuntimeException) {
                     pending.finish()
                     throw e

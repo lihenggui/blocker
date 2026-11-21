@@ -30,12 +30,10 @@ dependencies {
     ksp(libs.hilt.ext.compiler)
 
     implementation(libs.androidx.lifecycle.process)
-    implementation(libs.shizuku.api)
     implementation(libs.androidx.tracing.ktx)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.ext.work)
     implementation(projects.core.analytics)
-    implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(projects.core.git)

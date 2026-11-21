@@ -9,6 +9,7 @@ import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
+import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.blocker.core.utils.LibrootRootAvailabilityChecker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
+import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -126,12 +128,15 @@ class WakeUserService @JvmOverloads constructor(private val context: Context? = 
         return reader
     }
 
-    override fun writeManagedFirewall(xml: String?, probe: Boolean) {
-        check(android.os.Process.myUid() == 0 && android.os.Binder.getCallingUid() == context?.applicationInfo?.uid) {
-            "Authorized Blocker root user service required"
-        }
-        com.merxury.core.ifw.writeManagedWakeFile(xml, probe)
+    private fun firewallOwner(): String {
+        val owner = checkNotNull(context) { "Shizuku 13 or later required" }
+        check(android.os.Process.myUid() == 0 && android.os.Binder.getCallingUid() == owner.applicationInfo.uid)
+        return owner.packageName
     }
+
+    override fun writeManagedFirewall(xml: String?, probe: Boolean) = com.merxury.core.ifw.writeManagedWakeFile(firewallOwner(), xml, probe)
+
+    override fun resetManagedFirewall(packageName: String?): Boolean = com.merxury.core.ifw.resetManagedWakeFiles(firewallOwner(), packageName)
 
     override fun componentJournal(replacement: String?): String {
         check(android.os.Process.myUid() == 0)
@@ -163,6 +168,11 @@ internal class WakeSession(val uid: Int, private val remote: IWakeReader?, val g
         return checkNotNull(remote) { "Root user service unavailable" }.componentJournal(replacement)
     }
 
+    fun resetFirewall(packageName: String?): Boolean {
+        check(uid == 0)
+        return checkNotNull(remote) { "Root user service unavailable" }.resetManagedFirewall(packageName)
+    }
+
     fun writeFirewall(xml: String?, probe: Boolean) {
         check(uid == 0)
         checkNotNull(remote) { "Root user service unavailable" }.writeManagedFirewall(xml, probe)
@@ -184,11 +194,20 @@ internal class WakeSession(val uid: Int, private val remote: IWakeReader?, val g
     }
 }
 
-enum class WakeAccess { NONE, SHIZUKU_SHELL, SHIZUKU_LEGACY_ROOT, SHIZUKU_ROOT, DIRECT_ROOT }
-
-fun authorizedShizukuUid(): Int? = runCatching {
+fun authorizedShizukuUid(): Int? = try {
     if (Shizuku.pingBinder() && !Shizuku.isPreV11() && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) Shizuku.getUid() else null
-}.getOrNull()
+} catch (e: RuntimeException) {
+    Timber.w(e, "Cannot read Shizuku authorization")
+    null
+}
+
+fun hasAuthorizedWakeFirewallService(): Boolean = authorizedShizukuUid() == 0 && Shizuku.getVersion() >= 13
+
+fun observeWakeShizukuAuthorization(onChanged: (Int?) -> Unit) {
+    Shizuku.addBinderReceivedListenerSticky { onChanged(authorizedShizukuUid()) }
+    Shizuku.addBinderDeadListener { onChanged(null) }
+    Shizuku.addRequestPermissionResultListener { _, _ -> onChanged(authorizedShizukuUid()) }
+}
 
 class WakeSystemReader @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -212,7 +231,7 @@ class WakeSystemReader @Inject constructor(
         val uid = checkNotNull(authorizedShizukuUid()) { "Shizuku authorization unavailable" }
         check(access == WakeAccess.SHIZUKU_SHELL || uid == 0)
         val args = Shizuku.UserServiceArgs(ComponentName(context, WakeUserService::class.java))
-            .daemon(false).processNameSuffix("wake_reader").tag("wake-reader-${UUID.randomUUID()}").version(3)
+            .daemon(false).processNameSuffix("wake_reader").tag("wake-reader-${UUID.randomUUID()}").version(4)
         var connection: ServiceConnection? = null
         try {
             val remote = withContext(Dispatchers.Main.immediate) {
@@ -235,8 +254,13 @@ class WakeSystemReader @Inject constructor(
                 connection?.let {
                     // Detach the local callback, then terminate this non-daemon user service.
                     // remove=true alone leaves the callback cached until asynchronous Binder death.
-                    runCatching { Shizuku.unbindUserService(args, it, false) }
-                    runCatching { Shizuku.unbindUserService(args, it, true) }
+                    for (remove in listOf(false, true)) {
+                        try {
+                            Shizuku.unbindUserService(args, it, remove)
+                        } catch (e: RuntimeException) {
+                            Timber.w(e, "Failed to detach Shizuku wake reader (remove=%s)", remove)
+                        }
+                    }
                 }
             }
         }

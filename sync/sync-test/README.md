@@ -43,6 +43,7 @@ graph TB
   :core:data -.-> :core:component-controller
   :core:data --> :core:database
   :core:data --> :core:datastore
+  :core:data -.-> :core:ifw-api
   :core:data --> :core:network
   :core:database --> :core:model
   :core:datastore -.-> :core:common
@@ -65,7 +66,6 @@ graph TB
   :sync:sync-test -.-> :core:data
   :sync:sync-test -.-> :sync:work
   :sync:work -.-> :core:analytics
-  :sync:work -.-> :core:component-controller
   :sync:work -.-> :core:data
   :sync:work -.-> :core:domain
   :sync:work -.-> :core:git
