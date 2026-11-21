@@ -3,7 +3,7 @@
 
 package com.merxury.blocker.core.model.wake
 
-const val SYSTEM_WAKE_EVENTS = "EVENTS/system"
+const val SYSTEM_WAKE_EVENTS = "EVENTS/system/epoch"
 
 /** A timestamped system observation. Missing identities and cold-start indicators stay absent. */
 data class WakeObservation(
@@ -19,6 +19,7 @@ data class WakeObservation(
     val pid: Int? = null,
     val processName: String? = null,
     val attributes: Map<String, String> = emptyMap(),
+    val eventWallNanos: Long? = null,
 )
 
 data class WakeBatch(

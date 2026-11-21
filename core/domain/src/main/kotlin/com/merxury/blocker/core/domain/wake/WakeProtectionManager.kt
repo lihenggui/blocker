@@ -11,8 +11,13 @@ import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.core.ifw.ManagedWakeReset
 import com.merxury.core.ifw.ManagedWakeRules
 import com.merxury.core.ifw.WakeServiceFilter
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
@@ -30,6 +35,20 @@ class WakeProtectionManager @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
     private val lock = Mutex()
+
+    suspend fun resetFirewall(packageName: String?) = withContext(ioDispatcher) {
+        lock.withLock {
+            val alreadyPending = repository.rulesPending
+            repository.markRulesPending(true)
+            repository.resetFirewall(packageName)
+            if (packageName == null) {
+                rules.replace(emptyList())
+            } else {
+                rules.removePackage(packageName)
+            }
+            repository.markRulesPending(packageName != null && alreadyPending)
+        }
+    }
 
     suspend fun reconcile(): Boolean = withContext(ioDispatcher) {
         lock.withLock {
@@ -52,12 +71,14 @@ class WakeProtectionManager @Inject constructor(
                     repository.reportStatus(WakeSourceStatus("protection", now, "PROFILE_SCOPE_UNAVAILABLE"))
                     return@withLock false
                 }
+                val canManageComponents = access != WakeAccess.SHIZUKU_SHELL && !capture.binderFallback
+                if (canManageComponents) repository.recoverComponentOwnership()
                 val previous = repository.protections()
-                val candidates = catalog.evaluate(repository.observedComponents(now - 14L * 86400000), capture.identities, capture.profiles, previous)
+                val candidates = catalog.evaluate(repository.observedComponents(now - 14L * 86400000), capture.identities, capture.profiles, previous, repository.firewallResets())
                 val knownIds = previous.map { it.pathId }.toSet()
                 val newPaths = candidates.filter { it.pathId !in knownIds }
                 if (newPaths.isNotEmpty()) repository.saveProtections(newPaths)
-                if (access != WakeAccess.SHIZUKU_SHELL) {
+                if (canManageComponents) {
                     reconcileComponents(previous, candidates.filter { it.method == "PM" })
                 }
                 if (capture.binderFallback) {
@@ -104,7 +125,7 @@ class WakeProtectionManager @Inject constructor(
             if (catalog.sameInstallation(old) && catalog.currentState(old) == disabled) {
                 check(components.compareAndSet(old.target, old.component, disabled, original))
             }
-            repository.saveProtections(listOf(old.copy(configured = false, pendingChange = false)))
+            repository.saveComponentProtection(old.copy(configured = false, pendingChange = false))
         }
         for (candidate in desired) {
             if (!catalog.isCurrent(candidate)) continue
@@ -115,7 +136,7 @@ class WakeProtectionManager @Inject constructor(
                 } else {
                     candidate
                 }
-                repository.saveProtections(listOf(replacement))
+                repository.saveComponentProtection(replacement)
                 replacement
             } else {
                 candidate
@@ -124,14 +145,20 @@ class WakeProtectionManager @Inject constructor(
             if (path.configured && current == disabled) continue
             if (path.configured || (path.pendingChange && current != disabled && current != path.previousState)) {
                 // A manual change supersedes the automatic decision.
-                repository.saveProtections(listOf(path.copy(configured = false, pendingChange = false, disabledByUser = true)))
+                repository.saveComponentProtection(path.copy(configured = false, pendingChange = false, disabledByUser = true))
                 continue
             }
             if (!path.pendingChange && current != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) continue
             val saved = path.copy(previousState = path.previousState ?: current, pendingChange = true)
-            repository.saveProtections(listOf(saved))
+            repository.saveComponentProtection(saved)
             check(components.compareAndSet(path.target, path.component, requireNotNull(saved.previousState), disabled))
-            repository.saveProtections(listOf(saved.copy(configured = true, pendingChange = false)))
+            repository.saveComponentProtection(saved.copy(configured = true, pendingChange = false))
         }
     }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+internal object WakeResetModule {
+    @Provides fun wakeReset(manager: WakeProtectionManager) = ManagedWakeReset(manager::resetFirewall)
 }

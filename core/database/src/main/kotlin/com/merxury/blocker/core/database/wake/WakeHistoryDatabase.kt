@@ -22,6 +22,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
 import javax.inject.Singleton
 
 @Entity(indices = [Index("wallMillis"), Index(value = ["boot", "targetUid", "elapsedNanos"]), Index("kind")])
@@ -72,6 +73,7 @@ data class WakeContinuation(@PrimaryKey val outgoing: String, val incoming: Stri
 data class WakeChainSegment(val outgoing: String, val incoming: String, val origin: String, val middle: String, val destination: String, val wallMillis: Long)
 
 @Entity
+@Serializable
 data class WakeProtection(
     @PrimaryKey val pathId: String,
     val caller: String,
@@ -183,7 +185,19 @@ abstract class WakeHistoryDao {
     @Query("SELECT * FROM WakeRecord ORDER BY wallMillis DESC, elapsedNanos DESC LIMIT 120")
     abstract fun recent(): Flow<List<WakeRecord>>
 
-    @Query("SELECT * FROM WakeRecord WHERE boot = :boot AND elapsedNanos >= :since AND ((source = 'statsd' AND kind IN ('ServiceRequestEventReported','ProviderAcquisitionEventReported','BroadcastDeliveryEventReported','ProcessStartTime','AppStartOccurred','AppProcessDied')) OR (source = '$SYSTEM_WAKE_EVENTS' AND kind = 'am_proc_died')) ORDER BY elapsedNanos")
+    @Query("SELECT * FROM WakeSourceStatus WHERE source LIKE 'firewall-reset/%'")
+    abstract suspend fun firewallResets(): List<WakeSourceStatus>
+
+    @Query("UPDATE WakeProtection SET configured = 0, disabledByUser = 1 WHERE method = 'IFW' AND (:target IS NULL OR target = :target)")
+    abstract suspend fun muteFirewall(target: String?)
+
+    @Transaction
+    open suspend fun resetFirewall(target: String?, now: Long) {
+        muteFirewall(target)
+        status(WakeSourceStatus("firewall-reset/${target.orEmpty()}", now, "RESET"))
+    }
+
+    @Query("SELECT * FROM WakeRecord WHERE boot = :boot AND elapsedNanos >= :since AND ((source = 'statsd' AND kind IN ('ServiceRequestEventReported','ProviderAcquisitionEventReported','BroadcastDeliveryEventReported','ProcessStartTime','AppStartOccurred','AppProcessDied')) OR (source = '$SYSTEM_WAKE_EVENTS' AND kind IN ('am_proc_start','am_proc_died'))) ORDER BY elapsedNanos")
     abstract suspend fun attributionWindow(boot: String, since: Long): List<WakeRecord>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

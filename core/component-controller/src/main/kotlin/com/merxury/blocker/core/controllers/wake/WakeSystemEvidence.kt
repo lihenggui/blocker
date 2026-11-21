@@ -42,9 +42,16 @@ internal object WakeSystemEvidence {
         WakePackageUid(pkg, match.groupValues[2].toInt(), version.find(line)?.groupValues?.get(1)?.toLongOrNull(), path)
     }.toList()
 
-    fun logcat(output: String): List<WakeObservation> = output.lineSequence().mapNotNull { line ->
+    fun logcat(output: String, wallMillis: Long, elapsedNanos: Long): List<WakeObservation> = output.lineSequence().mapNotNull { line ->
         val groups = logLine.matchEntire(line)?.groupValues ?: return@mapNotNull null
-        val elapsed = BigDecimal(groups[1]).movePointRight(9).toLong()
+        val eventWall = try {
+            BigDecimal(groups[1]).movePointRight(9).longValueExact()
+        } catch (_: ArithmeticException) {
+            return@mapNotNull null
+        }
+        val age = wallMillis * 1_000_000 - eventWall
+        if (age !in 0 until elapsedNanos) return@mapNotNull null
+        val elapsed = elapsedNanos - age
         val fields = groups[3].split(',')
         fun field(index: Int) = fields.getOrNull(index)?.trim()
         val profile = field(0)?.toIntOrNull() ?: return@mapNotNull null
@@ -73,7 +80,7 @@ internal object WakeSystemEvidence {
                 processName = field(2),
                 attributes = mapOf("user" to profile.toString(), "oom_adj" to field(3).orEmpty(), "reason" to field(4).orEmpty()),
             )
-        }
+        }.copy(eventWallNanos = eventWall)
     }.toList()
 
     fun snapshot(source: WakeCommand, output: String, now: Long, profile: Int = 0): List<WakeObservation> {

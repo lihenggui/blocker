@@ -32,8 +32,10 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IfwFileSystem
+import com.merxury.core.ifw.ManagedWakeReset
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -45,6 +47,7 @@ class ResetIfwWorker @AssistedInject constructor(
     private val intentFirewall: IIntentFirewall,
     private val ifwFileSystem: IfwFileSystem,
     private val rootChecker: RootAvailabilityChecker,
+    private val managedWakeReset: ManagedWakeReset,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
@@ -65,6 +68,7 @@ class ResetIfwWorker @AssistedInject constructor(
         var count = 0
         val total: Int
         try {
+            managedWakeReset.resetFirewall(null)
             val packages = ifwFileSystem.listRuleFiles()
             total = packages.count()
             packages.forEach { packageName ->
@@ -75,6 +79,8 @@ class ResetIfwWorker @AssistedInject constructor(
                 count++
             }
             intentFirewall.resetCache()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: RuntimeException) {
             Timber.e(e, "Failed to clear IFW rules")
             return@withContext Result.failure(
@@ -95,12 +101,15 @@ class ResetIfwWorker @AssistedInject constructor(
     private suspend fun clearIfwRuleForPackage(packageName: String): Result {
         try {
             Timber.d("Start clearing IFW rules for package $packageName")
+            managedWakeReset.resetFirewall(packageName)
             if (ifwFileSystem.fileExists(packageName)) {
                 updateNotification(packageName, 1, 1)
                 Timber.d("Delete IFW rules for $packageName")
                 ifwFileSystem.deleteRules(packageName)
                 intentFirewall.resetCache()
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: RuntimeException) {
             Timber.e(e, "Failed to clear IFW rules")
             return Result.failure(

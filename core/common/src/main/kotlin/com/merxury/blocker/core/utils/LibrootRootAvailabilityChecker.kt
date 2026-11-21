@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.utils
 
 import android.content.Context
+import androidx.core.content.edit
 import be.mygod.librootkotlinx.NoShellException
 import com.merxury.blocker.core.root.BlockerRootSession
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -62,7 +63,7 @@ class LibrootRootAvailabilityChecker @Inject constructor(
             false
         }
         if (preferences.getBoolean("previous_root_grant", false) != available) {
-            preferences.edit().putBoolean("previous_root_grant", available).apply()
+            preferences.edit { putBoolean("previous_root_grant", available) }
         }
         granted.value = available
         return available

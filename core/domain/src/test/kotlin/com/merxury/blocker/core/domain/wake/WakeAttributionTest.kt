@@ -5,6 +5,7 @@ package com.merxury.blocker.core.domain.wake
 
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -35,7 +36,8 @@ class WakeAttributionTest {
     }
 
     @Test fun joinsSequentialColdStartsOnlyForTheSameLiveCallerProcess() {
-        val middle = start.copy(processName = "target.app:peer")
+        val middle = start.copy(processName = "target.app")
+        val witness = middle.copy(id = "system", source = SYSTEM_WAKE_EVENTS, kind = "am_proc_start", processName = "target.app:peer")
         val outgoing = request.copy(
             id = "next",
             elapsedNanos = 40,
@@ -43,7 +45,7 @@ class WakeAttributionTest {
             callerPackage = "target.app",
             targetUid = 10033,
             targetPackage = "third.app",
-            attributes = """{"request_process_name":"target.app:peer"}""",
+            attributes = """{"request_process_name":":peer","unique_caller_package":"target.app"}""",
         )
         val last = start.copy(
             id = "last",
@@ -56,14 +58,23 @@ class WakeAttributionTest {
             processName = "third.app",
         )
         fun links(vararg entries: WakeRecord) = entries.toList().let { WakeAttribution.continuations(it, WakeAttribution.relationships(it)) }
-        val chain = links(request, middle, outgoing, last).single()
+        val chain = links(request, middle, witness, outgoing, last).single()
+        assertThat(links(request, middle, outgoing, last)).isEmpty()
+        assertThat(links(request, middle, witness.copy(pid = 99), outgoing, last)).isEmpty()
+        assertThat(links(request, middle, witness, witness.copy(id = "reused", elapsedNanos = 38), outgoing, last)).isEmpty()
+        val reused = middle.copy(id = "reused-pid", elapsedNanos = 39, targetUid = 10888)
+        assertThat(links(request, middle, witness, reused, outgoing, last)).isEmpty()
+        val main = witness.copy(processName = "target.app")
+        val bind = outgoing.copy(attributes = """{"unique_caller_package":"target.app","request_type":2}""")
+        assertThat(links(request, middle, main, bind, last)).hasSize(1)
+        assertThat(links(request, middle, main, bind.copy(attributes = "{}"), last)).isEmpty()
         assertThat(chain.incoming).isEqualTo(request.id)
         assertThat(chain.outgoing).isEqualTo(outgoing.id)
-        assertThat(links(request, middle, outgoing.copy(elapsedNanos = 10), last)).isEmpty()
-        assertThat(links(request, middle, outgoing.copy(attributes = "{}"), last)).isEmpty()
-        assertThat(links(request, middle, outgoing.copy(attributes = """{"request_process_name":"target.app:billing"}"""), last)).isEmpty()
-        assertThat(links(request, middle, outgoing, last, middle.copy(id = "death", kind = "AppProcessDied", elapsedNanos = 36))).isEmpty()
-        assertThat(links(request, middle, outgoing, last.copy(boot = "other"))).isEmpty()
+        assertThat(links(request, middle, witness, outgoing.copy(elapsedNanos = 10), last)).isEmpty()
+        assertThat(links(request, middle, witness, outgoing.copy(attributes = "{}"), last)).isEmpty()
+        assertThat(links(request, middle, witness, outgoing.copy(attributes = """{"request_process_name":"target.app:billing"}"""), last)).isEmpty()
+        assertThat(links(request, middle, witness, outgoing, last, middle.copy(id = "death", processName = "target.app:peer", kind = "AppProcessDied", elapsedNanos = 36))).isEmpty()
+        assertThat(links(request, middle, witness, outgoing, last.copy(boot = "other"))).isEmpty()
     }
 
     @Test fun jobsRequireMatchingRegistrationAndCancelBreaksTheLink() {

@@ -23,16 +23,32 @@ internal object WakeStatsCodec {
     fun configId(appUid: Int, boot: Int) = 0x424c000000000000L or (appUid.toLong() shl 16) or (boot.toLong() and 0xffff)
     private const val CLOCK_TOLERANCE_NS = 120_000_000_000L
 
-    fun config(id: Long): ByteArray {
+    private const val BREADCRUMB = 47
+
+    // Two missed 30-minute collections can recover without losing all intervening events.
+    const val LEASE_SECONDS = 2 * 60 * 60L
+
+    fun leaseLabel(id: Long) = id.hashCode() and Int.MAX_VALUE
+
+    fun config(id: Long, owner: Int): ByteArray {
         val config = WakeStats.Config.newBuilder().setId(id)
             .addAllowedLogSource("AID_SYSTEM")
+            .addAllowedLogSource("AID_STATSD")
             .setHashStringsInMetricReport(false)
+        val heartbeat = WakeStats.Simple.newBuilder().setAtomId(BREADCRUMB)
+        for ((field, value) in listOf(1 to owner, 2 to leaseLabel(id), 3 to 1)) {
+            heartbeat.addFieldValueMatcher(WakeStats.FieldValueMatcher.newBuilder().setField(field).setEqInt(value.toLong()))
+        }
+        config.addAtomMatcher(WakeStats.Matcher.newBuilder().setId(BREADCRUMB.toLong()).setSimpleAtomMatcher(heartbeat))
+        val activation = WakeStats.EventActivation.newBuilder().setAtomMatcherId(BREADCRUMB.toLong())
+            .setTtlSeconds(LEASE_SECONDS).setActivationType(1)
         for (id in wakeAtoms.keys) {
             val matcher = id.toLong()
             config.addAtomMatcher(
                 WakeStats.Matcher.newBuilder().setId(matcher)
                     .setSimpleAtomMatcher(WakeStats.Simple.newBuilder().setAtomId(id)),
             )
+            config.addMetricActivation(WakeStats.MetricActivation.newBuilder().setMetricId(10000 + matcher).addEventActivation(activation))
             config.addEventMetric(WakeStats.EventMetric.newBuilder().setId(10000 + matcher).setWhat(matcher))
         }
         return config.build().toByteArray()

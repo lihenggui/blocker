@@ -28,12 +28,13 @@ import kotlin.coroutines.resume
 
 internal enum class WakeCommand(val args: List<String>) {
     INSTALL(listOf("cmd", "stats", "config", "update", "{config}")),
+    RENEW(listOf("cmd", "stats", "log-app-breadcrumb", "{label}", "1")),
     REPORT(listOf("cmd", "stats", "dump-report", "{config}", "--keep_data", "--include_current_bucket", "--proto")),
     DRAIN(listOf("cmd", "stats", "dump-report", "{config}", "--include_current_bucket", "--proto")),
     REMOVE(listOf("cmd", "stats", "config", "remove", "{config}")),
     EVENTS(
         listOf(
-            "logcat", "-b", "events", "-d", "-t", "4096", "-v", "threadtime", "-v", "monotonic", "-v", "uid",
+            "logcat", "-b", "events", "-d", "-t", "4096", "-v", "threadtime", "-v", "epoch", "-v", "uid",
             "am_proc_start:I", "am_proc_died:I", "am_kill:I", "am_schedule_service_restart:I", "*:S",
         ),
     ),
@@ -63,6 +64,7 @@ internal enum class WakeCommand(val args: List<String>) {
         return when (this) {
             PACKAGES -> args + profile.toString()
             INPUT, ACCESSIBILITY, LISTENERS, VPN -> listOf("settings", "--user", profile.toString()) + args.drop(1)
+            RENEW -> args.map { if (it == "{label}") WakeStatsCodec.leaseLabel(id).toString() else it }
             else -> args.map { if (it == "{config}") id.toString() else it }
         }
     }
@@ -77,7 +79,7 @@ internal enum class WakeCommand(val args: List<String>) {
         val process = ProcessBuilder(listOf("/system/bin/sh", "-c", """exec "$@" 2>/dev/null""", "blocker") + argv).start()
         val timeout = timer.schedule({ process.destroy() }, 12, TimeUnit.SECONDS)
         try {
-            process.outputStream.use { if (this == INSTALL) it.write(WakeStatsCodec.config(id)) }
+            process.outputStream.use { if (this == INSTALL) it.write(WakeStatsCodec.config(id, if (root) 0 else android.os.Process.myUid())) }
             process.inputStream.use { it.copyBounded(output) }
             if (process.waitFor() != 0) throw IOException("$name unavailable")
         } finally {
@@ -124,11 +126,39 @@ class WakeUserService @JvmOverloads constructor(private val context: Context? = 
         return reader
     }
 
-    override fun writeManagedFirewall(xml: String?, probe: Boolean) {
+    private fun requireRootCaller() {
         check(android.os.Process.myUid() == 0 && android.os.Binder.getCallingUid() == context?.applicationInfo?.uid) {
             "Authorized Blocker root user service required"
         }
+    }
+
+    override fun removeManagedPackage(packageName: String) {
+        requireRootCaller()
+        com.merxury.core.ifw.removeManagedWakePackage(packageName)
+    }
+
+    override fun writeManagedFirewall(xml: String?, probe: Boolean) {
+        requireRootCaller()
         com.merxury.core.ifw.writeManagedWakeFile(xml, probe)
+    }
+
+    override fun componentJournal(replacement: String?): String {
+        check(android.os.Process.myUid() == 0)
+        val caller = android.os.Binder.getCallingUid()
+        val owner = if (context != null) {
+            check(caller == context.applicationInfo.uid)
+            context.packageName
+        } else {
+            // Older Shizuku supplies no Context. The caller can only address its own journal.
+            check(android.os.UserHandle.getUserHandleForUid(caller) == android.os.UserHandle.getUserHandleForUid(0) && caller >= 10000)
+            val identity = android.os.Binder.clearCallingIdentity()
+            try {
+                checkNotNull(be.mygod.librootkotlinx.systemContext.packageManager.getPackagesForUid(caller)?.singleOrNull())
+            } finally {
+                android.os.Binder.restoreCallingIdentity(identity)
+            }
+        }
+        return componentJournalFile(owner, replacement)
     }
 
     override fun destroy() = kotlin.system.exitProcess(0)
@@ -136,6 +166,16 @@ class WakeUserService @JvmOverloads constructor(private val context: Context? = 
 
 internal class WakeSession(val uid: Int, private val remote: IWakeReader?, val generation: Int, private val binderOnly: Boolean = false) {
     val supportsRecorder get() = !binderOnly
+
+    fun componentJournal(replacement: String?): String {
+        check(uid == 0)
+        return checkNotNull(remote) { "Root user service unavailable" }.componentJournal(replacement)
+    }
+
+    fun removeFirewallPackage(packageName: String) {
+        check(uid == 0)
+        checkNotNull(remote).removeManagedPackage(packageName)
+    }
 
     fun writeFirewall(xml: String?, probe: Boolean) {
         check(uid == 0)
@@ -186,7 +226,7 @@ class WakeSystemReader @Inject constructor(
         val uid = checkNotNull(authorizedShizukuUid()) { "Shizuku authorization unavailable" }
         check(access == WakeAccess.SHIZUKU_SHELL || uid == 0)
         val args = Shizuku.UserServiceArgs(ComponentName(context, WakeUserService::class.java))
-            .daemon(false).processNameSuffix("wake_reader").tag("wake-reader-${UUID.randomUUID()}").version(2)
+            .daemon(false).processNameSuffix("wake_reader").tag("wake-reader-${UUID.randomUUID()}").version(3)
         var connection: ServiceConnection? = null
         try {
             val remote = withContext(Dispatchers.Main.immediate) {

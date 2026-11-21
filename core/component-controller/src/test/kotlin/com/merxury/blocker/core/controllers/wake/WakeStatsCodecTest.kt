@@ -79,9 +79,14 @@ class WakeStatsCodecTest {
     }
 
     @Test fun nativeReportConfigurationIsScopedPerInstallationAndDoesNotSubscribeToMessageContents() {
-        val config = WakeStats.Config.parseFrom(WakeStatsCodec.config(id))
+        val config = WakeStats.Config.parseFrom(WakeStatsCodec.config(id, 2000))
         assertThat(config.id).isNotEqualTo(WakeStatsCodec.configId(10112, 7))
-        assertThat(config.allowedLogSourceList).containsExactly("AID_SYSTEM")
+        assertThat(config.allowedLogSourceList).containsExactly("AID_SYSTEM", "AID_STATSD")
+        assertThat(config.metricActivationList.map { it.metricId }).containsExactlyElementsIn(config.eventMetricList.map { it.id })
+        assertThat(config.metricActivationList.flatMap { it.eventActivationList }.map { it.ttlSeconds }.distinct())
+            .containsExactly(WakeStatsCodec.LEASE_SECONDS)
+        assertThat(config.atomMatcherList.single { it.id == 47L }.simpleAtomMatcher.fieldValueMatcherList.map { it.eqInt })
+            .containsExactly(2000L, WakeStatsCodec.leaseLabel(id).toLong(), 1L).inOrder()
         assertThat(config.atomMatcherList.map { it.simpleAtomMatcher.atomId }).containsAtLeast(475, 476, 477, 8, 367, 368)
     }
 
@@ -100,7 +105,20 @@ class WakeStatsCodecTest {
             "241.653 1000 615 653 I other: $payload",
             "241.653 system 615 653 I $payload",
         )
-        assertThat(WakeSystemEvidence.logcat(lines.joinToString("\n")).map { it.kind }).containsExactly("am_proc_start")
+        assertThat(WakeSystemEvidence.logcat(lines.joinToString("\n"), 242000, 242000000000L).map { it.kind }).containsExactly("am_proc_start")
+    }
+
+    @Test fun givenAnHourAsleepWhenImportingEpochEventsThenTheirWallTimesAndRelativeOrderSurvive() {
+        val wall = 1_700_000_000_000L
+        val elapsed = 5_400_000_000_000L
+        val tag = "system 615 653 I am_proc_start: [0,1419,10144,example.app,service,{example.app/.Sync}]"
+        val log = listOf("1699994599.000", "1699996340.000", "1699999940.000", "1700000001.000")
+            .joinToString("\n") { "$it $tag" }
+        val first = WakeSystemEvidence.logcat(log, wall, elapsed)
+        assertThat(first.map { it.elapsedNanos }).containsExactly(1_740_000_000_000L, 5_340_000_000_000L).inOrder()
+        assertThat(first.last().eventWallNanos).isEqualTo((wall - 60_000) * 1_000_000)
+        val repeated = WakeSystemEvidence.logcat(log, wall + 1, elapsed + 1_200_000)
+        assertThat(repeated.map { it.eventWallNanos }).containsExactlyElementsIn(first.map { it.eventWallNanos }).inOrder()
     }
 
     @Test fun serviceProviderAndAlarmSnapshotsKeepImmediateSourceOnly() {
@@ -112,8 +130,9 @@ class WakeStatsCodecTest {
         assertThat(intent.toString()).doesNotContain("secret")
         val privateAction = pending.replace("example.UPDATE", "content://private/action")
         assertThat(WakeSystemEvidence.snapshot(WakeCommand.INTENTS, privateAction, 100).single().action).isEqualTo("<redacted>")
-        val start = WakeSystemEvidence.logcat("  241.653  1000   615   653 I am_proc_start: [0,1419,10144,example.app,service,{example.app/.Sync}]").single()
+        val start = WakeSystemEvidence.logcat("  241.653  1000   615   653 I am_proc_start: [0,1419,10144,example.app,service,{example.app/.Sync}]", 242000, 242000000000L).single()
         assertThat(start.elapsedNanos).isEqualTo(241653000000L)
+        assertThat(start.eventWallNanos).isEqualTo(241653000000L)
         assertThat(start.callerUid).isNull()
     }
 }

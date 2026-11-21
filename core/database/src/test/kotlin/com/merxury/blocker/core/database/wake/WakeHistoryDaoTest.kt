@@ -8,6 +8,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -86,7 +87,7 @@ class WakeHistoryDaoTest {
         try {
             val dao = db.history()
             val old = WakeRecord("old", "boot", 4, 1000, "EVENTS", "am_proc_start", null, 10124, null, "pkg", ".Service", null, null, 5, "pkg", "{}")
-            dao.insertRecords(listOf(old, old.copy(id = "verified", source = "EVENTS/system")))
+            dao.insertRecords(listOf(old, old.copy(id = "uptime", source = "EVENTS/system"), old.copy(id = "verified", source = SYSTEM_WAKE_EVENTS)))
             assertThat(dao.componentRequests(0).map { it.id }).containsExactly("verified")
         } finally {
             db.close()

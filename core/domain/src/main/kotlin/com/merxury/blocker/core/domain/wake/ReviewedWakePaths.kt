@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.content.edit
 import com.merxury.blocker.core.database.wake.WakeIdentity
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.database.wake.WakeRecord
@@ -26,7 +27,7 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
         }
     }
 
-    fun evaluate(requests: List<WakeRecord>, identities: List<WakeIdentity>, profiles: List<Int>, previous: List<WakeProtection>): List<WakeProtection> {
+    fun evaluate(requests: List<WakeRecord>, identities: List<WakeIdentity>, profiles: List<Int>, previous: List<WakeProtection>, firewallResets: Map<String, Long> = emptyMap()): List<WakeProtection> {
         if (profiles.distinct() != listOf(0)) return emptyList()
         val byUid = identities.groupBy { it.uid }
         val paths = mutableMapOf<String, WakeProtection>()
@@ -67,6 +68,7 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                     }
                 }
                 for (event in requests) {
+                    if (method == "IFW" && event.wallMillis <= maxOf(firewallResets[""] ?: 0, firewallResets[target.packageName] ?: 0)) continue
                     if (event.targetUid != target.uid || target.firstSeen > event.wallMillis ||
                         (event.targetPackage != null && event.targetPackage != target.packageName)
                     ) {
@@ -127,7 +129,7 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
             return false
         }
         val matches = fingerprint == expected
-        sdkCache.edit().putString(key, "$revision/" + if (matches) "y" else "n").apply()
+        sdkCache.edit { putString(key, "$revision/" + if (matches) "y" else "n") }
         return matches
     }
 

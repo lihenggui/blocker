@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
 import android.provider.Settings
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
@@ -70,7 +71,10 @@ internal suspend fun testPeerFilter(context: Context, writer: WakeRuleWriter): B
         withContext(NonCancellable + Dispatchers.IO) { writer.write(null, true) }
     }
     if (conclusive && generation >= 0) {
-        prefs.edit().putString("peer_probe_build", fingerprint).putBoolean("peer_probe_ok", supported).apply()
+        prefs.edit {
+            putString("peer_probe_build", fingerprint)
+            putBoolean("peer_probe_ok", supported)
+        }
     }
     return supported
 }

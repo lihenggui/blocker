@@ -6,6 +6,7 @@ package com.merxury.blocker.core.domain.wake
 import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.database.wake.WakeRelation
+import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import org.json.JSONObject
 
 internal object WakeAttribution {
@@ -18,7 +19,7 @@ internal object WakeAttribution {
             val requests = group.filter { it.kind != "ProcessStartTime" && it.startType == 3 }.sortedBy { it.elapsedNanos }
             for (start in starts) {
                 val fields = JSONObject(start.attributes)
-                val elapsed = fields.optLong("process_start_time_millis", -1).takeIf { it >= 0 }?.times(1_000_000) ?: start.elapsedNanos
+                val elapsed = actualStart(start)
                 val begin = requests.binarySearchBy(elapsed - WINDOW) { it.elapsedNanos }.let { found ->
                     if (found < 0) {
                         -found - 1
@@ -57,37 +58,61 @@ internal object WakeAttribution {
         val launches = relations.mapNotNull { link ->
             val request = byId[link.requestId] ?: return@mapNotNull null
             val start = byId[link.processId] ?: return@mapNotNull null
-            if (start.kind == "ProcessStartTime" && request.callerUid != null && request.targetUid != null &&
-                request.callerUid != request.targetUid && start.processName != null
+            if (start.kind != "ProcessStartTime" || request.callerUid == null || request.targetUid == null ||
+                request.callerUid == request.targetUid
             ) {
-                request to start
-            } else {
-                null
+                return@mapNotNull null
             }
+            request to start
         }
-        val incoming = launches.groupBy { (request, start) -> Triple(request.boot, request.targetUid, start.processName) }
-        val lifetimes = records.filter { it.kind in setOf("ProcessStartTime", "AppProcessDied", "am_proc_died") }.groupBy { it.boot to it.processName }
-        fun actualStart(start: WakeRecord): Long = JSONObject(start.attributes).optLong("process_start_time_millis", -1)
-            .takeIf { it >= 0 }?.times(1_000_000) ?: start.elapsedNanos
+        val system = records.filter { it.source == SYSTEM_WAKE_EVENTS }
+        val starts = system.filter { it.kind == "am_proc_start" && it.pid != null && it.targetUid != null }
+        val byPid = starts.groupBy { it.boot to it.pid }
+        val statsStarts = records.filter { it.kind == "ProcessStartTime" }.groupBy { it.boot to it.pid }
+        val byProcess = starts.groupBy { Triple(it.boot, it.targetUid, it.processName) }
+        val deaths = system.filter { it.kind == "am_proc_died" }.groupBy { it.boot to it.pid }
+        val exits = records.filter { it.source == "statsd" && it.kind == "AppProcessDied" }
+            .groupBy { Triple(it.boot, it.targetUid, it.processName) }
+        val incoming = launches.groupBy { it.first.boot to it.first.targetUid }
         return launches.mapNotNull { (request, start) ->
-            val requester = JSONObject(request.attributes).optString("request_process_name")
-            val reportedCaller = JSONObject(start.attributes).optString("caller_process_name")
-            if (requester.isNotEmpty() && reportedCaller.isNotEmpty() && requester != reportedCaller) return@mapNotNull null
-            val process = requester.ifEmpty { reportedCaller }.ifEmpty { return@mapNotNull null }
             val time = actualStart(start)
-            val (prior, middle) = incoming[Triple(request.boot, request.callerUid, process)].orEmpty().singleOrNull { (_, first) ->
-                val delta = time - actualStart(first)
-                delta in 1..WINDOW && request.elapsedNanos >= actualStart(first) && first.id != start.id
+            val fields = JSONObject(request.attributes)
+            val reported = JSONObject(start.attributes).optString("caller_process_name")
+            val prior = incoming[request.boot to request.callerUid].orEmpty().singleOrNull { (_, middle) ->
+                val firstTime = actualStart(middle)
+                if (time - firstTime !in 1..WINDOW || request.elapsedNanos !in firstTime..(time + WINDOW)) return@singleOrNull false
+                val pidKey = middle.boot to middle.pid
+                val instances = byPid[pidKey].orEmpty()
+                val witness = instances.singleOrNull { it.targetUid == middle.targetUid && it.elapsedNanos in (firstTime - WINDOW)..minOf(firstTime + WINDOW, request.elapsedNanos) }
+                    ?: return@singleOrNull false
+                val process = witness.processName?.takeIf { it.isNotEmpty() } ?: return@singleOrNull false
+                if (!matchesCaller(request, fields, reported, process)) return@singleOrNull false
+                val lifetime = witness.elapsedNanos..request.elapsedNanos
+                val key = Triple(middle.boot, middle.targetUid, process)
+                deaths[pidKey].orEmpty().none { it.elapsedNanos in lifetime } &&
+                    instances.none { it.id != witness.id && it.elapsedNanos in lifetime } &&
+                    statsStarts[pidKey].orEmpty().none { it.id != middle.id && actualStart(it) in firstTime..request.elapsedNanos } &&
+                    exits[key].orEmpty().none { it.elapsedNanos in lifetime } &&
+                    byProcess[key].orEmpty().none { it.id != witness.id && it.elapsedNanos in lifetime }
             } ?: return@mapNotNull null
-            val firstTime = actualStart(middle)
-            val interrupted = lifetimes[request.boot to process].orEmpty().any {
-                val whenObserved = if (it.kind == "ProcessStartTime") actualStart(it) else it.elapsedNanos
-                it.id != middle.id && whenObserved in firstTime..time &&
-                    (it.targetUid == request.callerUid || (it.kind == "am_proc_died" && it.pid == middle.pid))
-            }
-            if (interrupted) null else WakeContinuation(request.id, prior.id)
+            WakeContinuation(request.id, prior.first.id)
         }
     }
+
+    private fun matchesCaller(request: WakeRecord, fields: JSONObject, reported: String, process: String): Boolean {
+        if (reported.isNotEmpty() && reported != process) return false
+        val short = fields.optString("request_process_name")
+        if (short == process || (short.isEmpty() && reported == process)) return true
+        if (request.kind != "ServiceRequestEventReported") return false
+        val pkg = fields.optString("unique_caller_package")
+        if (pkg.isEmpty() || pkg != request.callerPackage || !process.startsWith(pkg) || process.removePrefix(pkg) != short) return false
+        // A default-process start may also omit the name when the caller record is unavailable.
+        val state = fields.optInt("requester_process_state", -1)
+        return short.isNotEmpty() || fields.optInt("request_type") == 2 || state in 0..19 || state in 1000..1019
+    }
+
+    private fun actualStart(start: WakeRecord): Long = JSONObject(start.attributes).optLong("process_start_time_millis", -1)
+        .takeIf { it >= 0 }?.times(1_000_000) ?: start.elapsedNanos
 
     private fun scheduledWork(records: List<WakeRecord>): List<WakeRelation> {
         val links = mutableListOf<WakeRelation>()

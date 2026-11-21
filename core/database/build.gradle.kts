@@ -19,6 +19,7 @@ plugins {
     alias(libs.plugins.blocker.android.library.jacoco)
     alias(libs.plugins.blocker.android.hilt)
     alias(libs.plugins.blocker.android.room)
+    id("kotlinx-serialization")
     alias(libs.plugins.ksp)
 }
 

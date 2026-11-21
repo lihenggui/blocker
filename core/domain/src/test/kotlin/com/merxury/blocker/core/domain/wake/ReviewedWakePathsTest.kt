@@ -45,6 +45,9 @@ class ReviewedWakePathsTest {
         fun candidates(observed: WakeRecord = event, identities: List<WakeIdentity> = listOf(app), profiles: List<Int> = listOf(0)) = catalog.evaluate(listOf(observed), identities, profiles, emptyList())
 
         val match = candidates().single()
+        for (scope in listOf("", pkg)) {
+            assertThat(catalog.evaluate(listOf(event), listOf(app), listOf(0), emptyList(), mapOf(scope to 12L))).isEmpty()
+        }
         assertThat(match.component).isEqualTo("$pkg.Wake")
         assertThat(candidates(event.copy(component = "$pkg/.Main"))).isEmpty()
         assertThat(candidates(event.copy(action = "user.action"))).isEmpty()

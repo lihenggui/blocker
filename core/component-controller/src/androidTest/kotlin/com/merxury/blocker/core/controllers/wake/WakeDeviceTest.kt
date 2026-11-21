@@ -10,7 +10,9 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
+import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.os.SystemClock
 import androidx.test.platform.app.InstrumentationRegistry
@@ -18,10 +20,12 @@ import com.merxury.blocker.core.controllers.root.api.ManagedComponentState
 import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.utils.LibrootRootAvailabilityChecker
+import com.merxury.blocker.core.wake.proto.WakeStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
@@ -99,6 +103,48 @@ class WakeDeviceTest {
         return android.os.ParcelFileDescriptor.AutoCloseInputStream(result).bufferedReader().use { it.readText().trim() }
     }
 
+    @Test fun givenNoRenewalWhenTheMetricLeaseExpiresThenStatsdStopsRecording() = runBlocking {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("wakeDeviceTest") == "true")
+        assumeTrue(Build.VERSION.SDK_INT >= 31)
+        val ui = InstrumentationRegistry.getInstrumentation().uiAutomation
+        val id = WakeStatsCodec.configId(Process.myUid(), 0) xor 0x200000000000L
+        val label = WakeStatsCodec.leaseLabel(id)
+        val config = WakeStats.Config.parseFrom(WakeStatsCodec.config(id, 2000)).toBuilder()
+        for ((index, metric) in config.metricActivationList.withIndex()) {
+            config.setMetricActivation(index, metric.toBuilder().setEventActivation(0, metric.getEventActivation(0).toBuilder().setTtlSeconds(8)))
+        }
+        fun active(expected: Boolean): Boolean {
+            val fd = ui.executeShellCommand("cmd stats dump-report $id --keep_data --include_current_bucket --proto")
+            val report = ParcelFileDescriptor.AutoCloseInputStream(fd).use { WakeStats.ReportList.parseFrom(it) }
+            val metrics = report.reportsList.lastOrNull()?.metricsList.orEmpty()
+            return metrics.size == config.eventMetricCount && metrics.all { it.hasIsActive() && it.isActive == expected }
+        }
+        suspend fun awaitActive(expected: Boolean) {
+            withTimeout(30_000) {
+                while (!active(expected)) {
+                    delay(350)
+                    // statsd evaluates expired activations as events arrive.
+                    shell("cmd stats log-app-breadcrumb ${label xor 1} 1")
+                }
+            }
+        }
+        try {
+            val descriptors = ui.executeShellCommandRw("cmd stats config update $id")
+            ParcelFileDescriptor.AutoCloseInputStream(descriptors[0]).use { output ->
+                ParcelFileDescriptor.AutoCloseOutputStream(descriptors[1]).use { it.write(config.build().toByteArray()) }
+                output.readBytes()
+            }
+            awaitActive(false)
+            shell("cmd stats log-app-breadcrumb $label 1")
+            awaitActive(true)
+            awaitActive(false)
+            shell("cmd stats log-app-breadcrumb $label 1")
+            awaitActive(true)
+        } finally {
+            shell("cmd stats config remove $id")
+        }
+    }
+
     @Test fun authorizedShellSeesServiceRequestAndCleansItsOwnConfig() = runBlocking {
         assumeTrue(InstrumentationRegistry.getArguments().getString("wakeDeviceTest") == "true")
         val context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -114,6 +160,7 @@ class WakeDeviceTest {
             reader.withSession(access) { session ->
                 val id = WakeStatsCodec.configId(Process.myUid(), session.generation)
                 session.read(WakeCommand.INSTALL)
+                session.read(WakeCommand.RENEW)
                 val latch = CountDownLatch(1)
                 val connection = object : ServiceConnection {
                     override fun onServiceConnected(name: ComponentName, service: IBinder) {

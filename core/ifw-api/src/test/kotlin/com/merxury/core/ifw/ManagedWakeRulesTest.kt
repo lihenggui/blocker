@@ -18,6 +18,15 @@ import kotlin.test.assertTrue
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
 class ManagedWakeRulesTest {
+    @Test fun givenASharedManagedFileWhenResettingOneTargetThenOtherPackagesKeepTheirRules() {
+        val first = WakeServiceFilter("a.pkg", "a.pkg", "a.pkg.Wake", "")
+        val second = WakeServiceFilter("b.pkg", "b.pkg", "b.pkg.Wake", "")
+        val both = requireNotNull(renderWakeRules(listOf(first, second)))
+        assertEquals(renderWakeRules(listOf(second)), withoutWakePackage(both, first.target))
+        assertEquals(both, withoutWakePackage(both, "missing.pkg"))
+        assertNull(withoutWakePackage(requireNotNull(renderWakeRules(listOf(first))), first.target))
+    }
+
     @Test fun sameUidRulesExcludeSystemAndCheckTheActionFirst() {
         val path = WakeServiceFilter("same.app", "same.app", "same.app.Service", "sdk.WAKE")
         val xml = requireNotNull(renderWakeRules(listOf(path)))

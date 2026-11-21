@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.core.controllers.wake
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.SystemClock
 import android.provider.Settings
@@ -63,7 +64,15 @@ class WakeCollector @Inject constructor(
                         val priorBoot = metadata.getInt(generationKey, if (legacyOwner) metadata.getInt("generation", session.generation) else session.generation)
                         if (priorBoot != session.generation) session.read(WakeCommand.REMOVE, boot = priorBoot)
                         val id = WakeStatsCodec.configId(android.os.Process.myUid(), session.generation)
-                        val configKey = "$boot/${session.uid}/${WakeStatsCodec.config(id).contentHashCode()}"
+                        if (android.os.Build.VERSION.SDK_INT == 28) {
+                            // Pie ignores metric activations. Retire any old, unbounded config.
+                            session.read(WakeCommand.REMOVE)
+                            error("bounded statsd recording requires Android 10")
+                        }
+                        val configKey = "$boot/${session.uid}/${WakeStatsCodec.config(id, session.uid).contentHashCode()}"
+
+                        // The recorder generation must survive process death before installing the config.
+                        @SuppressLint("UseKtx")
                         fun install() {
                             check(metadata.edit().putInt(generationKey, session.generation).commit())
                             session.read(WakeCommand.INSTALL)
@@ -71,6 +80,7 @@ class WakeCollector @Inject constructor(
                         }
                         if (metadata.getString(installedKey, if (legacyOwner) metadata.getString("key", null) else null) != configKey) install()
                         fun report(): WakeBatch {
+                            session.read(WakeCommand.RENEW)
                             val bytes = session.read(WakeCommand.REPORT)
                             val elapsed = SystemClock.elapsedRealtimeNanos()
                             val origin = System.currentTimeMillis() * 1_000_000 - elapsed
@@ -87,7 +97,7 @@ class WakeCollector @Inject constructor(
                         batches += WakeBatch("statsd", emptyList(), listOf(e.message ?: "unavailable"))
                     }
                     read(WakeCommand.EVENTS) { output ->
-                        batches += WakeBatch(SYSTEM_WAKE_EVENTS, WakeSystemEvidence.logcat(output), listOf("bounded event log"))
+                        batches += WakeBatch(SYSTEM_WAKE_EVENTS, WakeSystemEvidence.logcat(output, System.currentTimeMillis(), SystemClock.elapsedRealtimeNanos()), listOf("bounded event log"))
                     }
                 } else {
                     batches += WakeBatch("clock", emptyList(), listOf("boot identity unavailable"))
