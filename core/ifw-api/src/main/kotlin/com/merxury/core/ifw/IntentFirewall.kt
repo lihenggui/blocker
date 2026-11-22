@@ -324,22 +324,23 @@ private fun IfwRules.addComponentFilter(
 }
 
 /**
- * Removes a component-filter from the rules for the given component type.
- * Returns a new [IfwRules] instance with the filter removed. A rule that still has
- * intent filters is kept, because those block intents independently of the component.
+ * Removes a component-filter from every rule of the given component type that has it, since
+ * the editor can split one type over several rules and any of them blocks the component.
+ * Returns a new [IfwRules] instance with the filter removed. Other filters, conditions and
+ * attributes stay as they are. A rule is dropped only when it is left with no filters and no
+ * intent filters, because intent filters block intents independently of the component.
  */
 private fun IfwRules.removeComponentFilter(
     componentType: IfwComponentType,
     name: String,
 ): IfwRules {
     val filter = IfwFilter.ComponentFilter(name)
-    val existingRule = rulesFor(componentType).firstOrNull() ?: return this
-    if (filter !in existingRule.filters) return this
-    val updatedFilters = existingRule.filters - filter
-    return if (updatedFilters.isEmpty() && existingRule.intentFilters.isEmpty()) {
-        IfwRules(rules.filter { it !== existingRule })
-    } else {
-        val updatedRule = existingRule.copy(filters = updatedFilters)
-        IfwRules(rules.map { if (it === existingRule) updatedRule else it })
-    }
+    if (rulesFor(componentType).none { filter in it.filters }) return this
+    return IfwRules(
+        rules.mapNotNull { rule ->
+            if (rule.componentType != componentType || filter !in rule.filters) return@mapNotNull rule
+            val updatedFilters = rule.filters.filterNot { it == filter }
+            if (updatedFilters.isEmpty() && rule.intentFilters.isEmpty()) null else rule.copy(filters = updatedFilters)
+        },
+    )
 }

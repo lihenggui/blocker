@@ -486,6 +486,75 @@ class IntentFirewallNewModelTest {
     }
 
     @Test
+    fun givenFilterInSecondRuleOfItsType_whenRemoving_thenComponentIsEnabled() = runTest {
+        val otherReceiver = "com.example.OtherReceiver"
+        componentTypeResolver.setComponentType(testPackage, otherReceiver, ComponentType.RECEIVER)
+        val firstRule = IfwRule(
+            componentType = IfwComponentType.BROADCAST,
+            log = false,
+            filters = listOf(IfwFilter.ComponentFilter("$testPackage/$otherReceiver")),
+        )
+        val secondRule = IfwRule(
+            componentType = IfwComponentType.BROADCAST,
+            filters = listOf(
+                IfwFilter.ComponentFilter("$testPackage/$testReceiver"),
+                IfwFilter.ComponentFilter("$testPackage/com.example.ThirdReceiver"),
+            ),
+        )
+        intentFirewall.saveRules(testPackage, IfwRules(listOf(firstRule, secondRule)))
+
+        assertTrue(intentFirewall.removeComponentFilter(testPackage, testReceiver))
+        val reported = mutableListOf<ComponentName>()
+        intentFirewall.removeAllComponentFilters(listOf(ComponentName(testPackage, otherReceiver))) { reported += it }
+
+        intentFirewall.resetCache()
+        assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+        assertTrue(intentFirewall.getComponentEnableState(testPackage, otherReceiver))
+        assertEquals(listOf(ComponentName(testPackage, otherReceiver)), reported)
+        assertEquals(
+            IfwRules(listOf(secondRule.copy(filters = listOf(IfwFilter.ComponentFilter("$testPackage/com.example.ThirdReceiver"))))),
+            intentFirewall.getRules(testPackage),
+        )
+    }
+
+    @Test
+    fun givenFilterInTwoRulesOfItsType_whenRemoving_thenRemovesItFromBothAndKeepsTheRest() = runTest {
+        val target = IfwFilter.ComponentFilter("$testPackage/$testReceiver")
+        val unrelated = IfwFilter.ComponentFilter("$testPackage/com.example.OtherReceiver")
+        val condition = IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM))
+        val withUnrelatedFilter = IfwRule(
+            componentType = IfwComponentType.BROADCAST,
+            block = true,
+            log = false,
+            filters = listOf(unrelated, target),
+        )
+        val withConditionAndIntent = IfwRule(
+            componentType = IfwComponentType.BROADCAST,
+            block = false,
+            log = true,
+            intentFilters = listOf(IfwIntentFilter(actions = listOf("com.example.ACTION"))),
+            filters = listOf(target, condition),
+        )
+        val otherType = IfwRule(componentType = IfwComponentType.SERVICE, filters = listOf(IfwFilter.ComponentFilter("$testPackage/$testService")))
+        intentFirewall.saveRules(testPackage, IfwRules(listOf(withUnrelatedFilter, withConditionAndIntent, otherType)))
+
+        assertTrue(intentFirewall.removeComponentFilter(testPackage, testReceiver))
+
+        intentFirewall.resetCache()
+        assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+        assertEquals(
+            IfwRules(
+                listOf(
+                    withUnrelatedFilter.copy(filters = listOf(unrelated)),
+                    withConditionAndIntent.copy(filters = listOf(condition)),
+                    otherType,
+                ),
+            ),
+            intentFirewall.getRules(testPackage),
+        )
+    }
+
+    @Test
     fun givenCacheResetDuringRead_whenReadFinishes_thenStaleRulesAreNotCached() = runTest {
         fileSystem.writeRules(testPackage, blockedReceiverXml)
         val readStarted = CompletableDeferred<Unit>()
