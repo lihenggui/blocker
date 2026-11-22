@@ -127,7 +127,7 @@ internal object WakeHolds {
             // procstats files isolated processes under their host uid. Other non-regular uids are not the app's own time.
             if (!isRegularApp(uid)) continue
             val period = periods[periodId] ?: continue
-            val hidden = notificationsOff(uid, period.startMillis, period.endMillis)
+            val hidden = notificationsOff(target, uid, period.startMillis, period.endMillis)
             val off = processes.sumOf { it.screenOffMillis }
             val total = off + processes.sumOf { it.screenOnMillis }
             if (total <= 0) continue

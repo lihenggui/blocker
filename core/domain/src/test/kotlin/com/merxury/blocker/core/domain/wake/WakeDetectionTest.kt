@@ -532,13 +532,14 @@ class WakeDetectionTest {
     @Test fun givenAppThatMayNotNotify_whenItsForegroundServiceRuns_thenOnlyAPerceptibleTypeIsProductive() {
         val period = WakeHoldPeriod("p", WALL, WALL + 10_000, 0)
         val process = WakeHoldProcess("p", TARGET, TARGET_UID, TARGET, 5_000, 1_000, 3_000, 1_000)
-        fun off(id: String, millis: Long, uid: Int = TARGET_UID) = wakeRecord(id, "NotificationsOff", millis * 1_000_000, source = "NOTIFICATIONS", targetUid = uid)
+        fun off(id: String, millis: Long, app: String = "$TARGET/$TARGET_UID") = wakeRecord(id, "NotificationsOff", millis * 1_000_000, source = "NOTIFICATIONS", targetUid = null, targetPackage = null, attributes = mapOf("apps" to app))
         fun service(vararg records: WakeRecord) = WakeDetection.detect(evidence(records.toList(), periods = listOf(period), processes = listOf(process)))
             .filter { it.finding.hold == HoldCause.FOREGROUND_SERVICE }.maxBy { it.finding.actor != null }.finding.justification
 
         assertThat(service(off("a", 1_000), off("b", 9_000))).isEqualTo(Justification.NONE)
-        // Another app's record shows a snapshot at which this app could notify.
-        assertThat(service(off("a", 1_000), off("b", 9_000, PEER_UID))).isEqualTo(Justification.PRODUCTIVE)
+        // A later snapshot at which this app could notify, and a package sharing its uid that could not.
+        assertThat(service(off("a", 1_000), off("b", 9_000, ""))).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(service(off("a", 1_000, "$PEER/$TARGET_UID"))).isEqualTo(Justification.PRODUCTIVE)
         // A snapshot outside the period says nothing about it.
         assertThat(service(off("a", 11_000))).isEqualTo(Justification.PRODUCTIVE)
         // Playback is heard without a notification; a sync is not noticed. The named service is the one judged.

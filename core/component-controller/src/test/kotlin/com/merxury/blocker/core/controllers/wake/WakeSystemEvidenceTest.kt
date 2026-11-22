@@ -95,9 +95,14 @@ class WakeSystemEvidenceTest {
               AppSettings: example.blocked (1010120) importance=NONE priority=0 visibility=-1000 showBadge=true
               AppSettings: example.none (10121) importance=NONEXISTENT
         """.trimIndent()
-        val off = WakeSystemEvidence.snapshot(WakeCommand.NOTIFICATIONS, dump, 7)
-        assertThat(off.map { it.targetPackage to it.targetUid }).containsExactly("example.denied" to 10193, "example.blocked" to 1010120)
-        assertThat(off.map { it.kind }.distinct()).containsExactly(WAKE_NOTIFICATIONS_OFF)
+        fun off(sdk: Int) = WakeSystemEvidence.snapshot(WakeCommand.NOTIFICATIONS, dump, 7, sdk = sdk).single().also { assertThat(it.kind).isEqualTo(WAKE_NOTIFICATIONS_OFF) }
+            .attributes.getValue("apps").split(',')
+        assertThat(off(32)).containsExactly("example.denied/10193", "example.blocked/1010120")
+        // From Android 13 an app without an importance does not request the permission.
+        assertThat(off(33)).containsExactly("example.denied/10193", "example.unasked/10109", "example.blocked/1010120")
+        // A snapshot in which every app may notify is still a snapshot; another dump is not.
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.NOTIFICATIONS, "AppSettings: example.allowed (10175) importance=LOW", 7, sdk = 35).single().attributes["apps"]).isEmpty()
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.NOTIFICATIONS, "Can't find service: notification", 7, sdk = 35)).isEmpty()
     }
 
     @Test fun givenRoleAndJobDumps_whenDispatchingSnapshots_thenEachParserUsesOnlyItsOwnFields() {

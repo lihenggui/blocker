@@ -6,7 +6,7 @@ package com.merxury.blocker.core.controllers.wake
 import com.merxury.blocker.core.model.wake.WakeObservation
 import java.math.BigDecimal
 
-/** Snapshot record of an app that may not show notifications. */
+/** One snapshot of the apps that may not show notifications: attribute "apps" lists them as `package/uid`. */
 const val WAKE_NOTIFICATIONS_OFF = "NotificationsOff"
 
 internal object WakeSystemEvidence {
@@ -186,12 +186,12 @@ internal object WakeSystemEvidence {
         return facts.toList()
     }
 
-    fun snapshot(source: WakeCommand, output: String, now: Long, profile: Int = 0): List<WakeObservation> {
+    fun snapshot(source: WakeCommand, output: String, now: Long, profile: Int = 0, sdk: Int = android.os.Build.VERSION.SDK_INT): List<WakeObservation> {
         val lines = output.lineSequence().map(String::trim)
         return when (source) {
             WakeCommand.SERVICES, WakeCommand.PROVIDERS -> heldConnections(source, output, now)
             WakeCommand.PROCESSES -> processImportance(lines, now)
-            WakeCommand.NOTIFICATIONS -> notificationsOff(lines, now)
+            WakeCommand.NOTIFICATIONS -> notificationsOff(lines, now, sdk)
             WakeCommand.WIDGETS -> widgetProviders(lines, now)
             WakeCommand.ROLES -> roleHolders(lines, now, profile)
             WakeCommand.INPUT, WakeCommand.LISTENERS, WakeCommand.ACCESSIBILITY, WakeCommand.VPN -> systemBindings(lines, now, source, profile)
@@ -206,13 +206,19 @@ internal object WakeSystemEvidence {
         }.distinct()
     }
 
-    // "AppSettings: example.app (10123) importance=NONE userSet=false": the app may not notify at all,
-    // because the user turned its notifications off or, from Android 13, never allowed them.
-    private val notificationsOff = Regex("""^AppSettings: (\S+) \((\d+)\) (?:.* )?importance=NONE(?: |$)""")
+    // "AppSettings: example.app (10123) importance=NONE userSet=false": the user turned the app's
+    // notifications off or, from Android 13, never allowed them. Android 13 and later print the
+    // importance only for an app that requests the permission; one that does not cannot notify either.
+    private val notificationSettings = Regex("""^AppSettings: (\S+) \((\d+)\)(?: |$)(?:.*?\bimportance=(\w+))?""")
+    private const val NOTIFICATION_PERMISSION_SDK = 33
 
-    private fun notificationsOff(lines: Sequence<String>, now: Long): List<WakeObservation> = lines.mapNotNull { text ->
-        notificationsOff.find(text)?.let { WakeObservation(WAKE_NOTIFICATIONS_OFF, now, targetUid = it.groupValues[2].toInt(), targetPackage = it.groupValues[1]) }
-    }.toList()
+    // One record per snapshot keeps the history small, and a snapshot without such an app is still seen.
+    private fun notificationsOff(lines: Sequence<String>, now: Long, sdk: Int): List<WakeObservation> {
+        val settings = lines.mapNotNull(notificationSettings::find).toList()
+        if (settings.isEmpty()) return emptyList()
+        val off = settings.filter { it.groupValues[3] == "NONE" || (sdk >= NOTIFICATION_PERMISSION_SDK && it.groupValues[3].isEmpty()) }
+        return listOf(WakeObservation(WAKE_NOTIFICATIONS_OFF, now, attributes = mapOf("apps" to off.joinToString(",") { "${it.groupValues[1]}/${it.groupValues[2]}" })))
+    }
 
     private fun processImportance(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
         var host: String? = null

@@ -112,16 +112,13 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
             kind("CompanionAssociation")
         ).mapNotNull { it.targetPackage }.toSet()
 
-    // Each snapshot lists the apps that may not notify. A snapshot is known by the records it left,
-    // so one that found no such app at all is not seen; a stock system always has some.
-    private val notificationsOff = kind(WAKE_NOTIFICATIONS_OFF).groupBy({ it.targetUid }, { it.wallMillis }).mapValues { it.value.toSet() }
-    private val notificationSnapshots = kind(WAKE_NOTIFICATIONS_OFF).map { it.wallMillis }.distinct()
+    // The apps that could not notify at each snapshot, as `package/uid`.
+    private val notificationsOff = kind(WAKE_NOTIFICATIONS_OFF).map { it.wallMillis to it.attr("apps").orEmpty().split(',').toSet() }
 
     /** The app could not notify at any snapshot taken in the interval. Without a snapshot nothing is known. */
-    fun notificationsOff(uid: Int, fromWall: Long, toWall: Long): Boolean {
-        val taken = notificationSnapshots.filter { it in fromWall..toWall }
-        val off = notificationsOff[uid] ?: return false
-        return taken.isNotEmpty() && taken.all { it in off }
+    fun notificationsOff(pkg: String, uid: Int, fromWall: Long, toWall: Long): Boolean {
+        val taken = notificationsOff.filter { it.first in fromWall..toWall }
+        return taken.isNotEmpty() && taken.all { "$pkg/$uid" in it.second }
     }
 
     fun grantedSpecialAccess(pkg: String, component: String?): Boolean {
