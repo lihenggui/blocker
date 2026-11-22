@@ -25,6 +25,7 @@ import com.merxury.blocker.core.testing.controller.FakeRootAvailabilityChecker
 import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwIntentFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.SenderType
@@ -43,6 +44,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.IOException
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -382,6 +384,105 @@ class IntentFirewallNewModelTest {
             toAdd.map { "$testPackage/$it" }.toSet(),
             firewall.getRules(testPackage).componentFiltersFor(IfwComponentType.BROADCAST),
         )
+    }
+
+    @Test
+    fun givenConcurrentBatchAndSingleToggles_whenRunOnSeveralThreads_thenNoRuleIsLost() = runTest {
+        val firewall = IntentFirewall(
+            rootChecker = rootChecker,
+            componentTypeResolver = componentTypeResolver,
+            fileSystem = YieldingIfwFileSystem(fileSystem),
+            serializer = IfwXmlSerializer(),
+            deserializer = IfwXmlDeserializer(),
+        )
+        val receivers = List(100) { "com.example.Receiver$it" }
+        receivers.forEach { componentTypeResolver.setComponentType(testPackage, it, ComponentType.RECEIVER) }
+        val (initiallyBlocked, initiallyAllowed) = receivers.chunked(50)
+        firewall.addAllComponentFilters(initiallyBlocked.map { ComponentName(testPackage, it) })
+        val (batchRemove, singleRemove) = initiallyBlocked.chunked(25)
+        val (batchAdd, singleAdd) = initiallyAllowed.chunked(25)
+        val reported = ConcurrentLinkedQueue<ComponentName>()
+
+        val singleResults = withContext(Dispatchers.Default) {
+            val batches = listOf(
+                async { firewall.removeAllComponentFilters(batchRemove.map { ComponentName(testPackage, it) }) { reported += it } },
+                async { firewall.addAllComponentFilters(batchAdd.map { ComponentName(testPackage, it) }) { reported += it } },
+            )
+            val singles = singleAdd.map { async { firewall.addComponentFilter(testPackage, it) } } +
+                singleRemove.map { async { firewall.removeComponentFilter(testPackage, it) } }
+            batches.awaitAll()
+            singles.awaitAll()
+        }
+
+        assertTrue(singleResults.all { it })
+        assertEquals((batchRemove + batchAdd).map { ComponentName(testPackage, it) }.toSet(), reported.toSet())
+        firewall.resetCache()
+        assertEquals(
+            initiallyAllowed.map { "$testPackage/$it" }.toSet(),
+            firewall.getRules(testPackage).componentFiltersFor(IfwComponentType.BROADCAST),
+        )
+    }
+
+    @Test
+    fun givenUnreadablePackage_whenBatchChangesSeveralPackages_thenSkipsItWithoutWritingAndReportsOthers() = runTest {
+        val otherPackage = "com.other"
+        val otherReceiver = "com.other.Receiver"
+        componentTypeResolver.setComponentType(otherPackage, otherReceiver, ComponentType.RECEIVER)
+        val writes = mutableListOf<String>()
+        val firewall = IntentFirewall(
+            rootChecker = rootChecker,
+            componentTypeResolver = componentTypeResolver,
+            fileSystem = object : IfwFileSystem by fileSystem {
+                override suspend fun writeRules(packageName: String, content: String) {
+                    writes += packageName
+                    fileSystem.writeRules(packageName, content)
+                }
+
+                override suspend fun deleteRules(packageName: String): Boolean {
+                    writes += packageName
+                    return fileSystem.deleteRules(packageName)
+                }
+            },
+            serializer = IfwXmlSerializer(),
+            deserializer = IfwXmlDeserializer(),
+        )
+        fileSystem.writeRules(testPackage, blockedServiceXml)
+        fileSystem.unreadablePackages += testPackage
+        val components = listOf(
+            ComponentName(testPackage, testReceiver),
+            ComponentName(testPackage, testService),
+            ComponentName(otherPackage, otherReceiver),
+        )
+        val added = mutableListOf<ComponentName>()
+        val removed = mutableListOf<ComponentName>()
+
+        firewall.addAllComponentFilters(components) { added += it }
+        firewall.removeAllComponentFilters(components) { removed += it }
+
+        assertEquals(listOf(ComponentName(otherPackage, otherReceiver)), added)
+        assertEquals(listOf(ComponentName(otherPackage, otherReceiver)), removed)
+        assertEquals(listOf(otherPackage, otherPackage), writes)
+        fileSystem.unreadablePackages.clear()
+        assertEquals(blockedServiceXml, fileSystem.readRules(testPackage))
+    }
+
+    @Test
+    fun givenRuleWithIntentFilter_whenRemovingItsLastComponentFilter_thenKeepsTheIntentFilter() = runTest {
+        val rule = IfwRule(
+            componentType = IfwComponentType.BROADCAST,
+            intentFilters = listOf(IfwIntentFilter(actions = listOf("com.example.ACTION"))),
+            filters = listOf(IfwFilter.ComponentFilter("$testPackage/$testReceiver")),
+        )
+        val neverBlocked = "com.example.OtherReceiver"
+        componentTypeResolver.setComponentType(testPackage, neverBlocked, ComponentType.RECEIVER)
+        intentFirewall.saveRules(testPackage, IfwRules(listOf(rule)))
+
+        assertTrue(intentFirewall.removeComponentFilter(testPackage, testReceiver))
+        // A component that was never blocked leaves the remaining intent-only rule alone.
+        intentFirewall.removeAllComponentFilters(listOf(ComponentName(testPackage, neverBlocked)))
+
+        intentFirewall.resetCache()
+        assertEquals(IfwRules(listOf(rule.copy(filters = emptyList()))), intentFirewall.getRules(testPackage))
     }
 
     @Test
