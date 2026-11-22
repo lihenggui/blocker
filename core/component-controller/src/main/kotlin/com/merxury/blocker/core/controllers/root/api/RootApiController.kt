@@ -20,6 +20,7 @@ import android.content.ComponentName
 import android.os.Build
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.utils.controlComponentBatches
+import com.merxury.blocker.core.controllers.utils.controlComponentsOneByOne
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -78,8 +79,9 @@ internal class RootApiController @Inject constructor(
         state: ComponentState,
         action: suspend (ComponentInfo) -> Unit,
     ): Int {
+        val applyOne: suspend (ComponentInfo) -> Boolean = { switchComponent(it, state) }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return if (state == ComponentState.ENABLED) super.batchEnable(components, action) else super.batchDisable(components, action)
+            return controlComponentsOneByOne(components, applyOne, action)
         }
         return controlComponentBatches(
             components,
@@ -88,6 +90,7 @@ internal class RootApiController @Inject constructor(
                     SetComponentsEnabledSettingCommand(batch.map { ComponentName(it.packageName, it.name) }, state.pmValue),
                 ).value
             },
+            applyOne = applyOne,
             onApplied = action,
         )
     }

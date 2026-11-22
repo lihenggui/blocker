@@ -21,26 +21,74 @@ import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.data.ComponentInfo
+import kotlinx.coroutines.CancellationException
+import timber.log.Timber
 
 // Bound Binder payloads even for apps declaring unusually many components.
 private const val COMPONENTS_PER_BATCH = 200
 
+/**
+ * Changes components one app and at most [COMPONENTS_PER_BATCH] components at a time with
+ * [applyBatch]. The system batch call rejects the whole chunk when one component in it no
+ * longer exists, so a chunk that fails is retried one component at a time with [applyOne]:
+ * the valid components still change and only the failing ones are left out.
+ * [onApplied] runs for each applied component. Returns how many were applied.
+ */
 internal suspend fun controlComponentBatches(
     components: List<ComponentInfo>,
     applyBatch: suspend (List<ComponentInfo>) -> Boolean,
+    applyOne: suspend (ComponentInfo) -> Boolean,
     onApplied: suspend (ComponentInfo) -> Unit,
 ): Int {
     var succeeded = 0
     components.distinctBy { it.packageName to it.name }.groupBy { it.packageName }.values.forEach { packageComponents ->
         packageComponents.chunked(COMPONENTS_PER_BATCH).forEach { batch ->
-            if (applyBatch(batch)) {
+            if (tryControl("${batch.size} components of ${batch.first().packageName}") { applyBatch(batch) }) {
                 batch.forEach { onApplied(it) }
                 succeeded += batch.size
+            } else {
+                succeeded += controlComponentsOneByOne(batch, applyOne, onApplied)
             }
         }
     }
     return succeeded
+}
+
+/**
+ * Changes each component with [applyOne]. A component that fails is logged and left out
+ * without stopping the others. [onApplied] runs for each applied component.
+ * Returns how many were applied.
+ */
+internal suspend fun controlComponentsOneByOne(
+    components: List<ComponentInfo>,
+    applyOne: suspend (ComponentInfo) -> Boolean,
+    onApplied: suspend (ComponentInfo) -> Unit,
+): Int {
+    var succeeded = 0
+    components.forEach { component ->
+        if (tryControl("${component.packageName}/${component.name}") { applyOne(component) }) {
+            onApplied(component)
+            succeeded++
+        }
+    }
+    return succeeded
+}
+
+/**
+ * Returns false when [control] fails. Cancellation propagates, and so does a missing root
+ * grant: every remaining call would fail the same way, so retrying cannot help.
+ */
+private suspend fun tryControl(target: String, control: suspend () -> Boolean): Boolean = try {
+    control().also { applied -> if (!applied) Timber.w("Cannot change $target") }
+} catch (e: CancellationException) {
+    throw e
+} catch (e: RootUnavailableException) {
+    throw e
+} catch (e: Exception) {
+    Timber.w(e, "Cannot change $target")
+    false
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)

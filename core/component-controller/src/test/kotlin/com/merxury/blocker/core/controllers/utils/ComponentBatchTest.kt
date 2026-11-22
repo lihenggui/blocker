@@ -20,8 +20,10 @@ import android.content.ComponentName
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import android.os.Build
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,11 +34,14 @@ import org.mockito.kotlin.verify
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33, 35])
 class ComponentBatchTest {
+    private val components = List(3) { ComponentInfo("com.example", "com.tracker.Service$it", SERVICE) }
+
     @Test
     fun givenDifferentApiLevels_whenCallingSystemBatch_thenUsesVersionedSignatureAndPreservesFlags() {
         val pm = mock<IPackageManager>()
@@ -67,6 +72,7 @@ class ComponentBatchTest {
                 batches.add(it)
                 true
             },
+            applyOne = { error("A successful batch must not be retried") },
             onApplied = { processed.add(it) },
         )
 
@@ -74,5 +80,85 @@ class ComponentBatchTest {
         assertEquals(listOf(200, 200, 50, 1), batches.map { it.size })
         assertTrue(batches.all { batch -> batch.map { it.packageName }.distinct().size == 1 })
         assertEquals(firstPackage + secondPackage, processed)
+    }
+
+    @Test
+    fun givenStaleComponent_whenBatchCallThrows_thenAppliesTheOthersOneByOne() = runTest {
+        val stale = components[1]
+        val single = mutableListOf<ComponentInfo>()
+        val processed = mutableListOf<ComponentInfo>()
+
+        val count = controlComponentBatches(
+            components,
+            applyBatch = { throw IllegalArgumentException("Unknown component: ${stale.name}") },
+            applyOne = { component ->
+                single.add(component)
+                if (component == stale) throw IllegalArgumentException("Unknown component: ${component.name}")
+                true
+            },
+            onApplied = { processed.add(it) },
+        )
+
+        assertEquals(2, count)
+        assertEquals(components, single)
+        assertEquals(components - stale, processed)
+    }
+
+    @Test
+    fun givenRejectedComponents_whenControllingOneByOne_thenContinuesAfterEachFailure() = runTest {
+        val processed = mutableListOf<ComponentInfo>()
+
+        val count = controlComponentsOneByOne(
+            components,
+            applyOne = { component ->
+                when (component) {
+                    components[0] -> throw SecurityException("denied")
+                    components[1] -> false
+                    else -> true
+                }
+            },
+            onApplied = { processed.add(it) },
+        )
+
+        assertEquals(1, count)
+        assertEquals(listOf(components[2]), processed)
+    }
+
+    @Test
+    fun givenCancellation_whenBatchCallIsCancelled_thenPropagatesWithoutRetrying() = runTest {
+        var retried = false
+
+        assertFailsWith<CancellationException> {
+            controlComponentBatches(
+                components,
+                applyBatch = { throw CancellationException("cancelled") },
+                applyOne = {
+                    retried = true
+                    true
+                },
+                onApplied = {},
+            )
+        }
+
+        assertEquals(false, retried)
+    }
+
+    @Test
+    fun givenRootUnavailable_whenBatchCallFails_thenPropagatesWithoutRetrying() = runTest {
+        var retried = false
+
+        assertFailsWith<RootUnavailableException> {
+            controlComponentBatches(
+                components,
+                applyBatch = { throw RootUnavailableException() },
+                applyOne = {
+                    retried = true
+                    true
+                },
+                onApplied = {},
+            )
+        }
+
+        assertEquals(false, retried)
     }
 }
