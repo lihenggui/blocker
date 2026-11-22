@@ -61,6 +61,20 @@ class WakeStartInfoTest {
         assertThat(parse(uptime = 1_000_000_000_000L).map { it.targetUid }).doesNotContain(2010234)
     }
 
+    @Test fun givenJobWithoutForkTime_whenTheDeviceSlept_thenItsLaunchIsElapsedRealtime() {
+        val text = dump.replace("timestamps: 0=1536851780187 1=1536865992162 2=1536916773210 3=1536890025909", "timestamps: 0=1536851780187")
+        // The launch is later than the uptime of a device that slept, and still a start of this boot.
+        val job = parse(text, uptime = 1_000_000_000_000L).single { it.attributes["reason"] == "JOB" }
+        assertThat(job.elapsedNanos).isEqualTo(1_536_851_780_187L)
+        assertThat(job.attributes[WAKE_START_INFO_CLOCK]).isEqualTo("elapsed")
+    }
+
+    @Test fun givenIsolatedProcess_whenParsing_thenItIsNotAStartOfItsApp() {
+        val text = dump.replace("pid=0 realUid=10154 packageUid=10154", "pid=0 realUid=99003 packageUid=10154")
+        assertThat(parse(text).map { it.targetUid }).doesNotContain(10154)
+        assertThat(parse().map { it.targetUid }).contains(10154)
+    }
+
     @Test fun givenRecords_whenParsing_thenReasonsIntentsAndStartTypesAreDecoded() {
         val records = parse()
         val boot = records.single { it.targetUid == 10139 }

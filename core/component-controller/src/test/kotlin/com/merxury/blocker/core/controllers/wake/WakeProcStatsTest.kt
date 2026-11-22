@@ -159,6 +159,12 @@ class WakeProcStatsTest {
         assertThrows(IllegalArgumentException::class.java) { WakeProcStats.parse("err,Failure reading state-x.bin", 35, utc) }
     }
 
+    @Test fun givenLocalizedDigits_whenParsing_thenThePeriodIsTheSameAsWithAsciiDigits() {
+        val ascii = WakeProcStats.parse(fixture("procstats-current.txt"), 34, utc)
+        val arabic = fixture("procstats-current.txt").replace("period,2026-11-22-08-13-53", "period,٢٠٢٦-١١-٢٢-٠٨-١٣-٥٣")
+        assertThat(WakeProcStats.parse(arabic, 34, utc)).isEqualTo(ascii)
+    }
+
     @Test fun givenCommittedPeriods_whenCurrentPeriodRolledOver_thenNewestUpToTheLastSeenPeriodAreRead() {
         val committed = WakeProcStats.parse(fixture("procstats-last.txt"), 34, utc)
         assertThat(committed.id).isEqualTo("2026-11-20-22-26-51")

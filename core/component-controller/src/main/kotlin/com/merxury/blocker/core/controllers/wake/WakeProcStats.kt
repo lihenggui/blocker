@@ -169,8 +169,10 @@ internal object WakeProcStats {
         require(version == CHECKIN_VERSION) { "procstats: unsupported checkin version $version" }
         val header = requireNotNull(period) { "procstats: no period" }
         require(header.size >= 4) { "procstats: malformed period" }
+        // ProcessStats formats the start with the system locale, which may not use ASCII digits.
+        val id = header[1].map { if (Character.isDigit(it)) Character.forDigit(Character.digit(it, 10), 10) else it }.joinToString("")
         val start = try {
-            LocalDateTime.parse(header[1], clock).atZone(zone).toInstant().toEpochMilli()
+            LocalDateTime.parse(id, clock).atZone(zone).toInstant().toEpochMilli()
         } catch (e: DateTimeParseException) {
             throw IllegalArgumentException("procstats: unreadable period start", e)
         }
@@ -183,7 +185,7 @@ internal object WakeProcStats {
             held.replaceAll { _, process -> splitByScreen(process, totals[0], totals[0] + totals[1]) }
         }
         return WakeProcStatsPeriod(
-            header[1],
+            id,
             start,
             start + (endRealtime - startRealtime),
             held.mapNotNull { (key, totals) ->

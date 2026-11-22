@@ -78,7 +78,7 @@ class WakeProtectionManager @Inject constructor(
             val zone = ZoneId.systemDefault()
             val window = WakeDetection.window(now, repository.retentionStart(now), repository.oldestRecord(), repository.oldestImported(), zone)
             val since = WakeDetection.dayStartMillis(window.from, zone) - WakeRevives.KILL_WINDOW / 1_000_000
-            val detected = WakeDetection.detect(repository.detectionEvidence(since, now))
+            val detected = WakeDetection.detect(repository.detectionEvidence(since, now), zone)
             repository.saveDetection(window.from, window.through, WakeDetection.daily(detected, zone), WakeDetection.verdicts(detected, zone), window.firstKeptDay)
             repository.reportStatus(WakeSourceStatus("detection", now, "OK"))
         } catch (e: Exception) {

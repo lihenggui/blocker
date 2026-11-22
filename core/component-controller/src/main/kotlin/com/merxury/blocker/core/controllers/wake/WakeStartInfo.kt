@@ -40,6 +40,7 @@ internal object WakeStartInfo {
 
     private class Draft(val pkg: String) {
         var uid: Int? = null
+        var realUid: Int? = null
         var fields: MatchResult? = null
         var action: String? = null
         var component: String? = null
@@ -68,6 +69,8 @@ internal object WakeStartInfo {
             draft = null
             val fields = record.fields?.groupValues ?: return
             val uid = record.uid ?: return
+            // An isolated or sandbox process of a running app is not a start of the app.
+            if (record.realUid?.let { it % 100_000 !in 10_000..19_999 } == true) return
             // Created before this boot: the tracker reloaded it from disk without its package name.
             if (fields[1] == "null") return
             val reason = fields[4]
@@ -76,7 +79,10 @@ internal object WakeStartInfo {
             val fork = record.times[1]
             val (anchor, elapsedClock) = when {
                 fork != null -> fork to false
-                reason == "SERVICE" -> launch to true
+
+                // ActiveServices stamps a service start, job services included, with the elapsed clock.
+                reason == "SERVICE" || reason == "JOB" -> launch to true
+
                 else -> launch to false
             }
             if (anchor > (if (elapsedClock) nowElapsedNanos else nowUptimeNanos)) return
@@ -120,7 +126,11 @@ internal object WakeStartInfo {
                     draft = pkg?.let(::Draft)
                 }
 
-                line.startsWith("pid=") -> draft?.uid = ids.findAll(line).firstOrNull { it.groupValues[1] == "packageUid" }?.groupValues?.get(2)?.toIntOrNull()
+                line.startsWith("pid=") -> draft?.let { record ->
+                    val values = ids.findAll(line).associate { it.groupValues[1] to it.groupValues[2].toIntOrNull() }
+                    record.uid = values["packageUid"]
+                    record.realUid = values["realUid"]
+                }
 
                 line.startsWith("package=") -> draft?.fields = header.find(line)
 

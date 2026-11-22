@@ -529,6 +529,20 @@ class WakeDetectionTest {
         assertThat(named.getValue(null).finding.durationNanos).isEqualTo(3_000_000_000L)
     }
 
+    @Test fun givenPeriodCrossingMidnight_whenDetecting_thenEachDayGetsItsShareOfTheHold() {
+        val midnight = WakeDetection.dayStartMillis(WakeDetection.day(WALL * 1_000_000, ZoneOffset.UTC) + 1, ZoneOffset.UTC)
+        // 23:30 to 02:30, held for two hours of it with the screen off for one.
+        val period = WakeHoldPeriod("p", midnight - 1_800_000, midnight + 9_000_000, 0)
+        val process = WakeHoldProcess("p", TARGET, TARGET_UID, TARGET, 3_600_000, 3_600_000)
+        val detected = WakeDetection.detect(evidence(emptyList(), periods = listOf(period), processes = listOf(process)), ZoneOffset.UTC)
+            .filter { it.finding.hold != null }.sortedBy { it.finding.startNanos }
+        assertThat(detected.map { it.finding.startNanos / 1_000_000 }).containsExactly(midnight - 1_800_000, midnight).inOrder()
+        assertThat(detected.map { it.finding.durationNanos / 1_000_000 }).containsExactly(1_200_000L, 6_000_000L).inOrder()
+        assertThat(detected.map { it.screenOffNanos / 1_000_000 }).containsExactly(600_000L, 3_000_000L).inOrder()
+        val verdicts = WakeDetection.verdicts(detected, ZoneOffset.UTC).sortedBy { it.day }
+        assertThat(verdicts.map { it.screenOffHoldNoneNanos / 1_000_000 }).containsExactly(600_000L, 3_000_000L).inOrder()
+    }
+
     @Test fun givenOwnProcessesHoldingEachOther_whenAttributing_thenTheAppHoldsItself() {
         // The messaging shape: the system keeps ":rcs", and ":rcs" keeps the main process through a provider.
         val period = WakeHoldPeriod("p", WALL, WALL + 10_000, 0)

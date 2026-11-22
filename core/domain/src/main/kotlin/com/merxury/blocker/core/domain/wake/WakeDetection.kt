@@ -34,9 +34,9 @@ internal object WakeDetection {
     private val platformDeliveries = setOf(ReviveTrigger.SYSTEM_BROADCAST, ReviveTrigger.PUSH_TRANSPORT)
     private val peerTriggers = setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.PEER_BROADCAST, ReviveTrigger.PEER_PROVIDER, ReviveTrigger.PEER_ACTIVITY)
 
-    fun detect(evidence: WakeDetectionEvidence): List<Detected> {
+    fun detect(evidence: WakeDetectionEvidence, zone: ZoneId = ZoneId.systemDefault()): List<Detected> {
         val index = WakeEvidenceIndex(evidence)
-        return WakeRevives.detect(index) + WakeHolds.detect(index)
+        return WakeRevives.detect(index) + WakeHolds.detect(index, zone)
     }
 
     fun findings(evidence: WakeDetectionEvidence): List<WakeFinding> = detect(evidence).map { it.finding }

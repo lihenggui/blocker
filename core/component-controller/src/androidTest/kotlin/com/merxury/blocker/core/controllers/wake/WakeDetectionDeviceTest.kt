@@ -26,7 +26,8 @@ class WakeDetectionDeviceTest {
         val current = WakeProcStats.parse(shell(WakeCommand.PROCSTATS), Build.VERSION.SDK_INT, ZoneId.systemDefault())
         assertTrue(current.id.isNotEmpty())
         assertTrue(current.endWallMillis >= current.startWallMillis)
-        val count = WakeProcStats.committedCount(shell(WakeCommand.PROCSTATS_COUNT))
+        // A device that has not committed a period yet reports no count.
+        val count = runCatching { WakeProcStats.committedCount(shell(WakeCommand.PROCSTATS_COUNT)) }.getOrDefault(0)
         assumeTrue("Needs at least two committed procstats periods", count >= 2)
         val committed = WakeProcStats.parse(shell(WakeCommand.PROCSTATS_LAST, argument = count - 1L), Build.VERSION.SDK_INT, ZoneId.systemDefault())
         assertTrue("${committed.id} must precede ${current.id}", committed.id < current.id)

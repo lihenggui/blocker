@@ -11,6 +11,8 @@ import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.Justification
 import com.merxury.blocker.core.model.wake.WakeFinding
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
+import java.time.Instant
+import java.time.ZoneId
 
 internal object WakeHolds {
     // ServiceInfo.FOREGROUND_SERVICE_TYPE_* bits and their manifest names.
@@ -68,7 +70,20 @@ internal object WakeHolds {
         return result
     }
 
-    fun detect(index: WakeEvidenceIndex): List<Detected> = with(index) {
+    /** The start and length in milliseconds of each local day's part of [period]. */
+    private fun days(period: WakeHoldPeriod, zone: ZoneId): List<Pair<Long, Long>> {
+        val result = mutableListOf<Pair<Long, Long>>()
+        var from = period.startMillis
+        while (from < period.endMillis) {
+            val next = Instant.ofEpochMilli(from).atZone(zone).toLocalDate().plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+            val to = minOf(next, period.endMillis)
+            result += from to to - from
+            from = to
+        }
+        return result.ifEmpty { listOf(period.startMillis to 1L) }
+    }
+
+    fun detect(index: WakeEvidenceIndex, zone: ZoneId = ZoneId.systemDefault()): List<Detected> = with(index) {
         val fgs = intervals(
             "ForegroundServiceStateChanged",
             { it.targetUid },
@@ -207,20 +222,25 @@ internal object WakeHolds {
 
                     else -> Justification.NONE
                 }
-                // procstats splits process time by screen state but not by cause, except for the foreground service state.
-                result += Detected(
-                    WakeFinding.hold(
-                        target,
-                        candidate.cause,
-                        candidate.actor,
-                        candidate.detail,
-                        justification,
-                        candidate.confidence,
-                        period.startMillis * 1_000_000,
-                        candidate.millis * 1_000_000,
-                    ),
-                    screenOff(candidate),
-                )
+                // procstats splits process time by screen state but not by cause, except for the foreground service
+                // state, and not by time of day: a period that crosses midnight is shared by its overlap with each day.
+                val days = days(period, zone)
+                val length = days.sumOf { it.second }
+                var durationLeft = candidate.millis * 1_000_000
+                var screenOffLeft = screenOff(candidate)
+                days.forEachIndexed { i, (from, millis) ->
+                    val last = i == days.lastIndex
+                    // Shares are taken in milliseconds: nanoseconds times a period length overflows.
+                    val duration = if (last) durationLeft else candidate.millis * millis / length * 1_000_000
+                    val screenOff = if (last) screenOffLeft else screenOff(candidate) / 1_000_000 * millis / length * 1_000_000
+                    durationLeft -= duration
+                    screenOffLeft -= screenOff
+                    if (duration <= 0) return@forEachIndexed
+                    result += Detected(
+                        WakeFinding.hold(target, candidate.cause, candidate.actor, candidate.detail, justification, candidate.confidence, from * 1_000_000, duration),
+                        screenOff,
+                    )
+                }
             }
         }
         // One finding per package, cause, actor and detail per period, even across users.
