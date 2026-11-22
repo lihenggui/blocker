@@ -13,9 +13,4 @@ Before submitting your PR, there are a few things you can do to make sure it goe
   formatting)
 - [ ] Appropriate docs were updated (if necessary)
 
-Is this your first Pull Request?
-
-- [ ] Run `./tools/setup.sh`
-- [ ] Import the code formatting style as explained in [the setup script](/tools/setup.sh#L40).
-
 Fixes #<issue_number_goes_here> 🦕

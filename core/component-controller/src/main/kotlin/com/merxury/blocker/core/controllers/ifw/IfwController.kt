@@ -21,7 +21,6 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.model.IfwComponentType
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -101,12 +100,4 @@ internal class IfwController @Inject constructor(
         packageName: String,
         componentName: String,
     ): Boolean = intentFirewall.getComponentEnableState(packageName, componentName)
-
-    override suspend fun checkComponentEnableStates(components: List<ComponentInfo>): Map<ComponentInfo, Boolean> = buildMap {
-        components.groupBy { it.packageName }.forEach { (packageName, packageComponents) ->
-            val rules = intentFirewall.getRules(packageName)
-            val blocked = IfwComponentType.entries.flatMap { rules.componentFiltersFor(it) }.toSet()
-            packageComponents.forEach { put(it, "$packageName/${it.name}" !in blocked) }
-        }
-    }
 }

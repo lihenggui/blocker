@@ -16,9 +16,6 @@
 
 package com.merxury.blocker.core.git
 
-import com.merxury.blocker.core.git.MergeStatus.CONFLICTS
-import com.merxury.blocker.core.git.MergeStatus.FAILED
-import com.merxury.blocker.core.git.MergeStatus.MERGED
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ResetCommand.ResetType
 import org.eclipse.jgit.internal.storage.file.FileRepository
@@ -64,94 +61,9 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         return true
     }
 
-    override suspend fun commitChanges(commitMessage: String): Boolean = withGit { git ->
-        git.add()
-            .addFilepattern(".")
-            .call()
-        git.commit()
-            .setMessage(commitMessage)
-            .call()
-        true
-    } ?: false
-
-    override suspend fun hasLocalChanges(): Boolean = withGit { git ->
-        git.status()
-            .call()
-            .hasUncommittedChanges()
-    } ?: false
-
-    override suspend fun add(filePattern: String): Int = withGit { git ->
-        git.add()
-            .addFilepattern(filePattern)
-            .call()
-        val status = git.status()
-            .call()
-        status.added.size + status.changed.size + status.removed.size + status.missing.size
-    } ?: 0
-
-    override suspend fun checkoutLocalBranch(branchName: String): Boolean = withGit { git ->
-        val branchWithNamespace = "refs/heads/$branchName"
-        Timber.d("Checking out branch $branchWithNamespace")
-        val branches = git.branchList().call()
-        if (branches.none { it.name == branchWithNamespace }) {
-            Timber.e("Branch $branchWithNamespace does not exist")
-            return@withGit false
-        }
-        git.checkout()
-            .setName(branchWithNamespace)
-            .call()
-        true
-    } ?: false
-
-    override suspend fun createBranch(branchName: String): Boolean = withGit { git ->
-        Timber.d("Creating branch $branchName")
-        git.checkout()
-            .setCreateBranch(true)
-            .setName(branchName)
-            .call()
-        true
-    } ?: false
-
-    override suspend fun renameBranch(name: String): Boolean = withGit { git ->
-        Timber.d("Renaming branch to $name")
-        git.branchRename()
-            .setNewName(name)
-            .call()
-        true
-    } ?: false
-
-    override suspend fun getCurrentBranch(): String? = withGit { git ->
-        git.repository.branch
-    }
-
     override suspend fun getHeadCommitId(): String? = withGit { git ->
         git.repository.resolve("HEAD")?.name
     }
-
-    override suspend fun fetchAndMergeFromMain(): MergeStatus = withGit { git ->
-        val branch = repoInfo.branch
-        Timber.d("Fetching changes from remote ${repoInfo.url}")
-        git.fetch()
-            .setRemote(repoInfo.remoteName)
-            .setRefSpecs("+refs/heads/$branch:refs/remotes/${repoInfo.remoteName}/$branch")
-            .call()
-        Timber.d("Merging changes from ${repoInfo.remoteName}/$branch")
-        git.merge()
-            .include(git.repository.resolve("refs/remotes/${repoInfo.remoteName}/$branch"))
-            .call()
-        // Resolve conflicts if any
-        val status = git.status()
-            .call()
-        if (status.hasUncommittedChanges()) {
-            Timber.e("Conflicts detected, files with conflicts: ${status.conflicting}")
-            // Reset the merge
-            git.reset()
-                .setMode(ResetType.HARD)
-                .call()
-            return@withGit CONFLICTS
-        }
-        MERGED
-    } ?: FAILED
 
     override suspend fun setRemote(url: String, name: String): Boolean = withGit { git ->
         Timber.i("Setting remote $name to $url")
@@ -189,10 +101,6 @@ class DefaultGitClient(private val repoInfo: RepositoryInfo, baseDirectory: File
         Timber.i("Successfully reset to $remoteName/$branch")
         true
     } ?: false
-
-    override suspend fun getTrackingRemote(): String? = withGit { git ->
-        git.repository.config.getString("branch", git.repository.branch, "remote")
-    }
 
     /**
      * Create a new git repository in the base directory

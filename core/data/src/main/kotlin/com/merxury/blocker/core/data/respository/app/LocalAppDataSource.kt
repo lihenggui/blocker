@@ -24,7 +24,6 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
-import com.merxury.blocker.core.minSdkVersionCompat
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.utils.PackageInfoDataSource
 import kotlinx.coroutines.CoroutineDispatcher
@@ -61,7 +60,7 @@ internal class LocalAppDataSource @Inject constructor(
         packageName = packageName,
         versionName = versionName.orEmpty(),
         versionCode = getVersionCode(),
-        minSdkVersion = applicationInfo?.minSdkVersionCompat() ?: 0,
+        minSdkVersion = applicationInfo?.minSdkVersion ?: 0,
         targetSdkVersion = applicationInfo?.targetSdkVersion ?: 0,
         firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
         lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),

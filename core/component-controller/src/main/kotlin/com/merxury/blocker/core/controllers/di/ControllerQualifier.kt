@@ -20,10 +20,6 @@ import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class RootCommandControl
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
 annotation class IfwControl
 
 @Qualifier

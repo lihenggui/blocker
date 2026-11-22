@@ -20,13 +20,16 @@ import android.os.Bundle
 import com.google.firebase.analytics.FirebaseAnalytics
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Implementation of `AnalyticsHelper` which logs events to a Firebase backend.
  */
+@Singleton
 internal class FirebaseAnalyticsHelper @Inject constructor(
     private val firebaseAnalytics: FirebaseAnalytics,
 ) : AnalyticsHelper {
+    @Volatile
     private var enableStatistics = true
 
     override fun setEnableStatistics(enable: Boolean) {

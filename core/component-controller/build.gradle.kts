@@ -18,11 +18,11 @@ plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.jacoco)
     alias(libs.plugins.blocker.android.hilt)
-    id("kotlinx-serialization")
     id("kotlin-parcelize")
 }
 
 android {
+    buildFeatures.aidl = true
     defaultConfig {
         consumerProguardFiles("consumer-proguard-rules.pro")
     }
@@ -33,14 +33,19 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.model)
+    implementation(projects.core.datastoreProto)
     implementation(projects.core.ifwApi)
 
     implementation(libs.hiddenapibypass)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
 
     testImplementation(projects.core.testing)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.kotlin.test.junit)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.truth)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(libs.mockito.kotlin)
 }

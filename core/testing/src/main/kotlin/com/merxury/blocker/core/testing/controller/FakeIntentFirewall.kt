@@ -22,11 +22,21 @@ import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
+import java.io.IOException
 
 class FakeIntentFirewall : IIntentFirewall {
     val rules = mutableMapOf<String, IfwRules>()
 
-    override suspend fun getRules(packageName: String): IfwRules = rules[packageName] ?: IfwRules.empty()
+    /**
+     * Packages whose rule file exists but cannot be read. As in IntentFirewall, [getRules] throws,
+     * writes leave them unchanged and report failure, and [getComponentEnableState] reports true.
+     */
+    val unreadablePackages = mutableSetOf<String>()
+
+    override suspend fun getRules(packageName: String): IfwRules {
+        if (packageName in unreadablePackages) throw IOException("Cannot read IFW rules for $packageName")
+        return rules[packageName] ?: IfwRules.empty()
+    }
 
     override suspend fun saveRules(packageName: String, rules: IfwRules) {
         if (rules.isEmpty()) {
@@ -37,6 +47,7 @@ class FakeIntentFirewall : IIntentFirewall {
     }
 
     override suspend fun addComponentFilter(packageName: String, componentName: String): Boolean {
+        if (packageName in unreadablePackages) return false
         val current = getRules(packageName)
         val filter = IfwFilter.ComponentFilter("$packageName/$componentName")
         val existingRule = current.rulesFor(IfwComponentType.BROADCAST).firstOrNull()
@@ -56,6 +67,7 @@ class FakeIntentFirewall : IIntentFirewall {
     }
 
     override suspend fun removeComponentFilter(packageName: String, componentName: String): Boolean {
+        if (packageName in unreadablePackages) return false
         val current = getRules(packageName)
         val filterName = "$packageName/$componentName"
         val updatedRules = current.rules.map { rule ->
@@ -74,8 +86,7 @@ class FakeIntentFirewall : IIntentFirewall {
         callback: suspend (ComponentName) -> Unit,
     ) {
         list.forEach { component ->
-            addComponentFilter(component.packageName, component.className)
-            callback(component)
+            if (addComponentFilter(component.packageName, component.className)) callback(component)
         }
     }
 
@@ -84,8 +95,7 @@ class FakeIntentFirewall : IIntentFirewall {
         callback: suspend (ComponentName) -> Unit,
     ) {
         list.forEach { component ->
-            removeComponentFilter(component.packageName, component.className)
-            callback(component)
+            if (removeComponentFilter(component.packageName, component.className)) callback(component)
         }
     }
 
@@ -93,6 +103,7 @@ class FakeIntentFirewall : IIntentFirewall {
         packageName: String,
         componentName: String,
     ): Boolean {
+        if (packageName in unreadablePackages) return true
         val current = getRules(packageName)
         val formattedName = "$packageName/$componentName"
         return IfwComponentType.entries.none { type ->
@@ -104,7 +115,7 @@ class FakeIntentFirewall : IIntentFirewall {
         rules.remove(packageName)
     }
 
-    override suspend fun getAllRules(): Map<String, IfwRules> = rules.toMap()
+    override suspend fun getAllRules(): Map<String, IfwRules> = rules.filterKeys { it !in unreadablePackages }
 
     override fun resetCache() {
         rules.clear()

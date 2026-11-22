@@ -84,9 +84,6 @@ android {
         }
     }
     testOptions.unitTests.isIncludeAndroidResources = true
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
 }
 
 dependencies {
@@ -124,6 +121,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigationEvent)
     implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.compose.material3.adaptive.layout)
     implementation(libs.androidx.compose.material3.adaptive.navigation)
@@ -165,6 +163,8 @@ dependencies {
     testImplementation(projects.uiTestHiltManifest)
     testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.truth)
     testImplementation(libs.work.testing)
 
     testFossImplementation(libs.androidx.navigation.testing)

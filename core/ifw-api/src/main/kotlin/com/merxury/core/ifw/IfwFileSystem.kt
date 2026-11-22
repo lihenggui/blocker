@@ -17,7 +17,13 @@
 package com.merxury.core.ifw
 
 interface IfwFileSystem {
+    /**
+     * Returns the content of the package's rule file, or null if the file does not exist.
+     * Throws if the file exists but cannot be read, so callers never mistake it for a missing file.
+     */
     suspend fun readRules(packageName: String): String?
+
+    /** Replaces the package's rule file atomically, so readers never see a partial file. */
     suspend fun writeRules(packageName: String, content: String)
     suspend fun deleteRules(packageName: String): Boolean
     suspend fun fileExists(packageName: String): Boolean

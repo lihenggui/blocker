@@ -30,8 +30,6 @@ import com.merxury.blocker.core.Application
 interface PackageInfoDataSource {
     suspend fun getApplicationList(): List<Application>
     suspend fun getThirdPartyApplicationList(): List<Application>
-    suspend fun getSystemApplicationList(): List<Application>
-    suspend fun getApplicationInfo(packageName: String): Application?
     suspend fun getActivityList(packageName: String): List<ActivityInfo>
     suspend fun getReceiverList(packageName: String): List<ActivityInfo>
     suspend fun getServiceList(packageName: String): List<ServiceInfo>

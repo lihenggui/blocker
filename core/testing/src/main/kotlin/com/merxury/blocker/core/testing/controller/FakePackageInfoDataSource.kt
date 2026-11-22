@@ -27,7 +27,6 @@ import com.merxury.blocker.core.utils.PackageInfoDataSource
 class FakePackageInfoDataSource : PackageInfoDataSource {
     var applicationList: List<Application> = emptyList()
     var thirdPartyApplicationList: List<Application> = emptyList()
-    var systemApplicationList: List<Application> = emptyList()
     var activities: Map<String, List<ActivityInfo>> = emptyMap()
     var receivers: Map<String, List<ActivityInfo>> = emptyMap()
     var services: Map<String, List<ServiceInfo>> = emptyMap()
@@ -40,8 +39,6 @@ class FakePackageInfoDataSource : PackageInfoDataSource {
 
     override suspend fun getApplicationList(): List<Application> = applicationList
     override suspend fun getThirdPartyApplicationList(): List<Application> = thirdPartyApplicationList
-    override suspend fun getSystemApplicationList(): List<Application> = systemApplicationList
-    override suspend fun getApplicationInfo(packageName: String): Application? = applicationList.find { it.packageName == packageName }
 
     override suspend fun getActivityList(packageName: String): List<ActivityInfo> = activities[packageName].orEmpty()
 

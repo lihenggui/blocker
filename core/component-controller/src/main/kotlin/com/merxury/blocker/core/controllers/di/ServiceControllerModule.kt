@@ -18,7 +18,6 @@ package com.merxury.blocker.core.controllers.di
 
 import com.merxury.blocker.core.controllers.IServiceController
 import com.merxury.blocker.core.controllers.root.api.RootApiServiceController
-import com.merxury.blocker.core.controllers.root.command.RootServiceController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuServiceController
 import dagger.Binds
 import dagger.Module
@@ -28,10 +27,6 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 internal interface ServiceControllerModule {
-    @Binds
-    @RootCommandServiceControl
-    fun bindsRootServiceController(rootServiceController: RootServiceController): IServiceController
-
     @Binds
     @ShizukuServiceControl
     fun bindsShizukuServiceController(shizukuServiceController: ShizukuServiceController): IServiceController

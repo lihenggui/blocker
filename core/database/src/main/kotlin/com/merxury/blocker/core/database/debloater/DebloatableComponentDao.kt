@@ -39,7 +39,7 @@ interface DebloatableComponentDao {
     @Delete
     suspend fun delete(entities: List<DebloatableComponentEntity>): Int
 
-    @Query("DELETE FROM debloatable_component WHERE package_name LIKE :packageName")
+    @Query("DELETE FROM debloatable_component WHERE package_name = :packageName")
     suspend fun deleteByPackageName(packageName: String): Int
 
     @Query("DELETE FROM debloatable_component")
@@ -48,12 +48,12 @@ interface DebloatableComponentDao {
     @Query("SELECT * FROM debloatable_component")
     fun getAll(): Flow<List<DebloatableComponentEntity>>
 
-    @Query("SELECT * FROM debloatable_component WHERE package_name LIKE :packageName")
+    @Query("SELECT * FROM debloatable_component WHERE package_name = :packageName")
     fun getByPackageName(packageName: String): Flow<List<DebloatableComponentEntity>>
 
     @Query(
-        "SELECT * FROM debloatable_component WHERE package_name LIKE :packageName " +
-            "AND component_name LIKE :componentName",
+        "SELECT * FROM debloatable_component WHERE package_name = :packageName " +
+            "AND component_name = :componentName",
     )
     fun getByPackageNameAndComponentName(
         packageName: String,

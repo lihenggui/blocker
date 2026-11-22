@@ -15,12 +15,14 @@ graph TB
     direction TB
     :core:common[common]:::android-library
     :core:component-controller[component-controller]:::android-library
+    :core:datastore-proto[datastore-proto]:::jvm-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
   end
 
   :core:common -.-> :core:model
   :core:component-controller -.-> :core:common
+  :core:component-controller -.-> :core:datastore-proto
   :core:component-controller -.-> :core:ifw-api
   :core:component-controller -.-> :core:model
   :core:ifw-api -.-> :core:common

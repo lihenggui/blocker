@@ -44,35 +44,35 @@ interface AppComponentDao {
     @Delete
     suspend fun delete(entities: List<AppComponentEntity>): Int
 
-    @Query("DELETE FROM app_component WHERE package_name LIKE :packageName")
+    @Query("DELETE FROM app_component WHERE package_name = :packageName")
     suspend fun deleteByPackageName(packageName: String): Int
 
     @Query("Delete FROM app_component")
     suspend fun deleteAll(): Int
 
-    @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName")
+    @Query("SELECT * FROM app_component WHERE package_name = :packageName")
     fun getByPackageName(packageName: String): Flow<List<AppComponentEntity>>
 
     @Query("SELECT * FROM app_component WHERE pm_blocked = 1")
     suspend fun getPmBlockedComponents(): List<AppComponentEntity>
 
     @Query(
-        "SELECT * FROM app_component WHERE package_name LIKE :packageName " +
-            "AND component_name LIKE :componentName",
+        "SELECT * FROM app_component WHERE package_name = :packageName " +
+            "AND component_name = :componentName",
     )
     fun getByPackageNameAndComponentName(
         packageName: String,
         componentName: String,
     ): Flow<AppComponentEntity?>
 
-    @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND type = :type")
+    @Query("SELECT * FROM app_component WHERE package_name = :packageName AND type = :type")
     fun getByPackageNameAndType(
         packageName: String,
         type: ComponentType,
     ): Flow<List<AppComponentEntity>>
 
     @Transaction
-    @Query("SELECT * FROM app_component WHERE component_name LIKE :name")
+    @Query("SELECT * FROM app_component WHERE component_name = :name")
     fun getByName(name: String): Flow<AppComponentEntity?>
 
     @Upsert

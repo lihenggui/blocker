@@ -27,8 +27,6 @@ import androidx.work.ExistingWorkPolicy.KEEP
 import androidx.work.WorkManager
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
-import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.analytics.StubAnalyticsHelper
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.logging.ReleaseTree
@@ -37,6 +35,7 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.Sync
+import com.merxury.blocker.sync.workers.WakeWork
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -54,6 +53,9 @@ class BlockerApplication :
     Application(),
     SingletonImageLoader.Factory,
     Configuration.Provider {
+    @Inject
+    lateinit var wakeWork: WakeWork
+
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
@@ -74,7 +76,7 @@ class BlockerApplication :
     lateinit var releaseTree: ReleaseTree
 
     @Inject
-    lateinit var analyticsHelper: AnalyticsHelper
+    lateinit var analyticsCollectionObserver: AnalyticsCollectionObserver
 
     @Inject
     lateinit var appDebugChecker: AppDebugChecker
@@ -107,17 +109,15 @@ class BlockerApplication :
         initAppSettings()
         addApiExemptions()
         profileVerifierLogger()
-        Sync.initialize(context = this)
+        Sync.initialize(context = this, wakeWork = wakeWork)
     }
 
     override fun newImageLoader(context: Context): ImageLoader = imageLoader.get()
 
     private fun initAppSettings() {
+        applicationScope.launch { analyticsCollectionObserver.observe() }
         applicationScope.launch {
             val userData = userDataRepository.userData.first()
-            val allowStatistics = analyticsHelper !is StubAnalyticsHelper && userData.enableStatistics
-            userDataRepository.setEnableStatistics(allowStatistics)
-            analyticsHelper.setEnableStatistics(allowStatistics)
             if (!userData.isFirstTimeInitializationCompleted) {
                 setDefaultRuleProvider()
                 copyRulesToInternalStorage()

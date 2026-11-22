@@ -18,6 +18,7 @@
 package com.merxury.blocker.ui
 
 import android.util.Log
+import androidx.activity.BackEventCompat
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -25,8 +26,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.ForcedSize
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -37,6 +42,7 @@ import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
@@ -147,6 +153,47 @@ class BlockerAppScreenSizesScreenshotTests {
                 "src/testFoss/screenshots/$screenshotName.png",
                 roborazziOptions = DefaultRoborazziOptions,
             )
+    }
+
+    @Test
+    fun givenSearchTab_whenPredictiveBackCancelsThenCommits_thenNavigationShowsThePreviewedTab() {
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                BlockerTheme {
+                    val appState = rememberBlockerAppState(networkMonitor, permissionMonitor, timeZoneMonitor)
+                    BlockerApp(
+                        appState = appState,
+                        windowAdaptiveInfo = WindowAdaptiveInfo(
+                            windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(widthDp = 412f, heightDp = 880f),
+                            windowPosture = Posture(),
+                        ),
+                    )
+                }
+            }
+        }
+        val appTab = composeTestRule.onNode(hasTestTag("BlockerNavItem") and hasText(composeTestRule.activity.getString(R.string.apps)))
+        val searchTab = composeTestRule.onNode(hasTestTag("BlockerNavItem") and hasText(composeTestRule.activity.getString(R.string.search)))
+        val dispatcher = composeTestRule.activity.onBackPressedDispatcher
+        searchTab.performClick()
+        searchTab.assertIsSelected()
+
+        fun swipeBack() {
+            composeTestRule.runOnUiThread {
+                dispatcher.dispatchOnBackStarted(BackEventCompat(411f, 400f, 0f, BackEventCompat.EDGE_RIGHT))
+                dispatcher.dispatchOnBackProgressed(BackEventCompat(250f, 400f, 0.65f, BackEventCompat.EDGE_RIGHT))
+            }
+            composeTestRule.waitForIdle()
+        }
+
+        swipeBack()
+        appTab.assertIsSelected()
+        composeTestRule.runOnUiThread { dispatcher.dispatchOnBackCancelled() }
+        searchTab.assertIsSelected()
+
+        swipeBack()
+        composeTestRule.runOnUiThread { dispatcher.onBackPressed() }
+        appTab.assertIsSelected()
+        composeTestRule.runOnIdle { check(!dispatcher.hasEnabledCallbacks()) }
     }
 
     @Test

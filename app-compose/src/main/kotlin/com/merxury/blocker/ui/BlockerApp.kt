@@ -57,7 +57,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.scene.NavigationBackHandler
+import androidx.navigation3.scene.rememberNavigationEventState
+import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
+import androidx.navigationevent.NavigationEventTransitionState.InProgress
 import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
@@ -131,15 +135,58 @@ internal fun BlockerApp(
     updateIconThemingState: (IconThemingState) -> Unit = {},
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfoV2(),
 ) {
-    val navigator = remember { Navigator(appState.navigationState) }
+    val navigationState = appState.navigationState
+    val navigator = remember(navigationState) { Navigator(navigationState) }
+    val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
+        directive = calculatePaneScaffoldDirective(windowAdaptiveInfo),
+    )
+
+    val entryProvider = remember(navigator, updateIconThemingState) {
+        entryProvider {
+            appListEntry(
+                navigator = navigator,
+                navigateToAppSlimming = navigator::navigateToDebloater,
+            )
+            appDetailEntry(
+                navigator = navigator,
+                updateIconThemingState = updateIconThemingState,
+                navigateToIfwRuleEditor = { packageName, componentName, componentType ->
+                    navigator.navigateToIfwRuleEditor(packageName, componentName, componentType)
+                },
+            )
+            rulesEntry(navigator)
+            ifwRuleEditorEntry(navigator)
+            ruleDetailEntry(navigator)
+            debloaterEntry(navigator)
+            searchEntry(navigator)
+            supportAndFeedbackEntry(navigator)
+            licensesEntry(navigator)
+            settingsEntry(navigator)
+        }
+    }
+
+    val sceneState = rememberSceneState(
+        entries = navigationState.toEntries(entryProvider),
+        sceneStrategies = listOf(listDetailStrategy),
+        onBack = navigator::goBack,
+    )
+    val navigationEventState = rememberNavigationEventState(sceneState)
+    NavigationBackHandler(sceneState, navigationEventState, onBackCompleted = navigator::goBack)
+    val previewingBack = navigationEventState.transitionState is InProgress
+    val previewRoot = if (previewingBack) {
+        val roots = TOP_LEVEL_NAV_ITEMS.keys.associateBy { entryProvider(it).contentKey }
+        sceneState.currentScene.previousEntries.asReversed().firstNotNullOfOrNull { roots[it.contentKey] }
+    } else {
+        null
+    }
 
     BlockerNavigationSuiteScaffold(
         navigationSuiteItems = {
             TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
-                val selected = navKey == appState.navigationState.currentTopLevelKey
+                val selected = navKey == (previewRoot ?: navigationState.currentTopLevelKey)
                 item(
                     selected = selected,
-                    onClick = { navigator.navigate(navKey) },
+                    onClick = { if (!previewingBack) navigator.navigate(navKey) },
                     icon = {
                         when (val icon = navItem.unselectedIcon) {
                             is ImageVectorIcon -> {
@@ -218,37 +265,7 @@ internal fun BlockerApp(
                         ),
                     ),
             ) {
-                val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
-                    directive = calculatePaneScaffoldDirective(windowAdaptiveInfo),
-                )
-
-                val entryProvider = entryProvider {
-                    appListEntry(
-                        navigator = navigator,
-                        navigateToAppSlimming = navigator::navigateToDebloater,
-                    )
-                    appDetailEntry(
-                        navigator = navigator,
-                        updateIconThemingState = updateIconThemingState,
-                        navigateToIfwRuleEditor = { packageName, componentName, componentType ->
-                            navigator.navigateToIfwRuleEditor(packageName, componentName, componentType)
-                        },
-                    )
-                    rulesEntry(navigator)
-                    ifwRuleEditorEntry(navigator)
-                    ruleDetailEntry(navigator)
-                    debloaterEntry(navigator)
-                    searchEntry(navigator)
-                    supportAndFeedbackEntry(navigator)
-                    licensesEntry(navigator)
-                    settingsEntry(navigator)
-                }
-
-                NavDisplay(
-                    entries = appState.navigationState.toEntries(entryProvider),
-                    sceneStrategies = listOf(listDetailStrategy),
-                    onBack = { navigator.goBack() },
-                )
+                NavDisplay(sceneState = sceneState, navigationEventState = navigationEventState)
             }
         }
 
