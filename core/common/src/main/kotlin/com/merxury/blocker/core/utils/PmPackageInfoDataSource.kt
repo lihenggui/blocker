@@ -48,10 +48,6 @@ class PmPackageInfoDataSource @Inject constructor(
 
     override suspend fun getThirdPartyApplicationList(): List<Application> = ApplicationUtil.getThirdPartyApplicationList(context, ioDispatcher)
 
-    override suspend fun getSystemApplicationList(): List<Application> = ApplicationUtil.getSystemApplicationList(context, ioDispatcher)
-
-    override suspend fun getApplicationInfo(packageName: String): Application? = ApplicationUtil.getApplicationInfo(context, packageName)
-
     override suspend fun getActivityList(packageName: String): List<ActivityInfo> = ApplicationUtil.getActivityList(pm, packageName, ioDispatcher)
 
     override suspend fun getReceiverList(packageName: String): List<ActivityInfo> = ApplicationUtil.getReceiverList(pm, packageName, ioDispatcher)
