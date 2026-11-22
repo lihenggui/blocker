@@ -78,9 +78,10 @@ class IfwXmlDeserializer {
      *
      * @param xml the XML string to parse
      * @return the parsed [IfwRules]
-     * @throws IfwXmlParseException if the XML is malformed or contains unrecognized elements
+     * @throws IfwXmlParseException if the XML is malformed, truncated or contains unrecognized elements
      */
     fun deserialize(xml: String): IfwRules {
+        requireComplete(xml)
         val parser = XmlPullParserFactory.newInstance().newPullParser()
         parser.setInput(StringReader(xml))
 
@@ -97,6 +98,17 @@ class IfwXmlDeserializer {
             eventType = parser.next()
         }
         return IfwRules(rules)
+    }
+
+    // The parser reports END_DOCUMENT instead of failing when a truncated file leaves elements
+    // open, which would keep the element loops below waiting for an end tag forever.
+    private fun requireComplete(xml: String) {
+        val parser = XmlPullParserFactory.newInstance().newPullParser()
+        parser.setInput(StringReader(xml))
+        while (parser.next() != XmlPullParser.END_DOCUMENT) Unit
+        if (parser.depth != 0) {
+            throw IfwXmlParseException("Unexpected end of document at line ${parser.lineNumber}")
+        }
     }
 
     private fun parseRule(parser: XmlPullParser, componentType: IfwComponentType): IfwRule {
