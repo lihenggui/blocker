@@ -249,7 +249,6 @@ class SyncWorkerTest {
             verify(gitClient).getHeadCommitId()
         }
         verify(gitClient, never()).cloneRepository()
-        verify(gitClient, never()).getTrackingRemote()
     }
 
     @Test

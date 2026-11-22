@@ -20,18 +20,9 @@ import java.io.File
 
 interface GitClient {
     suspend fun cloneRepository(): Boolean
-    suspend fun commitChanges(commitMessage: String): Boolean
-    suspend fun hasLocalChanges(): Boolean
-    suspend fun add(filePattern: String): Int
-    suspend fun checkoutLocalBranch(branchName: String): Boolean
-    suspend fun createBranch(branchName: String): Boolean
-    suspend fun renameBranch(name: String): Boolean
-    suspend fun getCurrentBranch(): String?
     suspend fun getHeadCommitId(): String?
-    suspend fun fetchAndMergeFromMain(): MergeStatus
     suspend fun setRemote(url: String, name: String): Boolean
     suspend fun resetToRemote(remoteName: String, branch: String): Boolean
-    suspend fun getTrackingRemote(): String?
 
     fun interface Factory {
         fun create(repoInfo: RepositoryInfo, baseDirectory: File): GitClient

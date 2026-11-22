@@ -77,7 +77,9 @@ class DefaultGitClientShallowTest {
 
         assertThat(client.cloneRepository()).isTrue()
 
-        assertThat(client.getCurrentBranch()).isEqualTo("main")
+        Git.open(checkout).use { repo ->
+            assertThat(repo.repository.branch).isEqualTo("main")
+        }
         assertThat(client.getHeadCommitId()).isEqualTo(mainHead)
     }
 
@@ -184,7 +186,9 @@ class DefaultGitClientShallowTest {
             assertThat(client.resetToRemote("GITLAB", "main")).isTrue()
 
             assertThat(client.getHeadCommitId()).isEqualTo(otherHead)
-            assertThat(client.getTrackingRemote()).isEqualTo("GITLAB")
+            Git.open(checkout).use { repo ->
+                assertThat(repo.repository.config.getString("branch", "main", "remote")).isEqualTo("GITLAB")
+            }
             assertThat(checkout.resolve("rules.txt").readText()).isEqualTo("Other provider rules")
             assertThat(checkout.resolve("other-only.txt").readText()).isEqualTo("Other provider")
         }
