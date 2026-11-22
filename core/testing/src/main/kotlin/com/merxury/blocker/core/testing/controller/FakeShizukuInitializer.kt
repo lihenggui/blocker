@@ -29,11 +29,7 @@ class FakeShizukuInitializer(
 
     override suspend fun registerShizuku(): RegisterShizukuResult {
         registerCallCount++
-        return RegisterShizukuResult(permissionGranted, if (permissionGranted) shizukuUid else -1)
-    }
-
-    override fun unregisterShizuku() {
-        // Do nothing
+        return if (permissionGranted) RegisterShizukuResult.Granted(shizukuUid) else RegisterShizukuResult.Denied
     }
 
     override fun hasPermission(): Boolean = permissionGranted

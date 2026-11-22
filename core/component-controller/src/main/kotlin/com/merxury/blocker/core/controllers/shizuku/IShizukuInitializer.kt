@@ -18,9 +18,11 @@ package com.merxury.blocker.core.controllers.shizuku
 
 interface IShizukuInitializer {
 
+    /**
+     * Waits for the Shizuku binder and asks for the permission if needed. Always returns, with a
+     * timeout on both waits, and leaves no Shizuku listeners behind.
+     */
     suspend fun registerShizuku(): RegisterShizukuResult
-
-    fun unregisterShizuku()
 
     fun hasPermission(): Boolean
 
