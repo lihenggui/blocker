@@ -29,10 +29,22 @@ import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
-import com.merxury.core.ifw.xml.IfwXmlParseException
 import com.merxury.core.ifw.xml.IfwXmlSerializer
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
+import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
+
+// Long enough that one probe covers the burst of per-component checks a screen makes,
+// short enough that a root grant shows up on the next refresh.
+private val ROOT_PROBE_RETRY_INTERVAL = 2.seconds
 
 internal class IntentFirewall @Inject constructor(
     private val rootChecker: RootAvailabilityChecker,
@@ -40,61 +52,47 @@ internal class IntentFirewall @Inject constructor(
     private val fileSystem: IfwFileSystem,
     private val serializer: IfwXmlSerializer,
     private val deserializer: IfwXmlDeserializer,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) : IIntentFirewall {
-    // Cache for the loaded rules to avoid IO operations
-    // Key: package name, Value: IfwRules
-    private val cache: MutableMap<String, IfwRules> = mutableMapOf()
+    // Rules read from disk, keyed by package name. Only Missing and Loaded are cached,
+    // so a failed read is retried instead of being mistaken for an empty file.
+    private val cache = ConcurrentHashMap<String, StoredRules>()
+
+    // Every file access for a package runs under its lock, so a read-modify-write
+    // cannot interleave with another write or cache a file that is being replaced.
+    private val packageLocks = ConcurrentHashMap<String, Mutex>()
+
+    // Bumped by resetCache() so a read that overlaps an external change is not cached.
+    private val cacheGeneration = AtomicLong()
+
+    // After a probe finds root unavailable, getComponentEnableState() reports uncached packages
+    // as not blocked without probing again until this mark passes. While root is not granted
+    // each probe starts su, and callers check every component one by one. getRules() and
+    // writes always probe.
+    @Volatile
+    private var skipRootProbeUntil: TimeMark? = null
 
     // ── Core API ───────────────────────────────────────────────────────
 
-    override suspend fun getRules(packageName: String): IfwRules {
-        cache[packageName]?.let { return it }
-        if (!rootChecker.isRootAvailable()) {
-            Timber.v("Root unavailable, cannot load rules")
-            return cacheEmpty(packageName)
-        }
-        val fileContent = fileSystem.readRules(packageName)
-        if (fileContent == null) {
-            Timber.v("Rule file for $packageName not exists or read failed")
-            return cacheEmpty(packageName)
-        }
-        return try {
-            Timber.v("Load rules for $packageName")
-            val rules = deserializer.deserialize(fileContent)
-            cache[packageName] = rules
-            rules
-        } catch (e: IfwXmlParseException) {
-            Timber.e(e, "Failed to parse IFW rules for $packageName")
-            cacheEmpty(packageName)
-        } catch (e: Exception) {
-            Timber.e(e, "Error reading IFW rules for $packageName")
-            cacheEmpty(packageName)
-        }
+    override suspend fun getRules(packageName: String): IfwRules = when (val stored = loadRules(packageName)) {
+        StoredRules.Missing -> IfwRules.empty()
+        is StoredRules.Loaded -> stored.rules
+        is StoredRules.Unreadable -> throw stored.error
     }
 
     override suspend fun saveRules(packageName: String, rules: IfwRules) {
-        if (rules.isEmpty()) {
-            clear(packageName)
-            return
-        }
-        val xml = serializer.serialize(rules)
-        fileSystem.writeRules(packageName, xml)
-        cache.remove(packageName)
-        Timber.i("Saved IFW rules for $packageName")
+        withPackageLock(packageName) { saveRulesLocked(packageName, rules) }
     }
 
     override suspend fun clear(packageName: String) {
-        if (!rootChecker.isRootAvailable()) {
-            throw RootUnavailableException()
-        }
-        Timber.d("Clear IFW rule for $packageName")
-        fileSystem.deleteRules(packageName)
-        cache.remove(packageName)
+        withPackageLock(packageName) { clearLocked(packageName) }
     }
 
     override fun resetCache() {
         Timber.d("Reset IFW cache")
+        cacheGeneration.incrementAndGet()
         cache.clear()
+        skipRootProbeUntil = null
     }
 
     // ── Component Filter Convenience Methods ───────────────────────────
@@ -110,10 +108,7 @@ internal class IntentFirewall @Inject constructor(
         val formattedName = formatName(packageName, componentName)
         Timber.i("Add component filter for $formattedName")
 
-        val rules = getRules(packageName)
-        val updatedRules = rules.addComponentFilter(ifwComponentType, formattedName)
-        saveRules(packageName, updatedRules)
-        return true
+        return updateRules(packageName) { it.addComponentFilter(ifwComponentType, formattedName) }
     }
 
     override suspend fun removeComponentFilter(
@@ -127,10 +122,7 @@ internal class IntentFirewall @Inject constructor(
         val formattedName = formatName(packageName, componentName)
         Timber.i("Remove component filter for $formattedName")
 
-        val rules = getRules(packageName)
-        val updatedRules = rules.removeComponentFilter(ifwComponentType, formattedName)
-        saveRules(packageName, updatedRules)
-        return true
+        return updateRules(packageName) { it.removeComponentFilter(ifwComponentType, formattedName) }
     }
 
     override suspend fun addAllComponentFilters(
@@ -143,19 +135,24 @@ internal class IntentFirewall @Inject constructor(
         Timber.i("Add component filters for ${list.size} components")
         val groupedMap = list.groupBy { it.packageName }
         groupedMap.keys.forEach { packageName ->
-            var rules = getRules(packageName)
-            groupedMap[packageName]?.forEach componentLoop@{ component ->
-                val type = componentTypeResolver.getComponentType(packageName, component.className)
-                if (type == PROVIDER) {
-                    Timber.d("Cannot add IFW rule for $component")
-                    return@componentLoop
+            val added = mutableListOf<ComponentName>()
+            val saved = updateRules(packageName) { current ->
+                var rules = current
+                groupedMap[packageName]?.forEach componentLoop@{ component ->
+                    val type = componentTypeResolver.getComponentType(packageName, component.className)
+                    if (type == PROVIDER) {
+                        Timber.d("Cannot add IFW rule for $component")
+                        return@componentLoop
+                    }
+                    val ifwType = type.toIfwComponentType() ?: return@componentLoop
+                    val formattedName = component.flattenToString()
+                    rules = rules.addComponentFilter(ifwType, formattedName)
+                    added += component
                 }
-                val ifwType = type.toIfwComponentType() ?: return@componentLoop
-                val formattedName = component.flattenToString()
-                rules = rules.addComponentFilter(ifwType, formattedName)
-                callback(component)
+                rules
             }
-            saveRules(packageName, rules)
+            // Report only saved changes, and outside the lock so callbacks cannot deadlock on it.
+            if (saved) added.forEach { callback(it) }
         }
     }
 
@@ -169,19 +166,24 @@ internal class IntentFirewall @Inject constructor(
         Timber.i("Remove component filters for ${list.size} components")
         val groupedMap = list.groupBy { it.packageName }
         groupedMap.keys.forEach { packageName ->
-            var rules = getRules(packageName)
-            groupedMap[packageName]?.forEach componentLoop@{ component ->
-                val type = componentTypeResolver.getComponentType(packageName, component.className)
-                if (type == PROVIDER) {
-                    Timber.d("Cannot remove IFW rule for $component")
-                    return@componentLoop
+            val removed = mutableListOf<ComponentName>()
+            val saved = updateRules(packageName) { current ->
+                var rules = current
+                groupedMap[packageName]?.forEach componentLoop@{ component ->
+                    val type = componentTypeResolver.getComponentType(packageName, component.className)
+                    if (type == PROVIDER) {
+                        Timber.d("Cannot remove IFW rule for $component")
+                        return@componentLoop
+                    }
+                    val ifwType = type.toIfwComponentType() ?: return@componentLoop
+                    val formattedName = component.flattenToString()
+                    rules = rules.removeComponentFilter(ifwType, formattedName)
+                    removed += component
                 }
-                val ifwType = type.toIfwComponentType() ?: return@componentLoop
-                val formattedName = component.flattenToString()
-                rules = rules.removeComponentFilter(ifwType, formattedName)
-                callback(component)
+                rules
             }
-            saveRules(packageName, rules)
+            // Report only saved changes, and outside the lock so callbacks cannot deadlock on it.
+            if (saved) removed.forEach { callback(it) }
         }
     }
 
@@ -189,7 +191,11 @@ internal class IntentFirewall @Inject constructor(
         packageName: String,
         componentName: String,
     ): Boolean {
-        val rules = getRules(packageName)
+        // Unreadable rules report the component as not blocked, as before. Callers have no
+        // error path for this read, and writes refuse to touch an unreadable file.
+        val cached = cache[packageName]
+        if (cached == null && skipRootProbeUntil?.hasNotPassedNow() == true) return true
+        val rules = (cached ?: loadRules(packageName)).rulesOrNull() ?: return true
         val formattedName = formatName(packageName, componentName)
         return IfwComponentType.entries.none { type ->
             formattedName in rules.componentFiltersFor(type)
@@ -204,16 +210,77 @@ internal class IntentFirewall @Inject constructor(
             return emptyMap()
         }
         val packages = fileSystem.listRuleFiles()
-        return packages.associateWith { getRules(it) }
+        // Unreadable files are left out, as before; writes to them are refused.
+        return packages.associateWith { loadRules(it).rulesOrNull() ?: IfwRules.empty() }
             .filter { it.value.rules.isNotEmpty() }
     }
 
     // ── Private Helpers ────────────────────────────────────────────────
 
-    private fun cacheEmpty(packageName: String): IfwRules {
-        val empty = IfwRules.empty()
-        cache[packageName] = empty
-        return empty
+    private suspend inline fun <T> withPackageLock(packageName: String, action: () -> T): T = packageLocks.computeIfAbsent(packageName) { Mutex() }.withLock { action() }
+
+    private suspend fun loadRules(packageName: String): StoredRules = cache[packageName] ?: withPackageLock(packageName) { loadRulesLocked(packageName) }
+
+    private suspend fun loadRulesLocked(packageName: String): StoredRules {
+        cache[packageName]?.let { return it }
+        if (!rootChecker.isRootAvailable()) {
+            Timber.v("Root unavailable, cannot load rules for $packageName")
+            skipRootProbeUntil = timeSource.markNow() + ROOT_PROBE_RETRY_INTERVAL
+            return StoredRules.Unreadable(RootUnavailableException())
+        }
+        skipRootProbeUntil = null
+        val generation = cacheGeneration.get()
+        val stored = try {
+            val content = fileSystem.readRules(packageName)
+            if (content == null) StoredRules.Missing else StoredRules.Loaded(deserializer.deserialize(content))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: RootUnavailableException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot read IFW rules for $packageName")
+            return StoredRules.Unreadable(IOException("Cannot read IFW rules for $packageName", e))
+        }
+        if (cacheGeneration.get() == generation) {
+            cache[packageName] = stored
+            // resetCache() may have run between the check and the put.
+            if (cacheGeneration.get() != generation) cache.remove(packageName)
+        }
+        return stored
+    }
+
+    /**
+     * Applies [transform] to the current rules and saves the result under the package lock.
+     * Returns false without writing when the current rules cannot be read.
+     */
+    private suspend fun updateRules(packageName: String, transform: suspend (IfwRules) -> IfwRules): Boolean = withPackageLock(packageName) {
+        val current = loadRulesLocked(packageName).rulesOrNull()
+        if (current == null) {
+            Timber.w("Leave IFW rules for $packageName untouched because they cannot be read")
+            return@withPackageLock false
+        }
+        saveRulesLocked(packageName, transform(current))
+        true
+    }
+
+    private suspend fun saveRulesLocked(packageName: String, rules: IfwRules) {
+        if (rules.isEmpty()) {
+            clearLocked(packageName)
+            return
+        }
+        val xml = serializer.serialize(rules)
+        cache.remove(packageName)
+        fileSystem.writeRules(packageName, xml)
+        Timber.i("Saved IFW rules for $packageName")
+    }
+
+    private suspend fun clearLocked(packageName: String) {
+        if (!rootChecker.isRootAvailable()) {
+            throw RootUnavailableException()
+        }
+        Timber.d("Clear IFW rule for $packageName")
+        cache.remove(packageName)
+        fileSystem.deleteRules(packageName)
     }
 
     private suspend fun resolveIfwComponentType(
@@ -229,6 +296,23 @@ internal class IntentFirewall @Inject constructor(
     }
 
     private fun formatName(packageName: String, name: String): String = "$packageName/$name"
+}
+
+/** What [IntentFirewall] found on disk for one package. Only [Missing] and [Loaded] are cached. */
+private sealed interface StoredRules {
+    /** No rule file exists, so the package has no rules. */
+    data object Missing : StoredRules
+
+    data class Loaded(val rules: IfwRules) : StoredRules
+
+    /** Root is unavailable, or the file exists but cannot be read or parsed. Never overwritten. */
+    data class Unreadable(val error: Exception) : StoredRules
+}
+
+private fun StoredRules.rulesOrNull(): IfwRules? = when (this) {
+    StoredRules.Missing -> IfwRules.empty()
+    is StoredRules.Loaded -> rules
+    is StoredRules.Unreadable -> null
 }
 
 /**

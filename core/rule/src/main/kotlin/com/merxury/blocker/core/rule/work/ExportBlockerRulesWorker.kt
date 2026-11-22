@@ -33,7 +33,6 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.rule.BlockerRule
 import com.merxury.blocker.core.model.rule.ComponentRule
@@ -52,6 +51,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
+import java.io.IOException
 
 @HiltWorker
 class ExportBlockerRulesWorker @AssistedInject constructor(
@@ -62,6 +62,8 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
+
+    private val ifwReader = IfwRunReader(intentFirewall)
 
     override fun getNotificationTitle(): Int = R.string.core_rule_backing_up_apps_please_wait
 
@@ -83,6 +85,12 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         if (!packageName.isNullOrEmpty()) {
             try {
                 backupSingleApp(packageName, backupPath)
+            } catch (e: IOException) {
+                // No result code describes an unreadable rule file, so report the closest one.
+                Timber.e(e, "Blocker rule not backed up, IFW rule file cannot be read: $packageName")
+                return Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
+                )
             } catch (e: Exception) {
                 Timber.e(e, "Failed to export blocker rule for $packageName")
                 return Result.failure(
@@ -98,6 +106,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         val shouldBackupSystemApp = inputData.getBoolean(PARAM_BACKUP_SYSTEM_APPS, false)
         return withContext(ioDispatcher) {
             var current = 1
+            val skippedPackages = mutableListOf<String>()
             try {
                 val list = if (shouldBackupSystemApp) {
                     packageInfoDataSource.getApplicationList()
@@ -107,13 +116,26 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 val total = list.count()
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    export(it.packageName, backupPath.toUri())
+                    try {
+                        export(it.packageName, backupPath.toUri())
+                    } catch (e: IOException) {
+                        // Keep the previous backup rather than overwrite it with guessed IFW states.
+                        Timber.e(e, "Cannot read IFW rules for ${it.packageName}")
+                        skippedPackages += it.packageName
+                    }
                     current++
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to export blocker rules")
                 return@withContext Result.failure(
                     workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
+                )
+            }
+            if (skippedPackages.isNotEmpty()) {
+                // No result code describes an unreadable rule file, so report the closest one.
+                Timber.e("Blocker rules not backed up, IFW rule files cannot be read: ${skippedPackages.joinToString()}")
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
                 )
             }
             // Success, show a toast then cancel notifications
@@ -132,6 +154,14 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
 
     private suspend fun export(packageName: String, destUri: Uri): Boolean {
         Timber.i("Export Blocker rules for $packageName")
+        // Read IFW states strictly and outside the try below. An unreadable rule file throws, so
+        // this package fails instead of overwriting its backup with guessed states. Without root
+        // the states are unknown, so only PackageManager states are backed up.
+        val rootAlreadyUnavailable = ifwReader.rootUnavailable
+        val isIfwEnabled = ifwReader.read(packageName)
+        if (ifwReader.rootUnavailable && !rootAlreadyUnavailable) {
+            Timber.w("Root unavailable, so IFW states are left out of this backup")
+        }
         val applicationInfo = packageInfoDataSource.getApplicationComponents(packageName)
         val rule = BlockerRule(
             packageName = applicationInfo.packageName,
@@ -140,75 +170,39 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         )
         try {
             applicationInfo.receivers?.forEach {
-                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
                 val statePM = packageInfoDataSource.checkComponentIsEnabled(
                     ComponentName(it.packageName, it.name),
                 )
-                rule.components.add(
-                    ComponentRule(
-                        it.packageName,
-                        it.name,
-                        stateIFW,
-                        RECEIVER,
-                        IFW,
-                    ),
-                )
-                rule.components.add(
-                    ComponentRule(
-                        it.packageName,
-                        it.name,
-                        statePM,
-                        RECEIVER,
-                        PM,
-                    ),
+                rule.components += backupEntries(
+                    it.packageName,
+                    it.name,
+                    RECEIVER,
+                    ifwEnabled = isIfwEnabled?.invoke(it.packageName, it.name),
+                    pmEnabled = statePM,
                 )
             }
             applicationInfo.services?.forEach {
-                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
                 val statePM = packageInfoDataSource.checkComponentIsEnabled(
                     ComponentName(it.packageName, it.name),
                 )
-                rule.components.add(
-                    ComponentRule(
-                        it.packageName,
-                        it.name,
-                        stateIFW,
-                        SERVICE,
-                        IFW,
-                    ),
-                )
-                rule.components.add(
-                    ComponentRule(
-                        it.packageName,
-                        it.name,
-                        statePM,
-                        SERVICE,
-                        PM,
-                    ),
+                rule.components += backupEntries(
+                    it.packageName,
+                    it.name,
+                    SERVICE,
+                    ifwEnabled = isIfwEnabled?.invoke(it.packageName, it.name),
+                    pmEnabled = statePM,
                 )
             }
             applicationInfo.activities?.forEach {
-                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
                 val statePM = packageInfoDataSource.checkComponentIsEnabled(
                     ComponentName(it.packageName, it.name),
                 )
-                rule.components.add(
-                    ComponentRule(
-                        it.packageName,
-                        it.name,
-                        stateIFW,
-                        ACTIVITY,
-                        IFW,
-                    ),
-                )
-                rule.components.add(
-                    ComponentRule(
-                        it.packageName,
-                        it.name,
-                        statePM,
-                        ACTIVITY,
-                        PM,
-                    ),
+                rule.components += backupEntries(
+                    it.packageName,
+                    it.name,
+                    ACTIVITY,
+                    ifwEnabled = isIfwEnabled?.invoke(it.packageName, it.name),
+                    pmEnabled = statePM,
                 )
             }
             applicationInfo.providers?.forEach {

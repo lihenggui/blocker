@@ -498,4 +498,24 @@ class IfwXmlDeserializerTest {
             deserializer.deserialize(xml)
         }
     }
+
+    @Test
+    fun givenFileTruncatedInsideRule_whenDeserializing_thenThrowsParseException() {
+        val xml = """
+            <rules>
+              <broadcast block="true" log="false">
+                <and>
+                  <component-filter name="a/b" />
+        """.trimIndent()
+        assertFailsWith<IfwXmlParseException> {
+            deserializer.deserialize(xml)
+        }
+    }
+
+    @Test
+    fun givenUnclosedRootElement_whenDeserializing_thenThrowsParseException() {
+        assertFailsWith<IfwXmlParseException> {
+            deserializer.deserialize("<rules>")
+        }
+    }
 }

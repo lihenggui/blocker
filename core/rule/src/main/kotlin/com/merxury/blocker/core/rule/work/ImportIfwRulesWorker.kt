@@ -37,6 +37,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.PackageInfoDataSource
+import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import dagger.assisted.Assisted
@@ -53,6 +54,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     private val deserializer: IfwXmlDeserializer,
     private val packageInfoDataSource: PackageInfoDataSource,
     @IfwControl private val ifwController: IController,
+    private val intentFirewall: IIntentFirewall,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -73,6 +75,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         Timber.i("Started to import IFW rules")
         val total: Int
         var importedCount = 0
+        val unrestoredPackages = mutableListOf<String>()
         try {
             val shouldRestoreSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
             val ifwFolder = StorageUtil.getOrCreateIfwFolder(context, folderPath)
@@ -113,9 +116,14 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                         Timber.i("Skipping system app $packageName")
                         return@forEach
                     }
-                    ifwController.batchDisable(activities) {}
-                    ifwController.batchDisable(broadcast) {}
-                    ifwController.batchDisable(service) {}
+                    val applied = ifwController.batchDisable(activities) {} +
+                        ifwController.batchDisable(broadcast) {} +
+                        ifwController.batchDisable(service) {}
+                    val requested = activities.size + broadcast.size + service.size
+                    if (applied < requested && intentFirewall.hasUnreadableRules(packageName)) {
+                        unrestoredPackages += packageName
+                        return@forEach
+                    }
                     importedCount++
                 }
             }
@@ -128,6 +136,13 @@ class ImportIfwRulesWorker @AssistedInject constructor(
             Timber.e(e, "Cannot read IFW rules")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
+            )
+        }
+        if (unrestoredPackages.isNotEmpty()) {
+            // No result code describes an unreadable rule file, so report the closest one.
+            Timber.e("IFW rules not restored, rule files cannot be read: ${unrestoredPackages.joinToString()}")
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION, PARAM_IMPORT_COUNT to importedCount),
             )
         }
         Timber.i("Imported $importedCount IFW rules.")

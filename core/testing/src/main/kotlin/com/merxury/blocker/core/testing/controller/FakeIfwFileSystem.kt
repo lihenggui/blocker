@@ -17,11 +17,19 @@
 package com.merxury.blocker.core.testing.controller
 
 import com.merxury.core.ifw.IfwFileSystem
+import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 
 class FakeIfwFileSystem : IfwFileSystem {
-    private val files = mutableMapOf<String, String>()
+    private val files = ConcurrentHashMap<String, String>()
 
-    override suspend fun readRules(packageName: String): String? = files[packageName]
+    /** Packages whose rule file exists but cannot be read. [readRules] throws for them. */
+    val unreadablePackages: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    override suspend fun readRules(packageName: String): String? {
+        if (packageName in unreadablePackages) throw IOException("Cannot read IFW rules for $packageName")
+        return files[packageName]
+    }
 
     override suspend fun writeRules(packageName: String, content: String) {
         files[packageName] = content
