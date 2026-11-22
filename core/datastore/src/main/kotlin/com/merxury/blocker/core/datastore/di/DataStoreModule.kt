@@ -18,7 +18,6 @@ package com.merxury.blocker.core.datastore.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.AppPropertiesSerializer
@@ -47,7 +46,7 @@ object DataStoreModule {
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
         @ApplicationScope scope: CoroutineScope,
         userPreferencesSerializer: UserPreferencesSerializer,
-    ): DataStore<UserPreferences> = DataStoreFactory.create(
+    ): DataStore<UserPreferences> = createUserPreferencesDataStore(
         serializer = userPreferencesSerializer,
         scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
     ) {
@@ -61,7 +60,7 @@ object DataStoreModule {
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
         @ApplicationScope scope: CoroutineScope,
         appPropertiesSerializer: AppPropertiesSerializer,
-    ): DataStore<AppProperties> = DataStoreFactory.create(
+    ): DataStore<AppProperties> = createAppPropertiesDataStore(
         serializer = appPropertiesSerializer,
         scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
     ) {
