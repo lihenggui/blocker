@@ -29,10 +29,12 @@ import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.mockito.kotlin.mock
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -45,8 +47,61 @@ class GlobalIfwRuleViewModelTest {
 
     private val packageManager = mock<PackageManager>()
 
+    private val oldReceiverRules = IfwRules(
+        listOf(
+            IfwRule(
+                componentType = IfwComponentType.BROADCAST,
+                filters = listOf(
+                    IfwFilter.ComponentFilter("com.old/com.old.BootReceiver"),
+                ),
+            ),
+        ),
+    )
+
     @Test
     fun givenEditedSimpleRuleMovedToAnotherPackage_whenSaving_thenRuleMigratesToNewFile() = runTest {
+        val intentFirewall = StableFakeIntentFirewall().apply {
+            saveRules("com.old", oldReceiverRules)
+        }
+        val viewModel = createViewModel(intentFirewall)
+        advanceUntilIdle()
+
+        moveOldReceiverRuleToNewPackage(viewModel)
+
+        assertTrue(intentFirewall.getRules("com.old").rules.isEmpty())
+        assertEquals(
+            listOf(IfwFilter.ComponentFilter("com.new/com.new.BootReceiver")),
+            intentFirewall.getRules("com.new").rules.single().filters,
+        )
+    }
+
+    @Test
+    fun givenUnreadableDestination_whenMovingRule_thenRuleStaysInSourceAndEditorStaysOpen() = runTest {
+        val destinationRules = IfwRules(
+            listOf(
+                IfwRule(
+                    componentType = IfwComponentType.SERVICE,
+                    filters = listOf(IfwFilter.ComponentFilter("com.new/com.new.SyncService")),
+                ),
+            ),
+        )
+        val intentFirewall = StableFakeIntentFirewall().apply {
+            saveRules("com.old", oldReceiverRules)
+            saveRules("com.new", destinationRules)
+            unreadablePackages += "com.new"
+        }
+        val viewModel = createViewModel(intentFirewall)
+        advanceUntilIdle()
+
+        moveOldReceiverRuleToNewPackage(viewModel)
+
+        assertEquals(oldReceiverRules, intentFirewall.storedRules["com.old"])
+        assertEquals(destinationRules, intentFirewall.storedRules["com.new"])
+        assertEquals(GlobalIfwRuleScreenState.SIMPLE_EDIT, viewModel.editorState.value.screen)
+        assertEquals("com.new", viewModel.editorState.value.simpleDraft?.storagePackageName)
+    }
+
+    private fun createViewModel(intentFirewall: IIntentFirewall): GlobalIfwRuleViewModel {
         val componentRepository = TestComponentRepository().apply {
             sendComponentList(
                 listOf(
@@ -63,30 +118,15 @@ class GlobalIfwRuleViewModelTest {
                 ),
             )
         }
-        val intentFirewall = StableFakeIntentFirewall().apply {
-            saveRules(
-                "com.old",
-                IfwRules(
-                    listOf(
-                        IfwRule(
-                            componentType = IfwComponentType.BROADCAST,
-                            filters = listOf(
-                                IfwFilter.ComponentFilter("com.old/com.old.BootReceiver"),
-                            ),
-                        ),
-                    ),
-                ),
-            )
-        }
-
-        val viewModel = GlobalIfwRuleViewModel(
+        return GlobalIfwRuleViewModel(
             intentFirewall = intentFirewall,
             componentRepository = componentRepository,
             packageManager = packageManager,
             savedStateHandle = SavedStateHandle(),
         )
-        advanceUntilIdle()
+    }
 
+    private fun TestScope.moveOldReceiverRuleToNewPackage(viewModel: GlobalIfwRuleViewModel) {
         viewModel.openRule("com.old", 0)
         advanceUntilIdle()
 
@@ -95,25 +135,24 @@ class GlobalIfwRuleViewModelTest {
         viewModel.selectSingleTarget("com.new/com.new.BootReceiver")
         viewModel.saveRule()
         advanceUntilIdle()
-
-        assertTrue(intentFirewall.getRules("com.old").rules.isEmpty())
-        assertEquals(
-            listOf(IfwFilter.ComponentFilter("com.new/com.new.BootReceiver")),
-            intentFirewall.getRules("com.new").rules.single().filters,
-        )
     }
 }
 
+/** Stores rules in memory. Like IntentFirewall, getRules() throws for a file it cannot read. */
 private class StableFakeIntentFirewall : IIntentFirewall {
-    private val rules = mutableMapOf<String, IfwRules>()
+    val storedRules = mutableMapOf<String, IfwRules>()
+    val unreadablePackages = mutableSetOf<String>()
 
-    override suspend fun getRules(packageName: String): IfwRules = rules[packageName] ?: IfwRules.empty()
+    override suspend fun getRules(packageName: String): IfwRules {
+        if (packageName in unreadablePackages) throw IOException("Cannot read IFW rules for $packageName")
+        return storedRules[packageName] ?: IfwRules.empty()
+    }
 
     override suspend fun saveRules(packageName: String, rules: IfwRules) {
         if (rules.isEmpty()) {
-            this.rules.remove(packageName)
+            storedRules.remove(packageName)
         } else {
-            this.rules[packageName] = rules
+            storedRules[packageName] = rules
         }
     }
 
@@ -137,10 +176,10 @@ private class StableFakeIntentFirewall : IIntentFirewall {
     ): Boolean = true
 
     override suspend fun clear(packageName: String) {
-        rules.remove(packageName)
+        storedRules.remove(packageName)
     }
 
-    override suspend fun getAllRules(): Map<String, IfwRules> = rules.toMap()
+    override suspend fun getAllRules(): Map<String, IfwRules> = storedRules.filterKeys { it !in unreadablePackages }
 
     override fun resetCache() = Unit
 }

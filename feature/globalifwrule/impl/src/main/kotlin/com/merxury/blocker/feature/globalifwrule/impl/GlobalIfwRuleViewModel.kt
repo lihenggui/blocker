@@ -434,8 +434,11 @@ class GlobalIfwRuleViewModel @Inject constructor(
             return
         }
 
-        removeRule(originalStoragePackageName, editingRuleIndex)
+        // Check that the source can be read, then add the rule to the destination before removing
+        // it from the source, so an unreadable file leaves the rule where it was instead of losing it.
+        intentFirewall.getRules(originalStoragePackageName)
         appendRule(destinationStoragePackageName, newRule)
+        removeRule(originalStoragePackageName, editingRuleIndex)
     }
 
     private suspend fun appendRule(
