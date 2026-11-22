@@ -32,6 +32,8 @@ dependencies {
     api(projects.core.network)
     implementation(projects.core.analytics)
     implementation(projects.core.componentController)
+    implementation(projects.core.ifwApi)
+    implementation(libs.smali.dexlib)
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.kotlinx.coroutines.test)
@@ -39,6 +41,7 @@ dependencies {
     testImplementation(projects.core.testing)
     testImplementation(projects.core.datastoreTest)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.robolectric)
     testImplementation(libs.truth)
     testImplementation(libs.turbine)
 }

@@ -1,0 +1,27 @@
+[
+  {
+    "target": "com.clock.daemon",
+    "caller": "com.clock.daemon",
+    "component": "com.clock.daemon.receiver.WakeReceiver$WakeNotifyService",
+    "action": null,
+    "version": 1,
+    "signers": "03000a98362fa2b8174e5c160e0f34d8df42b98981d0a0a14656c80e75b48a7f",
+    "apks": [
+      "85baa09b2a9e0c257cea0d240aded9f34a6afbab6cf36227e95cc702f1d8dd94"
+    ],
+    "review": "https://github.com/D-clock/AndroidDaemonService/blob/7148e3ccdf796ec00c2d6480da97c7df205981e5/src/main/java/com/clock/daemon/receiver/WakeReceiver.java"
+  },
+  {
+    "target": "com.clock.daemon",
+    "component": "com.clock.daemon.receiver.WakeReceiver$WakeGrayInnerService",
+    "action": null,
+    "version": 1,
+    "signers": "03000a98362fa2b8174e5c160e0f34d8df42b98981d0a0a14656c80e75b48a7f",
+    "apks": [
+      "85baa09b2a9e0c257cea0d240aded9f34a6afbab6cf36227e95cc702f1d8dd94"
+    ],
+    "review": "https://github.com/D-clock/AndroidDaemonService/blob/7148e3ccdf796ec00c2d6480da97c7df205981e5/src/main/java/com/clock/daemon/receiver/WakeReceiver.java",
+    "method": "PM",
+    "dedicated": true
+  }
+]

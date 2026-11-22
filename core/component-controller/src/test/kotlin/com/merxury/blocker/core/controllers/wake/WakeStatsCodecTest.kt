@@ -1,0 +1,93 @@
+// Copyright 2026 Blocker
+// SPDX-License-Identifier: Apache-2.0
+
+package com.merxury.blocker.core.controllers.wake
+
+import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.ByteString
+import com.google.protobuf.CodedOutputStream
+import com.merxury.blocker.core.wake.proto.WakeStats
+import org.junit.Test
+import java.io.ByteArrayOutputStream
+
+class WakeStatsCodecTest {
+    private val id = WakeStatsCodec.configId(10111, 7)
+
+    private fun wire(write: CodedOutputStream.() -> Unit): ByteArray {
+        val output = ByteArrayOutputStream()
+        CodedOutputStream.newInstance(output).apply {
+            write()
+            flush()
+        }
+        return output.toByteArray()
+    }
+
+    private fun report(event: WakeStats.Event, atomId: Int, epoch: Long = 1000L): ByteArray = WakeStats.ReportList.newBuilder()
+        .setConfigKey(WakeStats.ConfigKey.newBuilder().setId(id).setUid(2000))
+        .addReports(
+            WakeStats.Report.newBuilder().setCurrentReportElapsedNanos(990L).setCurrentReportWallClockNanos(epoch + 990L)
+                .addMetrics(
+                    WakeStats.Metric.newBuilder().setMetricId(10000L + atomId)
+                        .setEventMetrics(WakeStats.Events.newBuilder().addData(event)),
+                ),
+        ).build().toByteArray()
+
+    @Test fun givenSparseProviderEvent_whenDecoding_thenUidsSurviveAndComponentIsUnknown() {
+        val atom = wire {
+            writeByteArray(
+                477,
+                wire {
+                    writeInt32(1, 10120)
+                    writeInt32(2, 10111)
+                    writeInt32(3, 3)
+                },
+            )
+        }
+        val bytes = report(WakeStats.Event.newBuilder().setElapsedTimestampNanos(32).setAtom(ByteString.copyFrom(atom)).build(), 477)
+        val fact = WakeStatsCodec.decode(bytes, 1000, 990, 2000, id).observations.single()
+        assertThat(fact.callerUid).isEqualTo(10111)
+        assertThat(fact.targetUid).isEqualTo(10120)
+        assertThat(fact.startType).isEqualTo(3)
+        assertThat(fact.component).isNull()
+        assertThat(fact.targetPackage).isNull()
+    }
+
+    @Test fun givenPrivateAction_whenDecoding_thenActionIsMarkedRedacted() {
+        val atom = wire { writeByteArray(476, wire { writeString(3, "content://private/path") }) }
+        val bytes = report(WakeStats.Event.newBuilder().setElapsedTimestampNanos(32).setAtom(ByteString.copyFrom(atom)).build(), 476)
+        val fact = WakeStatsCodec.decode(bytes, 1000, 990, 2000, id).observations.single()
+        assertThat(fact.action).isEqualTo("<redacted>")
+    }
+
+    @Test fun givenAggregatedEvents_whenDecoding_thenOnlyCurrentBootTimestampsAreExpanded() {
+        val atom = wire {
+            writeByteArray(
+                476,
+                wire {
+                    writeString(8, ".Sync")
+                    writeString(10, "test.target")
+                },
+            )
+        }
+        val event = WakeStats.Event.newBuilder().setAggregatedAtomInfo(
+            WakeStats.Aggregate.newBuilder()
+                .setAtom(ByteString.copyFrom(atom)).addAllElapsedTimestampNanos(listOf(2L, 4L)),
+        ).build()
+        assertThat(WakeStatsCodec.decode(report(event, 476), 1000, 990, 2000, id).observations.map { it.elapsedNanos }).containsExactly(2L, 4L)
+        val old = WakeStatsCodec.decode(report(event, 476, 300_000_000_000L), 1000, 990, 2000, id)
+        assertThat(old.observations).isEmpty()
+        assertThat(old.gaps).isNotEmpty()
+    }
+
+    @Test fun givenRecorderOwner_whenBuildingConfig_thenAllMetricsRequireItsLease() {
+        val config = WakeStats.Config.parseFrom(WakeStatsCodec.config(id, 2000))
+        assertThat(config.id).isNotEqualTo(WakeStatsCodec.configId(10112, 7))
+        assertThat(config.allowedLogSourceList).containsExactly("AID_SYSTEM", "AID_STATSD")
+        assertThat(config.metricActivationList.map { it.metricId }).containsExactlyElementsIn(config.eventMetricList.map { it.id })
+        assertThat(config.metricActivationList.flatMap { it.eventActivationList }.map { it.ttlSeconds }.distinct())
+            .containsExactly(WakeStatsCodec.LEASE_SECONDS)
+        assertThat(config.atomMatcherList.single { it.id == 47L }.simpleAtomMatcher.fieldValueMatcherList.map { it.eqInt })
+            .containsExactly(2000L, WakeStatsCodec.leaseLabel(id).toLong(), 1L).inOrder()
+        assertThat(config.atomMatcherList.map { it.simpleAtomMatcher.atomId }).containsAtLeast(475, 476, 477, 8, 367, 368)
+    }
+}

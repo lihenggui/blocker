@@ -56,10 +56,10 @@ jobs:
           ls /dev/kvm
 
       - name: Delete unnecessary tools 🔧
-        uses: jlumbroso/free-disk-space@v1.3.1
+        uses: jlumbroso/free-disk-space@v2.0.0
         with:
           android: false # Don't remove Android tools
-          tool-cache: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
+          preinstalled-runtimes: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
           dotnet: true # rm -rf /usr/share/dotnet
           haskell: true # rm -rf /opt/ghc...
           swap-storage: true # rm -f /mnt/swapfile (4GiB)
@@ -294,10 +294,10 @@ jobs:
 
     steps:
       - name: Delete unnecessary tools 🔧
-        uses: jlumbroso/free-disk-space@v1.3.1
+        uses: jlumbroso/free-disk-space@v2.0.0
         with:
           android: false # Don't remove Android tools
-          tool-cache: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
+          preinstalled-runtimes: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
           dotnet: true # rm -rf /usr/share/dotnet
           haskell: true # rm -rf /opt/ghc...
           swap-storage: true # rm -f /mnt/swapfile (4GiB)

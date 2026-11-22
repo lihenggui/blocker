@@ -29,6 +29,7 @@ graph TB
 
   :core:common -.-> :core:model
   :core:component-controller -.-> :core:common
+  :core:component-controller -.-> :core:datastore-proto
   :core:component-controller -.-> :core:ifw-api
   :core:component-controller -.-> :core:model
   :core:data -.-> :core:analytics
@@ -36,6 +37,7 @@ graph TB
   :core:data -.-> :core:component-controller
   :core:data --> :core:database
   :core:data --> :core:datastore
+  :core:data -.-> :core:ifw-api
   :core:data --> :core:network
   :core:database --> :core:model
   :core:datastore -.-> :core:common
