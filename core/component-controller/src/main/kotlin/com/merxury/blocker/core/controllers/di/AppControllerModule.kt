@@ -18,7 +18,6 @@ package com.merxury.blocker.core.controllers.di
 
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.controllers.root.api.RootApiAppController
-import com.merxury.blocker.core.controllers.root.command.RootAppController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuAppController
 import dagger.Binds
 import dagger.Module
@@ -28,10 +27,6 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 internal interface AppControllerModule {
-    @Binds
-    @RootCommandAppControl
-    fun bindsRootAppController(rootAppController: RootAppController): IAppController
-
     @Binds
     @ShizukuAppControl
     fun bindsShizukuAppController(shizukuAppController: ShizukuAppController): IAppController

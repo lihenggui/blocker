@@ -112,7 +112,7 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 - Use the Hilt-bound controllers. `GetControllerUseCase` selects `IController`
   from the DataStore-backed `UserDataRepository`.
 - Keep PackageManager operations on the typed librootkotlinx path used by
-  `RootApiController`. Preserve command-based behavior where legacy callers use it.
+  `RootApiController`.
 - PackageManager and privileged Shizuku persist enabled state in each user's
   `package_restrictions.xml` under `/data/system/users/`. Apps can detect that state.
 - IFW uses root to write XML in `/data/system/ifw/`. It filters activity,
