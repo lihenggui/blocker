@@ -33,7 +33,9 @@ interface IIntentFirewall {
      * Loads and returns the full [IfwRules] for a package.
      *
      * @param packageName the package to load rules for
-     * @return the [IfwRules] for the package, or [IfwRules.empty] if none exist
+     * @return the [IfwRules] for the package, or [IfwRules.empty] if it has no rule file
+     * @throws com.merxury.blocker.core.exception.RootUnavailableException if root is unavailable
+     * @throws java.io.IOException if the rule file exists but cannot be read or parsed
      */
     suspend fun getRules(packageName: String): IfwRules
 
@@ -62,19 +64,24 @@ interface IIntentFirewall {
     /**
      * Add a component-filter rule to block a single component.
      *
-     * @return true if the component was successfully blocked
+     * @return true if the component was successfully blocked, or false if it cannot be
+     * filtered or the existing rule file cannot be read, in which case the file is left unchanged
      */
     suspend fun addComponentFilter(packageName: String, componentName: String): Boolean
 
     /**
      * Remove a component-filter rule to unblock a single component.
      *
-     * @return true if the component was successfully unblocked
+     * @return true if the component was successfully unblocked, or false if it cannot be
+     * filtered or the existing rule file cannot be read, in which case the file is left unchanged
      */
     suspend fun removeComponentFilter(packageName: String, componentName: String): Boolean
 
     /**
      * Add component-filter rules for multiple components.
+     *
+     * [callback] runs for each component once its package's rules are saved. Packages whose
+     * rule file cannot be read are left unchanged and their components are not reported.
      */
     suspend fun addAllComponentFilters(
         list: List<ComponentName>,
@@ -83,6 +90,9 @@ interface IIntentFirewall {
 
     /**
      * Remove component-filter rules for multiple components.
+     *
+     * [callback] runs for each component once its package's rules are saved. Packages whose
+     * rule file cannot be read are left unchanged and their components are not reported.
      */
     suspend fun removeAllComponentFilters(
         list: List<ComponentName>,
@@ -92,12 +102,14 @@ interface IIntentFirewall {
     /**
      * Check whether a component is enabled (not blocked by IFW).
      *
-     * @return false if the component is blocked by a component-filter rule
+     * @return false if the component is blocked by a component-filter rule. Returns true when
+     * the rules cannot be read because root is unavailable or the file is unreadable.
      */
     suspend fun getComponentEnableState(packageName: String, componentName: String): Boolean
 
     /**
      * Loads all IFW rules from all packages on the device.
+     * Packages whose rule file cannot be read are left out.
      * @return map of packageName to IfwRules
      */
     suspend fun getAllRules(): Map<String, IfwRules>

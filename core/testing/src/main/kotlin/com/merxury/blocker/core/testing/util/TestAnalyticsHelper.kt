@@ -22,12 +22,17 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 class TestAnalyticsHelper : AnalyticsHelper {
 
     private val events = mutableListOf<AnalyticsEvent>()
+    private val _enableStatisticsUpdates = mutableListOf<Boolean>()
+
+    /** Every value passed to [setEnableStatistics], in call order. */
+    val enableStatisticsUpdates: List<Boolean> get() = _enableStatisticsUpdates
+
     override fun logEvent(event: AnalyticsEvent) {
         events.add(event)
     }
 
     override fun setEnableStatistics(enable: Boolean) {
-        // Do nothing
+        _enableStatisticsUpdates.add(enable)
     }
 
     fun hasLogged(event: AnalyticsEvent) = event in events

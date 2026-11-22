@@ -16,10 +16,13 @@
 
 package com.merxury.core.ifw
 
+import android.content.ComponentName
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.testing.controller.FakeComponentTypeResolver
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.blocker.core.testing.controller.FakeRootAvailabilityChecker
+import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -28,14 +31,28 @@ import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.IOException
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TestTimeSource
+import kotlin.time.TimeSource
+
+private const val INVALID_XML = "<not-valid>>>"
 
 @RunWith(RobolectricTestRunner::class)
 class IntentFirewallNewModelTest {
@@ -45,6 +62,10 @@ class IntentFirewallNewModelTest {
     private val testService = "com.example.DaemonService"
     private val testActivity = "com.example.MainActivity"
     private val testProvider = "com.example.DataProvider"
+
+    private val blockedReceiverRules = componentFilterRules(IfwComponentType.BROADCAST, testReceiver)
+    private val blockedReceiverXml = IfwXmlSerializer().serialize(blockedReceiverRules)
+    private val blockedServiceXml = IfwXmlSerializer().serialize(componentFilterRules(IfwComponentType.SERVICE, testService))
 
     private lateinit var rootChecker: FakeRootAvailabilityChecker
     private lateinit var componentTypeResolver: FakeComponentTypeResolver
@@ -78,10 +99,85 @@ class IntentFirewallNewModelTest {
     }
 
     @Test
-    fun givenNoRoot_whenGetRules_thenReturnsEmpty() = runTest {
+    fun givenNoRoot_whenGetRules_thenThrowsRootUnavailableException() = runTest {
         rootChecker.rootAvailable = false
-        val rules = intentFirewall.getRules(testPackage)
-        assertTrue(rules.isEmpty())
+        assertFailsWith<RootUnavailableException> {
+            intentFirewall.getRules(testPackage)
+        }
+    }
+
+    @Test
+    fun givenRootUnavailable_whenRootGranted_thenReadsTheRealFile() = runTest {
+        fileSystem.writeRules(testPackage, blockedReceiverXml)
+        rootChecker.rootAvailable = false
+        assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+        assertFailsWith<RootUnavailableException> {
+            intentFirewall.getRules(testPackage)
+        }
+
+        rootChecker.rootAvailable = true
+
+        assertEquals(blockedReceiverRules, intentFirewall.getRules(testPackage))
+        assertFalse(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+    }
+
+    @Test
+    fun givenRootUnavailable_whenCheckingManyComponentsWithinRetryInterval_thenRootIsProbedOnce() = runTest {
+        val checker = CountingRootChecker(rootAvailable = false)
+        val timeSource = TestTimeSource()
+        val firewall = firewallWith(checker, timeSource)
+
+        repeat(20) {
+            assertTrue(firewall.getComponentEnableState("com.app$it", "com.app$it.Component"))
+            timeSource += 50.milliseconds
+        }
+
+        assertEquals(1, checker.probes)
+    }
+
+    @Test
+    fun givenRootGranted_whenRetryIntervalPasses_thenSamePackageShowsTheRealState() = runTest {
+        fileSystem.writeRules(testPackage, blockedReceiverXml)
+        val checker = CountingRootChecker(rootAvailable = false)
+        val timeSource = TestTimeSource()
+        val firewall = firewallWith(checker, timeSource)
+        assertTrue(firewall.getComponentEnableState(testPackage, testReceiver))
+
+        checker.rootAvailable = true
+        timeSource += 1.seconds
+        assertTrue(firewall.getComponentEnableState(testPackage, testReceiver))
+        timeSource += 1.seconds
+
+        assertFalse(firewall.getComponentEnableState(testPackage, testReceiver))
+        assertEquals(2, checker.probes)
+    }
+
+    @Test
+    fun givenRootUnavailable_whenCacheReset_thenNextCheckProbesRootAgain() = runTest {
+        fileSystem.writeRules(testPackage, blockedReceiverXml)
+        val checker = CountingRootChecker(rootAvailable = false)
+        val firewall = firewallWith(checker, TestTimeSource())
+        assertTrue(firewall.getComponentEnableState(testPackage, testReceiver))
+
+        checker.rootAvailable = true
+        firewall.resetCache()
+
+        assertFalse(firewall.getComponentEnableState(testPackage, testReceiver))
+        assertEquals(2, checker.probes)
+    }
+
+    @Test
+    fun givenRootUnavailable_whenRootGrantedAndComponentAdded_thenExistingRulesAreKept() = runTest {
+        fileSystem.writeRules(testPackage, blockedReceiverXml)
+        rootChecker.rootAvailable = false
+        assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+
+        rootChecker.rootAvailable = true
+        assertTrue(intentFirewall.addComponentFilter(testPackage, testService))
+
+        intentFirewall.resetCache()
+        assertFalse(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+        assertFalse(intentFirewall.getComponentEnableState(testPackage, testService))
     }
 
     @Test
@@ -151,10 +247,173 @@ class IntentFirewallNewModelTest {
     }
 
     @Test
-    fun givenInvalidXml_whenGetRules_thenReturnsEmpty() = runTest {
-        fileSystem.writeRules(testPackage, "<not-valid>>>")
-        val rules = intentFirewall.getRules(testPackage)
-        assertTrue(rules.isEmpty())
+    fun givenInvalidXml_whenGetRules_thenThrowsIOException() = runTest {
+        fileSystem.writeRules(testPackage, INVALID_XML)
+        assertFailsWith<IOException> {
+            intentFirewall.getRules(testPackage)
+        }
+    }
+
+    @Test
+    fun givenInvalidXml_whenFileIsFixed_thenNextReadSeesTheFix() = runTest {
+        fileSystem.writeRules(testPackage, INVALID_XML)
+        assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+
+        fileSystem.writeRules(testPackage, blockedReceiverXml)
+
+        assertFalse(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+    }
+
+    // ── Unreadable files are never overwritten ──
+
+    @Test
+    fun givenTruncatedFile_whenAddComponentFilter_thenReturnsFalseAndKeepsFile() = runTest {
+        val truncated = blockedServiceXml.substringBefore("</service>")
+        fileSystem.writeRules(testPackage, truncated)
+
+        assertFalse(intentFirewall.addComponentFilter(testPackage, testReceiver))
+
+        assertEquals(truncated, fileSystem.readRules(testPackage))
+    }
+
+    @Test
+    fun givenUnreadableFile_whenAddComponentFilter_thenReturnsFalseAndKeepsFile() = runTest {
+        fileSystem.writeRules(testPackage, blockedServiceXml)
+        fileSystem.unreadablePackages += testPackage
+
+        assertFalse(intentFirewall.addComponentFilter(testPackage, testReceiver))
+
+        fileSystem.unreadablePackages.clear()
+        assertEquals(blockedServiceXml, fileSystem.readRules(testPackage))
+    }
+
+    @Test
+    fun givenUnreadableFile_whenRemoveComponentFilter_thenReturnsFalseAndKeepsFile() = runTest {
+        fileSystem.writeRules(testPackage, blockedServiceXml)
+        fileSystem.unreadablePackages += testPackage
+
+        assertFalse(intentFirewall.removeComponentFilter(testPackage, testService))
+
+        fileSystem.unreadablePackages.clear()
+        assertEquals(blockedServiceXml, fileSystem.readRules(testPackage))
+    }
+
+    @Test
+    fun givenUnreadableFile_whenItBecomesReadable_thenAddKeepsExistingRules() = runTest {
+        fileSystem.writeRules(testPackage, blockedServiceXml)
+        fileSystem.unreadablePackages += testPackage
+        assertFalse(intentFirewall.addComponentFilter(testPackage, testReceiver))
+
+        fileSystem.unreadablePackages.clear()
+
+        assertTrue(intentFirewall.addComponentFilter(testPackage, testReceiver))
+        assertFalse(intentFirewall.getComponentEnableState(testPackage, testService))
+        assertFalse(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+    }
+
+    @Test
+    fun givenOneUnreadablePackage_whenAddAllComponentFilters_thenOnlyThatPackageIsSkipped() = runTest {
+        val otherPackage = "com.other"
+        val otherReceiver = "com.other.Receiver"
+        componentTypeResolver.setComponentType(otherPackage, otherReceiver, ComponentType.RECEIVER)
+        fileSystem.writeRules(testPackage, blockedServiceXml)
+        fileSystem.unreadablePackages += testPackage
+        val reported = mutableListOf<ComponentName>()
+
+        intentFirewall.addAllComponentFilters(
+            listOf(ComponentName(testPackage, testReceiver), ComponentName(otherPackage, otherReceiver)),
+        ) { reported += it }
+
+        assertEquals(listOf(ComponentName(otherPackage, otherReceiver)), reported)
+        assertFalse(intentFirewall.getComponentEnableState(otherPackage, otherReceiver))
+        fileSystem.unreadablePackages.clear()
+        assertEquals(blockedServiceXml, fileSystem.readRules(testPackage))
+    }
+
+    @Test
+    fun givenUnreadableFile_whenRemoveAllComponentFilters_thenKeepsFileAndReportsNothing() = runTest {
+        fileSystem.writeRules(testPackage, blockedServiceXml)
+        fileSystem.unreadablePackages += testPackage
+        val reported = mutableListOf<ComponentName>()
+
+        intentFirewall.removeAllComponentFilters(listOf(ComponentName(testPackage, testService))) {
+            reported += it
+        }
+
+        assertTrue(reported.isEmpty())
+        fileSystem.unreadablePackages.clear()
+        assertEquals(blockedServiceXml, fileSystem.readRules(testPackage))
+    }
+
+    @Test
+    fun givenOneUnreadablePackage_whenGetAllRules_thenOnlyThatPackageIsOmitted() = runTest {
+        fileSystem.writeRules(testPackage, INVALID_XML)
+        fileSystem.writeRules("com.other", blockedReceiverXml)
+
+        assertEquals(setOf("com.other"), intentFirewall.getAllRules().keys)
+    }
+
+    // ── Concurrency ──
+
+    @Test
+    fun givenConcurrentAddsAndRemoves_whenRunOnSeveralThreads_thenNoRuleIsLost() = runTest {
+        val firewall = IntentFirewall(
+            rootChecker = rootChecker,
+            componentTypeResolver = componentTypeResolver,
+            fileSystem = YieldingIfwFileSystem(fileSystem),
+            serializer = IfwXmlSerializer(),
+            deserializer = IfwXmlDeserializer(),
+        )
+        val receivers = List(100) { "com.example.Receiver$it" }
+        receivers.forEach { componentTypeResolver.setComponentType(testPackage, it, ComponentType.RECEIVER) }
+        val toRemove = receivers.take(50)
+        val toAdd = receivers.drop(50)
+        toRemove.forEach { firewall.addComponentFilter(testPackage, it) }
+
+        val results = withContext(Dispatchers.Default) {
+            val adds = toAdd.map { async { firewall.addComponentFilter(testPackage, it) } }
+            val removes = toRemove.map { async { firewall.removeComponentFilter(testPackage, it) } }
+            (adds + removes).awaitAll()
+        }
+
+        assertTrue(results.all { it })
+        firewall.resetCache()
+        assertEquals(
+            toAdd.map { "$testPackage/$it" }.toSet(),
+            firewall.getRules(testPackage).componentFiltersFor(IfwComponentType.BROADCAST),
+        )
+    }
+
+    @Test
+    fun givenCacheResetDuringRead_whenReadFinishes_thenStaleRulesAreNotCached() = runTest {
+        fileSystem.writeRules(testPackage, blockedReceiverXml)
+        val readStarted = CompletableDeferred<Unit>()
+        val releaseRead = CompletableDeferred<Unit>()
+        val gatedFileSystem = object : IfwFileSystem by fileSystem {
+            override suspend fun readRules(packageName: String): String? {
+                val content = fileSystem.readRules(packageName)
+                readStarted.complete(Unit)
+                releaseRead.await()
+                return content
+            }
+        }
+        val firewall = IntentFirewall(
+            rootChecker = rootChecker,
+            componentTypeResolver = componentTypeResolver,
+            fileSystem = gatedFileSystem,
+            serializer = IfwXmlSerializer(),
+            deserializer = IfwXmlDeserializer(),
+        )
+        val staleRead = async { firewall.getComponentEnableState(testPackage, testReceiver) }
+        readStarted.await()
+
+        // Another component deletes the file directly and resets the cache, like a firewall reset.
+        fileSystem.deleteRules(testPackage)
+        firewall.resetCache()
+        releaseRead.complete(Unit)
+
+        assertFalse(staleRead.await())
+        assertTrue(firewall.getComponentEnableState(testPackage, testReceiver))
     }
 
     @Test
@@ -226,5 +485,37 @@ class IntentFirewallNewModelTest {
     @Test
     fun givenNoRules_whenGetComponentEnableState_thenReturnsTrue() = runTest {
         assertTrue(intentFirewall.getComponentEnableState(testPackage, testReceiver))
+    }
+
+    private fun componentFilterRules(type: IfwComponentType, componentName: String) = IfwRules(
+        listOf(IfwRule(componentType = type, filters = listOf(IfwFilter.ComponentFilter("$testPackage/$componentName")))),
+    )
+
+    private fun firewallWith(rootChecker: RootAvailabilityChecker, timeSource: TimeSource) = IntentFirewall(
+        rootChecker = rootChecker,
+        componentTypeResolver = componentTypeResolver,
+        fileSystem = fileSystem,
+        serializer = IfwXmlSerializer(),
+        deserializer = IfwXmlDeserializer(),
+        timeSource = timeSource,
+    )
+}
+
+private class CountingRootChecker(var rootAvailable: Boolean) : RootAvailabilityChecker {
+    var probes = 0
+
+    override suspend fun isRootAvailable(): Boolean {
+        probes++
+        return rootAvailable
+    }
+}
+
+/** Suspends around each file access so concurrent read-modify-write sequences interleave. */
+private class YieldingIfwFileSystem(private val delegate: IfwFileSystem) : IfwFileSystem by delegate {
+    override suspend fun readRules(packageName: String): String? = delegate.readRules(packageName).also { yield() }
+
+    override suspend fun writeRules(packageName: String, content: String) {
+        yield()
+        delegate.writeRules(packageName, content)
     }
 }

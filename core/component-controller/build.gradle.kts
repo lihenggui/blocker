@@ -18,7 +18,6 @@ plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.jacoco)
     alias(libs.plugins.blocker.android.hilt)
-    id("kotlinx-serialization")
     id("kotlin-parcelize")
 }
 
@@ -38,7 +37,6 @@ dependencies {
     implementation(projects.core.ifwApi)
 
     implementation(libs.hiddenapibypass)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
 

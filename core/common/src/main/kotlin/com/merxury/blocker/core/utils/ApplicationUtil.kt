@@ -92,26 +92,6 @@ object ApplicationUtil {
     }
 
     /**
-     * get a list of system applications
-     *
-     * @param context Context
-     * @return a list of installed system applications
-     */
-    suspend fun getSystemApplicationList(
-        context: Context,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): List<Application> {
-        val pm = context.packageManager
-        return withContext(dispatcher) {
-            val installedPackages = pm.getInstalledPackagesCompat(0)
-            installedPackages
-                .filter { (it.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM != 0 }
-                .map { async { it.toApplication(pm) } }
-                .awaitAll()
-        }
-    }
-
-    /**
      * get a list of activity of a specified application
      *
      * @param pm          PackageManager
@@ -126,14 +106,7 @@ object ApplicationUtil {
         return withContext(dispatcher) {
             val activities = mutableListOf<ActivityInfo>()
             try {
-                var flags = PackageManager.GET_ACTIVITIES
-                flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or
-                        @Suppress("DEPRECATION")
-                        PackageManager.GET_DISABLED_COMPONENTS
-                } else {
-                    flags or PackageManager.MATCH_DISABLED_COMPONENTS
-                }
+                val flags = PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS
                 val components = pm.getPackageInfoCompat(packageName, flags)?.activities
                 if (!components.isNullOrEmpty()) {
                     Collections.addAll(activities, *components)
@@ -162,14 +135,7 @@ object ApplicationUtil {
     ): List<ActivityInfo> = withContext(dispatcher) {
         val receivers = mutableListOf<ActivityInfo>()
         try {
-            var flags = PackageManager.GET_RECEIVERS
-            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or
-                    @Suppress("DEPRECATION")
-                    PackageManager.GET_DISABLED_COMPONENTS
-            } else {
-                flags or PackageManager.MATCH_DISABLED_COMPONENTS
-            }
+            val flags = PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS
             val components = pm.getPackageInfoCompat(packageName, flags)?.receivers
             if (!components.isNullOrEmpty()) {
                 Collections.addAll(receivers, *components)
@@ -196,14 +162,7 @@ object ApplicationUtil {
         return withContext(dispatcher) {
             val services = mutableListOf<ServiceInfo>()
             try {
-                var flags = PackageManager.GET_SERVICES
-                flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or
-                        @Suppress("DEPRECATION")
-                        PackageManager.GET_DISABLED_COMPONENTS
-                } else {
-                    flags or PackageManager.MATCH_DISABLED_COMPONENTS
-                }
+                val flags = PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS
                 val components = pm.getPackageInfoCompat(packageName, flags)?.services
                 if (!components.isNullOrEmpty()) {
                     Collections.addAll(services, *components)
@@ -232,14 +191,7 @@ object ApplicationUtil {
     ): List<ProviderInfo> = withContext(dispatcher) {
         val providers = mutableListOf<ProviderInfo>()
         try {
-            var flags = PackageManager.GET_PROVIDERS
-            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or
-                    @Suppress("DEPRECATION")
-                    PackageManager.GET_DISABLED_COMPONENTS
-            } else {
-                flags or PackageManager.MATCH_DISABLED_COMPONENTS
-            }
+            val flags = PackageManager.GET_PROVIDERS or PackageManager.MATCH_DISABLED_COMPONENTS
             val components = pm.getPackageInfoCompat(packageName, flags)?.providers
             if (!components.isNullOrEmpty()) {
                 Collections.addAll(providers, *components)
@@ -277,15 +229,6 @@ object ApplicationUtil {
         info
     }
 
-    suspend fun getApplicationInfo(
-        context: Context,
-        packageName: String,
-    ): Application? {
-        val pm = context.packageManager
-        val info = getApplicationComponents(pm, packageName, 0) ?: return null
-        return info.toApplication(pm)
-    }
-
     /**
      * get a list of components of a specified application
      *
@@ -299,17 +242,10 @@ object ApplicationUtil {
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): PackageInfo = withContext(dispatcher) {
-        var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
+        @Suppress("DEPRECATION")
+        val flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
             PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
-            @Suppress("DEPRECATION")
-            PackageManager.GET_INTENT_FILTERS
-        flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            flags or
-                @Suppress("DEPRECATION")
-                PackageManager.GET_DISABLED_COMPONENTS
-        } else {
-            flags or PackageManager.MATCH_DISABLED_COMPONENTS
-        }
+            PackageManager.GET_INTENT_FILTERS or PackageManager.MATCH_DISABLED_COMPONENTS
         var info = PackageInfo()
         try {
             info = pm.getPackageInfoCompat(packageName, flags) ?: PackageInfo()
@@ -390,18 +326,6 @@ object ApplicationUtil {
         }
         return false
     }
-
-    suspend fun isProvider(
-        pm: PackageManager,
-        packageName: String,
-        componentName: String,
-    ): Boolean = getProviderList(pm, packageName).any { it.name == componentName }
-
-    suspend fun isActivity(
-        pm: PackageManager,
-        packageName: String,
-        componentName: String,
-    ): Boolean = getActivityList(pm, packageName).any { it.name == componentName }
 
     fun isDebugMode(context: Context): Boolean {
         val appInfo = context.packageManager.getApplicationInfo(context.packageName, 0)
