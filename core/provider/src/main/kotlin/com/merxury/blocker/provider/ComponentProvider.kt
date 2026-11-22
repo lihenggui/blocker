@@ -20,7 +20,9 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
+import android.os.Binder
 import android.os.Bundle
+import android.os.Process
 import androidx.core.os.bundleOf
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -46,10 +48,31 @@ class ComponentProvider : ContentProvider() {
         fun analyticsHelper(): AnalyticsHelper
     }
 
-    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? = when (method) {
-        "getComponents" -> getBlockedComponents(arg)
-        "blocks" -> controlComponent(arg, extras)
-        else -> null
+    private val callerVerifier: ProviderCallerVerifier by lazy {
+        ProviderCallerVerifier(
+            ownUid = Process.myUid(),
+            trustedCallers = TRUSTED_PROVIDER_CALLERS,
+            packageSource = PackageManagerCallerPackageSource(checkNotNull(context).packageManager),
+        )
+    }
+
+    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+        enforceTrustedCaller()
+        return when (method) {
+            "getComponents" -> getBlockedComponents(arg)
+            "blocks" -> controlComponent(arg, extras)
+            else -> null
+        }
+    }
+
+    // The provider is exported without a permission so LibChecker, which has its own
+    // signing key, can reach it. Identify the caller by its kernel-provided Binder UID
+    // rather than the package name it reports about itself.
+    private fun enforceTrustedCaller() {
+        val callingUid = Binder.getCallingUid()
+        if (callerVerifier.isAllowed(callingUid)) return
+        Timber.w("Rejected ComponentProvider call from uid %d", callingUid)
+        throw SecurityException("uid $callingUid is not allowed to call Blocker's ComponentProvider")
     }
 
     private fun getBlockedComponents(packageName: String?): Bundle? = runBlocking {
