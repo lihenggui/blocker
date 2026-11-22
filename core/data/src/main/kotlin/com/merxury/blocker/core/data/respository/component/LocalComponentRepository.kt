@@ -41,6 +41,8 @@ import com.merxury.blocker.core.result.Result.Success
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -52,6 +54,9 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.TimeSource
+
+// Same as the controllers' system batch size, so a cancelled run waits for at most one call.
+private const val COMPONENTS_PER_CHANGE = 200
 
 internal class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
@@ -172,9 +177,9 @@ internal class LocalComponentRepository @Inject constructor(
     /**
      * Changes the components of one app, then reads back and saves the state the device reports
      * for them, also when the change failed or was cancelled part way. A failure is logged and
-     * reported per component, so the caller can go on with the next app. Cancellation is rethrown
-     * once the state is saved. A missing root grant is rethrown at once: nothing could change,
-     * and every other app would fail the same way.
+     * reported per component, so the caller can go on with the next app. Cancellation and a
+     * missing root grant are rethrown once the state is saved, so no further app is started:
+     * without root every other app would fail the same way.
      */
     private suspend fun controlPackage(
         packageComponents: List<ComponentInfo>,
@@ -189,21 +194,22 @@ internal class LocalComponentRepository @Inject constructor(
             null
         } catch (e: CancellationException) {
             e
-        } catch (e: RootUnavailableException) {
-            throw e
         } catch (e: Exception) {
             e
         }
         val reconciled = try {
-            // A cancellation can arrive after a controller has already changed the device.
-            withContext(NonCancellable) { readBackAndSave(packageComponents) }
+            // Changes made before a cancellation or a lost root grant still have to be saved.
+            // Without root the IFW rules cannot be read, and an unreadable file reads as not
+            // blocked, so the stored IFW state is kept. PM state is read without root.
+            val readIfw = failure !is RootUnavailableException
+            withContext(NonCancellable) { readBackAndSave(packageComponents, readIfw) }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Timber.e(e, "Cannot read back or save ${packageComponents.size} components of $packageName")
             null
         }
-        if (failure is CancellationException) throw failure
+        if (failure is CancellationException || failure is RootUnavailableException) throw failure
         if (failure != null) Timber.e(failure, "Cannot change components of $packageName")
         val results = (reconciled ?: packageComponents).map { component ->
             val succeeded = reconciled != null &&
@@ -215,8 +221,26 @@ internal class LocalComponentRepository @Inject constructor(
         return results
     }
 
+    /**
+     * Changes one app's components at most [COMPONENTS_PER_CHANGE] at a time. A chunk that has
+     * started runs to the end even if the caller is cancelled: cancelling a root command only
+     * stops the wait, and a change that lands after the read-back would never be saved.
+     * Cancellation takes effect before the next chunk instead.
+     */
     private suspend fun changePackage(
         packageComponents: List<ComponentInfo>,
+        newState: Boolean,
+        controllerType: ControllerType,
+        onApplied: suspend (ComponentInfo) -> Unit,
+    ) {
+        packageComponents.chunked(COMPONENTS_PER_CHANGE).forEach { chunk ->
+            currentCoroutineContext().ensureActive()
+            withContext(NonCancellable) { changeComponents(chunk, newState, controllerType, onApplied) }
+        }
+    }
+
+    private suspend fun changeComponents(
+        components: List<ComponentInfo>,
         newState: Boolean,
         controllerType: ControllerType,
         onApplied: suspend (ComponentInfo) -> Unit,
@@ -228,11 +252,11 @@ internal class LocalComponentRepository @Inject constructor(
             IFW_PLUS_PM -> combinedController
         }
         if (controllerType != IFW) {
-            controller.batchSwitch(packageComponents, newState, onApplied)
+            controller.batchSwitch(components, newState, onApplied)
             return
         }
         // IFW cannot block providers, so PM changes them.
-        val (providers, ifwComponents) = packageComponents.partition { it.type == ComponentType.PROVIDER }
+        val (providers, ifwComponents) = components.partition { it.type == ComponentType.PROVIDER }
         pmController.batchSwitch(providers, newState, onApplied)
         if (newState) {
             // Enabling also lifts PM blocks left on components that IFW controls.
@@ -250,12 +274,16 @@ internal class LocalComponentRepository @Inject constructor(
         if (enable) batchEnable(components, onApplied) else batchDisable(components, onApplied)
     }
 
-    /** Reads the PM and IFW state of [components] from the device and saves it. */
-    private suspend fun readBackAndSave(components: List<ComponentInfo>): List<ComponentInfo> {
+    /**
+     * Reads the PM state of [components] from the device, and the IFW state if [readIfw], and
+     * saves it. Without [readIfw] each component keeps the IFW state it was passed with.
+     */
+    private suspend fun readBackAndSave(components: List<ComponentInfo>, readIfw: Boolean): List<ComponentInfo> {
         val pmStates = pmController.checkComponentEnableStates(components)
-        val ifwStates = ifwController.checkComponentEnableStates(components)
+        val ifwStates = if (readIfw) ifwController.checkComponentEnableStates(components) else null
         val reconciled = components.map {
-            it.copy(pmBlocked = !pmStates.getValue(it), ifwBlocked = !ifwStates.getValue(it))
+            val ifwBlocked = if (ifwStates != null) !ifwStates.getValue(it) else it.ifwBlocked
+            it.copy(pmBlocked = !pmStates.getValue(it), ifwBlocked = ifwBlocked)
         }
         appComponentDao.upsertComponentList(reconciled.map { it.toAppComponentEntity() })
         return reconciled

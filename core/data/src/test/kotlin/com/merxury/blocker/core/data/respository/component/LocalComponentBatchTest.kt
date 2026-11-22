@@ -29,10 +29,12 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -47,6 +49,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class LocalComponentBatchTest {
     @get:Rule
     val dispatcher = MainDispatcherRule()
@@ -58,6 +61,7 @@ class LocalComponentBatchTest {
     private val repository = LocalComponentRepository(mock(), dao, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher)
     private val first = ComponentInfo("com.example", "com.tracker.First", SERVICE)
     private val second = first.copy(name = "com.tracker.Second")
+    private val last = ComponentInfo("com.last", "com.tracker.Last", SERVICE)
 
     @Test
     fun givenAlreadyEnabledComponentAndFailedCommand_whenEnabling_thenDoesNotReportSuccess() = runTest {
@@ -114,22 +118,57 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun givenPartiallyAppliedBatch_whenCancelled_thenPersistsChangedComponentsBeforeReturning() = runTest {
+    fun givenChangeInFlight_whenCollectorIsCancelled_thenSavesTheStateTheChangeLeftAndStops() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
-        val changed = CompletableDeferred<Unit>()
-        val hold = CompletableDeferred<Unit>()
-        pm.afterDisable = {
-            changed.complete(Unit)
-            hold.await()
+        val started = CompletableDeferred<Unit>()
+        val land = CompletableDeferred<Unit>()
+        pm.applyChange = { change ->
+            started.complete(Unit)
+            backgroundScope.async {
+                land.await()
+                change()
+            }.await()
         }
-        val job = launch { repository.batchControlComponent(listOf(first, second), false).collect() }
-        changed.await()
+        val job = launch { repository.batchControlComponent(listOf(first, second, last), false).collect() }
+        started.await()
 
-        job.cancelAndJoin()
+        job.cancel()
+        runCurrent()
+        land.complete(Unit)
+        job.join()
 
         val saved = argumentCaptor<List<AppComponentEntity>>()
         verify(dao).upsertComponentList(saved.capture())
-        assertEquals(listOf(true, false), saved.firstValue.map { it.pmBlocked })
+        assertEquals(listOf(first.name to true, second.name to true), saved.firstValue.map { it.componentName to it.pmBlocked })
+        assertEquals(listOf(first, second), pm.disabled)
+    }
+
+    @Test
+    fun givenFirstChunkInFlight_whenCollectorIsCancelled_thenTheNextChunkIsNotStarted() = runTest {
+        users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+        val components = List(250) { ComponentInfo("com.example", "com.tracker.Service$it", SERVICE) }
+        val started = CompletableDeferred<Unit>()
+        val land = CompletableDeferred<Unit>()
+        pm.applyChange = { change ->
+            started.complete(Unit)
+            backgroundScope.async {
+                land.await()
+                change()
+            }.await()
+        }
+        val job = launch { repository.batchControlComponent(components, false).collect() }
+        started.await()
+
+        job.cancel()
+        runCurrent()
+        land.complete(Unit)
+        job.join()
+
+        // A chunk holds at most 200 components; the one in flight finishes, the rest never start.
+        assertEquals(components.take(200), pm.disabled)
+        val saved = argumentCaptor<List<AppComponentEntity>>()
+        verify(dao).upsertComponentList(saved.capture())
+        assertEquals(List(200) { true } + List(50) { false }, saved.firstValue.map { it.pmBlocked })
     }
 
     @Test
@@ -149,7 +188,6 @@ class LocalComponentBatchTest {
     fun givenOneAppThrows_whenApplyingBatchToSeveralApps_thenReportsItAndContinuesWithTheOthers() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         val broken = ComponentInfo("com.uninstalled", "com.tracker.Broken", SERVICE)
-        val last = ComponentInfo("com.last", "com.tracker.Last", SERVICE)
         pm.throwingPackages.add(broken.packageName)
 
         val results = repository.batchControlComponent(listOf(first, broken, last), false).toList()
@@ -164,15 +202,38 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun givenRootDenied_whenApplyingBatch_thenFailsWithoutSavingReadBackState() = runTest {
+    fun givenRootLostAfterOneChange_whenApplyingBatch_thenSavesThatAppAndStopsBeforeTheNext() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
-        pm.rootDenied = true
+        val ifwBlockedSecond = second.copy(ifwBlocked = true)
+        pm.rootLostAfterChanges = 1
 
         assertFailsWith<RootUnavailableException> {
-            repository.batchControlComponent(listOf(first, second), false).toList()
+            repository.batchControlComponent(listOf(first, ifwBlockedSecond, last), false).toList()
         }
 
-        verify(dao, never()).upsertComponentList(any())
+        assertEquals(listOf(first), pm.disabled)
+        val saved = argumentCaptor<List<AppComponentEntity>>()
+        verify(dao).upsertComponentList(saved.capture())
+        // PM state is read back without root. IFW rules cannot be read, so the stored flag stays.
+        assertEquals(
+            listOf(Triple(first.name, true, false), Triple(second.name, false, true)),
+            saved.firstValue.map { Triple(it.componentName, it.pmBlocked, it.ifwBlocked) },
+        )
+    }
+
+    @Test
+    fun givenRootDenied_whenApplyingBatch_thenSavesTheFirstAppUnchangedAndStops() = runTest {
+        users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+        pm.rootLostAfterChanges = 0
+
+        assertFailsWith<RootUnavailableException> {
+            repository.batchControlComponent(listOf(first, second, last), false).toList()
+        }
+
+        assertEquals(emptyList(), pm.disabled)
+        val saved = argumentCaptor<List<AppComponentEntity>>()
+        verify(dao).upsertComponentList(saved.capture())
+        assertEquals(listOf(first.name to false, second.name to false), saved.firstValue.map { it.componentName to it.pmBlocked })
     }
 
     private class StatefulController : IController {
@@ -181,28 +242,34 @@ class LocalComponentBatchTest {
         val disabled = mutableListOf<ComponentInfo>()
         val enabled = mutableListOf<ComponentInfo>()
         val throwingPackages = mutableSetOf<String>()
-        var rootDenied = false
-        var afterDisable: suspend () -> Unit = {}
+
+        /** Changes that succeed before root is lost; later calls throw RootUnavailableException. */
+        var rootLostAfterChanges = Int.MAX_VALUE
+
+        /** Applies a change. A test can make it land later, like a command in the root process. */
+        var applyChange: suspend (change: () -> Unit) -> Unit = { it() }
+        private var changes = 0
         override suspend fun switchComponent(component: ComponentInfo, state: ComponentState): Boolean = if (state == ComponentState.DISABLED) disable(component) else enable(component)
         override suspend fun enable(component: ComponentInfo): Boolean {
             checkAvailable(component)
             enabled.add(component)
             if (component.name in failures) return false
-            states[component.name] = true
+            applyChange { states[component.name] = true }
+            changes++
             return true
         }
         override suspend fun disable(component: ComponentInfo): Boolean {
             checkAvailable(component)
             disabled.add(component)
             if (component.name in failures) return false
-            states[component.name] = false
-            afterDisable()
+            applyChange { states[component.name] = false }
+            changes++
             return true
         }
         override suspend fun checkComponentEnableState(packageName: String, componentName: String) = states[componentName] ?: true
 
         private fun checkAvailable(component: ComponentInfo) {
-            if (rootDenied) throw RootUnavailableException()
+            if (changes >= rootLostAfterChanges) throw RootUnavailableException()
             check(component.packageName !in throwingPackages) { "Package ${component.packageName} is not installed" }
         }
     }
