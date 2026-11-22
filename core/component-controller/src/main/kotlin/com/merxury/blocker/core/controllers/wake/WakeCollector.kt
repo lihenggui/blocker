@@ -135,7 +135,7 @@ class WakeCollector @Inject constructor(
                 fun snapshot(cmd: WakeCommand, profile: Int = 0) = read(cmd, profile) {
                     batches += WakeBatch(cmd.source(profile), WakeSystemEvidence.snapshot(cmd, it, now, profile))
                 }
-                for (cmd in listOf(WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES)) snapshot(cmd)
+                for (cmd in listOf(WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES, WakeCommand.NOTIFICATIONS)) snapshot(cmd)
                 if (diagnostic) {
                     for (cmd in listOf(WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS, WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY)) snapshot(cmd)
                     var idle: Map<String, Set<String>>? = null

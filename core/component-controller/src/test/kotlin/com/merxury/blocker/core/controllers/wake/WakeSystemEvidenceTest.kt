@@ -86,6 +86,20 @@ class WakeSystemEvidenceTest {
         assertThat(start.callerUid).isNull()
     }
 
+    @Test fun givenNotificationPreferences_whenParsing_thenOnlyAppsThatMayNotNotifyRemain() {
+        // Android 15, then the Android 8 line of an app the user blocked.
+        val dump = """
+              AppSettings: example.allowed (10175) importance=DEFAULT userSet=false fixedImportance=true
+              AppSettings: example.denied (10193) importance=NONE userSet=false
+              AppSettings: example.unasked (10109)
+              AppSettings: example.blocked (1010120) importance=NONE priority=0 visibility=-1000 showBadge=true
+              AppSettings: example.none (10121) importance=NONEXISTENT
+        """.trimIndent()
+        val off = WakeSystemEvidence.snapshot(WakeCommand.NOTIFICATIONS, dump, 7)
+        assertThat(off.map { it.targetPackage to it.targetUid }).containsExactly("example.denied" to 10193, "example.blocked" to 1010120)
+        assertThat(off.map { it.kind }.distinct()).containsExactly(WAKE_NOTIFICATIONS_OFF)
+    }
+
     @Test fun givenRoleAndJobDumps_whenDispatchingSnapshots_thenEachParserUsesOnlyItsOwnFields() {
         val role = "user_id=10\nname=android.app.role.HOME\nholders=[example.home]"
         val job = "JOB #u0a12/17: example.sync/.JobService"

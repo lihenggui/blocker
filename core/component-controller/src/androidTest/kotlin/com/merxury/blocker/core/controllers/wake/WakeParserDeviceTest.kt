@@ -89,6 +89,7 @@ class WakeParserDeviceTest {
         val commands = listOf(
             WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES, WakeCommand.INTENTS, WakeCommand.COMPANIONS,
             WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS, WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS,
+            WakeCommand.NOTIFICATIONS,
         )
         val ui = InstrumentationRegistry.getInstrumentation().uiAutomation
         for (command in commands) {

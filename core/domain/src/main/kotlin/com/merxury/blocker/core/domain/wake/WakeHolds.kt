@@ -22,6 +22,9 @@ internal object WakeHolds {
         10 to "systemExempted", 11 to "shortService", 12 to "fileManagement", 13 to "mediaProcessing", 30 to "specialUse",
     )
 
+    // Sound, a call, or the system's capture and recording indicators show these without a notification.
+    private val perceptibleFgsTypes = setOf("mediaPlayback", "phoneCall", "mediaProjection", "camera", "microphone")
+
     fun fgsTypeNames(mask: Long?): String? = mask?.takeIf { it > 0 }?.let { bits ->
         fgsTypes.filter { (bit, _) -> bits and (1L shl bit) != 0L }.joinToString(",") { it.second }.ifEmpty { null }
     }
@@ -124,6 +127,7 @@ internal object WakeHolds {
             // procstats files isolated processes under their host uid. Other non-regular uids are not the app's own time.
             if (!isRegularApp(uid)) continue
             val period = periods[periodId] ?: continue
+            val hidden = notificationsOff(uid, period.startMillis, period.endMillis)
             val off = processes.sumOf { it.screenOffMillis }
             val total = off + processes.sumOf { it.screenOnMillis }
             if (total <= 0) continue
@@ -215,8 +219,10 @@ internal object WakeHolds {
             } * 1_000_000
             for (candidate in foreground + attributed) {
                 val justification = candidate.justification ?: when {
-                    // A foreground service always shows an ongoing notification to the user.
-                    candidate.cause == HoldCause.FOREGROUND_SERVICE -> Justification.PRODUCTIVE
+                    // A foreground service shows an ongoing notification, unless the app may not notify:
+                    // from Android 13 the service still runs then. The user notices some types anyway.
+                    candidate.cause == HoldCause.FOREGROUND_SERVICE ->
+                        if (hidden && candidate.actor.orEmpty().split(',').none { it in perceptibleFgsTypes }) Justification.NONE else Justification.PRODUCTIVE
 
                     candidate.cause == HoldCause.BOUND_BY_SYSTEM && grantedSpecialAccess(target, candidate.detail) -> Justification.USER_GRANTED_ROLE
 

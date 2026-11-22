@@ -165,7 +165,7 @@ abstract class WakeDetectionDao {
           'ServiceRequestEventReported','BroadcastDeliveryEventReported','ProviderAcquisitionEventReported','AppStartOccurred',
           'ScheduledJobStateChanged','SyncStateChanged','WakeupAlarmOccurred','AlarmBatchDelivered','NotificationReported',
           'ForegroundServiceStateChanged','LongPartialWakelockStateChanged',
-          'SystemBinding','RoleHolder','CompanionAssociation','WallpaperBinding','HeldConnection'
+          'SystemBinding','RoleHolder','CompanionAssociation','WallpaperBinding','HeldConnection','NotificationsOff'
         ) ORDER BY elapsedNanos
         """,
     )

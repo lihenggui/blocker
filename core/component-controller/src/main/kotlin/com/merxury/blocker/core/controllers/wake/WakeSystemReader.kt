@@ -58,6 +58,7 @@ internal enum class WakeCommand(val args: List<String>) {
     SERVICES(listOf("dumpsys", "-t", "5", "activity", "services")),
     PROVIDERS(listOf("dumpsys", "-t", "5", "activity", "providers")),
     PROCESSES(listOf("dumpsys", "-t", "5", "activity", "oom")),
+    NOTIFICATIONS(listOf("dumpsys", "-t", "5", "notification")),
     USERS(listOf("pm", "list", "users")),
     PACKAGES(listOf("pm", "list", "packages", "-f", "-U", "--show-versioncode", "--user")),
     INTENTS(listOf("dumpsys", "-t", "5", "activity", "intents")),

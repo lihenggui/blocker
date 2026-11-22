@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.core.domain.wake
 
+import com.merxury.blocker.core.controllers.wake.WAKE_NOTIFICATIONS_OFF
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
@@ -110,6 +111,18 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
             kind("RoleHolder").filterNot { it.action.orEmpty().startsWith("android.app.role.SYSTEM_") } +
             kind("CompanionAssociation")
         ).mapNotNull { it.targetPackage }.toSet()
+
+    // Each snapshot lists the apps that may not notify. A snapshot is known by the records it left,
+    // so one that found no such app at all is not seen; a stock system always has some.
+    private val notificationsOff = kind(WAKE_NOTIFICATIONS_OFF).groupBy({ it.targetUid }, { it.wallMillis }).mapValues { it.value.toSet() }
+    private val notificationSnapshots = kind(WAKE_NOTIFICATIONS_OFF).map { it.wallMillis }.distinct()
+
+    /** The app could not notify at any snapshot taken in the interval. Without a snapshot nothing is known. */
+    fun notificationsOff(uid: Int, fromWall: Long, toWall: Long): Boolean {
+        val taken = notificationSnapshots.filter { it in fromWall..toWall }
+        val off = notificationsOff[uid] ?: return false
+        return taken.isNotEmpty() && taken.all { it in off }
+    }
 
     fun grantedSpecialAccess(pkg: String, component: String?): Boolean {
         if (pkg in packageGrants) return true

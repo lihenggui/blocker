@@ -6,6 +6,9 @@ package com.merxury.blocker.core.controllers.wake
 import com.merxury.blocker.core.model.wake.WakeObservation
 import java.math.BigDecimal
 
+/** Snapshot record of an app that may not show notifications. */
+const val WAKE_NOTIFICATIONS_OFF = "NotificationsOff"
+
 internal object WakeSystemEvidence {
     private val logLine = Regex("""^\s*(\d+\.\d+)\s+(?:1000|system)\s+\d+\s+\d+\s+I\s+(am_proc_start|am_proc_died|am_kill|am_schedule_service_restart)\s*:\s*\[(.*)]\s*$""")
     private val component = Regex("""([a-zA-Z][\w.$]+/[\w.$]+)""")
@@ -188,6 +191,7 @@ internal object WakeSystemEvidence {
         return when (source) {
             WakeCommand.SERVICES, WakeCommand.PROVIDERS -> heldConnections(source, output, now)
             WakeCommand.PROCESSES -> processImportance(lines, now)
+            WakeCommand.NOTIFICATIONS -> notificationsOff(lines, now)
             WakeCommand.WIDGETS -> widgetProviders(lines, now)
             WakeCommand.ROLES -> roleHolders(lines, now, profile)
             WakeCommand.INPUT, WakeCommand.LISTENERS, WakeCommand.ACCESSIBILITY, WakeCommand.VPN -> systemBindings(lines, now, source, profile)
@@ -201,6 +205,14 @@ internal object WakeSystemEvidence {
             else -> emptyList()
         }.distinct()
     }
+
+    // "AppSettings: example.app (10123) importance=NONE userSet=false": the app may not notify at all,
+    // because the user turned its notifications off or, from Android 13, never allowed them.
+    private val notificationsOff = Regex("""^AppSettings: (\S+) \((\d+)\) (?:.* )?importance=NONE(?: |$)""")
+
+    private fun notificationsOff(lines: Sequence<String>, now: Long): List<WakeObservation> = lines.mapNotNull { text ->
+        notificationsOff.find(text)?.let { WakeObservation(WAKE_NOTIFICATIONS_OFF, now, targetUid = it.groupValues[2].toInt(), targetPackage = it.groupValues[1]) }
+    }.toList()
 
     private fun processImportance(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
         var host: String? = null

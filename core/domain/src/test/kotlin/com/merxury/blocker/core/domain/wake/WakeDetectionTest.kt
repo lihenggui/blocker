@@ -529,6 +529,24 @@ class WakeDetectionTest {
         assertThat(named.getValue(null).finding.durationNanos).isEqualTo(3_000_000_000L)
     }
 
+    @Test fun givenAppThatMayNotNotify_whenItsForegroundServiceRuns_thenOnlyAPerceptibleTypeIsProductive() {
+        val period = WakeHoldPeriod("p", WALL, WALL + 10_000, 0)
+        val process = WakeHoldProcess("p", TARGET, TARGET_UID, TARGET, 5_000, 1_000, 3_000, 1_000)
+        fun off(id: String, millis: Long, uid: Int = TARGET_UID) = wakeRecord(id, "NotificationsOff", millis * 1_000_000, source = "NOTIFICATIONS", targetUid = uid)
+        fun service(vararg records: WakeRecord) = WakeDetection.detect(evidence(records.toList(), periods = listOf(period), processes = listOf(process)))
+            .filter { it.finding.hold == HoldCause.FOREGROUND_SERVICE }.maxBy { it.finding.actor != null }.finding.justification
+
+        assertThat(service(off("a", 1_000), off("b", 9_000))).isEqualTo(Justification.NONE)
+        // Another app's record shows a snapshot at which this app could notify.
+        assertThat(service(off("a", 1_000), off("b", 9_000, PEER_UID))).isEqualTo(Justification.PRODUCTIVE)
+        // A snapshot outside the period says nothing about it.
+        assertThat(service(off("a", 11_000))).isEqualTo(Justification.PRODUCTIVE)
+        // Playback is heard without a notification; a sync is not noticed. The named service is the one judged.
+        fun enter(types: Int) = wakeRecord("enter", "ForegroundServiceStateChanged", 0, component = ".Service", attributes = mapOf("state" to "1", "fgs_types" to types.toString()))
+        assertThat(service(off("a", 1_000), enter(2))).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(service(off("a", 1_000), enter(1))).isEqualTo(Justification.NONE)
+    }
+
     @Test fun givenPeriodCrossingMidnight_whenDetecting_thenEachDayGetsItsShareOfTheHold() {
         val midnight = WakeDetection.dayStartMillis(WakeDetection.day(WALL * 1_000_000, ZoneOffset.UTC) + 1, ZoneOffset.UTC)
         // 23:30 to 02:30, held for two hours of it with the screen off for one.
