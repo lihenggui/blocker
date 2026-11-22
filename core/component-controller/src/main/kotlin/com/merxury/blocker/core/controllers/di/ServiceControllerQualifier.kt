@@ -20,10 +20,6 @@ import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class RootCommandServiceControl
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
 annotation class ShizukuServiceControl
 
 @Qualifier
