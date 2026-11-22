@@ -43,6 +43,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.PackageInfoDataSource
+import com.merxury.core.ifw.IIntentFirewall
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -61,6 +62,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     @RootApiControl private val rootController: IController,
     @IfwControl private val ifwController: IController,
     @ShizukuControl private val shizukuController: IController,
+    private val intentFirewall: IIntentFirewall,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
@@ -102,6 +104,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         }
         Timber.i("Start to import app rules")
         var successCount = 0
+        val unrestoredPackages = mutableListOf<String>()
         try {
             val files = documentDir.listFiles()
                 .filter { it.name?.endsWith(EXTENSION) == true }
@@ -126,7 +129,9 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                     }
                     setForeground(updateNotification(rule.packageName ?: "", current, total))
                     val restoredComponentCount = import(rule, controllerType)
-                    if (restoredComponentCount > 0) {
+                    if (restoredComponentCount == null) {
+                        unrestoredPackages += rule.packageName.orEmpty()
+                    } else if (restoredComponentCount > 0) {
                         successCount++
                     }
                     current++
@@ -137,6 +142,16 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
             Timber.e(e, "Failed to import blocker rules")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
+            )
+        }
+        if (unrestoredPackages.isNotEmpty()) {
+            // No result code describes an unreadable rule file, so report the closest one.
+            Timber.e("IFW rules not restored, rule files cannot be read: ${unrestoredPackages.joinToString()}")
+            return@withContext Result.failure(
+                workDataOf(
+                    PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION,
+                    PARAM_IMPORT_COUNT to successCount,
+                ),
             )
         }
         Timber.i("Imported $successCount rules.")
@@ -168,7 +183,12 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                         return@forEach
                     }
                     setForeground(updateNotification(rule.packageName ?: "", 1, 1))
-                    import(rule, controllerType)
+                    if (import(rule, controllerType) == null) {
+                        Timber.e("IFW rules not restored, rule file cannot be read: $packageName")
+                        return Result.failure(
+                            workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
+                        )
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -182,13 +202,18 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         )
     }
 
-    private suspend fun import(rule: BlockerRule, type: ControllerType): Int {
+    /**
+     * Returns the number of restored components, or null if IFW changes were refused because the
+     * package's rule file cannot be read.
+     */
+    private suspend fun import(rule: BlockerRule, type: ControllerType): Int? {
         val fallbackController = if (type == SHIZUKU) {
             shizukuController
         } else {
             rootController
         }
         var count = 0
+        var notAppliedIfwPackage: String? = null
         rule.components.forEach {
             if (it.method == IFW) {
                 if (it.type == PROVIDER) {
@@ -205,11 +230,12 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                         it.name,
                     )
                     if (currentState == it.state) return@forEach
-                    if (it.state) {
+                    val applied = if (it.state) {
                         ifwController.enable(it.toComponentInfo())
                     } else {
                         ifwController.disable(it.toComponentInfo())
                     }
+                    if (!applied) notAppliedIfwPackage = it.packageName
                 }
                 count++
             } else {
@@ -225,6 +251,8 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                 count++
             }
         }
+        val ifwPackage = notAppliedIfwPackage
+        if (ifwPackage != null && intentFirewall.hasUnreadableRules(ifwPackage)) return null
         return count
     }
 
