@@ -10,6 +10,8 @@ import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.io.IOException
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -36,6 +38,26 @@ class IfwRuleReadsTest {
     @Test
     fun givenNoRuleFile_whenChangesWereNotApplied_thenTheyWereLegitimatelySkipped() = runTest {
         assertFalse(intentFirewall.hasUnreadableRules(packageName))
+    }
+
+    @Test
+    fun givenUnreadableRuleFile_whenReadingStatesForBackup_thenThrowsInsteadOfGuessing() = runTest {
+        intentFirewall.saveRules(packageName, blockedReceiverRules())
+        intentFirewall.unreadablePackages += packageName
+        // The display read guesses "not blocked" for the same file.
+        assertTrue(intentFirewall.getComponentEnableState(packageName, blockedReceiver))
+
+        assertFailsWith<IOException> { intentFirewall.readIfwEnabledStates(packageName) }
+    }
+
+    @Test
+    fun givenBlockedComponent_whenReadingStatesForBackup_thenOnlyThatComponentIsDisabled() = runTest {
+        intentFirewall.saveRules(packageName, blockedReceiverRules())
+
+        val isEnabled = intentFirewall.readIfwEnabledStates(packageName)
+
+        assertFalse(isEnabled(packageName, blockedReceiver))
+        assertTrue(isEnabled(packageName, "com.example.OtherReceiver"))
     }
 
     private fun blockedReceiverRules() = IfwRules(

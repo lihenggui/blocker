@@ -52,6 +52,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
+import java.io.IOException
 
 @HiltWorker
 class ExportBlockerRulesWorker @AssistedInject constructor(
@@ -83,6 +84,12 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         if (!packageName.isNullOrEmpty()) {
             try {
                 backupSingleApp(packageName, backupPath)
+            } catch (e: IOException) {
+                // No result code describes an unreadable rule file, so report the closest one.
+                Timber.e(e, "Blocker rule not backed up, IFW rule file cannot be read: $packageName")
+                return Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
+                )
             } catch (e: Exception) {
                 Timber.e(e, "Failed to export blocker rule for $packageName")
                 return Result.failure(
@@ -98,6 +105,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         val shouldBackupSystemApp = inputData.getBoolean(PARAM_BACKUP_SYSTEM_APPS, false)
         return withContext(ioDispatcher) {
             var current = 1
+            val skippedPackages = mutableListOf<String>()
             try {
                 val list = if (shouldBackupSystemApp) {
                     packageInfoDataSource.getApplicationList()
@@ -107,13 +115,26 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 val total = list.count()
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    export(it.packageName, backupPath.toUri())
+                    try {
+                        export(it.packageName, backupPath.toUri())
+                    } catch (e: IOException) {
+                        // Keep the previous backup rather than overwrite it with guessed IFW states.
+                        Timber.e(e, "Cannot read IFW rules for ${it.packageName}")
+                        skippedPackages += it.packageName
+                    }
                     current++
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to export blocker rules")
                 return@withContext Result.failure(
                     workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
+                )
+            }
+            if (skippedPackages.isNotEmpty()) {
+                // No result code describes an unreadable rule file, so report the closest one.
+                Timber.e("Blocker rules not backed up, IFW rule files cannot be read: ${skippedPackages.joinToString()}")
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
                 )
             }
             // Success, show a toast then cancel notifications
@@ -132,6 +153,9 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
 
     private suspend fun export(packageName: String, destUri: Uri): Boolean {
         Timber.i("Export Blocker rules for $packageName")
+        // Read IFW states strictly and outside the try below, so a state that cannot be read
+        // fails this package instead of overwriting its backup with "enabled".
+        val isIfwEnabled = intentFirewall.readIfwEnabledStates(packageName)
         val applicationInfo = packageInfoDataSource.getApplicationComponents(packageName)
         val rule = BlockerRule(
             packageName = applicationInfo.packageName,
@@ -140,7 +164,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         )
         try {
             applicationInfo.receivers?.forEach {
-                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
+                val stateIFW = isIfwEnabled(it.packageName, it.name)
                 val statePM = packageInfoDataSource.checkComponentIsEnabled(
                     ComponentName(it.packageName, it.name),
                 )
@@ -164,7 +188,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 )
             }
             applicationInfo.services?.forEach {
-                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
+                val stateIFW = isIfwEnabled(it.packageName, it.name)
                 val statePM = packageInfoDataSource.checkComponentIsEnabled(
                     ComponentName(it.packageName, it.name),
                 )
@@ -188,7 +212,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 )
             }
             applicationInfo.activities?.forEach {
-                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
+                val stateIFW = isIfwEnabled(it.packageName, it.name)
                 val statePM = packageInfoDataSource.checkComponentIsEnabled(
                     ComponentName(it.packageName, it.name),
                 )

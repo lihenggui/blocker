@@ -4,6 +4,7 @@
 package com.merxury.blocker.core.rule.work
 
 import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.core.ifw.model.IfwComponentType
 import timber.log.Timber
 import java.io.IOException
 
@@ -24,3 +25,22 @@ internal suspend fun IIntentFirewall.hasUnreadableRules(packageName: String): Bo
     true
 }
 
+/**
+ * Reads [packageName]'s IFW rules once and returns whether a component is enabled, that is, not
+ * blocked by a component filter.
+ *
+ * Unlike [IIntentFirewall.getComponentEnableState], this throws instead of guessing "enabled", so
+ * nothing is persisted from a state that was not read.
+ *
+ * @throws com.merxury.blocker.core.exception.RootUnavailableException if root is unavailable
+ * @throws IOException if the rule file exists but cannot be read or parsed
+ */
+internal suspend fun IIntentFirewall.readIfwEnabledStates(
+    packageName: String,
+): (componentPackage: String, componentName: String) -> Boolean {
+    val rules = getRules(packageName)
+    return { componentPackage, componentName ->
+        val name = "$componentPackage/$componentName"
+        IfwComponentType.entries.none { type -> name in rules.componentFiltersFor(type) }
+    }
+}
