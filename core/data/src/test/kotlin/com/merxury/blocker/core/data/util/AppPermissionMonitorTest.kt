@@ -91,6 +91,72 @@ class AppPermissionMonitorTest {
         }
     }
 
+    @Test
+    fun givenShizukuNotRunning_whenShizukuStarts_thenRegistersAgainAndEmitsGranted() = runTest {
+        val userDataRepository = TestUserDataRepository()
+        val shizukuInitializer = FakeShizukuInitializer(
+            shizukuUid = SYSTEM_UID,
+            permissionGranted = false,
+            grantsOnRequest = true,
+            shizukuRunning = false,
+        )
+        val monitor = createMonitor(userDataRepository, shizukuInitializer, backgroundScope)
+        userDataRepository.setControllerType(SHIZUKU)
+
+        monitor.permissionStatus.test {
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+
+            shizukuInitializer.startShizuku()
+
+            assertEquals(PermissionStatus.SYSTEM_USER, awaitItem())
+            assertEquals(2, shizukuInitializer.registerCallCount)
+            assertEquals(0, shizukuInitializer.binderWaiterCount)
+        }
+    }
+
+    @Test
+    fun givenShizukuStartsButPermissionDenied_whenRegisteredAgain_thenStopsWaiting() = runTest {
+        val userDataRepository = TestUserDataRepository()
+        val shizukuInitializer = FakeShizukuInitializer(permissionGranted = false, shizukuRunning = false)
+        val monitor = createMonitor(userDataRepository, shizukuInitializer, backgroundScope)
+        userDataRepository.setControllerType(SHIZUKU)
+
+        monitor.permissionStatus.test {
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+
+            shizukuInitializer.startShizuku()
+
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+            runCurrent()
+            assertEquals(2, shizukuInitializer.registerCallCount)
+            assertEquals(0, shizukuInitializer.binderWaiterCount)
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun givenWaitingForShizukuToStart_whenSwitchToRoot_thenWaitCancelled() = runTest {
+        val userDataRepository = TestUserDataRepository()
+        val shizukuInitializer = FakeShizukuInitializer(shizukuRunning = false)
+        val monitor = createMonitor(userDataRepository, shizukuInitializer, backgroundScope)
+        userDataRepository.setControllerType(SHIZUKU)
+
+        monitor.permissionStatus.test {
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+            runCurrent()
+            assertEquals(1, shizukuInitializer.binderWaiterCount)
+
+            userDataRepository.setControllerType(PM)
+
+            assertEquals(PermissionStatus.ROOT_USER, awaitItem())
+            assertEquals(0, shizukuInitializer.binderWaiterCount)
+            shizukuInitializer.startShizuku()
+            runCurrent()
+            assertEquals(1, shizukuInitializer.registerCallCount)
+            expectNoEvents()
+        }
+    }
+
     private fun createMonitor(
         userDataRepository: TestUserDataRepository,
         shizukuInitializer: IShizukuInitializer,
@@ -113,6 +179,8 @@ class AppPermissionMonitorTest {
             registerCallCount++
             awaitCancellation()
         }
+
+        override suspend fun awaitBinder() = awaitCancellation()
 
         override fun hasPermission(): Boolean = false
 

@@ -52,7 +52,7 @@ internal class ShizukuInitializer @Inject constructor(
 ) : IShizukuInitializer {
 
     override suspend fun registerShizuku(): RegisterShizukuResult {
-        if (!awaitBinder()) {
+        if (withTimeoutOrNull(SHIZUKU_BINDER_TIMEOUT) { awaitBinder() } == null) {
             Timber.w("No Shizuku binder within $SHIZUKU_BINDER_TIMEOUT, Shizuku is not running")
             return NotRunning
         }
@@ -80,17 +80,15 @@ internal class ShizukuInitializer @Inject constructor(
         }
     }
 
-    // Returns false if no binder arrives in time. The sticky listener fires at once if the binder
-    // is already there and again on every Shizuku restart, so it is removed as soon as we return.
-    private suspend fun awaitBinder(): Boolean {
+    // The sticky listener fires at once if the binder is already there and again on every
+    // Shizuku restart, so it is removed as soon as the wait ends.
+    override suspend fun awaitBinder() {
         var listener: Shizuku.OnBinderReceivedListener? = null
         try {
-            return withTimeoutOrNull(SHIZUKU_BINDER_TIMEOUT) {
-                suspendCancellableCoroutine { cont ->
-                    listener = Shizuku.OnBinderReceivedListener { cont.resumeIfActive(Unit) }
-                        .also(shizuku::addBinderReceivedListenerSticky)
-                }
-            } != null
+            suspendCancellableCoroutine { cont ->
+                listener = Shizuku.OnBinderReceivedListener { cont.resumeIfActive(Unit) }
+                    .also(shizuku::addBinderReceivedListenerSticky)
+            }
         } finally {
             listener?.let(shizuku::removeBinderReceivedListener)
         }

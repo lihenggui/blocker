@@ -68,10 +68,16 @@ class AppPermissionMonitor @Inject constructor(
         // A new controller type cancels an unfinished initialization, such as a Shizuku
         // permission dialog, so its status is never held back by the previous type.
         .transformLatest { type ->
-            initController(type)
             // In IFW mode, we will still use root apis
             // Make sure that we initialize once
             val controllerType = if (type == SHIZUKU) SHIZUKU else PM
+            // If Shizuku is not running, report that, then register again once the user starts
+            // it. NotRunning only comes after the binder wait has timed out, so a Shizuku that
+            // keeps restarting cannot spin this loop.
+            while (initController(type) == RegisterShizukuResult.NotRunning) {
+                emit(NO_PERMISSION)
+                shizukuInitializer.awaitBinder()
+            }
             emit(controllerStatus[controllerType] ?: NO_PERMISSION)
         }
         .shareIn(
@@ -80,7 +86,8 @@ class AppPermissionMonitor @Inject constructor(
             replay = 1,
         )
 
-    private suspend fun initController(type: ControllerType) {
+    /** Returns the Shizuku registration result, or null if no registration was needed. */
+    private suspend fun initController(type: ControllerType): RegisterShizukuResult? {
         Timber.d("Initialize controller: $type")
         if (type == SHIZUKU) {
             when (controllerStatus[SHIZUKU]) {
@@ -89,7 +96,7 @@ class AppPermissionMonitor @Inject constructor(
                 SHELL_USER,
                 -> {
                     Timber.i("No need to re-initialize shizuku controller")
-                    return
+                    return null
                 }
 
                 NO_PERMISSION,
@@ -104,6 +111,7 @@ class AppPermissionMonitor @Inject constructor(
                 } else {
                     controllerStatus[SHIZUKU] = NO_PERMISSION
                 }
+                return result
             } else {
                 val uid = shizukuInitializer.getUid()
                 Timber.d("Shizuku permission granted: true, uid: $uid")
@@ -113,7 +121,7 @@ class AppPermissionMonitor @Inject constructor(
             val apiPermissionStatus = controllerStatus[PM]
             if (apiPermissionStatus == ROOT_USER) {
                 Timber.w("No need to re-initialize root api controller")
-                return
+                return null
             }
             try {
                 rootApiController.init()
@@ -128,6 +136,7 @@ class AppPermissionMonitor @Inject constructor(
                 controllerStatus[PM] = NO_PERMISSION
             }
         }
+        return null
     }
 
     private fun updatePermissionStatusFromUid(uid: Int) {

@@ -24,6 +24,12 @@ interface IShizukuInitializer {
      */
     suspend fun registerShizuku(): RegisterShizukuResult
 
+    /**
+     * Suspends until Shizuku delivers its binder, with no timeout. Returns at once if the binder
+     * is already there. Leaves no Shizuku listener behind, also when cancelled.
+     */
+    suspend fun awaitBinder()
+
     fun hasPermission(): Boolean
 
     fun getUid(): Int

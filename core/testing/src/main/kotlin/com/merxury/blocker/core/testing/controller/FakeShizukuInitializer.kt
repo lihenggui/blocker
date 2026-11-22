@@ -18,21 +18,50 @@ package com.merxury.blocker.core.testing.controller
 
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 
+/**
+ * @param permissionGranted whether the Shizuku permission is already granted.
+ * @param grantsOnRequest what the user answers when [registerShizuku] has to ask for it.
+ * @param shizukuRunning whether Shizuku is running. Use [startShizuku] to start it later.
+ */
 class FakeShizukuInitializer(
     var shizukuUid: Int = 0,
     var permissionGranted: Boolean = true,
+    var grantsOnRequest: Boolean = false,
+    shizukuRunning: Boolean = true,
 ) : IShizukuInitializer {
+    private val running = MutableStateFlow(shizukuRunning)
 
     var registerCallCount = 0
         private set
 
+    /** Number of [awaitBinder] calls still waiting. */
+    var binderWaiterCount = 0
+        private set
+
+    fun startShizuku() {
+        running.value = true
+    }
+
     override suspend fun registerShizuku(): RegisterShizukuResult {
         registerCallCount++
+        if (!running.value) return RegisterShizukuResult.NotRunning
+        if (!permissionGranted && grantsOnRequest) permissionGranted = true
         return if (permissionGranted) RegisterShizukuResult.Granted(shizukuUid) else RegisterShizukuResult.Denied
     }
 
-    override fun hasPermission(): Boolean = permissionGranted
+    override suspend fun awaitBinder() {
+        binderWaiterCount++
+        try {
+            running.first { it }
+        } finally {
+            binderWaiterCount--
+        }
+    }
+
+    override fun hasPermission(): Boolean = running.value && permissionGranted
 
     override fun getUid(): Int = shizukuUid
 }

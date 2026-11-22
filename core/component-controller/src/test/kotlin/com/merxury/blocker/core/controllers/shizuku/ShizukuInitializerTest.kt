@@ -37,6 +37,7 @@ import rikka.shizuku.Shizuku
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.hours
 
 private const val SHELL_UID = 2000
 
@@ -63,6 +64,19 @@ class ShizukuInitializerTest {
         shizuku.startServer()
 
         assertEquals(Granted(SHELL_UID), result.await())
+        shizuku.assertNoListeners()
+    }
+
+    @Test
+    fun givenShizukuNotRunning_whenAwaitBinder_thenWaitsWithoutTimeoutUntilBinderArrives() = runTest {
+        val wait = async { initializer.awaitBinder() }
+        advanceTimeBy(1.hours)
+        assertTrue(wait.isActive)
+        assertEquals(1, shizuku.binderReceivedListeners.size)
+
+        shizuku.startServer()
+        wait.await()
+
         shizuku.assertNoListeners()
     }
 
