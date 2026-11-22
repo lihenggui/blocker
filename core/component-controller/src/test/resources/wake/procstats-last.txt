@@ -1,0 +1,5 @@
+LAST STATS AT INDEX 1:
+vers,5
+period,2026-11-20-22-26-51,10846124,21674866,complete
+config,libart.so
+pkgproc,com.google.android.apps.messaging,10136,235003880,,1ny:3087476,1nb:269,1ns:297,1nr:187,1nl:7293711,1na:38704,1ne:50232,1my:175689,1ml:159524,1ll:2517

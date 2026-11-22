@@ -33,6 +33,7 @@ dependencies {
 
     implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt.android)
     implementation(libs.timber)
     implementation(libs.javax.inject)

@@ -84,17 +84,14 @@ internal val wakeAtoms = listOf(
         listOf(
             Field(1, "targetUid", Encoding.NUMBER),
             Field(2, "pid", Encoding.NUMBER),
-            Field(3, "process", Encoding.STRING),
+            // Named process_name, but ActivityManagerService logs app.info.packageName here.
+            Field(3, "package", Encoding.STRING),
             Field(4, "startType", Encoding.NUMBER),
             Field(5, "process_start_time_millis", Encoding.NUMBER),
             Field(9, "component", Encoding.STRING),
             Field(10, "action", Encoding.STRING),
             Field(11, "hosting_type_id", Encoding.NUMBER),
             Field(12, "trigger_type", Encoding.NUMBER),
-            Field(13, "callerUid", Encoding.NUMBER),
-            Field(14, "caller_process_name", Encoding.STRING),
-            Field(15, "content_provider_authority", Encoding.STRING),
-            Field(16, "is_stable", Encoding.NUMBER),
         ),
     ),
     AtomSchema(
@@ -114,19 +111,8 @@ internal val wakeAtoms = listOf(
         listOf(
             Field(2, "pid", Encoding.NUMBER),
             Field(3, "process", Encoding.STRING),
-            Field(7, "targetUid", Encoding.NUMBER),
             Field(1, "state", Encoding.NUMBER),
             Field(6, "unfreeze_reason_v2", Encoding.NUMBER),
-        ),
-    ),
-    AtomSchema(
-        3,
-        "ProcessStateChanged",
-        listOf(
-            Field(1, "targetUid", Encoding.NUMBER),
-            Field(2, "process", Encoding.STRING),
-            Field(3, "package", Encoding.STRING),
-            Field(4, "state", Encoding.NUMBER),
         ),
     ),
     AtomSchema(
@@ -234,6 +220,7 @@ internal val wakeAtoms = listOf(
         "LongPartialWakelockStateChanged",
         listOf(
             Field(1, "attribution_node", Encoding.UID_CHAIN),
+            Field(2, "tag", Encoding.STRING),
             Field(4, "state", Encoding.NUMBER),
         ),
     ),

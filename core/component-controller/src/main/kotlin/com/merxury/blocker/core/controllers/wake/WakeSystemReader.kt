@@ -34,12 +34,27 @@ internal enum class WakeCommand(val args: List<String>) {
     REPORT(listOf("cmd", "stats", "dump-report", "{config}", "--keep_data", "--include_current_bucket", "--proto")),
     DRAIN(listOf("cmd", "stats", "dump-report", "{config}", "--include_current_bucket", "--proto")),
     REMOVE(listOf("cmd", "stats", "config", "remove", "{config}")),
+
+    // logcat applies -t before tag filters. Resume by time instead: {since} is wall seconds.millis.
     EVENTS(
         listOf(
-            "logcat", "-b", "events", "-d", "-t", "4096", "-v", "threadtime", "-v", "epoch", "-v", "uid",
+            "logcat", "-b", "events", "-d", "-T", "{since}", "-v", "threadtime", "-v", "epoch", "-v", "uid",
             "am_proc_start:I", "am_proc_died:I", "am_kill:I", "am_schedule_service_restart:I", "*:S",
         ),
     ),
+
+    // The oldest retained entry of the whole buffer shows whether it wrapped past the resume point.
+    EVENTS_HEAD(listOf("logcat", "-b", "events", "-d", "-m", "1", "-v", "threadtime", "-v", "epoch", "-v", "uid")),
+    PROCSTATS(listOf("dumpsys", "-t", "10", "procstats", "-c", "--current")),
+
+    // Committed files are listed oldest first. A too large index only reports their count.
+    PROCSTATS_COUNT(listOf("dumpsys", "-t", "5", "procstats", "--last", "$PROCSTATS_COUNT_PROBE")),
+    PROCSTATS_LAST(listOf("dumpsys", "-t", "10", "procstats", "-c", "--last", "{index}")),
+    START_INFO(listOf("dumpsys", "-t", "10", "activity", "start-info")),
+    PROTECTED_BROADCASTS(listOf("dumpsys", "-t", "5", "package", "protected-broadcasts")),
+    IDLE_WHITELIST(listOf("dumpsys", "-t", "5", "deviceidle", "whitelist")),
+    STANDBY_BUCKETS(listOf("am", "get-standby-bucket", "--user", "{profile}")),
+    BACKGROUND_RESTRICTED(listOf("cmd", "appops", "query-op", "--user", "{profile}", "RUN_ANY_IN_BACKGROUND", "ignore")),
     SERVICES(listOf("dumpsys", "-t", "5", "activity", "services")),
     PROVIDERS(listOf("dumpsys", "-t", "5", "activity", "providers")),
     PROCESSES(listOf("dumpsys", "-t", "5", "activity", "oom")),
@@ -60,19 +75,35 @@ internal enum class WakeCommand(val args: List<String>) {
     BATTERY(listOf("dumpsys", "-t", "5", "batterystats", "--charged", "--checkin")),
     ;
 
-    fun arguments(profile: Int, appUid: Int, boot: Int): List<String> {
+    fun arguments(profile: Int, appUid: Int, boot: Int, argument: Long = 0): List<String> {
         require(profile >= 0)
         val id = WakeStatsCodec.configId(appUid, boot)
         return when (this) {
             PACKAGES -> args + profile.toString()
+
             INPUT, ACCESSIBILITY, LISTENERS, VPN -> listOf("settings", "--user", profile.toString()) + args.drop(1)
+
             RENEW -> args.map { if (it == "{label}") WakeStatsCodec.leaseLabel(id).toString() else it }
+
+            EVENTS -> {
+                require(argument >= 0)
+                val since = "${argument / 1000}.${(argument % 1000).toString().padStart(3, '0')}"
+                args.map { if (it == "{since}") since else it }
+            }
+
+            PROCSTATS_LAST -> {
+                require(argument in 1 until PROCSTATS_COUNT_PROBE)
+                args.map { if (it == "{index}") argument.toString() else it }
+            }
+
+            STANDBY_BUCKETS, BACKGROUND_RESTRICTED -> args.map { if (it == "{profile}") profile.toString() else it }
+
             else -> args.map { if (it == "{config}") id.toString() else it }
         }
     }
 
-    fun execute(profile: Int, root: Boolean, appUid: Int, boot: Int, output: OutputStream) {
-        val command = arguments(profile, appUid, boot)
+    fun execute(profile: Int, root: Boolean, appUid: Int, boot: Int, argument: Long, output: OutputStream) {
+        val command = arguments(profile, appUid, boot, argument)
         val id = WakeStatsCodec.configId(appUid, boot)
         // Only constant argv and a validated integer reach su. Never accept shell text over Binder.
         val argv = if (root) listOf("su", "-c", command.joinToString(" ") { "'$it'" }) else command
@@ -95,6 +126,8 @@ internal enum class WakeCommand(val args: List<String>) {
     }
 }
 
+internal const val PROCSTATS_COUNT_PROBE = 1000
+
 internal fun InputStream.copyBounded(output: OutputStream) {
     val buffer = ByteArray(8192)
     var total = 0
@@ -111,7 +144,7 @@ internal fun InputStream.copyBounded(output: OutputStream) {
 class WakeUserService @JvmOverloads constructor(private val context: Context? = null) : IWakeReader.Stub() {
     private val worker = Executors.newSingleThreadExecutor()
 
-    override fun read(operation: String, profile: Int, boot: Int): ParcelFileDescriptor {
+    override fun read(operation: String, profile: Int, boot: Int, argument: Long): ParcelFileDescriptor {
         val appUid = android.os.Binder.getCallingUid()
         if (context != null) check(appUid == context.applicationInfo.uid) { "Blocker caller required" }
         val command = WakeCommand.valueOf(operation)
@@ -119,7 +152,7 @@ class WakeUserService @JvmOverloads constructor(private val context: Context? = 
         worker.execute {
             val stream = ParcelFileDescriptor.AutoCloseOutputStream(writer)
             try {
-                command.execute(profile, false, appUid, boot, stream)
+                command.execute(profile, false, appUid, boot, argument, stream)
                 stream.close()
             } catch (e: Exception) {
                 writer.closeWithError(e.message ?: command.name)
@@ -178,13 +211,13 @@ internal class WakeSession(val uid: Int, private val remote: IWakeReader?, val g
         checkNotNull(remote) { "Root user service unavailable" }.writeManagedFirewall(xml, probe)
     }
 
-    fun read(command: WakeCommand, profile: Int = 0, boot: Int = generation): ByteArray {
-        if (binderOnly) return WakeBinderReader.read(command, profile, android.os.Process.myUid(), boot)
+    fun read(command: WakeCommand, profile: Int = 0, boot: Int = generation, argument: Long = 0): ByteArray {
+        if (binderOnly) return WakeBinderReader.read(command, profile, android.os.Process.myUid(), boot, argument)
         val bytes = java.io.ByteArrayOutputStream()
         if (remote == null) {
-            command.execute(profile, true, android.os.Process.myUid(), boot, bytes)
+            command.execute(profile, true, android.os.Process.myUid(), boot, argument, bytes)
         } else {
-            val fd = remote.read(command.name, profile, boot)
+            val fd = remote.read(command.name, profile, boot, argument)
             ParcelFileDescriptor.AutoCloseInputStream(fd).use {
                 it.copyBounded(bytes)
                 fd.checkError()
@@ -231,7 +264,7 @@ class WakeSystemReader @Inject constructor(
         val uid = checkNotNull(authorizedShizukuUid()) { "Shizuku authorization unavailable" }
         check(access == WakeAccess.SHIZUKU_SHELL || uid == 0)
         val args = Shizuku.UserServiceArgs(ComponentName(context, WakeUserService::class.java))
-            .daemon(false).processNameSuffix("wake_reader").tag("wake-reader-${UUID.randomUUID()}").version(4)
+            .daemon(false).processNameSuffix("wake_reader").tag("wake-reader-${UUID.randomUUID()}").version(5)
         var connection: ServiceConnection? = null
         try {
             val remote = withContext(Dispatchers.Main.immediate) {

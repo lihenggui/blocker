@@ -7,6 +7,7 @@ import com.google.protobuf.CodedInputStream
 import com.google.protobuf.WireFormat
 import com.merxury.blocker.core.model.wake.WakeBatch
 import com.merxury.blocker.core.model.wake.WakeObservation
+import com.merxury.blocker.core.model.wake.normalizeWakeTag
 import com.merxury.blocker.core.wake.proto.WakeStats
 import kotlin.math.abs
 
@@ -30,6 +31,14 @@ internal object WakeStatsCodec {
 
     fun leaseLabel(id: Long) = id.hashCode() and Int.MAX_VALUE
 
+    // ProcessStartType.PROCESS_START_TYPE_COLD in AOSP stats/atoms.proto.
+    const val PROCESS_START_TYPE_COLD = 3L
+
+    // proc_start_type of BroadcastDeliveryEventReported and ProviderAcquisitionEventReported.
+    // Detection and attribution only join cold deliveries. ServiceRequestEventReported stays
+    // unfiltered because reviewed paths match warm service requests too.
+    val COLD_START_FIELD = mapOf(475 to 5, 477 to 3)
+
     fun config(id: Long, owner: Int): ByteArray {
         val config = WakeStats.Config.newBuilder().setId(id)
             .addAllowedLogSource("AID_SYSTEM")
@@ -44,10 +53,11 @@ internal object WakeStatsCodec {
             .setTtlSeconds(LEASE_SECONDS).setActivationType(1)
         for (id in wakeAtoms.keys) {
             val matcher = id.toLong()
-            config.addAtomMatcher(
-                WakeStats.Matcher.newBuilder().setId(matcher)
-                    .setSimpleAtomMatcher(WakeStats.Simple.newBuilder().setAtomId(id)),
-            )
+            val simple = WakeStats.Simple.newBuilder().setAtomId(id)
+            COLD_START_FIELD[id]?.let { field ->
+                simple.addFieldValueMatcher(WakeStats.FieldValueMatcher.newBuilder().setField(field).setEqInt(PROCESS_START_TYPE_COLD))
+            }
+            config.addAtomMatcher(WakeStats.Matcher.newBuilder().setId(matcher).setSimpleAtomMatcher(simple))
             config.addMetricActivation(WakeStats.MetricActivation.newBuilder().setMetricId(10000 + matcher).addEventActivation(activation))
             config.addEventMetric(WakeStats.EventMetric.newBuilder().setId(10000 + matcher).setWhat(matcher))
         }
@@ -138,7 +148,8 @@ internal object WakeStatsCodec {
     private fun metadataString(value: String, name: String): String {
         // App-defined alarm tags and task names can contain account identifiers or URIs.
         if (name == "tag" || name == "job_name") {
-            val digest = java.security.MessageDigest.getInstance("SHA-256").digest(value.toByteArray())
+            // Normalize first so one logical alarm or job keeps one digest across runs and versions.
+            val digest = java.security.MessageDigest.getInstance("SHA-256").digest(normalizeWakeTag(value).toByteArray())
             return digest.take(12).joinToString("") { "%02x".format(it) }
         }
         if (name == "action") return wakeAction(value).orEmpty()

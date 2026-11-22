@@ -35,6 +35,9 @@ class WakeSystemEvidenceTest {
             null,
         )
         assertThat(bindings.map { it.targetUid }.distinct()).containsExactly(10022)
+        assertThat(bindings.map { it.attributes["host_process"] }.distinct()).containsExactly("remote.pkg")
+        val provider = "* ContentProviderRecord{abcdef u0 example.app/.Provider}\n  proc=ProcessRecord{abc 23:example.app:data/u0a170}\n  Connections:\n    -> 24:example.client/u0a171 s1/1 u0/0"
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.PROVIDERS, provider, 100).single().attributes["host_process"]).isEqualTo("example.app:data")
     }
 
     @Test fun givenIncompleteUserList_whenParsingProfiles_thenNoProfileScopeIsReturned() {

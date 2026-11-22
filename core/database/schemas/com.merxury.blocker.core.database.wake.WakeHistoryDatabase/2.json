@@ -1,0 +1,929 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "231eb263f6ec0137089f621a97b1a2bb",
+    "entities": [
+      {
+        "tableName": "WakeRecord",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `boot` TEXT NOT NULL, `elapsedNanos` INTEGER NOT NULL, `wallMillis` INTEGER NOT NULL, `source` TEXT NOT NULL, `kind` TEXT NOT NULL, `callerUid` INTEGER, `targetUid` INTEGER, `callerPackage` TEXT, `targetPackage` TEXT, `component` TEXT, `action` TEXT, `startType` INTEGER, `pid` INTEGER, `processName` TEXT, `attributes` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "boot",
+            "columnName": "boot",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "elapsedNanos",
+            "columnName": "elapsedNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wallMillis",
+            "columnName": "wallMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "callerUid",
+            "columnName": "callerUid",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "targetUid",
+            "columnName": "targetUid",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "callerPackage",
+            "columnName": "callerPackage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "targetPackage",
+            "columnName": "targetPackage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "component",
+            "columnName": "component",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "action",
+            "columnName": "action",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "startType",
+            "columnName": "startType",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pid",
+            "columnName": "pid",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "processName",
+            "columnName": "processName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "attributes",
+            "columnName": "attributes",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_WakeRecord_wallMillis",
+            "unique": false,
+            "columnNames": [
+              "wallMillis"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WakeRecord_wallMillis` ON `${TABLE_NAME}` (`wallMillis`)"
+          },
+          {
+            "name": "index_WakeRecord_boot_targetUid_elapsedNanos",
+            "unique": false,
+            "columnNames": [
+              "boot",
+              "targetUid",
+              "elapsedNanos"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WakeRecord_boot_targetUid_elapsedNanos` ON `${TABLE_NAME}` (`boot`, `targetUid`, `elapsedNanos`)"
+          },
+          {
+            "name": "index_WakeRecord_kind",
+            "unique": false,
+            "columnNames": [
+              "kind"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WakeRecord_kind` ON `${TABLE_NAME}` (`kind`)"
+          }
+        ]
+      },
+      {
+        "tableName": "WakeIdentity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER NOT NULL, `packageName` TEXT NOT NULL, `revision` TEXT NOT NULL, `versionCode` INTEGER NOT NULL, `signatures` TEXT NOT NULL, `components` TEXT NOT NULL, `firstSeen` INTEGER NOT NULL, `lastSeen` INTEGER NOT NULL, PRIMARY KEY(`uid`, `packageName`, `revision`))",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionCode",
+            "columnName": "versionCode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "signatures",
+            "columnName": "signatures",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "components",
+            "columnName": "components",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstSeen",
+            "columnName": "firstSeen",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSeen",
+            "columnName": "lastSeen",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uid",
+            "packageName",
+            "revision"
+          ]
+        }
+      },
+      {
+        "tableName": "WakeRelation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`requestId` TEXT NOT NULL, `processId` TEXT NOT NULL, `evidence` TEXT NOT NULL, PRIMARY KEY(`requestId`))",
+        "fields": [
+          {
+            "fieldPath": "requestId",
+            "columnName": "requestId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "processId",
+            "columnName": "processId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "evidence",
+            "columnName": "evidence",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "requestId"
+          ]
+        }
+      },
+      {
+        "tableName": "WakeContinuation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`outgoing` TEXT NOT NULL, `incoming` TEXT NOT NULL, PRIMARY KEY(`outgoing`))",
+        "fields": [
+          {
+            "fieldPath": "outgoing",
+            "columnName": "outgoing",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "incoming",
+            "columnName": "incoming",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "outgoing"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_WakeContinuation_incoming",
+            "unique": false,
+            "columnNames": [
+              "incoming"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WakeContinuation_incoming` ON `${TABLE_NAME}` (`incoming`)"
+          }
+        ]
+      },
+      {
+        "tableName": "WakeSourceStatus",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`source` TEXT NOT NULL, `checkedAt` INTEGER NOT NULL, `status` TEXT NOT NULL, PRIMARY KEY(`source`))",
+        "fields": [
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "checkedAt",
+            "columnName": "checkedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "source"
+          ]
+        }
+      },
+      {
+        "tableName": "WakeProtection",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`pathId` TEXT NOT NULL, `caller` TEXT NOT NULL, `target` TEXT NOT NULL, `component` TEXT NOT NULL, `action` TEXT NOT NULL, `proof` TEXT NOT NULL, `disabledByUser` INTEGER NOT NULL, `configured` INTEGER NOT NULL, `method` TEXT NOT NULL, `callerRevision` TEXT NOT NULL, `targetRevision` TEXT NOT NULL, `targetSigners` TEXT NOT NULL, `previousState` INTEGER, `pendingChange` INTEGER NOT NULL, PRIMARY KEY(`pathId`))",
+        "fields": [
+          {
+            "fieldPath": "pathId",
+            "columnName": "pathId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "caller",
+            "columnName": "caller",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "target",
+            "columnName": "target",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "component",
+            "columnName": "component",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "action",
+            "columnName": "action",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "proof",
+            "columnName": "proof",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "disabledByUser",
+            "columnName": "disabledByUser",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "configured",
+            "columnName": "configured",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "method",
+            "columnName": "method",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "callerRevision",
+            "columnName": "callerRevision",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetRevision",
+            "columnName": "targetRevision",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetSigners",
+            "columnName": "targetSigners",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "previousState",
+            "columnName": "previousState",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pendingChange",
+            "columnName": "pendingChange",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "pathId"
+          ]
+        }
+      },
+      {
+        "tableName": "WakeDailyTotal",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`day` INTEGER NOT NULL, `kind` TEXT NOT NULL, `count` INTEGER NOT NULL, PRIMARY KEY(`day`, `kind`))",
+        "fields": [
+          {
+            "fieldPath": "day",
+            "columnName": "day",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "count",
+            "columnName": "count",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "day",
+            "kind"
+          ]
+        }
+      },
+      {
+        "tableName": "ImportedWakeId",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `observedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observedAt",
+            "columnName": "observedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ImportedWakeId_observedAt",
+            "unique": false,
+            "columnNames": [
+              "observedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ImportedWakeId_observedAt` ON `${TABLE_NAME}` (`observedAt`)"
+          }
+        ]
+      },
+      {
+        "tableName": "WakeHoldPeriod",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`periodId` TEXT NOT NULL, `startMillis` INTEGER NOT NULL, `endMillis` INTEGER NOT NULL, `checkedAt` INTEGER NOT NULL, PRIMARY KEY(`periodId`))",
+        "fields": [
+          {
+            "fieldPath": "periodId",
+            "columnName": "periodId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startMillis",
+            "columnName": "startMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endMillis",
+            "columnName": "endMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "checkedAt",
+            "columnName": "checkedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "periodId"
+          ]
+        }
+      },
+      {
+        "tableName": "WakeHoldProcess",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`periodId` TEXT NOT NULL, `target` TEXT NOT NULL, `uid` INTEGER NOT NULL, `process` TEXT NOT NULL, `screenOffMillis` INTEGER NOT NULL, `screenOnMillis` INTEGER NOT NULL, `fgsScreenOffMillis` INTEGER NOT NULL, `fgsScreenOnMillis` INTEGER NOT NULL, PRIMARY KEY(`periodId`, `target`, `uid`, `process`))",
+        "fields": [
+          {
+            "fieldPath": "periodId",
+            "columnName": "periodId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "target",
+            "columnName": "target",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "process",
+            "columnName": "process",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "screenOffMillis",
+            "columnName": "screenOffMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "screenOnMillis",
+            "columnName": "screenOnMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fgsScreenOffMillis",
+            "columnName": "fgsScreenOffMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fgsScreenOnMillis",
+            "columnName": "fgsScreenOnMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "periodId",
+            "target",
+            "uid",
+            "process"
+          ]
+        }
+      },
+      {
+        "tableName": "WakeHoldAssociation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`periodId` TEXT NOT NULL, `target` TEXT NOT NULL, `uid` INTEGER NOT NULL, `component` TEXT NOT NULL, `sourceProcess` TEXT NOT NULL, `sourceUid` INTEGER NOT NULL, `boundMillis` INTEGER NOT NULL, `activeMillis` INTEGER NOT NULL, PRIMARY KEY(`periodId`, `target`, `uid`, `component`, `sourceProcess`, `sourceUid`))",
+        "fields": [
+          {
+            "fieldPath": "periodId",
+            "columnName": "periodId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "target",
+            "columnName": "target",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "component",
+            "columnName": "component",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceProcess",
+            "columnName": "sourceProcess",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceUid",
+            "columnName": "sourceUid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "boundMillis",
+            "columnName": "boundMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeMillis",
+            "columnName": "activeMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "periodId",
+            "target",
+            "uid",
+            "component",
+            "sourceProcess",
+            "sourceUid"
+          ]
+        }
+      },
+      {
+        "tableName": "WakeStartInfoSeen",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`signature` TEXT NOT NULL, `firstSeen` INTEGER NOT NULL, PRIMARY KEY(`signature`))",
+        "fields": [
+          {
+            "fieldPath": "signature",
+            "columnName": "signature",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstSeen",
+            "columnName": "firstSeen",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "signature"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_WakeStartInfoSeen_firstSeen",
+            "unique": false,
+            "columnNames": [
+              "firstSeen"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WakeStartInfoSeen_firstSeen` ON `${TABLE_NAME}` (`firstSeen`)"
+          }
+        ]
+      },
+      {
+        "tableName": "WakeFinding",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `day` INTEGER NOT NULL, `target` TEXT NOT NULL, `pathKey` TEXT NOT NULL, `trigger` TEXT, `hold` TEXT, `actor` TEXT, `detail` TEXT, `actorInBackground` INTEGER, `afterKill` TEXT, `justification` TEXT NOT NULL, `confidence` TEXT NOT NULL, `chainRoot` TEXT, `chainDepth` INTEGER NOT NULL, `count` INTEGER NOT NULL, `durationNanos` INTEGER NOT NULL, `screenOffNanos` INTEGER NOT NULL, `lastSeenNanos` INTEGER NOT NULL, `downstreamStarts` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "day",
+            "columnName": "day",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "target",
+            "columnName": "target",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pathKey",
+            "columnName": "pathKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trigger",
+            "columnName": "trigger",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "hold",
+            "columnName": "hold",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "actor",
+            "columnName": "actor",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "detail",
+            "columnName": "detail",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "actorInBackground",
+            "columnName": "actorInBackground",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "afterKill",
+            "columnName": "afterKill",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "justification",
+            "columnName": "justification",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "confidence",
+            "columnName": "confidence",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chainRoot",
+            "columnName": "chainRoot",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "chainDepth",
+            "columnName": "chainDepth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "count",
+            "columnName": "count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationNanos",
+            "columnName": "durationNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "screenOffNanos",
+            "columnName": "screenOffNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSeenNanos",
+            "columnName": "lastSeenNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "downstreamStarts",
+            "columnName": "downstreamStarts",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_WakeFinding_target_day",
+            "unique": false,
+            "columnNames": [
+              "target",
+              "day"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WakeFinding_target_day` ON `${TABLE_NAME}` (`target`, `day`)"
+          },
+          {
+            "name": "index_WakeFinding_day",
+            "unique": false,
+            "columnNames": [
+              "day"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WakeFinding_day` ON `${TABLE_NAME}` (`day`)"
+          }
+        ]
+      },
+      {
+        "tableName": "WakeVerdict",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`day` INTEGER NOT NULL, `target` TEXT NOT NULL, `verdict` TEXT NOT NULL, `revives` INTEGER NOT NULL, `noneRevives` INTEGER NOT NULL, `afterKillRevives` INTEGER NOT NULL, `afterKillNoneRevives` INTEGER NOT NULL, `peerBackgroundNoneRevives` INTEGER NOT NULL, `screenOffHoldNoneNanos` INTEGER NOT NULL, `wakesOthers` INTEGER NOT NULL, `downstreamStarts` INTEGER NOT NULL, PRIMARY KEY(`day`, `target`))",
+        "fields": [
+          {
+            "fieldPath": "day",
+            "columnName": "day",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "target",
+            "columnName": "target",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verdict",
+            "columnName": "verdict",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revives",
+            "columnName": "revives",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "noneRevives",
+            "columnName": "noneRevives",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "afterKillRevives",
+            "columnName": "afterKillRevives",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "afterKillNoneRevives",
+            "columnName": "afterKillNoneRevives",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "peerBackgroundNoneRevives",
+            "columnName": "peerBackgroundNoneRevives",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "screenOffHoldNoneNanos",
+            "columnName": "screenOffHoldNoneNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wakesOthers",
+            "columnName": "wakesOthers",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "downstreamStarts",
+            "columnName": "downstreamStarts",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "day",
+            "target"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_WakeVerdict_target",
+            "unique": false,
+            "columnNames": [
+              "target"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WakeVerdict_target` ON `${TABLE_NAME}` (`target`)"
+          }
+        ]
+      },
+      {
+        "tableName": "WakeExemption",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`target` TEXT NOT NULL, `idleWhitelist` TEXT, `standbyBucket` INTEGER, `backgroundRestricted` INTEGER, `checkedAt` INTEGER NOT NULL, PRIMARY KEY(`target`))",
+        "fields": [
+          {
+            "fieldPath": "target",
+            "columnName": "target",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idleWhitelist",
+            "columnName": "idleWhitelist",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "standbyBucket",
+            "columnName": "standbyBucket",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "backgroundRestricted",
+            "columnName": "backgroundRestricted",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "checkedAt",
+            "columnName": "checkedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "target"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '231eb263f6ec0137089f621a97b1a2bb')"
+    ]
+  }
+}

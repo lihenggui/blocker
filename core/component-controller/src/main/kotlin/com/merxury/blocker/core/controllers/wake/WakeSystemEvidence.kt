@@ -83,10 +83,46 @@ internal object WakeSystemEvidence {
         }.copy(eventWallNanos = eventWall)
     }.toList()
 
+    /** Wall millis of the oldest entry left in the event buffer, or null if it is empty. */
+    fun eventLogHead(output: String): Long? = output.lineSequence().firstNotNullOfOrNull { line ->
+        Regex("""^\s*(\d+)\.(\d{3})\d*\s""").find(line)?.destructured?.let { (seconds, millis) -> seconds.toLong() * 1000 + millis.toLong() }
+    }
+
+    /**
+     * A gap when the event buffer no longer reaches back to [since], allowing [tolerance] millis, or
+     * when its start could not be read.
+     */
+    fun eventLogGap(since: Long, head: String?, tolerance: Long = 0): String? {
+        if (head == null) return "event log start unknown"
+        val oldest = eventLogHead(head) ?: return null
+        return if (oldest > since + tolerance) "event log wrapped after resume point" else null
+    }
+
+    /** `dumpsys package protected-broadcasts` lists one action per indented line after a header. */
+    fun protectedBroadcasts(output: String): Set<String> = output.lineSequence()
+        .filter { it.startsWith("  ") }.map(String::trim).filter { it.isNotEmpty() && ' ' !in it }.toSet()
+
+    /** `dumpsys deviceidle whitelist` prints `type,package,uid` for system-excidle, system and user entries. */
+    fun idleWhitelist(output: String): Map<String, Set<String>> = output.lineSequence().mapNotNull { line ->
+        val fields = line.trim().split(',')
+        if (fields.size == 3 && fields[0] in setOf("system-excidle", "system", "user") && fields[2].toIntOrNull() != null) fields[1] to fields[0] else null
+    }.groupBy({ it.first }, { it.second }).mapValues { it.value.toSet() }
+
+    /** `am get-standby-bucket` without a package prints `package: bucket` for each package. */
+    fun standbyBuckets(output: String): Map<String, Int> = output.lineSequence().mapNotNull { line ->
+        val match = Regex("""^([\w.]+): (\d+)$""").find(line.trim()) ?: return@mapNotNull null
+        match.groupValues[1] to match.groupValues[2].toInt()
+    }.toMap()
+
+    /** `cmd appops query-op` prints one package per line, or "No operations.". */
+    fun queriedPackages(output: String): Set<String> = output.lineSequence().map(String::trim)
+        .filter { it.matches(Regex("""[a-zA-Z][\w]*(?:\.[\w]+)+""")) }.toSet()
+
     private fun heldConnections(source: WakeCommand, output: String, now: Long): List<WakeObservation> {
         val facts = mutableSetOf<WakeObservation>()
         var host: String? = null
         var hostUid: Int? = null
+        var hostProcess: String? = null
         var bindingIndent = -1
         var action: String? = null
         for (line in output.lineSequence()) {
@@ -101,12 +137,15 @@ internal object WakeSystemEvidence {
                 text.startsWith("* ServiceRecord{") || text.startsWith("* ContentProviderRecord{") -> {
                     host = component.find(text)?.value
                     hostUid = null
+                    hostProcess = null
                 }
 
                 text.startsWith("uid=") -> hostUid = text.substringAfter('=').substringBefore(' ').toIntOrNull()
 
-                text.startsWith("app=ProcessRecord{") || text.startsWith("proc=ProcessRecord{") ->
-                    hostUid = process.find(text)?.groupValues?.get(3)?.let(::uidFromDump) ?: hostUid
+                text.startsWith("app=ProcessRecord{") || text.startsWith("proc=ProcessRecord{") -> process.find(text)?.let { match ->
+                    hostUid = uidFromDump(match.groupValues[3]) ?: hostUid
+                    hostProcess = match.groupValues[2]
+                }
 
                 source == WakeCommand.SERVICES && text.startsWith("* IntentBindRecord{") -> bindingIndent = indent
 
@@ -135,7 +174,8 @@ internal object WakeSystemEvidence {
                         targetPackage = target.substringBefore('/'),
                         component = target,
                         action = action.takeIf { text.startsWith("* Client AppBindRecord{") },
-                        attributes = mapOf("client_process" to client, "type" to source.name),
+                        // The hosting process tells which of the app's processes a binding keeps.
+                        attributes = mapOf("client_process" to client, "type" to source.name) + listOfNotNull(hostProcess?.let { "host_process" to it }),
                     )
                 }
             }
@@ -271,7 +311,8 @@ internal object WakeSystemEvidence {
     private fun pendingAlarms(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
         var host: String? = null
         for (text in lines) {
-            if ("Alarm{" in text) host = Regex("""whenElapsed\s+\d+\s+([\w.]+)}""").find(text)?.groupValues?.get(1)
+            // ICU, which backs java.util.regex on Android, rejects an unescaped closing brace.
+            if ("Alarm{" in text) host = Regex("""whenElapsed\s+\d+\s+([\w.]+)\}""").find(text)?.groupValues?.get(1)
             if (text.startsWith("operation=") && host != null) {
                 val operation = pendingRecord.find(text)
                 this += WakeObservation(
