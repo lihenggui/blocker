@@ -29,17 +29,13 @@ android {
         buildConfig = true
     }
     namespace = "com.merxury.blocker.core.network"
-    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 dependencies {
     api(libs.kotlinx.datetime)
     api(projects.core.common)
     api(projects.core.model)
-    testImplementation(libs.kotlinx.coroutines.test)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp.logging)
-    implementation(libs.retrofit.core)
-    implementation(libs.retrofit.kotlin.serialization)
 }
