@@ -43,12 +43,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
             Timber.v("Rule file $filename does not exist")
             return@withContext null
         }
-        return@withContext try {
-            rootCommandExecutor.execute(RootReadFileCommand(path)).value
-        } catch (e: Exception) {
-            Timber.e(e, "Error reading rules file $path")
-            null
-        }
+        rootCommandExecutor.execute(RootReadFileCommand(path)).value
     }
 
     override suspend fun writeRules(packageName: String, content: String) = withContext(dispatcher) {
