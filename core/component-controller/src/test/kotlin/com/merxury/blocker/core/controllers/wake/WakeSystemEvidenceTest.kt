@@ -94,6 +94,7 @@ class WakeSystemEvidenceTest {
               AppSettings: example.unasked (10109)
               AppSettings: example.blocked (1010120) importance=NONE priority=0 visibility=-1000 showBadge=true
               AppSettings: example.none (10121) importance=NONEXISTENT
+              AppSettings: example.sibling (10175)
         """.trimIndent()
         fun off(sdk: Int) = WakeSystemEvidence.snapshot(WakeCommand.NOTIFICATIONS, dump, 7, sdk = sdk).single().also { assertThat(it.kind).isEqualTo(WAKE_NOTIFICATIONS_OFF) }
             .attributes.getValue("apps").split(',')

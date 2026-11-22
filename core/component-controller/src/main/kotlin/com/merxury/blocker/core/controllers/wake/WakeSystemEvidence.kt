@@ -216,7 +216,9 @@ internal object WakeSystemEvidence {
     private fun notificationsOff(lines: Sequence<String>, now: Long, sdk: Int): List<WakeObservation> {
         val settings = lines.mapNotNull(notificationSettings::find).toList()
         if (settings.isEmpty()) return emptyList()
-        val off = settings.filter { it.groupValues[3] == "NONE" || (sdk >= NOTIFICATION_PERMISSION_SDK && it.groupValues[3].isEmpty()) }
+        // The permission belongs to the uid: a package that shares the uid of one allowed to notify is allowed too.
+        val allowed = settings.filter { it.groupValues[3].isNotEmpty() && it.groupValues[3] != "NONE" }.map { it.groupValues[2] }.toSet()
+        val off = settings.filter { it.groupValues[3] == "NONE" || (sdk >= NOTIFICATION_PERMISSION_SDK && it.groupValues[3].isEmpty() && it.groupValues[2] !in allowed) }
         return listOf(WakeObservation(WAKE_NOTIFICATIONS_OFF, now, attributes = mapOf("apps" to off.joinToString(",") { "${it.groupValues[1]}/${it.groupValues[2]}" })))
     }
 
