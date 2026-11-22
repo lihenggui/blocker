@@ -38,6 +38,13 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
+
+// Long enough that one probe covers the burst of per-component checks a screen makes,
+// short enough that a root grant shows up on the next refresh.
+private val ROOT_PROBE_RETRY_INTERVAL = 2.seconds
 
 internal class IntentFirewall @Inject constructor(
     private val rootChecker: RootAvailabilityChecker,
@@ -45,6 +52,7 @@ internal class IntentFirewall @Inject constructor(
     private val fileSystem: IfwFileSystem,
     private val serializer: IfwXmlSerializer,
     private val deserializer: IfwXmlDeserializer,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) : IIntentFirewall {
     // Rules read from disk, keyed by package name. Only Missing and Loaded are cached,
     // so a failed read is retried instead of being mistaken for an empty file.
@@ -57,11 +65,12 @@ internal class IntentFirewall @Inject constructor(
     // Bumped by resetCache() so a read that overlaps an external change is not cached.
     private val cacheGeneration = AtomicLong()
 
-    // Packages last read while root was unavailable. A root probe may spawn su, so
-    // getComponentEnableState() does not repeat it for every component of such a package.
-    // getRules() and writes ignore this set. It is cleared once a read finds root available
-    // or the cache is reset.
-    private val packagesReadWithoutRoot: MutableSet<String> = ConcurrentHashMap.newKeySet()
+    // After a probe finds root unavailable, getComponentEnableState() reports uncached packages
+    // as not blocked without probing again until this mark passes. While root is not granted
+    // each probe starts su, and callers check every component one by one. getRules() and
+    // writes always probe.
+    @Volatile
+    private var skipRootProbeUntil: TimeMark? = null
 
     // ── Core API ───────────────────────────────────────────────────────
 
@@ -83,7 +92,7 @@ internal class IntentFirewall @Inject constructor(
         Timber.d("Reset IFW cache")
         cacheGeneration.incrementAndGet()
         cache.clear()
-        packagesReadWithoutRoot.clear()
+        skipRootProbeUntil = null
     }
 
     // ── Component Filter Convenience Methods ───────────────────────────
@@ -185,7 +194,7 @@ internal class IntentFirewall @Inject constructor(
         // Unreadable rules report the component as not blocked, as before. Callers have no
         // error path for this read, and writes refuse to touch an unreadable file.
         val cached = cache[packageName]
-        if (cached == null && packageName in packagesReadWithoutRoot) return true
+        if (cached == null && skipRootProbeUntil?.hasNotPassedNow() == true) return true
         val rules = (cached ?: loadRules(packageName)).rulesOrNull() ?: return true
         val formattedName = formatName(packageName, componentName)
         return IfwComponentType.entries.none { type ->
@@ -216,10 +225,10 @@ internal class IntentFirewall @Inject constructor(
         cache[packageName]?.let { return it }
         if (!rootChecker.isRootAvailable()) {
             Timber.v("Root unavailable, cannot load rules for $packageName")
-            packagesReadWithoutRoot += packageName
+            skipRootProbeUntil = timeSource.markNow() + ROOT_PROBE_RETRY_INTERVAL
             return StoredRules.Unreadable(RootUnavailableException())
         }
-        packagesReadWithoutRoot.clear()
+        skipRootProbeUntil = null
         val generation = cacheGeneration.get()
         val stored = try {
             val content = fileSystem.readRules(packageName)

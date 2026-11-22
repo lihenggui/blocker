@@ -47,6 +47,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TestTimeSource
+import kotlin.time.TimeSource
 
 private const val INVALID_XML = "<not-valid>>>"
 
@@ -118,25 +122,48 @@ class IntentFirewallNewModelTest {
     }
 
     @Test
-    fun givenRootUnavailable_whenCheckingManyComponents_thenRootIsProbedOnce() = runTest {
-        var probes = 0
-        val countingChecker = object : RootAvailabilityChecker {
-            override suspend fun isRootAvailable(): Boolean {
-                probes++
-                return false
-            }
+    fun givenRootUnavailable_whenCheckingManyComponentsWithinRetryInterval_thenRootIsProbedOnce() = runTest {
+        val checker = CountingRootChecker(rootAvailable = false)
+        val timeSource = TestTimeSource()
+        val firewall = firewallWith(checker, timeSource)
+
+        repeat(20) {
+            assertTrue(firewall.getComponentEnableState("com.app$it", "com.app$it.Component"))
+            timeSource += 50.milliseconds
         }
-        val firewall = IntentFirewall(
-            rootChecker = countingChecker,
-            componentTypeResolver = componentTypeResolver,
-            fileSystem = fileSystem,
-            serializer = IfwXmlSerializer(),
-            deserializer = IfwXmlDeserializer(),
-        )
 
-        repeat(20) { assertTrue(firewall.getComponentEnableState(testPackage, "com.example.Component$it")) }
+        assertEquals(1, checker.probes)
+    }
 
-        assertEquals(1, probes)
+    @Test
+    fun givenRootGranted_whenRetryIntervalPasses_thenSamePackageShowsTheRealState() = runTest {
+        fileSystem.writeRules(testPackage, blockedReceiverXml)
+        val checker = CountingRootChecker(rootAvailable = false)
+        val timeSource = TestTimeSource()
+        val firewall = firewallWith(checker, timeSource)
+        assertTrue(firewall.getComponentEnableState(testPackage, testReceiver))
+
+        checker.rootAvailable = true
+        timeSource += 1.seconds
+        assertTrue(firewall.getComponentEnableState(testPackage, testReceiver))
+        timeSource += 1.seconds
+
+        assertFalse(firewall.getComponentEnableState(testPackage, testReceiver))
+        assertEquals(2, checker.probes)
+    }
+
+    @Test
+    fun givenRootUnavailable_whenCacheReset_thenNextCheckProbesRootAgain() = runTest {
+        fileSystem.writeRules(testPackage, blockedReceiverXml)
+        val checker = CountingRootChecker(rootAvailable = false)
+        val firewall = firewallWith(checker, TestTimeSource())
+        assertTrue(firewall.getComponentEnableState(testPackage, testReceiver))
+
+        checker.rootAvailable = true
+        firewall.resetCache()
+
+        assertFalse(firewall.getComponentEnableState(testPackage, testReceiver))
+        assertEquals(2, checker.probes)
     }
 
     @Test
@@ -463,6 +490,24 @@ class IntentFirewallNewModelTest {
     private fun componentFilterRules(type: IfwComponentType, componentName: String) = IfwRules(
         listOf(IfwRule(componentType = type, filters = listOf(IfwFilter.ComponentFilter("$testPackage/$componentName")))),
     )
+
+    private fun firewallWith(rootChecker: RootAvailabilityChecker, timeSource: TimeSource) = IntentFirewall(
+        rootChecker = rootChecker,
+        componentTypeResolver = componentTypeResolver,
+        fileSystem = fileSystem,
+        serializer = IfwXmlSerializer(),
+        deserializer = IfwXmlDeserializer(),
+        timeSource = timeSource,
+    )
+}
+
+private class CountingRootChecker(var rootAvailable: Boolean) : RootAvailabilityChecker {
+    var probes = 0
+
+    override suspend fun isRootAvailable(): Boolean {
+        probes++
+        return rootAvailable
+    }
 }
 
 /** Suspends around each file access so concurrent read-modify-write sequences interleave. */
