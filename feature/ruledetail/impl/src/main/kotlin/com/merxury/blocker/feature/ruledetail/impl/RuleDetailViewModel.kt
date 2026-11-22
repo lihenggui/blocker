@@ -213,7 +213,8 @@ class RuleDetailViewModel @AssistedInject constructor(
         enable: Boolean,
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
-        var successCount = 0
+        var processedCount = 0
+        var failedCount = 0
         componentRepository.batchControlComponent(
             components = list,
             newState = enable,
@@ -231,12 +232,17 @@ class RuleDetailViewModel @AssistedInject constructor(
                 _processingProgress.value = null
                 _errorState.emit(exception.toErrorMessage())
             }
-            .collect { _ ->
-                successCount++
+            .collect { result ->
+                processedCount++
+                if (!result.succeeded) {
+                    failedCount++
+                    changeComponentUiStatus(listOf(result.component), controllerType, !enable)
+                }
                 _processingProgress.value = ProcessingProgress(
-                    current = successCount,
+                    current = processedCount,
                     total = list.size,
                     isEnabling = enable,
+                    failed = failedCount,
                 )
             }
     }

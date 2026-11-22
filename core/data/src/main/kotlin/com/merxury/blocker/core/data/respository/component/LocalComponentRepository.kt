@@ -27,6 +27,7 @@ import com.merxury.blocker.core.database.app.toAppComponentEntity
 import com.merxury.blocker.core.database.app.toComponentInfo
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -37,6 +38,7 @@ import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
@@ -157,69 +159,107 @@ internal class LocalComponentRepository @Inject constructor(
         components: List<ComponentInfo>,
         newState: Boolean,
         controllerType: ControllerType?,
-    ): Flow<ComponentInfo> = flow {
+    ): Flow<ComponentControlResult> = flow {
         Timber.i("Batch control ${components.size} components to state $newState")
         val effectiveControllerType = controllerType ?: userDataRepository.userData.first().controllerType
-        val controller = when (effectiveControllerType) {
+        val packages = components.distinctBy { it.packageName to it.name }.groupBy { it.packageName }
+        packages.values.forEach { packageComponents ->
+            controlPackage(packageComponents, newState, effectiveControllerType).forEach { emit(it) }
+        }
+    }
+        .flowOn(ioDispatcher)
+
+    /**
+     * Changes the components of one app, then reads back and saves the state the device reports
+     * for them, also when the change failed or was cancelled part way. A failure is logged and
+     * reported per component, so the caller can go on with the next app. Cancellation is rethrown
+     * once the state is saved. A missing root grant is rethrown at once: nothing could change,
+     * and every other app would fail the same way.
+     */
+    private suspend fun controlPackage(
+        packageComponents: List<ComponentInfo>,
+        newState: Boolean,
+        controllerType: ControllerType,
+    ): List<ComponentControlResult> {
+        val packageName = packageComponents.first().packageName
+        val started = TimeSource.Monotonic.markNow()
+        val applied = mutableSetOf<Pair<String, String>>()
+        val failure: Exception? = try {
+            changePackage(packageComponents, newState, controllerType) { applied += it.packageName to it.name }
+            null
+        } catch (e: CancellationException) {
+            e
+        } catch (e: RootUnavailableException) {
+            throw e
+        } catch (e: Exception) {
+            e
+        }
+        val reconciled = try {
+            // A cancellation can arrive after a controller has already changed the device.
+            withContext(NonCancellable) { readBackAndSave(packageComponents) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot read back or save ${packageComponents.size} components of $packageName")
+            null
+        }
+        if (failure is CancellationException) throw failure
+        if (failure != null) Timber.e(failure, "Cannot change components of $packageName")
+        val results = (reconciled ?: packageComponents).map { component ->
+            val succeeded = reconciled != null &&
+                (component.packageName to component.name) in applied &&
+                component.hasRequestedState(controllerType, newState)
+            ComponentControlResult(component, succeeded)
+        }
+        Timber.d("Controlled ${packageComponents.size} components of $packageName in ${started.elapsedNow()}, ${results.count { !it.succeeded }} failed")
+        return results
+    }
+
+    private suspend fun changePackage(
+        packageComponents: List<ComponentInfo>,
+        newState: Boolean,
+        controllerType: ControllerType,
+        onApplied: suspend (ComponentInfo) -> Unit,
+    ) {
+        val controller = when (controllerType) {
             IFW -> ifwController
             PM -> pmController
             SHIZUKU -> shizukuController
             IFW_PLUS_PM -> combinedController
         }
-        val packages = components.distinctBy { it.packageName to it.name }.groupBy { it.packageName }
-        packages.values.forEach { packageComponents ->
-            val started = TimeSource.Monotonic.markNow()
-            var reconciled = emptyList<ComponentInfo>()
-            var controlFailure: Throwable? = null
-            val applied = mutableSetOf<Pair<String, String>>()
-            val onApplied: suspend (ComponentInfo) -> Unit = { applied.add(it.packageName to it.name) }
-            try {
-                if (effectiveControllerType == IFW) {
-                    val providers = packageComponents.filter { it.type == ComponentType.PROVIDER }
-                    if (newState) pmController.batchEnable(providers, onApplied) else pmController.batchDisable(providers, onApplied)
-                    val ifwComponents = packageComponents.filter { it.type != ComponentType.PROVIDER }
-                    if (newState) {
-                        val pmStates = pmController.checkComponentEnableStates(ifwComponents)
-                        pmController.batchEnable(ifwComponents.filter { pmStates[it] == false }) {}
-                        controller.batchEnable(ifwComponents, onApplied)
-                    } else {
-                        controller.batchDisable(ifwComponents, onApplied)
-                    }
-                } else {
-                    if (newState) controller.batchEnable(packageComponents, onApplied) else controller.batchDisable(packageComponents, onApplied)
-                }
-                Timber.d("Controlled ${packageComponents.size} components in ${started.elapsedNow()}")
-            } catch (exception: Throwable) {
-                controlFailure = exception
-                throw exception
-            } finally {
-                try {
-                    // A cancellation can arrive after a controller has already changed the device.
-                    // Finish reconciliation for this package before propagating it to the caller.
-                    withContext(NonCancellable) {
-                        val verificationStarted = TimeSource.Monotonic.markNow()
-                        val pmStates = pmController.checkComponentEnableStates(packageComponents)
-                        val ifwStates = ifwController.checkComponentEnableStates(packageComponents)
-                        reconciled = packageComponents.map {
-                            it.copy(pmBlocked = !pmStates.getValue(it), ifwBlocked = !ifwStates.getValue(it))
-                        }
-                        val verificationTime = verificationStarted.elapsedNow()
-                        val saveStarted = TimeSource.Monotonic.markNow()
-                        appComponentDao.upsertComponentList(reconciled.map { it.toAppComponentEntity() })
-                        Timber.d("Reconciled ${packageComponents.size} components: verification=$verificationTime, save=${saveStarted.elapsedNow()}")
-                    }
-                } catch (exception: Throwable) {
-                    val previousFailure = controlFailure
-                    if (previousFailure == null) throw exception else previousFailure.addSuppressed(exception)
-                }
-            }
-            val failed = reconciled.count { (it.packageName to it.name) !in applied || !it.hasRequestedState(effectiveControllerType, newState) }
-            if (failed > 0) error("Failed to change $failed components in ${packageComponents.first().packageName}")
-            reconciled.forEach { emit(it) }
-            Timber.d("Controlled and reconciled ${packageComponents.size} components in ${started.elapsedNow()}")
+        if (controllerType != IFW) {
+            controller.batchSwitch(packageComponents, newState, onApplied)
+            return
         }
+        // IFW cannot block providers, so PM changes them.
+        val (providers, ifwComponents) = packageComponents.partition { it.type == ComponentType.PROVIDER }
+        pmController.batchSwitch(providers, newState, onApplied)
+        if (newState) {
+            // Enabling also lifts PM blocks left on components that IFW controls.
+            val pmStates = pmController.checkComponentEnableStates(ifwComponents)
+            pmController.batchEnable(ifwComponents.filter { pmStates[it] == false }) {}
+        }
+        controller.batchSwitch(ifwComponents, newState, onApplied)
     }
-        .flowOn(ioDispatcher)
+
+    private suspend fun IController.batchSwitch(
+        components: List<ComponentInfo>,
+        enable: Boolean,
+        onApplied: suspend (ComponentInfo) -> Unit,
+    ) {
+        if (enable) batchEnable(components, onApplied) else batchDisable(components, onApplied)
+    }
+
+    /** Reads the PM and IFW state of [components] from the device and saves it. */
+    private suspend fun readBackAndSave(components: List<ComponentInfo>): List<ComponentInfo> {
+        val pmStates = pmController.checkComponentEnableStates(components)
+        val ifwStates = ifwController.checkComponentEnableStates(components)
+        val reconciled = components.map {
+            it.copy(pmBlocked = !pmStates.getValue(it), ifwBlocked = !ifwStates.getValue(it))
+        }
+        appComponentDao.upsertComponentList(reconciled.map { it.toAppComponentEntity() })
+        return reconciled
+    }
 
     private fun ComponentInfo.hasRequestedState(controllerType: ControllerType, enabled: Boolean): Boolean = when (controllerType) {
         IFW -> if (type == ComponentType.PROVIDER) {

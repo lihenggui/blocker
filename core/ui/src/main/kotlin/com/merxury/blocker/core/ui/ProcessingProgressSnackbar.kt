@@ -37,18 +37,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import com.merxury.blocker.core.ui.R.plurals as uiplurals
 import com.merxury.blocker.core.ui.R.string as uistring
 
 private const val COMPLETED_DISPLAY_MILLIS = 2000
 
+// Long enough to read how many components could not be changed.
+private const val COMPLETED_WITH_FAILURES_DISPLAY_MILLIS = 4000
+
+/**
+ * Progress of a batch operation. [current] counts processed components, including the
+ * [failed] ones that could not be changed.
+ */
 data class ProcessingProgress(
     val current: Int,
     val total: Int,
     val isEnabling: Boolean,
     val isComplete: Boolean = current >= total,
+    val failed: Int = 0,
 )
 
 @Composable
@@ -58,10 +68,12 @@ fun ProcessingProgressSnackbar(
     modifier: Modifier = Modifier,
 ) {
     val isCompleted = progress?.isComplete == true
+    val hasFailures = (progress?.failed ?: 0) > 0
     val context = LocalContext.current
     LaunchedEffect(isCompleted) {
         if (isCompleted) {
-            val timeout = getRecommendedTimeout(context, COMPLETED_DISPLAY_MILLIS)
+            val displayMillis = if (hasFailures) COMPLETED_WITH_FAILURES_DISPLAY_MILLIS else COMPLETED_DISPLAY_MILLIS
+            val timeout = getRecommendedTimeout(context, displayMillis)
             delay(timeout)
             onDismiss()
         }
@@ -77,7 +89,13 @@ fun ProcessingProgressSnackbar(
         exit = fadeOut() + slideOutVertically { it },
     ) {
         lastProgress?.let { displayProgress ->
-            val message = if (displayProgress.isComplete) {
+            val message = if (displayProgress.isComplete && displayProgress.failed > 0) {
+                pluralStringResource(
+                    uiplurals.core_ui_operation_completed_with_failures,
+                    displayProgress.failed,
+                    displayProgress.failed,
+                )
+            } else if (displayProgress.isComplete) {
                 stringResource(uistring.core_ui_operation_completed)
             } else if (displayProgress.total == 0) {
                 stringResource(uistring.core_ui_loading)

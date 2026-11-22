@@ -75,6 +75,11 @@
     <string name="core_ui_disabling_component_hint">Désactivation des composants, veuillez patienter… (%1$d/%2$d)</string>
     <string name="core_ui_enabling_component_hint">Activation des composants, veuillez patienter… (%1$d/%2$d)</string>
     <string name="core_ui_operation_completed">Opération terminée</string>
+    <plurals name="core_ui_operation_completed_with_failures">
+        <item quantity="one">Opération terminée. %1$d composant n\'a pas pu être modifié</item>
+        <item quantity="many">Opération terminée. %1$d composants n\'ont pas pu être modifiés</item>
+        <item quantity="other">Opération terminée. %1$d composants n\'ont pas pu être modifiés</item>
+    </plurals>
     <string name="core_ui_application_with_count">Application (%1$d)</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Voulez-vous désinstaller cette application ?</string>

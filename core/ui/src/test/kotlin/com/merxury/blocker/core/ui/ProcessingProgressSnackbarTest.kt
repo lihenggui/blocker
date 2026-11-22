@@ -68,6 +68,24 @@ class ProcessingProgressSnackbarTest {
     }
 
     @Test
+    fun givenFailedComponents_whenOperationCompletes_thenShowsHowManyCouldNotBeChanged() {
+        val progress = mutableStateOf(ProcessingProgress(9, 10, isEnabling = false, isComplete = false, failed = 2))
+        composeTestRule.setContent {
+            MaterialTheme {
+                ProcessingProgressSnackbar(progress.value, onDismiss = {})
+            }
+        }
+
+        composeTestRule.runOnIdle { progress.value = progress.value.copy(current = 10, isComplete = true) }
+
+        val resources = composeTestRule.activity.resources
+        composeTestRule.onNodeWithText(resources.getQuantityString(R.plurals.core_ui_operation_completed_with_failures, 2, 2))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.core_ui_operation_completed))
+            .assertDoesNotExist()
+    }
+
+    @Test
     fun givenUnfinishedOperation_whenTimePasses_thenKeepsProgressUntilExplicitCompletion() {
         val progress = mutableStateOf<ProcessingProgress?>(ProcessingProgress(0, 0, isEnabling = false, isComplete = false))
         var dismissCount = 0

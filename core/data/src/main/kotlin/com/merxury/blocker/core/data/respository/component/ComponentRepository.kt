@@ -42,11 +42,17 @@ interface ComponentRepository {
         controllerType: ControllerType? = null,
     ): Flow<Boolean>
 
+    /**
+     * Changes [components] app by app and emits one result per distinct component once its app
+     * has been changed, read back and saved. A component or app that cannot be changed is
+     * reported as failed and the remaining apps still run. The flow fails only when it is
+     * cancelled or root is unavailable.
+     */
     fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
         controllerType: ControllerType? = null,
-    ): Flow<ComponentInfo>
+    ): Flow<ComponentControlResult>
 
     fun searchComponent(keyword: String): Flow<List<ComponentInfo>>
 

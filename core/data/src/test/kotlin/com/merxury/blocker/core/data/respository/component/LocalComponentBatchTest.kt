@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.respository.component
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.AppComponentEntity
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
@@ -35,8 +36,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -60,9 +64,9 @@ class LocalComponentBatchTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         pm.failures.add(first.name)
 
-        assertFailsWith<IllegalStateException> {
-            repository.batchControlComponent(listOf(first), true).toList()
-        }
+        val result = repository.batchControlComponent(listOf(first), true).toList().single()
+
+        assertFalse(result.succeeded)
     }
 
     @Test
@@ -73,8 +77,9 @@ class LocalComponentBatchTest {
 
         val result = repository.batchControlComponent(listOf(first), true).toList().single()
 
-        assertFalse(result.pmBlocked)
-        assertTrue(result.ifwBlocked)
+        assertTrue(result.succeeded)
+        assertFalse(result.component.pmBlocked)
+        assertTrue(result.component.ifwBlocked)
         assertEquals(emptyList(), ifw.enabled)
     }
 
@@ -83,14 +88,15 @@ class LocalComponentBatchTest {
         users.sendUserData(defaultUserData)
         val provider = first.copy(name = "com.tracker.Provider", type = PROVIDER)
 
-        val result = repository.batchControlComponent(listOf(first, provider, first), false).toList()
+        val results = repository.batchControlComponent(listOf(first, provider, first), false).toList()
 
         assertEquals(listOf(provider), pm.disabled)
         assertEquals(listOf(first), ifw.disabled)
-        assertEquals(2, result.size)
-        assertEquals(2, result.map { it.name }.toSet().size)
-        assertTrue(result.first { it.type == PROVIDER }.pmBlocked)
-        assertTrue(result.first { it.type == SERVICE }.ifwBlocked)
+        assertEquals(2, results.size)
+        assertEquals(2, results.map { it.component.name }.toSet().size)
+        assertTrue(results.all { it.succeeded })
+        assertTrue(results.first { it.component.type == PROVIDER }.component.pmBlocked)
+        assertTrue(results.first { it.component.type == SERVICE }.component.ifwBlocked)
     }
 
     @Test
@@ -102,8 +108,9 @@ class LocalComponentBatchTest {
         val result = repository.batchControlComponent(listOf(first), true).toList().single()
 
         assertEquals(listOf(first), pm.enabled)
-        assertFalse(result.pmBlocked)
-        assertFalse(result.ifwBlocked)
+        assertTrue(result.succeeded)
+        assertFalse(result.component.pmBlocked)
+        assertFalse(result.component.ifwBlocked)
     }
 
     @Test
@@ -126,19 +133,46 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun givenFailedComponent_whenApplyingBatch_thenReconcilesStateWithoutReportingCompletion() = runTest {
+    fun givenFailedComponent_whenApplyingBatch_thenSavesStateAndReportsOnlyThatComponentAsFailed() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         pm.failures.add(second.name)
-        val emitted = mutableListOf<ComponentInfo>()
 
-        assertFailsWith<IllegalStateException> {
-            repository.batchControlComponent(listOf(first, second), false).toList(emitted)
-        }
+        val results = repository.batchControlComponent(listOf(first, second), false).toList()
 
         val saved = argumentCaptor<List<AppComponentEntity>>()
         verify(dao).upsertComponentList(saved.capture())
         assertEquals(listOf(true, false), saved.firstValue.map { it.pmBlocked })
-        assertEquals(emptyList(), emitted)
+        assertEquals(listOf(first.name to true, second.name to false), results.map { it.component.name to it.succeeded })
+    }
+
+    @Test
+    fun givenOneAppThrows_whenApplyingBatchToSeveralApps_thenReportsItAndContinuesWithTheOthers() = runTest {
+        users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+        val broken = ComponentInfo("com.uninstalled", "com.tracker.Broken", SERVICE)
+        val last = ComponentInfo("com.last", "com.tracker.Last", SERVICE)
+        pm.throwingPackages.add(broken.packageName)
+
+        val results = repository.batchControlComponent(listOf(first, broken, last), false).toList()
+
+        assertEquals(
+            listOf(first.name to true, broken.name to false, last.name to true),
+            results.map { it.component.name to it.succeeded },
+        )
+        assertEquals(listOf(first, last), pm.disabled)
+        // Every app's state is read back and saved, the failed one included.
+        verify(dao, times(3)).upsertComponentList(any())
+    }
+
+    @Test
+    fun givenRootDenied_whenApplyingBatch_thenFailsWithoutSavingReadBackState() = runTest {
+        users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+        pm.rootDenied = true
+
+        assertFailsWith<RootUnavailableException> {
+            repository.batchControlComponent(listOf(first, second), false).toList()
+        }
+
+        verify(dao, never()).upsertComponentList(any())
     }
 
     private class StatefulController : IController {
@@ -146,15 +180,19 @@ class LocalComponentBatchTest {
         val failures = mutableSetOf<String>()
         val disabled = mutableListOf<ComponentInfo>()
         val enabled = mutableListOf<ComponentInfo>()
+        val throwingPackages = mutableSetOf<String>()
+        var rootDenied = false
         var afterDisable: suspend () -> Unit = {}
         override suspend fun switchComponent(component: ComponentInfo, state: ComponentState): Boolean = if (state == ComponentState.DISABLED) disable(component) else enable(component)
         override suspend fun enable(component: ComponentInfo): Boolean {
+            checkAvailable(component)
             enabled.add(component)
             if (component.name in failures) return false
             states[component.name] = true
             return true
         }
         override suspend fun disable(component: ComponentInfo): Boolean {
+            checkAvailable(component)
             disabled.add(component)
             if (component.name in failures) return false
             states[component.name] = false
@@ -162,5 +200,10 @@ class LocalComponentBatchTest {
             return true
         }
         override suspend fun checkComponentEnableState(packageName: String, componentName: String) = states[componentName] ?: true
+
+        private fun checkAvailable(component: ComponentInfo) {
+            if (rootDenied) throw RootUnavailableException()
+            check(component.packageName !in throwingPackages) { "Package ${component.packageName} is not installed" }
+        }
     }
 }

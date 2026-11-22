@@ -120,13 +120,15 @@ class GeneralRulesViewModel @AssistedInject constructor(
                     return@launch
                 }
                 var processed = 0
+                var failed = 0
                 _processingProgress.value = ProcessingProgress(0, components.size, enable, isComplete = false)
-                componentRepository.batchControlComponent(components, enable).collect {
+                componentRepository.batchControlComponent(components, enable).collect { result ->
                     processed++
-                    _processingProgress.value = ProcessingProgress(processed, components.size, enable, isComplete = false)
+                    if (!result.succeeded) failed++
+                    _processingProgress.value = ProcessingProgress(processed, components.size, enable, isComplete = false, failed = failed)
                 }
                 // Collection ends only after controller state reconciliation and database writes.
-                _processingProgress.value = ProcessingProgress(components.size, components.size, enable, isComplete = true)
+                _processingProgress.value = ProcessingProgress(components.size, components.size, enable, isComplete = true, failed = failed)
             } catch (exception: CancellationException) {
                 _processingProgress.value = null
                 throw exception

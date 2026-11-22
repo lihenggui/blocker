@@ -282,9 +282,11 @@ class SearchViewModel @AssistedInject constructor(
         }
     }
 
-    fun controlAllSelectedComponents(enable: Boolean, action: (Int, Int) -> Unit) {
+    /** Reports progress to [action] as processed and total component counts, and how many failed. */
+    fun controlAllSelectedComponents(enable: Boolean, action: (current: Int, total: Int, failed: Int) -> Unit) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             var current = 0
+            var failed = 0
             val list = searchUiState.value.selectedComponentList
             componentRepository.batchControlComponent(
                 components = list,
@@ -296,8 +298,9 @@ class SearchViewModel @AssistedInject constructor(
                 .onCompletion {
                     switchSelectedMode(false)
                 }
-                .collect {
-                    action(++current, list.size)
+                .collect { result ->
+                    if (!result.succeeded) failed++
+                    action(++current, list.size, failed)
                 }
         }
     }

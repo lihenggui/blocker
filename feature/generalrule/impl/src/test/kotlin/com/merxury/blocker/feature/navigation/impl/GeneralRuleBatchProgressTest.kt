@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.navigation.impl
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkManager
+import com.merxury.blocker.core.data.respository.component.ComponentControlResult
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.domain.GatherAllMatchedComponentsUseCase
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
@@ -78,6 +79,7 @@ class GeneralRuleBatchProgressTest {
     private var commitGate: CompletableDeferred<Unit>? = null
     private var snapshotFailure: Exception? = null
     private var controlCalls = 0
+    private val failingComponents = mutableSetOf<ComponentInfo>()
     private val componentRepository = object : ComponentRepository by componentData {
         override fun getAllComponents(): Flow<List<ComponentInfo>> = flow {
             gatherGate?.await()
@@ -88,9 +90,9 @@ class GeneralRuleBatchProgressTest {
             components: List<ComponentInfo>,
             newState: Boolean,
             controllerType: ControllerType?,
-        ): Flow<ComponentInfo> = flow {
+        ): Flow<ComponentControlResult> = flow {
             controlCalls++
-            components.forEach { emit(it) }
+            components.forEach { emit(ComponentControlResult(it, succeeded = it !in failingComponents)) }
             commitGate?.await()
         }
     }
@@ -156,6 +158,22 @@ class GeneralRuleBatchProgressTest {
         runCurrent()
 
         assertTrue(assertNotNull(viewModel.processingProgress.value).isComplete)
+        assertFalse(viewModel.isProcessing.value)
+    }
+
+    @Test
+    fun givenFailedComponents_whenBatchFinishes_thenCompletesWithFailureCount() = runTest {
+        runCurrent()
+        failingComponents += components.take(2)
+
+        viewModel.controlAllComponents(false)
+        runCurrent()
+
+        val progress = assertNotNull(viewModel.processingProgress.value)
+        assertTrue(progress.isComplete)
+        assertEquals(3, progress.current)
+        assertEquals(2, progress.failed)
+        assertNull(viewModel.errorState.value)
         assertFalse(viewModel.isProcessing.value)
     }
 

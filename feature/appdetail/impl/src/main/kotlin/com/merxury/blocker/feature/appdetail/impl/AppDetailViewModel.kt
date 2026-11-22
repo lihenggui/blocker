@@ -455,7 +455,8 @@ class AppDetailViewModel @AssistedInject constructor(
         action: suspend (Int, Int) -> Unit = { _, _ -> },
     ) {
         val controllerType = userDataRepository.userData.first().controllerType
-        var successCount = 0
+        var processedCount = 0
+        var failedCount = 0
         componentRepository.batchControlComponent(
             components = list,
             newState = enable,
@@ -490,18 +491,27 @@ class AppDetailViewModel @AssistedInject constructor(
                     )
                 }
             }
-            .collect { _ ->
-                successCount++
+            .collect { result ->
+                processedCount++
+                if (!result.succeeded) {
+                    failedCount++
+                    changeComponentsUiStatus(
+                        changed = listOf(result.component),
+                        controllerType = controllerType,
+                        enabled = !enable,
+                    )
+                }
                 _appInfoUiState.update {
                     it.copy(
                         processingProgress = ProcessingProgress(
-                            current = successCount,
+                            current = processedCount,
                             total = list.size,
                             isEnabling = enable,
+                            failed = failedCount,
                         ),
                     )
                 }
-                action(successCount, list.size)
+                action(processedCount, list.size)
             }
     }
 
@@ -580,8 +590,8 @@ class AppDetailViewModel @AssistedInject constructor(
             controlAllComponentsInternal(
                 list = _appBarUiState.value.selectedComponentList,
                 enable = enable,
-            ) { successCount, totalCount ->
-                if (successCount == totalCount) {
+            ) { processedCount, totalCount ->
+                if (processedCount == totalCount) {
                     Timber.i("All components are switch to $enable, updating ui")
                     switchSelectedMode(false)
                 }
