@@ -23,6 +23,7 @@ import com.merxury.blocker.core.controllers.di.RootApiAppControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
+import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.data.util.PermissionStatus.ROOT_USER
@@ -32,13 +33,15 @@ import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.transformLatest
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -58,14 +61,23 @@ class AppPermissionMonitor @Inject constructor(
 ) : PermissionMonitor {
     private val controllerStatus = mutableMapOf<ControllerType, PermissionStatus>()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override val permissionStatus: Flow<PermissionStatus> = userDataRepository.userData
         .map { it.controllerType }
         .distinctUntilChanged()
-        .transform { type ->
-            initController(type)
+        // A new controller type cancels an unfinished initialization, such as a Shizuku
+        // permission dialog, so its status is never held back by the previous type.
+        .transformLatest { type ->
             // In IFW mode, we will still use root apis
             // Make sure that we initialize once
             val controllerType = if (type == SHIZUKU) SHIZUKU else PM
+            // If Shizuku is not running, report that, then register again once the user starts
+            // it. NotRunning only comes after the binder wait has timed out, so a Shizuku that
+            // keeps restarting cannot spin this loop.
+            while (initController(type) == RegisterShizukuResult.NotRunning) {
+                emit(NO_PERMISSION)
+                shizukuInitializer.awaitBinder()
+            }
             emit(controllerStatus[controllerType] ?: NO_PERMISSION)
         }
         .shareIn(
@@ -74,7 +86,8 @@ class AppPermissionMonitor @Inject constructor(
             replay = 1,
         )
 
-    private suspend fun initController(type: ControllerType) {
+    /** Returns the Shizuku registration result, or null if no registration was needed. */
+    private suspend fun initController(type: ControllerType): RegisterShizukuResult? {
         Timber.d("Initialize controller: $type")
         if (type == SHIZUKU) {
             when (controllerStatus[SHIZUKU]) {
@@ -83,7 +96,7 @@ class AppPermissionMonitor @Inject constructor(
                 SHELL_USER,
                 -> {
                     Timber.i("No need to re-initialize shizuku controller")
-                    return
+                    return null
                 }
 
                 NO_PERMISSION,
@@ -93,11 +106,12 @@ class AppPermissionMonitor @Inject constructor(
             if (!shizukuInitializer.hasPermission()) {
                 val result = shizukuInitializer.registerShizuku()
                 Timber.i("Shizuku register result: $result")
-                if (result.success) {
+                if (result is RegisterShizukuResult.Granted) {
                     updatePermissionStatusFromUid(result.uid)
                 } else {
                     controllerStatus[SHIZUKU] = NO_PERMISSION
                 }
+                return result
             } else {
                 val uid = shizukuInitializer.getUid()
                 Timber.d("Shizuku permission granted: true, uid: $uid")
@@ -107,7 +121,7 @@ class AppPermissionMonitor @Inject constructor(
             val apiPermissionStatus = controllerStatus[PM]
             if (apiPermissionStatus == ROOT_USER) {
                 Timber.w("No need to re-initialize root api controller")
-                return
+                return null
             }
             try {
                 rootApiController.init()
@@ -115,11 +129,14 @@ class AppPermissionMonitor @Inject constructor(
                 rootApiServiceController.init()
                 controllerStatus[PM] = ROOT_USER
                 Timber.d("Root api controller initialized")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Cannot initialize root api controller")
                 controllerStatus[PM] = NO_PERMISSION
             }
         }
+        return null
     }
 
     private fun updatePermissionStatusFromUid(uid: Int) {
