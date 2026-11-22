@@ -20,8 +20,10 @@ import java.io.IOException
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class IfwRuleReadsTest {
@@ -97,6 +99,28 @@ class IfwRuleReadsTest {
         val isEnabled = assertNotNull(reader.read(packageName))
 
         assertFalse(isEnabled(packageName, blockedReceiver))
+    }
+
+    @Test
+    fun givenReadableRuleFile_whenReadingForRestore_thenComparesWithTheRules() = runTest {
+        intentFirewall.saveRules(packageName, blockedReceiverRules())
+
+        val read = IfwRunReader(intentFirewall).readForRestore(packageName)
+
+        assertIs<IfwRestoreRead.Rules>(read)
+        assertFalse(read.isEnabled(packageName, blockedReceiver))
+    }
+
+    @Test
+    fun givenUnreadableRuleFile_whenReadingForRestore_thenNoIfwChangeIsAllowed() = runTest {
+        intentFirewall.unreadablePackages += packageName
+
+        assertSame(IfwRestoreRead.Unreadable, IfwRunReader(intentFirewall).readForRestore(packageName))
+    }
+
+    @Test
+    fun givenRootUnavailable_whenReadingForRestore_thenRestoreKeepsItsRootlessBehaviour() = runTest {
+        assertSame(IfwRestoreRead.RootUnavailable, IfwRunReader(RootlessIntentFirewall()).readForRestore(packageName))
     }
 
     // ── backupEntries ──

@@ -67,6 +67,8 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
+    private val ifwReader = IfwRunReader(intentFirewall)
+
     override fun getNotificationTitle(): Int = R.string.core_rule_import_app_rules_please_wait
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -203,8 +205,8 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     }
 
     /**
-     * Returns the number of restored components, or null if IFW changes were refused because the
-     * package's rule file cannot be read.
+     * Returns the number of restored components, or null if the package's IFW rule file cannot be
+     * read, so its IFW entries were not restored. Its PackageManager entries are still applied.
      */
     private suspend fun import(rule: BlockerRule, type: ControllerType): Int? {
         val fallbackController = if (type == SHIZUKU) {
@@ -214,6 +216,8 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         }
         var count = 0
         var notAppliedIfwPackage: String? = null
+        // The package's IFW rules, read strictly once, when the first entry needs them.
+        var ifwRead: IfwRestoreRead? = null
         rule.components.forEach {
             if (it.method == IFW) {
                 if (it.type == PROVIDER) {
@@ -225,10 +229,19 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                         fallbackController.disable(it.toComponentInfo())
                     }
                 } else {
-                    val currentState = ifwController.checkComponentEnableState(
-                        it.packageName,
-                        it.name,
-                    )
+                    val read = ifwRead ?: ifwReader.readForRestore(it.packageName).also { result -> ifwRead = result }
+                    val currentState = when (read) {
+                        is IfwRestoreRead.Rules -> read.isEnabled(it.packageName, it.name)
+
+                        // Without root, keep the display read that restores have always used.
+                        IfwRestoreRead.RootUnavailable -> ifwController.checkComponentEnableState(
+                            it.packageName,
+                            it.name,
+                        )
+
+                        // Make no IFW changes to a file that cannot be read. The package is reported below.
+                        IfwRestoreRead.Unreadable -> return@forEach
+                    }
                     if (currentState == it.state) return@forEach
                     val applied = if (it.state) {
                         ifwController.enable(it.toComponentInfo())
@@ -251,6 +264,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                 count++
             }
         }
+        if (ifwRead == IfwRestoreRead.Unreadable) return null
         val ifwPackage = notAppliedIfwPackage
         if (ifwPackage != null && intentFirewall.hasUnreadableRules(ifwPackage)) return null
         return count

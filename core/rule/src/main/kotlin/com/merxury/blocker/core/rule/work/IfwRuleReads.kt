@@ -62,6 +62,26 @@ internal class IfwRunReader(private val intentFirewall: IIntentFirewall) {
             IfwComponentType.entries.none { type -> name in rules.componentFiltersFor(type) }
         }
     }
+
+    /** Reads [packageName]'s rules for a restore, which treats each outcome differently. */
+    suspend fun readForRestore(packageName: String): IfwRestoreRead = try {
+        read(packageName)?.let(IfwRestoreRead::Rules) ?: IfwRestoreRead.RootUnavailable
+    } catch (e: IOException) {
+        Timber.w(e, "IFW rules for $packageName cannot be read")
+        IfwRestoreRead.Unreadable
+    }
+}
+
+/** What a restore found when it read a package's IFW rules. */
+internal sealed interface IfwRestoreRead {
+    /** The rules were read: compare backup entries with them. */
+    class Rules(val isEnabled: (componentPackage: String, componentName: String) -> Boolean) : IfwRestoreRead
+
+    /** Root is unavailable: the restore keeps its previous behaviour. */
+    data object RootUnavailable : IfwRestoreRead
+
+    /** The rule file cannot be read: make no IFW changes and report the package as not restored. */
+    data object Unreadable : IfwRestoreRead
 }
 
 /**
