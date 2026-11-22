@@ -18,13 +18,11 @@ package com.merxury.core.ifw
 
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.root.RootChmodCommand
 import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.root.RootDeleteFileCommand
 import com.merxury.blocker.core.root.RootFileExistsCommand
 import com.merxury.blocker.core.root.RootListFilesCommand
 import com.merxury.blocker.core.root.RootReadFileCommand
-import com.merxury.blocker.core.root.RootWriteFileCommand
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -57,8 +55,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
         require(!isManagedWakeName(packageName) && '/' !in packageName)
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
-        rootCommandExecutor.execute(RootWriteFileCommand(path, content))
-        rootCommandExecutor.execute(RootChmodCommand(path, 644, recursively = false))
+        rootCommandExecutor.execute(ReplaceIfwFileCommand(path, content))
         Timber.i("Saved IFW rules to $path")
     }
 

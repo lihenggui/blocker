@@ -16,12 +16,10 @@
 
 package com.merxury.blocker.core.root
 
-import android.system.Os
 import be.mygod.librootkotlinx.ParcelableBoolean
 import be.mygod.librootkotlinx.ParcelableString
 import be.mygod.librootkotlinx.ParcelableStringList
 import be.mygod.librootkotlinx.RootCommand
-import be.mygod.librootkotlinx.RootCommandNoResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
@@ -53,17 +51,6 @@ data class RootReadFileCommand(
 }
 
 @Parcelize
-data class RootWriteFileCommand(
-    private val path: String,
-    private val content: String,
-) : RootCommandNoResult {
-    override suspend fun execute() = withContext(Dispatchers.IO) {
-        File(path).writeText(content, Charsets.UTF_8)
-        null
-    }
-}
-
-@Parcelize
 data class RootDeleteFileCommand(
     private val path: String,
     private val recursively: Boolean,
@@ -86,24 +73,5 @@ data class RootFileExistsCommand(
 ) : RootCommand<ParcelableBoolean> {
     override suspend fun execute(): ParcelableBoolean = withContext(Dispatchers.IO) {
         ParcelableBoolean(File(path).exists())
-    }
-}
-
-@Parcelize
-data class RootChmodCommand(
-    private val path: String,
-    private val permission: Int,
-    private val recursively: Boolean,
-) : RootCommandNoResult {
-    override suspend fun execute() = withContext(Dispatchers.IO) {
-        val mode = permission.toString().toInt(8)
-        fun chmod(file: File) {
-            Os.chmod(file.absolutePath, mode)
-            if (recursively && file.isDirectory) {
-                file.listFiles()?.forEach(::chmod)
-            }
-        }
-        chmod(File(path))
-        null
     }
 }

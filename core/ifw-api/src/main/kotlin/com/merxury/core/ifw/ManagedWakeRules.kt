@@ -144,17 +144,7 @@ fun writeManagedWakeFile(owner: String, xml: String?, probe: Boolean) {
         if (target.exists()) check(target.delete())
     } else if (!target.exists() || target.readText() != xml) {
         check(directory.isDirectory || directory.mkdirs())
-        val temporary = File.createTempFile(".blocker-wake-", ".tmp", directory)
-        try {
-            temporary.outputStream().use { file ->
-                file.write(xml.toByteArray())
-                file.fd.sync()
-            }
-            Os.chmod(temporary.path, 0x1a4)
-            Os.rename(temporary.path, target.path)
-            check(target.readText() == xml)
-        } finally {
-            temporary.delete()
-        }
+        replaceIfwFile(target, xml)
+        check(target.readText() == xml)
     }
 }
