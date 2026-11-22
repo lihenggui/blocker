@@ -23,6 +23,7 @@ import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.AppPropertiesSerializer
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
+import com.merxury.blocker.core.datastore.copy
 import kotlinx.coroutines.CoroutineScope
 import timber.log.Timber
 import java.io.File
@@ -38,22 +39,24 @@ internal fun createUserPreferencesDataStore(
     serializer = serializer,
     corruptionHandler = replaceCorruptFileWithDefault(
         storeName = "user preferences",
-        defaultValue = serializer.defaultValue,
+        // Unlike the first-install default, the user's analytics choice is unknown after
+        // corruption, so keep statistics off rather than silently re-enabling them.
+        replacement = serializer.defaultValue.copy { disableStatistics = true },
     ),
     scope = scope,
     produceFile = produceFile,
 )
 
 /**
- * Replaces an unreadable file with [defaultValue] so reads and writes keep working.
+ * Replaces an unreadable file with [replacement] so reads and writes keep working.
  * The previous contents are lost, so the corruption is logged with the [storeName].
  */
 private fun <T> replaceCorruptFileWithDefault(
     storeName: String,
-    defaultValue: T,
+    replacement: T,
 ): ReplaceFileCorruptionHandler<T> = ReplaceFileCorruptionHandler { exception ->
     Timber.e(exception, "The %s DataStore file is corrupt, resetting it to defaults", storeName)
-    defaultValue
+    replacement
 }
 
 /**
@@ -67,7 +70,7 @@ internal fun createAppPropertiesDataStore(
     serializer = serializer,
     corruptionHandler = replaceCorruptFileWithDefault(
         storeName = "app properties",
-        defaultValue = serializer.defaultValue,
+        replacement = serializer.defaultValue,
     ),
     scope = scope,
     produceFile = produceFile,

@@ -18,6 +18,7 @@ package com.merxury.blocker.core.datastore.di
 
 import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.AppPropertiesSerializer
+import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
 import com.merxury.blocker.core.datastore.appProperties
@@ -35,7 +36,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import timber.log.Timber
+import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,7 +53,7 @@ class ProtoDataStoresTest {
     private val garbage = byteArrayOf(0)
 
     @Test
-    fun givenCorruptUserPreferencesFile_whenRead_thenReturnsDefaultValue() = testScope.runTest {
+    fun givenCorruptUserPreferencesFile_whenRead_thenReturnsDefaultWithStatisticsDisabled() = testScope.runTest {
         val file = tempFolder.newFile("user_preferences.pb").apply { writeBytes(garbage) }
         val dataStore = createUserPreferencesDataStore(
             serializer = UserPreferencesSerializer(),
@@ -58,7 +61,40 @@ class ProtoDataStoresTest {
             produceFile = { file },
         )
 
+        // Statistics are off after a reset because the user's choice is unknown.
+        assertEquals(userPreferences { disableStatistics = true }, dataStore.data.first())
+    }
+
+    @Test
+    fun givenCorruptUserPreferencesFile_whenRead_thenStatisticsDisabledAndOtherFieldsDefault() = testScope.runTest {
+        val file = tempFolder.newFile("user_preferences.pb").apply { writeBytes(garbage) }
+        val dataStore = createUserPreferencesDataStore(
+            serializer = UserPreferencesSerializer(),
+            scope = backgroundScope,
+            produceFile = { file },
+        )
+
+        val actual = dataStore.data.first()
+
+        assertTrue(actual.disableStatistics)
+        assertEquals(
+            UserPreferences.getDefaultInstance(),
+            actual.copy { disableStatistics = false },
+        )
+        assertFalse(BlockerPreferencesDataSource(dataStore).userData.first().enableStatistics)
+    }
+
+    @Test
+    fun givenNoUserPreferencesFile_whenRead_thenStatisticsStayAtDefault() = testScope.runTest {
+        val file = File(tempFolder.root, "user_preferences.pb")
+        val dataStore = createUserPreferencesDataStore(
+            serializer = UserPreferencesSerializer(),
+            scope = backgroundScope,
+            produceFile = { file },
+        )
+
         assertEquals(UserPreferences.getDefaultInstance(), dataStore.data.first())
+        assertTrue(BlockerPreferencesDataSource(dataStore).userData.first().enableStatistics)
     }
 
     @Test
@@ -82,7 +118,13 @@ class ProtoDataStoresTest {
             scope = backgroundScope,
             produceFile = { file },
         )
-        assertEquals(userPreferences { ruleCommitId = "abc" }, reopened.data.first())
+        assertEquals(
+            userPreferences {
+                ruleCommitId = "abc"
+                disableStatistics = true
+            },
+            reopened.data.first(),
+        )
     }
 
     @Test
