@@ -24,7 +24,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -32,21 +32,27 @@ import timber.log.Timber
 /**
  * What both transports share: the [state], one connect at a time, connecting before a call when
  * needed, and turning what a call threw into a [CallFailure] with [toCallFailure].
+ *
+ * [executeIfReady] on a channel nothing has tried to acquire yet first makes the attempt that
+ * cannot prompt, [connectIfGranted], or waits for the one already running, so a caller started
+ * in the background gets the privilege the user granted earlier.
  */
 internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
 
-    private val mutableState = MutableStateFlow<ChannelState>(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+    private val mutableState = MutableStateFlow<ChannelState>(NOT_CHECKED)
     override val state: StateFlow<ChannelState> = mutableState.asStateFlow()
 
+    // Held while acquiring, by connect and connectIfGranted alike; nothing that holds it calls them.
     private val connectLock = Mutex()
-
-    /** Whether [state] has ever been [ChannelState.Ready]. */
-    @Volatile
-    protected var hasBeenReady = false
-        private set
 
     /** Acquires the channel, which may show a permission prompt. Throws only cancellation. */
     protected abstract suspend fun acquire(): ChannelState
+
+    /**
+     * Acquires the channel only if that cannot show a prompt, and otherwise returns why it stays
+     * unavailable. Throws only cancellation.
+     */
+    protected abstract suspend fun acquireIfGranted(): ChannelState
 
     /**
      * Runs [call] through the channel. Returns the outcome when the other side of the channel
@@ -59,13 +65,26 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
         acquire().also { updateState { _ -> it } }
     }
 
+    override suspend fun connectIfGranted(): ChannelState {
+        (state.value as? ChannelState.Ready)?.let { return it }
+        return connectLock.withLock {
+            (state.value as? ChannelState.Ready) ?: acquireIfGranted().also { updateState { _ -> it } }
+        }
+    }
+
+    /** Makes the first attempt to acquire, without a prompt, or waits for the one running. */
+    private suspend fun checkOnce() {
+        connectLock.withLock {
+            if (state.value == NOT_CHECKED) acquireIfGranted().also { updateState { _ -> it } }
+        }
+    }
+
     /**
      * Changes [state] atomically with [transform], which may run more than once. Safe from any
      * thread and against a concurrent [connect]; whichever finishes last decides.
      */
     protected fun updateState(transform: (ChannelState) -> ChannelState) {
-        val updated = mutableState.updateAndGet(transform)
-        if (updated is ChannelState.Ready) hasBeenReady = true
+        mutableState.update(transform)
     }
 
     override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> {
@@ -74,6 +93,7 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
     }
 
     override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> {
+        if (state.value == NOT_CHECKED) checkOnce()
         val ready = state.value as? ChannelState.Ready
             ?: return CallResult.Failure(CallFailure.ChannelUnavailable)
         return try {
@@ -107,5 +127,9 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
             // Expected outcomes the caller handles; they say nothing about the channel.
             is CallFailure.NotPermitted, is CallFailure.TargetNotFound -> Unit
         }
+    }
+
+    private companion object {
+        val NOT_CHECKED = ChannelState.Unavailable(UnavailableReason.NOT_CHECKED)
     }
 }

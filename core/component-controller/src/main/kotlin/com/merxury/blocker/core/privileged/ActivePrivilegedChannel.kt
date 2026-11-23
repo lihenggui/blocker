@@ -32,12 +32,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -46,6 +49,11 @@ import javax.inject.Singleton
  * The channel for the controller type the user chose: the root transport for the types that work
  * through root, the Shizuku transport for Shizuku. It never falls back from one to the other.
  * When the choice changes, [state] follows the newly chosen transport.
+ *
+ * Each time the choice selects a transport, at process start and when the user switches between
+ * root and Shizuku, [scope] runs [connectIfGranted] on it, so work started in the background and
+ * the first screen get the privilege the user granted before, without a prompt. Switching between
+ * the types that share the root transport changes nothing to acquire.
  */
 @Singleton
 internal class ActivePrivilegedChannel(
@@ -74,11 +82,19 @@ internal class ActivePrivilegedChannel(
         .flatMapLatest { it?.state ?: flowOf(NOT_CHECKED) }
         .stateIn(scope, SharingStarted.Eagerly, NOT_CHECKED)
 
+    init {
+        // A newer choice cancels a quiet connect still running for the previous one.
+        scope.launch { selected.filterNotNull().collectLatest { it.connectIfGranted() } }
+    }
+
     override suspend fun connect(): ChannelState = current()?.connect() ?: ChannelState.Unavailable(UnavailableReason.FAILED)
+
+    override suspend fun connectIfGranted(): ChannelState = current()?.connectIfGranted() ?: ChannelState.Unavailable(UnavailableReason.FAILED)
 
     override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> = current()?.execute(call) ?: CallResult.Failure(CallFailure.ChannelUnavailable)
 
-    override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> = selected.value?.executeIfReady(call) ?: CallResult.Failure(CallFailure.ChannelUnavailable)
+    // Waits for the choice too: right after a cold start it may not have been read yet.
+    override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> = current()?.executeIfReady(call) ?: CallResult.Failure(CallFailure.ChannelUnavailable)
 
     /** The chosen transport, waiting for the first read of the choice. Null when it cannot be read. */
     private suspend fun current(): PrivilegedTransport? = selected.value ?: try {

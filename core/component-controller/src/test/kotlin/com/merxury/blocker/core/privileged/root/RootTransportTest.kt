@@ -50,7 +50,8 @@ class RootTransportTest {
 
     private val scope = TestScope()
     private val runner = FakeRootRunner()
-    private val transport = RootTransport(runner, StandardTestDispatcher(scope.testScheduler))
+    private val grants = FakeRootGrantMemory()
+    private val transport = RootTransport(runner, grants, StandardTestDispatcher(scope.testScheduler))
 
     @Test
     fun givenRootProcessRunsAsRoot_whenConnect_thenReadyRoot() = scope.runTest {
@@ -76,6 +77,86 @@ class RootTransportTest {
         runner.failures += NoShellException("denied")
 
         assertThat(transport.connect()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+    }
+
+    @Test
+    fun givenRootGranted_whenConnect_thenRemembered() = scope.runTest {
+        transport.connect()
+
+        assertThat(grants.remembered).isTrue()
+    }
+
+    @Test
+    fun givenRememberedAndSuRefuses_whenConnect_thenForgotten() = scope.runTest {
+        grants.remembered = true
+        runner.failures += NoShellException("denied")
+
+        transport.connect()
+
+        assertThat(grants.remembered).isFalse()
+    }
+
+    @Test
+    fun givenRememberedAndRootProcessNotUidZero_whenConnect_thenStillRemembered() = scope.runTest {
+        grants.remembered = true
+        runner.uid = 2000
+
+        transport.connect()
+
+        assertThat(grants.remembered).isTrue()
+    }
+
+    @Test
+    fun givenRemembered_whenConnectIfGranted_thenReadyRoot() = scope.runTest {
+        grants.remembered = true
+
+        assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        assertThat(runner.sent).isEqualTo(1)
+        assertThat(grants.remembered).isTrue()
+    }
+
+    @Test
+    fun givenNotRemembered_whenConnectIfGranted_thenDeniedWithoutStartingSu() = scope.runTest {
+        assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(runner.sent).isEqualTo(0)
+    }
+
+    @Test
+    fun givenRememberedButSuNowRefuses_whenConnectIfGranted_thenDeniedAndForgotten() = scope.runTest {
+        grants.remembered = true
+        runner.failures += NoShellException("denied")
+
+        assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(grants.remembered).isFalse()
+
+        assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(runner.sent).isEqualTo(1)
+    }
+
+    @Test
+    fun givenNotRemembered_whenExecuteIfReady_thenChannelUnavailableWithoutStartingSu() = scope.runTest {
+        assertThat(transport.executeIfReady(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(runner.sent).isEqualTo(0)
+    }
+
+    @Test
+    fun givenRemembered_whenExecuteIfReadyInNewProcess_thenConnectsQuietlyAndRuns() = scope.runTest {
+        grants.remembered = true
+
+        assertThat(transport.executeIfReady(CALL)).isEqualTo(CallResult.Success(Unit))
+        assertThat(runner.system.activityManager.forceStopped).hasSize(1)
+        assertThat(runner.sent).isEqualTo(2)
+    }
+
+    @Test
+    fun givenRootRevokedWhileReady_whenExecute_thenForgotten() = scope.runTest {
+        transport.connect()
+        runner.failures += NoShellException("denied")
+
+        transport.execute(CALL)
+
+        assertThat(grants.remembered).isFalse()
     }
 
     @Test
@@ -139,6 +220,16 @@ class RootTransportTest {
 
         assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("no")))
         assertThat(runner.sent).isEqualTo(2)
+    }
+}
+
+private class FakeRootGrantMemory : RootGrantMemory {
+    var remembered = false
+
+    override suspend fun isRemembered(): Boolean = remembered
+
+    override suspend fun remember(granted: Boolean) {
+        remembered = granted
     }
 }
 

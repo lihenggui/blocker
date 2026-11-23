@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.AppEnabledSetting
 import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
+import com.merxury.blocker.core.privileged.InMemoryRootGrantMemory
 import com.merxury.blocker.core.privileged.calls.SetApplicationEnabledSetting
 import com.merxury.blocker.core.privileged.connectedShizukuTransport
 import com.merxury.blocker.core.privileged.root.RootTransport
@@ -116,7 +117,7 @@ class AppControlDeviceTest {
     private fun connect(identity: PrivilegedIdentity) {
         assumeTrue(arguments.getString("appControlTest") == identity.name.lowercase())
         transport = if (identity == PrivilegedIdentity.ROOT && arguments.getString("rootVia") != "shizuku") {
-            RootTransport(BlockerRootSession(context), Dispatchers.IO).also {
+            RootTransport(BlockerRootSession(context), InMemoryRootGrantMemory(remembered = false), Dispatchers.IO).also {
                 assertEquals(ChannelState.Ready(identity), runBlocking { it.connect() })
             }
         } else {

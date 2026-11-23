@@ -23,4 +23,7 @@ message AppProperties {
   bool general_rule_database_initialized = 2;
   string last_opened_app_list_hash = 3;
   string last_opened_rule_hash = 4;
+  // Whether su last started a root process for Blocker. Set when a root connection succeeds and
+  // cleared when su refuses, so a connection that must not prompt tries su only when this is set.
+  bool root_grant_remembered = 5;
 }

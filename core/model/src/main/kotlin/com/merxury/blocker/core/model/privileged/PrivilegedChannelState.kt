@@ -62,7 +62,10 @@ enum class UnavailableReason {
     /** Shizuku or Sui is not running. */
     NOT_RUNNING,
 
-    /** The user refused the su or Shizuku request, or root is not installed. */
+    /**
+     * Not granted: the user refused the su or Shizuku request, root is not installed, or nothing
+     * has been granted yet and the channel was acquired without a prompt.
+     */
     DENIED,
 
     /** The running Shizuku is too old. */

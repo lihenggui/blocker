@@ -25,6 +25,12 @@ interface IShizukuInitializer {
     suspend fun registerShizuku(): RegisterShizukuResult
 
     /**
+     * Like [registerShizuku], but never asks: when the permission has not been granted it
+     * returns [RegisterShizukuResult.Denied] without showing a dialog. Waits only for the binder.
+     */
+    suspend fun registerShizukuIfGranted(): RegisterShizukuResult
+
+    /**
      * Suspends until Shizuku delivers its binder, with no timeout. Returns at once if the binder
      * is already there. Leaves no Shizuku listener behind, also when cancelled.
      */
