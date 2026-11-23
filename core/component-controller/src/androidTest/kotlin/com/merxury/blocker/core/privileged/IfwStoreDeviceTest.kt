@@ -112,7 +112,8 @@ class IfwStoreDeviceTest {
 
     @After
     fun removeRuleFile() = runBlocking<Unit> {
-        if (mode == "shell") return@runBlocking
+        // Without the instrumentation argument the setup is skipped and there is nothing to remove.
+        if (mode == "shell" || !::store.isInitialized) return@runBlocking
         store.update(self) { IfwRules.empty() }
     }
 

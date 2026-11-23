@@ -21,6 +21,7 @@ import android.content.Context
 import android.content.ServiceConnection
 import android.os.DeadObjectException
 import android.os.IBinder
+import android.os.Process
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.privileged.CallBytes
@@ -62,13 +63,19 @@ internal interface UserServiceConnector {
     fun unbind(connection: ServiceConnection, stop: Boolean)
 }
 
+private const val UIDS_PER_USER = 100_000
+
 internal class ShizukuUserServiceConnector @Inject constructor(
     @ApplicationContext context: Context,
 ) : UserServiceConnector {
+    // Shizuku keeps one service per package and tag for the whole device, and the service serves
+    // only the uid it was started for. A tag per Android user gives Blocker in a work profile its
+    // own service instead of the owner's, which would refuse it.
+    private val userId = Process.myUid() / UIDS_PER_USER
     private val args = Shizuku.UserServiceArgs(ComponentName(context, ShizukuPrivilegedService::class.java))
         .daemon(false)
-        .processNameSuffix("privileged")
-        .tag("privileged")
+        .processNameSuffix("privileged_u$userId")
+        .tag("privileged_u$userId")
         .version(SERVICE_VERSION)
 
     override fun serverVersion(): Int = Shizuku.getVersion()
