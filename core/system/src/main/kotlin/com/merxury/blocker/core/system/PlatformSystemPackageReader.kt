@@ -1,0 +1,243 @@
+/*
+ * Copyright 2026 Blocker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.merxury.blocker.core.system
+
+import android.content.ComponentName
+import android.content.pm.ApplicationInfo
+import android.content.pm.ComponentInfo
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
+import android.content.pm.PackageManager.NameNotFoundException
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.getVersionCode
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentDeclaration
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.system.AppEnabledSetting
+import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.model.system.InstalledApp
+import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.model.system.ReadResult
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
+import kotlin.time.Instant
+
+/** [SystemPackageReader] over [PlatformPackages]; it reaches the users [platform] reaches. */
+class PlatformSystemPackageReader @Inject constructor(
+    private val platform: PlatformPackages,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+) : SystemPackageReader {
+
+    override suspend fun users(): ReadResult<List<DeviceUser>> = read("users") {
+        ReadResult.Success(platform.users())
+    }
+
+    override suspend fun apps(user: UserId): ReadResult<List<InstalledApp>> = read("apps of user ${user.value}") {
+        val packages = platform.installedPackages(user)
+        ReadResult.Success(
+            packages.map { info ->
+                coroutineContext.ensureActive()
+                info.toInstalledApp(user)
+            },
+        )
+    }
+
+    override suspend fun app(key: AppKey): ReadResult<InstalledApp> = read("app $key") {
+        try {
+            ReadResult.Success(platform.packageInfo(key.packageName, 0, key.userId).toInstalledApp(key.userId))
+        } catch (e: NameNotFoundException) {
+            ReadResult.Failure(ReadFailure.PackageNotFound(key))
+        }
+    }
+
+    override suspend fun declarations(app: AppKey): ReadResult<List<ComponentDeclaration>> = read("components of $app") {
+        try {
+            val info = componentsInOneCall(app) ?: componentsByType(app) ?: componentsFromApk(app)
+            if (info == null) {
+                ReadResult.Failure(ReadFailure.ManifestUnreadable(app.packageName))
+            } else {
+                ReadResult.Success(info.declarations(app.packageName))
+            }
+        } catch (e: NameNotFoundException) {
+            ReadResult.Failure(ReadFailure.PackageNotFound(app))
+        }
+    }
+
+    override suspend fun pmSettings(
+        app: AppKey,
+        components: Collection<ComponentId>,
+    ): ReadResult<Map<ComponentId, PmSetting>> = read("component settings of $app") {
+        try {
+            // Without this a missing app would look like an app whose settings are all unreadable.
+            platform.packageInfo(app.packageName, 0, app.userId)
+            ReadResult.Success(
+                components.associateWith { id ->
+                    coroutineContext.ensureActive()
+                    pmSetting(id, app.userId)
+                },
+            )
+        } catch (e: NameNotFoundException) {
+            ReadResult.Failure(ReadFailure.PackageNotFound(app))
+        }
+    }
+
+    private suspend fun <T> read(what: String, block: suspend () -> ReadResult<T>): ReadResult<T> = withContext(ioDispatcher) {
+        try {
+            block()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: UserNotReachableException) {
+            ReadResult.Failure(ReadFailure.UserNotReachable(e.user))
+        } catch (e: RuntimeException) {
+            // PackageManager reports a dead or overloaded system as a bare RuntimeException.
+            Timber.e(e, "The system did not answer when reading $what")
+            ReadResult.Failure(ReadFailure.ChannelUnavailable)
+        }
+    }
+
+    /**
+     * The usual path. PackageManager has already resolved resource references such as
+     * `android:enabled="@bool/..."` and lists `activity-alias` entries among the activities.
+     * Returns null when the answer does not fit in one binder transaction, which happens for
+     * apps with thousands of components.
+     */
+    private fun componentsInOneCall(app: AppKey): PackageInfo? = try {
+        platform.packageInfo(app.packageName, ALL_COMPONENTS or MATCH_DISABLED, app.userId)
+    } catch (e: RuntimeException) {
+        Timber.w(e, "Cannot read the components of $app in one call")
+        null
+    }
+
+    /** One call per component type, each a smaller transaction. Null when one still fails. */
+    private fun componentsByType(app: AppKey): PackageInfo? = try {
+        val merged = PackageInfo()
+        merged.packageName = app.packageName
+        merged.activities = platform.packageInfo(app.packageName, GET_ACTIVITIES, app.userId).activities
+        merged.services = platform.packageInfo(app.packageName, GET_SERVICES, app.userId).services
+        merged.receivers = platform.packageInfo(app.packageName, GET_RECEIVERS, app.userId).receivers
+        merged.providers = platform.packageInfo(app.packageName, GET_PROVIDERS, app.userId).providers
+        merged
+    } catch (e: RuntimeException) {
+        Timber.w(e, "Cannot read the components of $app by type")
+        null
+    }
+
+    /**
+     * Parses the base APK in this process, which has no transaction limit. If the system does not
+     * answer here either, the [RuntimeException] reaches [read].
+     */
+    private fun componentsFromApk(app: AppKey): PackageInfo? {
+        val apkPath = platform.packageInfo(app.packageName, 0, app.userId).applicationInfo?.sourceDir
+        if (apkPath == null) {
+            Timber.e("No APK path for $app")
+            return null
+        }
+        val parsed = platform.archiveInfo(apkPath, ALL_COMPONENTS or MATCH_DISABLED)
+        if (parsed == null) Timber.e("Cannot parse $apkPath")
+        return parsed
+    }
+
+    private fun pmSetting(id: ComponentId, user: UserId): PmSetting = try {
+        when (platform.componentEnabledSetting(ComponentName(id.packageName, id.className), user)) {
+            PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> PmSetting.DEFAULT
+
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> PmSetting.ENABLED
+
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> PmSetting.DISABLED
+
+            // PackageManager refuses to store the app-only states for a component.
+            else -> PmSetting.UNKNOWN
+        }
+    } catch (e: IllegalArgumentException) {
+        // Older releases reject a name the installed app does not declare.
+        Timber.w(e, "No setting for ${id.flatten()}")
+        PmSetting.UNKNOWN
+    } catch (e: SecurityException) {
+        Timber.w(e, "Not allowed to read the setting of ${id.flatten()}")
+        PmSetting.UNKNOWN
+    }
+
+    private fun PackageInfo.toInstalledApp(user: UserId): InstalledApp {
+        val application: ApplicationInfo? = applicationInfo
+        return InstalledApp(
+            key = AppKey(packageName, user),
+            label = application?.let(platform::label) ?: packageName,
+            versionName = versionName.orEmpty(),
+            versionCode = getVersionCode(),
+            isSystem = application != null && application.flags and ApplicationInfo.FLAG_SYSTEM != 0,
+            enabledSetting = appEnabledSetting(packageName, user),
+            apkPath = application?.sourceDir,
+            firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
+            lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
+            minSdk = application?.minSdkVersion ?: 0,
+            targetSdk = application?.targetSdkVersion ?: 0,
+        )
+    }
+
+    private fun appEnabledSetting(packageName: String, user: UserId): AppEnabledSetting = try {
+        when (platform.applicationEnabledSetting(packageName, user)) {
+            PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> AppEnabledSetting.DEFAULT
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> AppEnabledSetting.ENABLED
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> AppEnabledSetting.DISABLED
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER -> AppEnabledSetting.DISABLED_USER
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED -> AppEnabledSetting.DISABLED_UNTIL_USED
+            else -> AppEnabledSetting.UNKNOWN
+        }
+    } catch (e: IllegalArgumentException) {
+        // The app was removed between listing it and asking for its setting.
+        Timber.w(e, "No enabled setting for $packageName")
+        AppEnabledSetting.UNKNOWN
+    }
+
+    private fun PackageInfo.declarations(packageName: String): List<ComponentDeclaration> = activities.declarations(packageName, ComponentType.ACTIVITY) +
+        services.declarations(packageName, ComponentType.SERVICE) +
+        receivers.declarations(packageName, ComponentType.RECEIVER) +
+        providers.declarations(packageName, ComponentType.PROVIDER)
+
+    private fun Array<out ComponentInfo>?.declarations(
+        packageName: String,
+        type: ComponentType,
+    ): List<ComponentDeclaration> = orEmpty().mapNotNull { info ->
+        // ComponentInfo.enabled is the manifest value; the per-user setting does not change it.
+        val id = try {
+            ComponentId(packageName, info.name)
+        } catch (e: IllegalArgumentException) {
+            Timber.e(e, "Skipping a component of $packageName with an unusable name")
+            return@mapNotNull null
+        }
+        ComponentDeclaration(id = id, type = type, exported = info.exported, enabledInManifest = info.enabled)
+    }
+
+    private companion object {
+        const val GET_ACTIVITIES = PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS
+        const val GET_SERVICES = PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS
+        const val GET_RECEIVERS = PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS
+        const val GET_PROVIDERS = PackageManager.GET_PROVIDERS or PackageManager.MATCH_DISABLED_COMPONENTS
+        const val MATCH_DISABLED = PackageManager.MATCH_DISABLED_COMPONENTS
+        const val ALL_COMPONENTS = PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or
+            PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
+    }
+}
