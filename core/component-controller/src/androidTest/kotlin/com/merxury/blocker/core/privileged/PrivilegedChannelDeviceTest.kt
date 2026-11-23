@@ -23,8 +23,6 @@ import android.os.Parcel
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.controllers.wake.WakeFixtureService
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
@@ -44,16 +42,12 @@ import com.merxury.blocker.core.privileged.calls.ListUsers
 import com.merxury.blocker.core.privileged.calls.SetApplicationEnabledSetting
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.privileged.root.RootTransport
-import com.merxury.blocker.core.privileged.shizuku.ShizukuSystemServices
 import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
-import com.merxury.blocker.core.privileged.shizuku.ShizukuUserService
-import com.merxury.blocker.core.privileged.shizuku.ShizukuUserServiceConnector
 import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformSystemPackageReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -62,11 +56,8 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.minutes
 
 private const val TAG = "PrivilegedChannelTest"
-
-private val SHIZUKU_WAIT = 2.minutes
 
 // CallReply sends larger outcomes through a pipe.
 private const val PIPED_ABOVE = 64 * 1024
@@ -78,8 +69,8 @@ private const val PIPED_ABOVE = 64 * 1024
  * Arguments: `privilegedRootTest=true` runs the root tests, through su granted to this test
  * package, or with `rootVia=shizuku` through a Shizuku server running as root, or with
  * `rootVia=shizuku-system` through one running as the system uid, which may change components too;
- * `privilegedShellTest=true` needs Shizuku started through adb with this package granted, and
- * waits for its binder, which may need a restart of Shizuku once the run has started;
+ * `privilegedShellTest=true` needs Shizuku started through adb; Shizuku must have been started
+ * after this package was granted, see [connectedShizukuTransport];
  * `otherUser=<id>` names a started profile or user that has this test package installed, for
  * example after `pm install-existing --user <id> <this package>`.
  */
@@ -103,8 +94,8 @@ class PrivilegedChannelDeviceTest {
     private fun rootTransport(): AbstractPrivilegedTransport {
         assumeTrue(arguments.getString("privilegedRootTest") == "true")
         when (arguments.getString("rootVia")) {
-            "shizuku" -> return shizukuTransport(PrivilegedIdentity.ROOT)
-            "shizuku-system" -> return shizukuTransport(PrivilegedIdentity.SYSTEM)
+            "shizuku" -> return connectedShizukuTransport(context, PrivilegedIdentity.ROOT)
+            "shizuku-system" -> return connectedShizukuTransport(context, PrivilegedIdentity.SYSTEM)
         }
         return RootTransport(BlockerRootSession(context), Dispatchers.IO).also {
             assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), runBlocking { it.connect() })
@@ -113,24 +104,7 @@ class PrivilegedChannelDeviceTest {
 
     private fun shellTransport(): ShizukuTransport {
         assumeTrue(arguments.getString("privilegedShellTest") == "true")
-        return shizukuTransport(PrivilegedIdentity.SHELL)
-    }
-
-    private fun shizukuTransport(expected: PrivilegedIdentity): ShizukuTransport {
-        val api = DefaultShizukuApi()
-        val initializer = ShizukuInitializer(api)
-        // Shizuku hands its binder to a granted app when the server starts, but not reliably to an
-        // instrumentation process started later; restarting the server during this wait sends it.
-        runBlocking { withTimeout(SHIZUKU_WAIT) { initializer.awaitBinder() } }
-        return ShizukuTransport(
-            initializer,
-            api,
-            ShizukuSystemServices(context),
-            ShizukuUserService(ShizukuUserServiceConnector(context)),
-            Dispatchers.IO,
-        ).also {
-            assertEquals(ChannelState.Ready(expected), runBlocking { it.connect() })
-        }
+        return connectedShizukuTransport(context, PrivilegedIdentity.SHELL)
     }
 
     @Test

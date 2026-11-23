@@ -7,5 +7,16 @@
         <activity
             android:name="com.merxury.blocker.core.privileged.IfwFixtureActivity"
             android:exported="true" />
+        <activity
+            android:name="com.merxury.blocker.core.control.ControlFixtureActivity"
+            android:exported="true" />
+        <activity
+            android:name="com.merxury.blocker.core.control.ControlFixtureDisabledActivity"
+            android:enabled="false"
+            android:exported="true" />
+        <provider
+            android:name="com.merxury.blocker.core.control.ControlFixtureProvider"
+            android:authorities="${applicationId}.controlfixture"
+            android:exported="false" />
     </application>
 </manifest>
