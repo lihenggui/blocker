@@ -30,6 +30,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.applist.AppListItem
+import com.merxury.blocker.core.ui.applist.toServiceCounts
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
@@ -113,7 +114,7 @@ class AppListItemScreenshotTests {
             versionCode = appItem.versionCode,
             isAppEnabled = appItem.isEnabled,
             isAppRunning = appItem.isRunning,
-            appServiceStatus = appItem.appServiceStatus,
+            serviceCounts = appItem.appServiceStatus?.toServiceCounts(),
         )
     }
 }

@@ -427,7 +427,7 @@ private fun PackageHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AppIcon(
-            info = group.packageInfo,
+            icon = group.packageInfo,
             modifier = Modifier.size(40.dp),
         )
         Spacer(modifier = Modifier.width(12.dp))

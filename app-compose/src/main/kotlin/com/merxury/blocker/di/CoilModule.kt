@@ -23,6 +23,8 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.addLastModifiedToFileCacheKey
 import coil3.svg.SvgDecoder
 import com.merxury.blocker.R
+import com.merxury.blocker.core.ui.coil.ApkIconFetcher
+import com.merxury.blocker.core.ui.coil.ApkIconKeyer
 import com.merxury.blocker.core.ui.coil.AppIconFetcher
 import com.merxury.blocker.core.ui.coil.AppIconKeyer
 import dagger.Module
@@ -58,6 +60,8 @@ object CoilModule {
                 add(SvgDecoder.Factory())
                 add(AppIconKeyer())
                 add(AppIconFetcher.Factory(iconSize, true, application))
+                add(ApkIconKeyer())
+                add(ApkIconFetcher.Factory(iconSize, true, application))
             }
             .build()
     }
