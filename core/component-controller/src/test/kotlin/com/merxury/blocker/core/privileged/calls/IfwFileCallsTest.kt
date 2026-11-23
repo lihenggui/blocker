@@ -48,6 +48,15 @@ class IfwFileCallsTest {
     }
 
     @Test
+    fun givenFileNotNamedAfterAPackage_whenCallCreated_thenAccepted() {
+        // The calls guard the file access only; which files are packages' is the caller's decision.
+        listOf("my-rules", "my rules", "1app").forEach { name ->
+            assertThat(ReadIfwRuleFile(name).packageName).isEqualTo(name)
+            assertThat(DeleteIfwRuleFile(name).packageName).isEqualTo(name)
+        }
+    }
+
+    @Test
     fun givenWakeFeatureFileName_whenCallCreated_thenRejected() {
         listOf("blocker-managed-wake", "blocker-wake-capability-probe", "blocker-managed-wake-com.other").forEach { name ->
             assertThrows(name, IllegalArgumentException::class.java) { ReplaceIfwRuleFile(name, "<rules/>") }

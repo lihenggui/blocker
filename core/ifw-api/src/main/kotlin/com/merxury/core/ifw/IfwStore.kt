@@ -109,8 +109,10 @@ interface IfwStore {
 
     /**
      * Packages that have a rule file, read from the directory listing alone, so a file that
-     * cannot be read is listed too. Files the wake feature manages are not package files and are
-     * left out. Fails with [IfwFailure.NoAccess] when the directory cannot be listed.
+     * cannot be read is listed too. Only files named after a package, as [isPackageRuleFileName]
+     * decides, are package files; others, such as a user's own `my-rules.xml` or the wake
+     * feature's files, are left out. Fails with [IfwFailure.NoAccess] when the directory cannot be
+     * listed.
      */
     suspend fun packagesWithRuleFiles(): IfwResult<List<String>>
 
@@ -121,8 +123,9 @@ interface IfwStore {
      * [blocks] remembers of the package and emits on [changes] when a file was removed. Fails
      * with [IfwFailure.NoAccess] or [IfwFailure.WriteFailed] as writes do.
      *
-     * @throws IllegalArgumentException when [packageName] is not a package's rule file name, such
-     * as one of the wake feature's files
+     * @throws IllegalArgumentException when [packageName] is not a package name, as
+     * [isPackageRuleFileName] decides; a user's own file or one of the wake feature's files is
+     * never cleared
      */
     suspend fun clear(packageName: String): IfwResult<Boolean>
 

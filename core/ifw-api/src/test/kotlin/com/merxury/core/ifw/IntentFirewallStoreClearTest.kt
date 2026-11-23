@@ -115,6 +115,27 @@ class IntentFirewallStoreClearTest {
     }
 
     @Test
+    fun givenFileNotNamedAfterAPackage_whenClear_thenIllegalArgumentAndFileKept() {
+        fileSystem.putFile("my-rules", LEGACY_XML)
+
+        listOf("my-rules", "my rules", "1app").forEach { name ->
+            assertThrows(name, IllegalArgumentException::class.java) {
+                runBlocking { store.clear(name) }
+            }
+        }
+        assertThat(fileSystem.fileContent("my-rules")).isEqualTo(LEGACY_XML)
+        assertThat(fileSystem.operations).isEmpty()
+    }
+
+    @Test
+    fun givenSingleSegmentPackage_whenClear_thenDeleted() = runTest {
+        fileSystem.putFile("android", LEGACY_XML)
+
+        assertThat(store.clear("android")).isEqualTo(IfwResult.Success(true))
+        assertThat(fileSystem.fileContent("android")).isNull()
+    }
+
+    @Test
     fun givenNoAccess_whenClear_thenNoAccessAndFileKept() = runTest {
         fileSystem.putFile(PKG, LEGACY_XML)
         fileSystem.noAccess = true
@@ -174,17 +195,21 @@ class IntentFirewallStoreClearTest {
     }
 
     @Test
-    fun givenDamagedAndWakeFiles_whenPackagesWithRuleFiles_thenEveryPackageWithoutReadingAndNoWakeFile() = runTest {
+    fun givenDamagedWakeAndCustomFiles_whenPackagesWithRuleFiles_thenEveryPackageWithoutReadingAndNoOtherFile() = runTest {
         fileSystem.putFile(PKG, LEGACY_XML)
         fileSystem.putFile("com.broken", DAMAGED_XML)
         fileSystem.putFile("com.locked", "<rules />")
         fileSystem.unreadablePackages += "com.locked"
         fileSystem.putFile(WAKE_FILE, CONDITIONAL_MAIN_XML)
         fileSystem.putFile("blocker-wake-capability-probe", CONDITIONAL_MAIN_XML)
+        fileSystem.putFile("android", LEGACY_XML)
+        fileSystem.putFile("my-rules", LEGACY_XML)
+        fileSystem.putFile("my rules", LEGACY_XML)
+        fileSystem.putFile("1app", LEGACY_XML)
 
         val packages = store.packagesWithRuleFiles()
 
-        assertThat((packages as IfwResult.Success).value).containsExactly(PKG, "com.broken", "com.locked")
+        assertThat((packages as IfwResult.Success).value).containsExactly(PKG, "com.broken", "com.locked", "android")
         assertThat(fileSystem.operations).containsExactly("list")
     }
 }

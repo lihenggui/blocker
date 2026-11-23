@@ -56,7 +56,10 @@ internal class ChannelIfwFileSystem @Inject constructor(
 
     override suspend fun fileExists(packageName: String): Boolean = readRules(packageName) != null
 
-    /** The packages that have a rule file, without the files the wake feature manages. */
+    /**
+     * The packages that have a rule file: only files named after a package, without a user's own
+     * files or the files the wake feature manages.
+     */
     override suspend fun listRuleFiles(): List<String> = executor.execute(ListIfwRuleFiles).getOrThrow("list the rule files")
         .filter(::isPackageRuleFileName)
 

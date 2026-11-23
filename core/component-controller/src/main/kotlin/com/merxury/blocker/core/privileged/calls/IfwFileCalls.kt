@@ -23,7 +23,7 @@ import com.merxury.blocker.core.privileged.PrivilegedAction
 import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.SystemServices
 import com.merxury.core.ifw.IfwStorageUtils
-import com.merxury.core.ifw.isPackageRuleFileName
+import com.merxury.core.ifw.isSafeRuleFileName
 import com.merxury.core.ifw.replaceIfwFile
 import kotlinx.parcelize.Parcelize
 import java.io.File
@@ -78,8 +78,9 @@ internal data class DeleteIfwRuleFile(val packageName: String) : PrivilegedCall<
 }
 
 /**
- * The names, without `.xml`, of every rule file in the directory, including the wake feature's;
- * callers leave out what [isPackageRuleFileName] rejects.
+ * The names, without `.xml`, of every rule file in the directory, including the wake feature's
+ * and files not named after a package; callers keep what they treat as package files, see
+ * [com.merxury.core.ifw.isPackageRuleFileName].
  */
 @Parcelize
 internal data object ListIfwRuleFiles : PrivilegedCall<List<String>> {
@@ -89,7 +90,8 @@ internal data object ListIfwRuleFiles : PrivilegedCall<List<String>> {
 }
 
 private fun requireRuleFileName(packageName: String) {
-    require(isPackageRuleFileName(packageName)) { "Not a package rule file name: $packageName" }
+    // Guards the file access only; which names count as packages is the caller's decision.
+    require(isSafeRuleFileName(packageName)) { "Not a rule file name Blocker may open: $packageName" }
 }
 
 /**

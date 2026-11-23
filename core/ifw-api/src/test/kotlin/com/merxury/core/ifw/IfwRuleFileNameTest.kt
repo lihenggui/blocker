@@ -22,26 +22,39 @@ import org.junit.Test
 class IfwRuleFileNameTest {
 
     @Test
-    fun givenPackageNames_whenChecked_thenAccepted() {
-        listOf("com.example", "a", "com.example_1.app", "android").forEach {
+    fun givenPackageNames_whenChecked_thenPackageAndSafeFiles() {
+        listOf("com.example", "a", "com.example_1.app", "android", "Com.Example").forEach {
             assertWithMessage(it).that(isPackageRuleFileName(it)).isTrue()
+            assertWithMessage(it).that(isSafeRuleFileName(it)).isTrue()
         }
     }
 
     @Test
-    fun givenNamesThatLeaveTheDirectoryOrHide_whenChecked_thenRejected() {
+    fun givenNamesThatAreNotPackages_whenChecked_thenSafeButNotPackageFiles() {
+        listOf("my-rules", "my rules", "1app", "com.1app", "_x", "com._x", "com.", "com.example.xml.bak-1", "é").forEach {
+            assertWithMessage(it).that(isPackageRuleFileName(it)).isFalse()
+            assertWithMessage(it).that(isSafeRuleFileName(it)).isTrue()
+        }
+    }
+
+    @Test
+    fun givenNamesThatLeaveTheDirectoryOrHide_whenChecked_thenRejectedByBoth() {
         listOf("", ".", "..", "../x", "a/b", "/abs", "com..x", ".blocker-ifw-1", "a\u0000b").forEach {
             assertWithMessage(it).that(isPackageRuleFileName(it)).isFalse()
+            assertWithMessage(it).that(isSafeRuleFileName(it)).isFalse()
         }
     }
 
     @Test
-    fun givenWakeFeatureFiles_whenChecked_thenRejected() {
+    fun givenWakeFeatureFiles_whenChecked_thenRejectedByBoth() {
         listOf(
             "blocker-managed-wake",
             "blocker-wake-capability-probe",
             "blocker-managed-wake-com.merxury.blocker.debug",
             "blocker-wake-capability-probe-com.merxury.blocker.debug",
-        ).forEach { assertWithMessage(it).that(isPackageRuleFileName(it)).isFalse() }
+        ).forEach {
+            assertWithMessage(it).that(isPackageRuleFileName(it)).isFalse()
+            assertWithMessage(it).that(isSafeRuleFileName(it)).isFalse()
+        }
     }
 }
