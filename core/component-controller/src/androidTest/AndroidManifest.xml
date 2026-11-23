@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application>
         <service
             android:name="com.merxury.blocker.core.controllers.wake.WakeFixtureService"
@@ -18,5 +19,10 @@
             android:name="com.merxury.blocker.core.control.ControlFixtureProvider"
             android:authorities="${applicationId}.controlfixture"
             android:exported="false" />
+        <service
+            android:name="com.merxury.blocker.core.appcontrol.AppControlFixtureService"
+            android:exported="true"
+            android:process=":app_control_fixture"
+            tools:ignore="ExportedService" />
     </application>
 </manifest>

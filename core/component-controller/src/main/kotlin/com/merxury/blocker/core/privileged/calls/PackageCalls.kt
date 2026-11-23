@@ -134,7 +134,8 @@ internal fun packageInfo(system: SystemServices, packageName: String, flags: Int
     system.packageManager.getPackageInfo(packageName, flags, user.value)
 }
 
-private fun requireUser(system: SystemServices, user: UserId) {
+/** @throws IllegalArgumentException when [user] does not exist */
+internal fun requireUser(system: SystemServices, user: UserId) {
     requireNotNull(system.userManager.getUserInfo(user.value)) { "No user ${user.value}" }
 }
 

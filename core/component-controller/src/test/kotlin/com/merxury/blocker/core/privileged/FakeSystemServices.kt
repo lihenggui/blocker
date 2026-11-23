@@ -37,6 +37,7 @@ internal class FakeSystemServices : SystemServices {
     override val packageManager = FakePackageManager()
     override val activityManager = FakeActivityManager()
     override val userManager = FakeUserManager()
+    override val packageInstaller = FakePackageInstaller()
     override val callerPackage = "com.merxury.blocker.test"
 }
 
@@ -48,6 +49,9 @@ internal class FakePackageManager : IPackageManager {
 
     /** Names the system rejects, as releases before Android 14 do for undeclared components. */
     val rejectedComponents = mutableSetOf<ComponentName>()
+
+    /** Accepts app setting changes without storing them, so a read back shows the old value. */
+    var ignoreAppSettingChanges = false
 
     /** Thrown by every call when set, as a dead or refusing system would. */
     var failure: Exception? = null
@@ -137,7 +141,7 @@ internal class FakePackageManager : IPackageManager {
     ) {
         check()
         changes += "setApplicationEnabledSetting/$callingPackage"
-        appSettings[packageName to userId] = newState
+        if (!ignoreAppSettingChanges) appSettings[packageName to userId] = newState
     }
 
     override fun getPackageInstaller(): IPackageInstaller = unused()
@@ -145,7 +149,16 @@ internal class FakePackageManager : IPackageManager {
     override fun deletePackageAsUser(packageName: String, observer: IPackageDeleteObserver, flags: Int, userId: Int) = unused()
     override fun clearApplicationUserData(packageName: String, observer: IPackageDataObserver, userId: Int) = unused()
     override fun deleteApplicationCacheFiles(packageName: String, observer: IPackageDataObserver) = unused()
-    override fun deleteApplicationCacheFilesAsUser(packageName: String, userId: Int, observer: IPackageDataObserver) = unused()
+
+    /** What clearing a cache reports: success, failure, or null for no answer, as the shell gets. */
+    var cacheReply: Boolean? = true
+    val cacheCleared = mutableListOf<Pair<String, Int>>()
+
+    override fun deleteApplicationCacheFilesAsUser(packageName: String, userId: Int, observer: IPackageDataObserver) {
+        check()
+        cacheCleared += packageName to userId
+        cacheReply?.let { observer.onRemoveCompleted(packageName, it) }
+    }
     override fun asBinder(): IBinder = unused()
 }
 
@@ -161,10 +174,38 @@ internal class FakeActivityManager : IActivityManager {
 
     override fun isUserRunning(userId: Int, flags: Int): Boolean = userId in runningUsers
 
-    override fun getRunningAppProcesses(): List<ActivityManager.RunningAppProcessInfo> = unused()
-    override fun getServices(maxNum: Int, flags: Int): List<ActivityManager.RunningServiceInfo> = unused()
+    val processes = mutableListOf<ActivityManager.RunningAppProcessInfo>()
+    val services = mutableListOf<ActivityManager.RunningServiceInfo>()
+    var maxServicesAsked = 0
+
+    override fun getRunningAppProcesses(): List<ActivityManager.RunningAppProcessInfo> = processes
+
+    override fun getServices(maxNum: Int, flags: Int): List<ActivityManager.RunningServiceInfo> {
+        maxServicesAsked = maxNum
+        return services.take(maxNum)
+    }
+
     override fun killBackgroundProcesses(packageName: String) = unused()
     override fun getMemoryInfo(outInfo: ActivityManager.MemoryInfo) = unused()
+
+    /** What startService answers; null starts the service and answers its name. */
+    var startAnswer: ComponentName? = null
+    var startAnswersNull = false
+
+    /** Each startService and stopService by argument count, with the component and user. */
+    val serviceCalls = mutableListOf<String>()
+
+    override fun startService(caller: IApplicationThread?, service: Intent, resolvedType: String?, callingPackage: String, userId: Int): ComponentName? = started(5, service, userId)
+
+    override fun startService(
+        caller: IApplicationThread?,
+        service: Intent,
+        resolvedType: String?,
+        requireForeground: Boolean,
+        callingPackage: String,
+        userId: Int,
+    ): ComponentName? = started(6, service, userId)
+
     override fun startService(
         caller: IApplicationThread?,
         service: Intent,
@@ -173,9 +214,45 @@ internal class FakeActivityManager : IActivityManager {
         callingPackage: String,
         callingFeatureId: String?,
         userId: Int,
-    ): ComponentName = unused()
+    ): ComponentName? = started(7, service, userId)
 
-    override fun stopService(caller: IApplicationThread?, service: Intent, resolvedType: String?, userId: Int): Int = unused()
+    private fun started(arity: Int, service: Intent, userId: Int): ComponentName? {
+        failure?.let { throw it }
+        serviceCalls += "start$arity ${service.component!!.flattenToShortString()} $userId"
+        return if (startAnswersNull) null else startAnswer ?: service.component
+    }
+
+    /** What stopService answers: 1 stopped, 0 not running, -1 not accessible. */
+    var stopAnswer = 1
+
+    override fun stopService(caller: IApplicationThread?, service: Intent, resolvedType: String?, userId: Int): Int {
+        failure?.let { throw it }
+        serviceCalls += "stop ${service.component!!.flattenToShortString()} $userId"
+        return stopAnswer
+    }
+
+    /** Whether clearApplicationUserData accepts the package, and what it then reports, or null for no answer. */
+    var clearDataAccepted = true
+    var clearDataReply: Boolean? = true
+
+    /** Each clearApplicationUserData by argument count, with the package and user. */
+    val dataCleared = mutableListOf<String>()
+
+    override fun clearApplicationUserData(packageName: String, observer: IPackageDataObserver, userId: Int): Boolean = clearData(3, packageName, observer, userId)
+
+    override fun clearApplicationUserData(packageName: String, keepState: Boolean, observer: IPackageDataObserver, userId: Int): Boolean = clearData(4, packageName, observer, userId)
+
+    private fun clearData(arity: Int, packageName: String, observer: IPackageDataObserver, userId: Int): Boolean {
+        failure?.let { throw it }
+        dataCleared += "$arity $packageName $userId"
+        if (!clearDataAccepted) {
+            observer.onRemoveCompleted(packageName, false)
+            return false
+        }
+        clearDataReply?.let { observer.onRemoveCompleted(packageName, it) }
+        return true
+    }
+
     override fun asBinder(): IBinder = unused()
 }
 
