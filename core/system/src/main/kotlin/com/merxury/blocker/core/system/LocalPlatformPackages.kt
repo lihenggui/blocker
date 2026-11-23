@@ -106,7 +106,7 @@ class LocalPlatformPackages @Inject constructor(
                 pm.getComponentEnabledSetting(ComponentName(packageName, className))
                     .takeIf { it in COMPONENT_SETTINGS }
             } catch (e: IllegalArgumentException) {
-                // Older releases reject a name the installed app does not declare.
+                // Android 9 and 14 answer DEFAULT for an undeclared name; this covers a release that refuses.
                 Timber.w(e, "No setting for $packageName/$className")
                 null
             }

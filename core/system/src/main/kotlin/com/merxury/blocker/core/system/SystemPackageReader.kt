@@ -50,9 +50,9 @@ interface SystemPackageReader {
      * The PackageManager setting of each of [components] for the user of [app]. A component whose
      * setting cannot be read is [PmSetting.UNKNOWN]; the result has an entry for every component.
      *
-     * Pass components from [declarations]. For a name the app does not declare, recent Android
-     * answers [PmSetting.DEFAULT] and older releases refuse, which gives [PmSetting.UNKNOWN]. A
-     * component of another package is [PmSetting.UNKNOWN].
+     * Pass components from [declarations]. For a name the app does not declare, Android answers
+     * [PmSetting.DEFAULT] (seen on Android 9 and 14), so the answer does not show that the
+     * component exists. A component of another package is [PmSetting.UNKNOWN].
      */
     suspend fun pmSettings(
         app: AppKey,

@@ -88,7 +88,7 @@ class LocalSystemPackageReaderDeviceTest {
 
     @Test
     fun givenComponentNotInManifest_whenReadPmSettings_thenNoOverrideReported() = runTest {
-        // Android 14 answers DEFAULT for a name the app does not declare; older releases reject it.
+        // Android 9 and 14 answer DEFAULT for a name the app does not declare; a release may refuse.
         val setting = readSetting(ComponentId(self.packageName, "$FIXTURE.Missing"))
 
         assertTrue(setting == PmSetting.DEFAULT || setting == PmSetting.UNKNOWN, "was $setting")

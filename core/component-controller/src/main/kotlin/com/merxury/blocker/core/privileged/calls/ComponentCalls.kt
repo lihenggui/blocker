@@ -54,7 +54,7 @@ internal data class ComponentEnabledSettings(
                 system.packageManager.getComponentEnabledSetting(ComponentName(packageName, className), user.value)
                     .takeIf { it in COMPONENT_SETTINGS }
             } catch (_: IllegalArgumentException) {
-                // Releases before Android 14 reject a name the app does not declare.
+                // Android 9 and 14 answer DEFAULT for an undeclared name; this covers a release that refuses.
                 null
             }
         }
