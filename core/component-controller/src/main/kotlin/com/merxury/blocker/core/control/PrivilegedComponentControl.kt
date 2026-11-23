@@ -50,11 +50,8 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -63,7 +60,8 @@ private typealias Failures = MutableMap<ComponentId, MutableMap<ControlLayer, Co
 
 /**
  * [ComponentControl] over the privileged channel, the system reader and the Intent Firewall
- * store. One instance serves the process, so its package locks are shared by every request.
+ * store. Each package is changed under its lock in [locks], which every request and the wake
+ * feature share.
  */
 @Singleton
 internal class PrivilegedComponentControl @Inject constructor(
@@ -71,9 +69,8 @@ internal class PrivilegedComponentControl @Inject constructor(
     private val executor: PrivilegedExecutor,
     private val reader: SystemPackageReader,
     private val ifwStore: IfwStore,
+    private val locks: PackageLocks,
 ) : ComponentControl {
-
-    private val locks = ConcurrentHashMap<String, Mutex>()
 
     override suspend fun state(app: AppKey, components: Collection<ComponentDeclaration>): Map<ComponentId, ControlState> = readState(app, components.distinctBy { it.id })
 
@@ -87,7 +84,7 @@ internal class PrivilegedComponentControl @Inject constructor(
         packages.forEach { (packageName, components) ->
             currentCoroutineContext().ensureActive()
             val app = AppKey(packageName, request.user)
-            val outcomes = locks.computeIfAbsent(packageName) { Mutex() }.withLock { controlPackage(app, components, request) }
+            val outcomes = locks.withLock(packageName) { controlPackage(app, components, request) }
             results += outcomes.map { it.result }
             emit(ControlEvent.PackageDone(packageName, outcomes))
         }

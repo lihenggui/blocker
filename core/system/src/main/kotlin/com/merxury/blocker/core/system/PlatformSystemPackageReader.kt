@@ -181,6 +181,7 @@ class PlatformSystemPackageReader @Inject constructor(
         val application: ApplicationInfo? = applicationInfo
         return InstalledApp(
             key = AppKey(packageName, user),
+            uid = application?.uid,
             label = application?.let(platform::label) ?: packageName,
             versionName = versionName.orEmpty(),
             versionCode = getVersionCode(),

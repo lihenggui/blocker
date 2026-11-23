@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
@@ -72,6 +73,7 @@ internal fun installedApp(
     enabledSetting: AppEnabledSetting = AppEnabledSetting.DEFAULT,
 ) = InstalledApp(
     key = AppKey(packageName, user),
+    uid = 10_000 + user.value * 100_000,
     label = "Label of $packageName",
     versionName = "1.0",
     versionCode = 1,
@@ -212,4 +214,6 @@ internal class FakeAppControl(private val system: FakeSystem) : AppControl {
     override suspend fun clearData(app: AppKey): CallResult<Unit> = error("Not used")
 
     override suspend fun runningPackages(user: UserId): CallResult<Set<String>> = error("Not used")
+
+    override suspend fun startActivity(key: ComponentKey): CallResult<Unit> = error("Not used")
 }

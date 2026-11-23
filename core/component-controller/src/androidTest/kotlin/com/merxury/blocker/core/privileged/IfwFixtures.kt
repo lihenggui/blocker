@@ -37,6 +37,14 @@ class IfwFixtureActivity : Activity() {
     }
 }
 
+/** An activity that is not exported, which only root and the system uid may start; finishes at once. */
+class HiddenFixtureActivity : Activity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        finish()
+    }
+}
+
 /** Mode, owner, group and SELinux label of a package's rule file and of the directory, read where the call runs. */
 @Parcelize
 internal data class StatIfwRuleFile(val packageName: String) : PrivilegedCall<String> {

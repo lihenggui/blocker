@@ -1,0 +1,196 @@
+/*
+ * Copyright 2026 Blocker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.merxury.blocker.core.privileged.calls
+
+import android.os.Parcel
+import android.os.Process
+import com.merxury.blocker.core.controllers.wake.WakeCommand
+import com.merxury.blocker.core.controllers.wake.readComponentJournal
+import com.merxury.blocker.core.controllers.wake.requireComponentJournal
+import com.merxury.blocker.core.controllers.wake.writeComponentJournal
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.privileged.PrivilegedAction
+import com.merxury.blocker.core.privileged.PrivilegedCall
+import com.merxury.blocker.core.privileged.SystemServices
+import com.merxury.blocker.core.privileged.UserIdParceler
+import com.merxury.core.ifw.WakeRuleFileKind
+import com.merxury.core.ifw.isWakePackageName
+import com.merxury.core.ifw.removeWakeRuleTarget
+import com.merxury.core.ifw.wakeRuleFileName
+import com.merxury.core.ifw.writeWakeRuleFile
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.TypeParceler
+import java.io.ByteArrayOutputStream
+
+// The uid range of one Android user: a uid is the user id times this plus the app id.
+private const val UIDS_PER_USER = 100_000
+
+/*
+ * The calls the wake feature makes. Each takes typed values only, never shell text or a path:
+ * the command line comes from WakeCommand and the file names from the owner package, which each
+ * call checks again when it is created in the privileged process.
+ */
+
+/**
+ * The stdout of [command] for [user], run inside the privileged process, as root, the system uid
+ * or the shell, without `su`. The process is killed after 12 seconds, output above 12 MiB fails
+ * the call and stderr is dropped. [WakeCommand.INSTALL] reads its statsd config from stdin; the
+ * config is built here from the id that [appUid] and [boot] give and is owned by the privileged
+ * process's uid.
+ *
+ * The shell may run every command, so this does not need system files. [WakeCommand.DRAIN]
+ * deletes the report it returns and is therefore not [retryable].
+ *
+ * @param appUid Blocker's uid, which with [boot] names Blocker's statsd config
+ * @param boot the boot count, the other part of the config id
+ * @param argument the resume point of [WakeCommand.EVENTS] in epoch milliseconds, or the index of
+ * [WakeCommand.PROCSTATS_LAST]; ignored by the other commands
+ * @throws IllegalArgumentException when [appUid] is not an app's uid, or [user] or [argument] is
+ * out of range for [command]
+ */
+@Parcelize
+@TypeParceler<UserId, UserIdParceler>
+internal data class ReadWakeSource(
+    val command: WakeCommand,
+    val user: UserId,
+    val appUid: Int,
+    val boot: Int,
+    val argument: Long = 0,
+) : PrivilegedCall<ByteArray> {
+    init {
+        require(appUid >= 0 && appUid % UIDS_PER_USER in Process.FIRST_APPLICATION_UID..Process.LAST_APPLICATION_UID) { "Not an app uid: $appUid" }
+        processCommand()
+    }
+
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override val needsSystemFiles: Boolean get() = false
+
+    override val retryable: Boolean get() = command != WakeCommand.DRAIN
+
+    /** What the privileged process starts; it never goes through `su`. */
+    fun processCommand(): List<String> = command.processCommand(user.value, root = false, appUid, boot, argument)
+
+    override fun run(system: SystemServices): ByteArray {
+        val output = ByteArrayOutputStream()
+        command.execute(user.value, root = false, appUid, boot, argument, output)
+        return output.toByteArray()
+    }
+
+    override fun writeResult(result: ByteArray, parcel: Parcel) {
+        parcel.writeByteArray(result)
+    }
+
+    override fun readResult(parcel: Parcel): ByteArray = checkNotNull(parcel.createByteArray())
+}
+
+/**
+ * Replaces [owner]'s [kind] wake rule file in the Intent Firewall directory with [xml], so the
+ * system only ever reads the old or the new file. Writing the content the file already holds
+ * changes nothing. These files stay outside `IfwStore`, which leaves them out by design.
+ *
+ * @param owner the package name Blocker is installed under, which names the file
+ */
+@Parcelize
+internal data class ReplaceWakeRuleFile(
+    val owner: String,
+    val kind: WakeRuleFileKind,
+    val xml: String,
+) : PrivilegedAction {
+    init {
+        wakeRuleFileName(owner, kind)
+    }
+
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override fun run(system: SystemServices) = writeWakeRuleFile(owner, kind, xml)
+
+    // The content can be long and says nothing a log needs.
+    override fun toString(): String = "ReplaceWakeRuleFile($owner, $kind, ${xml.length} chars)"
+}
+
+/** Deletes [owner]'s [kind] wake rule file; a missing file is already deleted. */
+@Parcelize
+internal data class DeleteWakeRuleFile(
+    val owner: String,
+    val kind: WakeRuleFileKind,
+) : PrivilegedAction {
+    init {
+        wakeRuleFileName(owner, kind)
+    }
+
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override fun run(system: SystemServices) = writeWakeRuleFile(owner, kind, xml = null)
+}
+
+/**
+ * Removes the rules for services of package [target] from [owner]'s [kind] wake rule file, and
+ * the file once no rule is left. A missing file, or one without such rules, stays as it is.
+ */
+@Parcelize
+internal data class RemoveWakeRuleTarget(
+    val owner: String,
+    val kind: WakeRuleFileKind,
+    val target: String,
+) : PrivilegedAction {
+    init {
+        wakeRuleFileName(owner, kind)
+        require(isWakePackageName(target)) { "Not a package name: $target" }
+    }
+
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override fun run(system: SystemServices) = removeWakeRuleTarget(owner, kind, target)
+}
+
+/**
+ * The wake feature's component journal of [owner], `/data/system/blocker-wake-<owner>.json`, or
+ * null when there is none.
+ *
+ * @throws IllegalStateException in the privileged process when the file is empty or larger than
+ * 256 KiB, which becomes a system error
+ */
+@Parcelize
+internal data class ReadWakeJournal(val owner: String) : PrivilegedCall<String?> {
+    init {
+        requireComponentJournal(owner)
+    }
+
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override fun run(system: SystemServices): String? = readComponentJournal(owner)
+}
+
+/**
+ * Replaces [owner]'s component journal with [contents]: a file only its owner may read or write,
+ * renamed over the old one and the directory synced, so after a crash it is the old or the new.
+ *
+ * @throws IllegalArgumentException when [contents] is empty or larger than 256 KiB
+ */
+@Parcelize
+internal data class ReplaceWakeJournal(val owner: String, val contents: String) : PrivilegedAction {
+    init {
+        requireComponentJournal(owner, contents)
+    }
+
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override fun run(system: SystemServices) = writeComponentJournal(owner, contents)
+
+    override fun toString(): String = "ReplaceWakeJournal($owner, ${contents.length} chars)"
+}

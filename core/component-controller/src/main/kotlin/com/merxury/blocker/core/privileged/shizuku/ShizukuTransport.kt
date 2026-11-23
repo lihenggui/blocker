@@ -42,6 +42,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 import timber.log.Timber
@@ -55,9 +56,10 @@ import javax.inject.Singleton
  * Connecting asks for the Shizuku permission when it has not been granted yet; connecting without
  * a prompt waits briefly for the binder and leaves the channel [UnavailableReason.DENIED] instead.
  *
- * A call that [PrivilegedCall.needsPrivilegedProcess] runs in [ShizukuUserService] instead, and
- * only when the server's identity can write system files, as root or the system uid; as the shell
- * it fails with [CallFailure.NotPermitted] and starts nothing.
+ * A call that [PrivilegedCall.needsPrivilegedProcess] runs in [ShizukuUserService] instead. One
+ * that [PrivilegedCall.needsSystemFiles] runs only when the server's identity can write system
+ * files, as root or the system uid; as the shell it fails with [CallFailure.NotPermitted] and
+ * starts nothing.
  *
  * Shizuku's binder events keep [state] current without a prompt: when the binder dies a ready
  * channel becomes [UnavailableReason.NOT_RUNNING], and when a new binder arrives a channel that is
@@ -111,7 +113,7 @@ internal class ShizukuTransport(
         if (!shizuku.pingBinder()) throw ChannelLostException(UnavailableReason.NOT_RUNNING, "Shizuku is not running")
         val inProcess = !call.needsPrivilegedProcess
         val identity = (state.value as? ChannelState.Ready)?.identity
-        if (!inProcess && identity?.canWriteSystemFiles != true) {
+        if (call.needsSystemFiles && identity?.canWriteSystemFiles != true) {
             return@withContext CallResult.Failure(CallFailure.NotPermitted("$call needs Shizuku running as root or system, not $identity"))
         }
         try {
@@ -190,6 +192,8 @@ internal class ShizukuSystemServices @Inject constructor(
     }
 
     override val callerPackage: String get() = context.packageName
+
+    override val callerUid: Int get() = Shizuku.getUid()
 
     private fun service(name: String) = ShizukuBinderWrapper(
         checkNotNull(SystemServiceHelper.getSystemService(name)) { "No $name service" },

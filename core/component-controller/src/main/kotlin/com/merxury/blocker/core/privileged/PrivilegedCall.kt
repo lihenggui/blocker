@@ -43,6 +43,9 @@ internal interface SystemServices {
 
     /** What to pass where the system asks for the calling package. */
     val callerPackage: String
+
+    /** The uid the system sees as the caller: 0 for root, 1000 for system, 2000 for the shell. */
+    val callerUid: Int
 }
 
 /**
@@ -54,17 +57,35 @@ internal interface SystemServices {
  * [run] blocks and throws what the system throws. It addresses its user explicitly and never
  * takes one from a Context.
  *
- * A call must be safe to run twice. When the root process goes away during a call, the root
- * transport sends it again on a new process, and the first attempt may already have reached the
- * system. Reads and setting a value to a fixed state are; anything that adds or toggles is not.
+ * A call must be safe to run twice unless [retryable] is false. When the root process goes away
+ * during a call, the root transport sends a retryable call again on a new process, and the first
+ * attempt may already have reached the system. Reads and setting a value to a fixed state are
+ * safe; anything that adds, toggles or consumes what it reads is not.
  */
 internal interface PrivilegedCall<R> : Parcelable {
     /**
      * Whether [run] must itself run with the channel's identity, for example to open files under
-     * `/data/system`, rather than only talk to system services through [SystemServices]. Such a
-     * call runs in the root process or the Shizuku user service, never in the app's process.
+     * `/data/system` or to start a system tool, rather than only talk to system services through
+     * [SystemServices]. Such a call runs in the root process or the Shizuku user service, never in
+     * the app's process.
      */
     val needsPrivilegedProcess: Boolean get() = false
+
+    /**
+     * Whether [run] reads or writes files under `/data/system`, which only root and the system
+     * uid may. The Shizuku transport answers such a call as the shell with
+     * [CallFailure.NotPermitted] without starting its user service. Defaults to
+     * [needsPrivilegedProcess]; a call that needs the process only to run a tool the shell may
+     * also run says false.
+     */
+    val needsSystemFiles: Boolean get() = needsPrivilegedProcess
+
+    /**
+     * Whether the call may be sent again after the privileged process went away while running it.
+     * False for a call that must not reach the system twice, such as a read that deletes what it
+     * returns; the root transport then fails it with [CallFailure.ChannelUnavailable] instead.
+     */
+    val retryable: Boolean get() = true
 
     fun run(system: SystemServices): R
 

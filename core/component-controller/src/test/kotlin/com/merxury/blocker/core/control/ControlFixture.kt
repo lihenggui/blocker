@@ -82,7 +82,8 @@ internal class ControlFixture(initialChannel: ChannelState = ChannelState.Ready(
     val executor = FakeExecutor(system, channel)
     val files = FakeIfwFileSystem()
     val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())
-    val control = PrivilegedComponentControl(channel, executor, FakeReader(system), store)
+    val locks = PackageLocks()
+    val control = PrivilegedComponentControl(channel, executor, FakeReader(system), store, locks)
 
     suspend fun run(request: ControlRequest): List<ControlEvent> = control.apply(request).toList()
 

@@ -16,8 +16,10 @@
 
 package com.merxury.blocker.core.appcontrol
 
+import android.content.ComponentName
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -31,7 +33,9 @@ import com.merxury.blocker.core.privileged.calls.ClearAppData
 import com.merxury.blocker.core.privileged.calls.ForceStop
 import com.merxury.blocker.core.privileged.calls.RunningPackages
 import com.merxury.blocker.core.privileged.calls.SetApplicationEnabledSetting
+import com.merxury.blocker.core.privileged.calls.StartActivity
 import com.merxury.blocker.core.privileged.calls.UninstallApp
+import com.merxury.blocker.core.privileged.calls.startOutcome
 import com.merxury.blocker.core.system.appEnabledSettingOf
 import timber.log.Timber
 import javax.inject.Inject
@@ -73,5 +77,16 @@ internal class PrivilegedAppControl(
     override suspend fun runningPackages(user: UserId): CallResult<Set<String>> {
         channel.runningListRefusal(user)?.let { return CallResult.Failure(it) }
         return executor.execute(RunningPackages(user)).map { it.toSet() }
+    }
+
+    override suspend fun startActivity(key: ComponentKey): CallResult<Unit> {
+        val component = ComponentName(key.id.packageName, key.id.className)
+        return when (val result = executor.execute(StartActivity(component, key.userId))) {
+            is CallResult.Success -> startOutcome(result.value).also { outcome ->
+                if (outcome is CallResult.Failure) Timber.w("Cannot start $key: ${outcome.reason}")
+            }
+
+            is CallResult.Failure -> result
+        }
     }
 }

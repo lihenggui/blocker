@@ -29,6 +29,7 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.EchoInPrivilegedProcess
 import com.merxury.blocker.core.privileged.FakeSystemServices
+import com.merxury.blocker.core.privileged.ToolInPrivilegedProcess
 import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ForceStop
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -210,6 +211,16 @@ class ShizukuTransportTest {
         assertThat((result as CallResult.Failure).reason).isInstanceOf(CallFailure.NotPermitted::class.java)
         assertThat(connector.binds).isEqualTo(0)
         assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SHELL))
+    }
+
+    @Test
+    fun givenShell_whenCallNeedsPrivilegedProcessButNoSystemFiles_thenRunsInUserService() = scope.runTest {
+        transport.connect()
+
+        val result = transport.execute(ToolInPrivilegedProcess("hi"))
+
+        assertThat(result).isEqualTo(CallResult.Success("hi for ${system.callerPackage}"))
+        assertThat(connector.services.single().calls).isEqualTo(1)
     }
 
     @Test

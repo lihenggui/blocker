@@ -41,3 +41,21 @@ internal data class MeasureInPrivilegedProcess(val text: String) : PrivilegedCal
 
     override fun run(system: SystemServices): Int = text.length
 }
+
+/** A call that needs the privileged process only to run a tool the shell may run too. */
+@Parcelize
+internal data class ToolInPrivilegedProcess(val text: String) : PrivilegedCall<String> {
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override val needsSystemFiles: Boolean get() = false
+
+    override fun run(system: SystemServices): String = "$text for ${system.callerPackage}"
+}
+
+/** A call that consumes what it reads, so it must not reach the system twice. */
+@Parcelize
+internal data class ConsumeOnce(val text: String) : PrivilegedCall<String> {
+    override val retryable: Boolean get() = false
+
+    override fun run(system: SystemServices): String = text
+}

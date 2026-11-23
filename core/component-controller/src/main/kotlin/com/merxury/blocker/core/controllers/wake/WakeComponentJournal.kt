@@ -40,20 +40,55 @@ private data class ComponentJournalCommand(val owner: String, val replacement: S
 }
 
 internal fun componentJournalFile(owner: String, replacement: String?): String {
-    require(owner.matches(Regex("""[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+""")))
-    val directory = File("/data/system")
-    val journal = File(directory, "blocker-wake-$owner.json")
-    if (replacement == null) {
-        try {
-            check(Os.stat(journal.path).st_size in 1..MAX_JOURNAL_BYTES.toLong()) { "Invalid component rollback journal size" }
-        } catch (e: ErrnoException) {
-            if (e.errno == OsConstants.ENOENT) return ""
-            throw e
-        }
-        return journal.readText()
+    if (replacement == null) return readComponentJournal(owner).orEmpty()
+    writeComponentJournal(owner, replacement)
+    return ""
+}
+
+/** The directory of the component journal: system-owned, so it lives as long as the settings it records. */
+internal val COMPONENT_JOURNAL_DIRECTORY = File("/data/system")
+
+/** At most this many bytes, so a journal always fits in one reply. */
+internal const val MAX_JOURNAL_BYTES = 256 * 1024
+
+/**
+ * Checks that [owner] is a package name and that [contents] fits a journal.
+ *
+ * @throws IllegalArgumentException otherwise
+ */
+internal fun requireComponentJournal(owner: String, contents: String? = null) {
+    require(owner.matches(Regex("""[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+"""))) { "Not a package name: $owner" }
+    if (contents != null) {
+        require(contents.toByteArray().size in 1..MAX_JOURNAL_BYTES) { "A component journal holds 1 to $MAX_JOURNAL_BYTES bytes" }
     }
-    val bytes = replacement.toByteArray()
-    require(bytes.size in 1..MAX_JOURNAL_BYTES) { "Component rollback journal exceeds the Binder transfer limit" }
+}
+
+/**
+ * [owner]'s component journal in [directory], or null when there is none.
+ *
+ * @throws IllegalStateException when the file is empty or larger than [MAX_JOURNAL_BYTES]
+ */
+internal fun readComponentJournal(owner: String, directory: File = COMPONENT_JOURNAL_DIRECTORY): String? {
+    requireComponentJournal(owner)
+    val journal = File(directory, "blocker-wake-$owner.json")
+    try {
+        check(Os.stat(journal.path).st_size in 1..MAX_JOURNAL_BYTES.toLong()) { "Invalid component rollback journal size" }
+    } catch (e: ErrnoException) {
+        if (e.errno == OsConstants.ENOENT) return null
+        throw e
+    }
+    return journal.readText()
+}
+
+/**
+ * Replaces [owner]'s component journal in [directory] with [contents]: written to a file only
+ * its owner may read or write, synced, renamed over the old one and the directory synced, so the
+ * journal is the old or the new one after a crash.
+ */
+internal fun writeComponentJournal(owner: String, contents: String, directory: File = COMPONENT_JOURNAL_DIRECTORY) {
+    requireComponentJournal(owner, contents)
+    val journal = File(directory, "blocker-wake-$owner.json")
+    val bytes = contents.toByteArray()
     val temporary = File.createTempFile(".blocker-wake-", ".tmp", directory)
     try {
         Os.chmod(temporary.path, 0x180)
@@ -71,7 +106,4 @@ internal fun componentJournalFile(owner: String, replacement: String?): String {
     } finally {
         temporary.delete()
     }
-    return ""
 }
-
-private const val MAX_JOURNAL_BYTES = 256 * 1024
