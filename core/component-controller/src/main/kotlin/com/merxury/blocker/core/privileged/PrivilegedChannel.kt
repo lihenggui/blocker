@@ -45,8 +45,9 @@ interface PrivilegedChannel {
      * already granted, root when su has given Blocker a root process before. Otherwise leaves it
      * unavailable, with [UnavailableReason.DENIED] when nothing has been granted. Updates [state]
      * as [connect] does and returns the new state, or the current one at once when it is already
-     * [ChannelState.Ready]. Runs one at a time with [connect]; safe to call often. Never throws
-     * except for cancellation.
+     * [ChannelState.Ready]. Waits for a [connect] already running, whose result it may return
+     * instead, and never replaces a result a [connect] published while it ran. Safe to call often.
+     * Never throws except for cancellation.
      *
      * Root counts as granted while su gave Blocker a root process last time it was asked. A root
      * manager whose grant has since been withdrawn or has run out, such as a Magisk grant for a

@@ -24,9 +24,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 
 /**
@@ -36,17 +36,29 @@ import timber.log.Timber
  * [checkedState], and with it [executeIfReady], on a channel nothing has tried to acquire yet
  * first makes the attempt that cannot prompt, [connectIfGranted], or waits for the one already
  * running, so a caller started in the background gets the privilege the user granted earlier.
+ *
+ * Quiet attempts and connects each run one at a time under their own lock, and only `withLock`
+ * guards them, so a cancelled participant always lets the next one go. A connect waits for a quiet
+ * attempt already running, but not the other way round: a quiet attempt a reader starts while a
+ * connect prompts runs at the same time, and its result never replaces one the connect published
+ * meanwhile. Each transport's acquire tolerates that overlap.
  */
 internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
 
     private val mutableState = MutableStateFlow<ChannelState>(NOT_CHECKED)
     override val state: StateFlow<ChannelState> = mutableState.asStateFlow()
 
-    // Held while acquiring, by connect and connectIfGranted alike; nothing that holds it calls them.
+    // Held by connect, which may prompt. It takes quietLock only to wait for a quiet attempt.
     private val connectLock = Mutex()
 
-    // Counts the times connectLock was released, so checkedState can wait for an attempt to end.
-    private val attemptsEnded = MutableStateFlow(0L)
+    // Held by each quiet attempt, which never prompts; readers queue here and never behind a prompt.
+    private val quietLock = Mutex()
+
+    // Guards connectsPublished together with publishing a result.
+    private val publishLock = Any()
+
+    // How many connects have published their result, so a quiet attempt can tell one landed while it ran.
+    private var connectsPublished = 0L
 
     /** Acquires the channel, which may show a permission prompt. Throws only cancellation. */
     protected abstract suspend fun acquire(): ChannelState
@@ -64,52 +76,49 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
      */
     protected abstract suspend fun <R> send(call: PrivilegedCall<R>): CallResult<R>
 
-    override suspend fun connect(): ChannelState = acquiring {
-        acquire().also { updateState { _ -> it } }
+    override suspend fun connect(): ChannelState = connectLock.withLock {
+        // A quiet attempt already running decides first, so the two rarely acquire at once.
+        quietLock.withLock { }
+        acquire().also { result ->
+            synchronized(publishLock) {
+                connectsPublished++
+                mutableState.value = result
+            }
+        }
     }
 
     override suspend fun connectIfGranted(): ChannelState {
         (state.value as? ChannelState.Ready)?.let { return it }
-        return acquiring {
-            (state.value as? ChannelState.Ready) ?: acquireIfGranted().also { updateState { _ -> it } }
-        }
+        // A connect already running decides for this call too. Not holding quietLock while
+        // waiting keeps readers from waiting for its prompt.
+        connectLock.withLock { }
+        return quietLock.withLock { (state.value as? ChannelState.Ready) ?: attemptQuietly() }
     }
 
     /**
-     * Makes the first attempt to acquire without a prompt when the lock is free, and otherwise
-     * waits only for the attempt holding it to end: a [connect] queued behind a quiet attempt
-     * must not hold up a reader once the quiet attempt has decided.
+     * Makes the quiet attempt, or waits for the one running and then reads what it decided.
+     * Readers wait only behind quiet attempts, never behind a [connect], so one that is
+     * prompting does not hold them up; a reader may then make its quiet attempt while the prompt
+     * is open, and [attemptQuietly] keeps the connect's result if it lands first.
      */
     override suspend fun checkedState(): ChannelState {
-        while (true) {
-            state.value.let { if (it != NOT_CHECKED) return it }
-            val ended = attemptsEnded.value
-            if (connectLock.tryLock()) {
-                try {
-                    if (state.value == NOT_CHECKED) acquireIfGranted().also { updateState { _ -> it } }
-                } finally {
-                    release()
-                }
-                return state.value
-            }
-            // Ends when the holder finishes or is cancelled; then the state or the lock decides.
-            attemptsEnded.first { it != ended }
-        }
+        state.value.let { if (it != NOT_CHECKED) return it }
+        quietLock.withLock { if (state.value == NOT_CHECKED) attemptQuietly() }
+        return state.value
     }
 
-    private suspend inline fun <T> acquiring(block: () -> T): T {
-        connectLock.lock()
-        try {
-            return block()
-        } finally {
-            release()
+    /**
+     * Acquires without a prompt and publishes the result, unless a [connect] published one while
+     * this ran: what the user just answered stands. Returns the state afterwards. Call it holding
+     * [quietLock].
+     */
+    private suspend fun attemptQuietly(): ChannelState {
+        val connectsBefore = synchronized(publishLock) { connectsPublished }
+        val result = acquireIfGranted()
+        synchronized(publishLock) {
+            if (connectsPublished == connectsBefore) mutableState.value = result
         }
-    }
-
-    // Unlocks before counting, so a waiter that wakes up finds the lock free.
-    private fun release() {
-        connectLock.unlock()
-        attemptsEnded.update { it + 1 }
+        return state.value
     }
 
     /**

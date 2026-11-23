@@ -102,10 +102,10 @@ internal interface PrivilegedExecutor {
     /**
      * The channel's state once the first attempt to acquire it has ended. Returns the state at
      * once unless it is still [UnavailableReason.NOT_CHECKED]; then makes the attempt that cannot
-     * prompt, [PrivilegedChannel.connectIfGranted], or waits for the attempt already running,
-     * bounded by the transport's own timeouts. When that attempt is a [PrivilegedChannel.connect],
-     * it waits for the prompt to be answered. Never calls [PrivilegedChannel.connect] itself and
-     * never throws except for cancellation.
+     * prompt, as [PrivilegedChannel.connectIfGranted] does, or waits for the quiet attempt already
+     * running, bounded by the transport's own timeouts. Never waits for a prompt to be answered and
+     * never calls [PrivilegedChannel.connect]. When the attempt it waited for was cancelled, it
+     * makes its own. Never throws except for cancellation.
      */
     suspend fun checkedState(): ChannelState
 }
