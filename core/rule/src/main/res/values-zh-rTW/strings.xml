@@ -26,7 +26,6 @@
     <string name="core_rule_import_app_rules_please_wait">正在導入應用規則，請稍等…</string>
     <string name="core_rule_cancel">取消</string>
     <string name="core_rule_processing_please_wait">正在處理，請稍等…</string>
-    <string name="core_rule_done">完成</string>
     <string name="core_rule_error_msg_folder_not_defined">備份目錄未指定，請前往設置修改。</string>
     <string name="core_rule_error_msg_missing_root_permission">缺少超級用戶權限，請檢查是否授予。</string>
     <string name="core_rule_error_msg_unexpected_exception">發生了未知錯誤，請向開發者反饋。</string>

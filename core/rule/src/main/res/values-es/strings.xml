@@ -25,7 +25,6 @@
     <string name="core_rule_import_app_rules_please_wait">Importando reglas de la aplicación, por favor espere…</string>
     <string name="core_rule_cancel">Cancelar</string>
     <string name="core_rule_processing_please_wait">Procesando, por favor espere…</string>
-    <string name="core_rule_done">Listo</string>
     <string name="core_rule_error_msg_folder_not_defined">No se ha definido una carpeta para Backups, por favor seleccioneuna en configuración.</string>
     <string name="core_rule_error_msg_missing_root_permission">Sin permisos root, por favor conceda permisos a Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Error inesperado, por favor informe al programador.</string>

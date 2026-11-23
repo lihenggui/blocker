@@ -9,7 +9,6 @@
     <string name="core_rule_import_mat_rule_please_wait">Impor pengaturan MAT, harap tunggu…</string>
     <string name="core_rule_cancel">Batal</string>
     <string name="core_rule_processing_please_wait">Memproses, harap tunggu…</string>
-    <string name="core_rule_done">Selesai</string>
     <string name="core_rule_error_msg_folder_not_defined">Folder belum ditentukan, ke pengaturan untuk menetapkan folder.</string>
     <string name="core_rule_error_msg_missing_root_permission">Tidak ada root akses, berikan akses root ke Blocker.</string>
     <string name="core_rule_processing_progress_indicator">Indikator Progres Diproses</string>

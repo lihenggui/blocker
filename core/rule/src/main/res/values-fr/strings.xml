@@ -8,7 +8,6 @@
     <string name="core_rule_reset_ifw_please_wait">Réinitialisation d\'IFW, veuillez patienter…</string>
     <string name="core_rule_reset_pm_please_wait">Rétablissement des composants à l\'état par défaut, veuillez patienter…</string>
     <string name="core_rule_error_msg_missing_root_permission">Autorisation root manquante, veuillez accorder l\'autorisation à Blocker.</string>
-    <string name="core_rule_done">Fait</string>
     <string name="core_rule_processing_please_wait">Traitement en cours, veuillez patienter…</string>
     <string name="core_rule_task_cancelled">Tâche annulée</string>
     <string name="core_rule_import_app_rules_please_wait">Importation des règles de l\'application, veuillez patienter…</string>

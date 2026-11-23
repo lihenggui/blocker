@@ -11,7 +11,6 @@
     <string name="core_rule_import_app_rules_please_wait">جارٍ استيراد قواعد التطبيقات، يرجى الانتظار…</string>
     <string name="core_rule_cancel">إلغاء</string>
     <string name="core_rule_processing_please_wait">جارٍ المعالجة، يرجى الانتظار…</string>
-    <string name="core_rule_done">تم</string>
     <string name="core_rule_error_msg_folder_not_defined">لم يتم تحديد مجلد النسخ الاحتياطي، يرجى الانتقال إلى الإعدادات لتعيينه.</string>
     <string name="core_rule_error_msg_missing_root_permission">إذن الروت مفقود، يرجى منح الإذن لتطبيق Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">خطأ غير متوقع، يرجى الإبلاغ عنه للمطور.</string>
