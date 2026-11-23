@@ -77,6 +77,8 @@ internal class LocalComponentStatusRepository @Inject constructor(
     private val installedApps: InstalledAppRepository,
     private val packages: PackageStateReader,
     private val componentControl: ComponentControl,
+    private val pmBlocks: PmBlockRecords,
+    private val seeder: PmBlockRecordSeeder,
     channel: PrivilegedChannel,
     ifwStore: IfwStore,
     @ApplicationScope appScope: CoroutineScope,
@@ -142,32 +144,49 @@ internal class LocalComponentStatusRepository @Inject constructor(
 
     override fun control(request: ControlRequest): Flow<ControlEvent> = flow {
         componentControl.apply(request).collect { event ->
-            if (event is ControlEvent.PackageDone) store(event)
+            if (event is ControlEvent.PackageDone) store(request, event)
             emit(event)
         }
     }
 
-    override suspend fun disabledByPackageManager(user: UserId): ReadResult<DisabledComponents> {
+    override suspend fun disabledByBlocker(user: UserId): ReadResult<DisabledComponents> {
+        seeder.seedOnce()
+        // Listing the apps also drops the records of apps gone for the user.
         val apps = when (val listed = listApps(user)) {
-            is ReadResult.Success -> listed.value
+            is ReadResult.Success -> listed.value.associateBy { it.key.packageName }
             is ReadResult.Failure -> return listed
         }
         val disabled = mutableListOf<ComponentKey>()
         val unreadable = mutableListOf<AppKey>()
-        refreshEach(apps).collect { (app, refresh) ->
-            if (refresh.removed) return@collect
-            refresh.pmSettings?.forEach { (id, setting) -> if (setting == PmSetting.DISABLED) disabled += ComponentKey(id, user) }
-            refresh.pmFailure?.let {
-                Timber.w("Cannot read the PM settings of ${app.key}: $it")
-                unreadable += app.key
+        var notInstalled = 0
+        var notDeclared = 0
+        pmBlocks.of(user).groupBy { it.id.packageName }.forEach { (packageName, recorded) ->
+            val key = AppKey(packageName, user)
+            val app = apps[packageName]
+            val refresh = if (app == null) PackageRefresh.removed(key) else refreshPackage(key, app, appFailure = null)
+            val settings = refresh.pmSettings
+            when {
+                refresh.removed -> {
+                    // Also a record the app list could not drop, such as one seeded for an app gone before.
+                    pmBlocks.forgetApp(key)
+                    notInstalled += recorded.size
+                }
+
+                settings == null || refresh.pmFailure != null || recorded.any { settings[it.id] == PmSetting.UNKNOWN } -> {
+                    Timber.w("Cannot read the PM settings of $key: ${refresh.pmFailure}")
+                    unreadable += key
+                }
+
+                else -> recorded.forEach {
+                    when (settings[it.id]) {
+                        null -> notDeclared++
+                        PmSetting.DISABLED -> disabled += it
+                        else -> Unit
+                    }
+                }
             }
         }
-        return ReadResult.Success(
-            DisabledComponents(
-                components = disabled.sortedWith(compareBy({ it.id.packageName }, { it.id.className })),
-                unreadableApps = unreadable.sortedBy { it.packageName },
-            ),
-        )
+        return ReadResult.Success(DisabledComponents(disabled, unreadable, notInstalled, notDeclared))
     }
 
     /** Refreshes the user's app list and returns the apps it stored. */
@@ -188,13 +207,17 @@ internal class LocalComponentStatusRepository @Inject constructor(
         }
     }
 
-    private suspend fun refreshPackage(key: AppKey, app: InstalledApp?, appFailure: ReadFailure?): PackageRefresh = lockOf(key.packageName).withLock { packages.refresh(key, app, appFailure) }
+    private suspend fun refreshPackage(key: AppKey, app: InstalledApp?, appFailure: ReadFailure?): PackageRefresh = lockOf(key.packageName).withLock {
+        val refresh = packages.refresh(key, app, appFailure)
+        withContext(NonCancellable) { pmBlocks.afterRefresh(key, refresh) }
+        refresh
+    }
 
     /**
-     * Stores the read-back state of each outcome, both layers in one transaction; runs to its end
-     * once the event has arrived.
+     * Stores the read-back state of each outcome, both layers in one transaction, then updates the
+     * record of Blocker's PackageManager blocks from it; runs to its end once the event has arrived.
      */
-    private suspend fun store(event: ControlEvent.PackageDone) = withContext(NonCancellable) {
+    private suspend fun store(request: ControlRequest, event: ControlEvent.PackageDone) = withContext(NonCancellable) {
         lockOf(event.packageName).withLock {
             event.outcomes.groupBy { it.key.userId }.forEach { (user, outcomes) ->
                 dao.storePackageState(
@@ -206,6 +229,7 @@ internal class LocalComponentStatusRepository @Inject constructor(
                     ifwBlocks = outcomes.associate { it.key.id.className to it.state.ifw },
                 )
             }
+            pmBlocks.afterControl(request, event)
         }
     }
 

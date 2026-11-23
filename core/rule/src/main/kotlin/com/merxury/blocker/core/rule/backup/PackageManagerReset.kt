@@ -28,28 +28,37 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
- * Clears every PackageManager setting that disables a component for one user, as read from the
- * system when the reset runs, one package at a time, back to DEFAULT, so each component follows
- * its manifest again. Intent Firewall rules are not touched. A package or component the system
- * refuses fails alone, and an app whose settings cannot be read is counted as
- * [FailureReason.STATE_UNREADABLE]; the others are still cleared.
+ * Clears the PackageManager settings with which Blocker disabled components for one user, one
+ * package at a time, back to DEFAULT, so each component follows its manifest again. Only the
+ * components Blocker recorded as disabled by itself and that the system still shows DISABLED when
+ * the reset runs are cleared, see [ComponentStatusRepository.disabledByBlocker]; components the app
+ * or the system disabled are left alone, and Intent Firewall rules are not touched. Each cleared
+ * component loses its record.
+ *
+ * Every count is of components: cleared ones are applied; recorded ones of apps no longer installed
+ * are skipped as [SkipReason.APP_NOT_INSTALLED], and those the app no longer declares as
+ * [SkipReason.NOT_DECLARED]; a component the system refuses fails alone. An app whose settings cannot
+ * be read counts once as [FailureReason.STATE_UNREADABLE] and keeps its records; the others are
+ * still cleared.
  */
 class PackageManagerReset @Inject constructor(
     private val components: ComponentStatusRepository,
     private val channel: PrivilegedChannel,
 ) {
     /**
-     * Unblocks the PackageManager layer of each component disabled for [user]. Connects the
-     * privileged channel first, which may show the su or Shizuku prompt.
+     * Unblocks the PackageManager layer of each component Blocker disabled for [user]. Connects
+     * the privileged channel first, which may show the su or Shizuku prompt.
      */
     suspend fun reset(user: UserId, onProgress: RuleRunProgress = { _, _, _ -> }): RuleRunResult {
         if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
-        val found = when (val read = components.disabledByPackageManager(user)) {
+        val found = when (val read = components.disabledByBlocker(user)) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
         }
         val summary = SummaryBuilder()
         summary.fail(FailureReason.STATE_UNREADABLE, found.unreadableApps.size)
+        summary.skip(SkipReason.APP_NOT_INSTALLED, found.notInstalled)
+        summary.skip(SkipReason.NOT_DECLARED, found.notDeclared)
         val byPackage = found.components.groupBy { it.id.packageName }
         byPackage.entries.forEachIndexed { index, (packageName, keys) ->
             onProgress(packageName, index, byPackage.size)

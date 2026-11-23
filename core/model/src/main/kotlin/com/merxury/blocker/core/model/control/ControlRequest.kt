@@ -19,6 +19,7 @@ package com.merxury.blocker.core.model.control
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.data.ControllerType
 
 /** What a [ControlRequest] wants for its components. */
@@ -73,3 +74,10 @@ val ControllerType.blockLayers: Set<ControlLayer>
         ControllerType.IFW -> setOf(ControlLayer.INTENT_FIREWALL)
         ControllerType.IFW_PLUS_PM -> setOf(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
     }
+
+/**
+ * The layers a request changes and judges for this component: [requested], except that a provider,
+ * which the firewall does not filter, uses its PackageManager setting instead. The same holds for
+ * every goal, so an unblock with the layers a block used clears what that block set.
+ */
+fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>): Set<ControlLayer> = if (type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)

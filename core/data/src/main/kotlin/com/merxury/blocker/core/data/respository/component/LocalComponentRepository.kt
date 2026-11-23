@@ -62,6 +62,8 @@ internal class LocalComponentRepository @Inject constructor(
     @ShizukuControl private val shizukuController: IController,
     @CombinedControl private val combinedController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    // Temporary, removed with this repository: records what these controllers disable through PM.
+    private val legacyPmBlocks: LegacyPmBlockHook,
 ) : ComponentRepository {
 
     override fun getAllComponents(): Flow<List<ComponentInfo>> = appComponentDao.getAll()
@@ -152,6 +154,7 @@ internal class LocalComponentRepository @Inject constructor(
             IFW_PLUS_PM -> controlInCombinedMode(component, newState)
         }
         updateComponentStatus(packageName, componentName)
+        legacyPmBlocks.afterControl(listOf(component), newState, effectiveControllerType)
         emit(result)
     }
 
@@ -208,6 +211,8 @@ internal class LocalComponentRepository @Inject constructor(
             Timber.e(e, "Cannot read back or save ${packageComponents.size} components of $packageName")
             null
         }
+        // Also after a failure or a cancellation, which may have left some components changed.
+        withContext(NonCancellable) { legacyPmBlocks.afterControl(packageComponents, newState, controllerType) }
         if (failure is CancellationException || failure is RootUnavailableException) throw failure
         if (failure != null) Timber.e(failure, "Cannot change components of $packageName")
         val results = (reconciled ?: packageComponents).map { component ->

@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
@@ -194,6 +195,7 @@ class RuleWorkDataTest {
         val boot = ComponentDeclaration(ComponentId("com.example", "com.example.Boot"), ComponentType.RECEIVER, exported = true, enabledInManifest = true)
         components.sendComponents(ownUser(), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
         components.sendComponents(UserId(10), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
+        components.recorded += listOf(ComponentKey(boot.id, ownUser()), ComponentKey(boot.id, UserId(10)))
         val context = ApplicationProvider.getApplicationContext<Context>()
         // The notification's cancel action asks WorkManager for an intent.
         WorkManagerTestInitHelper.initializeTestWorkManager(context)

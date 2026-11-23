@@ -128,9 +128,11 @@ abstract class ComponentCacheDao {
      * the list are removed with their settings for this user, and with the package's declarations
      * when no user has it any more. The user must be stored; otherwise this throws a constraint
      * error. A later entry for the same package wins.
+     *
+     * @return the package names removed for [userId]
      */
     @Transaction
-    open suspend fun replaceApps(userId: Int, apps: List<AppEntity>) {
+    open suspend fun replaceApps(userId: Int, apps: List<AppEntity>): Set<String> {
         require(apps.all { it.userId == userId }) { "An app does not belong to user $userId" }
         val existing = getApps(userId).associateBy { it.packageName }
         val incoming = apps.associateBy { it.packageName }
@@ -138,6 +140,7 @@ abstract class ComponentCacheDao {
         removed.chunked(MAX_BOUND_NAMES).forEach { deleteApps(userId, it) }
         deleteUnusedPackages(removed)
         upsertApps(incoming.values.filter { existing[it.packageName] != it })
+        return removed
     }
 
     /** Stores [app], keeping its settings. Its user must be stored; otherwise this throws a constraint error. */

@@ -23,20 +23,12 @@ import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
 
 // What a goal asks of each layer and how the state read back is judged, as ComponentControl says.
-
-/**
- * The layers a request changes and judges for this component: [requested], except that a provider,
- * which the firewall does not filter, uses its PackageManager setting instead. The same holds for
- * every goal, so an unblock with the layers a block used clears what that block set.
- */
-internal fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>): Set<ControlLayer> = if (type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)
 
 /** The setting to send so the PackageManager layer meets [goal], or null when it already does. */
 internal fun ComponentDeclaration.pmChange(goal: ControlGoal, layers: Set<ControlLayer>, current: PmSetting): PmSetting? {

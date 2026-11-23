@@ -105,6 +105,7 @@ class MatAndResetTest {
             listOf(status(BOOT, pm = PmSetting.DISABLED), status(SYNC), status(other, pm = PmSetting.DISABLED), status(locked, pm = PmSetting.DISABLED)),
         )
         components.sendComponents(WORK, listOf(status(BOOT, pm = PmSetting.DISABLED)))
+        components.recorded += listOf(BOOT, other, locked).map { ComponentKey(it.id, OWNER) } + ComponentKey(BOOT.id, WORK)
         components.controlEvents = { request ->
             val outcomes = request.components.map { declaration ->
                 val key = ComponentKey(declaration.id, request.user)
@@ -126,12 +127,44 @@ class MatAndResetTest {
         assertThat(result.summary.applied).isEqualTo(2)
         assertThat(result.summary.failed).containsExactly(FailureReason.NO_PRIVILEGE, 1)
         assertThat(result.summary.changedPackages).containsExactly(APP, "com.other")
+        assertThat(components.recorded).containsExactly(ComponentKey(locked.id, OWNER), ComponentKey(BOOT.id, WORK))
+    }
+
+    @Test
+    fun givenComponentsTheAppsDisabledThemselves_whenResettingPm_thenOnlyBlockersRecordedOnesAreUnblocked() = runTest {
+        val selfOff = declaration("SelfOff", SYNC.type)
+        val otherSelfOff = declaration("SelfOff", SYNC.type, "com.other")
+        components.sendComponents(OWNER, listOf(status(BOOT, pm = PmSetting.DISABLED), status(selfOff, pm = PmSetting.DISABLED), status(otherSelfOff, pm = PmSetting.DISABLED)))
+        components.recorded += ComponentKey(BOOT.id, OWNER)
+
+        val result = reset.reset(OWNER)
+
+        assertThat(components.requests).containsExactly(ControlRequest(OWNER, listOf(BOOT), ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER)))
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(components.allComponents(OWNER).first().map { it.declaration to it.state.pm }).containsExactly(
+            BOOT to PmSetting.DEFAULT,
+            selfOff to PmSetting.DISABLED,
+            otherSelfOff to PmSetting.DISABLED,
+        )
+    }
+
+    @Test
+    fun givenRecordsOfAnAppNoLongerInstalled_whenResettingPm_thenTheyCountAsSkippedComponents() = runTest {
+        components.sendComponents(OWNER, listOf(status(BOOT, pm = PmSetting.DISABLED)))
+        components.recorded += listOf(ComponentKey(BOOT.id, OWNER), ComponentKey(declaration("A", SYNC.type, "com.gone").id, OWNER), ComponentKey(declaration("B", SYNC.type, "com.gone").id, OWNER))
+
+        val result = reset.reset(OWNER)
+
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(result.summary.skipped).containsExactly(SkipReason.APP_NOT_INSTALLED, 2)
+        assertThat(components.recorded).isEmpty()
     }
 
     @Test
     fun givenOneAppUnreadable_whenResettingPm_thenTheOthersAreResetAndItIsCounted() = runTest {
         val other = declaration("Tracker", SYNC.type, "com.other")
         components.sendComponents(OWNER, listOf(status(BOOT, pm = PmSetting.DISABLED), status(other, pm = PmSetting.DISABLED)))
+        components.recorded += listOf(ComponentKey(BOOT.id, OWNER), ComponentKey(other.id, OWNER))
         components.appRefreshFailures["com.other"] = ReadFailure.ChannelUnavailable
 
         val result = reset.reset(OWNER)
@@ -145,6 +178,7 @@ class MatAndResetTest {
     fun givenManifestDisabledComponent_whenResettingPm_thenItGoesBackToDefault() = runTest {
         val shippedOff = declaration("Off", SYNC.type, enabledInManifest = false)
         components.sendComponents(OWNER, listOf(status(shippedOff, pm = PmSetting.DISABLED)))
+        components.recorded += ComponentKey(shippedOff.id, OWNER)
 
         reset.reset(OWNER)
 

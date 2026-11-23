@@ -20,7 +20,6 @@ import android.os.Build
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
-import com.merxury.blocker.core.data.device.DisabledComponents
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -38,7 +37,6 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.ifw.IfwResult
-import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.model.system.getOrNull
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.system.SystemPackageReader
@@ -73,7 +71,6 @@ private const val OWN_RULE_FILE = "bk7b-own-rules"
 
 // The package of core:component-controller's device tests, which ships an activity disabled.
 private const val DISABLED_TARGET = "com.merxury.blocker.core.controller.test"
-private val TEST_APPS = setOf(APP_B, APP_C, DISABLED_TARGET)
 
 // A rule a user wrote by hand: block the receiver only for senders outside the system, and an
 // allow rule for a service.
@@ -100,7 +97,8 @@ private val HAND_WRITTEN_RULES = """
  * manifest ships disabled. Backups go to a folder in this package's files directory through
  * [FileBackupStorage], since the Storage Access Framework picker cannot be driven from a test.
  *
- * Arguments `backupRestore=root` and `profileUser=<id>`; without them every test is skipped. Run
+ * Arguments `backupRestore=root` and `profileUser=<id>`; without them every test is skipped, except
+ * that the reset case of Blocker's own blocks needs only `backupRestore=root`. Run
  * one test per instrumentation (`-e class BackupRestoreDeviceTest#<test>`): each injection builds
  * the app's graph again, and a second one in the same process would open the DataStore files
  * again.
@@ -131,6 +129,8 @@ class BackupRestoreDeviceTest {
 
     @Inject lateinit var reader: SystemPackageReader
 
+    @Inject lateinit var reset: PackageManagerReset
+
     private val arguments = InstrumentationRegistry.getArguments()
     private val profile = arguments.getString("profileUser")?.toIntOrNull()?.let(::UserId)
     private var injected = false
@@ -142,8 +142,8 @@ class BackupRestoreDeviceTest {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) HiddenApiBypass.addHiddenApiExemptions("")
     }
 
-    private fun runCase() = runBlocking {
-        assumeTrue(arguments.getString("backupRestore") == "root" && profile != null)
+    private fun runCase(needsProfile: Boolean = true) = runBlocking {
+        assumeTrue(arguments.getString("backupRestore") == "root" && (profile != null || !needsProfile))
         hilt.inject()
         injected = true
         userData.setControllerType(ControllerType.PM)
@@ -154,14 +154,16 @@ class BackupRestoreDeviceTest {
     fun restore() = runBlocking {
         // Skipped tests never injected; there is nothing to undo then.
         if (!injected) return@runBlocking
-        for (key in listOf(AppKey(APP_B, UserId.SYSTEM), AppKey(APP_B, profile!!), AppKey(APP_C, UserId.SYSTEM))) {
+        // The reset case takes APP_C away from the owner, keeping its settings; bring it back first
+        // so the unblock below clears them.
+        su("pm install-existing --user 0 $APP_C")
+        for (key in listOfNotNull(AppKey(APP_B, UserId.SYSTEM), profile?.let { AppKey(APP_B, it) }, AppKey(APP_C, UserId.SYSTEM))) {
             val declarations = declared(key).map { it.declaration }
             if (declarations.isNotEmpty()) components.control(ControlRequest(key.userId, declarations, ControlGoal.UNBLOCK, ControlLayer.entries.toSet())).toList()
         }
         store.clear(APP_B)
         store.clear(APP_C)
-        // The reset case takes APP_C away from the owner; ENABLE leaves a setting UNBLOCK keeps.
-        su("pm install-existing --user 0 $APP_C")
+        // ENABLE leaves a setting UNBLOCK keeps.
         su("pm default-state --user 0 $DISABLED_TARGET/com.merxury.blocker.core.control.ControlFixtureDisabledActivity")
         folder.deleteRecursively()
     }
@@ -267,7 +269,7 @@ class BackupRestoreDeviceTest {
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), inC)
 
         // APP_C goes away for the owner after the settings were read, so the system refuses it.
-        val result = PackageManagerReset(TestAppsOnly(components) { request -> if (request.components.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel).reset(owner)
+        val result = PackageManagerReset(BeforeControl(components) { request -> if (request.components.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel).reset(owner)
 
         Log.i(TAG, "PM reset $result")
         assertEquals(PmSetting.DEFAULT, pm(owner, inB))
@@ -293,12 +295,62 @@ class BackupRestoreDeviceTest {
         assertEquals(PmSetting.DEFAULT, pm(owner, shippedOff))
 
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), shippedOff)
-        val reset = PackageManagerReset(TestAppsOnly(components), channel).reset(owner)
+        val reset = reset.reset(owner)
         Log.i(TAG, "PM reset $reset")
         assertEquals(PmSetting.DEFAULT, pm(owner, shippedOff))
 
         control(owner, ControlGoal.ENABLE, setOf(ControlLayer.PACKAGE_MANAGER), shippedOff)
         assertEquals(PmSetting.ENABLED, pm(owner, shippedOff))
+    }
+
+    @Test
+    fun givenTwoBlockedByBlockerAndOneByTheAppItself_whenResettingPm_thenOnlyBlockersChangeOnTheWholeDevice() = runBlocking<Unit> {
+        runCase(needsProfile = false)
+        val owner = UserId.SYSTEM
+        val service = declaration(owner, "com.google.android.gms.measurement.AppMeasurementService")
+        val ads = declaration(owner, "com.google.android.gms.ads.AdService")
+        val selfOff = declaration(owner, "com.facebook.ads.AudienceNetworkActivity")
+        control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), service, ads)
+        // Disabled the way an app or the system does it, which Blocker must not take for its own.
+        su("pm disable --user 0 ${selfOff.id.flatten()}")
+        val before = disabledOnDevice()
+        Log.i(TAG, "disabled before the reset: ${before.size} components")
+
+        val result = reset.reset(owner)
+
+        val after = disabledOnDevice()
+        Log.i(TAG, "PM reset $result; cleared ${before - after}; newly disabled ${after - before}")
+        assertEquals(setOf("0 ${service.id.flatten()}", "0 ${ads.id.flatten()}"), before - after)
+        assertEquals(emptySet(), after - before)
+        assertEquals(PmSetting.DEFAULT, pm(owner, service))
+        assertEquals(PmSetting.DEFAULT, pm(owner, ads))
+        assertEquals(PmSetting.DISABLED, pm(owner, selfOff))
+        assertEquals(2, (result as RuleRunResult.Completed).summary.applied)
+    }
+
+    /** Every component disabled for any user, as `<user> <package>/<class>`, from the system's own dump. */
+    private fun disabledOnDevice(): Set<String> {
+        val disabled = mutableSetOf<String>()
+        var packageName: String? = null
+        var user: String? = null
+        var listIndent = -1
+        for (line in suOutput("dumpsys package packages").lines()) {
+            val text = line.trimStart()
+            val indent = line.length - text.length
+            if (listIndent >= 0) {
+                if (indent > listIndent && text.isNotEmpty() && !text.endsWith(":")) {
+                    disabled += "$user $packageName/$text"
+                    continue
+                }
+                listIndent = -1
+            }
+            when {
+                text.startsWith("Package [") -> packageName = text.substringAfter('[').substringBefore(']')
+                text.startsWith("User ") && text.contains(':') -> user = text.removePrefix("User ").substringBefore(':')
+                text == "disabledComponents:" -> listIndent = indent
+            }
+        }
+        return disabled
     }
 
     private suspend fun declared(app: AppKey): List<ComponentStatus> {
@@ -325,11 +377,8 @@ class BackupRestoreDeviceTest {
     }
 }
 
-/**
- * [ComponentStatusRepository] whose disabled components are limited to the test apps, so a reset
- * leaves the device's own alone. [beforeControl] runs before each request reaches the system.
- */
-private class TestAppsOnly(
+/** [ComponentStatusRepository] that runs [beforeControl] before each request reaches the system. */
+private class BeforeControl(
     private val delegate: ComponentStatusRepository,
     private val beforeControl: (ControlRequest) -> Unit = {},
 ) : ComponentStatusRepository by delegate {
@@ -337,20 +386,17 @@ private class TestAppsOnly(
         beforeControl(request)
         return delegate.control(request)
     }
-
-    override suspend fun disabledByPackageManager(user: UserId): ReadResult<DisabledComponents> = when (val read = delegate.disabledByPackageManager(user)) {
-        is ReadResult.Success -> ReadResult.Success(
-            DisabledComponents(
-                components = read.value.components.filter { it.id.packageName in TEST_APPS },
-                unreadableApps = read.value.unreadableApps.filter { it.packageName in TEST_APPS },
-            ),
-        )
-
-        is ReadResult.Failure -> read
-    }
 }
 
-/** Runs [command] through su, which this test package is granted. */
+/** Runs [command] through su, which this test package is granted, and returns what it printed. */
+private fun suOutput(command: String): String {
+    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
+    val output = process.inputStream.bufferedReader().readText()
+    process.waitFor()
+    return output
+}
+
+/** Runs [command] through su and logs it. */
 private fun su(command: String) {
     val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
     val output = process.inputStream.bufferedReader().readText()

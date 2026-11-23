@@ -20,6 +20,7 @@ import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.di.DataModule
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -43,6 +44,7 @@ import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
+import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.components.SingletonComponent
@@ -115,6 +117,9 @@ internal interface TestDataModule {
 
     @Binds
     fun bindsComponentStatusRepository(repository: FakeComponentStatusRepository): ComponentStatusRepository
+
+    @Binds
+    fun bindsPmBlockRecordSeeder(seeder: FakePmBlockRecordSeeder): PmBlockRecordSeeder
 
     @Binds
     fun bindsDebloatableComponentRepository(

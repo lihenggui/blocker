@@ -58,10 +58,27 @@ class LocalComponentBatchTest {
     private val pm = StatefulController()
     private val ifw = StatefulController()
     private val shizuku = StatefulController()
-    private val repository = LocalComponentRepository(mock(), dao, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher)
+
+    /** Each call of the PM block hook: the components, the state asked for and the controller type. */
+    private val hookCalls = mutableListOf<Triple<List<String>, Boolean, ControllerType>>()
+    private val legacyHook = LegacyPmBlockHook { components, enabled, type -> hookCalls += Triple(components.map { it.name }, enabled, type) }
+    private val repository = LocalComponentRepository(mock(), dao, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher, legacyHook)
     private val first = ComponentInfo("com.example", "com.tracker.First", SERVICE)
     private val second = first.copy(name = "com.tracker.Second")
     private val last = ComponentInfo("com.last", "com.tracker.Last", SERVICE)
+
+    @Test
+    fun givenTwoPackagesOneFailing_whenBatchDisabled_thenThePmBlockHookSeesEachPackageAfterItsChange() = runTest {
+        users.sendUserData(defaultUserData.copy(controllerType = ControllerType.SHIZUKU))
+        shizuku.failures.add(second.name)
+
+        repository.batchControlComponent(listOf(first, second, last), false).toList()
+
+        assertEquals(
+            listOf(Triple(listOf(first.name, second.name), false, ControllerType.SHIZUKU), Triple(listOf(last.name), false, ControllerType.SHIZUKU)),
+            hookCalls,
+        )
+    }
 
     @Test
     fun givenAlreadyEnabledComponentAndFailedCommand_whenEnabling_thenDoesNotReportSuccess() = runTest {
@@ -188,7 +205,7 @@ class LocalComponentBatchTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         val storedFirst = first.copy(ifwBlocked = true).toAppComponentEntity()
         val storing = StoringComponentDao(listOf(storedFirst))
-        val repository = LocalComponentRepository(mock(), storing, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher)
+        val repository = LocalComponentRepository(mock(), storing, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher, legacyHook)
         pm.rootLostAfterChanges = 1
 
         // The caller's IFW flag comes from a read that reports unreadable rules as not blocked.
@@ -207,7 +224,7 @@ class LocalComponentBatchTest {
         val storedFirst = first.copy(ifwBlocked = true).toAppComponentEntity()
         val staleSecond = second.copy(pmBlocked = true).toAppComponentEntity()
         val storing = StoringComponentDao(listOf(storedFirst, staleSecond))
-        val repository = LocalComponentRepository(mock(), storing, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher)
+        val repository = LocalComponentRepository(mock(), storing, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher, legacyHook)
         pm.rootLostAfterChanges = 0
 
         assertFailsWith<RootUnavailableException> {
