@@ -33,6 +33,8 @@ import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,6 +52,14 @@ private const val SHELL_UID = 2000
 private const val SYSTEM_UID = 1000
 private const val ROOT_UID = 0
 
+/**
+ * Asks for the privilege of the chosen controller type when the app's screens first observe
+ * [permissionStatus], which happens in the foreground only: it initialises the old controllers,
+ * which may show the su or Shizuku prompt, and once they have the privilege connects the
+ * [PrivilegedChannel] too. The root manager or Shizuku then has its answer stored, so the channel
+ * gets it without a second prompt and remembers it, and background work can later acquire the
+ * channel without one.
+ */
 @Singleton
 class AppPermissionMonitor @Inject constructor(
     userDataRepository: UserDataRepository,
@@ -57,6 +67,7 @@ class AppPermissionMonitor @Inject constructor(
     @RootApiControl private val rootApiController: IController,
     @RootApiAppControl private val rootApiAppController: IAppController,
     @RootApiServiceControl private val rootApiServiceController: IServiceController,
+    private val channel: PrivilegedChannel,
     @ApplicationScope private val appScope: CoroutineScope,
 ) : PermissionMonitor {
     private val controllerStatus = mutableMapOf<ControllerType, PermissionStatus>()
@@ -78,7 +89,10 @@ class AppPermissionMonitor @Inject constructor(
                 emit(NO_PERMISSION)
                 shizukuInitializer.awaitBinder()
             }
-            emit(controllerStatus[controllerType] ?: NO_PERMISSION)
+            val status = controllerStatus[controllerType] ?: NO_PERMISSION
+            emit(status)
+            // Only after a grant: asking again right after a refusal would show a second prompt.
+            if (status != NO_PERMISSION) connectChannel()
         }
         .shareIn(
             scope = appScope,
@@ -137,6 +151,13 @@ class AppPermissionMonitor @Inject constructor(
             }
         }
         return null
+    }
+
+    /** Connects the channel unless it is ready already, as the quiet connect at start may have made it. */
+    private suspend fun connectChannel() {
+        if (channel.state.value is ChannelState.Ready) return
+        val state = channel.connect()
+        Timber.i("Privileged channel after the controller was initialized: $state")
     }
 
     private fun updatePermissionStatusFromUid(uid: Int) {

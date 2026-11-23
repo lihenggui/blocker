@@ -17,12 +17,18 @@
 package com.merxury.blocker.core.data.util
 
 import app.cash.turbine.test
+import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.testing.controller.FakeAppController
 import com.merxury.blocker.core.testing.controller.FakeController
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.controller.FakeShizukuInitializer
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
@@ -45,6 +51,7 @@ class AppPermissionMonitorTest {
             rootApiController = FakeController(rootGranted = true),
             rootApiAppController = FakeAppController(rootGranted = true),
             rootApiServiceController = FakeServiceController(),
+            channel = FakePrivilegedChannel(),
             appScope = backgroundScope,
         )
 
@@ -157,18 +164,106 @@ class AppPermissionMonitorTest {
         }
     }
 
+    @Test
+    fun givenRootGrantedAndChannelNotConnected_whenObserved_thenChannelConnectedOnce() = runTest {
+        val userDataRepository = TestUserDataRepository()
+        val channel = FakePrivilegedChannel(DENIED)
+        val monitor = createMonitor(userDataRepository, FakeShizukuInitializer(), backgroundScope, channel = channel)
+        userDataRepository.setControllerType(PM)
+
+        monitor.permissionStatus.test {
+            assertEquals(PermissionStatus.ROOT_USER, awaitItem())
+            runCurrent()
+            assertEquals(1, channel.connectCount)
+            assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), channel.state.value)
+        }
+        // Observing again, as another screen does, connects nothing more.
+        monitor.permissionStatus.test {
+            assertEquals(PermissionStatus.ROOT_USER, awaitItem())
+        }
+        assertEquals(1, channel.connectCount)
+    }
+
+    @Test
+    fun givenRootRefused_whenObserved_thenChannelNotAskedAgain() = runTest {
+        val userDataRepository = TestUserDataRepository()
+        val channel = FakePrivilegedChannel(DENIED)
+        val monitor = createMonitor(userDataRepository, FakeShizukuInitializer(), backgroundScope, RefusingController(), channel)
+        userDataRepository.setControllerType(PM)
+
+        monitor.permissionStatus.test {
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+            runCurrent()
+        }
+        assertEquals(0, channel.connectCount)
+    }
+
+    @Test
+    fun givenShizukuGrantedOrDenied_whenObserved_thenChannelConnectedOnlyAfterTheGrant() = runTest {
+        val userDataRepository = TestUserDataRepository()
+        val shizukuInitializer = FakeShizukuInitializer(shizukuUid = SYSTEM_UID, permissionGranted = false)
+        val channel = FakePrivilegedChannel(DENIED).apply { connectResult = ChannelState.Ready(PrivilegedIdentity.SYSTEM) }
+        val monitor = createMonitor(userDataRepository, shizukuInitializer, backgroundScope, channel = channel)
+        userDataRepository.setControllerType(SHIZUKU)
+
+        monitor.permissionStatus.test {
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+            runCurrent()
+            assertEquals(0, channel.connectCount)
+
+            userDataRepository.setControllerType(PM)
+            assertEquals(PermissionStatus.ROOT_USER, awaitItem())
+            runCurrent()
+            assertEquals(1, channel.connectCount)
+        }
+    }
+
+    @Test
+    fun givenChannelReadyAlready_whenObserved_thenNotConnectedAgain() = runTest {
+        val userDataRepository = TestUserDataRepository()
+        val channel = FakePrivilegedChannel(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        val monitor = createMonitor(userDataRepository, FakeShizukuInitializer(), backgroundScope, channel = channel)
+        userDataRepository.setControllerType(PM)
+
+        monitor.permissionStatus.test {
+            assertEquals(PermissionStatus.ROOT_USER, awaitItem())
+            runCurrent()
+        }
+        assertEquals(0, channel.connectCount)
+    }
+
+    @Test
+    fun givenNoScreenObserves_whenAppStartsInTheBackground_thenNothingConnects() = runTest {
+        val userDataRepository = TestUserDataRepository()
+        val channel = FakePrivilegedChannel(DENIED)
+        createMonitor(userDataRepository, FakeShizukuInitializer(), backgroundScope, channel = channel)
+        userDataRepository.setControllerType(PM)
+
+        runCurrent()
+
+        assertEquals(0, channel.connectCount)
+    }
+
     private fun createMonitor(
         userDataRepository: TestUserDataRepository,
         shizukuInitializer: IShizukuInitializer,
         appScope: CoroutineScope,
+        rootApiController: IController = FakeController(rootGranted = true),
+        channel: FakePrivilegedChannel = FakePrivilegedChannel(),
     ) = AppPermissionMonitor(
         userDataRepository = userDataRepository,
         shizukuInitializer = shizukuInitializer,
-        rootApiController = FakeController(rootGranted = true),
+        rootApiController = rootApiController,
         rootApiAppController = FakeAppController(rootGranted = true),
         rootApiServiceController = FakeServiceController(),
+        channel = channel,
         appScope = appScope,
     )
+
+    /** A root controller su refuses, as when the user denies the prompt. */
+    private class RefusingController : IController by FakeController() {
+        override suspend fun init() = throw RootUnavailableException()
+    }
 
     /** Never finishes registering, like a Shizuku permission dialog nobody answers. */
     private class PendingShizukuInitializer : IShizukuInitializer {
@@ -191,5 +286,6 @@ class AppPermissionMonitorTest {
 
     private companion object {
         const val SYSTEM_UID = 1000
+        val DENIED = ChannelState.Unavailable(UnavailableReason.DENIED)
     }
 }

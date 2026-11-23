@@ -51,7 +51,7 @@ class WakeProtectionManager @Inject constructor(
                     repository.reportStatus(WakeSourceStatus("authorization", now, "WAITING_FOR_PERMISSION"))
                     return@withLock true
                 }
-                val writes = protection.writeChannel()
+                val writes = protection.writeAccess()
                 protection.revokeStaleFirewallRules(writes)
                 val capture = repository.collect(now - repository.lastDiagnostic >= 86_400_000, access)
                 val records = repository.attributionRecords(capture.boot)

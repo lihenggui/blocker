@@ -63,6 +63,7 @@ class WakeProtectionManagerTest {
         profiles: List<Int> = listOf(0),
     ) {
         channel.setState(writes)
+        whenever(ownership.fileCallsRefused()).thenReturn(false)
         whenever(repository.isOwnerProfile).thenReturn(true)
         whenever(catalogue.isCurrent(any())).thenReturn(true)
         whenever(repository.access()).thenReturn(access)
@@ -129,6 +130,20 @@ class WakeProtectionManagerTest {
         verify(ownership, times(2)).recover()
         verify(rules, times(2)).replace(argThat { single().service == "target.Wake" })
         verify(repository, times(2)).reportStatus(argThat { source == "protection" && status == "OK" })
+    }
+
+    @Test fun givenRootChannelThatRefusesFileCalls_whenReconciling_thenObservesOnlyWithoutRetrying() = runTest {
+        // Shizuku before 13 runs as root but cannot run the calls that reach files.
+        authorizedWith(path.copy(method = "IFW", configured = true), access = WakeAccess.SHIZUKU_LEGACY_ROOT)
+        whenever(ownership.fileCallsRefused()).thenReturn(true)
+
+        assertThat(manager.reconcile()).isTrue()
+        assertThat(manager.resetFirewall(null)).isFalse()
+
+        verify(repository).reportStatus(argThat { source == "protection" && status == "OBSERVING_WITHOUT_FILE_CALLS" })
+        verify(ownership, never()).recover()
+        verify(repository, never()).markRulesPending(any())
+        verifyNoInteractions(rules, components)
     }
 
     @Test fun givenAnyChannelState_whenReconciling_thenNoPromptIsRequested() = runTest {

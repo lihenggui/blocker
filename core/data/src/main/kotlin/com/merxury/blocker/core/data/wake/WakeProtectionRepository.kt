@@ -21,6 +21,15 @@ import javax.inject.Inject
  */
 private val WAKE_USER = UserId.SYSTEM
 
+/** What one run of the wake feature may change, decided once from the privileged channel. */
+sealed interface WakeWrites {
+    /** The channel may write what the feature changes: it enforces. */
+    data object Enforce : WakeWrites
+
+    /** The run observes only; [status] is the protection status that says why. */
+    data class ObserveOnly(val status: String) : WakeWrites
+}
+
 /**
  * Applies the reviewed wake paths through the privileged channel the user chose. Only an identity
  * that may write system files, root or the system uid, changes anything; with any other state the
@@ -36,10 +45,16 @@ class WakeProtectionRepository @Inject constructor(
     private val userBlocks: PmBlockRecordDao,
 ) {
     /**
-     * The channel for this run's changes, acquired without a prompt: background work must never
-     * show one. Pass it to [revokeStaleFirewallRules] and [applyReviewedPaths].
+     * What this run may change, from the channel acquired without a prompt: background work must
+     * never show one. Pass it to [revokeStaleFirewallRules] and [applyReviewedPaths].
      */
-    suspend fun writeChannel(): ChannelState = channel.connectIfGranted()
+    suspend fun writeAccess(): WakeWrites {
+        val state = channel.connectIfGranted()
+        if (!state.mayEnforce) return WakeWrites.ObserveOnly(state.observingStatus())
+        // Shizuku before 13 runs as root but cannot run the calls that reach files.
+        if (ownership.fileCallsRefused()) return WakeWrites.ObserveOnly("OBSERVING_WITHOUT_FILE_CALLS")
+        return WakeWrites.Enforce
+    }
 
     /**
      * Resets the wake rules of [packageName], or all of them when null. Returns false, without a
@@ -47,7 +62,7 @@ class WakeProtectionRepository @Inject constructor(
      * runs after the rule store's own calls, which connect the channel when needed.
      */
     suspend fun resetFirewall(packageName: String?): Boolean {
-        if (!writeChannel().mayEnforce) return false
+        if (writeAccess() != WakeWrites.Enforce) return false
         val alreadyPending = repository.rulesPending
         repository.markRulesPending(true)
         repository.resetFirewall(packageName)
@@ -56,8 +71,8 @@ class WakeProtectionRepository @Inject constructor(
         return true
     }
 
-    suspend fun applyReviewedPaths(capture: WakeImport, writes: ChannelState, now: Long): String {
-        val canManageComponents = writes.mayEnforce && !capture.binderFallback
+    suspend fun applyReviewedPaths(capture: WakeImport, writes: WakeWrites, now: Long): String {
+        val canManageComponents = writes == WakeWrites.Enforce && !capture.binderFallback
         if (canManageComponents) ownership.recover()
         val previous = repository.protections()
         val candidates = catalog.evaluate(repository.observedComponents(now - WAKE_HISTORY_RETENTION_MILLIS), capture.identities, capture.profiles, previous, repository.firewallResets())
@@ -68,12 +83,12 @@ class WakeProtectionRepository @Inject constructor(
             reconcileComponents(previous, candidates.filter { it.method == "PM" })
         }
         if (capture.binderFallback) return "SHIZUKU_USER_SERVICE_UNAVAILABLE"
-        if (!writes.mayEnforce) return writes.observingStatus()
+        if (writes is WakeWrites.ObserveOnly) return writes.status
         return reconcileFirewall(previous.filter { it.method == "IFW" }, candidates.filter { it.method == "IFW" })
     }
 
-    suspend fun revokeStaleFirewallRules(writes: ChannelState) {
-        if (!writes.mayEnforce) return
+    suspend fun revokeStaleFirewallRules(writes: WakeWrites) {
+        if (writes != WakeWrites.Enforce) return
         val installed = repository.protections().filter { it.method == "IFW" && it.configured }
         val staleTargets = installed.filterNot(catalog::isCurrent).map { it.target }.toSet()
         if (staleTargets.isEmpty()) return

@@ -4,6 +4,7 @@
 package com.merxury.blocker.core.data.wake
 
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
 import com.merxury.blocker.core.controllers.wake.WakeComponentJournal
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeProtection
@@ -34,6 +35,21 @@ class WakeComponentOwnershipTest {
         whenever(journal.read()).thenReturn(encoded.firstValue)
         ownership.recover()
         verify(dao, times(2)).putProtections(listOf(owned))
+    }
+
+    @Test fun givenReadableJournal_whenCheckingFileCalls_thenNotRefused() = runTest {
+        whenever(journal.read()).thenReturn(null)
+        assertThat(ownership.fileCallsRefused()).isFalse()
+    }
+
+    @Test fun givenChannelRefusesTheJournal_whenCheckingFileCalls_thenRefused() = runTest {
+        whenever(journal.read()).thenAnswer { throw WakeCallRefusedException("Shizuku 12 cannot run ReadWakeJournal") }
+        assertThat(ownership.fileCallsRefused()).isTrue()
+    }
+
+    @Test fun givenJournalFailsOtherwise_whenCheckingFileCalls_thenTheFailureIsThrown() = runTest {
+        whenever(journal.read()).thenAnswer { throw java.io.IOException("EIO") }
+        assertThat(runCatching { ownership.fileCallsRefused() }.exceptionOrNull()).isInstanceOf(java.io.IOException::class.java)
     }
 
     @Test fun givenNoJournalYet_whenRecoveringOwnership_thenLocalEntriesAreWrittenToIt() = runTest {

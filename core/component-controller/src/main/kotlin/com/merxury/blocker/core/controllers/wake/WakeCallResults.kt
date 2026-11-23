@@ -16,14 +16,26 @@
 
 package com.merxury.blocker.core.controllers.wake
 
+import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import java.io.IOException
 
 /**
- * The value of a wake write, or an [IOException] naming [action] and the failure. A write that
- * cannot be made stops the run that asked for it, which reports the message as its status.
+ * The channel refused a wake call as not permitted for its identity or its server: the shell, or
+ * Shizuku before 13, which cannot run calls that need its own process.
+ */
+class WakeCallRefusedException(message: String) : IOException(message)
+
+/**
+ * The value of a wake write, or an [IOException] naming [action] and the failure, a
+ * [WakeCallRefusedException] when the channel refused it. A write that cannot be made stops the
+ * run that asked for it, which reports the message as its status.
  */
 internal fun <R> CallResult<R>.orThrow(action: String): R = when (this) {
     is CallResult.Success -> value
-    is CallResult.Failure -> throw IOException("Cannot $action: $reason")
+
+    is CallResult.Failure -> when (reason) {
+        is CallFailure.NotPermitted -> throw WakeCallRefusedException("Cannot $action: $reason")
+        else -> throw IOException("Cannot $action: $reason")
+    }
 }

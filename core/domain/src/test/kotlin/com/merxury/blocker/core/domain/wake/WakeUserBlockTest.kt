@@ -65,6 +65,7 @@ class WakeUserBlockTest {
     private val claimed = candidate.copy(configured = true, previousState = COMPONENT_ENABLED_STATE_DEFAULT)
 
     private suspend fun reconcileWith(previous: List<WakeProtection>, qualifying: List<WakeProtection>) {
+        whenever(ownership.fileCallsRefused()).thenReturn(false)
         whenever(repository.isOwnerProfile).thenReturn(true)
         whenever(repository.access()).thenReturn(WakeAccess.DIRECT_ROOT)
         whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), listOf(0)))

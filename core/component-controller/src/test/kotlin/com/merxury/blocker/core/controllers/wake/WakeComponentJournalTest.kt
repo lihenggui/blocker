@@ -59,6 +59,14 @@ class WakeComponentJournalTest {
         ).inOrder()
     }
 
+    @Test fun givenRefusedOrUnavailable_whenReading_thenOnlyTheRefusalIsARefusal() = runTest {
+        executor.answer = { CallResult.Failure(CallFailure.NotPermitted("Shizuku 12 cannot run it")) }
+        assertThat(runCatching { journal.read() }.exceptionOrNull()).isInstanceOf(WakeCallRefusedException::class.java)
+
+        executor.answer = { CallResult.Failure(CallFailure.ChannelUnavailable) }
+        assertThat(runCatching { journal.read() }.exceptionOrNull()).isNotInstanceOf(WakeCallRefusedException::class.java)
+    }
+
     @Test fun givenChannelNotReadyOrShell_whenReadingOrWriting_thenThrows() = runTest {
         for (failure in listOf(CallFailure.ChannelUnavailable, CallFailure.NotPermitted("shell"))) {
             executor.answer = { CallResult.Failure(failure) }
