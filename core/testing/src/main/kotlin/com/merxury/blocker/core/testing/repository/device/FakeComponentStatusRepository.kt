@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 /**
  * In-memory [ComponentStatusRepository]. Tests set the cached components with [sendComponents].
@@ -48,7 +49,7 @@ import kotlinx.coroutines.flow.update
  * the goal, stores the new state and reports every component as achieved; set [controlEvents] to answer otherwise.
  * Refreshes succeed and change nothing unless [refreshFailure] is set.
  */
-class FakeComponentStatusRepository : ComponentStatusRepository {
+class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepository {
     private val cached = MutableStateFlow<Map<ComponentKey, ComponentStatus>>(emptyMap())
     private val readable = MutableStateFlow(true)
 

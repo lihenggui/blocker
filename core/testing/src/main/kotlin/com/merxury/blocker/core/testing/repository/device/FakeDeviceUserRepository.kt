@@ -22,9 +22,10 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import javax.inject.Inject
 
 /** In-memory [DeviceUserRepository]; tests set the cached users and what a refresh answers. */
-class FakeDeviceUserRepository : DeviceUserRepository {
+class FakeDeviceUserRepository @Inject constructor() : DeviceUserRepository {
     private val cached = MutableStateFlow<List<DeviceUser>>(emptyList())
 
     /** What the system shows; a successful [refresh] stores these. */
