@@ -1,0 +1,181 @@
+/*
+ * Copyright 2026 Blocker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.merxury.blocker.core.control
+
+import android.content.pm.PackageManager
+import app.cash.turbine.test
+import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+private val MAIN = declaration("Main")
+private val SYNC = declaration("Sync", ComponentType.SERVICE)
+private val OTHER_MAIN = declaration("Main", packageName = OTHER_PKG)
+private val THIRD_MAIN = declaration("Main", packageName = "com.example.third")
+
+/** Packages in order, one lock per package, duplicates and cancellation. */
+@OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
+class ComponentControlOrderTest {
+
+    private val fixture = ControlFixture()
+
+    @Test
+    fun givenSeveralPackages_whenApply_thenOneEventPerPackageInRequestOrderThenFinished() = runTest {
+        fixture.control.apply(block(PM_ONLY, OTHER_MAIN, MAIN, THIRD_MAIN, SYNC)).test {
+            val first = awaitItem() as ControlEvent.PackageDone
+            assertThat(first.packageName).isEqualTo(OTHER_PKG)
+            assertThat(first.outcomes.map { it.key.id }).containsExactly(OTHER_MAIN.id)
+            val second = awaitItem() as ControlEvent.PackageDone
+            assertThat(second.packageName).isEqualTo(PKG)
+            assertThat(second.outcomes.map { it.key.id }).containsExactly(MAIN.id, SYNC.id).inOrder()
+            assertThat((awaitItem() as ControlEvent.PackageDone).packageName).isEqualTo(THIRD_MAIN.id.packageName)
+            assertThat(awaitItem()).isEqualTo(ControlEvent.Finished(achieved = 4, partial = 0, failed = 0))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun givenDuplicates_whenApply_thenEachComponentInOneOutcome() = runTest {
+        val events = fixture.run(block(PM_ONLY, MAIN, SYNC, MAIN, OTHER_MAIN, MAIN))
+
+        assertThat(events.outcomes().map { it.key.id }).containsExactly(MAIN.id, SYNC.id, OTHER_MAIN.id).inOrder()
+        assertThat(fixture.executor.calls.map { it.components.size }).containsExactly(2, 1)
+        assertThat(events.last()).isEqualTo(ControlEvent.Finished(achieved = 3, partial = 0, failed = 0))
+    }
+
+    @Test
+    fun givenNoComponents_whenApply_thenOnlyFinishedAndNoConnect() = runTest {
+        fixture.channel.mutableState.value = ChannelState.Unavailable(UnavailableReason.NOT_CHECKED)
+
+        fixture.control.apply(block(PM_ONLY)).test {
+            assertThat(awaitItem()).isEqualTo(ControlEvent.Finished(0, 0, 0))
+            awaitComplete()
+        }
+        assertThat(fixture.channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenTwoAppliesOnSamePackage_whenConcurrent_thenSecondStartsAfterFirstReadBack() = runTest {
+        val held = CompletableDeferred<Unit>()
+        fixture.system.beforeSet = { if (it.newState == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) held.await() }
+
+        val blocking = launch { fixture.run(block(PM_ONLY, MAIN)) }
+        runCurrent()
+        val unblocking = launch { fixture.run(unblock(MAIN)) }
+        runCurrent()
+        assertThat(fixture.system.log).containsExactly("read $PKG", "set $PKG 1 DISABLED")
+        held.complete(Unit)
+        blocking.join()
+        unblocking.join()
+
+        assertThat(fixture.system.log).containsExactly(
+            "read $PKG",
+            "set $PKG 1 DISABLED",
+            "read $PKG",
+            "read $PKG",
+            "set $PKG 1 DEFAULT",
+            "read $PKG",
+        ).inOrder()
+        assertThat(fixture.pm(MAIN)).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test
+    fun givenApplyHeldOnOnePackage_whenAnotherPackageApplied_thenItProceeds() = runTest {
+        val held = CompletableDeferred<Unit>()
+        fixture.system.beforeSet = { if (it.components.single().packageName == PKG) held.await() }
+
+        val blocking = launch { fixture.run(block(PM_ONLY, MAIN)) }
+        runCurrent()
+        val other = fixture.run(block(PM_ONLY, OTHER_MAIN))
+
+        assertThat(other.outcomeOf(OTHER_MAIN).result).isEqualTo(ControlResult.ACHIEVED)
+        assertThat(blocking.isActive).isTrue()
+        held.complete(Unit)
+        blocking.join()
+    }
+
+    @Test
+    fun givenRequestOverManyPackages_whenTwoRunConcurrently_thenBothFinish() = runTest {
+        val first = launch { fixture.run(block(PM_ONLY, MAIN, OTHER_MAIN, THIRD_MAIN)) }
+        val second = launch { fixture.run(block(PM_ONLY, THIRD_MAIN, OTHER_MAIN, MAIN)) }
+        first.join()
+        second.join()
+
+        assertThat(listOf(MAIN, OTHER_MAIN, THIRD_MAIN).map { fixture.pm(it) }).containsExactly(PmSetting.DISABLED, PmSetting.DISABLED, PmSetting.DISABLED)
+    }
+
+    @Test
+    fun givenCollectorStopsAfterFirstPackage_whenApply_thenNextPackageNotStarted() = runTest {
+        val first = fixture.control.apply(block(PM_ONLY, MAIN, OTHER_MAIN)).first()
+
+        assertThat((first as ControlEvent.PackageDone).packageName).isEqualTo(PKG)
+        assertThat(fixture.system.log).containsExactly("read $PKG", "set $PKG 1 DISABLED", "read $PKG").inOrder()
+        assertThat(fixture.pm(OTHER_MAIN)).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test
+    fun givenCancelledWhileChanging_whenCollecting_thenPackageReadBackAndNoFurtherPackage() = runTest {
+        val held = CompletableDeferred<Unit>()
+        fixture.system.beforeSet = { held.await() }
+        val events = mutableListOf<ControlEvent>()
+
+        val job = launch { fixture.control.apply(block(PM_ONLY, MAIN, OTHER_MAIN)).toList(events) }
+        runCurrent()
+        job.cancel()
+        held.complete(Unit)
+        job.join()
+
+        assertThat(fixture.system.log).containsExactly("read $PKG", "set $PKG 1 DISABLED", "read $PKG").inOrder()
+        assertThat(fixture.pm(MAIN)).isEqualTo(PmSetting.DISABLED)
+        assertThat(events).isEmpty()
+    }
+
+    @Test
+    fun givenCancelledBeforeChanging_whenWaitingForLock_thenNothingSent() = runTest {
+        val held = CompletableDeferred<Unit>()
+        fixture.system.beforeSet = { held.await() }
+
+        val holder = launch { fixture.run(block(PM_ONLY, MAIN)) }
+        runCurrent()
+        val waiter = launch { fixture.run(block(PM_ONLY, SYNC)) }
+        runCurrent()
+        waiter.cancel()
+        held.complete(Unit)
+        holder.join()
+        waiter.join()
+
+        assertThat(fixture.executor.calls.flatMap { call -> call.components.map { it.className } }).containsExactly(MAIN.id.className)
+        assertThat(fixture.pm(SYNC)).isEqualTo(PmSetting.DEFAULT)
+    }
+}
