@@ -83,6 +83,27 @@ class ComponentRefreshTest : DeviceRepositoryTestBase() {
     }
 
     @Test
+    fun givenObservedComponentsOfUpdatedApp_whenRefresh_thenNextItemHasNewDeclarationsWithTheirState() = runTest {
+        val repository = components(backgroundScope)
+        system.install(installedApp(PKG), MAIN)
+        repository.refresh(OWNER_APP)
+        system.install(installedApp(PKG, lastUpdateTime = 3_000), MAIN, SYNC)
+        system.put(OWNER, SYNC, PmSetting.DISABLED)
+
+        repository.components(OWNER_APP).test {
+            assertThat(awaitItem()).containsExactly(status(MAIN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+
+            repository.refresh(OWNER_APP)
+
+            // Never the new declaration without its setting: the refresh is stored in one transaction.
+            assertThat(awaitItem()).containsExactly(
+                status(MAIN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
+                status(SYNC, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED),
+            ).inOrder()
+        }
+    }
+
+    @Test
     fun givenAppUpdated_whenRefresh_thenDeclarationsReadAgainAndRemovedOnesGone() = runTest {
         val repository = components(backgroundScope)
         system.install(installedApp(PKG), MAIN, SYNC)

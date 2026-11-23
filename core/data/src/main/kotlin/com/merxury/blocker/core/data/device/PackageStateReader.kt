@@ -81,9 +81,10 @@ internal class PackageStateReader @Inject constructor(
 ) {
 
     /**
-     * Reads every part first, then writes them in the order the cache requires: declarations,
-     * then settings, then firewall state. The reads stop on cancellation with nothing written;
-     * once writing starts it finishes.
+     * Reads every part first, then writes them in one transaction, in the order the cache
+     * requires: declarations, then settings, then firewall state, so an observer never sees part
+     * of a refresh. The reads stop on cancellation with nothing written; once writing starts it
+     * finishes.
      *
      * @param app the app as just read, or null when it could not be read ([appFailure] says why);
      * then the cached declarations are used as they are
@@ -127,12 +128,14 @@ internal class PackageStateReader @Inject constructor(
         // Without file access the rules are out of reach by design, which firewallReadable reports.
         if (ifw == null && channel.state.value.allowsFirewallReads) failures += ReadFailure.RulesUnreadable(packageName)
         val stored = withContext(NonCancellable) {
-            if (fresh != null && app != null) {
-                if (!dao.replaceDeclarations(packageName, fresh.map { it.asEntity() }, app.lastUpdateTime)) return@withContext false
-            }
-            dao.upsertPmSettings(packageName, key.userId.value, declarations.associate { it.id.className to (pm?.get(it.id) ?: PmSetting.UNKNOWN) })
-            writeIfw(packageName, declarations, ifw)
-            true
+            dao.storePackageState(
+                packageName = packageName,
+                userId = key.userId.value,
+                declarations = fresh?.map { it.asEntity() },
+                appLastUpdateTime = app?.lastUpdateTime?.takeIf { fresh != null },
+                pmSettings = declarations.associate { it.id.className to (pm?.get(it.id) ?: PmSetting.UNKNOWN) },
+                ifwBlocks = ifwBlocksOf(declarations, ifw),
+            )
         }
         if (!stored) {
             Timber.i("$packageName was removed from the cache while it was read")
@@ -147,7 +150,7 @@ internal class PackageStateReader @Inject constructor(
         if (declarations.isEmpty()) return
         val ifw = readIfw(packageName, declarations)
         if (ifw == null) Timber.w("Cannot read the changed IFW rules of $packageName, store them as unknown")
-        withContext(NonCancellable) { writeIfw(packageName, declarations, ifw) }
+        withContext(NonCancellable) { dao.upsertIfwBlocks(packageName, ifwBlocksOf(declarations, ifw)) }
     }
 
     /**
@@ -163,17 +166,13 @@ internal class PackageStateReader @Inject constructor(
         return blocks.takeIf { filtered.none { blocks[it.id] == null || blocks[it.id] == IfwBlock.UNKNOWN } }
     }
 
-    private suspend fun writeIfw(packageName: String, declarations: List<ComponentDeclaration>, ifw: Map<ComponentId, IfwBlock>?) {
-        dao.upsertIfwBlocks(
-            packageName,
-            declarations.associate { declaration ->
-                val block = when {
-                    !declaration.type.isFilteredByIntentFirewall -> IfwBlock.NOT_BLOCKED
-                    else -> ifw?.get(declaration.id) ?: IfwBlock.UNKNOWN
-                }
-                declaration.id.className to block
-            },
-        )
+    /** The firewall state to store for [declarations]: [ifw], or unknown where it was not read. */
+    private fun ifwBlocksOf(declarations: List<ComponentDeclaration>, ifw: Map<ComponentId, IfwBlock>?): Map<String, IfwBlock> = declarations.associate { declaration ->
+        val block = when {
+            !declaration.type.isFilteredByIntentFirewall -> IfwBlock.NOT_BLOCKED
+            else -> ifw?.get(declaration.id) ?: IfwBlock.UNKNOWN
+        }
+        declaration.id.className to block
     }
 
     private suspend fun remove(key: AppKey): PackageRefresh {

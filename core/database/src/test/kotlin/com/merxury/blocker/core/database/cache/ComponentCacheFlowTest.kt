@@ -26,6 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.time.Instant
 
 /**
  * Room re-runs a query after any write to a table it reads. These tests write something unrelated,
@@ -68,7 +69,7 @@ class ComponentCacheFlowTest : ComponentCacheTestBase() {
     }
 
     @Test
-    fun givenObservedComponents_whenTheAppIsRemovedForThatUser_thenTheCascadeEmitsUnknown() = runTest {
+    fun givenObservedComponents_whenTheAppIsRemovedForThatUser_thenTheNextItemIsEmpty() = runTest {
         install("com.example")
         dao.declare("com.example", declaration("com.example"))
         dao.upsertPmSettings("com.example", OWNER, mapOf("com.example.Main" to PmSetting.DISABLED))
@@ -78,9 +79,56 @@ class ComponentCacheFlowTest : ComponentCacheTestBase() {
 
             dao.deleteApp("com.example", OWNER)
 
-            assertThat(awaitItem().single().pmSetting).isNull()
+            // The work profile keeps the declarations; the owner must not see them without settings.
+            assertThat(awaitItem()).isEmpty()
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun givenObservedComponents_whenStorePackageState_thenTheNextItemHasDeclarationsWithBothLayers() = runTest {
+        install("com.example")
+        dao.declare("com.example", declaration("com.example"))
+
+        dao.observeComponents("com.example", OWNER).test {
+            assertThat(awaitItem()).hasSize(1)
+
+            val stored = dao.storePackageState(
+                packageName = "com.example",
+                userId = OWNER,
+                declarations = listOf(declaration("com.example"), declaration("com.example", "com.example.Second")),
+                appLastUpdateTime = Instant.fromEpochMilliseconds(3_000),
+                pmSettings = mapOf("com.example.Main" to PmSetting.DISABLED, "com.example.Second" to PmSetting.DEFAULT),
+                ifwBlocks = mapOf("com.example.Main" to IfwBlock.BLOCKED, "com.example.Second" to IfwBlock.NOT_BLOCKED),
+            )
+
+            assertThat(stored).isTrue()
+            // One transaction, so the first item after it already holds every part.
+            assertThat(awaitItem().map { Triple(it.declaration.className, it.pmSetting, it.ifwBlock) }).containsExactly(
+                Triple("com.example.Main", PmSetting.DISABLED, IfwBlock.BLOCKED),
+                Triple("com.example.Second", PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
+            ).inOrder()
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(dao.scanMarker("com.example")).isEqualTo(Instant.fromEpochMilliseconds(3_000))
+    }
+
+    @Test
+    fun givenPackageNoUserHas_whenStorePackageStateWithDeclarations_thenNothingStored() = runTest {
+        install()
+
+        val stored = dao.storePackageState(
+            packageName = "com.gone",
+            userId = OWNER,
+            declarations = listOf(declaration("com.gone")),
+            appLastUpdateTime = Instant.fromEpochMilliseconds(3_000),
+            pmSettings = mapOf("com.gone.Main" to PmSetting.DISABLED),
+            ifwBlocks = mapOf("com.gone.Main" to IfwBlock.BLOCKED),
+        )
+
+        assertThat(stored).isFalse()
+        assertThat(dao.getDeclarations("com.gone")).isEmpty()
+        assertThat(dao.scanMarker("com.gone")).isNull()
     }
 
     @Test

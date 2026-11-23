@@ -146,6 +146,8 @@ class UserAndAppCacheTest : ComponentCacheTestBase() {
         assertThat(dao.getPmSettings(OWNER, PmSetting.DISABLED)).isEmpty()
         assertThat(dao.getDeclarations("com.shared")).containsExactly(declaration("com.shared"))
         assertThat(dao.scanMarker("com.shared")).isNotNull()
+        assertThat(dao.observeComponents("com.shared", OWNER).first()).isEmpty()
+        assertThat(dao.observeComponent("com.shared", "com.shared.Main", OWNER).first()).isNull()
         val (_, state) = dao.observeComponent("com.shared", "com.shared.Main", WORK).first()!!.asExternalModel()
         assertThat(state.pm).isEqualTo(PmSetting.DISABLED)
         assertThat(state.ifw).isEqualTo(IfwBlock.BLOCKED)
