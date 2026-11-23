@@ -31,4 +31,5 @@
     </plurals>
     <string name="core_rule_result_firewall_unavailable">\u0020Não foi possível ler as regras do Intent Firewall, então elas ficaram de fora.</string>
     <string name="core_rule_error_msg_folder_unreachable">Não é possível acessar a pasta de backup. Escolha-a novamente nas configurações.</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">Não é possível ler o arquivo selecionado. Escolha-o novamente.</string>
 </resources>

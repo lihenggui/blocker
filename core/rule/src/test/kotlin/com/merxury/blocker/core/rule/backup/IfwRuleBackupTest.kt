@@ -265,6 +265,20 @@ class IfwRuleBackupTest {
     }
 
     @Test
+    fun givenDamagedBackupOfAnAppNotInstalled_whenImporting_thenItIsNeverWritten() = runTest {
+        // Written now, it would keep a good backup from being merged once the app is installed.
+        storage.putFile("ifw/com.gone.xml", DAMAGED_RULE)
+        storage.putFile("ifw/my-rules.xml", "not xml at all")
+
+        val result = importer.import(storage)
+
+        assertThat(fileSystem.fileContent("com.gone")).isNull()
+        assertThat(fileSystem.fileContent("my-rules")).isNull()
+        assertThat(fileSystem.changeCount).isEqualTo(0)
+        assertThat(result.summary.failed).containsExactly(FailureReason.BACKUP_UNREADABLE, 2)
+    }
+
+    @Test
     fun givenOneAppAsked_whenImporting_thenOnlyRulesActingOnThatAppAloneAreMerged() = runTest {
         installedApps.sendApps(listOf(installedApp()))
         storage.putFile(

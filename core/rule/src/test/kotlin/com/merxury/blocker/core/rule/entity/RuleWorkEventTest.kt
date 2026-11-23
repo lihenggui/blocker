@@ -75,6 +75,21 @@ class RuleWorkEventTest {
     }
 
     @Test
+    fun givenStorageFailures_whenMakingTheMessage_thenOnlyTheBackupWorksMentionTheFolder() {
+        fun message(type: RuleWorkType, result: Int) = RuleWorkEvent(type, result).resultMessage(resources)
+
+        assertThat(message(RuleWorkType.IMPORT_MAT_RULES, RuleWorkResult.MISSING_STORAGE_PERMISSION))
+            .isEqualTo("Cannot read the selected file. Please choose it again.")
+        for (type in listOf(RuleWorkType.EXPORT_BLOCKER_RULES, RuleWorkType.IMPORT_BLOCKER_RULES, RuleWorkType.EXPORT_IFW_RULES, RuleWorkType.IMPORT_IFW_RULES)) {
+            assertThat(message(type, RuleWorkResult.MISSING_STORAGE_PERMISSION)).isEqualTo("Cannot access the backup folder. Please choose it again in settings.")
+        }
+        for (type in listOf(RuleWorkType.RESET_IFW, RuleWorkType.RESET_PM)) {
+            assertThat(message(type, RuleWorkResult.MISSING_STORAGE_PERMISSION)).doesNotContain("folder")
+            assertThat(message(type, RuleWorkResult.FOLDER_NOT_DEFINED)).doesNotContain("folder")
+        }
+    }
+
+    @Test
     fun givenStartedWork_whenMakingTheMessage_thenTheScreenChoosesIt() {
         assertThat(RuleWorkEvent(RuleWorkType.RESET_PM, RuleWorkResult.STARTED).resultMessage(resources)).isNull()
     }

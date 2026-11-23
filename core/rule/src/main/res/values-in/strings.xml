@@ -28,4 +28,5 @@
     </plurals>
     <string name="core_rule_result_firewall_unavailable">\u0020Aturan Intent Firewall tidak dapat dibaca, jadi tidak disertakan.</string>
     <string name="core_rule_error_msg_folder_unreachable">Folder cadangan tidak dapat diakses. Pilih lagi di pengaturan.</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">File yang dipilih tidak dapat dibaca. Pilih lagi.</string>
 </resources>

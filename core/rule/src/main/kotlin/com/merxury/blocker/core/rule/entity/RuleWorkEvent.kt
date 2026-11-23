@@ -70,7 +70,8 @@ fun ruleWorkEventOf(type: RuleWorkType, workInfo: WorkInfo): RuleWorkEvent? {
  * [RuleWorkResult.STARTED], whose message each screen chooses. A work that finished says how many
  * items it changed and, when any, how many it skipped and how many failed, and whether it had to
  * leave the Intent Firewall rules out. A folder that is set but cannot be reached is told apart
- * from one that is not set.
+ * from one that is not set; the MAT import, which reads only the file the user picked, says that
+ * file cannot be read, and no other work that does not use the backup folder mentions it.
  */
 fun RuleWorkEvent.resultMessage(resources: Resources): String? = when (result) {
     RuleWorkResult.STARTED -> null
@@ -82,13 +83,24 @@ fun RuleWorkEvent.resultMessage(resources: Resources): String? = when (result) {
         if (firewallUnavailable) append(resources.getString(R.string.core_rule_result_firewall_unavailable))
     }
 
-    RuleWorkResult.FOLDER_NOT_DEFINED -> resources.getString(R.string.core_rule_error_msg_folder_not_defined)
-
-    RuleWorkResult.MISSING_STORAGE_PERMISSION -> resources.getString(R.string.core_rule_error_msg_folder_unreachable)
+    RuleWorkResult.FOLDER_NOT_DEFINED, RuleWorkResult.MISSING_STORAGE_PERMISSION -> resources.getString(storageMessage())
 
     RuleWorkResult.MISSING_ROOT_PERMISSION -> resources.getString(R.string.core_rule_error_msg_missing_root_permission)
 
     RuleWorkResult.CANCELLED -> resources.getString(R.string.core_rule_task_cancelled)
 
     else -> resources.getString(R.string.core_rule_error_msg_unexpected_exception)
+}
+
+/** The message for a storage failure of this work, which only the backup works blame on the folder. */
+private fun RuleWorkEvent.storageMessage(): Int = when (type) {
+    RuleWorkType.IMPORT_MAT_RULES -> R.string.core_rule_error_msg_mat_file_unreadable
+
+    RuleWorkType.EXPORT_BLOCKER_RULES,
+    RuleWorkType.IMPORT_BLOCKER_RULES,
+    RuleWorkType.EXPORT_IFW_RULES,
+    RuleWorkType.IMPORT_IFW_RULES,
+    -> if (result == RuleWorkResult.FOLDER_NOT_DEFINED) R.string.core_rule_error_msg_folder_not_defined else R.string.core_rule_error_msg_folder_unreachable
+
+    RuleWorkType.RESET_IFW, RuleWorkType.RESET_PM -> R.string.core_rule_error_msg_unexpected_exception
 }

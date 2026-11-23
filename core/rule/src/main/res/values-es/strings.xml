@@ -45,4 +45,5 @@
     </plurals>
     <string name="core_rule_result_firewall_unavailable">\u0020No se pudieron leer las reglas de Intent Firewall, así que se omitieron.</string>
     <string name="core_rule_error_msg_folder_unreachable">No se puede acceder a la carpeta de copia de seguridad. Vuelve a elegirla en los ajustes.</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">No se puede leer el archivo seleccionado. Vuelve a elegirlo.</string>
 </resources>

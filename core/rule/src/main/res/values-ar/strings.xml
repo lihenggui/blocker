@@ -43,4 +43,5 @@
     </plurals>
     <string name="core_rule_result_firewall_unavailable">\u0020تعذّرت قراءة قواعد Intent Firewall، لذا لم تُضمَّن.</string>
     <string name="core_rule_error_msg_folder_unreachable">تعذّر الوصول إلى مجلد النسخ الاحتياطي. يُرجى اختياره مجددًا من الإعدادات.</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">تعذّرت قراءة الملف المحدد. يُرجى اختياره مجددًا.</string>
 </resources>

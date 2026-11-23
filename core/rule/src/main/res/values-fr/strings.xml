@@ -31,4 +31,5 @@
     </plurals>
     <string name="core_rule_result_firewall_unavailable">\u0020Les règles Intent Firewall n\'ont pas pu être lues et ont été ignorées.</string>
     <string name="core_rule_error_msg_folder_unreachable">Impossible d\'accéder au dossier de sauvegarde. Choisissez-le de nouveau dans les paramètres.</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">Impossible de lire le fichier sélectionné. Choisissez-le de nouveau.</string>
 </resources>

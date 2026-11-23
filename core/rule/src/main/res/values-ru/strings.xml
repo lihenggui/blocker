@@ -51,4 +51,5 @@
     </plurals>
     <string name="core_rule_result_firewall_unavailable">\u0020Не удалось прочитать правила Intent Firewall, поэтому они не включены.</string>
     <string name="core_rule_error_msg_folder_unreachable">Нет доступа к папке резервных копий. Выберите её снова в настройках.</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">Не удалось прочитать выбранный файл. Выберите его снова.</string>
 </resources>

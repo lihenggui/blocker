@@ -43,8 +43,9 @@ import javax.inject.Inject
  * file, since the rules apply to every user. Any other file, whatever its name looks like, such as
  * a user's own `privacy.rules.xml` or the file of an app no longer installed, is restored whole,
  * byte for byte, only when no file of that name is on the device; it is never merged or
- * overwritten. A backup file that cannot be parsed is skipped; a damaged rule file on the device
- * makes its package fail without being overwritten.
+ * overwritten. A backup file that cannot be parsed is skipped and never written, whichever way it
+ * would be restored; a damaged rule file on the device makes its package fail without being
+ * overwritten.
  *
  * A restore of one app reads only that app's file and merges only the rules that act on that app
  * alone: rules whose top-level component-filters all name it and that have no intent-filter. A
@@ -133,7 +134,8 @@ class IfwRuleImporter @Inject constructor(
 
     /**
      * Restores the backup `<name>.xml` of a file that is not an installed app's byte for byte, only
-     * when no file of that name is on the device; such a file is never merged or overwritten.
+     * when no file of that name is on the device and only when it parses as rules; such a file is
+     * never merged or overwritten, and a damaged one is never written.
      */
     private suspend fun restoreWholeFile(storage: BackupStorage, name: String, summary: SummaryBuilder) {
         val text = try {
@@ -144,6 +146,21 @@ class IfwRuleImporter @Inject constructor(
             Timber.e(e, "Cannot read the IFW backup of $name")
             null
         } ?: run {
+            summary.fail(FailureReason.BACKUP_UNREADABLE)
+            return
+        }
+        if (text.isBlank()) {
+            // Holds no rules, so there is nothing to restore.
+            summary.unchanged++
+            return
+        }
+        // A damaged file written now would keep a later restore of the app from changing it.
+        try {
+            deserializer.deserialize(text)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot parse the IFW backup of $name, leave it out")
             summary.fail(FailureReason.BACKUP_UNREADABLE)
             return
         }

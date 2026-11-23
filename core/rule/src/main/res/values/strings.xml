@@ -46,4 +46,5 @@
     </plurals>
     <string name="core_rule_result_firewall_unavailable">\u0020Intent Firewall rules could not be read, so they were left out.</string>
     <string name="core_rule_error_msg_folder_unreachable">Cannot access the backup folder. Please choose it again in settings.</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">Cannot read the selected file. Please choose it again.</string>
 </resources>

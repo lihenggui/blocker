@@ -43,4 +43,5 @@
     </plurals>
     <string name="core_rule_result_firewall_unavailable">無法讀取 Intent Firewall 規則，因此未包含。</string>
     <string name="core_rule_error_msg_folder_unreachable">無法存取備份資料夾，請在設定中重新選擇。</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">無法讀取所選檔案，請重新選擇。</string>
 </resources>
