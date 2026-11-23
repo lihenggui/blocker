@@ -28,7 +28,9 @@ import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
+import com.merxury.core.ifw.xml.IfwXmlParseException
 import com.merxury.core.ifw.xml.IfwXmlSerializer
+import com.merxury.core.ifw.xml.requireIfwRulesDocument
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
@@ -43,9 +45,9 @@ import javax.inject.Inject
  * file, since the rules apply to every user. Any other file, whatever its name looks like, such as
  * a user's own `privacy.rules.xml` or the file of an app no longer installed, is restored whole,
  * byte for byte, only when no file of that name is on the device; it is never merged or
- * overwritten. A backup file that cannot be parsed is skipped and never written, whichever way it
- * would be restored; a damaged rule file on the device makes its package fail without being
- * overwritten.
+ * overwritten. A backup file to merge that the rule model cannot parse, and a file to restore whole
+ * that is not a complete XML document with a `<rules>` root, are skipped and never written; a
+ * damaged rule file on the device makes its package fail without being overwritten.
  *
  * A restore of one app reads only that app's file and merges only the rules that act on that app
  * alone: rules whose top-level component-filters all name it and that have no intent-filter. A
@@ -134,8 +136,10 @@ class IfwRuleImporter @Inject constructor(
 
     /**
      * Restores the backup `<name>.xml` of a file that is not an installed app's byte for byte, only
-     * when no file of that name is on the device and only when it parses as rules; such a file is
-     * never merged or overwritten, and a damaged one is never written.
+     * when no file of that name is on the device and only when it is a well-formed XML document
+     * whose root is `<rules>`; such a file is never merged or overwritten, and a truncated or
+     * damaged one is never written. Its filters are not checked against Blocker's rule model,
+     * since Android accepts some that the model cannot express, such as a matcher-less `<action />`.
      */
     private suspend fun restoreWholeFile(storage: BackupStorage, name: String, summary: SummaryBuilder) {
         val text = try {
@@ -156,11 +160,9 @@ class IfwRuleImporter @Inject constructor(
         }
         // A damaged file written now would keep a later restore of the app from changing it.
         try {
-            deserializer.deserialize(text)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Cannot parse the IFW backup of $name, leave it out")
+            requireIfwRulesDocument(text)
+        } catch (e: IfwXmlParseException) {
+            Timber.e(e, "The IFW backup of $name is not a rule file, leave it out")
             summary.fail(FailureReason.BACKUP_UNREADABLE)
             return
         }

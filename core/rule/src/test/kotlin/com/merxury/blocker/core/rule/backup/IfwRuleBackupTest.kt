@@ -266,14 +266,41 @@ class IfwRuleBackupTest {
 
     @Test
     fun givenDamagedBackupOfAnAppNotInstalled_whenImporting_thenItIsNeverWritten() = runTest {
-        // Written now, it would keep a good backup from being merged once the app is installed.
-        storage.putFile("ifw/com.gone.xml", DAMAGED_RULE)
+        // Written now, it would keep a good backup from being merged once the app is installed. A
+        // file restored whole is only checked to be a complete <rules> document.
+        storage.putFile("ifw/com.gone.xml", DAMAGED_RULE.dropLast("</rules>".length))
         storage.putFile("ifw/my-rules.xml", "not xml at all")
 
         val result = importer.import(storage)
 
         assertThat(fileSystem.fileContent("com.gone")).isNull()
         assertThat(fileSystem.fileContent("my-rules")).isNull()
+        assertThat(fileSystem.changeCount).isEqualTo(0)
+        assertThat(result.summary.failed).containsExactly(FailureReason.BACKUP_UNREADABLE, 2)
+    }
+
+    @Test
+    fun givenOwnFileWithAFilterTheModelCannotExpress_whenImporting_thenItIsRestoredAsWritten() = runTest {
+        // Android reads a matcher-less <action /> as "has an action"; Blocker's model has no such filter.
+        val existenceCheck = "<rules>\n  <broadcast block=\"true\" log=\"false\">\n    <action />\n  </broadcast>\n</rules>\n"
+        storage.putFile("ifw/my-rules.xml", existenceCheck)
+
+        val result = importer.import(storage)
+
+        assertThat(fileSystem.fileContent("my-rules")).isEqualTo(existenceCheck)
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(result.summary.failed).isEmpty()
+    }
+
+    @Test
+    fun givenOwnFilesTruncatedOrWithAnotherRoot_whenImporting_thenNeitherIsWrittenAndBothCount() = runTest {
+        storage.putFile("ifw/cut-rules.xml", "<rules>\n  <broadcast block=\"true\" log=\"false\">\n    <action />\n")
+        storage.putFile("ifw/other-root.xml", "<intent-firewall>\n  <broadcast block=\"true\" log=\"false\" />\n</intent-firewall>\n")
+
+        val result = importer.import(storage)
+
+        assertThat(fileSystem.fileContent("cut-rules")).isNull()
+        assertThat(fileSystem.fileContent("other-root")).isNull()
         assertThat(fileSystem.changeCount).isEqualTo(0)
         assertThat(result.summary.failed).containsExactly(FailureReason.BACKUP_UNREADABLE, 2)
     }
