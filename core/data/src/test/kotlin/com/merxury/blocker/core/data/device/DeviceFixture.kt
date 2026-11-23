@@ -41,6 +41,7 @@ import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.core.ifw.di.IfwModule
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
@@ -94,13 +95,14 @@ abstract class DeviceRepositoryTestBase {
     internal val system = FakeSystem()
     internal val files = FakeIfwFileSystem()
     internal val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())
+    internal val channel = FakePrivilegedChannel()
     internal val componentControl = FakeComponentControl()
     internal val appControl = FakeAppControl(system)
     internal val users = LocalDeviceUserRepository(dao, system)
     internal val apps = LocalInstalledAppRepository(dao, system, users, appControl)
 
     /** Starts collecting the rule store's changes in [scope], as the app scope would. */
-    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store), componentControl, store, scope)
+    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel), componentControl, channel, store, scope)
 
     @After
     fun closeDatabase() = db.close()

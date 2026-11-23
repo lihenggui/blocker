@@ -31,6 +31,7 @@ import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.core.ifw.IfwStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -38,6 +39,8 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -75,6 +78,7 @@ internal class LocalComponentStatusRepository @Inject constructor(
     private val installedApps: InstalledAppRepository,
     private val packages: PackageStateReader,
     private val componentControl: ComponentControl,
+    channel: PrivilegedChannel,
     ifwStore: IfwStore,
     @ApplicationScope appScope: CoroutineScope,
 ) : ComponentStatusRepository {
@@ -96,9 +100,19 @@ internal class LocalComponentStatusRepository @Inject constructor(
         }
     }
 
-    override fun components(app: AppKey): Flow<List<ComponentStatus>> = dao.observeComponents(app.packageName, app.userId.value).map(List<ComponentRow>::asStatuses)
+    override val firewallReadable: Flow<Boolean> = channel.state.map { it.allowsFirewallReads }.distinctUntilChanged()
 
-    override fun component(key: ComponentKey): Flow<ComponentStatus?> = dao.observeComponent(key.id.packageName, key.id.className, key.userId.value).map { it?.asStatus() }
+    // Declarations are shared by every user who has the package, so they stay cached while this
+    // user does not have it; the app row says whether it does.
+    override fun components(app: AppKey): Flow<List<ComponentStatus>> = combine(
+        dao.observeApp(app.packageName, app.userId.value),
+        dao.observeComponents(app.packageName, app.userId.value),
+    ) { installed, rows -> if (installed == null) emptyList() else rows.asStatuses() }.distinctUntilChanged()
+
+    override fun component(key: ComponentKey): Flow<ComponentStatus?> = combine(
+        dao.observeApp(key.id.packageName, key.userId.value),
+        dao.observeComponent(key.id.packageName, key.id.className, key.userId.value),
+    ) { installed, row -> if (installed == null) null else row?.asStatus() }.distinctUntilChanged()
 
     override fun allComponents(user: UserId): Flow<List<ComponentStatus>> = dao.observeAllComponents(user.value).map(List<ComponentRow>::asStatuses)
 

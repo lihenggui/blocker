@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.update
  */
 class FakeComponentStatusRepository : ComponentStatusRepository {
     private val cached = MutableStateFlow<Map<ComponentKey, ComponentStatus>>(emptyMap())
+    private val readable = MutableStateFlow(true)
 
     /** When set, [refresh], [refreshAll] and [disabledByPackageManager] fail with it. */
     var refreshFailure: ReadFailure? = null
@@ -60,6 +61,13 @@ class FakeComponentStatusRepository : ComponentStatusRepository {
 
     /** The apps [refresh] received, in order. */
     val refreshedApps = mutableListOf<AppKey>()
+
+    override val firewallReadable: Flow<Boolean> = readable
+
+    /** Sets what [firewallReadable] emits, as a change of the privileged channel would. */
+    fun setFirewallReadable(value: Boolean) {
+        readable.value = value
+    }
 
     override fun components(app: AppKey): Flow<List<ComponentStatus>> = statuses { it.userId == app.userId && it.id.packageName == app.packageName }
 

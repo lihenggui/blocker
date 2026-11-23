@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -25,6 +26,9 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.flow.first
@@ -145,11 +149,11 @@ class ComponentRefreshTest : DeviceRepositoryTestBase() {
     }
 
     @Test
-    fun givenRulesUnreadable_whenRefresh_thenFilteredComponentsUnknownAndRulesUnreadableReturned() = runTest {
+    fun givenDamagedRuleFile_whenRefresh_thenFilteredComponentsUnknownAndRulesUnreadableReturned() = runTest {
         val repository = components(backgroundScope)
         system.install(installedApp(PKG), MAIN, FILES)
         system.put(OWNER, MAIN, PmSetting.DISABLED)
-        files.noAccess = true
+        files.unreadablePackages += PKG
 
         val result = repository.refresh(OWNER_APP)
 
@@ -216,5 +220,71 @@ class ComponentRefreshTest : DeviceRepositoryTestBase() {
 
         assertThat(repository.search(OWNER, "main").first().map { it.declaration }).containsExactly(MAIN)
         assertThat(repository.search(WORK, "main").first().map { it.declaration }).containsExactly(other)
+    }
+
+    @Test
+    fun givenChannelNotReady_whenRefresh_thenFirewallStoredUnknownWithoutFailure() = runTest {
+        val repository = components(backgroundScope)
+        system.install(installedApp(PKG), MAIN, FILES)
+        channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        files.connected = false
+
+        val result = repository.refresh(OWNER_APP)
+
+        assertThat(result).isEqualTo(ReadResult.Success(Unit))
+        assertThat(repository.components(OWNER_APP).first()).containsExactly(
+            status(FILES, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
+            status(MAIN, PmSetting.DEFAULT, IfwBlock.UNKNOWN),
+        ).inOrder()
+        assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenShellIdentity_whenRefresh_thenFirewallStoredUnknownWithoutFailure() = runTest {
+        val repository = components(backgroundScope)
+        system.install(installedApp(PKG), MAIN)
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        files.noAccess = true
+
+        val result = repository.refresh(OWNER_APP)
+
+        assertThat(result).isEqualTo(ReadResult.Success(Unit))
+        assertThat(repository.components(OWNER_APP).first()).containsExactly(status(MAIN, PmSetting.DEFAULT, IfwBlock.UNKNOWN))
+    }
+
+    @Test
+    fun givenPackageInTwoUsers_whenRemovedForOne_thenThatUserSeesNoComponentsAndTheOtherKeepsThem() = runTest {
+        val repository = components(backgroundScope)
+        system.install(installedApp(PKG, OWNER), MAIN)
+        system.install(installedApp(PKG, WORK), MAIN)
+        repository.refresh(OWNER_APP)
+        repository.refresh(WORK_APP)
+
+        repository.components(WORK_APP).test {
+            assertThat(awaitItem()).containsExactly(status(MAIN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+
+            system.apps.remove(WORK_APP)
+            repository.refresh(WORK_APP)
+
+            assertThat(awaitItem()).isEmpty()
+        }
+        assertThat(dao.getDeclarations(PKG)).isNotEmpty()
+        assertThat(repository.component(ComponentKey(MAIN.id, WORK)).first()).isNull()
+        assertThat(repository.component(ComponentKey(MAIN.id, OWNER)).first()).isEqualTo(status(MAIN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+        assertThat(repository.components(OWNER_APP).first()).containsExactly(status(MAIN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+    }
+
+    @Test
+    fun givenChannelStates_whenObserveFirewallReadable_thenTrueOnlyForIdentitiesWithFileAccess() = runTest {
+        val repository = components(backgroundScope)
+
+        repository.firewallReadable.test {
+            assertThat(awaitItem()).isTrue()
+            channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+            assertThat(awaitItem()).isFalse()
+            channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+            channel.setState(ChannelState.Ready(PrivilegedIdentity.SYSTEM))
+            assertThat(awaitItem()).isTrue()
+        }
     }
 }

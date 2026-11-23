@@ -21,6 +21,8 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.flow.first
@@ -123,6 +125,7 @@ class RefreshAllTest : DeviceRepositoryTestBase() {
         installAll()
         val a = declaration("Main", packageName = "com.example.a")
         system.put(OWNER, a, PmSetting.DISABLED)
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
         files.noAccess = true
 
         val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
@@ -138,5 +141,26 @@ class RefreshAllTest : DeviceRepositoryTestBase() {
         val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
 
         assertThat(disabled).isEqualTo(ReadResult.Success(emptyList<ComponentKey>()))
+    }
+
+    @Test
+    fun givenNoFileAccess_whenRefreshAll_thenAppsNotCountedAsFailed() = runTest {
+        installAll()
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        files.noAccess = true
+
+        val progress = components(backgroundScope).refreshAll(OWNER).toList()
+
+        assertThat(progress.last()).isEqualTo(RefreshProgress.Finished(total = 3, failed = 0, appListFailure = null))
+    }
+
+    @Test
+    fun givenDamagedRuleFile_whenRefreshAll_thenThatAppCountedAsFailed() = runTest {
+        installAll()
+        files.unreadablePackages += "com.example.c"
+
+        val progress = components(backgroundScope).refreshAll(OWNER).toList()
+
+        assertThat(progress.last()).isEqualTo(RefreshProgress.Finished(total = 3, failed = 1, appListFailure = null))
     }
 }

@@ -49,10 +49,25 @@ import kotlinx.coroutines.flow.Flow
  * throws except for cancellation.
  */
 interface ComponentStatusRepository {
-    /** The components of [app] with that user's state, by class name. Empty until declarations are read. */
+    /**
+     * Whether the privileged channel can reach the Intent Firewall rules: it is ready with an
+     * identity that can write system files. While false, every filtered component's firewall
+     * state is [IfwBlock.UNKNOWN] by design and refreshes do not report that as a failure; the
+     * UI uses this to explain why the firewall state is unknown.
+     */
+    val firewallReadable: Flow<Boolean>
+
+    /**
+     * The components of [app] with that user's state, by class name. Empty until declarations are
+     * read, and empty while the app is not cached as installed for that user, even when another
+     * user's copy keeps the shared declarations cached.
+     */
     fun components(app: AppKey): Flow<List<ComponentStatus>>
 
-    /** One component with its user's state, or null while it is not declared by a cached app. */
+    /**
+     * One component with its user's state, or null while its app is not cached as installed for
+     * that user or does not declare it.
+     */
     fun component(key: ComponentKey): Flow<ComponentStatus?>
 
     /** Every component of the apps cached for [user], by package and class name. */
@@ -73,8 +88,10 @@ interface ComponentStatusRepository {
      * marker, so the next refresh tries again.
      *
      * @return success when every part was read. Otherwise the first failure in the order app,
-     * declarations, settings, firewall, with every part that was read already stored; a firewall
-     * part that cannot be read is [ReadFailure.RulesUnreadable]. When the app is not installed
+     * declarations, settings, firewall, with every part that was read already stored. Firewall
+     * state is [ReadFailure.RulesUnreadable] only when the channel could reach the rules and they
+     * still could not be read, such as a damaged file; without that access it is stored as
+     * unknown and not reported, see [firewallReadable]. When the app is not installed
      * for that user it is removed from the cache and the result is [ReadFailure.PackageNotFound].
      */
     suspend fun refresh(app: AppKey): ReadResult<Unit>

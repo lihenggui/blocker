@@ -25,9 +25,11 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
+import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.isPackageRuleFileName
@@ -61,6 +63,13 @@ internal data class PackageRefresh(
 }
 
 /**
+ * Whether the channel's identity can reach the Intent Firewall rule files. Without it the rules
+ * are unknown by design, not because a read failed.
+ */
+internal val ChannelState.allowsFirewallReads: Boolean
+    get() = this is ChannelState.Ready && identity.canWriteSystemFiles
+
+/**
  * Reads the component state of one package from the system and writes it to the cache. Callers
  * hold the package's lock; see [LocalComponentStatusRepository].
  */
@@ -68,6 +77,7 @@ internal class PackageStateReader @Inject constructor(
     private val dao: ComponentCacheDao,
     private val reader: SystemPackageReader,
     private val ifwStore: IfwStore,
+    private val channel: PrivilegedChannel,
 ) {
 
     /**
@@ -114,7 +124,8 @@ internal class PackageStateReader @Inject constructor(
             }
         }
         val ifw = readIfw(packageName, declarations)
-        if (ifw == null) failures += ReadFailure.RulesUnreadable(packageName)
+        // Without file access the rules are out of reach by design, which firewallReadable reports.
+        if (ifw == null && channel.state.value.allowsFirewallReads) failures += ReadFailure.RulesUnreadable(packageName)
         val stored = withContext(NonCancellable) {
             if (fresh != null && app != null) {
                 if (!dao.replaceDeclarations(packageName, fresh.map { it.asEntity() }, app.lastUpdateTime)) return@withContext false
