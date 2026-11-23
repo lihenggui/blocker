@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.privileged.EchoInPrivilegedProcess
 import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ForceStop
@@ -38,6 +39,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import rikka.shizuku.Shizuku
+import kotlin.time.Duration.Companion.seconds
 
 private const val PKG = "com.example"
 private val WORK = UserId(10)
@@ -50,7 +52,14 @@ class ShizukuTransportTest {
     private val initializer = FakeShizukuInitializer()
     private val shizuku = FakeShizukuBinder()
     private val system = FakeSystemServices()
-    private val transport = ShizukuTransport(initializer, shizuku, system, StandardTestDispatcher(scope.testScheduler))
+    private val connector = FakeUserServiceConnector(system)
+    private val transport = ShizukuTransport(
+        initializer,
+        shizuku,
+        system,
+        ShizukuUserService(connector, attachTimeout = 15.seconds),
+        StandardTestDispatcher(scope.testScheduler),
+    )
 
     @Test
     fun givenEachRegisterResult_whenConnect_thenMatchingState() = scope.runTest {
@@ -115,6 +124,65 @@ class ShizukuTransportTest {
 
         assertThat(result).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("Shell cannot change component state")))
         assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SHELL))
+    }
+
+    @Test
+    fun givenShell_whenCallNeedsPrivilegedProcess_thenNotPermittedWithoutStartingService() = scope.runTest {
+        transport.connect()
+
+        val result = transport.execute(EchoInPrivilegedProcess("hi"))
+
+        assertThat((result as CallResult.Failure).reason).isInstanceOf(CallFailure.NotPermitted::class.java)
+        assertThat(connector.binds).isEqualTo(0)
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SHELL))
+    }
+
+    @Test
+    fun givenRoot_whenCallNeedsPrivilegedProcess_thenRunsInUserService() = scope.runTest {
+        initializer.result = RegisterShizukuResult.Granted(0)
+        transport.connect()
+
+        val result = transport.execute(EchoInPrivilegedProcess("hi"))
+
+        assertThat(result).isEqualTo(CallResult.Success("hi for ${system.callerPackage}"))
+        assertThat(connector.services.single().calls).isEqualTo(1)
+    }
+
+    @Test
+    fun givenRoot_whenBinderCall_thenRunsInThisProcessWithoutService() = scope.runTest {
+        initializer.result = RegisterShizukuResult.Granted(0)
+        transport.connect()
+
+        transport.execute(ForceStop(PKG, WORK))
+
+        assertThat(system.activityManager.forceStopped).isNotEmpty()
+        assertThat(connector.binds).isEqualTo(0)
+    }
+
+    @Test
+    fun givenUserServiceNeverAttaches_whenExecute_thenChannelUnavailableAndStillReady() = scope.runTest {
+        initializer.result = RegisterShizukuResult.Granted(0)
+        transport.connect()
+        connector.attaches = false
+
+        val result = transport.execute(EchoInPrivilegedProcess("hi"))
+
+        assertThat(result).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+    }
+
+    @Test
+    fun givenUserServiceBound_whenShizukuStops_thenNextCallBindsANewOne() = scope.runTest {
+        initializer.result = RegisterShizukuResult.Granted(0)
+        transport.connect()
+        transport.execute(EchoInPrivilegedProcess("hi"))
+
+        shizuku.stop()
+        shizuku.restart(asUid = 0)
+        val result = transport.execute(EchoInPrivilegedProcess("hi"))
+
+        assertThat(result).isInstanceOf(CallResult.Success::class.java)
+        assertThat(connector.binds).isEqualTo(2)
     }
 
     @Test

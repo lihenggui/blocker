@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.privileged.root
+package com.merxury.blocker.core.privileged
 
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.DeadObjectException
 import android.os.Parcel
+import android.os.Parcelable
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
-import com.merxury.blocker.core.privileged.FakeSystemServices
-import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.privileged.calls.GetPackageInfo
 import com.merxury.blocker.core.privileged.calls.InstalledPackages
 import com.merxury.blocker.core.privileged.calls.ListUsers
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
+import com.merxury.blocker.core.privileged.root.RootCallCommand
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -41,10 +41,10 @@ import org.robolectric.annotation.Config
 private const val PKG = "com.example"
 private val WORK = UserId(10)
 
-/** What travels back from the root process: each kind of result and every failure. */
+/** What travels back from a privileged process: each kind of result and every failure. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
-class RootCallOutcomeTest {
+class CallOutcomeTest {
 
     private val system = FakeSystemServices()
 
@@ -141,12 +141,33 @@ class RootCallOutcomeTest {
         val bytes = encodeOutcome(ListUsers, system)
         val parcel = Parcel.obtain()
         try {
-            RootCallReply.of(bytes).writeToParcel(parcel, 0)
+            CallReply.of(bytes).writeToParcel(parcel, 0)
             parcel.setDataPosition(0)
 
-            assertThat(RootCallReply.CREATOR.createFromParcel(parcel).read()).isEqualTo(bytes)
+            assertThat(CallReply.CREATOR.createFromParcel(parcel).read()).isEqualTo(bytes)
         } finally {
             parcel.recycle()
         }
+    }
+
+    @Test
+    fun givenLargeOutcome_whenReplyParceled_thenSameBytesReadThroughPipe() {
+        val bytes = ByteArray(200 * 1024) { it.toByte() }
+        val parcel = Parcel.obtain()
+        try {
+            val reply = CallReply.of(bytes)
+            assertThat(reply.describeContents()).isEqualTo(Parcelable.CONTENTS_FILE_DESCRIPTOR)
+            reply.writeToParcel(parcel, 0)
+            parcel.setDataPosition(0)
+
+            assertThat(CallReply.CREATOR.createFromParcel(parcel).read()).isEqualTo(bytes)
+        } finally {
+            parcel.recycle()
+        }
+    }
+
+    @Test
+    fun givenCallThatFailsInPrivilegedProcess_whenRoundTrip_thenFailureKept() {
+        assertThat(roundTrip(FailInPrivilegedProcess("no"))).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("no")))
     }
 }

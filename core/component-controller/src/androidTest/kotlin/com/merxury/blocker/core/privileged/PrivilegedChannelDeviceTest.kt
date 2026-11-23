@@ -46,6 +46,8 @@ import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.privileged.root.RootTransport
 import com.merxury.blocker.core.privileged.shizuku.ShizukuSystemServices
 import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
+import com.merxury.blocker.core.privileged.shizuku.ShizukuUserService
+import com.merxury.blocker.core.privileged.shizuku.ShizukuUserServiceConnector
 import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformSystemPackageReader
@@ -66,7 +68,7 @@ private const val TAG = "PrivilegedChannelTest"
 
 private val SHIZUKU_WAIT = 2.minutes
 
-// RootCallReply sends larger outcomes through a pipe.
+// CallReply sends larger outcomes through a pipe.
 private const val PIPED_ABOVE = 64 * 1024
 
 /**
@@ -116,7 +118,13 @@ class PrivilegedChannelDeviceTest {
         // Shizuku hands its binder to a granted app when the server starts, but not reliably to an
         // instrumentation process started later; restarting the server during this wait sends it.
         runBlocking { withTimeout(SHIZUKU_WAIT) { initializer.awaitBinder() } }
-        return ShizukuTransport(initializer, api, ShizukuSystemServices(context), Dispatchers.IO).also {
+        return ShizukuTransport(
+            initializer,
+            api,
+            ShizukuSystemServices(context),
+            ShizukuUserService(ShizukuUserServiceConnector(context)),
+            Dispatchers.IO,
+        ).also {
             assertEquals(ChannelState.Ready(expected), runBlocking { it.connect() })
         }
     }

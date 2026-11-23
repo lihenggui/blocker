@@ -26,8 +26,10 @@ import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.privileged.CallReply
 import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.calls.ForceStop
+import com.merxury.blocker.core.privileged.encodeOutcome
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -118,10 +120,10 @@ private class FakeRootRunner : RootCommandRunner {
     var uid = 0
     var sent = 0
 
-    override suspend fun run(command: RootCallCommand): RootCallReply {
+    override suspend fun run(command: RootCallCommand): CallReply {
         sent++
         failures.removeFirstOrNull()?.let { throw it }
         ShadowProcess.setUid(uid)
-        return RootCallReply.of(encodeOutcome(command.call, system))
+        return CallReply.of(encodeOutcome(command.call, system))
     }
 }

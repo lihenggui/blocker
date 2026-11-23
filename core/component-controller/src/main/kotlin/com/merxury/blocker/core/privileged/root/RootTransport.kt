@@ -26,9 +26,11 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
+import com.merxury.blocker.core.privileged.CallReply
 import com.merxury.blocker.core.privileged.ChannelLostException
 import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.calls.CallerUid
+import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.identityOfUid
 import com.merxury.blocker.core.privileged.lostReason
 import com.merxury.blocker.core.root.BlockerRootSession
@@ -47,7 +49,7 @@ internal fun interface RootCommandRunner {
      * @throws NoShellException when su refuses or is missing
      * @throws RemoteException when the root process is gone
      */
-    suspend fun run(command: RootCallCommand): RootCallReply
+    suspend fun run(command: RootCallCommand): CallReply
 }
 
 /**

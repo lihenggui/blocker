@@ -20,7 +20,7 @@ private const val RULE_FILE_MODE = 0x1a4
  * written, given its final mode and synced in a `.tmp` file in the same directory, then renamed over
  * [target]. Must run in a process that can write to that directory.
  */
-internal fun replaceIfwFile(target: File, content: String) {
+fun replaceIfwFile(target: File, content: String) {
     val temporary = File.createTempFile(".blocker-ifw-", ".tmp", target.parentFile)
     try {
         temporary.outputStream().use { file ->

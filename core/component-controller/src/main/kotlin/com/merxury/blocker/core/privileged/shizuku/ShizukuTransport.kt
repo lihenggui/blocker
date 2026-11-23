@@ -28,8 +28,10 @@ import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
 import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
 import com.merxury.blocker.core.privileged.ChannelLostException
@@ -37,6 +39,7 @@ import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.SystemServices
 import com.merxury.blocker.core.privileged.identityOfUid
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import rikka.shizuku.ShizukuBinderWrapper
@@ -50,6 +53,10 @@ import javax.inject.Singleton
  * uid the Shizuku server runs as: root, or the shell when Shizuku was started through adb.
  * Connecting asks for the Shizuku permission when it has not been granted yet.
  *
+ * A call that [PrivilegedCall.needsPrivilegedProcess] runs in [ShizukuUserService] instead, and
+ * only when the server runs as root; as the shell it fails with [CallFailure.NotPermitted] and
+ * starts nothing.
+ *
  * Shizuku's binder events keep [state] current without a prompt: when the binder dies a ready
  * channel becomes [UnavailableReason.NOT_RUNNING], and when a new binder arrives a channel that has
  * been ready becomes ready again, as the uid the new server runs as, if the permission is still
@@ -60,6 +67,7 @@ internal class ShizukuTransport(
     private val initializer: IShizukuInitializer,
     private val shizuku: ShizukuApi,
     private val system: SystemServices,
+    private val userService: ShizukuUserService,
     private val ioDispatcher: CoroutineDispatcher,
 ) : AbstractPrivilegedTransport() {
 
@@ -67,8 +75,9 @@ internal class ShizukuTransport(
         initializer: IShizukuInitializer,
         shizuku: ShizukuApi,
         system: ShizukuSystemServices,
+        userService: ShizukuUserService,
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
-    ) : this(initializer, shizuku, system as SystemServices, ioDispatcher)
+    ) : this(initializer, shizuku, system as SystemServices, userService, ioDispatcher)
 
     init {
         shizuku.addBinderDeadListener { onBinderDead() }
@@ -94,8 +103,15 @@ internal class ShizukuTransport(
 
     override suspend fun <R> send(call: PrivilegedCall<R>): CallResult<R> = withContext(ioDispatcher) {
         if (!shizuku.pingBinder()) throw ChannelLostException(UnavailableReason.NOT_RUNNING, "Shizuku is not running")
+        val inProcess = !call.needsPrivilegedProcess
+        val identity = (state.value as? ChannelState.Ready)?.identity
+        if (!inProcess && identity != PrivilegedIdentity.ROOT) {
+            return@withContext CallResult.Failure(CallFailure.NotPermitted("$call needs Shizuku running as root, not $identity"))
+        }
         try {
-            CallResult.Success(call.run(system))
+            if (inProcess) CallResult.Success(call.run(system)) else userService.run(call)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             // Shizuku reports its own death in several ways, most of them a bare RuntimeException.
             if (!shizuku.pingBinder()) throw ChannelLostException(UnavailableReason.NOT_RUNNING, "Shizuku stopped", e)
@@ -104,6 +120,7 @@ internal class ShizukuTransport(
     }
 
     private fun onBinderDead() {
+        userService.reset()
         updateState { current ->
             if (current is ChannelState.Ready) NOT_RUNNING else current
         }
@@ -111,6 +128,8 @@ internal class ShizukuTransport(
 
     // Never asks for the permission: a listener must not show a prompt.
     private fun onBinderReceived() {
+        // A new server may run as another uid; its user services are new too.
+        userService.reset()
         if (!hasBeenReady) return
         val next = try {
             if (shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {

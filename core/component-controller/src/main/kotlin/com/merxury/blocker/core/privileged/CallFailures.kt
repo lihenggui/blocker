@@ -36,6 +36,8 @@ internal class ChannelLostException(
  * and on both sides of the root process. Never pass a `CancellationException`; it must propagate.
  */
 internal fun Throwable.toCallFailure(): CallFailure = when {
+    this is PrivilegedProcessUnavailableException -> CallFailure.ChannelUnavailable
+
     this is SecurityException -> CallFailure.NotPermitted(message)
 
     // The framework rejects unknown packages, components and users with IllegalArgumentException.

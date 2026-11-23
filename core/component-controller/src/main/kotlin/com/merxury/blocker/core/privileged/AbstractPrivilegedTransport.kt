@@ -91,6 +91,10 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
 
     private fun onFailure(ready: ChannelState.Ready, call: PrivilegedCall<*>, failure: CallFailure, cause: Exception?) {
         when (failure) {
+            // The channel still answers calls that need no privileged process.
+            CallFailure.ChannelUnavailable if cause is PrivilegedProcessUnavailableException ->
+                Timber.w(cause, "$call could not reach the privileged process")
+
             CallFailure.ChannelUnavailable -> {
                 Timber.w(cause, "Privileged channel lost while running $call")
                 val reason = cause?.lostReason() ?: UnavailableReason.FAILED

@@ -40,7 +40,8 @@ internal interface SystemServices {
 /**
  * One request to the system, written once for both transports. The root transport parcels the
  * call, runs [run] in the root process and parcels the result back with [writeResult] and
- * [readResult]; the Shizuku transport runs [run] in this process.
+ * [readResult]; the Shizuku transport runs [run] in this process, or, when
+ * [needsPrivilegedProcess], parcels it the same way to its user service.
  *
  * [run] blocks and throws what the system throws. It addresses its user explicitly and never
  * takes one from a Context.
@@ -50,6 +51,13 @@ internal interface SystemServices {
  * system. Reads and setting a value to a fixed state are; anything that adds or toggles is not.
  */
 internal interface PrivilegedCall<R> : Parcelable {
+    /**
+     * Whether [run] must itself run with the channel's identity, for example to open files under
+     * `/data/system`, rather than only talk to system services through [SystemServices]. Such a
+     * call runs in the root process or the Shizuku user service, never in the app's process.
+     */
+    val needsPrivilegedProcess: Boolean get() = false
+
     fun run(system: SystemServices): R
 
     /** The default handles every value `Parcel.writeValue` accepts. */

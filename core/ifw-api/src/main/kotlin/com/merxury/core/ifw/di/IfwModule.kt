@@ -23,9 +23,12 @@ import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import com.merxury.core.ifw.ComponentTypeResolver
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IfwFileSystem
+import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.IntentFirewall
+import com.merxury.core.ifw.IntentFirewallStore
 import com.merxury.core.ifw.LibrootIfwFileSystem
 import com.merxury.core.ifw.PmComponentTypeResolver
+import com.merxury.core.ifw.PrivilegedIfwFileSystem
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import dagger.Module
@@ -73,4 +76,12 @@ object IfwModule {
         serializer,
         deserializer,
     )
+
+    @Singleton
+    @Provides
+    fun providesIfwStore(
+        @PrivilegedIfwFileSystem fileSystem: IfwFileSystem,
+        serializer: IfwXmlSerializer,
+        deserializer: IfwXmlDeserializer,
+    ): IfwStore = IntentFirewallStore(fileSystem, serializer, deserializer)
 }
