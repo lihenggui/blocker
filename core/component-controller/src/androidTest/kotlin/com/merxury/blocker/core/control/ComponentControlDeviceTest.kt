@@ -204,8 +204,7 @@ class ComponentControlDeviceTest {
         assertTrue(activity.id.flatten() in checkNotNull(ruleFile()))
         assertStarts(false)
 
-        // An unblock clears every layer, whatever layers it names.
-        val unblocked = apply(ControlGoal.UNBLOCK, PM, activity, service)
+        val unblocked = apply(ControlGoal.UNBLOCK, BOTH, activity, service)
 
         unblocked.forEach { assertAchieved(it, ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)) }
         assertEquals(emptyMap<ComponentDeclaration, String>(), overrides(target))
