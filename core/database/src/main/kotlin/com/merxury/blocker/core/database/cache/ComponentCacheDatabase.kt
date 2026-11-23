@@ -47,7 +47,7 @@ internal const val COMPONENT_CACHE_DATABASE_NAME = "component_cache"
         ComponentPmSettingEntity::class,
         ComponentIfwBlockEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(CacheConverters::class)

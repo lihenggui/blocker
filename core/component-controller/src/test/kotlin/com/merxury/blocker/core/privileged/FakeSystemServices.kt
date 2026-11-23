@@ -19,6 +19,7 @@ package com.merxury.blocker.core.privileged
 import android.app.ActivityManager
 import android.app.IActivityManager
 import android.app.IApplicationThread
+import android.app.ProfilerInfo
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.IPackageDataObserver
@@ -29,6 +30,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.ParceledListSlice
 import android.content.pm.UserInfo
+import android.os.Bundle
 import android.os.IBinder
 import android.os.IUserManager
 
@@ -39,6 +41,7 @@ internal class FakeSystemServices : SystemServices {
     override val userManager = FakeUserManager()
     override val packageInstaller = FakePackageInstaller()
     override val callerPackage = "com.merxury.blocker.test"
+    override var callerUid = 0
 }
 
 internal class FakePackageManager : IPackageManager {
@@ -92,10 +95,17 @@ internal class FakePackageManager : IPackageManager {
         return componentSettings[componentName to userId] ?: PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
     }
 
+    /** The flags of each setComponentEnabledSetting, in order. */
+    val componentFlags = mutableListOf<Int>()
+
+    /** Accepts component setting changes without storing them, so a read back shows the old value. */
+    var ignoreComponentSettingChanges = false
+
     override fun setComponentEnabledSetting(componentName: ComponentName, newState: Int, flags: Int, userId: Int) {
         check()
         changes += "setComponentEnabledSetting"
-        componentSettings[componentName to userId] = newState
+        componentFlags += flags
+        if (!ignoreComponentSettingChanges) componentSettings[componentName to userId] = newState
     }
 
     override fun setComponentEnabledSetting(
@@ -107,7 +117,8 @@ internal class FakePackageManager : IPackageManager {
     ) {
         check()
         changes += "setComponentEnabledSetting/$callingPackage"
-        componentSettings[componentName to userId] = newState
+        componentFlags += flags
+        if (!ignoreComponentSettingChanges) componentSettings[componentName to userId] = newState
     }
 
     override fun setComponentEnabledSettings(settings: List<PackageManager.ComponentEnabledSetting>, userId: Int) {
@@ -220,6 +231,47 @@ internal class FakeActivityManager : IActivityManager {
         failure?.let { throw it }
         serviceCalls += "start$arity ${service.component!!.flattenToShortString()} $userId"
         return if (startAnswersNull) null else startAnswer ?: service.component
+    }
+
+    /** What an activity start answers, as the activity manager's start result. */
+    var startActivityResult = 0
+
+    /** Each activity start by argument count, with the calling package, component, flags and user. */
+    val activityStarts = mutableListOf<String>()
+
+    override fun startActivityAsUser(
+        caller: IApplicationThread?,
+        callingPackage: String,
+        intent: Intent,
+        resolvedType: String?,
+        resultTo: IBinder?,
+        resultWho: String?,
+        requestCode: Int,
+        flags: Int,
+        profilerInfo: ProfilerInfo?,
+        options: Bundle?,
+        userId: Int,
+    ): Int = startedActivity(11, callingPackage, intent, userId)
+
+    override fun startActivityAsUserWithFeature(
+        caller: IApplicationThread?,
+        callingPackage: String,
+        callingFeatureId: String?,
+        intent: Intent,
+        resolvedType: String?,
+        resultTo: IBinder?,
+        resultWho: String?,
+        requestCode: Int,
+        flags: Int,
+        profilerInfo: ProfilerInfo?,
+        options: Bundle?,
+        userId: Int,
+    ): Int = startedActivity(12, callingPackage, intent, userId)
+
+    private fun startedActivity(arity: Int, callingPackage: String, intent: Intent, userId: Int): Int {
+        failure?.let { throw it }
+        activityStarts += "start$arity $callingPackage ${intent.component!!.flattenToShortString()} ${intent.flags} $userId"
+        return startActivityResult
     }
 
     /** What stopService answers: 1 stopped, 0 not running, -1 not accessible. */

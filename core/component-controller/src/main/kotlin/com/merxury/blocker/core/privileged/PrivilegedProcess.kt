@@ -24,6 +24,7 @@ import android.os.IBinder
 import android.os.IUserManager
 import android.os.Parcel
 import android.os.Parcelable
+import android.os.Process
 import be.mygod.librootkotlinx.systemContext
 import com.merxury.blocker.core.controllers.root.api.SystemServiceHelper
 
@@ -45,6 +46,8 @@ internal object PrivilegedProcessSystemServices : SystemServices {
     override val userManager: IUserManager by lazy { IUserManager.Stub.asInterface(service("user")) }
 
     override val callerPackage: String get() = systemContext.packageName
+
+    override val callerUid: Int get() = Process.myUid()
 
     private fun service(name: String): IBinder = checkNotNull(SystemServiceHelper.getSystemService(name)) { "No $name service" }
 }

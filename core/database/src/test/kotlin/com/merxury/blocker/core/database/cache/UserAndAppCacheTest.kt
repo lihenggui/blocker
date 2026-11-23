@@ -56,6 +56,7 @@ class UserAndAppCacheTest : ComponentCacheTestBase() {
         dao.replaceUsers(listOf(user(WORK)))
         val app = InstalledApp(
             key = AppKey("com.example", UserId(WORK)),
+            uid = 1_010_123,
             label = "Example",
             versionName = "2.1",
             versionCode = 21_000_000_000,
@@ -71,6 +72,18 @@ class UserAndAppCacheTest : ComponentCacheTestBase() {
         dao.upsertApp(app.asEntity())
 
         assertThat(dao.observeApp("com.example", WORK).first()?.asExternalModel()).isEqualTo(app)
+    }
+
+    @Test
+    fun givenAppWithUnknownUid_whenStoredAndMapped_thenUidStaysUnknown() = runTest {
+        dao.replaceUsers(listOf(user(WORK)))
+        val app = app("com.example", WORK).copy(uid = null)
+
+        dao.upsertApp(app)
+
+        val stored = dao.observeApp("com.example", WORK).first()
+        assertThat(stored?.uid).isNull()
+        assertThat(stored?.asExternalModel()?.uid).isNull()
     }
 
     @Test
