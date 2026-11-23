@@ -67,6 +67,7 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -272,7 +273,7 @@ fun AppDetailScreen(
         }
     }
     event?.let {
-        val message = it.resultMessage(context.resources) ?: stringResource(id = rulestring.core_rule_processing_please_wait)
+        val message = it.resultMessage(LocalResources.current) ?: stringResource(id = rulestring.core_rule_processing_please_wait)
         LaunchedEffect(message) {
             scope.launch {
                 snackbarHostState.currentSnackbarData?.dismiss()

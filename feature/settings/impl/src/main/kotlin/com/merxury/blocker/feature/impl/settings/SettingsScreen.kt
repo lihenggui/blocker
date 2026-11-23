@@ -42,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -143,7 +144,7 @@ fun SettingsScreen(
             RESET_PM -> CoreRuleR.core_rule_reset_pm_please_wait
             IMPORT_MAT_RULES -> CoreRuleR.core_rule_import_mat_rule_please_wait
         }
-        val message = it.resultMessage(LocalContext.current.resources) ?: stringResource(id = startedRes)
+        val message = it.resultMessage(LocalResources.current) ?: stringResource(id = startedRes)
         val duration = if (result == RuleWorkResult.STARTED) {
             SnackbarDuration.Long
         } else {
