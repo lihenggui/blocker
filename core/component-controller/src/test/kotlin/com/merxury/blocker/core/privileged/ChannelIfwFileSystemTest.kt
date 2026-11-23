@@ -85,10 +85,12 @@ class ChannelIfwFileSystemTest {
     }
 
     @Test
-    fun givenWakeFiles_whenList_thenOnlyPackages() = runTest {
-        executor.answer = { CallResult.Success(listOf("blocker-managed-wake", "blocker-wake-capability-probe", "com.a")) }
+    fun givenWakeHiddenAndCustomFiles_whenList_thenEveryRuleFile() = runTest {
+        executor.answer = {
+            CallResult.Success(listOf("blocker-managed-wake", "blocker-wake-capability-probe", ".blocker-ifw-1", "com.a", "android", "my-rules", "custom..rules"))
+        }
 
-        assertThat(fileSystem.listRuleFiles()).containsExactly("com.a")
+        assertThat(fileSystem.listRuleFiles()).containsExactly("com.a", "android", "my-rules", "custom..rules")
         assertThat(executor.runs.single().first).isEqualTo(ListIfwRuleFiles)
     }
 

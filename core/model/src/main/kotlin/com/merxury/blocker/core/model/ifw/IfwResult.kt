@@ -33,7 +33,8 @@ sealed interface IfwFailure {
 
     /**
      * The package's rule file exists but cannot be read or parsed, for example because it holds
-     * an element Blocker does not know. Such a file is never overwritten.
+     * an element Blocker does not know. Such a file is never overwritten; only clearing the
+     * package's rules deletes it.
      */
     data class Unreadable(val packageName: String) : IfwFailure
 

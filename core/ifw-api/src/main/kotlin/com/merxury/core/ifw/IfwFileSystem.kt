@@ -39,6 +39,8 @@ interface IfwFileSystem {
     suspend fun writeRules(packageName: String, content: String)
     suspend fun deleteRules(packageName: String): Boolean
     suspend fun fileExists(packageName: String): Boolean
+
+    /** The name, without `.xml`, of every rule file in the directory, as [isRuleFileName] decides. */
     suspend fun listRuleFiles(): List<String>
 }
 

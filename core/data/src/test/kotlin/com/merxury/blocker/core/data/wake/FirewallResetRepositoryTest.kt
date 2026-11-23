@@ -4,60 +4,215 @@
 package com.merxury.blocker.core.data.wake
 
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
+import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.IfwFileSystem
 import com.merxury.core.ifw.ManagedWakeReset
 import com.merxury.core.ifw.WakeResetTransport
+import com.merxury.core.ifw.di.IfwModule
+import com.merxury.core.ifw.xml.IfwXmlDeserializer
+import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import java.io.IOException
+
+private const val VALID_XML = """<rules><activity block="true" log="false"><component-filter name="a.pkg/a.pkg.Main" /></activity></rules>"""
+private const val DAMAGED_XML = """<rules><activity block="true"><component-filter name="""
+private const val WAKE_FILE = "blocker-managed-wake"
 
 class FirewallResetRepositoryTest {
     private val authorization = mock<WakeAuthorizationRepository>()
-    private val managed = mock<ManagedWakeReset>()
-    private val manual = mock<IfwFileSystem>()
+    private val wakeResets = mutableListOf<Pair<String?, WakeResetTransport>>()
+    private val files = FakeIfwFileSystem()
+
+    /** The package file operations done before the wake feature reset its files. */
+    private var operationsBeforeWakeReset: List<String>? = null
+
+    /** What the wake feature reports after resetting its files: whether rule files in scope remain. */
+    private var rulesRemainAfterWakeReset = true
+    private val managed = ManagedWakeReset { target, transport ->
+        wakeResets += target to transport
+        operationsBeforeWakeReset = files.operations.toList()
+        rulesRemainAfterWakeReset
+    }
     private val firewall = mock<IIntentFirewall>()
-    private val repository = FirewallResetRepository(authorization, managed, manual, firewall)
+    private val repository = FirewallResetRepository(
+        authorization,
+        managed,
+        IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer()),
+        firewall,
+    )
 
-    @Test fun givenShizukuOnly_whenResettingManagedRules_thenManualStoreIsSkipped() = runTest {
+    @Test
+    fun givenWakeAccessAndNoPackageFiles_whenReset_thenZeroAndWakeRulesReset() = runTest {
         whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.SHIZUKU_ROOT)
-        whenever(managed.resetFirewall(null, WakeResetTransport.SHIZUKU_ROOT)).thenReturn(false)
 
-        assertThat(repository.reset(null) { _, _, _ -> error("unexpected manual deletion") }).isEqualTo(0)
+        assertThat(repository.reset(null) { _, _, _ -> error("unexpected package file deletion") }).isEqualTo(0)
 
-        verifyNoInteractions(manual)
+        assertThat(wakeResets).containsExactly(null to WakeResetTransport.SHIZUKU_ROOT)
+        assertThat(files.operations).containsExactly("list")
         verify(firewall).resetCache()
     }
 
-    @Test fun givenTwoManualRules_whenSecondDeletionFails_thenFailurePropagatesAndCacheIsCleared() = runTest {
-        val transport = WakeResetTransport.DIRECT_ROOT
-        whenever(authorization.resetTransport()).thenReturn(transport)
-        whenever(managed.resetFirewall(null, transport)).thenReturn(true)
-        whenever(authorization.canClearManualRules(transport)).thenReturn(true)
-        whenever(manual.listRuleFiles()).thenReturn(listOf("a.pkg", "b.pkg"))
-        whenever(manual.deleteRules("a.pkg")).thenReturn(true)
-        val failure = IllegalStateException("storage failure")
-        whenever(manual.deleteRules("b.pkg")).thenThrow(failure)
+    @Test
+    fun givenGrantObtainedWhileDeletingPackageFiles_whenReset_thenWakeFilesResetToo() = runTest {
+        // Like Shizuku: the wake feature can reach its files only once the store has connected.
+        whenever(authorization.resetTransport()).thenAnswer { if (files.operations.isEmpty()) null else WakeResetTransport.SHIZUKU_ROOT }
+        files.putFile("a.pkg", VALID_XML)
+
+        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(1)
+
+        assertThat(wakeResets).containsExactly(null to WakeResetTransport.SHIZUKU_ROOT)
+        assertThat(operationsBeforeWakeReset).containsExactly("list", "delete a.pkg").inOrder()
+    }
+
+    @Test
+    fun givenFilesUnderNamesOfTheirOwn_whenResetAll_thenDeletedWithPackageFiles() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
+        files.putFile("b.pkg", DAMAGED_XML)
+        files.putFile("android", VALID_XML)
+        files.putFile("my-rules", VALID_XML)
+        files.putFile("custom..rules", DAMAGED_XML)
+
+        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(4)
+
+        listOf("b.pkg", "android", "my-rules", "custom..rules").forEach {
+            assertWithMessage(it).that(files.fileContent(it)).isNull()
+        }
+    }
+
+    @Test
+    fun givenFilesUnderNamesOfTheirOwn_whenResetOnePackage_thenUntouched() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
+        files.putFile("android", DAMAGED_XML)
+        files.putFile("my-rules", VALID_XML)
+        files.putFile("custom..rules", VALID_XML)
+
+        assertThat(repository.reset("android") { _, _, _ -> }).isEqualTo(1)
+
+        assertThat(files.fileContent("android")).isNull()
+        assertThat(files.fileContent("my-rules")).isEqualTo(VALID_XML)
+        assertThat(files.fileContent("custom..rules")).isEqualTo(VALID_XML)
+        assertThat(files.operations).containsExactly("delete android")
+    }
+
+    @Test
+    fun givenDamagedAndValidFiles_whenResetAll_thenBothDeletedAndWakeFileLeftToTheWakeReset() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
+        files.putFile("a.pkg", VALID_XML)
+        files.putFile("b.pkg", DAMAGED_XML)
+        files.putFile(WAKE_FILE, VALID_XML)
         val progress = mutableListOf<String>()
 
-        val result = runCatching { repository.reset(null) { pkg, index, total -> progress += "$pkg $index/$total" } }
+        val removed = repository.reset(null) { pkg, index, total -> progress += "$pkg $index/$total" }
 
-        assertThat(result.exceptionOrNull()).isSameInstanceAs(failure)
+        assertThat(removed).isEqualTo(2)
         assertThat(progress).containsExactly("a.pkg 1/2", "b.pkg 2/2").inOrder()
+        assertThat(files.fileContent("a.pkg")).isNull()
+        assertThat(files.fileContent("b.pkg")).isNull()
+        assertThat(files.fileContent(WAKE_FILE)).isEqualTo(VALID_XML)
+        assertThat(files.operations).containsExactly("list", "delete a.pkg", "delete b.pkg").inOrder()
+        assertThat(wakeResets).containsExactly(null to WakeResetTransport.DIRECT_ROOT)
+        assertThat(operationsBeforeWakeReset).containsExactly("list", "delete a.pkg", "delete b.pkg").inOrder()
         verify(firewall).resetCache()
     }
 
-    @Test fun givenManualRulesAndNoDirectRoot_whenManagedResetFinishes_thenMissingPermissionIsReported() = runTest {
+    @Test
+    fun givenTarget_whenReset_thenOnlyItsFileDeletedWithoutListing() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
+        files.putFile("a.pkg", DAMAGED_XML)
+        files.putFile("b.pkg", VALID_XML)
+
+        assertThat(repository.reset("a.pkg") { _, _, _ -> }).isEqualTo(1)
+
+        assertThat(files.fileContent("a.pkg")).isNull()
+        assertThat(files.fileContent("b.pkg")).isEqualTo(VALID_XML)
+        assertThat(files.operations).containsExactly("delete a.pkg")
+        assertThat(wakeResets).containsExactly("a.pkg" to WakeResetTransport.DIRECT_ROOT)
+    }
+
+    @Test
+    fun givenTargetWithoutFile_whenReset_thenNothingRemoved() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
+
+        assertThat(repository.reset("a.pkg") { _, _, _ -> }).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNoWakeAccess_whenReset_thenPackageFilesStillDeletedThroughTheStore() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(null)
+        files.putFile("a.pkg", VALID_XML)
+
+        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(1)
+
+        assertThat(wakeResets).isEmpty()
+        assertThat(files.fileContent("a.pkg")).isNull()
+        verify(firewall).resetCache()
+    }
+
+    @Test
+    fun givenNoAccessToRuleDirectory_whenReset_thenNullAndFilesKept() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(null)
+        files.putFile("a.pkg", VALID_XML)
+        files.noAccess = true
+
+        assertThat(repository.reset(null) { _, _, _ -> error("unexpected package file deletion") }).isNull()
+        assertThat(repository.reset("a.pkg") { _, _, _ -> }).isNull()
+
+        files.noAccess = false
+        assertThat(files.fileContent("a.pkg")).isEqualTo(VALID_XML)
+    }
+
+    @Test
+    fun givenSecondDeletionFails_whenReset_thenFailurePropagatesAndCacheCleared() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
+        files.putFile("a.pkg", VALID_XML)
+        files.putFile("b.pkg", VALID_XML)
+
+        val result = runCatching {
+            repository.reset(null) { _, index, _ -> if (index == 2) files.writeFailure = IOException("EROFS") }
+        }
+
+        assertThat(result.exceptionOrNull()).isInstanceOf(IOException::class.java)
+        assertThat(files.fileContent("a.pkg")).isNull()
+        assertThat(files.fileContent("b.pkg")).isEqualTo(VALID_XML)
+        assertThat(wakeResets).containsExactly(null to WakeResetTransport.DIRECT_ROOT)
+        verify(firewall).resetCache()
+    }
+
+    @Test
+    fun givenNoAccessAndRuleFilesRemain_whenReset_thenNullAndWakeFilesStillReset() = runTest {
         whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.SHIZUKU_ROOT)
-        whenever(managed.resetFirewall("example.pkg", WakeResetTransport.SHIZUKU_ROOT)).thenReturn(true)
-        whenever(authorization.canClearManualRules(WakeResetTransport.SHIZUKU_ROOT)).thenReturn(false)
+        files.noAccess = true
 
-        assertThat(repository.reset("example.pkg") { _, _, _ -> error("unexpected manual deletion") }).isNull()
+        assertThat(repository.reset("a.pkg") { _, _, _ -> }).isNull()
+        assertThat(repository.reset(null) { _, _, _ -> }).isNull()
 
-        verify(managed).resetFirewall("example.pkg", WakeResetTransport.SHIZUKU_ROOT)
-        verifyNoInteractions(manual)
+        assertThat(wakeResets).containsExactly("a.pkg" to WakeResetTransport.SHIZUKU_ROOT, null to WakeResetTransport.SHIZUKU_ROOT).inOrder()
+        verify(firewall, times(2)).resetCache()
+    }
+
+    @Test
+    fun givenNoAccessButWakeResetLeavesNoRuleFiles_whenReset_thenSuccess() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.SHIZUKU_ROOT)
+        files.noAccess = true
+        rulesRemainAfterWakeReset = false
+
+        assertThat(repository.reset("a.pkg") { _, _, _ -> }).isEqualTo(0)
+        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNoAccessAndNoWakeReset_whenReset_thenNull() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(null)
+        files.noAccess = true
+        rulesRemainAfterWakeReset = false
+
+        assertThat(repository.reset(null) { _, _, _ -> }).isNull()
+        assertThat(wakeResets).isEmpty()
     }
 }

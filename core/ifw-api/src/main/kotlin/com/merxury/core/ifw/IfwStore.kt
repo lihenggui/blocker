@@ -58,7 +58,14 @@ import kotlinx.coroutines.flow.SharedFlow
  * they are writes nothing, and a file is replaced atomically. A rewritten file keeps every rule
  * and filter Blocker models; comments, unknown attributes and unknown elements directly under
  * `<rules>` are dropped, and rules come out grouped by type. A file with an unknown filter
- * element cannot be read, so it is never rewritten.
+ * element cannot be read, so it is never rewritten; [clear] deletes a file without reading it.
+ *
+ * ## Names
+ * A rule file is `<name>.xml` for a rule file name as [isRuleFileName] decides: a package's, or one
+ * the global rule editor stored rules under, such as `my-rules`. [blocks] and [setBlocked] work on
+ * the components of an app and take only package names, as [isPackageRuleFileName] decides; the
+ * methods that work on whole files take any rule file name. Each throws
+ * [IllegalArgumentException] for a name it does not take.
  *
  * ## Known limit
  * [blocks] reads only the package's own file. Android merges every file in the directory, so a
@@ -91,25 +98,58 @@ interface IfwStore {
      */
     suspend fun setBlocked(packageName: String, changes: Map<ComponentDeclaration, Boolean>): IfwResult<Map<ComponentId, IfwBlock>>
 
-    /** Full rules for the editor; empty when the package has no rule file. */
-    suspend fun rules(packageName: String): IfwResult<IfwRules>
+    /**
+     * Full rules of the rule file `<name>.xml` for the editor; empty when there is no such file.
+     *
+     * @param name a rule file name as [isRuleFileName] decides: a package's, or one the global
+     * rule editor stored rules under
+     */
+    suspend fun rules(name: String): IfwResult<IfwRules>
 
     /**
      * The one read-modify-write path for editor saves. [transform] gets the current rules and
      * runs only when they could be read; rules for which [IfwRules.isEmpty] holds delete the
      * file. Returns the rules now in effect.
+     *
+     * @param name a rule file name as [isRuleFileName] decides
      */
-    suspend fun update(packageName: String, transform: (IfwRules) -> IfwRules): IfwResult<IfwRules>
+    suspend fun update(name: String, transform: (IfwRules) -> IfwRules): IfwResult<IfwRules>
 
     /**
-     * Packages that have a rule file, each with its rules or the reason they cannot be read.
-     * Fails as a whole with [IfwFailure.NoAccess] when the directory cannot be listed.
+     * Every rule file, as [ruleFileNames] lists them, each with its rules or the reason they
+     * cannot be read. Fails as a whole with [IfwFailure.NoAccess] when the directory cannot be
+     * listed.
      */
     suspend fun allRules(): IfwResult<Map<String, IfwResult<IfwRules>>>
+
+    /**
+     * The name of every rule file, as [isRuleFileName] decides: those named after a package and
+     * those the global rule editor stored rules under, without the wake feature's files. Read from
+     * the directory listing alone, so a file that cannot be read is listed too. Fails with
+     * [IfwFailure.NoAccess] when the directory cannot be listed.
+     */
+    suspend fun ruleFileNames(): IfwResult<List<String>>
+
+    /**
+     * The [ruleFileNames] that are package names, as [isPackageRuleFileName] decides: the
+     * packages that have a rule file of their own.
+     */
+    suspend fun packagesWithRuleFiles(): IfwResult<List<String>>
+
+    /**
+     * Deletes the rule file `<name>.xml` under its lock without reading it, so a file that cannot
+     * be read or parsed goes too. Returns whether there was a file; deleting a missing one
+     * succeeds with false and changes nothing, so it is safe to repeat. Drops what [blocks]
+     * remembers of it and emits on [changes] when a file was removed. Fails with
+     * [IfwFailure.NoAccess] or [IfwFailure.WriteFailed] as writes do.
+     *
+     * @param name a rule file name as [isRuleFileName] decides
+     */
+    suspend fun clear(name: String): IfwResult<Boolean>
 
     /** Drops the rules [blocks] remembers, so its next answers read the files again. */
     fun clearCache()
 
-    /** Emits a package name after its rule file changed through this store. */
+    /** Emits a rule file name, usually a package name, after the file changed through this store. */
     val changes: SharedFlow<String>
 }
