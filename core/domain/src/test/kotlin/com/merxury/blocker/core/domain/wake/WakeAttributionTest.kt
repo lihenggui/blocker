@@ -18,10 +18,14 @@ class WakeAttributionTest {
         "request", "boot", 20, 1000, "statsd", "ServiceRequestEventReported",
         10011, 10022, "client.app", "target.app", ".Service", "wake", 3, null, null, "{}",
     )
+
+    // ProcessStartTime carries no caller uid in AOSP atoms.proto, so the start has none.
     private val start = request.copy(
         id = "start",
         elapsedNanos = 30,
         kind = "ProcessStartTime",
+        callerUid = null,
+        callerPackage = null,
         pid = 123,
         component = "target.app/.Service",
         attributes = """{"hosting_type_id":"16"}""",
@@ -64,7 +68,6 @@ class WakeAttributionTest {
             pid = 456,
             targetUid = 10033,
             targetPackage = "third.app",
-            callerUid = request.targetUid,
             component = "third.app/.Service",
             processName = "third.app",
         )
@@ -86,6 +89,40 @@ class WakeAttributionTest {
         assertThat(links(request, middle, witness, outgoing.copy(attributes = """{"request_process_name":"target.app:billing"}"""), last)).isEmpty()
         assertThat(links(request, middle, witness, outgoing, last, middle.copy(id = "death", processName = "target.app:peer", kind = "AppProcessDied", elapsedNanos = 36))).isEmpty()
         assertThat(links(request, middle, witness, outgoing, last.copy(boot = "other"))).isEmpty()
+    }
+
+    @Test fun givenColdActivityLaunch_whenLinkingToProcessStart_thenEveryActivityHostingTypeQualifies() {
+        val launch = request.copy(id = "launch", kind = "AppStartOccurred", callerUid = null, callerPackage = "launcher.app", component = "target.app.Main", action = null)
+        // HostingRecord: activity 1, next-activity 8, next-top-activity 9 (seen on an API 35 emulator), top-activity 13.
+        for (type in listOf(1, 8, 9, 13)) {
+            val shown = start.copy(component = "{target.app/target.app.Main}", attributes = """{"hosting_type_id":"$type"}""")
+            assertThat(WakeAttribution.relationships(listOf(shown, launch)).single().requestId).isEqualTo("launch")
+        }
+        assertThat(WakeAttribution.relationships(listOf(start.copy(component = "{target.app/target.app.Main}", attributes = """{"hosting_type_id":"11"}"""), launch))).isEmpty()
+    }
+
+    @Test fun givenColdBroadcast_whenLinkingToProcessStart_thenTheActionMustMatchExactlyOneDelivery() {
+        val broadcast = request.copy(id = "broadcast", kind = "BroadcastDeliveryEventReported", component = null, action = "peer.WAKE")
+        val receiverStart = start.copy(component = "target.app/.Receiver", action = "peer.WAKE", attributes = """{"hosting_type_id":"4"}""")
+        val link = WakeAttribution.relationships(listOf(receiverStart, broadcast)).single()
+        assertThat(link.requestId).isEqualTo("broadcast")
+        assertThat(link.evidence).isEqualTo("MATCHING_ACTION")
+        assertThat(WakeAttribution.relationships(listOf(receiverStart, broadcast.copy(action = "other.WAKE")))).isEmpty()
+        assertThat(WakeAttribution.relationships(listOf(receiverStart, broadcast, broadcast.copy(id = "second", callerUid = 10044)))).isEmpty()
+        assertThat(WakeAttribution.relationships(listOf(receiverStart.copy(attributes = """{"hosting_type_id":"11"}"""), broadcast))).isEmpty()
+        val redacted = listOf(receiverStart.copy(action = "<redacted>"), broadcast.copy(action = "<redacted>"))
+        assertThat(WakeAttribution.relationships(redacted)).isEmpty()
+    }
+
+    @Test fun givenColdProviderAcquisition_whenLinkingToProcessStart_thenOnlyASingleCandidateQualifies() {
+        val acquisition = request.copy(id = "provider", kind = "ProviderAcquisitionEventReported", component = null, action = null)
+        val providerStart = start.copy(component = "target.app/.Data", attributes = """{"hosting_type_id":"5"}""")
+        val link = WakeAttribution.relationships(listOf(providerStart, acquisition)).single()
+        assertThat(link.requestId).isEqualTo("provider")
+        assertThat(link.evidence).isEqualTo("MATCHING_PROVIDER_START")
+        assertThat(WakeAttribution.relationships(listOf(providerStart, acquisition, acquisition.copy(id = "other", callerUid = 10044)))).isEmpty()
+        assertThat(WakeAttribution.relationships(listOf(providerStart, acquisition.copy(startType = 1)))).isEmpty()
+        assertThat(WakeAttribution.relationships(listOf(providerStart, acquisition.copy(elapsedNanos = 6_000_000_000L)))).isEmpty()
     }
 
     @Test fun givenJobEvents_whenLinkingExecution_thenOnlyAnUncancelledMatchingRegistrationQualifies() {

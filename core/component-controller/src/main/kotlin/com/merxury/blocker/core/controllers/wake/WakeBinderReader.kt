@@ -20,17 +20,19 @@ internal object WakeBinderReader {
     private val executor = Executors.newFixedThreadPool(2)
     private val timer = Executors.newSingleThreadScheduledExecutor()
 
-    fun read(command: WakeCommand, profile: Int, appUid: Int, boot: Int): ByteArray {
-        val argv = command.arguments(profile, appUid, boot)
+    fun read(command: WakeCommand, profile: Int, appUid: Int, boot: Int, argument: Long = 0): ByteArray {
+        val argv = command.arguments(profile, appUid, boot, argument)
         val dump = argv.first() == "dumpsys"
-        val service = when (argv.first()) {
-            "dumpsys" -> argv[3]
-            "cmd" -> throw IOException("The system recorder requires the Shizuku user service")
-            "pm" -> "package"
-            "settings" -> "settings"
+        // The event log has no Binder service. Its commands report a gap in this fallback.
+        val (service, skipped) = when (argv.first()) {
+            "dumpsys" -> argv[3] to 4
+            "cmd" -> if (argv[1] == "stats") throw IOException("The system recorder requires the Shizuku user service") else argv[1] to 2
+            "pm" -> "package" to 1
+            "am" -> "activity" to 1
+            "settings" -> "settings" to 1
             else -> throw IOException("${command.name} requires the Shizuku user service")
         }
-        val args = argv.drop(if (dump) 4 else 1).toTypedArray()
+        val args = argv.drop(skipped).toTypedArray()
         val binder = ShizukuBinderWrapper(requireNotNull(SystemServiceHelper.getSystemService(service)) { "$service unavailable" })
         val (reader, writer) = ParcelFileDescriptor.createReliablePipe()
         val task = executor.submit {

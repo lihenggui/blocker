@@ -6,6 +6,9 @@ package com.merxury.blocker.core.controllers.wake
 import com.merxury.blocker.core.model.wake.WakeObservation
 import java.math.BigDecimal
 
+/** One snapshot of the apps that may not show notifications: attribute "apps" lists them as `package/uid`. */
+const val WAKE_NOTIFICATIONS_OFF = "NotificationsOff"
+
 internal object WakeSystemEvidence {
     private val logLine = Regex("""^\s*(\d+\.\d+)\s+(?:1000|system)\s+\d+\s+\d+\s+I\s+(am_proc_start|am_proc_died|am_kill|am_schedule_service_restart)\s*:\s*\[(.*)]\s*$""")
     private val component = Regex("""([a-zA-Z][\w.$]+/[\w.$]+)""")
@@ -83,10 +86,46 @@ internal object WakeSystemEvidence {
         }.copy(eventWallNanos = eventWall)
     }.toList()
 
+    /** Wall millis of the oldest entry left in the event buffer, or null if it is empty. */
+    fun eventLogHead(output: String): Long? = output.lineSequence().firstNotNullOfOrNull { line ->
+        Regex("""^\s*(\d+)\.(\d{3})\d*\s""").find(line)?.destructured?.let { (seconds, millis) -> seconds.toLong() * 1000 + millis.toLong() }
+    }
+
+    /**
+     * A gap when the event buffer no longer reaches back to [since], allowing [tolerance] millis, or
+     * when its start could not be read.
+     */
+    fun eventLogGap(since: Long, head: String?, tolerance: Long = 0): String? {
+        if (head == null) return "event log start unknown"
+        val oldest = eventLogHead(head) ?: return null
+        return if (oldest > since + tolerance) "event log wrapped after resume point" else null
+    }
+
+    /** `dumpsys package protected-broadcasts` lists one action per indented line after a header. */
+    fun protectedBroadcasts(output: String): Set<String> = output.lineSequence()
+        .filter { it.startsWith("  ") }.map(String::trim).filter { it.isNotEmpty() && ' ' !in it }.toSet()
+
+    /** `dumpsys deviceidle whitelist` prints `type,package,uid` for system-excidle, system and user entries. */
+    fun idleWhitelist(output: String): Map<String, Set<String>> = output.lineSequence().mapNotNull { line ->
+        val fields = line.trim().split(',')
+        if (fields.size == 3 && fields[0] in setOf("system-excidle", "system", "user") && fields[2].toIntOrNull() != null) fields[1] to fields[0] else null
+    }.groupBy({ it.first }, { it.second }).mapValues { it.value.toSet() }
+
+    /** `am get-standby-bucket` without a package prints `package: bucket` for each package. */
+    fun standbyBuckets(output: String): Map<String, Int> = output.lineSequence().mapNotNull { line ->
+        val match = Regex("""^([\w.]+): (\d+)$""").find(line.trim()) ?: return@mapNotNull null
+        match.groupValues[1] to match.groupValues[2].toInt()
+    }.toMap()
+
+    /** `cmd appops query-op` prints one package per line, or "No operations.". */
+    fun queriedPackages(output: String): Set<String> = output.lineSequence().map(String::trim)
+        .filter { it.matches(Regex("""[a-zA-Z][\w]*(?:\.[\w]+)+""")) }.toSet()
+
     private fun heldConnections(source: WakeCommand, output: String, now: Long): List<WakeObservation> {
         val facts = mutableSetOf<WakeObservation>()
         var host: String? = null
         var hostUid: Int? = null
+        var hostProcess: String? = null
         var bindingIndent = -1
         var action: String? = null
         for (line in output.lineSequence()) {
@@ -101,12 +140,15 @@ internal object WakeSystemEvidence {
                 text.startsWith("* ServiceRecord{") || text.startsWith("* ContentProviderRecord{") -> {
                     host = component.find(text)?.value
                     hostUid = null
+                    hostProcess = null
                 }
 
                 text.startsWith("uid=") -> hostUid = text.substringAfter('=').substringBefore(' ').toIntOrNull()
 
-                text.startsWith("app=ProcessRecord{") || text.startsWith("proc=ProcessRecord{") ->
-                    hostUid = process.find(text)?.groupValues?.get(3)?.let(::uidFromDump) ?: hostUid
+                text.startsWith("app=ProcessRecord{") || text.startsWith("proc=ProcessRecord{") -> process.find(text)?.let { match ->
+                    hostUid = uidFromDump(match.groupValues[3]) ?: hostUid
+                    hostProcess = match.groupValues[2]
+                }
 
                 source == WakeCommand.SERVICES && text.startsWith("* IntentBindRecord{") -> bindingIndent = indent
 
@@ -135,7 +177,8 @@ internal object WakeSystemEvidence {
                         targetPackage = target.substringBefore('/'),
                         component = target,
                         action = action.takeIf { text.startsWith("* Client AppBindRecord{") },
-                        attributes = mapOf("client_process" to client, "type" to source.name),
+                        // The hosting process tells which of the app's processes a binding keeps.
+                        attributes = mapOf("client_process" to client, "type" to source.name) + listOfNotNull(hostProcess?.let { "host_process" to it }),
                     )
                 }
             }
@@ -143,11 +186,12 @@ internal object WakeSystemEvidence {
         return facts.toList()
     }
 
-    fun snapshot(source: WakeCommand, output: String, now: Long, profile: Int = 0): List<WakeObservation> {
+    fun snapshot(source: WakeCommand, output: String, now: Long, profile: Int = 0, sdk: Int = android.os.Build.VERSION.SDK_INT): List<WakeObservation> {
         val lines = output.lineSequence().map(String::trim)
         return when (source) {
             WakeCommand.SERVICES, WakeCommand.PROVIDERS -> heldConnections(source, output, now)
             WakeCommand.PROCESSES -> processImportance(lines, now)
+            WakeCommand.NOTIFICATIONS -> notificationsOff(lines, now, sdk)
             WakeCommand.WIDGETS -> widgetProviders(lines, now)
             WakeCommand.ROLES -> roleHolders(lines, now, profile)
             WakeCommand.INPUT, WakeCommand.LISTENERS, WakeCommand.ACCESSIBILITY, WakeCommand.VPN -> systemBindings(lines, now, source, profile)
@@ -160,6 +204,22 @@ internal object WakeSystemEvidence {
             WakeCommand.BATTERY -> processCpu(lines, now)
             else -> emptyList()
         }.distinct()
+    }
+
+    // "AppSettings: example.app (10123) importance=NONE userSet=false": the user turned the app's
+    // notifications off or, from Android 13, never allowed them. Android 13 and later print the
+    // importance only for an app that requests the permission; one that does not cannot notify either.
+    private val notificationSettings = Regex("""^AppSettings: (\S+) \((\d+)\)(?: |$)(?:.*?\bimportance=(\w+))?""")
+    private const val NOTIFICATION_PERMISSION_SDK = 33
+
+    // One record per snapshot keeps the history small, and a snapshot without such an app is still seen.
+    private fun notificationsOff(lines: Sequence<String>, now: Long, sdk: Int): List<WakeObservation> {
+        val settings = lines.mapNotNull(notificationSettings::find).toList()
+        if (settings.isEmpty()) return emptyList()
+        // The permission belongs to the uid: a package that shares the uid of one allowed to notify is allowed too.
+        val allowed = settings.filter { it.groupValues[3].isNotEmpty() && it.groupValues[3] != "NONE" }.map { it.groupValues[2] }.toSet()
+        val off = settings.filter { it.groupValues[3] == "NONE" || (sdk >= NOTIFICATION_PERMISSION_SDK && it.groupValues[3].isEmpty() && it.groupValues[2] !in allowed) }
+        return listOf(WakeObservation(WAKE_NOTIFICATIONS_OFF, now, attributes = mapOf("apps" to off.joinToString(",") { "${it.groupValues[1]}/${it.groupValues[2]}" })))
     }
 
     private fun processImportance(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
@@ -271,7 +331,8 @@ internal object WakeSystemEvidence {
     private fun pendingAlarms(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
         var host: String? = null
         for (text in lines) {
-            if ("Alarm{" in text) host = Regex("""whenElapsed\s+\d+\s+([\w.]+)}""").find(text)?.groupValues?.get(1)
+            // ICU, which backs java.util.regex on Android, rejects an unescaped closing brace.
+            if ("Alarm{" in text) host = Regex("""whenElapsed\s+\d+\s+([\w.]+)\}""").find(text)?.groupValues?.get(1)
             if (text.startsWith("operation=") && host != null) {
                 val operation = pendingRecord.find(text)
                 this += WakeObservation(

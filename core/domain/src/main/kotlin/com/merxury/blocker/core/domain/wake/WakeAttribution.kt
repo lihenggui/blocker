@@ -32,23 +32,30 @@ internal object WakeAttribution {
             for (start in starts) {
                 val fields = JSONObject(start.attributes)
                 val elapsed = actualStart(start, fields)
+                val hosting = fields.optInt("hosting_type_id")
                 val adjacent = requests.within(elapsed - WINDOW, elapsed + WINDOW) { it.elapsedNanos }
+                // ProcessStartTime reports no caller. A request joins on the target uid, a cold start within
+                // the window, the hosting type, and whatever both atoms name: the component of a service or
+                // activity, the action of a broadcast. A provider acquisition names neither.
                 val matches = adjacent.filter { request ->
-                    if (request.callerUid != null && start.callerUid != null && request.callerUid != start.callerUid) return@filter false
-                    val sameCaller = request.callerUid != null && request.callerUid == start.callerUid
                     val sameComponent = qualifiedWakeComponent(request.targetPackage, request.component)?.let { name ->
                         name == qualifiedWakeComponent(request.targetPackage, start.component)
                     } == true
                     when (request.kind) {
-                        "ServiceRequestEventReported" -> fields.optInt("hosting_type_id") in setOf(11, 15, 16) && sameComponent
-                        "AppStartOccurred" -> fields.optInt("hosting_type_id") == 1 && sameComponent
-                        "ProviderAcquisitionEventReported" -> fields.optInt("hosting_type_id") == 5 && sameCaller
-                        "BroadcastDeliveryEventReported" -> fields.optInt("hosting_type_id") == 4 && sameCaller && request.action != null && request.action == start.action
+                        "ServiceRequestEventReported" -> hosting in setOf(11, 15, 16) && sameComponent
+                        "AppStartOccurred" -> hosting.toLong() in WakeRevives.ACTIVITY_HOSTING_TYPE_IDS && sameComponent
+                        "ProviderAcquisitionEventReported" -> hosting == 5
+                        "BroadcastDeliveryEventReported" -> hosting == 4 && request.action != null && request.action != "<redacted>" && request.action == start.action
                         else -> false
                     }
                 }
                 val request = matches.singleOrNull() ?: continue
-                links += WakeRelation(request.id, start.id, if (start.callerUid != null && start.callerUid == request.callerUid) "MATCHING_CALLER" else "MATCHING_COMPONENT")
+                val evidence = when (request.kind) {
+                    "BroadcastDeliveryEventReported" -> "MATCHING_ACTION"
+                    "ProviderAcquisitionEventReported" -> "MATCHING_PROVIDER_START"
+                    else -> "MATCHING_COMPONENT"
+                }
+                links += WakeRelation(request.id, start.id, evidence)
             }
         }
         links += scheduledWork(records)
@@ -84,7 +91,6 @@ internal object WakeAttribution {
         return launches.mapNotNull { (request, start, time) ->
             if (request.elapsedNanos > time + WINDOW) return@mapNotNull null
             val fields = JSONObject(request.attributes)
-            val reported = JSONObject(start.attributes).optString("caller_process_name")
             val candidates = incoming[request.boot to request.callerUid].orEmpty()
                 .within(time - WINDOW, minOf(time - 1, request.elapsedNanos)) { it.time }
             val prior = candidates.singleOrNull { (_, middle, firstTime) ->
@@ -93,7 +99,7 @@ internal object WakeAttribution {
                 val witness = instances.singleOrNull { it.targetUid == middle.targetUid && it.elapsedNanos in (firstTime - WINDOW)..minOf(firstTime + WINDOW, request.elapsedNanos) }
                     ?: return@singleOrNull false
                 val process = witness.processName?.takeIf { it.isNotEmpty() } ?: return@singleOrNull false
-                if (!matchesCaller(request, fields, reported, process)) return@singleOrNull false
+                if (!matchesCaller(request, fields, process)) return@singleOrNull false
                 val lifetime = witness.elapsedNanos..request.elapsedNanos
                 val key = Triple(middle.boot, middle.targetUid, process)
                 deaths[pidKey].orEmpty().none { it.elapsedNanos in lifetime } &&
@@ -106,10 +112,10 @@ internal object WakeAttribution {
         }
     }
 
-    private fun matchesCaller(request: WakeRecord, fields: JSONObject, reported: String, process: String): Boolean {
-        if (reported.isNotEmpty() && reported != process) return false
+    // ProcessStartTime has no caller process field, so only the request's own process name identifies the caller.
+    private fun matchesCaller(request: WakeRecord, fields: JSONObject, process: String): Boolean {
         val short = fields.optString("request_process_name")
-        if (short == process || (short.isEmpty() && reported == process)) return true
+        if (short == process) return true
         if (request.kind != "ServiceRequestEventReported") return false
         val pkg = fields.optString("unique_caller_package")
         if (pkg.isEmpty() || pkg != request.callerPackage || !process.startsWith(pkg) || process.removePrefix(pkg) != short) return false

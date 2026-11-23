@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -55,6 +56,7 @@ class WakeProtectionManager @Inject constructor(
                 val records = repository.attributionRecords(capture.boot)
                 val relations = WakeAttribution.relationships(records)
                 repository.saveAttribution(records, relations, WakeAttribution.continuations(records, relations))
+                detect(now)
                 if (capture.profiles.isEmpty()) {
                     repository.reportStatus(WakeSourceStatus("protection", now, "PROFILE_SCOPE_UNAVAILABLE"))
                     return@withLock false
@@ -67,6 +69,21 @@ class WakeProtectionManager @Inject constructor(
                 repository.reportStatus(WakeSourceStatus("protection", now, e.message ?: e.javaClass.simpleName))
                 false
             }
+        }
+    }
+
+    /** Detection only reads evidence and writes its own tables. A failure is reported and never stops enforcement. */
+    private suspend fun detect(now: Long) {
+        try {
+            val zone = ZoneId.systemDefault()
+            val window = WakeDetection.window(now, repository.retentionStart(now), repository.oldestRecord(), repository.oldestImported(), zone)
+            val since = WakeDetection.dayStartMillis(window.from, zone) - WakeRevives.KILL_WINDOW / 1_000_000
+            val detected = WakeDetection.detect(repository.detectionEvidence(since, now), zone)
+            repository.saveDetection(window.from, window.through, WakeDetection.daily(detected, zone), WakeDetection.verdicts(detected, zone), window.firstKeptDay)
+            repository.reportStatus(WakeSourceStatus("detection", now, "OK"))
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            repository.reportStatus(WakeSourceStatus("detection", now, e.message ?: e.javaClass.simpleName))
         }
     }
 }

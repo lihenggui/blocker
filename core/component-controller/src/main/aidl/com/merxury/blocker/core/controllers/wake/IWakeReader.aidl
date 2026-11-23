@@ -4,7 +4,7 @@
 package com.merxury.blocker.core.controllers.wake;
 import android.os.ParcelFileDescriptor;
 interface IWakeReader {
-    ParcelFileDescriptor read(String operation, int profile, int boot) = 1;
+    ParcelFileDescriptor read(String operation, int profile, int boot, long argument) = 5;
     void writeManagedFirewall(String xml, boolean probe) = 2;
     String componentJournal(String replacement) = 3;
     boolean resetManagedFirewall(String packageName) = 4;

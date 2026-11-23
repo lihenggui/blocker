@@ -1,0 +1,80 @@
+ACTIVITY MANAGER LRU PROCESSES (dumpsys activity start-info)
+Last Timestamp of Persistence Into Persistent Storage: 11/22/26, 8:38 AM
+  package: com.google.android.apps.restore
+    Historical Process Start for userId=10139
+        ApplicationStartInfo #0:
+ pid=0 realUid=10139 packageUid=10139 definingUid=10139 user=0
+ package=null process=com.google.android.apps.restore startupState=0 reason=ALARM startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { act=android.intent.action.TIME_SET flg=0x25200010 cmp=com.google.android.apps.restore/androidx.work.impl.background.systemalarm.RescheduleReceiver }
+ timestamps: 0=15450066901490 1=15450072975164 2=15450341428624 3=15450219899342 
+        ApplicationStartInfo #1:
+ pid=0 realUid=10139 packageUid=10139 definingUid=10139 user=0
+ package=null process=com.google.android.apps.restore startupState=0 reason=BROADCAST startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { act=com.google.android.gms.phenotype.UPDATE flg=0x10 cmp=com.google.android.apps.restore/com.google.android.libraries.phenotype.client.stable.PhenotypeUpdateBackgroundBroadcastReceiver }
+ timestamps: 0=33859825309 1=33864274498 2=33981065743 3=33898443064 
+        ApplicationStartInfo #2:
+ pid=0 realUid=10139 packageUid=10139 definingUid=10139 user=0
+ package=com.google.android.apps.restore process=com.google.android.apps.restore startupState=0 reason=BROADCAST startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { act=android.intent.action.BOOT_COMPLETED cmp=com.google.android.apps.restore/androidx.work.impl.background.systemalarm.RescheduleReceiver }
+ timestamps: 0=23130230033 
+  package: com.google.android.inputmethod.latin
+    Historical Process Start for userId=10154
+        ApplicationStartInfo #0:
+ pid=0 realUid=10154 packageUid=10154 definingUid=10154 user=0
+ package=null process=com.google.android.inputmethod.latin startupState=0 reason=SERVICE startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { act=android.view.InputMethod cmp=com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME }
+ timestamps: 0=46238732230177 1=46238750462785 2=46239359430855 3=46238818763767 
+        ApplicationStartInfo #1:
+ pid=0 realUid=10154 packageUid=10154 definingUid=10154 user=0
+ package=null process=com.google.android.inputmethod.latin startupState=0 reason=SERVICE startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { act=android.view.InputMethod cmp=com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME }
+ timestamps: 0=19534631979 1=19535430436 2=19830855072 3=19561487914 
+        ApplicationStartInfo #2:
+ pid=0 realUid=10154 packageUid=10154 definingUid=10154 user=0
+ package=null process=com.google.android.inputmethod.latin startupState=0 reason=SERVICE startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { act=android.view.InputMethod cmp=com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME }
+ timestamps: 0=17046113125 
+        ApplicationStartInfo #3:
+ pid=0 realUid=10154 packageUid=10154 definingUid=10154 user=0
+ package=com.google.android.inputmethod.latin process=com.google.android.inputmethod.latin startupState=0 reason=SERVICE startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { act=android.view.InputMethod cmp=com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME }
+ timestamps: 0=16900599141 
+    Historical Process Start for userId=2010154
+        ApplicationStartInfo #0:
+ pid=0 realUid=2010154 packageUid=2010154 definingUid=2010154 user=20
+ package=com.google.android.inputmethod.latin process=com.google.android.inputmethod.latin startupState=0 reason=JOB startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { cmp=com.google.android.inputmethod.latin/androidx.work.impl.background.systemjob.SystemJobService }
+ timestamps: 0=1536851780187 1=1536865992162 2=1536916773210 3=1536890025909 
+        ApplicationStartInfo #1:
+ pid=0 realUid=2010154 packageUid=2010154 definingUid=2010154 user=20
+ package=com.google.android.inputmethod.latin process=com.google.android.inputmethod.latin startupState=0 reason=SERVICE startType=COLD launchMode=0 wasForceStopped=false
+ intent=Intent { act=android.view.InputMethod cmp=com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME }
+ timestamps: 0=1519552780620 1=1519553659295 2=1519876034685 3=1519618870592 
+  package: com.example.check
+    Historical Process Start for userId=2010234
+        ApplicationStartInfo #0:
+ pid=0 realUid=2010234 packageUid=2010234 definingUid=2010234 user=20
+ package=com.example.check process=com.example.check startupState=2 reason=START ACTIVITY startType=COLD launchMode=0 wasForceStopped=true
+ intent=Intent { cmp=com.example.check/com.example.check.Main }
+ timestamps: 0=1561951249964 1=1561961057428 2=1561994673042 3=1561984343899 4=1562221153759 6=1562072877944 7=1562224271820 
+        ApplicationStartInfo #1:
+ pid=0 realUid=2010234 packageUid=2010234 definingUid=2010234 user=20
+ package=com.example.check process=com.example.check startupState=2 reason=START ACTIVITY startType=COLD launchMode=0 wasForceStopped=true
+ intent=Intent { cmp=com.example.check/com.example.check.Main }
+ timestamps: 0=1561381406508 1=1561390342079 2=1561441685183 3=1561432067138 4=1561646402726 6=1561500538877 7=1561647741065 
+        ApplicationStartInfo #2:
+ pid=0 realUid=2010234 packageUid=2010234 definingUid=2010234 user=20
+ package=com.example.check process=com.example.check startupState=2 reason=START ACTIVITY startType=COLD launchMode=0 wasForceStopped=true
+ intent=Intent { cmp=com.example.check/com.example.check.Main }
+ timestamps: 0=1549964349322 1=1549972606233 2=1550012732324 3=1550003053834 4=1550217925961 6=1550068762705 7=1550218144676 
+        ApplicationStartInfo #3:
+ pid=0 realUid=2010234 packageUid=2010234 definingUid=2010234 user=20
+ package=com.example.check process=com.example.check startupState=2 reason=START ACTIVITY startType=COLD launchMode=0 wasForceStopped=true
+ intent=Intent { cmp=com.example.check/com.example.check.Main }
+ timestamps: 0=1547072816464 1=1547081449502 2=1547129908427 3=1547119556150 4=1547343727830 6=1547190790256 7=1547345338452 
+  package: com.android.providers.contacts
+    Historical Process Start for userId=10091
+        ApplicationStartInfo #0:
+ pid=0 realUid=10091 packageUid=10091 definingUid=10091 user=0
+ package=null process=android.process.acore startupState=0 reason=CONTENT PROVIDER startType=COLD launchMode=0 wasForceStopped=false
+ timestamps: 0=30868178564390 1=30868182847484 3=30868232463721 

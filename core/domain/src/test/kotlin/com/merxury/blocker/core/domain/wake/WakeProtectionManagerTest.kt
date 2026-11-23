@@ -8,6 +8,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.controllers.root.api.ManagedComponentState
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
+import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.data.wake.WakeImport
 import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
@@ -23,6 +24,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -53,6 +55,7 @@ class WakeProtectionManagerTest {
         whenever(repository.attributionRecords("boot")).thenReturn(emptyList())
         whenever(repository.observedComponents(any())).thenReturn(emptyList())
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(emptyList())
+        whenever(repository.detectionEvidence(any(), any())).thenReturn(WakeDetectionEvidence(emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyMap()))
     }
 
     @Test fun givenNoPermission_whenReconciling_thenScanningAndProtectionWaitForAuthorization() = runTest {
@@ -223,6 +226,26 @@ class WakeProtectionManagerTest {
         verify(rules, never()).reset(current.target, WakeResetTransport.DIRECT_ROOT)
         verify(repository).saveProtections(listOf(stale.copy(configured = false)))
         verify(repository, never()).resetFirewall(any())
+    }
+
+    @Test fun givenAttributedEvidence_whenReconciling_thenDetectionRunsBeforeEnforcement() = runTest {
+        authorizedWith(path.copy(method = "IFW", configured = true, pendingChange = false))
+        assertThat(manager.reconcile()).isTrue()
+        val order = inOrder(repository, rules)
+        order.verify(repository).saveAttribution(any(), any(), any())
+        order.verify(repository).saveDetection(any(), any(), any(), any(), any())
+        order.verify(rules).replace(emptyList())
+        verify(repository).reportStatus(argThat { source == "detection" && status == "OK" })
+    }
+
+    @Test fun givenDetectionFailure_whenReconciling_thenItIsReportedAndEnforcementContinues() = runTest {
+        authorizedWith(path.copy(method = "IFW", configured = true, pendingChange = false))
+        whenever(repository.detectionEvidence(any(), any())).thenThrow(IllegalStateException("evidence unreadable"))
+        assertThat(manager.reconcile()).isTrue()
+        verify(repository).reportStatus(argThat { source == "detection" && status == "evidence unreadable" })
+        verify(repository, never()).saveDetection(any(), any(), any(), any(), any())
+        verify(rules).replace(emptyList())
+        verify(repository).reportStatus(argThat { source == "protection" && status == "OK" })
     }
 
     @Test fun givenLastFirewallPathRemoved_whenReconciling_thenManagedRulesAreCleared() = runTest {

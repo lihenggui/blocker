@@ -15,6 +15,8 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import dagger.Module
 import dagger.Provides
@@ -148,6 +150,16 @@ abstract class WakeHistoryDao {
         pruneRelations()
         pruneContinuations()
         pruneIdentities(cutoff)
+    }
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun markStartInfoSeen(rows: List<WakeStartInfoSeen>)
+
+    /** Start-info records count as seen only together with their import. */
+    @Transaction
+    open suspend fun importStartInfo(records: List<WakeRecord>, seen: List<WakeStartInfoSeen>, cutoff: Long) {
+        importRecords(records, cutoff)
+        markStartInfoSeen(seen)
     }
 
     @Query("DELETE FROM WakeRecord WHERE wallMillis < :cutoff")
@@ -299,21 +311,51 @@ abstract class WakeHistoryDao {
 }
 
 @Database(
-    entities = [WakeRecord::class, WakeIdentity::class, WakeRelation::class, WakeContinuation::class, WakeSourceStatus::class, WakeProtection::class, WakeDailyTotal::class, ImportedWakeId::class],
-    version = 1,
+    entities = [
+        WakeRecord::class, WakeIdentity::class, WakeRelation::class, WakeContinuation::class, WakeSourceStatus::class, WakeProtection::class, WakeDailyTotal::class, ImportedWakeId::class,
+        WakeHoldPeriod::class, WakeHoldProcess::class, WakeHoldAssociation::class, WakeStartInfoSeen::class, WakeFindingDay::class, WakeVerdictDay::class, WakeExemption::class,
+    ],
+    version = 2,
     exportSchema = true,
 )
 abstract class WakeHistoryDatabase : RoomDatabase() {
     abstract fun history(): WakeHistoryDao
+    abstract fun detection(): WakeDetectionDao
 }
+
+/** Version 2 adds the detection tables. Existing history is kept. */
+val WAKE_HISTORY_MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        for (statement in WAKE_DETECTION_TABLES) db.execSQL(statement)
+    }
+}
+
+// Copied from the exported schema 2.json so Room's validation accepts the migrated database.
+internal val WAKE_DETECTION_TABLES = listOf(
+    "CREATE TABLE IF NOT EXISTS `WakeHoldPeriod` (`periodId` TEXT NOT NULL, `startMillis` INTEGER NOT NULL, `endMillis` INTEGER NOT NULL, `checkedAt` INTEGER NOT NULL, PRIMARY KEY(`periodId`))",
+    "CREATE TABLE IF NOT EXISTS `WakeHoldProcess` (`periodId` TEXT NOT NULL, `target` TEXT NOT NULL, `uid` INTEGER NOT NULL, `process` TEXT NOT NULL, `screenOffMillis` INTEGER NOT NULL, `screenOnMillis` INTEGER NOT NULL, `fgsScreenOffMillis` INTEGER NOT NULL, `fgsScreenOnMillis` INTEGER NOT NULL, PRIMARY KEY(`periodId`, `target`, `uid`, `process`))",
+    "CREATE TABLE IF NOT EXISTS `WakeHoldAssociation` (`periodId` TEXT NOT NULL, `target` TEXT NOT NULL, `uid` INTEGER NOT NULL, `component` TEXT NOT NULL, `sourceProcess` TEXT NOT NULL, `sourceUid` INTEGER NOT NULL, `boundMillis` INTEGER NOT NULL, `activeMillis` INTEGER NOT NULL, PRIMARY KEY(`periodId`, `target`, `uid`, `component`, `sourceProcess`, `sourceUid`))",
+    "CREATE TABLE IF NOT EXISTS `WakeStartInfoSeen` (`signature` TEXT NOT NULL, `firstSeen` INTEGER NOT NULL, PRIMARY KEY(`signature`))",
+    "CREATE INDEX IF NOT EXISTS `index_WakeStartInfoSeen_firstSeen` ON `WakeStartInfoSeen` (`firstSeen`)",
+    "CREATE TABLE IF NOT EXISTS `WakeFinding` (`id` TEXT NOT NULL, `day` INTEGER NOT NULL, `target` TEXT NOT NULL, `pathKey` TEXT NOT NULL, `trigger` TEXT, `hold` TEXT, `actor` TEXT, `detail` TEXT, `actorInBackground` INTEGER, `afterKill` TEXT, `justification` TEXT NOT NULL, `confidence` TEXT NOT NULL, `chainRoot` TEXT, `chainDepth` INTEGER NOT NULL, `count` INTEGER NOT NULL, `durationNanos` INTEGER NOT NULL, `screenOffNanos` INTEGER NOT NULL, `lastSeenNanos` INTEGER NOT NULL, `downstreamStarts` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+    "CREATE INDEX IF NOT EXISTS `index_WakeFinding_target_day` ON `WakeFinding` (`target`, `day`)",
+    "CREATE INDEX IF NOT EXISTS `index_WakeFinding_day` ON `WakeFinding` (`day`)",
+    "CREATE TABLE IF NOT EXISTS `WakeVerdict` (`day` INTEGER NOT NULL, `target` TEXT NOT NULL, `verdict` TEXT NOT NULL, `revives` INTEGER NOT NULL, `noneRevives` INTEGER NOT NULL, `afterKillRevives` INTEGER NOT NULL, `afterKillNoneRevives` INTEGER NOT NULL, `peerBackgroundNoneRevives` INTEGER NOT NULL, `screenOffHoldNoneNanos` INTEGER NOT NULL, `wakesOthers` INTEGER NOT NULL, `downstreamStarts` INTEGER NOT NULL, PRIMARY KEY(`day`, `target`))",
+    "CREATE INDEX IF NOT EXISTS `index_WakeVerdict_target` ON `WakeVerdict` (`target`)",
+    "CREATE TABLE IF NOT EXISTS `WakeExemption` (`target` TEXT NOT NULL, `idleWhitelist` TEXT, `standbyBucket` INTEGER, `backgroundRestricted` INTEGER, `checkedAt` INTEGER NOT NULL, PRIMARY KEY(`target`))",
+)
 
 @Module
 @InstallIn(SingletonComponent::class)
 object WakeDatabaseModule {
     @Provides
     @Singleton
-    fun database(@ApplicationContext context: Context): WakeHistoryDatabase = Room.databaseBuilder(context, WakeHistoryDatabase::class.java, "wake_history").build()
+    fun database(@ApplicationContext context: Context): WakeHistoryDatabase = Room.databaseBuilder(context, WakeHistoryDatabase::class.java, "wake_history")
+        .addMigrations(WAKE_HISTORY_MIGRATION_1_2).build()
 
     @Provides
     fun history(database: WakeHistoryDatabase): WakeHistoryDao = database.history()
+
+    @Provides
+    fun detection(database: WakeHistoryDatabase): WakeDetectionDao = database.detection()
 }
