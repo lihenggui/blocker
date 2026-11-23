@@ -105,6 +105,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSI
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.STARTED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
+import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -271,28 +272,7 @@ fun AppDetailScreen(
         }
     }
     event?.let {
-        val messageRes = when (it.result) {
-            STARTED -> rulestring.core_rule_processing_please_wait
-
-            FINISHED -> rulestring.core_rule_done
-
-            FOLDER_NOT_DEFINED,
-            MISSING_STORAGE_PERMISSION,
-            -> rulestring.core_rule_error_msg_folder_not_defined
-
-            MISSING_ROOT_PERMISSION -> rulestring.core_rule_error_msg_missing_root_permission
-
-            UNEXPECTED_EXCEPTION -> rulestring.core_rule_error_msg_unexpected_exception
-
-            CANCELLED -> rulestring.core_rule_task_cancelled
-
-            else -> rulestring.core_rule_error_msg_unexpected_exception
-        }
-        val message = if (it.result == FINISHED && it.failedCount > 0) {
-            stringResource(id = rulestring.core_rule_done_with_failures, it.failedCount)
-        } else {
-            stringResource(id = messageRes)
-        }
+        val message = it.resultMessage(context.resources) ?: stringResource(id = rulestring.core_rule_processing_please_wait)
         LaunchedEffect(message) {
             scope.launch {
                 snackbarHostState.currentSnackbarData?.dismiss()

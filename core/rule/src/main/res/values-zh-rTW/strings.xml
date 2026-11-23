@@ -27,10 +27,20 @@
     <string name="core_rule_cancel">取消</string>
     <string name="core_rule_processing_please_wait">正在處理，請稍等…</string>
     <string name="core_rule_done">完成</string>
-    <string name="core_rule_done_with_failures">完成，%1$d 項未能套用</string>
     <string name="core_rule_error_msg_folder_not_defined">備份目錄未指定，請前往設置修改。</string>
     <string name="core_rule_error_msg_missing_root_permission">缺少超級用戶權限，請檢查是否授予。</string>
     <string name="core_rule_error_msg_unexpected_exception">發生了未知錯誤，請向開發者反饋。</string>
     <string name="core_rule_task_cancelled">任務已取消</string>
     <string name="core_rule_copying_rules_to_internal_storage">複製規則到內部存儲中…</string>
+    <plurals name="core_rule_result_changed">
+        <item quantity="other">完成，已變更 %1$d 項。</item>
+    </plurals>
+    <plurals name="core_rule_result_skipped">
+        <item quantity="other">略過 %1$d 項。</item>
+    </plurals>
+    <plurals name="core_rule_result_failed">
+        <item quantity="other">失敗 %1$d 項。</item>
+    </plurals>
+    <string name="core_rule_result_firewall_unavailable">無法讀取 Intent Firewall 規則，因此未包含。</string>
+    <string name="core_rule_error_msg_folder_unreachable">無法存取備份資料夾，請在設定中重新選擇。</string>
 </resources>

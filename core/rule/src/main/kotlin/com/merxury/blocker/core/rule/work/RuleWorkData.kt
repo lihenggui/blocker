@@ -27,6 +27,7 @@ import com.merxury.blocker.core.rule.backup.BackupStorage
 import com.merxury.blocker.core.rule.backup.FailureReason
 import com.merxury.blocker.core.rule.backup.RuleRunResult
 import com.merxury.blocker.core.rule.backup.RuleRunSummary
+import com.merxury.blocker.core.rule.backup.SkipReason
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.util.DocumentTreeBackupStorage
 import kotlinx.coroutines.CoroutineDispatcher
@@ -73,36 +74,40 @@ internal fun openBackupFolder(context: Context, path: String?, ioDispatcher: Cor
 internal fun failureOf(code: Int): ListenableWorker.Result = ListenableWorker.Result.failure(workDataOf(RuleWorkResult.PARAM_WORK_RESULT to code))
 
 /**
- * The work result for [this] run. A run that could not start fails with the code for its reason.
- * A completed run succeeds when it applied something or nothing failed, so a partly failed run
- * reports its counts as a success; when nothing was applied and something failed it fails with
- * [RuleWorkResult.MISSING_ROOT_PERMISSION] if every failure was a missing privilege, else with
- * [RuleWorkResult.UNEXPECTED_EXCEPTION]. Every completed run's output holds [countKey] with
- * [count] of its summary and the counts of [RuleWorkResult].
+ * The work result for [this] run. A run that could not start for want of the backup folder or of
+ * privilege fails with [RuleWorkResult.MISSING_STORAGE_PERMISSION] or
+ * [RuleWorkResult.MISSING_ROOT_PERMISSION]. A completed run succeeds with its counts, also when
+ * items failed, such as an unreadable backup file: that is a run done with failures, not an
+ * unexpected exception. Only a completed run that changed nothing and failed solely for privilege
+ * fails, with [RuleWorkResult.MISSING_ROOT_PERMISSION] and its counts. A run that could not start
+ * for another reason succeeds with one failure. [RuleWorkResult.UNEXPECTED_EXCEPTION] is left to
+ * throwables nothing expected, which fail the work without a code.
+ *
+ * The output holds [countKey] and [RuleWorkResult.PARAM_CHANGED_COUNT] with [count] of the summary,
+ * and the other counts of [RuleWorkResult]. The skipped count leaves out the system apps the
+ * settings exclude, which every run of a whole user would otherwise report.
  */
 internal fun RuleRunResult.toWorkResult(countKey: String, count: (RuleRunSummary) -> Int): ListenableWorker.Result = when (this) {
-    is RuleRunResult.Failed -> failureOf(reason.toWorkCode())
+    is RuleRunResult.Failed -> when (reason) {
+        FailureReason.STORAGE_UNAVAILABLE -> failureOf(RuleWorkResult.MISSING_STORAGE_PERMISSION)
+        FailureReason.NO_PRIVILEGE -> failureOf(RuleWorkResult.MISSING_ROOT_PERMISSION)
+        else -> RuleRunResult.Completed(RuleRunSummary(failed = mapOf(reason to 1))).toWorkResult(countKey, count)
+    }
 
     is RuleRunResult.Completed -> {
         val output = workDataOf(
             countKey to count(summary),
+            RuleWorkResult.PARAM_CHANGED_COUNT to count(summary),
             RuleWorkResult.PARAM_FAILED_COUNT to summary.failedCount,
-            RuleWorkResult.PARAM_SKIPPED_COUNT to summary.skippedCount,
+            RuleWorkResult.PARAM_SKIPPED_COUNT to summary.skipped.filterKeys { it != SkipReason.SYSTEM_APP }.values.sum(),
             RuleWorkResult.PARAM_UNCHANGED_COUNT to summary.unchanged,
             RuleWorkResult.PARAM_UNREADABLE_APP_COUNT to (summary.failed[FailureReason.STATE_UNREADABLE] ?: 0),
             RuleWorkResult.PARAM_FIREWALL_UNAVAILABLE to summary.firewallUnavailable,
         )
-        if (summary.applied > 0 || summary.failedCount == 0) {
-            ListenableWorker.Result.success(output)
+        if (summary.applied == 0 && summary.failedCount > 0 && summary.failed.keys == setOf(FailureReason.NO_PRIVILEGE)) {
+            ListenableWorker.Result.failure(Data.Builder().putAll(output).putInt(RuleWorkResult.PARAM_WORK_RESULT, RuleWorkResult.MISSING_ROOT_PERMISSION).build())
         } else {
-            val code = if (summary.failed.keys == setOf(FailureReason.NO_PRIVILEGE)) RuleWorkResult.MISSING_ROOT_PERMISSION else RuleWorkResult.UNEXPECTED_EXCEPTION
-            ListenableWorker.Result.failure(Data.Builder().putAll(output).putInt(RuleWorkResult.PARAM_WORK_RESULT, code).build())
+            ListenableWorker.Result.success(output)
         }
     }
-}
-
-private fun FailureReason.toWorkCode(): Int = when (this) {
-    FailureReason.STORAGE_UNAVAILABLE -> RuleWorkResult.MISSING_STORAGE_PERMISSION
-    FailureReason.NO_PRIVILEGE -> RuleWorkResult.MISSING_ROOT_PERMISSION
-    else -> RuleWorkResult.UNEXPECTED_EXCEPTION
 }

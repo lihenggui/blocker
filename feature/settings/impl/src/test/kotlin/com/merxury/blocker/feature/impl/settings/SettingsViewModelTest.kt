@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.impl.settings
 
 import android.app.Application
 import android.content.SharedPreferences
+import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.ControllerType
@@ -69,6 +70,7 @@ class SettingsViewModelTest {
             syncManager = syncManager,
             appContext = appContext,
             analyticsHelper = analyticsHelper,
+            workManager = mock<WorkManager>(),
         )
     }
 

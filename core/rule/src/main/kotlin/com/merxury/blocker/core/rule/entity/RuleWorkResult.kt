@@ -26,10 +26,19 @@ object RuleWorkResult {
     const val UNEXPECTED_EXCEPTION = 5
     const val CANCELLED = 6
 
+    /**
+     * Output of every rule work that finishes: how many items it changed, such as backup files
+     * written or components changed; the same number as the work's own count key.
+     */
+    const val PARAM_CHANGED_COUNT = "param_changed_count"
+
     /** Output: how many items could not be done; see the run's summary for what an item is. */
     const val PARAM_FAILED_COUNT = "param_failed_count"
 
-    /** Output: how many items were left alone on purpose, such as apps not installed. */
+    /**
+     * Output: how many items were left alone on purpose, such as apps not installed, not counting
+     * the system apps the settings exclude.
+     */
     const val PARAM_SKIPPED_COUNT = "param_skipped_count"
 
     /** Output: how many entries or rules already were as the backup says. */

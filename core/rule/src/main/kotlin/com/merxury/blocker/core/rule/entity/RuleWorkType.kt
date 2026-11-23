@@ -23,4 +23,5 @@ enum class RuleWorkType {
     IMPORT_IFW_RULES,
     RESET_IFW,
     RESET_PM,
+    IMPORT_MAT_RULES,
 }

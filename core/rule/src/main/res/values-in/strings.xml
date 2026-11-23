@@ -10,7 +10,6 @@
     <string name="core_rule_cancel">Batal</string>
     <string name="core_rule_processing_please_wait">Memproses, harap tunggu…</string>
     <string name="core_rule_done">Selesai</string>
-    <string name="core_rule_done_with_failures">Selesai. Gagal diterapkan: %1$d</string>
     <string name="core_rule_error_msg_folder_not_defined">Folder belum ditentukan, ke pengaturan untuk menetapkan folder.</string>
     <string name="core_rule_error_msg_missing_root_permission">Tidak ada root akses, berikan akses root ke Blocker.</string>
     <string name="core_rule_processing_progress_indicator">Indikator Progres Diproses</string>
@@ -18,4 +17,15 @@
     <string name="core_rule_backing_up_apps_please_wait">Cadangkan pengaturan apl, harap tunggu…</string>
     <string name="core_rule_error_msg_unexpected_exception">Pengecualian baru, laporkan ke pengembang.</string>
     <string name="core_rule_task_cancelled">Batalkan Tugas</string>
+    <plurals name="core_rule_result_changed">
+        <item quantity="other">Selesai. %1$d item diubah.</item>
+    </plurals>
+    <plurals name="core_rule_result_skipped">
+        <item quantity="other">\u0020%1$d dilewati.</item>
+    </plurals>
+    <plurals name="core_rule_result_failed">
+        <item quantity="other">\u0020%1$d gagal.</item>
+    </plurals>
+    <string name="core_rule_result_firewall_unavailable">\u0020Aturan Intent Firewall tidak dapat dibaca, jadi tidak disertakan.</string>
+    <string name="core_rule_error_msg_folder_unreachable">Folder cadangan tidak dapat diakses. Pilih lagi di pengaturan.</string>
 </resources>

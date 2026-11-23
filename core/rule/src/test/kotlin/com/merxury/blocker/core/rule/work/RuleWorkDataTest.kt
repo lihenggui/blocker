@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.rule.work
 
+import android.app.Notification
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.Data
@@ -45,6 +46,7 @@ import com.merxury.blocker.core.testing.controller.FakeIntentFirewall
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,14 +64,17 @@ class RuleWorkDataTest {
     private fun completed(summary: RuleRunSummary) = RuleRunResult.Completed(summary).toWorkResult("param_import_count") { it.apps }
 
     @Test
-    fun givenRunThatCouldNotStart_whenMapping_thenEachReasonGetsItsCode() {
+    fun givenRunThatCouldNotStart_whenMapping_thenStorageAndPrivilegeGetTheirCodesAndOthersAFailedCount() {
         fun code(reason: FailureReason) = (RuleRunResult.Failed(reason).toWorkResult("k") { 0 } as ListenableWorker.Result.Failure)
             .outputData.getInt(RuleWorkResult.PARAM_WORK_RESULT, -1)
 
         assertThat(code(FailureReason.STORAGE_UNAVAILABLE)).isEqualTo(RuleWorkResult.MISSING_STORAGE_PERMISSION)
         assertThat(code(FailureReason.NO_PRIVILEGE)).isEqualTo(RuleWorkResult.MISSING_ROOT_PERMISSION)
-        assertThat(code(FailureReason.STATE_UNREADABLE)).isEqualTo(RuleWorkResult.UNEXPECTED_EXCEPTION)
-        assertThat(code(FailureReason.SYSTEM_ERROR)).isEqualTo(RuleWorkResult.UNEXPECTED_EXCEPTION)
+        for (reason in listOf(FailureReason.STATE_UNREADABLE, FailureReason.SYSTEM_ERROR)) {
+            val result = RuleRunResult.Failed(reason).toWorkResult("k") { 0 }
+            assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
+            assertThat(result.output().getInt(RuleWorkResult.PARAM_FAILED_COUNT, -1)).isEqualTo(1)
+        }
     }
 
     @Test
@@ -79,6 +84,8 @@ class RuleWorkDataTest {
         assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
         assertThat(result.output().keyValueMap).containsExactly(
             "param_import_count",
+            2,
+            RuleWorkResult.PARAM_CHANGED_COUNT,
             2,
             RuleWorkResult.PARAM_FAILED_COUNT,
             4,
@@ -103,10 +110,61 @@ class RuleWorkDataTest {
     }
 
     @Test
-    fun givenNothingAppliedAndOtherFailures_whenMapping_thenUnexpectedException() {
+    fun givenOneUnreadableBackupAndNothingElseToApply_whenMapping_thenDoneWithAFailure() {
+        // An unreadable file is a counted failure, never an unexpected exception.
+        val result = completed(RuleRunSummary(unchanged = 145, failed = mapOf(FailureReason.BACKUP_UNREADABLE to 1)))
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
+        assertThat(result.output().getInt(RuleWorkResult.PARAM_FAILED_COUNT, -1)).isEqualTo(1)
+        assertThat(result.output().getInt(RuleWorkResult.PARAM_UNCHANGED_COUNT, -1)).isEqualTo(145)
+    }
+
+    @Test
+    fun givenNothingAppliedAndPrivilegeWithOtherFailures_whenMapping_thenDoneWithFailures() {
         val result = completed(RuleRunSummary(failed = mapOf(FailureReason.NO_PRIVILEGE to 1, FailureReason.BACKUP_UNREADABLE to 1)))
 
-        assertThat(result.output().getInt(RuleWorkResult.PARAM_WORK_RESULT, -1)).isEqualTo(RuleWorkResult.UNEXPECTED_EXCEPTION)
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
+        assertThat(result.output().getInt(RuleWorkResult.PARAM_FAILED_COUNT, -1)).isEqualTo(2)
+    }
+
+    @Test
+    fun givenSystemAppsLeftOutBySettings_whenMapping_thenTheyAreNotCountedAsSkipped() {
+        val result = completed(RuleRunSummary(apps = 1, applied = 1, skipped = mapOf(SkipReason.SYSTEM_APP to 223, SkipReason.APP_NOT_INSTALLED to 2)))
+
+        assertThat(result.output().getInt(RuleWorkResult.PARAM_SKIPPED_COUNT, -1)).isEqualTo(2)
+    }
+
+    @Test
+    fun givenFolderUnsetOrUnreachable_whenOpening_thenEachHasItsCode() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+
+        assertThat(openBackupFolder(context, null, Dispatchers.IO)).isEqualTo(BackupFolder.Unusable(RuleWorkResult.FOLDER_NOT_DEFINED))
+        assertThat(openBackupFolder(context, "", Dispatchers.IO)).isEqualTo(BackupFolder.Unusable(RuleWorkResult.FOLDER_NOT_DEFINED))
+        // A tree that was deleted or whose grant was revoked cannot be read.
+        val gone = "content://com.android.externalstorage.documents/tree/primary%3AGone"
+        assertThat(openBackupFolder(context, gone, Dispatchers.IO)).isEqualTo(BackupFolder.Unusable(RuleWorkResult.MISSING_STORAGE_PERMISSION))
+    }
+
+    @Test
+    fun givenAnItem_whenUpdatingTheNotification_thenItIsTheContentText() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        WorkManagerTestInitHelper.initializeTestWorkManager(context)
+        val worker = TestListenableWorkerBuilder<ResetPmWorker>(context)
+            .setWorkerFactory(
+                object : WorkerFactory() {
+                    override fun createWorker(appContext: Context, workerClassName: String, workerParameters: WorkerParameters) = ResetPmWorker(
+                        appContext,
+                        workerParameters,
+                        PackageManagerReset(FakeComponentStatusRepository(), FakePrivilegedChannel()),
+                        LegacyComponentCache(TestComponentRepository(), FakeIntentFirewall()),
+                    )
+                },
+            )
+            .build()
+
+        val notification = worker.updateNotification("com.example.app", 1, 3).notification
+
+        assertThat(notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()).isEqualTo("com.example.app")
     }
 
     @Test

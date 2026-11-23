@@ -26,10 +26,29 @@
     <string name="core_rule_cancel">Отмена</string>
     <string name="core_rule_processing_please_wait">Обработка, подождите…</string>
     <string name="core_rule_done">Готово</string>
-    <string name="core_rule_done_with_failures">Готово. Не удалось применить: %1$d</string>
     <string name="core_rule_error_msg_folder_not_defined">Папка резервного копирования не указана. Перейдите в настройки, чтоб ее назначить.</string>
     <string name="core_rule_error_msg_missing_root_permission">Отсутствуют root-права. Предоставьте root-права Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Неожиданное исключение, сообщите об этом разработчику.</string>
     <string name="core_rule_task_cancelled">Задача отменена</string>
     <string name="core_rule_copying_rules_to_internal_storage">Копирование правил во внутреннее хранилище…</string>
+    <plurals name="core_rule_result_changed">
+        <item quantity="one">Готово. Изменён %1$d элемент.</item>
+        <item quantity="few">Готово. Изменено %1$d элемента.</item>
+        <item quantity="many">Готово. Изменено %1$d элементов.</item>
+        <item quantity="other">Готово. Изменено %1$d элемента.</item>
+    </plurals>
+    <plurals name="core_rule_result_skipped">
+        <item quantity="one">\u0020Пропущен %1$d.</item>
+        <item quantity="few">\u0020Пропущено %1$d.</item>
+        <item quantity="many">\u0020Пропущено %1$d.</item>
+        <item quantity="other">\u0020Пропущено %1$d.</item>
+    </plurals>
+    <plurals name="core_rule_result_failed">
+        <item quantity="one">\u0020Не удалось: %1$d.</item>
+        <item quantity="few">\u0020Не удалось: %1$d.</item>
+        <item quantity="many">\u0020Не удалось: %1$d.</item>
+        <item quantity="other">\u0020Не удалось: %1$d.</item>
+    </plurals>
+    <string name="core_rule_result_firewall_unavailable">\u0020Не удалось прочитать правила Intent Firewall, поэтому они не включены.</string>
+    <string name="core_rule_error_msg_folder_unreachable">Нет доступа к папке резервных копий. Выберите её снова в настройках.</string>
 </resources>

@@ -16,10 +16,15 @@
 
 package com.merxury.blocker.feature.appdetail.impl
 
+import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
+import androidx.lifecycle.MutableLiveData
+import androidx.test.core.app.ApplicationProvider
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
 import com.merxury.blocker.core.domain.components.SearchComponentsUseCase
@@ -41,6 +46,10 @@ import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.rule.entity.RuleWorkEvent
+import com.merxury.blocker.core.rule.entity.RuleWorkResult
+import com.merxury.blocker.core.rule.entity.RuleWorkType
+import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.testing.controller.FakePackageInfoDataSource
 import com.merxury.blocker.core.testing.controller.FakeServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
@@ -58,6 +67,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -69,7 +79,9 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
+import java.util.UUID
 import kotlin.test.assertEquals
 
 /**
@@ -493,6 +505,29 @@ class AppDetailViewModelTest {
             viewModel.appBarUiState.value,
         )
         collectJob.cancel()
+    }
+
+    @Test
+    fun givenSingleAppImport_whenItFinishes_thenTheEventCarriesItsCounts() = runTest {
+        val packageName = sampleAppList.first().packageName
+        userDataRepository.sendUserData(defaultUserData)
+        whenever(workerManager.getWorkInfosForUniqueWorkLiveData("ImportBlockerRule:$packageName")) doReturn MutableLiveData(
+            listOf(
+                WorkInfo(
+                    UUID.randomUUID(),
+                    WorkInfo.State.SUCCEEDED,
+                    emptySet(),
+                    workDataOf(RuleWorkResult.PARAM_CHANGED_COUNT to 2, RuleWorkResult.PARAM_FAILED_COUNT to 1),
+                ),
+            ),
+        )
+        val events = mutableListOf<RuleWorkEvent>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.eventFlow.toList(events) }
+
+        viewModel.importBlockerRule(packageName)
+
+        assertEquals(listOf(RuleWorkEvent(RuleWorkType.IMPORT_BLOCKER_RULES, RuleWorkResult.FINISHED, changed = 2, failed = 1)), events)
+        assertEquals("Done. 2 items changed. 1 item failed.", events.single().resultMessage(ApplicationProvider.getApplicationContext<Context>().resources))
     }
 }
 

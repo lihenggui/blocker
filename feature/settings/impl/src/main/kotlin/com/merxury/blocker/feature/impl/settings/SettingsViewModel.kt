@@ -54,6 +54,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
+import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_MAT_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_PM
 import com.merxury.blocker.core.rule.entity.ruleWorkEventOf
@@ -88,6 +89,7 @@ class SettingsViewModel @Inject constructor(
     private val blockerPreferences: BlockerPreferencesDataSource,
     private val syncManager: SyncManager,
     private val analyticsHelper: AnalyticsHelper,
+    private val workManager: WorkManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(appContext) {
     val settingsUiState: StateFlow<SettingsUiState> =
@@ -239,7 +241,7 @@ class SettingsViewModel @Inject constructor(
     fun importBlockerRules() = viewModelScope.launch {
         val taskName = "ImportBlockerRule"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(getApplication()).apply {
+        workManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.REPLACE,
@@ -261,7 +263,7 @@ class SettingsViewModel @Inject constructor(
     fun exportBlockerRules() = viewModelScope.launch {
         val taskName = "ExportBlockerRule"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(getApplication()).apply {
+        workManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.REPLACE,
@@ -283,7 +285,7 @@ class SettingsViewModel @Inject constructor(
     fun exportIfwRules() = viewModelScope.launch {
         val taskName = "ExportIfwRule"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(getApplication()).apply {
+        workManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -302,7 +304,7 @@ class SettingsViewModel @Inject constructor(
     fun importIfwRules() = viewModelScope.launch {
         val taskName = "ImportIfwRule"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(getApplication()).apply {
+        workManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -323,7 +325,7 @@ class SettingsViewModel @Inject constructor(
 
     fun resetIfwRules() = viewModelScope.launch {
         val taskName = "ResetIfw"
-        WorkManager.getInstance(getApplication()).apply {
+        workManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -341,7 +343,7 @@ class SettingsViewModel @Inject constructor(
 
     fun resetPmRules() = viewModelScope.launch {
         val taskName = "ResetPm"
-        WorkManager.getInstance(getApplication()).apply {
+        workManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -363,7 +365,7 @@ class SettingsViewModel @Inject constructor(
             return@launch
         }
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(getApplication()).apply {
+        workManager.apply {
             enqueueUniqueWork(
                 "ImportMatRule",
                 ExistingWorkPolicy.KEEP,
@@ -372,6 +374,12 @@ class SettingsViewModel @Inject constructor(
                     restoreSystemApps = userData.restoreSystemApp,
                 ),
             )
+            getWorkInfosForUniqueWorkLiveData("ImportMatRule")
+                .asFlow()
+                .collect { workInfoList ->
+                    if (workInfoList.isEmpty()) return@collect
+                    listenWorkInfo(IMPORT_MAT_RULES, workInfoList.first())
+                }
         }
     }
 
