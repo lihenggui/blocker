@@ -51,5 +51,7 @@ dependencies {
     ksp(libs.hilt.ext.compiler)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.truth)
 
 }

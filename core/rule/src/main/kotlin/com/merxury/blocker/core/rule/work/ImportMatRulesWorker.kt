@@ -89,15 +89,10 @@ class ImportMatRulesWorker @AssistedInject constructor(
         var current = 0
         try {
             context.contentResolver.openInputStream(uri)?.use { stream ->
-                val fileContent = stream.reader().readLines().filter { line ->
-                    line.trim().isNotEmpty() && line.contains("/")
-                }
+                val fileContent = filterMatLines(stream.reader().readLines())
                 total = fileContent.count()
                 fileContent.forEach { line ->
-                    val trimmedLine = line.split(" ").firstOrNull() ?: return@forEach
-                    val splitResult = trimmedLine.split("/")
-                    val packageName = splitResult[0]
-                    val name = splitResult[1]
+                    val (packageName, name) = parseMatLine(line)
                     if (isApplicationUninstalled(context, uninstalledAppList, packageName)) {
                         return@forEach
                     }

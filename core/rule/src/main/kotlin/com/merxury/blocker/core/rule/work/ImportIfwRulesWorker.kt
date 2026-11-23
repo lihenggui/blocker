@@ -26,8 +26,6 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
@@ -38,7 +36,6 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.PackageInfoDataSource
 import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -100,12 +97,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                         return@forEach
                     }
                     val rules = deserializer.deserialize(fileContent)
-                    val activities = rules.componentFiltersFor(IfwComponentType.ACTIVITY)
-                        .map { getComponentFromName(it) }
-                    val broadcast = rules.componentFiltersFor(IfwComponentType.BROADCAST)
-                        .map { getComponentFromName(it) }
-                    val service = rules.componentFiltersFor(IfwComponentType.SERVICE)
-                        .map { getComponentFromName(it) }
+                    val (activities, broadcast, service) = extractIfwImportComponents(rules)
                     val packageName = activities.firstOrNull()?.packageName
                         ?: broadcast.firstOrNull()?.packageName
                         ?: service.firstOrNull()?.packageName
@@ -148,17 +140,6 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         Timber.i("Imported $importedCount IFW rules.")
         return@withContext Result.success(
             workDataOf(PARAM_IMPORT_COUNT to importedCount),
-        )
-    }
-
-    private fun getComponentFromName(name: String): ComponentInfo {
-        val splitResult = name.split("/")
-        val packageName = splitResult[0]
-        val componentName = splitResult[1]
-        return ComponentInfo(
-            packageName = packageName,
-            name = componentName,
-            type = ACTIVITY,
         )
     }
 

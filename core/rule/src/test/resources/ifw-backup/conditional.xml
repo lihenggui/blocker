@@ -1,0 +1,27 @@
+<rules>
+  <activity block="true" log="false">
+    <intent-filter>
+      <action name="android.intent.action.VIEW" />
+    </intent-filter>
+    <component-filter name="com.example.app/com.example.app.ViewActivity" />
+  </activity>
+  <broadcast block="true" log="true">
+    <and>
+      <action equals="android.intent.action.BOOT_COMPLETED" />
+      <not>
+        <sender type="system" />
+      </not>
+    </and>
+  </broadcast>
+  <broadcast block="true" log="false">
+    <sender-package name="com.example.sender" />
+    <component-filter name="com.example.app/com.example.app.GuardedReceiver" />
+  </broadcast>
+  <service block="true" log="false">
+    <and>
+      <component-filter name="com.example.app/com.example.app.NestedService" />
+      <sender type="system" />
+    </and>
+    <component-filter name="com.example.app/com.example.app.PlainService" />
+  </service>
+</rules>

@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<rules>
+  <activity block="true" log="false">
+    <component-filter name="com.example.app/com.example.app.MainActivity" />
+    <component-filter name="com.example.app/.ui.SettingsActivity" />
+  </activity>
+  <broadcast block="true" log="false">
+    <component-filter name="com.example.app/com.example.app.BootReceiver" />
+  </broadcast>
+  <service block="true" log="false">
+    <component-filter name="com.example.app/com.example.app.SyncService" />
+  </service>
+</rules>

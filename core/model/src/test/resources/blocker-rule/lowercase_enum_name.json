@@ -1,0 +1,9 @@
+{
+    "packageName": "com.example.app",
+    "components": [
+        {
+            "name": "com.example.app.Tracker",
+            "type": "service"
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "packageName": "com.example.app",
+    "components": [
+        {
+            "packageName": "com.example.app",
+            "name": "com.example.app.Tracker",
+            "state": false,
+            "type": "WIDGET",
+            "method": "PM"
+        }
+    ]
+}

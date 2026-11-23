@@ -1,0 +1,18 @@
+{
+    "packageName": "com.example.app",
+    "versionName": "2.0",
+    "versionCode": 20,
+    "author": "Someone",
+    "description": "Edited by hand",
+    "futureField": {"nested": [1, 2, 3]},
+    "components": [
+        {
+            "packageName": "com.example.app",
+            "name": "com.example.app.Tracker",
+            "state": false,
+            "type": "SERVICE",
+            "method": "PM",
+            "extraFlag": true
+        }
+    ]
+}
