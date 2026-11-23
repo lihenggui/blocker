@@ -116,20 +116,12 @@ internal class IntentFirewallStore(
     }
 
     override suspend fun allRules(): IfwResult<Map<String, IfwResult<IfwRules>>> {
-        val packages = try {
-            fileSystem.listRuleFiles()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: IfwAccessException) {
-            Timber.w(e, "Cannot list IFW rule files")
-            return IfwResult.Failure(IfwFailure.NoAccess)
-        } catch (e: Exception) {
-            // The directory was reached but not listed; for the caller it is as unreachable.
-            Timber.e(e, "Cannot list IFW rule files")
-            return IfwResult.Failure(IfwFailure.NoAccess)
+        val packages = when (val listed = packagesWithRuleFiles()) {
+            is IfwResult.Success -> listed.value
+            is IfwResult.Failure -> return listed
         }
         val all = buildMap {
-            packages.filter(::isPackageRuleFileName).forEach { packageName ->
+            packages.forEach { packageName ->
                 when (val read = withLock(packageName) { read(packageName, connect = true) }) {
                     // Deleted since it was listed.
                     is IfwResult.Success -> if (read.value.exists) put(packageName, IfwResult.Success(read.value.rules))
@@ -139,6 +131,37 @@ internal class IntentFirewallStore(
             }
         }
         return IfwResult.Success(all)
+    }
+
+    override suspend fun packagesWithRuleFiles(): IfwResult<List<String>> = try {
+        IfwResult.Success(fileSystem.listRuleFiles().filter(::isPackageRuleFileName))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: IfwAccessException) {
+        Timber.w(e, "Cannot list IFW rule files")
+        IfwResult.Failure(IfwFailure.NoAccess)
+    } catch (e: Exception) {
+        // The directory was reached but not listed; for the caller it is as unreachable.
+        Timber.e(e, "Cannot list IFW rule files")
+        IfwResult.Failure(IfwFailure.NoAccess)
+    }
+
+    override suspend fun clear(packageName: String): IfwResult<Boolean> {
+        requirePackageName(packageName)
+        // Runs to its end once started, as a save does, so the cache and changes match the file.
+        return withLock(packageName) {
+            withContext(NonCancellable) {
+                val removed = changeFile(packageName) { fileSystem.deleteRules(packageName) }
+                if (removed is IfwResult.Success) {
+                    cache.remove(packageName)
+                    if (removed.value) {
+                        Timber.i("Cleared the IFW rules of $packageName")
+                        mutableChanges.emit(packageName)
+                    }
+                }
+                removed
+            }
+        }
     }
 
     override fun clearCache() {
@@ -172,27 +195,37 @@ internal class IntentFirewallStore(
 
     private suspend fun save(packageName: String, rules: IfwRules): IfwResult<IfwRules> {
         val saved = if (rules.isEmpty()) IfwRules.empty() else rules
-        try {
+        val written = changeFile(packageName) {
             if (saved.isEmpty()) {
                 fileSystem.deleteRules(packageName)
             } else {
                 fileSystem.writeRules(packageName, serializer.serialize(saved))
             }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: IfwAccessException) {
-            cache.remove(packageName)
-            Timber.w(e, "Cannot save IFW rules of $packageName")
-            return IfwResult.Failure(IfwFailure.NoAccess)
-        } catch (e: Exception) {
-            // The old file is still there, or the new one if only the answer was lost.
-            cache.remove(packageName)
-            Timber.e(e, "Cannot save IFW rules of $packageName")
-            return IfwResult.Failure(IfwFailure.WriteFailed(packageName, e.message))
         }
+        if (written is IfwResult.Failure) return written
         cache[packageName] = saved
         mutableChanges.emit(packageName)
         return IfwResult.Success(saved)
+    }
+
+    /**
+     * Writes or deletes the package's rule file with [change]; call it under the package's lock.
+     * A failure drops what [blocks] remembers of the package and comes back as
+     * [IfwFailure.NoAccess] or [IfwFailure.WriteFailed].
+     */
+    private suspend fun <T> changeFile(packageName: String, change: suspend () -> T): IfwResult<T> = try {
+        IfwResult.Success(change())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: IfwAccessException) {
+        cache.remove(packageName)
+        Timber.w(e, "Cannot change the IFW rule file of $packageName")
+        IfwResult.Failure(IfwFailure.NoAccess)
+    } catch (e: Exception) {
+        // The old file is still there, or the new one if only the answer was lost.
+        cache.remove(packageName)
+        Timber.e(e, "Cannot change the IFW rule file of $packageName")
+        IfwResult.Failure(IfwFailure.WriteFailed(packageName, e.message))
     }
 
     /**

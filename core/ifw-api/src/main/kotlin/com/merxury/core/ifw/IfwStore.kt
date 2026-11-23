@@ -58,7 +58,7 @@ import kotlinx.coroutines.flow.SharedFlow
  * they are writes nothing, and a file is replaced atomically. A rewritten file keeps every rule
  * and filter Blocker models; comments, unknown attributes and unknown elements directly under
  * `<rules>` are dropped, and rules come out grouped by type. A file with an unknown filter
- * element cannot be read, so it is never rewritten.
+ * element cannot be read, so it is never rewritten; [clear] deletes a file without reading it.
  *
  * ## Known limit
  * [blocks] reads only the package's own file. Android merges every file in the directory, so a
@@ -106,6 +106,25 @@ interface IfwStore {
      * Fails as a whole with [IfwFailure.NoAccess] when the directory cannot be listed.
      */
     suspend fun allRules(): IfwResult<Map<String, IfwResult<IfwRules>>>
+
+    /**
+     * Packages that have a rule file, read from the directory listing alone, so a file that
+     * cannot be read is listed too. Files the wake feature manages are not package files and are
+     * left out. Fails with [IfwFailure.NoAccess] when the directory cannot be listed.
+     */
+    suspend fun packagesWithRuleFiles(): IfwResult<List<String>>
+
+    /**
+     * Deletes the package's rule file under the package's lock without reading it, so a file
+     * that cannot be read or parsed goes too. Returns whether there was a file; deleting a
+     * missing one succeeds with false and changes nothing, so it is safe to repeat. Drops what
+     * [blocks] remembers of the package and emits on [changes] when a file was removed. Fails
+     * with [IfwFailure.NoAccess] or [IfwFailure.WriteFailed] as writes do.
+     *
+     * @throws IllegalArgumentException when [packageName] is not a package's rule file name, such
+     * as one of the wake feature's files
+     */
+    suspend fun clear(packageName: String): IfwResult<Boolean>
 
     /** Drops the rules [blocks] remembers, so its next answers read the files again. */
     fun clearCache()

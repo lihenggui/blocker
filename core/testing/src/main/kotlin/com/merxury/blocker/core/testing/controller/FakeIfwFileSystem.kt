@@ -90,6 +90,8 @@ class FakeIfwFileSystem : IfwFileSystem {
         operations += "delete $packageName"
         checkAccess()
         writeFailure?.let { throw it }
+        // Deleting needs no read, so an unreadable file goes too.
+        unreadablePackages.remove(packageName)
         return files.remove(packageName) != null
     }
 
