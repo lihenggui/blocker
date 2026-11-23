@@ -16,223 +16,333 @@
 
 package com.merxury.blocker.feature.applist.impl
 
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
-import android.content.pm.PackageManager.PackageInfoFlags
-import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
-import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
-import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
-import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
-import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.model.preference.AppPropertiesData
-import com.merxury.blocker.core.testing.controller.FakeAppController
-import com.merxury.blocker.core.testing.controller.FakePackageInfoDataSource
-import com.merxury.blocker.core.testing.controller.FakeServiceController
-import com.merxury.blocker.core.testing.data.TestAppStateCache
-import com.merxury.blocker.core.testing.repository.TestAppPropertiesRepository
-import com.merxury.blocker.core.testing.repository.TestAppRepository
-import com.merxury.blocker.core.testing.repository.TestComponentRepository
-import com.merxury.blocker.core.testing.repository.TestUserDataRepository
+import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.TopAppType
+import com.merxury.blocker.core.model.privileged.CallFailure
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.AppEnabledSetting
+import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
-import com.merxury.blocker.core.testing.util.TestPermissionMonitor
-import com.merxury.blocker.feature.applist.impl.AppListUiState.Initializing
-import com.merxury.blocker.feature.applist.impl.AppListUiState.Success
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
 
 class AppListViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val analyticsHelper = TestAnalyticsHelper()
-    private val userDataRepository = TestUserDataRepository()
-    private val appRepository = TestAppRepository()
-    private val componentRepository = TestComponentRepository()
-    private val appPropertiesRepository = TestAppPropertiesRepository()
-    private val appStateCache = TestAppStateCache()
-    private val serviceController = FakeServiceController()
-    private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
-    private val permissionMonitor = TestPermissionMonitor()
-    private val appController = FakeAppController()
-    private val packageInfo = mock<PackageInfo> {
-        on { toString() } doReturn "MockedPackageInfo"
-    }
-    private val pm = mock<PackageManager> {
-        on { getPackageInfo(any<String>(), any<Int>()) } doReturn packageInfo
-        on {
-            getPackageInfo(
-                any<String>(),
-                any<PackageInfoFlags>(),
-            )
-        } doReturn packageInfo
-    }
-    private val savedStateHandle = SavedStateHandle()
-    private lateinit var viewModel: AppListViewModel
+    // Created after the rule sets the main dispatcher, which the view model's scope keeps.
+    private lateinit var fixture: AppListFixture
+    private val viewModel get() = fixture.viewModel
 
     @Before
-    fun setup() {
-        val initializeDatabaseUseCase = InitializeDatabaseUseCase(
-            appRepository = appRepository,
-            componentRepository = componentRepository,
-            appPropertiesRepository = appPropertiesRepository,
-        )
-        val getAppController = GetAppControllerUseCase(
-            userDataRepository = userDataRepository,
-            rootAppController = appController,
-            shizukuAppController = appController,
-        )
-        val getServiceController = GetServiceControllerUseCase(
-            userDataRepository = userDataRepository,
-            rootServiceController = serviceController,
-            shizukuServiceController = serviceController,
-        )
-        val searchAppListUseCase = SearchAppListUseCase(
-            pm = pm,
-            userDataRepository = userDataRepository,
-            appRepository = appRepository,
-            appStateCache = appStateCache,
-            getAppController = getAppController,
-            getServiceController = getServiceController,
-            cpuDispatcher = dispatcher,
-        )
-        viewModel = AppListViewModel(
-            userDataRepository = userDataRepository,
-            analyticsHelper = analyticsHelper,
-            permissionMonitor = permissionMonitor,
-            packageInfoDataSource = FakePackageInfoDataSource(),
-            initializeDatabase = initializeDatabaseUseCase,
-            searchAppList = searchAppListUseCase,
-            getAppController = getAppController,
-            initialPackageName = null,
-            ioDispatcher = dispatcher,
-            cpuDispatcher = dispatcher,
-            mainDispatcher = dispatcher,
-            appRepository = appRepository,
-            savedStateHandle = savedStateHandle,
-        )
+    fun setUp() {
+        fixture = AppListFixture(mainDispatcherRule.testDispatcher)
+    }
+
+    private fun TestScope.collectState() {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
+    }
+
+    private fun TestScope.keepFresh() {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.refreshOnAccessChanges() }
     }
 
     @Test
-    fun appListUiState_whenInitial_thenShowDefault() = runTest {
-        assertIs<Initializing>(viewModel.uiState.value)
+    fun givenNewViewModel_whenNothingCollects_thenNoWorkStarts() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+
+        // Creating the view model alone reads and refreshes nothing.
+        assertThat(viewModel.uiState.value.apps).isEqualTo(AppsUiState.Loading)
+        assertThat(fixture.deviceUsers.refreshCount).isEqualTo(0)
+        assertThat(fixture.installedApps.calls).isEmpty()
+        assertThat(fixture.appControl.calls).isEmpty()
     }
 
     @Test
-    fun appListUiState_whenInitializingApp_thenShowInitializingApp() = runTest {
+    fun givenSingleUser_whenCollected_thenNoSwitcherAndCachedAppsShown() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A")))
+
+        collectState()
+
+        val state = viewModel.uiState.value
+        assertThat(state.showProfileSwitcher).isFalse()
+        assertThat(state.canOpenDetail).isTrue()
+        assertThat(fixture.rows().map { it.label }).containsExactly("A")
+    }
+
+    @Test
+    fun givenTwoUsers_whenCollected_thenSwitcherShowsPersonalAndWork() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+
+        collectState()
+
+        val state = viewModel.uiState.value
+        assertThat(state.showProfileSwitcher).isTrue()
+        assertThat(state.profiles.map { it.label }).containsExactly(ProfileLabel.Personal, ProfileLabel.Work).inOrder()
+        assertThat(state.selectedUser).isEqualTo(OWNER)
+    }
+
+    @Test
+    fun givenOtherUsers_whenCollected_thenNamedOrNumberedAndStoppedMarked() = runTest {
+        val named = DeviceUser(UserId(11), name = "Guest", kind = UserKind.SECONDARY, parent = null, running = false)
+        val unnamed = DeviceUser(UserId(12), name = null, kind = UserKind.OTHER_PROFILE, parent = OWNER, running = true)
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, named, unnamed))
+
+        collectState()
+
+        assertThat(viewModel.uiState.value.profiles).containsExactly(
+            ProfileTab(OWNER, ProfileLabel.Personal, running = true),
+            ProfileTab(UserId(11), ProfileLabel.Named("Guest"), running = false),
+            ProfileTab(UserId(12), ProfileLabel.Numbered(12), running = true),
+        ).inOrder()
+    }
+
+    @Test
+    fun givenTwoUsers_whenWorkSelected_thenWorkAppsShownAndRefreshedOnceWithPreferencesKept() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.userData.sendUserData(defaultUserData.copy(showSystemApps = true, appSortingOrder = SortingOrder.DESCENDING))
+        fixture.installedApps.sendApps(
+            listOf(installedApp("com.a", label = "A"), installedApp("com.b", WORK, "B"), installedApp("com.c", WORK, "C")),
+        )
+        collectState()
+
+        viewModel.selectUser(WORK)
+        viewModel.selectUser(OWNER)
+        viewModel.selectUser(WORK)
+
+        val state = viewModel.uiState.value
+        assertThat(state.selectedUser).isEqualTo(WORK)
+        assertThat(state.canOpenDetail).isFalse()
+        assertThat(state.showProfileSwitcher).isTrue()
+        assertThat(fixture.rows().map { it.label }).containsExactly("C", "B").inOrder()
+        assertThat(fixture.installedApps.calls.count { it == "refresh 10" }).isEqualTo(1)
+    }
+
+    @Test
+    fun givenWorkReadBefore_whenListRefreshed_thenWorkReadAgainWhenNextSelected() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        collectState()
+        viewModel.selectUser(WORK)
+        viewModel.selectUser(OWNER)
+
+        viewModel.refresh()
+        viewModel.selectUser(WORK)
+
+        assertThat(fixture.installedApps.calls.count { it == "refresh 10" }).isEqualTo(2)
+    }
+
+    @Test
+    fun givenWorkSelected_whenWorkProfileDisappears_thenOwnAppsShown() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A"), installedApp("com.b", WORK, "B")))
+        collectState()
+        viewModel.selectUser(WORK)
+
+        fixture.selectedUsers.sendUsers(listOf(ownerUser))
+
+        val state = viewModel.uiState.value
+        assertThat(state.selectedUser).isEqualTo(OWNER)
+        assertThat(state.showProfileSwitcher).isFalse()
+        assertThat(fixture.rows().map { it.label }).containsExactly("A")
+    }
+
+    @Test
+    fun givenChannelNotChecked_whenShown_thenWaitsForTheCheckBeforeRefreshing() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        collectState()
+        keepFresh()
+
+        assertThat(fixture.deviceUsers.refreshCount).isEqualTo(0)
+
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+
+        assertThat(fixture.deviceUsers.refreshCount).isEqualTo(1)
+        assertThat(fixture.installedApps.calls).containsExactly("refresh 0")
+    }
+
+    @Test
+    fun givenChannelNotReady_whenRefreshed_thenRunningAppsAreNotAskedFor() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        collectState()
+
+        viewModel.refresh()
+
+        assertThat(fixture.appControl.calls).isEmpty()
+        assertThat(fixture.rows().single().isRunning).isNull()
+    }
+
+    @Test
+    fun givenShownOnce_whenShownAgainWithSameAccess_thenNotRefreshedAgain() = runTest {
+        collectState()
+        val first = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.refreshOnAccessChanges() }
+        first.cancel()
+
+        keepFresh()
+
+        assertThat(fixture.deviceUsers.refreshCount).isEqualTo(1)
+    }
+
+    @Test
+    fun givenShown_whenChannelLostAndRegained_thenRefreshedEachTime() = runTest {
+        collectState()
+        keepFresh()
+
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
+        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+
+        assertThat(fixture.deviceUsers.refreshCount).isEqualTo(3)
+    }
+
+    @Test
+    fun givenNoCache_whenRefreshFails_thenErrorState() = runTest {
+        fixture.installedApps.refreshFailure = ReadFailure.ChannelUnavailable
+        collectState()
+
+        viewModel.refresh()
+
+        assertThat(viewModel.uiState.value.apps).isEqualTo(AppsUiState.Error(ReadFailure.ChannelUnavailable))
+    }
+
+    @Test
+    fun givenCachedApps_whenRefreshFails_thenCachedListKeptWithFailure() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A")))
+        fixture.installedApps.refreshFailure = ReadFailure.ChannelUnavailable
+        collectState()
+
+        viewModel.refresh()
+
+        val state = viewModel.uiState.value
+        assertThat(fixture.rows().map { it.label }).containsExactly("A")
+        assertThat(state.refreshFailure).isEqualTo(ReadFailure.ChannelUnavailable)
+        assertThat(state.isRefreshing).isFalse()
+    }
+
+    @Test
+    fun givenFailedRefresh_whenRefreshSucceeds_thenFailureCleared() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        fixture.installedApps.refreshFailure = ReadFailure.ChannelUnavailable
+        collectState()
+        viewModel.refresh()
+
+        fixture.installedApps.refreshFailure = null
+        viewModel.refresh()
+
+        assertThat(viewModel.uiState.value.refreshFailure).isNull()
+        assertThat(fixture.installedApps.calls).containsExactly("refresh 0", "refresh 0")
+        assertThat(fixture.deviceUsers.refreshCount).isEqualTo(2)
+    }
+
+    @Test
+    fun givenNoCache_whenRefreshFindsNothing_thenEmptyList() = runTest {
         viewModel.uiState.test {
-            // Cause sending of app list will trigger the initialization of the database
-            // The condition will be initialized in the `test` block
-            userDataRepository.sendUserData(defaultUserData)
-            appPropertiesRepository.sendAppProperties(AppPropertiesData())
-            componentRepository.sendComponentList(sampleComponentList)
-            appRepository.sendAppList(sampleAppList)
+            assertThat(awaitItem().apps).isEqualTo(AppsUiState.Loading)
 
-            // Initial state
-            assertEquals(Initializing(), awaitItem())
-            // Actual app list
-            sampleAppList.forEach {
-                assertEquals(Initializing(it.label), awaitItem())
-            }
-            // Going to search the component list
-            // It will emit an Initializing state and then a Success state
-            assertEquals(Initializing(), awaitItem())
-            assertIs<Success>(awaitItem())
+            viewModel.refresh()
+
+            assertThat(expectMostRecentItem().apps).isEqualTo(AppsUiState.Loaded(emptyList()))
         }
     }
 
     @Test
-    fun appListUiState_whenShowSystemAppChange_thenRefreshing() = runTest {
-        viewModel.uiState.test {
-            userDataRepository.sendUserData(defaultUserData)
-            appPropertiesRepository.sendAppProperties(AppPropertiesData(componentDatabaseInitialized = true))
-            componentRepository.sendComponentList(sampleComponentList)
-            appRepository.sendAppList(sampleAppList)
-            assertEquals(Initializing(), awaitItem())
-            assertEquals(Success(), awaitItem())
-            userDataRepository.setShowSystemApps(true)
-            assertEquals(Success(isRefreshing = true), awaitItem())
-            assertEquals(Success(), awaitItem())
-        }
+    fun givenRunningApps_whenRefreshed_thenRunningBadgeShown() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a"), installedApp("com.b")))
+        fixture.appControl.running[OWNER] = mutableSetOf("com.a")
+        collectState()
+
+        viewModel.refresh()
+
+        assertThat(fixture.rows().associate { it.key.packageName to it.isRunning })
+            .containsExactly("com.a", true, "com.b", false)
     }
 
     @Test
-    fun appListUiState_whenPermissionChange_thenRefreshing() = runTest {
-        viewModel.uiState.test {
-            userDataRepository.sendUserData(defaultUserData)
-            appPropertiesRepository.sendAppProperties(AppPropertiesData(componentDatabaseInitialized = true))
-            componentRepository.sendComponentList(sampleComponentList)
-            appRepository.sendAppList(sampleAppList)
-            assertEquals(Initializing(), awaitItem())
-            assertEquals(Success(), awaitItem())
-            permissionMonitor.setPermission(SHELL_USER)
-            assertEquals(Success(isRefreshing = true), awaitItem())
-            assertEquals(Success(), awaitItem())
-        }
+    fun givenRunningNotPermitted_whenRefreshed_thenNoRunningBadge() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        fixture.appControl.running[OWNER] = mutableSetOf("com.a")
+        fixture.appControl.failures["runningPackages"] = CallFailure.NotPermitted("Root sees running processes of user 0 only")
+        collectState()
+
+        viewModel.refresh()
+
+        assertThat(fixture.rows().single().isRunning).isNull()
+    }
+
+    @Test
+    fun givenSystemAppsHidden_whenCollected_thenOnlyUserAppsShown() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A"), installedApp("android", label = "System", isSystem = true)))
+        collectState()
+
+        assertThat(fixture.rows().map { it.label }).containsExactly("A")
+
+        fixture.userData.sendUserData(defaultUserData.copy(showSystemApps = true))
+
+        assertThat(fixture.rows().map { it.label }).containsExactly("A", "System").inOrder()
+    }
+
+    @Test
+    fun givenSortByInstallDateDescending_whenCollected_thenNewestFirst() = runTest {
+        fixture.installedApps.sendApps(
+            listOf(
+                installedApp("com.old", label = "Old", firstInstallTime = 1),
+                installedApp("com.new", label = "New", firstInstallTime = 3),
+                installedApp("com.mid", label = "Mid", firstInstallTime = 2),
+            ),
+        )
+        fixture.userData.sendUserData(
+            defaultUserData.copy(appSorting = AppSorting.FIRST_INSTALL_TIME, appSortingOrder = SortingOrder.DESCENDING),
+        )
+        collectState()
+
+        assertThat(fixture.rows().map { it.label }).containsExactly("New", "Mid", "Old").inOrder()
+    }
+
+    @Test
+    fun givenNameSorting_whenCollected_thenSortedIgnoringCase() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.b", label = "beta"), installedApp("com.a", label = "Alpha")))
+        collectState()
+
+        assertThat(fixture.rows().map { it.label }).containsExactly("Alpha", "beta").inOrder()
+    }
+
+    @Test
+    fun givenRunningOnTop_whenRefreshed_thenRunningAppsFirstInNameOrder() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A"), installedApp("com.b", label = "B"), installedApp("com.c", label = "C")))
+        fixture.appControl.running[OWNER] = mutableSetOf("com.c", "com.b")
+        fixture.userData.sendUserData(defaultUserData.copy(topAppType = TopAppType.RUNNING))
+        collectState()
+
+        viewModel.refresh()
+
+        assertThat(fixture.rows().map { it.label }).containsExactly("B", "C", "A").inOrder()
+    }
+
+    @Test
+    fun givenDisabledOnTop_whenCollected_thenDisabledAppsFirst() = runTest {
+        fixture.installedApps.sendApps(
+            listOf(
+                installedApp("com.a", label = "A"),
+                installedApp("com.b", label = "B", enabledSetting = AppEnabledSetting.DISABLED_USER),
+            ),
+        )
+        fixture.userData.sendUserData(defaultUserData.copy(topAppType = TopAppType.DISABLED))
+        collectState()
+
+        assertThat(fixture.rows().map { it.label to it.isDisabled }).containsExactly("B" to true, "A" to false).inOrder()
     }
 }
-
-private val sampleAppList = listOf(
-    InstalledApp(
-        label = "App1",
-        packageName = "com.merxury.test1",
-    ),
-    InstalledApp(
-        label = "App2",
-        packageName = "com.merxury.test2",
-    ),
-    InstalledApp(
-        label = "App3",
-        packageName = "com.merxury.test3",
-        isSystem = true,
-    ),
-)
-
-private val sampleComponentList = listOf(
-    ComponentInfo(
-        simpleName = "Activity1",
-        name = "com.merxury.blocker.test.activity1",
-        packageName = "com.merxury.test1",
-        type = ACTIVITY,
-        description = "An example activity",
-    ),
-    ComponentInfo(
-        simpleName = "Service1",
-        name = "com.merxury.blocker.test.service1",
-        packageName = "com.merxury.test1",
-        type = SERVICE,
-        description = "An example service",
-        pmBlocked = true,
-    ),
-    ComponentInfo(
-        simpleName = "Receiver1",
-        name = "com.merxury.blocker.test.receiver1",
-        packageName = "com.merxury.test1",
-        type = RECEIVER,
-        description = "An example receiver",
-    ),
-    ComponentInfo(
-        simpleName = "Provider1",
-        name = "com.merxury.blocker.test.provider1",
-        packageName = "com.merxury.test1",
-        type = PROVIDER,
-        description = "An example provider",
-    ),
-)

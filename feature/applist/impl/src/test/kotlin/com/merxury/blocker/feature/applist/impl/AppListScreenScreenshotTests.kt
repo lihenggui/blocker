@@ -21,14 +21,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
-import com.merxury.blocker.feature.applist.impl.AppListUiState.Error
-import com.merxury.blocker.feature.applist.impl.AppListUiState.Initializing
-import com.merxury.blocker.feature.applist.impl.AppListUiState.Success
+import com.merxury.blocker.feature.applist.impl.component.AppActionsContent
+import com.merxury.blocker.feature.applist.impl.component.previewAppRows
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -48,6 +46,12 @@ class AppListScreenScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
+    private val ownApps = AppListUiState(ownUser = OWNER, selectedUser = OWNER, apps = AppsUiState.Loaded(previewAppRows()))
+    private val profiles = listOf(
+        ProfileTab(OWNER, ProfileLabel.Personal, running = true),
+        ProfileTab(WORK, ProfileLabel.Work, running = true),
+    )
+
     @Before
     fun setTimeZone() {
         // Make time zone deterministic in tests
@@ -55,126 +59,77 @@ class AppListScreenScreenshotTests {
     }
 
     @Test
-    fun appListScreen() {
-        composeTestRule.captureMultiDevice("AppListScreen") {
-            AppListScreen()
-        }
+    fun appListScreen() = captureWithDark("AppListScreen", ownApps)
+
+    @Test
+    fun appListScreen_profiles() = captureWithDark(
+        "AppListScreenProfiles",
+        ownApps.copy(selectedUser = WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))),
+    )
+
+    @Test
+    fun appListScreen_stoppedProfile() = captureWithDark(
+        "AppListScreenStoppedProfile",
+        ownApps.copy(profiles = listOf(profiles[0], profiles[1].copy(running = false))),
+    )
+
+    @Test
+    fun appListScreen_loading() = captureWithDark("AppListScreenLoading", ownApps.copy(apps = AppsUiState.Loading))
+
+    @Test
+    fun appListScreen_error() = captureWithDark(
+        "AppListScreenError",
+        ownApps.copy(apps = AppsUiState.Error(ReadFailure.ChannelUnavailable)),
+    )
+
+    @Test
+    fun appListScreen_refreshFailed() = captureWithDark(
+        "AppListScreenRefreshFailed",
+        ownApps.copy(refreshFailure = ReadFailure.ChannelUnavailable),
+    )
+
+    @Test
+    fun appListScreen_empty() = captureWithDark("AppListScreenEmpty", ownApps.copy(apps = AppsUiState.Loaded(emptyList())))
+
+    @Test
+    fun appActionsSheet() {
+        composeTestRule.captureMultiDevice("AppActionsSheet") { ActionsSheet() }
     }
 
     @Test
-    fun appListScreen_dark() {
+    fun appActionsSheet_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppListScreen",
+            screenshotName = "AppActionsSheet",
             darkMode = true,
-        ) {
-            AppListScreen()
-        }
+        ) { ActionsSheet() }
     }
 
-    @Test
-    fun appListScreen_initializing() {
-        composeTestRule.captureMultiDevice("AppListScreenInitializing") {
-            AppListInitialScreen()
-        }
-    }
-
-    @Test
-    fun appListScreen_initializing_dark() {
+    private fun captureWithDark(name: String, uiState: AppListUiState) {
+        composeTestRule.captureMultiDevice(name) { Screen(uiState) }
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppListScreenInitializing",
+            screenshotName = name,
             darkMode = true,
-        ) {
-            AppListInitialScreen()
-        }
-    }
-
-    @Test
-    fun appListScreen_error() {
-        composeTestRule.captureMultiDevice("AppListScreenError") {
-            AppListErrorScreen()
-        }
-    }
-
-    @Test
-    fun appListScreen_error_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppListScreenError",
-            darkMode = true,
-        ) {
-            AppListErrorScreen()
-        }
-    }
-
-    @Test
-    fun appListScreen_empty() {
-        composeTestRule.captureMultiDevice("AppListScreenEmpty") {
-            AppListEmptyScreen()
-        }
-    }
-
-    @Test
-    fun appListScreen_empty_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppListScreenEmpty",
-            darkMode = true,
-        ) {
-            AppListEmptyScreen()
-        }
+        ) { Screen(uiState) }
     }
 
     @Composable
-    private fun AppListScreen() {
-        val appList = AppListPreviewParameterProvider().values.first()
+    private fun Screen(uiState: AppListUiState) {
         BlockerTheme {
             Surface {
-                AppListScreen(
-                    uiState = Success(),
-                    appList = appList,
-                )
+                AppListScreen(uiState = uiState)
             }
         }
     }
 
     @Composable
-    private fun AppListInitialScreen() {
+    private fun ActionsSheet() {
         BlockerTheme {
             Surface {
-                AppListScreen(
-                    uiState = Initializing("Blocker"),
-                    appList = listOf(),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun AppListErrorScreen() {
-        BlockerTheme {
-            Surface {
-                AppListScreen(
-                    uiState = Error(UiMessage("Error")),
-                    appList = listOf(),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun AppListEmptyScreen() {
-        BlockerTheme {
-            Surface {
-                AppListScreen(
-                    uiState = Success(),
-                    appList = listOf(),
-                )
+                AppActionsContent(app = previewAppRows(WORK)[2], onAction = {})
             }
         }
     }

@@ -1,0 +1,131 @@
+/*
+ * Copyright 2026 Blocker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.merxury.blocker.feature.applist.impl
+
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.feature.applist.impl.component.previewAppRows
+import dagger.hilt.android.testing.HiltTestApplication
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import com.merxury.blocker.core.ui.R.string as uiString
+import com.merxury.blocker.feature.applist.api.R.string as string
+
+@RunWith(RobolectricTestRunner::class)
+@Config(application = HiltTestApplication::class)
+class AppListScreenTest {
+    @get:Rule
+    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+
+    private val profiles = listOf(
+        ProfileTab(OWNER, ProfileLabel.Personal, running = true),
+        ProfileTab(WORK, ProfileLabel.Work, running = false),
+    )
+    private val opened = mutableListOf<String>()
+    private val actions = mutableListOf<Pair<AppKey, AppAction>>()
+    private val selected = mutableListOf<UserId>()
+
+    private fun show(uiState: AppListUiState) {
+        composeTestRule.setContent {
+            BlockerTheme {
+                AppListScreen(
+                    uiState = uiState,
+                    navigateToAppDetail = { opened += it },
+                    onSelectUser = { selected += it },
+                    onAction = { app, action -> actions += app to action },
+                )
+            }
+        }
+    }
+
+    private fun text(id: Int, vararg args: Any) = composeTestRule.activity.getString(id, *args)
+
+    @Test
+    fun givenOwnUserApp_whenTapped_thenDetailOpensWithThePackage() {
+        show(AppListUiState(OWNER, OWNER, apps = AppsUiState.Loaded(previewAppRows(OWNER))))
+
+        composeTestRule.onNodeWithText("Blocker Test").performClick()
+
+        assertThat(opened).containsExactly("com.test.blocker")
+        composeTestRule.onNodeWithTag("appList:actionsSheet").assertDoesNotExist()
+    }
+
+    @Test
+    fun givenOtherUserApp_whenTapped_thenActionsSheetOpensInsteadOfDetail() {
+        show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
+
+        composeTestRule.onNodeWithText("Blocker Test").performClick()
+
+        assertThat(opened).isEmpty()
+        composeTestRule.onNodeWithText(text(string.feature_applist_api_other_profile_note)).assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(text(uiString.core_ui_enable)).performClick()
+
+        assertThat(actions).containsExactly(AppKey("com.test.blocker", WORK) to AppAction.ENABLE)
+    }
+
+    @Test
+    fun givenTwoProfiles_whenWorkTapped_thenWorkSelectedAndStoppedMarked() {
+        show(AppListUiState(OWNER, OWNER, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(OWNER))))
+
+        composeTestRule.onNodeWithText(text(string.feature_applist_api_profile_not_running)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(string.feature_applist_api_profile_work)).performClick()
+
+        assertThat(selected).containsExactly(WORK)
+    }
+
+    @Test
+    fun givenSingleUser_whenShown_thenNoSwitcher() {
+        show(AppListUiState(OWNER, OWNER, profiles = profiles.take(1), apps = AppsUiState.Loaded(previewAppRows(OWNER))))
+
+        composeTestRule.onNodeWithTag("appList:profileSwitcher").assertDoesNotExist()
+    }
+
+    @Test
+    fun givenOtherUserApp_whenUninstallConfirmed_thenUninstalledForThatProfile() {
+        show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
+        composeTestRule.onNodeWithText("Blocker Test").performClick()
+
+        composeTestRule.onNodeWithText(text(uiString.core_ui_uninstall)).performClick()
+
+        assertThat(actions).isEmpty()
+        composeTestRule.onNodeWithText(text(string.feature_applist_api_uninstall_for_profile_confirm, "Work")).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(android.R.string.ok)).performClick()
+        assertThat(actions).containsExactly(AppKey("com.test.blocker", WORK) to AppAction.UNINSTALL)
+    }
+
+    @Test
+    fun givenApp_whenClearDataChosen_thenWarnsThatEveryUserStops() {
+        show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
+        composeTestRule.onNodeWithText("Blocker Test").performClick()
+
+        composeTestRule.onNodeWithText(text(uiString.core_ui_clear_data)).performClick()
+
+        composeTestRule.onNodeWithText(text(string.feature_applist_api_clear_data_confirm)).assertIsDisplayed()
+    }
+}

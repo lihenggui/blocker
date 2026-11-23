@@ -18,14 +18,13 @@ package com.merxury.blocker.feature.applist.impl.navigation
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
 import com.merxury.blocker.feature.applist.impl.AppListScreen
-import com.merxury.blocker.feature.applist.impl.AppListViewModel
 import com.merxury.blocker.feature.settings.api.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.api.navigation.navigateToSupportAndFeedback
 
@@ -36,18 +35,13 @@ fun EntryProviderScope<NavKey>.appListEntry(
 ) {
     entry<AppListNavKey>(
         metadata = ListDetailSceneStrategy.listPane(),
-    ) { key ->
-        val initialPackageName = key.initialPackageName
+    ) {
         AppListScreen(
-            navigateToAppDetail = navigator::navigateToAppDetail,
+            navigateToAppDetail = { packageName -> navigator.navigateToAppDetail(packageName) },
             navigateToAppSlimming = navigateToAppSlimming,
             navigateToSettings = navigator::navigateToSettings,
             navigateToSupportAndFeedback = navigator::navigateToSupportAndFeedback,
-            viewModel = hiltViewModel<AppListViewModel, AppListViewModel.Factory>(
-                key = initialPackageName,
-            ) { factory ->
-                factory.create(initialPackageName)
-            },
+            snackbarHostState = LocalSnackbarHostState.current,
         )
     }
 }

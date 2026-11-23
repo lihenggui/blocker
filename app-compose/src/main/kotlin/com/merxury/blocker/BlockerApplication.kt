@@ -85,6 +85,9 @@ class BlockerApplication :
     @Inject
     lateinit var pmBlockRecordSeeder: PmBlockRecordSeeder
 
+    @Inject
+    lateinit var legacyAppTables: LegacyAppTables
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -122,7 +125,10 @@ class BlockerApplication :
         applicationScope.launch { analyticsCollectionObserver.observe() }
         // Before the first scan of a new install fills the old component list, which would
         // otherwise be taken for blocks of an earlier version.
-        applicationScope.launch { pmBlockRecordSeeder.seedOnce() }
+        applicationScope.launch {
+            pmBlockRecordSeeder.seedOnce()
+            legacyAppTables.fill()
+        }
         applicationScope.launch {
             val userData = userDataRepository.userData.first()
             if (!userData.isFirstTimeInitializationCompleted) {

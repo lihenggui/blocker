@@ -57,7 +57,7 @@ val SEARCH = TopLevelNavItem(
 )
 
 val TOP_LEVEL_NAV_ITEMS = mapOf(
-    AppListNavKey() to APP,
+    AppListNavKey to APP,
     GeneralRuleNavKey() to RULE,
     SearchNavKey() to SEARCH,
 )

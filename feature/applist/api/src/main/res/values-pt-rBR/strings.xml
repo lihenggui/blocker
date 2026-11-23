@@ -17,4 +17,26 @@
     <string name="feature_applist_api_running_apps">Aplicativos em execução</string>
     <string name="feature_applist_api_disabled_apps">Aplicativos desativados</string>
     <string name="feature_applist_api_ascending">Crescente</string>
+    <string name="feature_applist_api_profile_personal">Pessoal</string>
+    <string name="feature_applist_api_profile_work">Trabalho</string>
+    <string name="feature_applist_api_profile_user">Usuário %1$d</string>
+    <string name="feature_applist_api_profile_not_running">Parado</string>
+    <string name="feature_applist_api_refresh_failed">Não foi possível atualizar a lista de apps. Mostrando a última lista salva.</string>
+    <string name="feature_applist_api_retry">Tentar novamente</string>
+    <string name="feature_applist_api_load_failed">Não foi possível carregar a lista de apps. Puxe para baixo para tentar novamente.</string>
+    <string name="feature_applist_api_other_profile_note">A edição de componentes de apps em outros perfis chegará com a tela de detalhes do app em uma atualização futura.</string>
+    <string name="feature_applist_api_clear_data_confirm">Deseja limpar os dados deste app? Durante a limpeza, o Android também interrompe o app em todos os usuários e perfis deste dispositivo.</string>
+    <string name="feature_applist_api_uninstall_for_profile_confirm">Deseja desinstalar este app de %1$s? Outros usuários e perfis que têm o app o mantêm. O app sai do dispositivo quando nenhum usuário o tem.</string>
+    <string name="feature_applist_api_enable_failed">Não foi possível ativar %1$s</string>
+    <string name="feature_applist_api_disable_failed">Não foi possível desativar %1$s</string>
+    <string name="feature_applist_api_force_stop_failed">Não foi possível forçar a parada de %1$s</string>
+    <string name="feature_applist_api_clear_cache_failed">Não foi possível limpar o cache de %1$s</string>
+    <string name="feature_applist_api_clear_data_failed">Não foi possível limpar os dados de %1$s</string>
+    <string name="feature_applist_api_uninstall_failed">Não foi possível desinstalar %1$s</string>
+    <string name="feature_applist_api_reason_no_access">Conceda ao Blocker acesso root ou Shizuku e tente novamente.</string>
+    <string name="feature_applist_api_reason_needs_root">Requer root. O Shizuku iniciado via adb não pode fazer isso.</string>
+    <string name="feature_applist_api_reason_not_permitted">O sistema não permite isso no modo de acesso atual.</string>
+    <string name="feature_applist_api_reason_not_found">O app não está mais instalado para este usuário.</string>
+    <string name="feature_applist_api_reason_system_error">O sistema informou um erro: %1$s</string>
+    <string name="feature_applist_api_reason_system_error_unknown">O sistema informou um erro.</string>
 </resources>

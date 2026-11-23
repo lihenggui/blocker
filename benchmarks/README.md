@@ -92,6 +92,7 @@ graph TB
   :app-compose -.-> :core:common
   :app-compose -.-> :core:data
   :app-compose -.-> :core:designsystem
+  :app-compose -.-> :core:domain
   :app-compose -.-> :core:model
   :app-compose -.-> :core:navigation
   :app-compose -.-> :core:network
@@ -177,8 +178,6 @@ graph TB
   :feature:applist:impl -.-> :core:component-controller
   :feature:applist:impl -.-> :core:data
   :feature:applist:impl -.-> :core:designsystem
-  :feature:applist:impl -.-> :core:domain
-  :feature:applist:impl -.-> :core:ifw-api
   :feature:applist:impl -.-> :core:ui
   :feature:applist:impl -.-> :feature:appdetail:api
   :feature:applist:impl -.-> :feature:applist:api

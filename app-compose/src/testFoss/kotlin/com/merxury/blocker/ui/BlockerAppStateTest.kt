@@ -67,10 +67,10 @@ class BlockerAppStateTest {
     private lateinit var state: BlockerAppState
 
     private fun testNavigationState() = NavigationState(
-        startKey = AppListNavKey(),
-        topLevelStack = NavBackStack(AppListNavKey()),
+        startKey = AppListNavKey,
+        topLevelStack = NavBackStack(AppListNavKey),
         subStacks = mapOf(
-            AppListNavKey() to NavBackStack(AppListNavKey()),
+            AppListNavKey to NavBackStack(AppListNavKey),
             GeneralRuleNavKey() to NavBackStack(GeneralRuleNavKey()),
             SearchNavKey() to NavBackStack(SearchNavKey()),
         ),
@@ -93,8 +93,8 @@ class BlockerAppStateTest {
             }
         }
 
-        assertEquals(AppListNavKey(), state.navigationState.currentTopLevelKey)
-        assertEquals(AppListNavKey(), state.navigationState.currentKey)
+        assertEquals(AppListNavKey, state.navigationState.currentTopLevelKey)
+        assertEquals(AppListNavKey, state.navigationState.currentKey)
 
         // Navigate to another destination once
         navigator.navigate(GeneralRuleNavKey())
@@ -119,7 +119,7 @@ class BlockerAppStateTest {
         assertEquals(3, navigationState.topLevelKeys.size)
         assertEquals(
             setOf(
-                AppListNavKey(),
+                AppListNavKey,
                 GeneralRuleNavKey(),
                 SearchNavKey(),
             ),
