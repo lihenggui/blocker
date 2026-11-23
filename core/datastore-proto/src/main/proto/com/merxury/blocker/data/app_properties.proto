@@ -26,4 +26,7 @@ message AppProperties {
   // Whether su last started a root process for Blocker. Set when a root connection succeeds and
   // cleared when su refuses, so a connection that must not prompt tries su only when this is set.
   bool root_grant_remembered = 5;
+  // Whether the record of components Blocker disabled through PackageManager has been seeded once
+  // from the component list of earlier versions. Set also when there was nothing to seed.
+  bool pm_block_records_seeded = 6;
 }

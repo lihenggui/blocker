@@ -23,6 +23,9 @@ import com.merxury.blocker.core.database.cache.COMPONENT_CACHE_DATABASE_NAME
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
 import com.merxury.blocker.core.database.debloater.DebloaterDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
+import com.merxury.blocker.core.database.record.BLOCKER_RECORDS_DATABASE_NAME
+import com.merxury.blocker.core.database.record.BLOCKER_RECORDS_MIGRATIONS
+import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -69,5 +72,19 @@ internal object DatabaseModule {
         // The cache only mirrors system state and is rebuilt from the system, so dropping it on a
         // schema change loses nothing.
         .fallbackToDestructiveMigration(true)
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideBlockerRecordsDatabase(
+        @ApplicationContext context: Context,
+    ): BlockerRecordsDatabase = Room.databaseBuilder(
+        context,
+        BlockerRecordsDatabase::class.java,
+        BLOCKER_RECORDS_DATABASE_NAME,
+    )
+        // User data that cannot be rebuilt: a schema change without a migration must fail, never
+        // drop the records.
+        .addMigrations(*BLOCKER_RECORDS_MIGRATIONS)
         .build()
 }

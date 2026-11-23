@@ -48,6 +48,20 @@ class BlockerAppPropertiesDataStore @Inject constructor(
         }
     }
 
+    /**
+     * Whether the record of components Blocker disabled through PackageManager has been seeded
+     * from the component list earlier versions kept. Stays set once set.
+     */
+    val pmBlockRecordsSeeded: Flow<Boolean> = appProperties.data.map { it.pmBlockRecordsSeeded }
+
+    suspend fun markPmBlockRecordsSeeded() {
+        appProperties.updateData {
+            it.copy {
+                pmBlockRecordsSeeded = true
+            }
+        }
+    }
+
     suspend fun markComponentDatabaseInitialized() {
         appProperties.updateData {
             it.copy {
