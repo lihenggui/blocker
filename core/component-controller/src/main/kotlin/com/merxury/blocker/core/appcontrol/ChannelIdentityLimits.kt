@@ -31,23 +31,27 @@ import com.merxury.blocker.core.privileged.PrivilegedChannel
 /**
  * Why the identity the channel runs as cannot clear an app's cache, or null when it can. The
  * shell holds DELETE_CACHE_FILES but never INTERNAL_DELETE_CACHE_FILES (Android 7 to 16), and the
- * system drops such a request without calling back.
+ * system drops such a request without calling back. Root passes every permission check, and the
+ * system uid holds INTERNAL_DELETE_CACHE_FILES through the "android" package; the latter is read
+ * from the platform source and not verified on a device.
  */
 internal suspend fun PrivilegedChannel.cacheClearingRefusal(): CallFailure? = when (identity()) {
     null -> CallFailure.ChannelUnavailable
     PrivilegedIdentity.SHELL -> CallFailure.NotPermitted("The shell may not clear the cache of other apps")
-    PrivilegedIdentity.ROOT -> null
+    PrivilegedIdentity.ROOT, PrivilegedIdentity.SYSTEM -> null
 }
 
 /**
  * Why the identity the channel runs as cannot list running processes and services of [user], or
  * null when it can. The activity manager lists other users only to a uid that PackageManager
  * grants INTERACT_ACROSS_USERS_FULL; the shell has it, but uid 0 has no package and so no grant,
- * and the system answers root with the processes and services of user 0 alone.
+ * and the system answers root with the processes and services of user 0 alone. The system uid
+ * holds it through the "android" package, so it lists every user like the shell; that is read
+ * from the platform source and not verified on a device.
  */
 internal suspend fun PrivilegedChannel.runningListRefusal(user: UserId): CallFailure? = when (identity()) {
     null -> CallFailure.ChannelUnavailable
-    PrivilegedIdentity.SHELL -> null
+    PrivilegedIdentity.SHELL, PrivilegedIdentity.SYSTEM -> null
     PrivilegedIdentity.ROOT -> if (user == UserId.SYSTEM) null else CallFailure.NotPermitted("Root sees running processes of user 0 only")
 }
 

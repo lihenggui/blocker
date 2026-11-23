@@ -50,8 +50,8 @@ interface AppControl {
     suspend fun forceStop(app: AppKey): CallResult<Unit>
 
     /**
-     * Deletes the app's cache and code cache for its user only. Only root may: the system
-     * ignores the shell's request without answering, so for the shell this is
+     * Deletes the app's cache and code cache for its user only. Root and the system uid may; the
+     * system ignores the shell's request without answering, so for the shell this is
      * [CallFailure.NotPermitted] without asking the system.
      */
     suspend fun clearCache(app: AppKey): CallResult<Unit>
@@ -75,9 +75,9 @@ interface AppControl {
     suspend fun uninstall(app: AppKey): CallResult<Unit>
 
     /**
-     * Package names with a running process in [user]. The shell may list any user; root only
-     * user 0, and [CallFailure.NotPermitted] for any other, because the system answers uid 0 with
-     * user 0 alone.
+     * Package names with a running process in [user]. The shell and the system uid may list any
+     * user; root only user 0, and [CallFailure.NotPermitted] for any other, because the system
+     * answers uid 0 with user 0 alone.
      */
     suspend fun runningPackages(user: UserId): CallResult<Set<String>>
 }

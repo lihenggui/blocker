@@ -38,6 +38,8 @@ import com.merxury.blocker.core.privileged.calls.SetApplicationEnabledSetting
 import com.merxury.blocker.core.privileged.root.RootTransport
 import com.merxury.blocker.core.privileged.shizuku.ShizukuSystemServices
 import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
+import com.merxury.blocker.core.privileged.shizuku.ShizukuUserService
+import com.merxury.blocker.core.privileged.shizuku.ShizukuUserServiceConnector
 import com.merxury.blocker.core.root.BlockerRootSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -69,7 +71,14 @@ private const val TAG = "AppControlDeviceTest"
  * Shizuku started through adb. Shizuku must be granted to this package, and its binder may need a
  * restart of Shizuku once the run has started. `otherUser=<id>` names a started work profile or
  * user that has this package, for example after `pm install-existing --user <id> <package>`.
- * `dataFixture=<package>` names an installed debuggable app whose data the tests may clear.
+ * `dataFixture=<package>` names an installed debuggable app whose data the tests may clear. Any
+ * debuggable app works, even one without code that never runs: the tests write its marker files
+ * themselves with `run-as <package> touch files/marker cache/marker`, so the files belong to the
+ * app's uid as if it had written them.
+ *
+ * Shizuku reads an app's grant only when its server starts, so the order is: install this APK,
+ * `pm grant <package> moe.shizuku.manager.permission.API_V23`, then start or restart the Shizuku
+ * server, then run. A grant or reinstall while the server runs is not seen.
  */
 class AppControlDeviceTest {
 
@@ -117,7 +126,8 @@ class AppControlDeviceTest {
             val api = DefaultShizukuApi()
             val initializer = ShizukuInitializer(api)
             runBlocking { withTimeout(2.minutes) { initializer.awaitBinder() } }
-            ShizukuTransport(initializer, api, ShizukuSystemServices(context), Dispatchers.IO)
+            val userService = ShizukuUserService(ShizukuUserServiceConnector(context))
+            ShizukuTransport(initializer, api, ShizukuSystemServices(context), userService, Dispatchers.IO)
         }
         assertEquals(ChannelState.Ready(identity), runBlocking { transport.connect() })
         apps = PrivilegedAppControl(transport, transport)

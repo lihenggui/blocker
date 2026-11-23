@@ -31,9 +31,10 @@ import com.merxury.blocker.core.model.privileged.CallResult
 interface ServiceControl {
     /**
      * Running services of [app] for its user: those started and not yet stopped. A service that
-     * is only bound by a client is left out, since [stop] cannot stop it. The shell may list any
-     * user; root only user 0, and [CallFailure.NotPermitted] for any other, because the system
-     * answers uid 0 with user 0 alone. Starting and stopping reach every user for both.
+     * is only bound by a client is left out, since [stop] cannot stop it. The shell and the system
+     * uid may list any user; root only user 0, and [CallFailure.NotPermitted] for any other,
+     * because the system answers uid 0 with user 0 alone. Starting and stopping reach every user
+     * for all of them.
      */
     suspend fun runningServices(app: AppKey): CallResult<Set<ComponentId>>
 

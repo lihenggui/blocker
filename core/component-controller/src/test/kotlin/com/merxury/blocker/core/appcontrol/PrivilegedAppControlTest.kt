@@ -108,6 +108,16 @@ class PrivilegedAppControlTest {
     }
 
     @Test
+    fun givenSystemUid_whenClearCacheAndListOtherUser_thenTheSystemIsAsked() = runTest {
+        transport.acquireResult = ChannelState.Ready(PrivilegedIdentity.SYSTEM)
+
+        assertThat(control.clearCache(APP)).isEqualTo(CallResult.Success(Unit))
+        assertThat(control.runningPackages(WORK)).isEqualTo(CallResult.Success(emptySet<String>()))
+        assertThat(services.runningServices(APP)).isEqualTo(CallResult.Success(emptySet<ComponentId>()))
+        assertThat(system.packageManager.cacheCleared).containsExactly(PKG to 10)
+    }
+
+    @Test
     fun givenNoChannel_whenClearCache_thenChannelUnavailable() = runTest {
         transport.acquireResult = ChannelState.Unavailable(UnavailableReason.DENIED)
 

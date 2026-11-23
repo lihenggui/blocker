@@ -295,8 +295,8 @@ internal data class StopService(
 /**
  * One answer from a system callback, which arrives on a binder thread, for the thread that made
  * the request to wait for. Needs no looper, so it works the same in the root process and in this
- * app's process. The root process runs calls one at a time on its main thread, so other root
- * calls wait while one waits here.
+ * app's process. Both transports run each call on an IO thread of its own, so a call waiting here
+ * holds up no other call.
  */
 internal class SystemReply<T : Any>(private val operation: String) {
     private val answer = ArrayBlockingQueue<T>(1)
