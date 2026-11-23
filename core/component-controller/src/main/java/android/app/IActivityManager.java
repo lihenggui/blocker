@@ -30,6 +30,9 @@ public interface IActivityManager extends IInterface {
     void forceStopPackage(String packageName, int userId)
             throws RemoteException;
 
+    boolean isUserRunning(int userId, int flags)
+            throws RemoteException;
+
     List<ActivityManager.RunningAppProcessInfo> getRunningAppProcesses()
             throws RemoteException;
 

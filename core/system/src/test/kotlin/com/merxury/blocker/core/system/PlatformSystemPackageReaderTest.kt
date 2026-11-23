@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.system
 
-import android.content.ComponentName
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.ComponentInfo
@@ -131,7 +130,7 @@ class PlatformSystemPackageReaderTest {
     @Test
     fun givenAppRemovedWhileListing_whenReadApps_thenSettingUnknown() = scope.runTest {
         platform.install(OWNER, packageInfo(PKG))
-        platform.appSettingFailure = IllegalArgumentException("Unknown package")
+        platform.appSettingFailure = NameNotFoundException(PKG)
 
         assertThat(reader.apps(OWNER).getOrNull()!!.single().enabledSetting).isEqualTo(AppEnabledSetting.UNKNOWN)
     }
@@ -281,15 +280,49 @@ class PlatformSystemPackageReaderTest {
     }
 
     @Test
-    fun givenComponentNotInInstalledApp_whenReadPmSettings_thenUnknownForThatComponentOnly() = scope.runTest {
+    fun givenUnreadableComponent_whenReadPmSettings_thenUnknownForThatComponentOnly() = scope.runTest {
         platform.install(OWNER, packageInfo(PKG))
         val known = ComponentId(PKG, "$PKG.Main")
         val gone = ComponentId(PKG, "$PKG.Gone")
-        platform.componentSettingFailures[gone] = IllegalArgumentException("Unknown component")
+        platform.unreadableComponents += gone
 
         val settings = reader.pmSettings(AppKey(PKG, OWNER), listOf(known, gone)).getOrNull()
 
         assertThat(settings).containsExactly(known, PmSetting.DEFAULT, gone, PmSetting.UNKNOWN)
+    }
+
+    @Test
+    fun givenManyComponents_whenReadPmSettings_thenOneBatchRequestForThePackage() = scope.runTest {
+        platform.install(OWNER, packageInfo(PKG))
+        val ids = (1..500).map { ComponentId(PKG, "$PKG.C$it") }
+        platform.componentSettings[ids.last() to OWNER] = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+
+        val settings = reader.pmSettings(AppKey(PKG, OWNER), ids).getOrNull()!!
+
+        assertThat(platform.componentSettingRequests).containsExactly(ids.map { it.className })
+        assertThat(settings).hasSize(500)
+        assertThat(settings[ids.last()]).isEqualTo(PmSetting.DISABLED)
+    }
+
+    @Test
+    fun givenComponentOfAnotherPackage_whenReadPmSettings_thenUnknownAndNotRequested() = scope.runTest {
+        platform.install(OWNER, packageInfo(PKG))
+        val own = ComponentId(PKG, "$PKG.Main")
+        val foreign = ComponentId("com.other", "com.other.Main")
+
+        val settings = reader.pmSettings(AppKey(PKG, OWNER), listOf(own, foreign)).getOrNull()
+
+        assertThat(settings).containsExactly(own, PmSetting.DEFAULT, foreign, PmSetting.UNKNOWN)
+        assertThat(platform.componentSettingRequests).containsExactly(listOf(own.className))
+    }
+
+    @Test
+    fun givenPlatformAnswersWrongCount_whenReadPmSettings_thenChannelUnavailable() = scope.runTest {
+        platform.install(OWNER, packageInfo(PKG))
+        platform.dropLastSetting = true
+
+        assertThat(reader.pmSettings(AppKey(PKG, OWNER), listOf(ComponentId(PKG, "$PKG.Main"))))
+            .isEqualTo(ReadResult.Failure(ReadFailure.ChannelUnavailable))
     }
 
     private fun declaration(
@@ -345,11 +378,13 @@ private class FakePlatformPackages : PlatformPackages {
     val unreachable = mutableSetOf<UserId>()
     val appSettings = mutableMapOf<AppKey, Int>()
     val componentSettings = mutableMapOf<Pair<ComponentId, UserId>, Int>()
-    val componentSettingFailures = mutableMapOf<ComponentId, RuntimeException>()
+    val unreadableComponents = mutableSetOf<ComponentId>()
+    val componentSettingRequests = mutableListOf<List<String>>()
+    var dropLastSetting = false
     val archives = mutableMapOf<String, PackageInfo>()
     val archivePathsParsed = mutableListOf<String>()
     val flagsRequested = mutableListOf<Int>()
-    var appSettingFailure: RuntimeException? = null
+    var appSettingFailure: Exception? = null
     var maxTypesPerCall = 4
     var dead = false
 
@@ -402,11 +437,15 @@ private class FakePlatformPackages : PlatformPackages {
         return appSettings[AppKey(packageName, user)] ?: PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
     }
 
-    override fun componentEnabledSetting(component: ComponentName, user: UserId): Int {
+    override fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> {
         check(user)
-        val id = ComponentId(component.packageName, component.className)
-        componentSettingFailures[id]?.let { throw it }
-        return componentSettings[id to user] ?: PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+        if (installed[user]?.get(packageName) == null) throw NameNotFoundException(packageName)
+        componentSettingRequests.add(classNames)
+        val settings = classNames.map { className ->
+            val id = ComponentId(packageName, className)
+            if (id in unreadableComponents) null else componentSettings[id to user] ?: PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+        }
+        return if (dropLastSetting) settings.dropLast(1) else settings
     }
 
     override fun label(application: ApplicationInfo): String = application.nonLocalizedLabel.toString()

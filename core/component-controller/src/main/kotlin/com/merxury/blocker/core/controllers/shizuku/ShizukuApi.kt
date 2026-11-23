@@ -29,6 +29,9 @@ internal interface ShizukuApi {
     fun shouldShowRequestPermissionRationale(): Boolean
     fun requestPermission(requestCode: Int)
     fun getUid(): Int
+
+    /** Whether the Shizuku binder is there and alive. Never throws. */
+    fun pingBinder(): Boolean
     fun addBinderReceivedListenerSticky(listener: Shizuku.OnBinderReceivedListener)
     fun removeBinderReceivedListener(listener: Shizuku.OnBinderReceivedListener)
     fun addRequestPermissionResultListener(listener: Shizuku.OnRequestPermissionResultListener)
@@ -47,6 +50,8 @@ internal class DefaultShizukuApi @Inject constructor() : ShizukuApi {
     }
 
     override fun getUid(): Int = Shizuku.getUid()
+
+    override fun pingBinder(): Boolean = Shizuku.pingBinder()
 
     override fun addBinderReceivedListenerSticky(listener: Shizuku.OnBinderReceivedListener) {
         Shizuku.addBinderReceivedListenerSticky(listener)

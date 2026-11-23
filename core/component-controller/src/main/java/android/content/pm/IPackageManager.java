@@ -29,6 +29,18 @@ public interface IPackageManager extends IInterface {
     ParceledListSlice<PackageInfo> getInstalledPackages(int flags, int userId)
             throws RemoteException;
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    ParceledListSlice<PackageInfo> getInstalledPackages(long flags, int userId)
+            throws RemoteException;
+
+    /** Returns null when the package is not installed for the user. */
+    PackageInfo getPackageInfo(String packageName, int flags, int userId)
+            throws RemoteException;
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    PackageInfo getPackageInfo(String packageName, long flags, int userId)
+            throws RemoteException;
+
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     void setComponentEnabledSetting(ComponentName componentName, int newState, int flags, int userId, String callingPackage)
             throws RemoteException;

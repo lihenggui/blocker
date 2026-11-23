@@ -51,7 +51,8 @@ interface SystemPackageReader {
      * setting cannot be read is [PmSetting.UNKNOWN]; the result has an entry for every component.
      *
      * Pass components from [declarations]. For a name the app does not declare, recent Android
-     * answers [PmSetting.DEFAULT] and older releases refuse, which gives [PmSetting.UNKNOWN].
+     * answers [PmSetting.DEFAULT] and older releases refuse, which gives [PmSetting.UNKNOWN]. A
+     * component of another package is [PmSetting.UNKNOWN].
      */
     suspend fun pmSettings(
         app: AppKey,

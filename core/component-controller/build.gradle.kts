@@ -33,14 +33,18 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.model)
+    implementation(projects.core.datastore)
     implementation(projects.core.datastoreProto)
     implementation(projects.core.ifwApi)
+    implementation(projects.core.system)
 
     implementation(libs.hiddenapibypass)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
 
+    testImplementation(projects.core.datastoreTest)
     testImplementation(projects.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.kotlin.test.junit)
     androidTestImplementation(libs.kotlinx.coroutines.test)

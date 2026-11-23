@@ -112,7 +112,7 @@ class LocalPlatformPackagesTest {
         assertThrows(UserNotReachableException::class.java) { platform.packageInfo(PKG, 0, other) }
         assertThrows(UserNotReachableException::class.java) { platform.applicationEnabledSetting(PKG, other) }
         assertThrows(UserNotReachableException::class.java) {
-            platform.componentEnabledSetting(ComponentName(PKG, "$PKG.Sync"), other)
+            platform.componentEnabledSettings(PKG, listOf("$PKG.Sync"), other)
         }
     }
 
@@ -130,17 +130,22 @@ class LocalPlatformPackagesTest {
         assertThat(platform.installedPackages(UserId.SYSTEM).map { it.packageName }).contains(PKG)
         val flags = PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS
         assertThat(platform.packageInfo(PKG, flags, UserId.SYSTEM).services!!.single().name).isEqualTo("$PKG.Sync")
-        assertThat(platform.componentEnabledSetting(component, UserId.SYSTEM))
-            .isEqualTo(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+        assertThat(platform.componentEnabledSettings(PKG, listOf("$PKG.Sync", "$PKG.Other"), UserId.SYSTEM))
+            .containsExactly(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
+            .inOrder()
         assertThat(platform.applicationEnabledSetting(PKG, UserId.SYSTEM))
             .isEqualTo(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
         assertThat(platform.label(platform.packageInfo(PKG, 0, UserId.SYSTEM).applicationInfo!!)).isEqualTo("Example")
     }
 
     @Test
-    fun givenMissingPackage_whenReadPackageInfo_thenNameNotFound() {
+    fun givenMissingPackage_whenRead_thenNameNotFound() {
         val platform = platformFor(userId = 0)
 
         assertThrows(NameNotFoundException::class.java) { platform.packageInfo(PKG, 0, UserId.SYSTEM) }
+        assertThrows(NameNotFoundException::class.java) { platform.applicationEnabledSetting(PKG, UserId.SYSTEM) }
+        assertThrows(NameNotFoundException::class.java) {
+            platform.componentEnabledSettings(PKG, listOf("$PKG.Sync"), UserId.SYSTEM)
+        }
     }
 }

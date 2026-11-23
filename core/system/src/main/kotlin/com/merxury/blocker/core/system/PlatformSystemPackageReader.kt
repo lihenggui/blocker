@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.system
 
-import android.content.ComponentName
 import android.content.pm.ApplicationInfo
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageInfo
@@ -90,14 +89,14 @@ class PlatformSystemPackageReader @Inject constructor(
         app: AppKey,
         components: Collection<ComponentId>,
     ): ReadResult<Map<ComponentId, PmSetting>> = read("component settings of $app") {
+        val (own, foreign) = components.distinct().partition { it.packageName == app.packageName }
+        if (foreign.isNotEmpty()) Timber.w("Not components of $app: $foreign")
         try {
-            // Without this a missing app would look like an app whose settings are all unreadable.
-            platform.packageInfo(app.packageName, 0, app.userId)
+            val settings = platform.componentEnabledSettings(app.packageName, own.map { it.className }, app.userId)
+            check(settings.size == own.size) { "${settings.size} settings for ${own.size} components of $app" }
             ReadResult.Success(
-                components.associateWith { id ->
-                    coroutineContext.ensureActive()
-                    pmSetting(id, app.userId)
-                },
+                own.zip(settings) { id, setting -> id to setting.toPmSetting() }.toMap() +
+                    foreign.associateWith { PmSetting.UNKNOWN },
             )
         } catch (e: NameNotFoundException) {
             ReadResult.Failure(ReadFailure.PackageNotFound(app))
@@ -160,24 +159,15 @@ class PlatformSystemPackageReader @Inject constructor(
         return parsed
     }
 
-    private fun pmSetting(id: ComponentId, user: UserId): PmSetting = try {
-        when (platform.componentEnabledSetting(ComponentName(id.packageName, id.className), user)) {
-            PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> PmSetting.DEFAULT
+    private fun Int?.toPmSetting(): PmSetting = when (this) {
+        PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> PmSetting.DEFAULT
 
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> PmSetting.ENABLED
+        PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> PmSetting.ENABLED
 
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> PmSetting.DISABLED
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> PmSetting.DISABLED
 
-            // PackageManager refuses to store the app-only states for a component.
-            else -> PmSetting.UNKNOWN
-        }
-    } catch (e: IllegalArgumentException) {
-        // Older releases reject a name the installed app does not declare.
-        Timber.w(e, "No setting for ${id.flatten()}")
-        PmSetting.UNKNOWN
-    } catch (e: SecurityException) {
-        Timber.w(e, "Not allowed to read the setting of ${id.flatten()}")
-        PmSetting.UNKNOWN
+        // Unreadable, or one of the app-only states PackageManager refuses to store for a component.
+        else -> PmSetting.UNKNOWN
     }
 
     private fun PackageInfo.toInstalledApp(user: UserId): InstalledApp {
@@ -206,7 +196,7 @@ class PlatformSystemPackageReader @Inject constructor(
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED -> AppEnabledSetting.DISABLED_UNTIL_USED
             else -> AppEnabledSetting.UNKNOWN
         }
-    } catch (e: IllegalArgumentException) {
+    } catch (e: NameNotFoundException) {
         // The app was removed between listing it and asking for its setting.
         Timber.w(e, "No enabled setting for $packageName")
         AppEnabledSetting.UNKNOWN

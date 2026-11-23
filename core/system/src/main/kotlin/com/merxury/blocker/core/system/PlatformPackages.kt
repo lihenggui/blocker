@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.system
 
-import android.content.ComponentName
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager.NameNotFoundException
@@ -43,13 +42,26 @@ interface PlatformPackages {
     /** Parses the APK at [apkPath] in this process, or returns null when it cannot be parsed. */
     fun archiveInfo(apkPath: String, flags: Int): PackageInfo?
 
-    /** @return a `PackageManager.COMPONENT_ENABLED_STATE_*` value */
-    @Throws(UserNotReachableException::class)
+    /**
+     * @return a `PackageManager.COMPONENT_ENABLED_STATE_*` value
+     * @throws NameNotFoundException when the app is not installed for [user]
+     */
+    @Throws(NameNotFoundException::class, UserNotReachableException::class)
     fun applicationEnabledSetting(packageName: String, user: UserId): Int
 
-    /** @return a `PackageManager.COMPONENT_ENABLED_STATE_*` value */
-    @Throws(UserNotReachableException::class)
-    fun componentEnabledSetting(component: ComponentName, user: UserId): Int
+    /**
+     * The PackageManager setting of each of [classNames], components of [packageName], for [user],
+     * in one request: through a privileged service every request is a round trip, and an app can
+     * declare thousands of components.
+     *
+     * @return one entry per class name, in the same order: `COMPONENT_ENABLED_STATE_DEFAULT`,
+     * `COMPONENT_ENABLED_STATE_ENABLED` or `COMPONENT_ENABLED_STATE_DISABLED`, or null when that
+     * class's setting cannot be read, for example because the system rejects the name or holds a
+     * value a component cannot have. A null never stands for "no override".
+     * @throws NameNotFoundException when the app is not installed for [user]
+     */
+    @Throws(NameNotFoundException::class, UserNotReachableException::class)
+    fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?>
 
     fun label(application: ApplicationInfo): String
 }
