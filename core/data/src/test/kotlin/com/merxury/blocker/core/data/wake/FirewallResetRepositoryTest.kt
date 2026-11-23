@@ -4,6 +4,7 @@
 package com.merxury.blocker.core.data.wake
 
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.ManagedWakeReset
@@ -14,6 +15,7 @@ import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.io.IOException
@@ -29,6 +31,7 @@ class FirewallResetRepositoryTest {
 
     /** The package file operations done before the wake feature reset its files. */
     private var operationsBeforeWakeReset: List<String>? = null
+
     private val managed = ManagedWakeReset { target, transport ->
         wakeResets += target to transport
         operationsBeforeWakeReset = files.operations.toList()
@@ -66,21 +69,33 @@ class FirewallResetRepositoryTest {
     }
 
     @Test
-    fun givenCustomNamedFiles_whenResetAll_thenKeptWhileDamagedPackageFileDeleted() = runTest {
+    fun givenFilesUnderNamesOfTheirOwn_whenResetAll_thenDeletedWithPackageFiles() = runTest {
         whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
         files.putFile("b.pkg", DAMAGED_XML)
         files.putFile("android", VALID_XML)
         files.putFile("my-rules", VALID_XML)
-        files.putFile("my rules", VALID_XML)
-        files.putFile("1st", VALID_XML)
+        files.putFile("custom..rules", DAMAGED_XML)
 
-        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(2)
+        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(4)
 
-        assertThat(files.fileContent("b.pkg")).isNull()
+        listOf("b.pkg", "android", "my-rules", "custom..rules").forEach {
+            assertWithMessage(it).that(files.fileContent(it)).isNull()
+        }
+    }
+
+    @Test
+    fun givenFilesUnderNamesOfTheirOwn_whenResetOnePackage_thenUntouched() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
+        files.putFile("android", DAMAGED_XML)
+        files.putFile("my-rules", VALID_XML)
+        files.putFile("custom..rules", VALID_XML)
+
+        assertThat(repository.reset("android") { _, _, _ -> }).isEqualTo(1)
+
         assertThat(files.fileContent("android")).isNull()
         assertThat(files.fileContent("my-rules")).isEqualTo(VALID_XML)
-        assertThat(files.fileContent("my rules")).isEqualTo(VALID_XML)
-        assertThat(files.fileContent("1st")).isEqualTo(VALID_XML)
+        assertThat(files.fileContent("custom..rules")).isEqualTo(VALID_XML)
+        assertThat(files.operations).containsExactly("delete android")
     }
 
     @Test
@@ -173,8 +188,9 @@ class FirewallResetRepositoryTest {
         files.noAccess = true
 
         assertThat(repository.reset("a.pkg") { _, _, _ -> }).isNull()
+        assertThat(repository.reset(null) { _, _, _ -> }).isNull()
 
-        assertThat(wakeResets).containsExactly("a.pkg" to WakeResetTransport.SHIZUKU_ROOT)
-        verify(firewall).resetCache()
+        assertThat(wakeResets).containsExactly("a.pkg" to WakeResetTransport.SHIZUKU_ROOT, null to WakeResetTransport.SHIZUKU_ROOT).inOrder()
+        verify(firewall, times(2)).resetCache()
     }
 }

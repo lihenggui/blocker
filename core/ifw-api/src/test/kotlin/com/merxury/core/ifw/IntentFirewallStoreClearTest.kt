@@ -115,15 +115,22 @@ class IntentFirewallStoreClearTest {
     }
 
     @Test
-    fun givenFileNotNamedAfterAPackage_whenClear_thenIllegalArgumentAndFileKept() {
-        fileSystem.putFile("my-rules", LEGACY_XML)
+    fun givenFilesUnderNamesOfTheirOwn_whenClear_thenDeleted() = runTest {
+        listOf("my-rules", "custom..rules", "1app").forEach { name ->
+            fileSystem.putFile(name, DAMAGED_XML)
 
-        listOf("my-rules", "my rules", "1app").forEach { name ->
+            assertThat(store.clear(name)).isEqualTo(IfwResult.Success(true))
+            assertThat(fileSystem.fileContent(name)).isNull()
+        }
+    }
+
+    @Test
+    fun givenNamesThatLeaveTheDirectory_whenClear_thenIllegalArgument() {
+        listOf("", "..", "../x", ".hidden").forEach { name ->
             assertThrows(name, IllegalArgumentException::class.java) {
                 runBlocking { store.clear(name) }
             }
         }
-        assertThat(fileSystem.fileContent("my-rules")).isEqualTo(LEGACY_XML)
         assertThat(fileSystem.operations).isEmpty()
     }
 
@@ -210,6 +217,21 @@ class IntentFirewallStoreClearTest {
         val packages = store.packagesWithRuleFiles()
 
         assertThat((packages as IfwResult.Success).value).containsExactly(PKG, "com.broken", "com.locked", "android")
+        assertThat(fileSystem.operations).containsExactly("list")
+    }
+
+    @Test
+    fun givenPackageCustomWakeAndHiddenFiles_whenRuleFileNames_thenEveryRuleFileWithoutReading() = runTest {
+        fileSystem.putFile(PKG, LEGACY_XML)
+        fileSystem.putFile("com.broken", DAMAGED_XML)
+        fileSystem.putFile("my-rules", DAMAGED_XML)
+        fileSystem.putFile("custom..rules", LEGACY_XML)
+        fileSystem.putFile(WAKE_FILE, CONDITIONAL_MAIN_XML)
+        fileSystem.putFile(".blocker-ifw-1", LEGACY_XML)
+
+        val names = store.ruleFileNames()
+
+        assertThat((names as IfwResult.Success).value).containsExactly(PKG, "com.broken", "my-rules", "custom..rules")
         assertThat(fileSystem.operations).containsExactly("list")
     }
 }

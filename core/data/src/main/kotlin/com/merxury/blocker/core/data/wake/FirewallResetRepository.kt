@@ -13,15 +13,16 @@ import java.io.IOException
 import javax.inject.Inject
 
 /**
- * Resets Intent Firewall rules for the "Reset IFW" action: the rule file of one package or of
- * every package, then the wake feature's own files, as the wake feature resets them.
+ * Resets Intent Firewall rules for the "Reset IFW" action: the rule file of one package, or every
+ * rule file, then the wake feature's own files, as the wake feature resets them.
  *
- * Package rule files are deleted through [rules], over the privileged channel of the chosen
- * controller type, so Shizuku running as root or the system uid can reset them and no su prompt
- * appears when the controller type is Shizuku. They are deleted without being read, so a damaged
- * file goes too; files not named after a package, such as a user's own, are kept. They go first
- * because deleting them connects the channel, which may obtain the Shizuku grant the wake feature
- * then uses for its files.
+ * Rule files are deleted through [rules], over the privileged channel of the chosen controller
+ * type, so Shizuku running as root or the system uid can reset them and no su prompt appears when
+ * the controller type is Shizuku. They are deleted without being read, so a damaged file goes too.
+ * A reset of every rule file also removes those the global rule editor stored under names of their
+ * own; a reset of one package touches only that package's file. They go first because deleting
+ * them connects the channel, which may obtain the Shizuku grant the wake feature then uses for its
+ * files.
  */
 class FirewallResetRepository @Inject constructor(
     private val authorization: WakeAuthorizationRepository,
@@ -30,17 +31,17 @@ class FirewallResetRepository @Inject constructor(
     private val firewall: IIntentFirewall,
 ) {
     /**
-     * Resets the rules of [target], or of every package when null, reporting each package rule
-     * file with [onDelete] (package, position from 1, count) before deleting it.
+     * Resets the rules of the package [target], or every rule file when null, reporting each
+     * file with [onDelete] (rule file name, position from 1, count) before deleting it.
      *
-     * Returns the number of package rule files removed, or null when the rule directory cannot be
-     * reached through the chosen channel. Throws [IOException] when deleting a file fails; files
-     * deleted before it stay deleted. The wake feature's files are reset in every case.
+     * Returns the number of rule files removed, or null when the rule directory cannot be reached
+     * through the chosen channel. Throws [IOException] when deleting a file fails; files deleted
+     * before it stay deleted. The wake feature's files are reset in every case.
      */
     suspend fun reset(target: String?, onDelete: suspend (String, Int, Int) -> Unit): Int? {
         try {
             val removed = try {
-                resetPackageFiles(target, onDelete)
+                resetRuleFiles(target, onDelete)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -62,24 +63,24 @@ class FirewallResetRepository @Inject constructor(
         }
     }
 
-    private suspend fun resetPackageFiles(target: String?, onDelete: suspend (String, Int, Int) -> Unit): Int? {
-        val packages = when {
+    private suspend fun resetRuleFiles(target: String?, onDelete: suspend (String, Int, Int) -> Unit): Int? {
+        val names = when {
             target != null -> listOf(target)
 
-            else -> when (val listed = rules.packagesWithRuleFiles()) {
+            else -> when (val listed = rules.ruleFileNames()) {
                 is IfwResult.Success -> listed.value
                 is IfwResult.Failure -> return null
             }
         }
         var removed = 0
-        for ((index, pkg) in packages.withIndex()) {
-            onDelete(pkg, index + 1, packages.size)
-            when (val cleared = rules.clear(pkg)) {
+        for ((index, name) in names.withIndex()) {
+            onDelete(name, index + 1, names.size)
+            when (val cleared = rules.clear(name)) {
                 is IfwResult.Success -> if (cleared.value) removed++
 
                 is IfwResult.Failure -> {
                     if (cleared.reason == IfwFailure.NoAccess) return null
-                    throw IOException("Cannot delete the IFW rules of $pkg: ${cleared.reason}")
+                    throw IOException("Cannot delete the IFW rules in $name.xml: ${cleared.reason}")
                 }
             }
         }
@@ -87,7 +88,7 @@ class FirewallResetRepository @Inject constructor(
     }
 
     // Without its own access the wake feature cannot have written files. Its answer, whether
-    // package files remain, no longer matters: they are already gone.
+    // rule files remain, no longer matters: they are already gone.
     private suspend fun resetWakeFiles(target: String?) {
         authorization.resetTransport()?.let { managed.resetFirewall(target, it) }
     }

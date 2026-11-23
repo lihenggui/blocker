@@ -75,7 +75,7 @@ class FirewallResetDeviceTest {
 
         Log.i(TAG, "$case: removed $removed, reported $reported")
         assertEquals(2, removed)
-        assertEquals(IfwResult.Success(emptyList()), store.packagesWithRuleFiles())
+        assertEquals(IfwResult.Success(emptyList()), store.ruleFileNames())
     }
 
     @Test

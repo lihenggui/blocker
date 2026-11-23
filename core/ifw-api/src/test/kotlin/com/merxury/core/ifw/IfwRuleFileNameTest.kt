@@ -22,26 +22,26 @@ import org.junit.Test
 class IfwRuleFileNameTest {
 
     @Test
-    fun givenPackageNames_whenChecked_thenPackageAndSafeFiles() {
+    fun givenPackageNames_whenChecked_thenPackageAndRuleFiles() {
         listOf("com.example", "a", "com.example_1.app", "android", "Com.Example").forEach {
             assertWithMessage(it).that(isPackageRuleFileName(it)).isTrue()
-            assertWithMessage(it).that(isSafeRuleFileName(it)).isTrue()
+            assertWithMessage(it).that(isRuleFileName(it)).isTrue()
         }
     }
 
     @Test
-    fun givenNamesThatAreNotPackages_whenChecked_thenSafeButNotPackageFiles() {
-        listOf("my-rules", "my rules", "1app", "com.1app", "_x", "com._x", "com.", "com.example.xml.bak-1", "é").forEach {
+    fun givenNamesThatAreNotPackages_whenChecked_thenRuleFilesButNotPackageFiles() {
+        listOf("my-rules", "my rules", "1app", "com.1app", "_x", "com._x", "com.", "com..x", "custom..rules", "a..", "é").forEach {
             assertWithMessage(it).that(isPackageRuleFileName(it)).isFalse()
-            assertWithMessage(it).that(isSafeRuleFileName(it)).isTrue()
+            assertWithMessage(it).that(isRuleFileName(it)).isTrue()
         }
     }
 
     @Test
     fun givenNamesThatLeaveTheDirectoryOrHide_whenChecked_thenRejectedByBoth() {
-        listOf("", ".", "..", "../x", "a/b", "/abs", "com..x", ".blocker-ifw-1", "a\u0000b").forEach {
+        listOf("", ".", "..", "../x", "a/b", "/abs", ".blocker-ifw-1", ".hidden..x", "a\u0000b").forEach {
             assertWithMessage(it).that(isPackageRuleFileName(it)).isFalse()
-            assertWithMessage(it).that(isSafeRuleFileName(it)).isFalse()
+            assertWithMessage(it).that(isRuleFileName(it)).isFalse()
         }
     }
 
@@ -54,7 +54,7 @@ class IfwRuleFileNameTest {
             "blocker-wake-capability-probe-com.merxury.blocker.debug",
         ).forEach {
             assertWithMessage(it).that(isPackageRuleFileName(it)).isFalse()
-            assertWithMessage(it).that(isSafeRuleFileName(it)).isFalse()
+            assertWithMessage(it).that(isRuleFileName(it)).isFalse()
         }
     }
 }

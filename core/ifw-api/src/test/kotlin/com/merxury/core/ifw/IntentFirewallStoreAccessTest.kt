@@ -284,6 +284,34 @@ class IntentFirewallStoreAccessTest {
     }
 
     @Test
+    fun givenFilesUnderNamesOfTheirOwn_whenAllRulesRulesAndUpdate_thenRead() = runTest {
+        fileSystem.putFile(PKG, LEGACY_XML)
+        fileSystem.putFile("my-rules", CONDITIONAL_MAIN_XML)
+        fileSystem.putFile("custom..rules", CONDITIONAL_MAIN_XML)
+
+        val all = (store.allRules() as IfwResult.Success).value
+
+        assertThat(all.keys).containsExactly(PKG, "my-rules", "custom..rules")
+        assertThat(store.rules("custom..rules")).isEqualTo(all["custom..rules"])
+        assertThat(store.update("my-rules") { IfwRules.empty() }).isEqualTo(IfwResult.Success(IfwRules.empty()))
+        assertThat(fileSystem.fileContent("my-rules")).isNull()
+    }
+
+    @Test
+    fun givenNameNotAPackage_whenBlocksOrSetBlocked_thenIllegalArgument() {
+        listOf("my-rules", "custom..rules").forEach { name ->
+            val component = declaration("Main", ComponentType.ACTIVITY, packageName = name)
+            assertThrows(name, IllegalArgumentException::class.java) {
+                runBlocking { store.blocks(name, listOf(component)) }
+            }
+            assertThrows(name, IllegalArgumentException::class.java) {
+                runBlocking { store.setBlocked(name, mapOf(component to true)) }
+            }
+        }
+        assertThat(fileSystem.operations).isEmpty()
+    }
+
+    @Test
     fun givenWakeFileName_whenRules_thenIllegalArgument() {
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking { store.rules("blocker-managed-wake") }

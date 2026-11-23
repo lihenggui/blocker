@@ -102,39 +102,44 @@ internal class IntentFirewallStore(
         }
     }
 
-    override suspend fun rules(packageName: String): IfwResult<IfwRules> {
-        requirePackageName(packageName)
-        return when (val read = withLock(packageName) { read(packageName, connect = true) }) {
+    override suspend fun rules(name: String): IfwResult<IfwRules> {
+        requireRuleFileName(name)
+        return when (val read = withLock(name) { read(name, connect = true) }) {
             is IfwResult.Success -> IfwResult.Success(read.value.rules)
             is IfwResult.Failure -> read
         }
     }
 
-    override suspend fun update(packageName: String, transform: (IfwRules) -> IfwRules): IfwResult<IfwRules> {
-        requirePackageName(packageName)
-        return modify(packageName, transform)
+    override suspend fun update(name: String, transform: (IfwRules) -> IfwRules): IfwResult<IfwRules> {
+        requireRuleFileName(name)
+        return modify(name, transform)
     }
 
     override suspend fun allRules(): IfwResult<Map<String, IfwResult<IfwRules>>> {
-        val packages = when (val listed = packagesWithRuleFiles()) {
+        val names = when (val listed = ruleFileNames()) {
             is IfwResult.Success -> listed.value
             is IfwResult.Failure -> return listed
         }
         val all = buildMap {
-            packages.forEach { packageName ->
-                when (val read = withLock(packageName) { read(packageName, connect = true) }) {
+            names.forEach { name ->
+                when (val read = withLock(name) { read(name, connect = true) }) {
                     // Deleted since it was listed.
-                    is IfwResult.Success -> if (read.value.exists) put(packageName, IfwResult.Success(read.value.rules))
+                    is IfwResult.Success -> if (read.value.exists) put(name, IfwResult.Success(read.value.rules))
 
-                    is IfwResult.Failure -> put(packageName, read)
+                    is IfwResult.Failure -> put(name, read)
                 }
             }
         }
         return IfwResult.Success(all)
     }
 
-    override suspend fun packagesWithRuleFiles(): IfwResult<List<String>> = try {
-        IfwResult.Success(fileSystem.listRuleFiles().filter(::isPackageRuleFileName))
+    override suspend fun packagesWithRuleFiles(): IfwResult<List<String>> = when (val listed = ruleFileNames()) {
+        is IfwResult.Success -> IfwResult.Success(listed.value.filter(::isPackageRuleFileName))
+        is IfwResult.Failure -> listed
+    }
+
+    override suspend fun ruleFileNames(): IfwResult<List<String>> = try {
+        IfwResult.Success(fileSystem.listRuleFiles().filter(::isRuleFileName))
     } catch (e: CancellationException) {
         throw e
     } catch (e: IfwAccessException) {
@@ -146,17 +151,17 @@ internal class IntentFirewallStore(
         IfwResult.Failure(IfwFailure.NoAccess)
     }
 
-    override suspend fun clear(packageName: String): IfwResult<Boolean> {
-        requirePackageName(packageName)
+    override suspend fun clear(name: String): IfwResult<Boolean> {
+        requireRuleFileName(name)
         // Runs to its end once started, as a save does, so the cache and changes match the file.
-        return withLock(packageName) {
+        return withLock(name) {
             withContext(NonCancellable) {
-                val removed = changeFile(packageName) { fileSystem.deleteRules(packageName) }
+                val removed = changeFile(name) { fileSystem.deleteRules(name) }
                 if (removed is IfwResult.Success) {
-                    cache.remove(packageName)
+                    cache.remove(name)
                     if (removed.value) {
-                        Timber.i("Cleared the IFW rules of $packageName")
-                        mutableChanges.emit(packageName)
+                        Timber.i("Cleared the IFW rules in $name.xml")
+                        mutableChanges.emit(name)
                     }
                 }
                 removed
@@ -274,5 +279,9 @@ internal class IntentFirewallStore(
 
     private fun requirePackageName(packageName: String) {
         require(isPackageRuleFileName(packageName)) { "Not a package name for a rule file: $packageName" }
+    }
+
+    private fun requireRuleFileName(name: String) {
+        require(isRuleFileName(name)) { "Not a rule file name: $name" }
     }
 }

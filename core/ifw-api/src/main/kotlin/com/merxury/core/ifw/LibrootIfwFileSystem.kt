@@ -36,7 +36,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
 ) : IfwFileSystem {
 
     override suspend fun readRules(packageName: String): String? = withContext(dispatcher) {
-        require(isSafeRuleFileName(packageName))
+        require(isRuleFileName(packageName))
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
         if (!rootCommandExecutor.execute(RootFileExistsCommand(path)).value) {
@@ -47,7 +47,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
     }
 
     override suspend fun writeRules(packageName: String, content: String) = withContext(dispatcher) {
-        require(isSafeRuleFileName(packageName))
+        require(isRuleFileName(packageName))
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
         rootCommandExecutor.execute(ReplaceIfwFileCommand(path, content))
@@ -55,7 +55,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
     }
 
     override suspend fun deleteRules(packageName: String): Boolean = withContext(dispatcher) {
-        require(isSafeRuleFileName(packageName))
+        require(isRuleFileName(packageName))
         val filename = "$packageName$EXTENSION"
         val path = IfwStorageUtils.ifwFolder + filename
         if (rootCommandExecutor.execute(RootFileExistsCommand(path)).value) {
@@ -67,7 +67,7 @@ internal class LibrootIfwFileSystem @Inject constructor(
     }
 
     override suspend fun fileExists(packageName: String): Boolean = withContext(dispatcher) {
-        require(isSafeRuleFileName(packageName))
+        require(isRuleFileName(packageName))
         val filename = "$packageName$EXTENSION"
         rootCommandExecutor.execute(RootFileExistsCommand(IfwStorageUtils.ifwFolder + filename)).value
     }
@@ -76,6 +76,6 @@ internal class LibrootIfwFileSystem @Inject constructor(
         rootCommandExecutor.execute(RootListFilesCommand(IfwStorageUtils.ifwFolder)).value
             .filter { it.endsWith(EXTENSION) }
             .map { it.removeSuffix(EXTENSION) }
-            .filter(::isSafeRuleFileName)
+            .filter(::isRuleFileName)
     }
 }

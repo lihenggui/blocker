@@ -38,7 +38,7 @@ class IfwFileCallsTest {
 
     @Test
     fun givenNameOutsideTheDirectory_whenCallCreated_thenRejected() {
-        val names = listOf("", "../etc", "a/b", "..", ".", ".hidden", "com.example\u0000", "com..example")
+        val names = listOf("", "../etc", "a/b", "..", ".", ".hidden", "com.example\u0000")
 
         names.forEach { name ->
             assertThrows(name, IllegalArgumentException::class.java) { ReadIfwRuleFile(name) }
@@ -50,7 +50,7 @@ class IfwFileCallsTest {
     @Test
     fun givenFileNotNamedAfterAPackage_whenCallCreated_thenAccepted() {
         // The calls guard the file access only; which files are packages' is the caller's decision.
-        listOf("my-rules", "my rules", "1app").forEach { name ->
+        listOf("my-rules", "my rules", "1app", "custom..rules").forEach { name ->
             assertThat(ReadIfwRuleFile(name).packageName).isEqualTo(name)
             assertThat(DeleteIfwRuleFile(name).packageName).isEqualTo(name)
         }

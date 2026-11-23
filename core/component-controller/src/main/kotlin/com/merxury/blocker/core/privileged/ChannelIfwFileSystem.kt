@@ -24,7 +24,7 @@ import com.merxury.blocker.core.privileged.calls.ReadIfwRuleFile
 import com.merxury.blocker.core.privileged.calls.ReplaceIfwRuleFile
 import com.merxury.core.ifw.IfwAccessException
 import com.merxury.core.ifw.IfwFileSystem
-import com.merxury.core.ifw.isPackageRuleFileName
+import com.merxury.core.ifw.isRuleFileName
 import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
@@ -57,11 +57,11 @@ internal class ChannelIfwFileSystem @Inject constructor(
     override suspend fun fileExists(packageName: String): Boolean = readRules(packageName) != null
 
     /**
-     * The packages that have a rule file: only files named after a package, without a user's own
-     * files or the files the wake feature manages.
+     * Every rule file name, named after a package or not, without hidden files and the files the
+     * wake feature manages; see [isRuleFileName].
      */
     override suspend fun listRuleFiles(): List<String> = executor.execute(ListIfwRuleFiles).getOrThrow("list the rule files")
-        .filter(::isPackageRuleFileName)
+        .filter(::isRuleFileName)
 
     private fun <R> CallResult<R>.getOrThrow(action: String): R = when (this) {
         is CallResult.Success -> value
