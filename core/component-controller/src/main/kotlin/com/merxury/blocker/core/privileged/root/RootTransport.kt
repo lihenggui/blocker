@@ -41,18 +41,40 @@ import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** Sends one [RootCallCommand] to the root process, starting that process when needed. */
+internal fun interface RootCommandRunner {
+    /**
+     * @throws NoShellException when su refuses or is missing
+     * @throws RemoteException when the root process is gone
+     */
+    suspend fun run(command: RootCallCommand): RootCallReply
+}
+
 /**
  * Runs calls in a root process started through su with librootkotlinx. Connecting starts that
  * process, which shows the su prompt when root has not been granted yet.
+ *
+ * A call that finds the root process gone is sent once more on a fresh process, which librootkotlinx
+ * starts without a prompt while root stays granted. Only when that fails too is the channel lost.
  */
 @Singleton
-internal class RootTransport @Inject constructor(
-    private val rootSession: BlockerRootSession,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+internal class RootTransport(
+    private val runner: RootCommandRunner,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : AbstractPrivilegedTransport() {
 
+    @Inject constructor(
+        rootSession: BlockerRootSession,
+        @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
+    ) : this(
+        RootCommandRunner { command ->
+            rootSession.use { server -> server.execute(command, RootCallCommand::class.java.classLoader) }
+        },
+        ioDispatcher,
+    )
+
     override suspend fun acquire(): ChannelState = try {
-        when (val result = send(CallerUid)) {
+        when (val result = sendOnce(CallerUid)) {
             is CallResult.Success -> identityOfUid(result.value)
                 ?.takeIf { it == PrivilegedIdentity.ROOT }
                 ?.let { ChannelState.Ready(it) }
@@ -70,12 +92,21 @@ internal class RootTransport @Inject constructor(
         ChannelState.Unavailable(reason)
     }
 
-    override suspend fun <R> send(call: PrivilegedCall<R>): CallResult<R> {
+    override suspend fun <R> send(call: PrivilegedCall<R>): CallResult<R> = try {
+        sendOnce(call)
+    } catch (e: ChannelLostException) {
+        // A refused su would refuse again.
+        if (e.reason == UnavailableReason.DENIED) throw e
+        Timber.w(e, "The root process went away; sending $call again on a new one")
+        sendOnce(call)
+    }
+
+    private suspend fun <R> sendOnce(call: PrivilegedCall<R>): CallResult<R> {
         val command = RootCallCommand(call)
         val size = parceledSize(command)
         check(size <= MAX_REQUEST_BYTES) { "$call needs $size bytes, more than one root call carries" }
         val reply = try {
-            rootSession.use { server -> server.execute(command, RootCallCommand::class.java.classLoader) }
+            runner.run(command)
         } catch (e: NoShellException) {
             throw ChannelLostException(UnavailableReason.DENIED, "No root shell", e)
         } catch (e: RemoteException) {

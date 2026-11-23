@@ -152,8 +152,10 @@ internal class FakePackageManager : IPackageManager {
 internal class FakeActivityManager : IActivityManager {
     val runningUsers = mutableSetOf(0)
     val forceStopped = mutableListOf<Pair<String, Int>>()
+    var failure: Exception? = null
 
     override fun forceStopPackage(packageName: String, userId: Int) {
+        failure?.let { throw it }
         forceStopped += packageName to userId
     }
 
@@ -184,8 +186,11 @@ internal class FakeUserManager : IUserManager {
     /** Which getUsers overload was called: 1 or 3 arguments. */
     var getUsersArity = 0
 
+    /** Refuses getProfileParent, as Android 9 and earlier do for the shell. */
+    var refuseProfileParent = false
+
     fun addUser(id: Int, name: String, flags: Int = 0, parent: Int? = null) {
-        users += UserInfo(id, name, flags)
+        users += UserInfo(id, name, flags).apply { profileGroupId = parent ?: id }
         if (parent != null) parents[id] = parent
     }
 
@@ -199,7 +204,10 @@ internal class FakeUserManager : IUserManager {
         return users
     }
 
-    override fun getProfileParent(userId: Int): UserInfo? = parents[userId]?.let { parent -> users.single { it.id == parent } }
+    override fun getProfileParent(userId: Int): UserInfo? {
+        if (refuseProfileParent) throw SecurityException("You need MANAGE_USERS permission to: get the profile parent")
+        return parents[userId]?.let { parent -> users.single { it.id == parent } }
+    }
 
     override fun getUserInfo(userId: Int): UserInfo? = users.find { it.id == userId }
 

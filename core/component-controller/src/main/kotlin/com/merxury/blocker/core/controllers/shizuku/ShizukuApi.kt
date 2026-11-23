@@ -33,9 +33,13 @@ internal interface ShizukuApi {
     /** Whether the Shizuku binder is there and alive. Never throws. */
     fun pingBinder(): Boolean
     fun addBinderReceivedListenerSticky(listener: Shizuku.OnBinderReceivedListener)
+
+    /** Called for each binder Shizuku delivers from now on, not for one already there. */
+    fun addBinderReceivedListener(listener: Shizuku.OnBinderReceivedListener)
     fun removeBinderReceivedListener(listener: Shizuku.OnBinderReceivedListener)
     fun addRequestPermissionResultListener(listener: Shizuku.OnRequestPermissionResultListener)
     fun removeRequestPermissionResultListener(listener: Shizuku.OnRequestPermissionResultListener)
+    fun addBinderDeadListener(listener: Shizuku.OnBinderDeadListener)
 }
 
 internal class DefaultShizukuApi @Inject constructor() : ShizukuApi {
@@ -57,6 +61,10 @@ internal class DefaultShizukuApi @Inject constructor() : ShizukuApi {
         Shizuku.addBinderReceivedListenerSticky(listener)
     }
 
+    override fun addBinderReceivedListener(listener: Shizuku.OnBinderReceivedListener) {
+        Shizuku.addBinderReceivedListener(listener)
+    }
+
     override fun removeBinderReceivedListener(listener: Shizuku.OnBinderReceivedListener) {
         Shizuku.removeBinderReceivedListener(listener)
     }
@@ -67,5 +75,9 @@ internal class DefaultShizukuApi @Inject constructor() : ShizukuApi {
 
     override fun removeRequestPermissionResultListener(listener: Shizuku.OnRequestPermissionResultListener) {
         Shizuku.removeRequestPermissionResultListener(listener)
+    }
+
+    override fun addBinderDeadListener(listener: Shizuku.OnBinderDeadListener) {
+        Shizuku.addBinderDeadListener(listener)
     }
 }

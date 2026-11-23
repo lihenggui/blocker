@@ -23,7 +23,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.system.DeviceUser
-import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSetting
+import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.privileged.calls.GetPackageInfo
 import com.merxury.blocker.core.privileged.calls.InstalledPackages
@@ -31,7 +31,6 @@ import com.merxury.blocker.core.privileged.calls.ListUsers
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformPackages
 import com.merxury.blocker.core.system.UserNotReachableException
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -41,8 +40,8 @@ import javax.inject.Inject
  * A failed call becomes what [PlatformPackages] callers understand: a package the user does not
  * have is [NameNotFoundException], a user the identity may not read or that does not exist is
  * [UserNotReachableException], and an unavailable channel or a system error is a
- * [RuntimeException]. Labels and APK parsing run in this process: the APK is the same for every
- * user.
+ * [RuntimeException]. Cancelling a read cancels the call in flight. Labels and APK parsing run in
+ * this process: the APK is the same for every user.
  */
 internal class PrivilegedPlatformPackages(
     private val executor: PrivilegedExecutor,
@@ -54,24 +53,26 @@ internal class PrivilegedPlatformPackages(
         local: LocalPlatformPackages,
     ) : this(executor as PrivilegedExecutor, local as PlatformPackages)
 
-    override fun users(): List<DeviceUser> = call(ListUsers, user = null, packageName = null)
+    override suspend fun users(): List<DeviceUser> = call(ListUsers, user = null, packageName = null)
 
-    override fun installedPackages(user: UserId): List<PackageInfo> = call(InstalledPackages(user), user, packageName = null)
+    override suspend fun installedPackages(user: UserId): List<PackageInfo> = call(InstalledPackages(user), user, packageName = null)
 
-    override fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo = call(GetPackageInfo(packageName, flags, user), user, packageName)
+    override suspend fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo = call(GetPackageInfo(packageName, flags, user), user, packageName)
 
     override fun archiveInfo(apkPath: String, flags: Int): PackageInfo? = local.archiveInfo(apkPath, flags)
 
-    override fun applicationEnabledSetting(packageName: String, user: UserId): Int = call(ApplicationEnabledSetting(packageName, user), user, packageName)
+    /** Splits a long list over several calls, because one request to the root process is bounded. */
+    override suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId): List<Int?> = packageNames.chunked(NAMES_PER_CALL)
+        .flatMap { chunk -> call(ApplicationEnabledSettings(chunk, user), user, packageName = null) }
 
     /** Splits a long list over several calls, because one request to the root process is bounded. */
-    override fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> = classNames.chunked(CLASSES_PER_CALL)
+    override suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> = classNames.chunked(NAMES_PER_CALL)
         .ifEmpty { listOf(emptyList()) }
         .flatMap { chunk -> call(ComponentEnabledSettings(packageName, chunk, user), user, packageName) }
 
     override fun label(application: ApplicationInfo): String = local.label(application)
 
-    private fun <R> call(call: PrivilegedCall<R>, user: UserId?, packageName: String?): R = when (val result = runBlocking { executor.executeIfReady(call) }) {
+    private suspend fun <R> call(call: PrivilegedCall<R>, user: UserId?, packageName: String?): R = when (val result = executor.executeIfReady(call)) {
         is CallResult.Success -> result.value
         is CallResult.Failure -> throw result.reason.toException(call, user, packageName)
     }
@@ -88,7 +89,7 @@ internal class PrivilegedPlatformPackages(
     }
 
     private companion object {
-        // About a hundred bytes each, well inside what one root call carries.
-        const val CLASSES_PER_CALL = 500
+        // Package and class names are about a hundred bytes each, well inside what one root call carries.
+        const val NAMES_PER_CALL = 500
     }
 }

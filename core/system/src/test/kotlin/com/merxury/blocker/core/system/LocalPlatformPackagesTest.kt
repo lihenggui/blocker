@@ -27,6 +27,8 @@ import android.os.UserManager
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.UserKind
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -68,7 +70,7 @@ class LocalPlatformPackagesTest {
     }
 
     @Test
-    fun givenRunningAsOwner_whenReadUsers_thenOnlyOwner() {
+    fun givenRunningAsOwner_whenReadUsers_thenOnlyOwner() = runTest {
         val user = platformFor(userId = 0).users().single()
 
         assertThat(user.id).isEqualTo(UserId.SYSTEM)
@@ -78,7 +80,7 @@ class LocalPlatformPackagesTest {
     }
 
     @Test
-    fun givenRunningInAnotherUser_whenReadUsers_thenThatUserFromUid() {
+    fun givenRunningInAnotherUser_whenReadUsers_thenThatUserFromUid() = runTest {
         val user = platformFor(userId = 11).users().single()
 
         assertThat(user.id).isEqualTo(UserId(11))
@@ -86,7 +88,7 @@ class LocalPlatformPackagesTest {
     }
 
     @Test
-    fun givenRunningInWorkProfile_whenReadUsers_thenWorkProfile() {
+    fun givenRunningInWorkProfile_whenReadUsers_thenWorkProfile() = runTest {
         val platform = platformFor(userId = 10)
         shadowOf(context.getSystemService(UserManager::class.java)).setManagedProfile(true)
 
@@ -95,7 +97,7 @@ class LocalPlatformPackagesTest {
 
     @Test
     @Config(sdk = [28], manifest = Config.NONE)
-    fun givenAndroidBefore11InWorkProfile_whenReadUsers_thenReportedAsSecondary() {
+    fun givenAndroidBefore11InWorkProfile_whenReadUsers_thenReportedAsSecondary() = runTest {
         val platform = platformFor(userId = 10)
         shadowOf(context.getSystemService(UserManager::class.java)).setManagedProfile(true)
 
@@ -107,17 +109,19 @@ class LocalPlatformPackagesTest {
         val platform = platformFor(userId = 0)
         val other = UserId(10)
 
-        assertThat(assertThrows(UserNotReachableException::class.java) { platform.installedPackages(other) }.user)
+        assertThat(assertThrows(UserNotReachableException::class.java) { runBlocking { platform.installedPackages(other) } }.user)
             .isEqualTo(other)
-        assertThrows(UserNotReachableException::class.java) { platform.packageInfo(PKG, 0, other) }
-        assertThrows(UserNotReachableException::class.java) { platform.applicationEnabledSetting(PKG, other) }
+        assertThrows(UserNotReachableException::class.java) { runBlocking { platform.packageInfo(PKG, 0, other) } }
         assertThrows(UserNotReachableException::class.java) {
-            platform.componentEnabledSettings(PKG, listOf("$PKG.Sync"), other)
+            runBlocking { platform.applicationEnabledSettings(listOf(PKG), other) }
+        }
+        assertThrows(UserNotReachableException::class.java) {
+            runBlocking { platform.componentEnabledSettings(PKG, listOf("$PKG.Sync"), other) }
         }
     }
 
     @Test
-    fun givenInstalledPackage_whenReadOwnUser_thenPackageManagerAnswers() {
+    fun givenInstalledPackage_whenReadOwnUser_thenPackageManagerAnswers() = runTest {
         installExample()
         val platform = platformFor(userId = 0)
         val component = ComponentName(PKG, "$PKG.Sync")
@@ -133,19 +137,20 @@ class LocalPlatformPackagesTest {
         assertThat(platform.componentEnabledSettings(PKG, listOf("$PKG.Sync", "$PKG.Other"), UserId.SYSTEM))
             .containsExactly(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
             .inOrder()
-        assertThat(platform.applicationEnabledSetting(PKG, UserId.SYSTEM))
-            .isEqualTo(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
+        assertThat(platform.applicationEnabledSettings(listOf(PKG, "com.missing"), UserId.SYSTEM))
+            .containsExactly(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, null)
+            .inOrder()
         assertThat(platform.label(platform.packageInfo(PKG, 0, UserId.SYSTEM).applicationInfo!!)).isEqualTo("Example")
     }
 
     @Test
-    fun givenMissingPackage_whenRead_thenNameNotFound() {
+    fun givenMissingPackage_whenRead_thenNameNotFoundOrUnreadable() = runTest {
         val platform = platformFor(userId = 0)
 
-        assertThrows(NameNotFoundException::class.java) { platform.packageInfo(PKG, 0, UserId.SYSTEM) }
-        assertThrows(NameNotFoundException::class.java) { platform.applicationEnabledSetting(PKG, UserId.SYSTEM) }
+        assertThrows(NameNotFoundException::class.java) { runBlocking { platform.packageInfo(PKG, 0, UserId.SYSTEM) } }
         assertThrows(NameNotFoundException::class.java) {
-            platform.componentEnabledSettings(PKG, listOf("$PKG.Sync"), UserId.SYSTEM)
+            runBlocking { platform.componentEnabledSettings(PKG, listOf("$PKG.Sync"), UserId.SYSTEM) }
         }
+        assertThat(platform.applicationEnabledSettings(listOf(PKG), UserId.SYSTEM)).containsExactly(null)
     }
 }

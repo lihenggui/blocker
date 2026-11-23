@@ -28,7 +28,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.FakeSystemServices
-import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSetting
+import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ForceStop
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -78,9 +78,9 @@ class ShizukuTransportTest {
         system.packageManager.install(10, PKG)
         system.packageManager.appSettings[PKG to 10] = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 
-        val result = transport.execute(ApplicationEnabledSetting(PKG, WORK))
+        val result = transport.execute(ApplicationEnabledSettings(listOf(PKG), WORK))
 
-        assertThat(result).isEqualTo(CallResult.Success(PackageManager.COMPONENT_ENABLED_STATE_DISABLED))
+        assertThat(result).isEqualTo(CallResult.Success(listOf(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)))
         assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SHELL))
     }
 
@@ -100,7 +100,7 @@ class ShizukuTransportTest {
         system.packageManager.failure = IllegalStateException("binder haven't been received")
         shizuku.dieOnNextPing = true
 
-        val result = transport.execute(ApplicationEnabledSetting(PKG, WORK))
+        val result = transport.execute(ApplicationEnabledSettings(listOf(PKG), WORK))
 
         assertThat(result).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
         assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
@@ -111,10 +111,89 @@ class ShizukuTransportTest {
         transport.connect()
         system.packageManager.failure = SecurityException("Shell cannot change component state")
 
-        val result = transport.execute(ApplicationEnabledSetting(PKG, WORK))
+        val result = transport.execute(ApplicationEnabledSettings(listOf(PKG), WORK))
 
         assertThat(result).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("Shell cannot change component state")))
         assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SHELL))
+    }
+
+    @Test
+    fun whenCreated_thenListenersRegisteredOnce() {
+        assertThat(shizuku.deadListeners).hasSize(1)
+        assertThat(shizuku.receivedListeners).hasSize(1)
+    }
+
+    @Test
+    fun givenReady_whenBinderDies_thenNotRunningWithoutACall() = scope.runTest {
+        transport.connect()
+
+        shizuku.stop()
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
+    }
+
+    @Test
+    fun givenStoppedAfterReady_whenBinderReturnsGranted_thenReadyAgainWithoutPrompt() = scope.runTest {
+        transport.connect()
+        shizuku.stop()
+
+        shizuku.restart()
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        assertThat(shizuku.permissionRequests).isEqualTo(0)
+    }
+
+    @Test
+    fun givenShizukuRestartsAsRoot_whenBinderReturns_thenIdentityFollowsNewUid() = scope.runTest {
+        transport.connect()
+        shizuku.stop()
+
+        shizuku.restart(asUid = 0)
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+    }
+
+    @Test
+    fun givenReadyAndDeathMissed_whenBinderArrivesUnderNewUid_thenIdentityRefreshed() = scope.runTest {
+        transport.connect()
+
+        shizuku.restart(asUid = 0)
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+    }
+
+    @Test
+    fun givenPermissionRevoked_whenBinderReturns_thenStaysUnavailableWithoutPrompt() = scope.runTest {
+        transport.connect()
+        shizuku.stop()
+        shizuku.granted = false
+
+        shizuku.restart()
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
+        assertThat(shizuku.permissionRequests).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNeverReady_whenBinderArrives_thenStateUntouched() = scope.runTest {
+        initializer.result = RegisterShizukuResult.Denied
+        transport.connect()
+
+        shizuku.restart()
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(shizuku.permissionChecks).isEqualTo(0)
+    }
+
+    @Test
+    fun givenDeniedByUserAfterReady_whenBinderArrives_thenStaysDenied() = scope.runTest {
+        transport.connect()
+        initializer.result = RegisterShizukuResult.Denied
+        transport.connect()
+
+        shizuku.restart()
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
     }
 }
 
@@ -127,12 +206,32 @@ private class FakeShizukuInitializer : IShizukuInitializer {
     override fun getUid(): Int = (result as? RegisterShizukuResult.Granted)?.uid ?: -1
 }
 
-/** Only the binder state matters to the transport; registration goes through the initializer. */
+/**
+ * The binder state and its events. Registration itself goes through the initializer; [restart]
+ * and [stop] act like Shizuku stopping and starting again.
+ */
 private class FakeShizukuBinder : ShizukuApi {
     var alive = true
 
     /** The binder dies after the first ping, as when Shizuku stops while a call runs. */
     var dieOnNextPing = false
+    var granted = true
+    var serverUid = 2000
+    var permissionChecks = 0
+    var permissionRequests = 0
+    val deadListeners = mutableListOf<Shizuku.OnBinderDeadListener>()
+    val receivedListeners = mutableListOf<Shizuku.OnBinderReceivedListener>()
+
+    fun stop() {
+        alive = false
+        deadListeners.forEach { it.onBinderDead() }
+    }
+
+    fun restart(asUid: Int = serverUid) {
+        serverUid = asUid
+        alive = true
+        receivedListeners.forEach { it.onBinderReceived() }
+    }
 
     override fun pingBinder(): Boolean {
         val wasAlive = alive
@@ -140,13 +239,26 @@ private class FakeShizukuBinder : ShizukuApi {
         return wasAlive
     }
 
+    override fun checkSelfPermission(): Int {
+        permissionChecks++
+        return if (granted) PackageManager.PERMISSION_GRANTED else PackageManager.PERMISSION_DENIED
+    }
+
+    override fun requestPermission(requestCode: Int) {
+        permissionRequests++
+    }
+
+    override fun getUid(): Int = serverUid
     override fun isPreV11(): Boolean = false
-    override fun checkSelfPermission(): Int = PackageManager.PERMISSION_GRANTED
     override fun shouldShowRequestPermissionRationale(): Boolean = false
-    override fun requestPermission(requestCode: Int) = Unit
-    override fun getUid(): Int = 2000
     override fun addBinderReceivedListenerSticky(listener: Shizuku.OnBinderReceivedListener) = Unit
+    override fun addBinderReceivedListener(listener: Shizuku.OnBinderReceivedListener) {
+        receivedListeners += listener
+    }
     override fun removeBinderReceivedListener(listener: Shizuku.OnBinderReceivedListener) = Unit
     override fun addRequestPermissionResultListener(listener: Shizuku.OnRequestPermissionResultListener) = Unit
     override fun removeRequestPermissionResultListener(listener: Shizuku.OnRequestPermissionResultListener) = Unit
+    override fun addBinderDeadListener(listener: Shizuku.OnBinderDeadListener) {
+        deadListeners += listener
+    }
 }

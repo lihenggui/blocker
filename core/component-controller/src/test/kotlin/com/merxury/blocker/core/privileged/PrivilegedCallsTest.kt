@@ -23,7 +23,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
-import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSetting
+import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ForceStop
 import com.merxury.blocker.core.privileged.calls.GetPackageInfo
@@ -83,6 +83,20 @@ class PrivilegedCallsTest {
     }
 
     @Test
+    @Config(sdk = [28])
+    fun givenProfileParentRefused_whenListUsers_thenParentFromProfileGroup() {
+        system.userManager.addUser(0, "Owner")
+        system.userManager.addUser(10, "Work", FLAG_MANAGED_PROFILE, parent = 0)
+        system.userManager.addUser(11, "Guest")
+        system.userManager.refuseProfileParent = true
+
+        val users = ListUsers.run(system)
+
+        assertThat(users.map { it.parent }).containsExactly(null, OWNER, null).inOrder()
+        assertThat(users.map { it.kind }).containsExactly(UserKind.OWNER, UserKind.WORK_PROFILE, UserKind.SECONDARY).inOrder()
+    }
+
+    @Test
     fun givenPackagesInTwoUsers_whenListInstalledPackages_thenOnlyThatUsersPackages() {
         system.userManager.addUser(0, "Owner")
         system.userManager.addUser(10, "Work")
@@ -118,13 +132,23 @@ class PrivilegedCallsTest {
     }
 
     @Test
-    fun givenMissingPackage_whenApplicationEnabledSetting_thenSystemRejectionPropagates() {
-        pm.install(0, PKG)
-        pm.appSettings[PKG to 0] = PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
+    fun givenOneAppMissing_whenReadAppSettings_thenNullForThatAppOnlyInOrder() {
+        pm.install(10, PKG)
+        pm.install(10, "com.odd")
+        pm.appSettings[PKG to 10] = PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
+        pm.appSettings["com.odd" to 10] = 42
 
-        assertThat(ApplicationEnabledSetting(PKG, OWNER).run(system))
-            .isEqualTo(PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER)
-        assertThrows(IllegalArgumentException::class.java) { ApplicationEnabledSetting(PKG, WORK).run(system) }
+        val settings = ApplicationEnabledSettings(listOf("com.missing", PKG, "com.odd"), WORK).run(system)
+
+        assertThat(settings).containsExactly(null, PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, null).inOrder()
+    }
+
+    @Test
+    fun givenSystemRefuses_whenReadAppSettings_thenWholeCallFails() {
+        pm.install(10, PKG)
+        pm.failure = SecurityException("Requires INTERACT_ACROSS_USERS_FULL")
+
+        assertThrows(SecurityException::class.java) { ApplicationEnabledSettings(listOf(PKG), WORK).run(system) }
     }
 
     @Test

@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.system.PlatformPackages
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -42,7 +43,7 @@ class ChannelPlatformPackagesTest {
     private val packages = ChannelPlatformPackages(channel, privileged, local)
 
     @Test
-    fun givenEachUnavailableReason_whenRead_thenLocal() {
+    fun givenEachUnavailableReason_whenRead_thenLocal() = runTest {
         UnavailableReason.entries.forEach { reason ->
             channel.state.value = ChannelState.Unavailable(reason)
 
@@ -52,18 +53,18 @@ class ChannelPlatformPackagesTest {
     }
 
     @Test
-    fun givenChannelReady_whenRead_thenPrivileged() {
+    fun givenChannelReady_whenRead_thenPrivileged() = runTest {
         channel.state.value = ChannelState.Ready(PrivilegedIdentity.SHELL)
 
         assertThat(packages.users().single().name).isEqualTo("privileged")
         assertThat(packages.installedPackages(UserId(10)).single().packageName).isEqualTo("privileged")
         assertThat(packages.packageInfo("p", 0, UserId(10)).packageName).isEqualTo("privileged")
-        assertThat(packages.applicationEnabledSetting("p", UserId(10))).isEqualTo(privileged.answer)
+        assertThat(packages.applicationEnabledSettings(listOf("p"), UserId(10))).containsExactly(privileged.answer)
         assertThat(packages.componentEnabledSettings("p", listOf("c"), UserId(10))).containsExactly(privileged.answer)
     }
 
     @Test
-    fun givenChannelBecomesReadyThenLost_whenRead_thenEachRequestRoutedOnItsOwn() {
+    fun givenChannelBecomesReadyThenLost_whenRead_thenEachRequestRoutedOnItsOwn() = runTest {
         assertThat(packages.users().single().name).isEqualTo("local")
 
         channel.state.value = ChannelState.Ready(PrivilegedIdentity.ROOT)
@@ -74,7 +75,7 @@ class ChannelPlatformPackagesTest {
     }
 
     @Test
-    fun givenChannelReady_whenLabelOrArchive_thenStillLocal() {
+    fun givenChannelReady_whenLabelOrArchive_thenStillLocal() = runTest {
         channel.state.value = ChannelState.Ready(PrivilegedIdentity.ROOT)
 
         assertThat(packages.label(ApplicationInfo())).isEqualTo("local")
@@ -98,11 +99,11 @@ private class NamedPackages(private val name: String) : PlatformPackages {
 
     private fun info() = PackageInfo().apply { packageName = name }
 
-    override fun users() = listOf(DeviceUser(UserId(0), name, UserKind.OWNER, parent = null, running = true))
-    override fun installedPackages(user: UserId) = listOf(info())
-    override fun packageInfo(packageName: String, flags: Int, user: UserId) = info()
+    override suspend fun users() = listOf(DeviceUser(UserId(0), name, UserKind.OWNER, parent = null, running = true))
+    override suspend fun installedPackages(user: UserId) = listOf(info())
+    override suspend fun packageInfo(packageName: String, flags: Int, user: UserId) = info()
     override fun archiveInfo(apkPath: String, flags: Int) = info()
-    override fun applicationEnabledSetting(packageName: String, user: UserId) = answer
-    override fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId) = classNames.map { answer }
+    override suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId) = packageNames.map { answer }
+    override suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId) = classNames.map { answer }
     override fun label(application: ApplicationInfo) = name
 }

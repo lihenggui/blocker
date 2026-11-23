@@ -44,6 +44,10 @@ internal interface SystemServices {
  *
  * [run] blocks and throws what the system throws. It addresses its user explicitly and never
  * takes one from a Context.
+ *
+ * A call must be safe to run twice. When the root process goes away during a call, the root
+ * transport sends it again on a new process, and the first attempt may already have reached the
+ * system. Reads and setting a value to a fixed state are; anything that adds or toggles is not.
  */
 internal interface PrivilegedCall<R> : Parcelable {
     fun run(system: SystemServices): R

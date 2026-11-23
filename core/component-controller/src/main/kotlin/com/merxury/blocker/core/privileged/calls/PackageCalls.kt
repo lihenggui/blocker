@@ -65,17 +65,26 @@ internal data class GetPackageInfo(
 }
 
 /**
- * The enabled setting of the whole app [packageName] for [user], a
- * `PackageManager.COMPONENT_ENABLED_STATE_*` value. The system throws IllegalArgumentException
- * for an app that is not installed for [user].
+ * The enabled setting of each app in [packageNames] for [user], in one call.
+ *
+ * The result has one entry per package name, in order: a `PackageManager.COMPONENT_ENABLED_STATE_*`
+ * value, or null when that setting cannot be read, which is how an app that is not installed for
+ * [user] shows. One such name does not fail the rest.
  */
 @Parcelize
 @TypeParceler<UserId, UserIdParceler>
-internal data class ApplicationEnabledSetting(
-    val packageName: String,
+internal data class ApplicationEnabledSettings(
+    val packageNames: List<String>,
     val user: UserId,
-) : PrivilegedCall<Int> {
-    override fun run(system: SystemServices): Int = system.packageManager.getApplicationEnabledSetting(packageName, user.value)
+) : PrivilegedCall<List<Int?>> {
+    override fun run(system: SystemServices): List<Int?> = packageNames.map { packageName ->
+        try {
+            system.packageManager.getApplicationEnabledSetting(packageName, user.value).takeIf { it in APP_SETTINGS }
+        } catch (_: IllegalArgumentException) {
+            // The system's answer for an app the user does not have.
+            null
+        }
+    }
 }
 
 /**

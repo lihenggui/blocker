@@ -24,7 +24,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -40,6 +40,11 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
 
     private val connectLock = Mutex()
 
+    /** Whether [state] has ever been [ChannelState.Ready]. */
+    @Volatile
+    protected var hasBeenReady = false
+        private set
+
     /** Acquires the channel, which may show a permission prompt. Throws only cancellation. */
     protected abstract suspend fun acquire(): ChannelState
 
@@ -51,7 +56,16 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
     protected abstract suspend fun <R> send(call: PrivilegedCall<R>): CallResult<R>
 
     override suspend fun connect(): ChannelState = connectLock.withLock {
-        acquire().also { mutableState.value = it }
+        acquire().also { updateState { _ -> it } }
+    }
+
+    /**
+     * Changes [state] atomically with [transform], which may run more than once. Safe from any
+     * thread and against a concurrent [connect]; whichever finishes last decides.
+     */
+    protected fun updateState(transform: (ChannelState) -> ChannelState) {
+        val updated = mutableState.updateAndGet(transform)
+        if (updated is ChannelState.Ready) hasBeenReady = true
     }
 
     override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> {
@@ -81,7 +95,7 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
                 Timber.w(cause, "Privileged channel lost while running $call")
                 val reason = cause?.lostReason() ?: UnavailableReason.FAILED
                 // A connect that already replaced the lost state wins.
-                mutableState.update { current -> if (current == ready) ChannelState.Unavailable(reason) else current }
+                updateState { current -> if (current == ready) ChannelState.Unavailable(reason) else current }
             }
 
             is CallFailure.SystemError -> Timber.e(cause, "Privileged call $call failed: ${failure.message}")

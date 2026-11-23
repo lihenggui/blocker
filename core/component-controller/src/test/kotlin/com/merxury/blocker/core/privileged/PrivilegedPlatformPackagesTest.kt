@@ -22,18 +22,26 @@ import android.content.pm.PackageManager
 import android.content.pm.PackageManager.NameNotFoundException
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.system.PlatformPackages
 import com.merxury.blocker.core.system.UserNotReachableException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertThrows
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.test.assertFailsWith
 
 private const val PKG = "com.example"
 private val WORK = UserId(10)
@@ -50,7 +58,7 @@ class PrivilegedPlatformPackagesTest {
     private fun connect() = runBlocking { transport.connect() }
 
     @Test
-    fun givenChannelReady_whenRead_thenAnotherUsersAppsReadThroughChannel() {
+    fun givenChannelReady_whenRead_thenAnotherUsersAppsReadThroughChannel() = runTest {
         connect()
         system.userManager.addUser(0, "Owner")
         system.userManager.addUser(10, "Work", flags = 0x20, parent = 0)
@@ -60,67 +68,67 @@ class PrivilegedPlatformPackagesTest {
         assertThat(packages.users().map { it.id }).containsExactly(UserId(0), WORK).inOrder()
         assertThat(packages.installedPackages(WORK).map { it.packageName }).containsExactly(PKG)
         assertThat(packages.packageInfo(PKG, 0, WORK).packageName).isEqualTo(PKG)
-        assertThat(packages.applicationEnabledSetting(PKG, WORK)).isEqualTo(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+        assertThat(packages.applicationEnabledSettings(listOf(PKG), WORK))
+            .containsExactly(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
         assertThat(packages.componentEnabledSettings(PKG, listOf("$PKG.Main"), WORK))
             .containsExactly(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
     }
 
     @Test
-    fun givenChannelNotReady_whenRead_thenNeverConnectsAndFailsAsUnavailable() {
-        assertThrows(IllegalStateException::class.java) { packages.users() }
-        assertThrows(IllegalStateException::class.java) { packages.installedPackages(WORK) }
+    fun givenChannelNotReady_whenRead_thenNeverConnectsAndFailsAsUnavailable() = runTest {
+        assertFailsWith<IllegalStateException> { packages.users() }
+        assertFailsWith<IllegalStateException> { packages.installedPackages(WORK) }
 
         assertThat(transport.acquireCount).isEqualTo(0)
     }
 
     @Test
-    fun givenPackageMissingForUser_whenRead_thenNameNotFound() {
+    fun givenPackageMissingForUser_whenReadPackage_thenNameNotFound() = runTest {
         connect()
 
-        assertThrows(NameNotFoundException::class.java) { packages.packageInfo(PKG, 0, WORK) }
-        assertThrows(NameNotFoundException::class.java) { packages.applicationEnabledSetting(PKG, WORK) }
-        assertThrows(NameNotFoundException::class.java) { packages.componentEnabledSettings(PKG, emptyList(), WORK) }
+        assertFailsWith<NameNotFoundException> { packages.packageInfo(PKG, 0, WORK) }
+        assertFailsWith<NameNotFoundException> { packages.componentEnabledSettings(PKG, emptyList(), WORK) }
     }
 
     @Test
-    fun givenUserMissing_whenListPackages_thenUserNotReachable() {
+    fun givenUserMissing_whenListPackages_thenUserNotReachable() = runTest {
         connect()
 
-        val thrown = assertThrows(UserNotReachableException::class.java) { packages.installedPackages(UserId(42)) }
+        val thrown = assertFailsWith<UserNotReachableException> { packages.installedPackages(UserId(42)) }
 
         assertThat(thrown.user).isEqualTo(UserId(42))
     }
 
     @Test
-    fun givenIdentityRefused_whenRead_thenUserNotReachable() {
+    fun givenIdentityRefused_whenRead_thenUserNotReachable() = runTest {
         connect()
         system.packageManager.failure = SecurityException("Requires INTERACT_ACROSS_USERS_FULL")
 
-        assertThrows(UserNotReachableException::class.java) { packages.packageInfo(PKG, 0, WORK) }
-        assertThrows(UserNotReachableException::class.java) {
+        assertFailsWith<UserNotReachableException> { packages.packageInfo(PKG, 0, WORK) }
+        assertFailsWith<UserNotReachableException> {
             packages.componentEnabledSettings(PKG, listOf("$PKG.Main"), WORK)
         }
     }
 
     @Test
-    fun givenSystemError_whenRead_thenRuntimeExceptionForTheReader() {
+    fun givenSystemError_whenRead_thenRuntimeExceptionForTheReader() = runTest {
         connect()
         system.packageManager.failure = IllegalStateException("odd")
 
-        assertThrows(IllegalStateException::class.java) { packages.packageInfo(PKG, 0, WORK) }
+        assertFailsWith<IllegalStateException> { packages.packageInfo(PKG, 0, WORK) }
     }
 
     @Test
-    fun givenChannelDiesMidRead_whenRead_thenRuntimeExceptionAndChannelMarkedLost() {
+    fun givenChannelDiesMidRead_whenRead_thenRuntimeExceptionAndChannelMarkedLost() = runTest {
         connect()
         transport.throwOnSend = ChannelLostException(UnavailableReason.FAILED, "gone")
 
-        assertThrows(IllegalStateException::class.java) { packages.packageInfo(PKG, 0, WORK) }
+        assertFailsWith<IllegalStateException> { packages.packageInfo(PKG, 0, WORK) }
         assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.FAILED))
     }
 
     @Test
-    fun givenThousandsOfComponents_whenReadSettings_thenSplitOverCallsInOrder() {
+    fun givenThousandsOfComponents_whenReadSettings_thenSplitOverCallsInOrder() = runTest {
         connect()
         system.packageManager.install(10, PKG)
         val names = (1..1_200).map { "$PKG.C$it" }
@@ -136,7 +144,54 @@ class PrivilegedPlatformPackagesTest {
     }
 
     @Test
-    fun whenLabelOrArchive_thenReadLocally() {
+    fun givenAppMissingForUser_whenReadAppSettings_thenNullForThatAppOnly() = runTest {
+        connect()
+        system.packageManager.install(10, PKG)
+        system.packageManager.appSettings[PKG to 10] = PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
+
+        assertThat(packages.applicationEnabledSettings(listOf("com.missing", PKG), WORK))
+            .containsExactly(null, PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER)
+            .inOrder()
+    }
+
+    @Test
+    fun givenHundredsOfApps_whenReadAppSettings_thenSplitOverCallsInOrder() = runTest {
+        connect()
+        val names = (1..1_100).map { "com.example$it" }
+        names.forEach { system.packageManager.install(10, it) }
+        system.packageManager.appSettings[names.last() to 10] = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+
+        val settings = packages.applicationEnabledSettings(names, WORK)
+
+        assertThat(settings).hasSize(1_100)
+        assertThat(settings.last()).isEqualTo(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+        val calls = transport.sent.filterIsInstance<ApplicationEnabledSettings>()
+        assertThat(calls.map { it.packageNames.size }).containsExactly(500, 500, 100).inOrder()
+    }
+
+    @Test
+    fun givenNoApps_whenReadAppSettings_thenNoCall() = runTest {
+        connect()
+
+        assertThat(packages.applicationEnabledSettings(emptyList(), WORK)).isEmpty()
+        assertThat(transport.sent).isEmpty()
+    }
+
+    @Test
+    fun givenReadInFlight_whenCancelled_thenCallInFlightCancelled() = runTest {
+        val executor = HangingExecutor()
+        val hanging = PrivilegedPlatformPackages(executor, local)
+
+        val read = launch { hanging.packageInfo(PKG, 0, WORK) }
+        runCurrent()
+        read.cancelAndJoin()
+
+        assertThat(executor.started).isEqualTo(1)
+        assertThat(executor.cancelled).isEqualTo(1)
+    }
+
+    @Test
+    fun whenLabelOrArchive_thenReadLocally() = runTest {
         val application = ApplicationInfo().apply { packageName = PKG }
 
         assertThat(packages.label(application)).isEqualTo("local label")
@@ -149,9 +204,27 @@ class PrivilegedPlatformPackagesTest {
 private class LocalOnlyPackages : PlatformPackages {
     override fun label(application: ApplicationInfo): String = "local label"
     override fun archiveInfo(apkPath: String, flags: Int): PackageInfo = PackageInfo().apply { packageName = "local archive" }
-    override fun users(): List<DeviceUser> = error("Read through the channel")
-    override fun installedPackages(user: UserId): List<PackageInfo> = error("Read through the channel")
-    override fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo = error("Read through the channel")
-    override fun applicationEnabledSetting(packageName: String, user: UserId): Int = error("Read through the channel")
-    override fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> = error("Read through the channel")
+    override suspend fun users(): List<DeviceUser> = error("Read through the channel")
+    override suspend fun installedPackages(user: UserId): List<PackageInfo> = error("Read through the channel")
+    override suspend fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo = error("Read through the channel")
+    override suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId): List<Int?> = error("Read through the channel")
+    override suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> = error("Read through the channel")
+}
+
+/** Waits in every call until it is cancelled, counting both. */
+private class HangingExecutor : PrivilegedExecutor {
+    var started = 0
+    var cancelled = 0
+
+    override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> = executeIfReady(call)
+
+    override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> {
+        started++
+        try {
+            awaitCancellation()
+        } catch (e: CancellationException) {
+            cancelled++
+            throw e
+        }
+    }
 }

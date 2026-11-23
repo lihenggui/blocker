@@ -27,27 +27,34 @@ import com.merxury.blocker.core.model.system.DeviceUser
  * explicit. An implementation decides which users it can reach: the app's own PackageManager
  * reaches one, a privileged service reaches all of them.
  *
- * Calls block and may throw [RuntimeException] when the system does not answer.
+ * The calls that may go through a privileged channel suspend; they may block the thread they run
+ * on, so call them from an IO dispatcher. Cancelling one cancels the request in flight. Calls may
+ * throw [RuntimeException] when the system does not answer. [archiveInfo] and [label] always run
+ * in this process and block.
  */
 interface PlatformPackages {
-    fun users(): List<DeviceUser>
+    suspend fun users(): List<DeviceUser>
 
     @Throws(UserNotReachableException::class)
-    fun installedPackages(user: UserId): List<PackageInfo>
+    suspend fun installedPackages(user: UserId): List<PackageInfo>
 
     /** @param flags `PackageManager.GET_*` and `MATCH_*` flags */
     @Throws(NameNotFoundException::class, UserNotReachableException::class)
-    fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo
+    suspend fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo
 
     /** Parses the APK at [apkPath] in this process, or returns null when it cannot be parsed. */
     fun archiveInfo(apkPath: String, flags: Int): PackageInfo?
 
     /**
-     * @return a `PackageManager.COMPONENT_ENABLED_STATE_*` value
-     * @throws NameNotFoundException when the app is not installed for [user]
+     * The enabled setting of each app in [packageNames] for [user], in one request.
+     *
+     * @return one entry per package name, in the same order: a
+     * `PackageManager.COMPONENT_ENABLED_STATE_*` value, or null when that app's setting cannot be
+     * read, for example because it is not installed for [user]. One unreadable name does not fail
+     * the others.
      */
-    @Throws(NameNotFoundException::class, UserNotReachableException::class)
-    fun applicationEnabledSetting(packageName: String, user: UserId): Int
+    @Throws(UserNotReachableException::class)
+    suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId): List<Int?>
 
     /**
      * The PackageManager setting of each of [classNames], components of [packageName], for [user],
@@ -61,7 +68,7 @@ interface PlatformPackages {
      * @throws NameNotFoundException when the app is not installed for [user]
      */
     @Throws(NameNotFoundException::class, UserNotReachableException::class)
-    fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?>
+    suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?>
 
     fun label(application: ApplicationInfo): String
 }

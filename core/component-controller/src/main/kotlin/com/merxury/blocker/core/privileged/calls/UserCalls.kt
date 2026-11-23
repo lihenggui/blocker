@@ -18,6 +18,7 @@ package com.merxury.blocker.core.privileged.calls
 
 import android.content.pm.UserInfo
 import android.os.Build
+import android.os.IUserManager
 import android.os.Parcel
 import android.os.Process
 import com.merxury.blocker.core.model.component.UserId
@@ -41,7 +42,7 @@ internal data object ListUsers : PrivilegedCall<List<DeviceUser>> {
             users.getUsers(true)
         }
         return infos.map { info ->
-            val parent = users.getProfileParent(info.id)?.id
+            val parent = profileParent(users, info)
             DeviceUser(
                 id = UserId(info.id),
                 name = info.name,
@@ -50,6 +51,14 @@ internal data object ListUsers : PrivilegedCall<List<DeviceUser>> {
                 running = system.activityManager.isUserRunning(info.id, 0),
             )
         }
+    }
+
+    private fun profileParent(users: IUserManager, info: UserInfo): Int? = try {
+        users.getProfileParent(info.id)?.id
+    } catch (_: SecurityException) {
+        // Up to Android 9 only MANAGE_USERS may ask, which the shell lacks. The profile group,
+        // which getProfileParent reads too, says the same.
+        info.profileGroupId.takeIf { it != info.id && it != NO_PROFILE_GROUP }
     }
 
     private fun kindOf(info: UserInfo, parent: Int?): UserKind = when {
@@ -82,6 +91,9 @@ internal data object ListUsers : PrivilegedCall<List<DeviceUser>> {
     }
 
     private const val NO_USER = -1
+
+    // UserInfo.NO_PROFILE_GROUP_ID
+    private const val NO_PROFILE_GROUP = -10000
 }
 
 /**

@@ -20,6 +20,7 @@ import android.app.ActivityManagerNative
 import android.app.IActivityManager
 import android.content.Context
 import android.content.pm.IPackageManager
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IUserManager
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
@@ -48,6 +49,11 @@ import javax.inject.Singleton
  * Runs calls in this process against system services reached through Shizuku or Sui, as the
  * uid the Shizuku server runs as: root, or the shell when Shizuku was started through adb.
  * Connecting asks for the Shizuku permission when it has not been granted yet.
+ *
+ * Shizuku's binder events keep [state] current without a prompt: when the binder dies a ready
+ * channel becomes [UnavailableReason.NOT_RUNNING], and when a new binder arrives a channel that has
+ * been ready becomes ready again, as the uid the new server runs as, if the permission is still
+ * granted. The listeners are registered once, for the life of this singleton.
  */
 @Singleton
 internal class ShizukuTransport(
@@ -63,6 +69,11 @@ internal class ShizukuTransport(
         system: ShizukuSystemServices,
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
     ) : this(initializer, shizuku, system as SystemServices, ioDispatcher)
+
+    init {
+        shizuku.addBinderDeadListener { onBinderDead() }
+        shizuku.addBinderReceivedListener { onBinderReceived() }
+    }
 
     override suspend fun acquire(): ChannelState = when (val result = initializer.registerShizuku()) {
         is RegisterShizukuResult.Granted -> identityOfUid(result.uid)?.let { ChannelState.Ready(it) }
@@ -90,6 +101,43 @@ internal class ShizukuTransport(
             if (!shizuku.pingBinder()) throw ChannelLostException(UnavailableReason.NOT_RUNNING, "Shizuku stopped", e)
             throw e
         }
+    }
+
+    private fun onBinderDead() {
+        updateState { current ->
+            if (current is ChannelState.Ready) NOT_RUNNING else current
+        }
+    }
+
+    // Never asks for the permission: a listener must not show a prompt.
+    private fun onBinderReceived() {
+        if (!hasBeenReady) return
+        val next = try {
+            if (shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                identityOfUid(shizuku.getUid())?.let { ChannelState.Ready(it) }
+                    ?: ChannelState.Unavailable(UnavailableReason.FAILED)
+            } else {
+                ChannelState.Unavailable(UnavailableReason.DENIED)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot read the state of the new Shizuku binder")
+            ChannelState.Unavailable(UnavailableReason.FAILED)
+        }
+        if (next !is ChannelState.Ready) Timber.w("Shizuku is back, but the channel stays unavailable: $next")
+        updateState { current ->
+            when {
+                // A ready channel may now run as another uid, or no longer be allowed.
+                current is ChannelState.Ready -> next
+
+                current == NOT_RUNNING && next is ChannelState.Ready -> next
+
+                else -> current
+            }
+        }
+    }
+
+    private companion object {
+        val NOT_RUNNING = ChannelState.Unavailable(UnavailableReason.NOT_RUNNING)
     }
 }
 

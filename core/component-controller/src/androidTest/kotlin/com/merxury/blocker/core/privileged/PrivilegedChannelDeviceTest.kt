@@ -36,7 +36,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.model.system.getOrNull
-import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSetting
+import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.privileged.calls.GetPackageInfo
 import com.merxury.blocker.core.privileged.calls.InstalledPackages
@@ -62,16 +62,6 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
-/**
- * Runs the privileged calls against the real system, as root and as the shell, and reads and
- * changes another user's apps.
- *
- * Arguments: `privilegedRootTest=true` needs su granted to this test package;
- * `privilegedShellTest=true` needs Shizuku started through adb with this package granted, and
- * waits for its binder, which may need a restart of Shizuku once the run has started;
- * `otherUser=<id>` names a started profile or user that has this test package installed, for
- * example after `pm install-existing --user <id> <this package>`.
- */
 private const val TAG = "PrivilegedChannelTest"
 
 private val SHIZUKU_WAIT = 2.minutes
@@ -79,6 +69,17 @@ private val SHIZUKU_WAIT = 2.minutes
 // RootCallReply sends larger outcomes through a pipe.
 private const val PIPED_ABOVE = 64 * 1024
 
+/**
+ * Runs the privileged calls against the real system, as root and as the shell, and reads and
+ * changes another user's apps.
+ *
+ * Arguments: `privilegedRootTest=true` runs the root tests, through su granted to this test
+ * package, or with `rootVia=shizuku` through a Shizuku server running as root;
+ * `privilegedShellTest=true` needs Shizuku started through adb with this package granted, and
+ * waits for its binder, which may need a restart of Shizuku once the run has started;
+ * `otherUser=<id>` names a started profile or user that has this test package installed, for
+ * example after `pm install-existing --user <id> <this package>`.
+ */
 class PrivilegedChannelDeviceTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -96,8 +97,9 @@ class PrivilegedChannelDeviceTest {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) HiddenApiBypass.addHiddenApiExemptions("")
     }
 
-    private fun rootTransport(): RootTransport {
+    private fun rootTransport(): AbstractPrivilegedTransport {
         assumeTrue(arguments.getString("privilegedRootTest") == "true")
+        if (arguments.getString("rootVia") == "shizuku") return shizukuTransport(PrivilegedIdentity.ROOT)
         return RootTransport(BlockerRootSession(context), Dispatchers.IO).also {
             assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), runBlocking { it.connect() })
         }
@@ -105,13 +107,17 @@ class PrivilegedChannelDeviceTest {
 
     private fun shellTransport(): ShizukuTransport {
         assumeTrue(arguments.getString("privilegedShellTest") == "true")
+        return shizukuTransport(PrivilegedIdentity.SHELL)
+    }
+
+    private fun shizukuTransport(expected: PrivilegedIdentity): ShizukuTransport {
         val api = DefaultShizukuApi()
         val initializer = ShizukuInitializer(api)
         // Shizuku hands its binder to a granted app when the server starts, but not reliably to an
         // instrumentation process started later; restarting the server during this wait sends it.
         runBlocking { withTimeout(SHIZUKU_WAIT) { initializer.awaitBinder() } }
         return ShizukuTransport(initializer, api, ShizukuSystemServices(context), Dispatchers.IO).also {
-            assertEquals(ChannelState.Ready(PrivilegedIdentity.SHELL), runBlocking { it.connect() })
+            assertEquals(ChannelState.Ready(expected), runBlocking { it.connect() })
         }
     }
 
@@ -132,6 +138,7 @@ class PrivilegedChannelDeviceTest {
         assertTrue(root.execute(InstalledPackages(otherUser)).value().any { it.packageName == self })
         val settings = root.execute(ComponentEnabledSettings(self, listOf(fixture.className, "$self.NotDeclared"), otherUser)).value()
         assertEquals(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, settings[0])
+        Log.i(TAG, "API ${Build.VERSION.SDK_INT}: a name the app does not declare reads as ${settings[1]}")
         // Android 14 answers DEFAULT for a name the app does not declare; older releases reject it.
         assertTrue(settings[1] == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT || settings[1] == null, "$settings")
     }
@@ -212,15 +219,15 @@ class PrivilegedChannelDeviceTest {
     @Test
     fun givenShell_whenSetAppInOtherUser_thenChangedAndRestored() = runBlocking<Unit> {
         val shell = shellTransport()
-        val read = ApplicationEnabledSetting(self, otherUser)
+        val read = ApplicationEnabledSettings(listOf(self, "$self.not.installed"), otherUser)
         try {
             shell.execute(SetApplicationEnabledSetting(self, PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, otherUser)).value()
 
-            assertEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, shell.execute(read).value())
+            assertEquals(listOf(PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, null), shell.execute(read).value())
         } finally {
             shell.execute(SetApplicationEnabledSetting(self, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, otherUser)).value()
         }
-        assertEquals(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, shell.execute(read).value())
+        assertEquals(listOf(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, null), shell.execute(read).value())
     }
 
     private fun <R> CallResult<R>.value(): R = when (this) {

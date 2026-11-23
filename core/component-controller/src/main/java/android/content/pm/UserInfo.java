@@ -27,6 +27,9 @@ public class UserInfo {
     public String name;
     public int flags;
 
+    /** The id of the full user a profile belongs to; the user's own id or -10000 for a full user. */
+    public int profileGroupId;
+
     public UserInfo(int id, String name, int flags) {
         throw new UnsupportedOperationException();
     }

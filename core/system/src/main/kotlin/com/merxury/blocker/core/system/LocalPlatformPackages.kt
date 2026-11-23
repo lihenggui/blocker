@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
 import android.os.Process
 import android.os.UserManager
@@ -46,7 +45,7 @@ class LocalPlatformPackages @Inject constructor(
     // A uid is userId * 100000 + appId on every Android version.
     private val ownUser = UserId(Process.myUid() / UIDS_PER_USER)
 
-    override fun users(): List<DeviceUser> = listOf(
+    override suspend fun users(): List<DeviceUser> = listOf(
         DeviceUser(
             id = ownUser,
             // Reading the name needs a permission only system apps hold.
@@ -58,7 +57,7 @@ class LocalPlatformPackages @Inject constructor(
     )
 
     @SuppressLint("QueryPermissionsNeeded")
-    override fun installedPackages(user: UserId): List<PackageInfo> {
+    override suspend fun installedPackages(user: UserId): List<PackageInfo> {
         requireOwn(user)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
@@ -69,7 +68,7 @@ class LocalPlatformPackages @Inject constructor(
 
     // Lint does not accept a computed Int as a flag set.
     @SuppressLint("WrongConstant")
-    override fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo {
+    override suspend fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo {
         requireOwn(user)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pm.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
@@ -85,17 +84,20 @@ class LocalPlatformPackages @Inject constructor(
         pm.getPackageArchiveInfo(apkPath, flags)
     }
 
-    override fun applicationEnabledSetting(packageName: String, user: UserId): Int {
+    override suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId): List<Int?> {
         requireOwn(user)
-        return try {
-            pm.getApplicationEnabledSetting(packageName)
-        } catch (e: IllegalArgumentException) {
-            // PackageManager reports an unknown package this way here only.
-            throw NameNotFoundException(packageName).apply { initCause(e) }
+        return packageNames.map { packageName ->
+            try {
+                pm.getApplicationEnabledSetting(packageName).takeIf { it in APP_SETTINGS }
+            } catch (e: IllegalArgumentException) {
+                // How PackageManager reports an app that is not installed.
+                Timber.w(e, "No enabled setting for $packageName")
+                null
+            }
         }
     }
 
-    override fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> {
+    override suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> {
         requireOwn(user)
         // Without this a missing app would look like an app whose settings are all unreadable.
         packageInfo(packageName, 0, user)
@@ -145,6 +147,11 @@ class LocalPlatformPackages @Inject constructor(
             PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+        )
+
+        val APP_SETTINGS = COMPONENT_SETTINGS + setOf(
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED,
         )
     }
 }

@@ -37,8 +37,13 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.model.system.getOrNull
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -130,9 +135,43 @@ class PlatformSystemPackageReaderTest {
     @Test
     fun givenAppRemovedWhileListing_whenReadApps_thenSettingUnknown() = scope.runTest {
         platform.install(OWNER, packageInfo(PKG))
-        platform.appSettingFailure = NameNotFoundException(PKG)
+        platform.unreadableApps += PKG
 
         assertThat(reader.apps(OWNER).getOrNull()!!.single().enabledSetting).isEqualTo(AppEnabledSetting.UNKNOWN)
+    }
+
+    @Test
+    fun givenManyApps_whenReadApps_thenOneBatchRequestForTheirSettings() = scope.runTest {
+        val names = (1..230).map { "com.example$it" }
+        names.forEach { platform.install(OWNER, packageInfo(it)) }
+        platform.appSettings[AppKey(names.last(), OWNER)] = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+
+        val apps = reader.apps(OWNER).getOrNull()!!
+
+        assertThat(platform.appSettingRequests).containsExactly(names)
+        assertThat(apps.last().enabledSetting).isEqualTo(AppEnabledSetting.DISABLED)
+    }
+
+    @Test
+    fun whenReadOneApp_thenBatchOfOne() = scope.runTest {
+        platform.install(OWNER, packageInfo(PKG))
+
+        reader.app(AppKey(PKG, OWNER))
+
+        assertThat(platform.appSettingRequests).containsExactly(listOf(PKG))
+    }
+
+    @Test
+    fun givenReadInFlight_whenCancelled_thenPlatformCallCancelledAndNotTakenForAFailure() = scope.runTest {
+        platform.install(OWNER, fullPackage())
+        platform.hang = true
+
+        val read = launch { reader.declarations(AppKey(PKG, OWNER)) }
+        runCurrent()
+        read.cancelAndJoin()
+
+        assertThat(platform.cancelledCalls).isEqualTo(1)
+        assertThat(platform.flagsRequested).isEmpty()
     }
 
     @Test
@@ -384,7 +423,12 @@ private class FakePlatformPackages : PlatformPackages {
     val archives = mutableMapOf<String, PackageInfo>()
     val archivePathsParsed = mutableListOf<String>()
     val flagsRequested = mutableListOf<Int>()
-    var appSettingFailure: Exception? = null
+    val unreadableApps = mutableSetOf<String>()
+
+    /** Every packageInfo call waits until it is cancelled. */
+    var hang = false
+    var cancelledCalls = 0
+    val appSettingRequests = mutableListOf<List<String>>()
     var maxTypesPerCall = 4
     var dead = false
 
@@ -394,18 +438,26 @@ private class FakePlatformPackages : PlatformPackages {
         installed.getOrPut(user) { mutableMapOf() }[info.packageName] = info
     }
 
-    override fun users(): List<DeviceUser> {
+    override suspend fun users(): List<DeviceUser> {
         checkAlive()
         return users
     }
 
-    override fun installedPackages(user: UserId): List<PackageInfo> {
+    override suspend fun installedPackages(user: UserId): List<PackageInfo> {
         check(user)
         return installed[user].orEmpty().values.toList()
     }
 
-    override fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo {
+    override suspend fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo {
         check(user)
+        if (hang) {
+            try {
+                awaitCancellation()
+            } catch (e: CancellationException) {
+                cancelledCalls++
+                throw e
+            }
+        }
         val info = installed[user]?.get(packageName) ?: throw NameNotFoundException(packageName)
         val types = listOf(
             PackageManager.GET_ACTIVITIES,
@@ -431,13 +483,19 @@ private class FakePlatformPackages : PlatformPackages {
         return archives[apkPath]
     }
 
-    override fun applicationEnabledSetting(packageName: String, user: UserId): Int {
+    override suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId): List<Int?> {
         check(user)
-        appSettingFailure?.let { throw it }
-        return appSettings[AppKey(packageName, user)] ?: PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+        appSettingRequests.add(packageNames)
+        return packageNames.map { packageName ->
+            if (packageName in unreadableApps || installed[user]?.get(packageName) == null) {
+                null
+            } else {
+                appSettings[AppKey(packageName, user)] ?: PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+            }
+        }
     }
 
-    override fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> {
+    override suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> {
         check(user)
         if (installed[user]?.get(packageName) == null) throw NameNotFoundException(packageName)
         componentSettingRequests.add(classNames)

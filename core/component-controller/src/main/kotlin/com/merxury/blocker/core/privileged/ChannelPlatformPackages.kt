@@ -46,17 +46,17 @@ internal class ChannelPlatformPackages(
     private val active: PlatformPackages
         get() = if (channel.state.value is ChannelState.Ready) privileged else local
 
-    override fun users(): List<DeviceUser> = active.users()
+    override suspend fun users(): List<DeviceUser> = active.users()
 
-    override fun installedPackages(user: UserId): List<PackageInfo> = active.installedPackages(user)
+    override suspend fun installedPackages(user: UserId): List<PackageInfo> = active.installedPackages(user)
 
-    override fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo = active.packageInfo(packageName, flags, user)
+    override suspend fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo = active.packageInfo(packageName, flags, user)
 
     override fun archiveInfo(apkPath: String, flags: Int): PackageInfo? = local.archiveInfo(apkPath, flags)
 
-    override fun applicationEnabledSetting(packageName: String, user: UserId): Int = active.applicationEnabledSetting(packageName, user)
+    override suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId): List<Int?> = active.applicationEnabledSettings(packageNames, user)
 
-    override fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> = active.componentEnabledSettings(packageName, classNames, user)
+    override suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> = active.componentEnabledSettings(packageName, classNames, user)
 
     override fun label(application: ApplicationInfo): String = local.label(application)
 }

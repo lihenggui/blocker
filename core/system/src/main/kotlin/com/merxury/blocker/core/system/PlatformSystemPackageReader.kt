@@ -56,17 +56,21 @@ class PlatformSystemPackageReader @Inject constructor(
 
     override suspend fun apps(user: UserId): ReadResult<List<InstalledApp>> = read("apps of user ${user.value}") {
         val packages = platform.installedPackages(user)
+        val settings = platform.applicationEnabledSettings(packages.map { it.packageName }, user)
+        check(settings.size == packages.size) { "${settings.size} settings for ${packages.size} apps of user ${user.value}" }
         ReadResult.Success(
-            packages.map { info ->
+            packages.zip(settings) { info, setting ->
                 coroutineContext.ensureActive()
-                info.toInstalledApp(user)
+                info.toInstalledApp(user, setting)
             },
         )
     }
 
     override suspend fun app(key: AppKey): ReadResult<InstalledApp> = read("app $key") {
         try {
-            ReadResult.Success(platform.packageInfo(key.packageName, 0, key.userId).toInstalledApp(key.userId))
+            val info = platform.packageInfo(key.packageName, 0, key.userId)
+            val setting = platform.applicationEnabledSettings(listOf(info.packageName), key.userId).singleOrNull()
+            ReadResult.Success(info.toInstalledApp(key.userId, setting))
         } catch (e: NameNotFoundException) {
             ReadResult.Failure(ReadFailure.PackageNotFound(key))
         }
@@ -123,15 +127,17 @@ class PlatformSystemPackageReader @Inject constructor(
      * Returns null when the answer does not fit in one binder transaction, which happens for
      * apps with thousands of components.
      */
-    private fun componentsInOneCall(app: AppKey): PackageInfo? = try {
+    private suspend fun componentsInOneCall(app: AppKey): PackageInfo? = try {
         platform.packageInfo(app.packageName, ALL_COMPONENTS or MATCH_DISABLED, app.userId)
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: RuntimeException) {
         Timber.w(e, "Cannot read the components of $app in one call")
         null
     }
 
     /** One call per component type, each a smaller transaction. Null when one still fails. */
-    private fun componentsByType(app: AppKey): PackageInfo? = try {
+    private suspend fun componentsByType(app: AppKey): PackageInfo? = try {
         val merged = PackageInfo()
         merged.packageName = app.packageName
         merged.activities = platform.packageInfo(app.packageName, GET_ACTIVITIES, app.userId).activities
@@ -139,6 +145,8 @@ class PlatformSystemPackageReader @Inject constructor(
         merged.receivers = platform.packageInfo(app.packageName, GET_RECEIVERS, app.userId).receivers
         merged.providers = platform.packageInfo(app.packageName, GET_PROVIDERS, app.userId).providers
         merged
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: RuntimeException) {
         Timber.w(e, "Cannot read the components of $app by type")
         null
@@ -148,7 +156,7 @@ class PlatformSystemPackageReader @Inject constructor(
      * Parses the base APK in this process, which has no transaction limit. If the system does not
      * answer here either, the [RuntimeException] reaches [read].
      */
-    private fun componentsFromApk(app: AppKey): PackageInfo? {
+    private suspend fun componentsFromApk(app: AppKey): PackageInfo? {
         val apkPath = platform.packageInfo(app.packageName, 0, app.userId).applicationInfo?.sourceDir
         if (apkPath == null) {
             Timber.e("No APK path for $app")
@@ -170,7 +178,7 @@ class PlatformSystemPackageReader @Inject constructor(
         else -> PmSetting.UNKNOWN
     }
 
-    private fun PackageInfo.toInstalledApp(user: UserId): InstalledApp {
+    private fun PackageInfo.toInstalledApp(user: UserId, enabledSetting: Int?): InstalledApp {
         val application: ApplicationInfo? = applicationInfo
         return InstalledApp(
             key = AppKey(packageName, user),
@@ -178,7 +186,7 @@ class PlatformSystemPackageReader @Inject constructor(
             versionName = versionName.orEmpty(),
             versionCode = getVersionCode(),
             isSystem = application != null && application.flags and ApplicationInfo.FLAG_SYSTEM != 0,
-            enabledSetting = appEnabledSetting(packageName, user),
+            enabledSetting = enabledSetting.toAppEnabledSetting(),
             apkPath = application?.sourceDir,
             firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
             lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
@@ -187,19 +195,19 @@ class PlatformSystemPackageReader @Inject constructor(
         )
     }
 
-    private fun appEnabledSetting(packageName: String, user: UserId): AppEnabledSetting = try {
-        when (platform.applicationEnabledSetting(packageName, user)) {
-            PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> AppEnabledSetting.DEFAULT
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> AppEnabledSetting.ENABLED
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> AppEnabledSetting.DISABLED
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER -> AppEnabledSetting.DISABLED_USER
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED -> AppEnabledSetting.DISABLED_UNTIL_USED
-            else -> AppEnabledSetting.UNKNOWN
-        }
-    } catch (e: NameNotFoundException) {
-        // The app was removed between listing it and asking for its setting.
-        Timber.w(e, "No enabled setting for $packageName")
-        AppEnabledSetting.UNKNOWN
+    private fun Int?.toAppEnabledSetting(): AppEnabledSetting = when (this) {
+        PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> AppEnabledSetting.DEFAULT
+
+        PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> AppEnabledSetting.ENABLED
+
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> AppEnabledSetting.DISABLED
+
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER -> AppEnabledSetting.DISABLED_USER
+
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED -> AppEnabledSetting.DISABLED_UNTIL_USED
+
+        // Unreadable, for example because the app was removed after it was listed.
+        else -> AppEnabledSetting.UNKNOWN
     }
 
     private fun PackageInfo.declarations(packageName: String): List<ComponentDeclaration> = activities.declarations(packageName, ComponentType.ACTIVITY) +
