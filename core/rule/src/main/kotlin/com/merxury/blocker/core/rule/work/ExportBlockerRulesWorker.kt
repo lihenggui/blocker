@@ -26,6 +26,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.BlockerRuleExporter
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -57,7 +58,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
             includeSystemApps = inputData.getBoolean(PARAM_BACKUP_SYSTEM_APPS, false),
         ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Backed up Blocker rules: $result")
-        return result.toWorkResult(PARAM_BACKUP_COUNT) { it.apps }
+        return result.toWorkResult(PARAM_BACKUP_COUNT) { it.changedCount(RuleWorkType.EXPORT_BLOCKER_RULES) }
     }
 
     companion object {

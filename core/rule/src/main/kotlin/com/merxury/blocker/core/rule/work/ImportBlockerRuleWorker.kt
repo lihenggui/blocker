@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.BackupSet
 import com.merxury.blocker.core.rule.backup.BlockerRuleImporter
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -62,11 +63,11 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Restored Blocker rules: $result")
         legacyCache.refreshAfter(result, target)
-        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.apps }
+        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_BLOCKER_RULES) }
     }
 
     companion object {
-        /** Output: the apps whose state the restore changed. */
+        /** Output: the components whose state the restore changed. */
         const val PARAM_IMPORT_COUNT = "param_import_count"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"

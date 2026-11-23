@@ -24,7 +24,8 @@ import com.merxury.blocker.core.rule.R
  * What a screen tells the user about a rule work.
  *
  * @property result a [RuleWorkResult] code
- * @property changed items a work that finished changed, such as backup files written
+ * @property changed items a work that finished changed: backup files written by a backup,
+ * components changed by an import or a reset, rules added by an Intent Firewall import
  * @property skipped items it left alone on purpose
  * @property failed items it could not do
  * @property firewallUnavailable whether it could not reach the Intent Firewall rules at all

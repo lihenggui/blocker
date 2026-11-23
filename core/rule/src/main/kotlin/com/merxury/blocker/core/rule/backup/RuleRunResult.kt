@@ -31,10 +31,13 @@ sealed interface RuleRunResult {
 
 /** Why an item was left alone on purpose. Each reason says what it counts. */
 enum class SkipReason {
-    /** The app is not installed for the user, or for any user for Intent Firewall rules. Counts files, or components in a MAT import. */
+    /**
+     * The app is not installed for the user, or for any user for Intent Firewall rules. Counts
+     * components in a Blocker rule import, a MAT import and a reset, files in an Intent Firewall import.
+     */
     APP_NOT_INSTALLED,
 
-    /** A system app while system apps are left out. Counts apps or files, or components in a MAT import. */
+    /** A system app while system apps are left out. Counts apps in a backup, files in an Intent Firewall import, components otherwise. */
     SYSTEM_APP,
 
     /** The app declares no component, so it has nothing to back up. Counts apps. */
@@ -57,7 +60,7 @@ enum class SkipReason {
      * A file, entry or rule that would act on another app than the one it is restored for: a
      * Blocker rule file or entry naming another package than the file's, or in a restore of one
      * app, an Intent Firewall rule naming another app's component or selecting by intent. Counts
-     * files, entries or rules.
+     * components, one per entry, in a Blocker rule import, rules in an Intent Firewall import.
      */
     OTHER_APP,
 }
@@ -92,9 +95,13 @@ enum class FailureReason {
 /**
  * What a run did.
  *
+ * A backup counts files written in [apps]; every run that changes the system counts in [applied]:
+ * components a Blocker rule import, a MAT import or a reset changed, rules an Intent Firewall import
+ * added. Skips and failures count in the unit their reason names.
+ *
  * @property apps apps whose backup file was written, or whose state or rules were changed, and
  * rule files of a user's own that were restored
- * @property applied entries written to backups, or entries, rules or components applied
+ * @property applied entries written to backups, or components changed, or rules added
  * @property unchanged entries or rules that already were as the backup says
  * @property skipped items left alone on purpose, by reason
  * @property failed items that could not be done, by reason

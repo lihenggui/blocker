@@ -25,6 +25,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.IfwRuleImporter
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -56,11 +57,11 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         Timber.i("Restored IFW rules: $result")
         // The rules apply to every user, so the list of the user Blocker runs in changes too.
         legacyCache.refreshAfter(result, user = null)
-        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.apps }
+        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_IFW_RULES) }
     }
 
     companion object {
-        /** Output: the packages whose rules the restore changed. */
+        /** Output: the rules the restore added, each blocking components, and the files of a user's own it restored. */
         const val PARAM_IMPORT_COUNT = "param_import_count"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"

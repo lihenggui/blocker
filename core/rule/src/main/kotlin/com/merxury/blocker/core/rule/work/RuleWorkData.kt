@@ -29,6 +29,7 @@ import com.merxury.blocker.core.rule.backup.RuleRunResult
 import com.merxury.blocker.core.rule.backup.RuleRunSummary
 import com.merxury.blocker.core.rule.backup.SkipReason
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.util.DocumentTreeBackupStorage
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -72,6 +73,21 @@ internal fun openBackupFolder(context: Context, path: String?, ioDispatcher: Cor
 
 /** A failed work's result with only [code]. */
 internal fun failureOf(code: Int): ListenableWorker.Result = ListenableWorker.Result.failure(workDataOf(RuleWorkResult.PARAM_WORK_RESULT to code))
+
+/**
+ * What a work of [type] reports as changed: the backup files a backup wrote, the components an
+ * import, a MAT import or a reset changed, the rules an Intent Firewall import added.
+ */
+internal fun RuleRunSummary.changedCount(type: RuleWorkType): Int = when (type) {
+    RuleWorkType.EXPORT_BLOCKER_RULES, RuleWorkType.EXPORT_IFW_RULES -> apps
+
+    RuleWorkType.IMPORT_BLOCKER_RULES,
+    RuleWorkType.IMPORT_IFW_RULES,
+    RuleWorkType.IMPORT_MAT_RULES,
+    RuleWorkType.RESET_PM,
+    RuleWorkType.RESET_IFW,
+    -> applied
+}
 
 /**
  * The work result for [this] run. A run that could not start for want of the backup folder or of

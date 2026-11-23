@@ -24,6 +24,7 @@ import androidx.work.WorkerParameters
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.PackageManagerReset
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -45,7 +46,7 @@ class ResetPmWorker @AssistedInject constructor(
         val result = reset.reset(user) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Reset PM settings: $result")
         legacyCache.refreshAfter(result, user)
-        return result.toWorkResult(PARAM_RESTORED_COUNT) { it.applied }
+        return result.toWorkResult(PARAM_RESTORED_COUNT) { it.changedCount(RuleWorkType.RESET_PM) }
     }
 
     companion object {

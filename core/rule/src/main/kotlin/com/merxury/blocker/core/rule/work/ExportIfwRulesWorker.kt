@@ -25,6 +25,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.IfwRuleExporter
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -51,7 +52,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
             packageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
         ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Backed up IFW rules: $result")
-        return result.toWorkResult(PARAM_EXPORT_COUNT) { it.apps }
+        return result.toWorkResult(PARAM_EXPORT_COUNT) { it.changedCount(RuleWorkType.EXPORT_IFW_RULES) }
     }
 
     companion object {

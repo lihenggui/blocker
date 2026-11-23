@@ -52,6 +52,9 @@ import javax.inject.Inject
  * A file is for the app it is named after, `<package>.json`, and is applied to that app only: a
  * file whose `packageName` differs is skipped whole, and an entry naming another package is
  * skipped, both as [SkipReason.OTHER_APP].
+ *
+ * Counts are of components, one per entry: a file skipped whole counts its entries. Only a file
+ * that cannot be read counts once, as a file, and an app whose state cannot be read once, as an app.
  */
 class BlockerRuleImporter @Inject constructor(
     private val installedApps: InstalledAppRepository,
@@ -95,15 +98,16 @@ class BlockerRuleImporter @Inject constructor(
             val rule = readRule(storage, path, summary) ?: return@forEachIndexed
             // The file is for the package it is named after, which is the selected app for one.
             val filePackage = path.substringAfterLast('/').removeSuffix(BLOCKER_RULE_EXTENSION)
+            val entries = rule.components.size
             if (rule.packageName != filePackage) {
                 Timber.w("The backup $path names ${rule.packageName}, leave it")
-                summary.skip(SkipReason.OTHER_APP)
+                summary.skip(SkipReason.OTHER_APP, entries)
                 return@forEachIndexed
             }
             val app = apps[filePackage]
             when {
-                app == null -> summary.skip(SkipReason.APP_NOT_INSTALLED)
-                packageName == null && app.isSystem && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP)
+                app == null -> summary.skip(SkipReason.APP_NOT_INSTALLED, entries)
+                packageName == null && app.isSystem && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP, entries)
                 else -> importRule(rule, app, summary)
             }
         }
@@ -144,7 +148,7 @@ class BlockerRuleImporter @Inject constructor(
             is ReadResult.Success -> read.value
 
             is ReadResult.Failure -> {
-                if (read.reason is ReadFailure.PackageNotFound) summary.skip(SkipReason.APP_NOT_INSTALLED) else summary.fail(FailureReason.STATE_UNREADABLE)
+                if (read.reason is ReadFailure.PackageNotFound) summary.skip(SkipReason.APP_NOT_INSTALLED, rule.components.size) else summary.fail(FailureReason.STATE_UNREADABLE)
                 return
             }
         }

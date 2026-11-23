@@ -30,6 +30,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.MatRuleImporter
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -63,7 +64,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
         ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Imported MAT rules: $result")
         legacyCache.refreshAfter(result, target)
-        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.applied }
+        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_MAT_RULES) }
     }
 
     /** The lines of the file at [uri], or null when it cannot be opened or read. */

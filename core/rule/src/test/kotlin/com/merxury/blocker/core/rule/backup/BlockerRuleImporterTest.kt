@@ -160,6 +160,21 @@ class BlockerRuleImporterTest {
     }
 
     @Test
+    fun givenFourComponentsOfOneAppAndFilesSkippedWhole_whenImporting_thenComponentsAreCounted() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        components.sendComponents(OWNER, allRunnable)
+        storage.putFile("$APP.json", rule(entry(BOOT, false, "PM"), entry(SYNC, false, "PM"), entry(MAIN, false, "IFW"), entry(DATA, false, "PM")))
+        storage.putFile("com.gone.json", rule(entry(declaration("A", SYNC.type, "com.gone"), false, "PM"), entry(declaration("B", SYNC.type, "com.gone"), false, "PM"), packageName = "com.gone"))
+        storage.putFile("com.named.json", rule(entry(BOOT, false, "PM"), entry(SYNC, false, "PM"), entry(MAIN, false, "PM")))
+
+        val result = importer.import(storage, BackupSet.OWNER, OWNER)
+
+        assertThat(result.summary.applied).isEqualTo(4)
+        assertThat(result.summary.apps).isEqualTo(1)
+        assertThat(result.summary.skipped).containsExactly(SkipReason.APP_NOT_INSTALLED, 2, SkipReason.OTHER_APP, 3)
+    }
+
+    @Test
     fun givenRefusedComponent_whenImporting_thenItCountsAsFailedForPrivilegeAndOthersApply() = runTest {
         installedApps.sendApps(listOf(installedApp()))
         components.sendComponents(OWNER, listOf(status(BOOT), status(SYNC)))

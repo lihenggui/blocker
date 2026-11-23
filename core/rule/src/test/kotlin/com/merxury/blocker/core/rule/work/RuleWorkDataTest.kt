@@ -42,7 +42,10 @@ import com.merxury.blocker.core.rule.backup.PackageManagerReset
 import com.merxury.blocker.core.rule.backup.RuleRunResult
 import com.merxury.blocker.core.rule.backup.RuleRunSummary
 import com.merxury.blocker.core.rule.backup.SkipReason
+import com.merxury.blocker.core.rule.entity.RuleWorkEvent
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
+import com.merxury.blocker.core.rule.entity.RuleWorkType
+import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.testing.controller.FakeIntentFirewall
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
@@ -63,6 +66,24 @@ class RuleWorkDataTest {
     }
 
     private fun completed(summary: RuleRunSummary) = RuleRunResult.Completed(summary).toWorkResult("param_import_count") { it.apps }
+
+    @Test
+    fun givenRunThatChangedFourComponentsOfOneApp_whenReported_thenImportsAndResetsCountComponentsAndBackupsFiles() {
+        val summary = RuleRunSummary(apps = 1, applied = 4)
+        val resources = ApplicationProvider.getApplicationContext<Context>().resources
+
+        fun message(type: RuleWorkType): String? {
+            val changed = RuleRunResult.Completed(summary).toWorkResult("k") { it.changedCount(type) }.output().getInt(RuleWorkResult.PARAM_CHANGED_COUNT, -1)
+            return RuleWorkEvent(type, RuleWorkResult.FINISHED, changed = changed).resultMessage(resources)
+        }
+
+        for (type in listOf(RuleWorkType.IMPORT_BLOCKER_RULES, RuleWorkType.IMPORT_MAT_RULES, RuleWorkType.IMPORT_IFW_RULES, RuleWorkType.RESET_PM)) {
+            assertThat(message(type)).isEqualTo("Done. 4 items changed.")
+        }
+        for (type in listOf(RuleWorkType.EXPORT_BLOCKER_RULES, RuleWorkType.EXPORT_IFW_RULES)) {
+            assertThat(message(type)).isEqualTo("Done. 1 item changed.")
+        }
+    }
 
     @Test
     fun givenRunThatCouldNotStart_whenMapping_thenStorageAndPrivilegeGetTheirCodesAndOthersAFailedCount() {
