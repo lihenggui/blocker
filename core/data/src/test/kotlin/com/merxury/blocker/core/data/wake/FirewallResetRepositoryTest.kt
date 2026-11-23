@@ -25,14 +25,15 @@ private const val WAKE_FILE = "blocker-managed-wake"
 class FirewallResetRepositoryTest {
     private val authorization = mock<WakeAuthorizationRepository>()
     private val wakeResets = mutableListOf<Pair<String?, WakeResetTransport>>()
+    private val files = FakeIfwFileSystem()
 
-    /** Whether the wake feature reports package rule files left after resetting its own. */
-    private var manualRulesRemain = true
+    /** The package file operations done before the wake feature reset its files. */
+    private var operationsBeforeWakeReset: List<String>? = null
     private val managed = ManagedWakeReset { target, transport ->
         wakeResets += target to transport
-        manualRulesRemain
+        operationsBeforeWakeReset = files.operations.toList()
+        true
     }
-    private val files = FakeIfwFileSystem()
     private val firewall = mock<IIntentFirewall>()
     private val repository = FirewallResetRepository(
         authorization,
@@ -42,15 +43,44 @@ class FirewallResetRepositoryTest {
     )
 
     @Test
-    fun givenWakeAccessAndNoPackageFiles_whenReset_thenOnlyWakeRulesReset() = runTest {
+    fun givenWakeAccessAndNoPackageFiles_whenReset_thenZeroAndWakeRulesReset() = runTest {
         whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.SHIZUKU_ROOT)
-        manualRulesRemain = false
 
         assertThat(repository.reset(null) { _, _, _ -> error("unexpected package file deletion") }).isEqualTo(0)
 
         assertThat(wakeResets).containsExactly(null to WakeResetTransport.SHIZUKU_ROOT)
-        assertThat(files.operations).isEmpty()
+        assertThat(files.operations).containsExactly("list")
         verify(firewall).resetCache()
+    }
+
+    @Test
+    fun givenGrantObtainedWhileDeletingPackageFiles_whenReset_thenWakeFilesResetToo() = runTest {
+        // Like Shizuku: the wake feature can reach its files only once the store has connected.
+        whenever(authorization.resetTransport()).thenAnswer { if (files.operations.isEmpty()) null else WakeResetTransport.SHIZUKU_ROOT }
+        files.putFile("a.pkg", VALID_XML)
+
+        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(1)
+
+        assertThat(wakeResets).containsExactly(null to WakeResetTransport.SHIZUKU_ROOT)
+        assertThat(operationsBeforeWakeReset).containsExactly("list", "delete a.pkg").inOrder()
+    }
+
+    @Test
+    fun givenCustomNamedFiles_whenResetAll_thenKeptWhileDamagedPackageFileDeleted() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.DIRECT_ROOT)
+        files.putFile("b.pkg", DAMAGED_XML)
+        files.putFile("android", VALID_XML)
+        files.putFile("my-rules", VALID_XML)
+        files.putFile("my rules", VALID_XML)
+        files.putFile("1st", VALID_XML)
+
+        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(2)
+
+        assertThat(files.fileContent("b.pkg")).isNull()
+        assertThat(files.fileContent("android")).isNull()
+        assertThat(files.fileContent("my-rules")).isEqualTo(VALID_XML)
+        assertThat(files.fileContent("my rules")).isEqualTo(VALID_XML)
+        assertThat(files.fileContent("1st")).isEqualTo(VALID_XML)
     }
 
     @Test
@@ -70,6 +100,7 @@ class FirewallResetRepositoryTest {
         assertThat(files.fileContent(WAKE_FILE)).isEqualTo(VALID_XML)
         assertThat(files.operations).containsExactly("list", "delete a.pkg", "delete b.pkg").inOrder()
         assertThat(wakeResets).containsExactly(null to WakeResetTransport.DIRECT_ROOT)
+        assertThat(operationsBeforeWakeReset).containsExactly("list", "delete a.pkg", "delete b.pkg").inOrder()
         verify(firewall).resetCache()
     }
 
@@ -132,11 +163,12 @@ class FirewallResetRepositoryTest {
         assertThat(result.exceptionOrNull()).isInstanceOf(IOException::class.java)
         assertThat(files.fileContent("a.pkg")).isNull()
         assertThat(files.fileContent("b.pkg")).isEqualTo(VALID_XML)
+        assertThat(wakeResets).containsExactly(null to WakeResetTransport.DIRECT_ROOT)
         verify(firewall).resetCache()
     }
 
     @Test
-    fun givenNoAccess_whenReset_thenWakeResetStillRanFirst() = runTest {
+    fun givenNoAccess_whenReset_thenNullAndWakeFilesStillReset() = runTest {
         whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.SHIZUKU_ROOT)
         files.noAccess = true
 
