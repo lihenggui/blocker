@@ -34,9 +34,11 @@ class FirewallResetRepository @Inject constructor(
      * Resets the rules of the package [target], or every rule file when null, reporting each
      * file with [onDelete] (rule file name, position from 1, count) before deleting it.
      *
-     * Returns the number of rule files removed, or null when the rule directory cannot be reached
-     * through the chosen channel. Throws [IOException] when deleting a file fails; files deleted
-     * before it stay deleted. The wake feature's files are reset in every case.
+     * Returns the number of rule files removed. Returns null when the rule directory cannot be
+     * reached through the chosen channel, unless the wake feature, reaching it on its own, reports
+     * that no rule file in scope remains, which leaves nothing to reset. Throws [IOException]
+     * when deleting a file fails; files deleted before it stay deleted. The wake feature's files
+     * are reset in every case.
      */
     suspend fun reset(target: String?, onDelete: suspend (String, Int, Int) -> Unit): Int? {
         try {
@@ -54,8 +56,10 @@ class FirewallResetRepository @Inject constructor(
                 }
                 throw e
             }
-            resetWakeFiles(target)
-            return removed
+            val rulesRemain = resetWakeFiles(target)
+            // Without access the rule files may still be gone: the wake feature reaches the
+            // directory on its own and reports what remains.
+            return removed ?: if (rulesRemain == false) 0 else null
         } finally {
             // Screens not yet cut over to IfwStore still read through IIntentFirewall and its
             // cache; drop this once that cutover is done.
@@ -87,9 +91,9 @@ class FirewallResetRepository @Inject constructor(
         return removed
     }
 
-    // Without its own access the wake feature cannot have written files. Its answer, whether
-    // rule files remain, no longer matters: they are already gone.
-    private suspend fun resetWakeFiles(target: String?) {
-        authorization.resetTransport()?.let { managed.resetFirewall(target, it) }
-    }
+    /**
+     * Resets the wake feature's files and returns whether rule files in scope remain, as it sees
+     * them, or null when it cannot reach its files; then it cannot have written any.
+     */
+    private suspend fun resetWakeFiles(target: String?): Boolean? = authorization.resetTransport()?.let { managed.resetFirewall(target, it) }
 }

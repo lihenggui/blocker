@@ -32,10 +32,12 @@ class FirewallResetRepositoryTest {
     /** The package file operations done before the wake feature reset its files. */
     private var operationsBeforeWakeReset: List<String>? = null
 
+    /** What the wake feature reports after resetting its files: whether rule files in scope remain. */
+    private var rulesRemainAfterWakeReset = true
     private val managed = ManagedWakeReset { target, transport ->
         wakeResets += target to transport
         operationsBeforeWakeReset = files.operations.toList()
-        true
+        rulesRemainAfterWakeReset
     }
     private val firewall = mock<IIntentFirewall>()
     private val repository = FirewallResetRepository(
@@ -183,7 +185,7 @@ class FirewallResetRepositoryTest {
     }
 
     @Test
-    fun givenNoAccess_whenReset_thenNullAndWakeFilesStillReset() = runTest {
+    fun givenNoAccessAndRuleFilesRemain_whenReset_thenNullAndWakeFilesStillReset() = runTest {
         whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.SHIZUKU_ROOT)
         files.noAccess = true
 
@@ -192,5 +194,25 @@ class FirewallResetRepositoryTest {
 
         assertThat(wakeResets).containsExactly("a.pkg" to WakeResetTransport.SHIZUKU_ROOT, null to WakeResetTransport.SHIZUKU_ROOT).inOrder()
         verify(firewall, times(2)).resetCache()
+    }
+
+    @Test
+    fun givenNoAccessButWakeResetLeavesNoRuleFiles_whenReset_thenSuccess() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(WakeResetTransport.SHIZUKU_ROOT)
+        files.noAccess = true
+        rulesRemainAfterWakeReset = false
+
+        assertThat(repository.reset("a.pkg") { _, _, _ -> }).isEqualTo(0)
+        assertThat(repository.reset(null) { _, _, _ -> }).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNoAccessAndNoWakeReset_whenReset_thenNull() = runTest {
+        whenever(authorization.resetTransport()).thenReturn(null)
+        files.noAccess = true
+        rulesRemainAfterWakeReset = false
+
+        assertThat(repository.reset(null) { _, _, _ -> }).isNull()
+        assertThat(wakeResets).isEmpty()
     }
 }
