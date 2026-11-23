@@ -35,12 +35,6 @@ enum class PrivilegedIdentity {
     SHELL,
     ;
 
-    /**
-     * Whether the PackageManager setting of a single component can be changed. The shell may
-     * change whole apps but not components.
-     */
-    val canChangeComponents: Boolean get() = this != SHELL
-
     /** Whether files under `/data/system`, such as Intent Firewall rules, can be written. */
     val canWriteSystemFiles: Boolean get() = this != SHELL
 }

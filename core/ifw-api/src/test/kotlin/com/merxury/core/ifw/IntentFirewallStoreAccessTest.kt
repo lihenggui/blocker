@@ -102,6 +102,40 @@ class IntentFirewallStoreAccessTest {
     }
 
     @Test
+    fun givenUnparseableFile_whenRuleFileText_thenReturnsTheContentAsStored() = runTest {
+        fileSystem.putFile(PKG, UNKNOWN_ELEMENT_XML)
+
+        assertThat(store.ruleFileText(PKG)).isEqualTo(IfwResult.Success(UNKNOWN_ELEMENT_XML))
+        assertThat(store.ruleFileText("com.missing")).isEqualTo(IfwResult.Success(null))
+        assertThat(fileSystem.operations).containsExactly("read $PKG", "read com.missing").inOrder()
+    }
+
+    @Test
+    fun givenUnreadableFileOrNoAccess_whenRuleFileText_thenTypedFailure() = runTest {
+        fileSystem.putFile("com.locked", "<rules />")
+        fileSystem.unreadablePackages += "com.locked"
+
+        assertThat(store.ruleFileText("com.locked")).isEqualTo(IfwResult.Failure(IfwFailure.Unreadable("com.locked")))
+        fileSystem.noAccess = true
+        assertThat(store.ruleFileText(PKG)).isEqualTo(IfwResult.Failure(IfwFailure.NoAccess))
+    }
+
+    @Test
+    fun givenOwnFileName_whenRestoreRuleFile_thenWrittenAsGivenOnlyWhenAbsent() = runTest {
+        fileSystem.putFile("kept-rules", "on the device")
+
+        assertThat(store.restoreRuleFile("my-rules", UNKNOWN_ELEMENT_XML)).isEqualTo(IfwResult.Success(true))
+        assertThat(store.restoreRuleFile("kept-rules", LEGACY_XML)).isEqualTo(IfwResult.Success(false))
+
+        assertThat(fileSystem.fileContent("my-rules")).isEqualTo(UNKNOWN_ELEMENT_XML)
+        assertThat(fileSystem.fileContent("kept-rules")).isEqualTo("on the device")
+        // A name that looks like a package is just a name here.
+        assertThat(store.restoreRuleFile("privacy.rules", LEGACY_XML)).isEqualTo(IfwResult.Success(true))
+        assertThat(fileSystem.fileContent("privacy.rules")).isEqualTo(LEGACY_XML)
+        assertThrows(IllegalArgumentException::class.java) { runBlocking { store.restoreRuleFile("../escape", LEGACY_XML) } }
+    }
+
+    @Test
     fun givenNotConnected_whenBlocks_thenUnknownWithoutConnecting() = runTest {
         fileSystem.putFile(PKG, LEGACY_XML)
         fileSystem.connected = false

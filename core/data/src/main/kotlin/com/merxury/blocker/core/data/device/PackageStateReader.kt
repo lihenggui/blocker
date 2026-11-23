@@ -44,11 +44,15 @@ import javax.inject.Inject
  * @property pmSettings the settings read for the user, or null when they could not be read
  * @property pmFailure why the settings of the app's components are not known: their read failed, or
  * there were no declarations to read them for
+ * @property declarationsCurrent whether the settings were read for the app's current declarations:
+ * read now, or cached for its current version. False when the app or its declarations could not be
+ * read and the cached ones were used.
  */
 internal data class PackageRefresh(
     val failures: List<ReadFailure>,
     val pmSettings: Map<ComponentId, PmSetting>?,
     val pmFailure: ReadFailure?,
+    val declarationsCurrent: Boolean = false,
 ) {
     val removed: Boolean get() = failures.any { it is ReadFailure.PackageNotFound }
 
@@ -108,6 +112,7 @@ internal class PackageStateReader @Inject constructor(
             null
         }
         val declarations = fresh ?: cached
+        val declarationsCurrent = app != null && failures.isEmpty()
         var pmFailure: ReadFailure? = if (declarations.isEmpty()) failures.lastOrNull() else null
         val pm = if (declarations.isEmpty()) {
             emptyMap()
@@ -141,7 +146,7 @@ internal class PackageStateReader @Inject constructor(
             Timber.i("$packageName was removed from the cache while it was read")
             return PackageRefresh.removed(key)
         }
-        return PackageRefresh(failures, pm, pmFailure)
+        return PackageRefresh(failures, pm, pmFailure, declarationsCurrent)
     }
 
     /** Re-reads the firewall state of the cached declarations of [packageName] and stores it. */

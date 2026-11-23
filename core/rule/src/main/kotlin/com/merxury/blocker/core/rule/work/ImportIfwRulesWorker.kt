@@ -21,129 +21,47 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.controllers.di.IfwControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
-import com.merxury.blocker.core.rule.util.StorageUtil
-import com.merxury.blocker.core.utils.PackageInfoDataSource
-import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.xml.IfwXmlDeserializer
+import com.merxury.blocker.core.rule.backup.IfwRuleImporter
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.IOException
 
+/** Merges backed-up Intent Firewall rules into the device's rules through [IfwRuleImporter]. */
 @HiltWorker
 class ImportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val deserializer: IfwXmlDeserializer,
-    private val packageInfoDataSource: PackageInfoDataSource,
-    @IfwControl private val ifwController: IController,
-    private val intentFirewall: IIntentFirewall,
+    private val importer: IfwRuleImporter,
+    private val legacyCache: LegacyComponentCache,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
     override fun getNotificationTitle(): Int = R.string.core_rule_import_ifw_please_wait
 
-    override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        val folderPath = inputData.getString(PARAM_FOLDER_PATH)
-        if (folderPath.isNullOrEmpty()) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to FOLDER_NOT_DEFINED),
-            )
+    override suspend fun doWork(): Result {
+        val storage = when (val folder = openBackupFolder(context, inputData.getString(PARAM_FOLDER_PATH), ioDispatcher)) {
+            is BackupFolder.Ready -> folder.storage
+            is BackupFolder.Unusable -> return failureOf(folder.code)
         }
-        if (!StorageUtil.isFolderReadable(context, folderPath)) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_STORAGE_PERMISSION),
-            )
-        }
-        Timber.i("Started to import IFW rules")
-        val total: Int
-        var importedCount = 0
-        val unrestoredPackages = mutableListOf<String>()
-        try {
-            val shouldRestoreSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
-            val ifwFolder = StorageUtil.getOrCreateIfwFolder(context, folderPath)
-                ?: return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
-                )
-            val files = ifwFolder.listFiles()
-                .filter { it.isFile && it.name?.endsWith(".xml") == true }
-            total = files.count()
-            files.forEach { documentFile ->
-                val restoredPackage = inputData.getString(PARAM_RESTORE_PACKAGE_NAME)
-                if (!restoredPackage.isNullOrEmpty()) {
-                    if (documentFile.name != restoredPackage + IFW_EXTENSION) {
-                        return@forEach
-                    }
-                }
-                Timber.i("Importing ${documentFile.name}")
-                setForeground(updateNotification(documentFile.name ?: "", importedCount, total))
-                context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
-                    val fileContent = stream.bufferedReader().use { it.readText() }
-                    if (fileContent.isEmpty()) {
-                        return@forEach
-                    }
-                    val rules = deserializer.deserialize(fileContent)
-                    val (activities, broadcast, service) = extractIfwImportComponents(rules)
-                    val packageName = activities.firstOrNull()?.packageName
-                        ?: broadcast.firstOrNull()?.packageName
-                        ?: service.firstOrNull()?.packageName
-                        ?: return@forEach
-                    val isSystemApp =
-                        packageInfoDataSource.isSystemApp(packageName)
-                    if (!shouldRestoreSystemApps && isSystemApp) {
-                        Timber.i("Skipping system app $packageName")
-                        return@forEach
-                    }
-                    val applied = ifwController.batchDisable(activities) {} +
-                        ifwController.batchDisable(broadcast) {} +
-                        ifwController.batchDisable(service) {}
-                    val requested = activities.size + broadcast.size + service.size
-                    if (applied < requested && intentFirewall.hasUnreadableRules(packageName)) {
-                        unrestoredPackages += packageName
-                        return@forEach
-                    }
-                    importedCount++
-                }
-            }
-        } catch (e: RuntimeException) {
-            Timber.e(e, "Cannot import IFW rules")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
-            )
-        } catch (e: IOException) {
-            Timber.e(e, "Cannot read IFW rules")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
-            )
-        }
-        if (unrestoredPackages.isNotEmpty()) {
-            // No result code describes an unreadable rule file, so report the closest one.
-            Timber.e("IFW rules not restored, rule files cannot be read: ${unrestoredPackages.joinToString()}")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION, PARAM_IMPORT_COUNT to importedCount),
-            )
-        }
-        Timber.i("Imported $importedCount IFW rules.")
-        return@withContext Result.success(
-            workDataOf(PARAM_IMPORT_COUNT to importedCount),
-        )
+        Timber.i("Restore IFW rules")
+        val result = importer.import(
+            storage = storage,
+            packageName = inputData.getString(PARAM_RESTORE_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
+            includeSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false),
+        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        Timber.i("Restored IFW rules: $result")
+        // The rules apply to every user, so the list of the user Blocker runs in changes too.
+        legacyCache.refreshAfter(result, user = null)
+        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_IFW_RULES) }
     }
 
     companion object {
+        /** Output: the rules the restore added, each blocking components, and the files of a user's own it restored. */
         const val PARAM_IMPORT_COUNT = "param_import_count"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
@@ -155,7 +73,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
             packageName: String? = null,
         ) = OneTimeWorkRequestBuilder<ImportIfwRulesWorker>()
             .setInputData(
-                workDataOf(
+                inputOf(
                     PARAM_FOLDER_PATH to backupPath,
                     PARAM_RESTORE_SYS_APPS to restoreSystemApps,
                     PARAM_RESTORE_PACKAGE_NAME to packageName,

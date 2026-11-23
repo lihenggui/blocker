@@ -41,15 +41,19 @@ import kotlinx.coroutines.flow.Flow
  * unconditional rule for it. A provider is not filtered by the firewall, so where the firewall was
  * asked for, its PackageManager setting is changed instead.
  *
- * [ControlGoal.UNBLOCK] clears only the requested layers, so "reset the PackageManager settings"
- * and "reset the firewall rules" stay separate; to make a component runnable, request every layer
- * ([ControlLayer.entries]). Clearing the PackageManager layer turns a [PmSetting.DISABLED] setting
- * into [PmSetting.DEFAULT], which leaves no override behind, or [PmSetting.ENABLED] when the
- * manifest ships the component disabled, so a component the manifest disables is also set enabled
- * when it is at [PmSetting.DEFAULT]. Clearing the firewall layer removes the component from the
- * unconditional firewall rules. A conditional rule is not Blocker's to remove; when only that is
- * left, the firewall layer counts as clear and the component is [Availability.Conditional]. As for
- * a block, a provider asked to clear the firewall layer clears its PackageManager setting instead.
+ * [ControlGoal.UNBLOCK] removes the blocks of the requested layers and nothing more, so "reset
+ * the PackageManager settings" and "reset the firewall rules" stay separate. Clearing the
+ * PackageManager layer turns a [PmSetting.DISABLED] setting into [PmSetting.DEFAULT] and leaves
+ * any other setting alone, so a component the manifest ships disabled stays at
+ * [PmSetting.DEFAULT] and is still not runnable. Clearing the firewall layer removes the
+ * component from the unconditional firewall rules. A conditional rule is not Blocker's to remove;
+ * when only that is left, the firewall layer counts as clear. As for a block, a provider asked to
+ * clear the firewall layer clears its PackageManager setting instead.
+ *
+ * [ControlGoal.ENABLE] makes the component runnable through the requested layers: it does what
+ * an unblock does, and where the PackageManager layer is requested for a component the manifest
+ * ships disabled it sets [PmSetting.ENABLED], also from [PmSetting.DEFAULT]. To make a component
+ * runnable, request every layer ([ControlLayer.entries]).
  *
  * ## How the outcome is decided
  * Each package's state is read first. PackageManager calls are sent only for components whose
@@ -61,19 +65,24 @@ import kotlinx.coroutines.flow.Flow
  * decides whether the firewall needs a change. The outcome comes from the state read back
  * afterwards, never from what a call answered. A block is [ControlResult.ACHIEVED] when every
  * layer it uses shows the component blocked, [ControlResult.PARTIAL] when some do, and
- * [ControlResult.FAILED] when none does. An unblock is achieved when every layer it uses is clear,
- * even if a layer it was not asked to clear still blocks the component; the state reported then
- * shows that layer as it is. With every layer requested, achieved means [Availability.Runnable]
- * or [Availability.Conditional]. An unblock is partial when a layer that was not clear before is
- * now but another requested layer is not clear or cannot be read, and failed when no requested
- * layer moved toward the goal. A layer whose call succeeded but whose state
+ * [ControlResult.FAILED] when none does. An unblock is achieved when no layer it uses blocks the
+ * component any more: the setting is not [PmSetting.DISABLED] and no unconditional rule names it,
+ * whatever the manifest default or a conditional rule say and even if a layer it was not asked to
+ * clear still blocks; the state reported then shows that layer as it is. An enable is achieved
+ * when every layer it uses lets the component run, so with every layer requested achieved means
+ * [Availability.Runnable] or [Availability.Conditional]. An unblock or enable is partial when a
+ * layer that did not meet the goal before does now but another requested layer does not or
+ * cannot be read, and failed when no requested layer moved toward the goal. A layer whose call
+ * succeeded but whose state
  * does not show it fails with [ControlFailure.StateNotConfirmed]. A partial result is kept, not
  * rolled back.
  *
  * Without a ready channel nothing is sent and the layers fail with
- * [ControlFailure.ChannelUnavailable]. An identity that may not change components, such as Shizuku
- * running as the shell, gets [ControlFailure.NotPermitted] for the PackageManager layer without a
- * call, and one that may not write system files gets it for the firewall layer without a call.
+ * [ControlFailure.ChannelUnavailable]. Shizuku running as the shell may change the components of
+ * a test-only app only; the system decides, so the PackageManager call is sent and its refusal
+ * becomes [ControlFailure.NotPermitted], once per package and setting rather than once per
+ * component. An identity that may not write system files, such as the shell, gets
+ * [ControlFailure.NotPermitted] for the firewall layer without a call.
  *
  * ## Order and cancellation
  * The work on one package holds that package's lock, shared by every request in the process,
@@ -105,7 +114,7 @@ interface ComponentControl {
      * outcome, including those that needed no change. A failure never stops the remaining
      * packages, and the flow never throws except for cancellation.
      *
-     * The [ControlLayer]s to set or clear come from the request for either goal; see [ComponentControl].
+     * The [ControlLayer]s to set or clear come from the request for every goal; see [ComponentControl].
      */
     fun apply(request: ControlRequest): Flow<ControlEvent>
 }

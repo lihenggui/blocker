@@ -19,6 +19,7 @@ package com.merxury.blocker.core.model.control
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.data.ControllerType
 
 /** What a [ControlRequest] wants for its components. */
@@ -27,10 +28,21 @@ enum class ControlGoal {
     BLOCK,
 
     /**
-     * Clear the requested layers. With every layer, [ControlLayer.entries], the component becomes
-     * runnable; with fewer, a layer that was not requested may still block it.
+     * Remove the blocks of the requested layers and nothing more: a DISABLED PackageManager
+     * setting becomes DEFAULT, any other setting is left alone, and the component leaves the
+     * unconditional Intent Firewall rules. A component the manifest ships disabled stays at
+     * DEFAULT, so it is still not runnable; a layer that was not requested may still block it.
+     * What a restore of a backup and a reset of the PackageManager settings use.
      */
     UNBLOCK,
+
+    /**
+     * Make the component runnable through the requested layers: [UNBLOCK], and when
+     * [ControlLayer.PACKAGE_MANAGER] is requested for a component the manifest ships disabled,
+     * an ENABLED setting. With every layer, [ControlLayer.entries], the component becomes
+     * runnable, or conditional when only a conditional rule is left.
+     */
+    ENABLE,
 }
 
 /**
@@ -42,7 +54,7 @@ enum class ControlGoal {
  * first appear, and a component listed twice counts once
  * @property layers the layers the goal sets or clears; never empty. A provider is not filtered by
  * the Intent Firewall, so a request that asks for [ControlLayer.INTENT_FIREWALL] uses
- * [ControlLayer.PACKAGE_MANAGER] for it instead, for either goal.
+ * [ControlLayer.PACKAGE_MANAGER] for it instead, for every goal.
  */
 data class ControlRequest(
     val user: UserId,
@@ -62,3 +74,10 @@ val ControllerType.blockLayers: Set<ControlLayer>
         ControllerType.IFW -> setOf(ControlLayer.INTENT_FIREWALL)
         ControllerType.IFW_PLUS_PM -> setOf(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
     }
+
+/**
+ * The layers a request changes and judges for this component: [requested], except that a provider,
+ * which the firewall does not filter, uses its PackageManager setting instead. The same holds for
+ * every goal, so an unblock with the layers a block used clears what that block set.
+ */
+fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>): Set<ControlLayer> = if (type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)

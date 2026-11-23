@@ -29,13 +29,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 /**
  * In-memory [InstalledAppRepository]. Tests set the cached apps with [sendApps]; refreshes succeed
  * and change nothing unless a failure is set, and app actions change the cached app as the system
  * would when they succeed.
  */
-class FakeInstalledAppRepository : InstalledAppRepository {
+class FakeInstalledAppRepository @Inject constructor() : InstalledAppRepository {
     private val cached = MutableStateFlow<Map<AppKey, InstalledApp>>(emptyMap())
 
     /** When set, [refresh] and [refreshApp] fail with it. */

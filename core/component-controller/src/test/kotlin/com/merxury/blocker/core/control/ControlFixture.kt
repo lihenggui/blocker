@@ -71,6 +71,8 @@ internal fun block(layers: Set<ControlLayer>, vararg components: ComponentDeclar
 
 internal fun unblock(vararg components: ComponentDeclaration, layers: Set<ControlLayer> = BOTH, user: UserId = OWNER) = ControlRequest(user, components.toList(), ControlGoal.UNBLOCK, layers)
 
+internal fun enable(vararg components: ComponentDeclaration, layers: Set<ControlLayer> = BOTH, user: UserId = OWNER) = ControlRequest(user, components.toList(), ControlGoal.ENABLE, layers)
+
 internal fun List<ControlEvent>.outcomes(): List<ComponentOutcome> = filterIsInstance<ControlEvent.PackageDone>().flatMap { it.outcomes }
 
 internal fun List<ControlEvent>.outcomeOf(component: ComponentDeclaration, user: UserId = OWNER): ComponentOutcome = outcomes().single { it.key.id == component.id && it.key.userId == user }
@@ -111,6 +113,9 @@ internal class FakePmSystem {
 
     /** Components the system refuses to change, as it does for some of protected system packages. */
     val protected: MutableSet<ComponentId> = ConcurrentHashMap.newKeySet()
+
+    /** Test-only packages, whose components the shell may change. */
+    val testOnly: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     /** Packages not installed: reads fail and changes are rejected. */
     val missing: MutableSet<String> = ConcurrentHashMap.newKeySet()
@@ -158,7 +163,8 @@ internal class FakeChannel(initial: ChannelState) : PrivilegedChannel {
 
 /**
  * Runs [SetComponentEnabledSettings] against [system] as Android 13 and later do: all or none.
- * The shell is refused as Android refuses it.
+ * The shell is refused as Android refuses it, except for the components of [FakePmSystem.testOnly]
+ * packages.
  */
 internal class FakeExecutor(private val system: FakePmSystem, private val channel: FakeChannel) : PrivilegedExecutor {
     val calls: MutableList<SetComponentEnabledSettings> = Collections.synchronizedList(mutableListOf())
@@ -181,7 +187,7 @@ internal class FakeExecutor(private val system: FakePmSystem, private val channe
         system.beforeSet(set)
         val failure = when {
             system.callFailure != null -> system.callFailure
-            !ready.identity.canChangeComponents -> CallFailure.NotPermitted("Shell cannot change components")
+            ready.identity == PrivilegedIdentity.SHELL && ids.any { it.packageName !in system.testOnly } -> CallFailure.NotPermitted("Shell cannot change components")
             ids.any { it.packageName in system.missing } -> CallFailure.TargetNotFound("Unknown package")
             ids.any { it in system.protected } -> CallFailure.NotPermitted("Protected component")
             else -> null

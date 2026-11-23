@@ -22,6 +22,10 @@ import androidx.test.core.app.ApplicationProvider
 import com.merxury.blocker.core.appcontrol.AppControl
 import com.merxury.blocker.core.control.ComponentControl
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
+import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
+import com.merxury.blocker.core.datastore.AppProperties
+import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
+import com.merxury.blocker.core.datastore.test.InMemoryDataStore
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -94,6 +98,14 @@ abstract class DeviceRepositoryTestBase {
         .allowMainThreadQueries()
         .build()
     internal val dao = db.componentCacheDao()
+    internal val recordsDb: BlockerRecordsDatabase = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), BlockerRecordsDatabase::class.java)
+        .allowMainThreadQueries()
+        .build()
+    internal val recordDao = recordsDb.pmBlockRecordDao()
+    internal val pmBlocks = PmBlockRecords(recordDao)
+    internal val legacyComponents = FakeAppComponentDao()
+    internal val appProperties = InMemoryDataStore(AppProperties.getDefaultInstance())
+    internal val seeder = LegacyListPmBlockRecordSeeder(legacyComponents, BlockerAppPropertiesDataStore(appProperties), pmBlocks)
     internal val system = FakeSystem()
     internal val files = FakeIfwFileSystem()
     internal val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())
@@ -101,13 +113,16 @@ abstract class DeviceRepositoryTestBase {
     internal val componentControl = FakeComponentControl()
     internal val appControl = FakeAppControl(system)
     internal val users = LocalDeviceUserRepository(dao, system)
-    internal val apps = LocalInstalledAppRepository(dao, system, users, appControl)
+    internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks)
 
     /** Starts collecting the rule store's changes in [scope], as the app scope would. */
-    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel), componentControl, channel, store, scope)
+    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel), componentControl, pmBlocks, seeder, channel, store, scope)
 
     @After
-    fun closeDatabase() = db.close()
+    fun closeDatabase() {
+        db.close()
+        recordsDb.close()
+    }
 }
 
 /**

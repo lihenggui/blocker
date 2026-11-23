@@ -42,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -66,8 +67,10 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
+import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_MAT_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_PM
+import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.PreviewDevices
@@ -130,33 +133,18 @@ fun SettingsScreen(
         }
     }
     event?.let {
-        val work = it.first
-        val result = it.second
-        val messageRes = when (result) {
-            RuleWorkResult.STARTED -> when (work) {
-                IMPORT_BLOCKER_RULES -> CoreRuleR.core_rule_import_app_rules_please_wait
-                EXPORT_BLOCKER_RULES -> CoreRuleR.core_rule_backing_up_apps_please_wait
-                EXPORT_IFW_RULES -> CoreRuleR.core_rule_backing_up_ifw_please_wait
-                IMPORT_IFW_RULES -> CoreRuleR.core_rule_import_ifw_please_wait
-                RESET_IFW -> CoreRuleR.core_rule_reset_ifw_please_wait
-                RESET_PM -> CoreRuleR.core_rule_reset_pm_please_wait
-            }
-
-            RuleWorkResult.FINISHED -> CoreRuleR.core_rule_done
-
-            RuleWorkResult.FOLDER_NOT_DEFINED,
-            RuleWorkResult.MISSING_STORAGE_PERMISSION,
-            -> CoreRuleR.core_rule_error_msg_folder_not_defined
-
-            RuleWorkResult.MISSING_ROOT_PERMISSION -> CoreRuleR.core_rule_error_msg_missing_root_permission
-
-            RuleWorkResult.UNEXPECTED_EXCEPTION -> CoreRuleR.core_rule_error_msg_unexpected_exception
-
-            RuleWorkResult.CANCELLED -> CoreRuleR.core_rule_task_cancelled
-
-            else -> CoreRuleR.core_rule_error_msg_unexpected_exception
+        val work = it.type
+        val result = it.result
+        val startedRes = when (work) {
+            IMPORT_BLOCKER_RULES -> CoreRuleR.core_rule_import_app_rules_please_wait
+            EXPORT_BLOCKER_RULES -> CoreRuleR.core_rule_backing_up_apps_please_wait
+            EXPORT_IFW_RULES -> CoreRuleR.core_rule_backing_up_ifw_please_wait
+            IMPORT_IFW_RULES -> CoreRuleR.core_rule_import_ifw_please_wait
+            RESET_IFW -> CoreRuleR.core_rule_reset_ifw_please_wait
+            RESET_PM -> CoreRuleR.core_rule_reset_pm_please_wait
+            IMPORT_MAT_RULES -> CoreRuleR.core_rule_import_mat_rule_please_wait
         }
-        val message = stringResource(id = messageRes)
+        val message = it.resultMessage(LocalResources.current) ?: stringResource(id = startedRes)
         val duration = if (result == RuleWorkResult.STARTED) {
             SnackbarDuration.Long
         } else {

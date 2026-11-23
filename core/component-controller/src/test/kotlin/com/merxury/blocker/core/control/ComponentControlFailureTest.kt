@@ -69,17 +69,41 @@ class ComponentControlFailureTest {
     }
 
     @Test
-    fun givenShellIdentity_whenBlockWithPm_thenNotPermittedWithoutCall() = runTest {
+    fun givenShellIdentityAndOrdinaryApp_whenBlockWithPm_thenOneRefusedCallForThePackage() = runTest {
         val fixture = ControlFixture(SHELL)
 
-        val events = fixture.run(block(PM_ONLY, MAIN))
+        val events = fixture.run(block(PM_ONLY, MAIN, SYNC, BOOT))
 
-        val outcome = events.outcomeOf(MAIN)
-        assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
-        assertThat(outcome.state.pm).isEqualTo(PmSetting.DEFAULT)
-        assertThat(outcome.failures.getValue(ControlLayer.PACKAGE_MANAGER)).isInstanceOf(ControlFailure.NotPermitted::class.java)
-        assertThat(fixture.executor.calls).isEmpty()
+        events.outcomes().forEach { outcome ->
+            assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+            assertThat(outcome.state.pm).isEqualTo(PmSetting.DEFAULT)
+            assertThat(outcome.failures.getValue(ControlLayer.PACKAGE_MANAGER)).isInstanceOf(ControlFailure.NotPermitted::class.java)
+        }
+        // Android decides; its refusal of the batch stands for every component without a retry each.
+        assertThat(fixture.executor.calls.map { it.components.size }).containsExactly(3)
         assertThat(fixture.channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
+    @Config(sdk = [32])
+    fun givenShellIdentityWithoutBatchCall_whenBlockWithPm_thenTheFirstRefusalStandsForThePackage() = runTest {
+        val fixture = ControlFixture(SHELL)
+
+        val events = fixture.run(block(PM_ONLY, MAIN, SYNC))
+
+        assertThat(events.outcomes().map { it.result }).containsExactly(ControlResult.FAILED, ControlResult.FAILED)
+        assertThat(fixture.executor.calls).hasSize(1)
+    }
+
+    @Test
+    fun givenShellIdentityAndTestOnlyApp_whenBlockWithPm_thenChanged() = runTest {
+        val fixture = ControlFixture(SHELL)
+        fixture.system.testOnly += PKG
+
+        val events = fixture.run(block(PM_ONLY, MAIN, SYNC))
+
+        assertThat(events.outcomes().map { it.result }).containsExactly(ControlResult.ACHIEVED, ControlResult.ACHIEVED)
+        assertThat(fixture.pm(MAIN)).isEqualTo(PmSetting.DISABLED)
     }
 
     @Test

@@ -28,6 +28,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
+import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
@@ -68,7 +69,7 @@ class ResetIfwWorker @AssistedInject constructor(
         }
         Timber.i("Cleared $count IFW rules.")
         return@withContext Result.success(
-            workDataOf(PARAM_CLEAR_COUNT to count),
+            workDataOf(PARAM_CLEAR_COUNT to count, RuleWorkResult.PARAM_CHANGED_COUNT to count),
         )
     }
 

@@ -19,10 +19,12 @@ package com.merxury.blocker.core.data.device
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
+import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
@@ -40,6 +42,9 @@ import kotlinx.coroutines.flow.Flow
  * package's lock in this repository, so a refresh and a control of the same package never
  * interleave: a refresh holding the lock when a control's result arrives stores its read first,
  * and the control's read-back, taken after the change, is stored after it.
+ *
+ * The record of components Blocker disabled through PackageManager is user data kept apart from
+ * the cache; [control], [refresh] and app removal keep it, see [disabledByBlocker].
  *
  * ## Unknown state
  * A part that could not be read is stored as [PmSetting.UNKNOWN] or [IfwBlock.UNKNOWN], never left
@@ -85,7 +90,10 @@ interface ComponentStatusRepository {
      * the PackageManager settings of every component for that user, in one call; and the Intent
      * Firewall state of every component. A part that cannot be read is stored as unknown, the
      * others are still stored. Declarations that cannot be re-read are kept, with their old scan
-     * marker, so the next refresh tries again.
+     * marker, so the next refresh tries again. The records of what Blocker disabled in the app for
+     * that user are dropped for components whose setting read DEFAULT or ENABLED, as the user or
+     * the app re-enabled them elsewhere, and, when the declarations are current, for components
+     * the app no longer declares; all of them when the app is gone.
      *
      * @return success when every part was read. Otherwise the first failure in the order app,
      * declarations, settings, firewall, with every part that was read already stored. Firewall
@@ -112,19 +120,44 @@ interface ComponentStatusRepository {
      * is emitted, so an observer of [components] sees the system's state without guessing;
      * outcomes of components the cache does not declare are not stored. A package whose event has
      * arrived is stored even when the collector cancels.
+     *
+     * With the read-back, under the same lock, the record of what Blocker disabled is updated: a
+     * [ControlGoal.BLOCK] whose layers for a component include
+     * [ControlLayer.PACKAGE_MANAGER] records the component when it reads back
+     * [PmSetting.DISABLED], and any request drops the record of a component that reads back
+     * DEFAULT or ENABLED. [PmSetting.UNKNOWN] changes no record.
      */
     fun control(request: ControlRequest): Flow<ControlEvent>
 
     /**
-     * The components whose PackageManager setting is [PmSetting.DISABLED] for [user], read from the
-     * system for every app installed for that user rather than taken from the cache. Refreshes the
-     * apps and their components as [refreshAll] does on the way.
+     * The components Blocker disabled through PackageManager for [user] that are still
+     * [PmSetting.DISABLED]. Seeds the record of Blocker's blocks first when it has not been seeded,
+     * see [PmBlockRecordSeeder], then refreshes the user's app list and each app that has recorded
+     * components, as [refresh] does, which drops the records of components no longer disabled or
+     * declared. Components disabled by anything else are never listed. An app whose settings cannot
+     * be read does not stop the others; it is listed in [DisabledComponents.unreadableApps].
      *
-     * @return the components by package and class name, or the first failure that kept an app's
-     * settings from being read; an app removed meanwhile is skipped, not a failure
+     * @return what was found, or the failure that kept the user's app list from being read
      */
-    suspend fun disabledByPackageManager(user: UserId): ReadResult<List<ComponentKey>>
+    suspend fun disabledByBlocker(user: UserId): ReadResult<DisabledComponents>
 }
+
+/**
+ * What [ComponentStatusRepository.disabledByBlocker] found.
+ *
+ * @property components by package and class name
+ * @property unreadableApps apps whose settings could not be read, by package name; their recorded
+ * components are not in [components] and keep their records
+ * @property notInstalled recorded components of apps no longer installed for the user; their
+ * records are dropped
+ * @property notDeclared recorded components the installed app does not declare
+ */
+data class DisabledComponents(
+    val components: List<ComponentKey>,
+    val unreadableApps: List<AppKey>,
+    val notInstalled: Int = 0,
+    val notDeclared: Int = 0,
+)
 
 /** Progress of [ComponentStatusRepository.refreshAll]. */
 sealed interface RefreshProgress {

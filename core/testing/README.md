@@ -73,6 +73,7 @@ graph TB
   :core:testing -.-> :core:domain
   :core:testing -.-> :core:ifw-api
   :core:testing --> :core:model
+  :core:testing -.-> :core:rule
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

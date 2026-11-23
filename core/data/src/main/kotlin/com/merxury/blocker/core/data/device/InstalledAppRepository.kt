@@ -46,7 +46,8 @@ interface InstalledAppRepository {
 
     /**
      * Reads the apps of [user] from the system and makes that user's cached apps equal to them;
-     * an app that is gone is removed with that user's component state for it. The users are
+     * an app that is gone is removed with that user's component state for it and with the record
+     * of what Blocker disabled in it for that user. The users are
      * refreshed first when [user] is not cached, and the result is
      * [ReadFailure.UserNotReachable] when the system does not show it. A failed read leaves the
      * cache as it is.
@@ -55,8 +56,8 @@ interface InstalledAppRepository {
 
     /**
      * Reads one app from the system and stores it. When the system says it is not installed for
-     * that user, it is removed from the cache with that user's component state and the result is
-     * success with null. Any other failure leaves the cache as it is.
+     * that user, it is removed from the cache with that user's component state, and with the
+     * record of what Blocker disabled in it for that user, and the result is success with null. Any other failure leaves the cache as it is.
      */
     suspend fun refreshApp(key: AppKey): ReadResult<InstalledApp?>
 

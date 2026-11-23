@@ -80,13 +80,6 @@ class TestComponentRepository : ComponentRepository {
         componentList.emit(emptyList())
     }
 
-    override fun restorePmBlockedComponents(): Flow<ComponentInfo> = flow {
-        componentList.replayCache.firstOrNull()
-            .orEmpty()
-            .filter { it.pmBlocked }
-            .forEach { emit(it) }
-    }
-
     fun sendComponentList(componentList: List<ComponentInfo>) {
         this.componentList.tryEmit(componentList)
     }

@@ -1,13 +1,13 @@
 // Copyright 2026 Blocker
 // SPDX-License-Identifier: Apache-2.0
 
-package com.merxury.blocker.core.rule.work
+package com.merxury.blocker.core.rule.backup
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.assertThrows
+import com.merxury.blocker.core.model.component.ComponentId
 import org.junit.Test
 
-/** Pins which lines of a MAT (.txt) export ImportMatRulesWorker keeps and how it splits them. */
+/** Pins which lines of a MAT (.txt) export MatRuleImporter keeps and how it splits them. */
 class MatRuleLinesTest {
 
     @Test
@@ -88,17 +88,38 @@ class MatRuleLinesTest {
     }
 
     @Test
-    fun givenSlashOnlyAfterFirstSpace_whenParsing_thenThrowsIndexOutOfBounds() {
+    fun givenSlashOnlyAfterFirstSpace_whenParsing_thenNoComponent() {
         // The filter keeps this line because it contains "/", but the first token has none.
-        // The worker lets the exception escape, which it reports as MISSING_ROOT_PERMISSION.
         val line = "com.example see/https"
 
         assertThat(filterMatLines(listOf(line))).containsExactly(line)
-        assertThrows(IndexOutOfBoundsException::class.java) { parseMatLine(line) }
+        assertThat(parseMatLine(line)).isNull()
     }
 
     @Test
-    fun givenLeadingSpaceBeforeSlash_whenParsing_thenThrowsIndexOutOfBounds() {
-        assertThrows(IndexOutOfBoundsException::class.java) { parseMatLine(" com.example/.Main") }
+    fun givenLeadingSpaceBeforeSlash_whenParsing_thenNoComponent() {
+        assertThat(parseMatLine(" com.example/.Main")).isNull()
+    }
+
+    @Test
+    fun givenMalformedLines_whenParsingTheExport_thenTheyAreCountedAndTheRestResolved() {
+        val parsed = parseMatLines(
+            listOf(
+                "# exported by MAT",
+                "com.example/.Main",
+                " com.example/.Leading",
+                "com.example see/https",
+                "/.NoPackage",
+                "com.example/",
+                "com.example/com.example.Sync extra",
+                "com.example/.Main",
+            ),
+        )
+
+        assertThat(parsed.malformed).isEqualTo(4)
+        assertThat(parsed.components).containsExactly(
+            ComponentId("com.example", "com.example.Main"),
+            ComponentId("com.example", "com.example.Sync"),
+        ).inOrder()
     }
 }

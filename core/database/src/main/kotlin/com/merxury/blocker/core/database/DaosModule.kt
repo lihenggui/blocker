@@ -25,6 +25,8 @@ import com.merxury.blocker.core.database.debloater.DebloatableComponentDao
 import com.merxury.blocker.core.database.debloater.DebloaterDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
+import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
+import com.merxury.blocker.core.database.record.PmBlockRecordDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,4 +51,7 @@ internal object DaosModule {
 
     @Provides
     fun provideComponentCacheDao(database: ComponentCacheDatabase): ComponentCacheDao = database.componentCacheDao()
+
+    @Provides
+    fun providePmBlockRecordDao(database: BlockerRecordsDatabase): PmBlockRecordDao = database.pmBlockRecordDao()
 }

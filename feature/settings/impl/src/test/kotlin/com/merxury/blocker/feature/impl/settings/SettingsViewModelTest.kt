@@ -18,8 +18,10 @@ package com.merxury.blocker.feature.impl.settings
 
 import android.app.Application
 import android.content.SharedPreferences
+import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.UserPreferenceData
@@ -68,6 +70,7 @@ class SettingsViewModelTest {
             syncManager = syncManager,
             appContext = appContext,
             analyticsHelper = analyticsHelper,
+            workManager = mock<WorkManager>(),
         )
     }
 
@@ -89,6 +92,18 @@ class SettingsViewModelTest {
             Success(defaultUserData, allowStatistics),
             viewModel.settingsUiState.value,
         )
+        collectJob.cancel()
+    }
+
+    @Test
+    fun givenSavedControllerType_whenSettingsShown_thenThePickerShowsIt() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.settingsUiState.collect() }
+
+        for (type in ControllerType.entries) {
+            userDataRepository.sendUserData(defaultUserData.copy(controllerType = type))
+
+            assertEquals(type, (viewModel.settingsUiState.value as Success).settings.controllerType)
+        }
         collectJob.cancel()
     }
 

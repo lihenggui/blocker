@@ -21,55 +21,41 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
+import com.merxury.blocker.core.rule.backup.PackageManagerReset
+import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.collectIndexed
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 
+/** Clears the PackageManager settings that disable components of one user through [PackageManagerReset]. */
 @HiltWorker
 class ResetPmWorker @AssistedInject constructor(
-    @Assisted private val context: Context,
+    @Assisted context: Context,
     @Assisted params: WorkerParameters,
-    private val componentRepository: ComponentRepository,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    private val reset: PackageManagerReset,
+    private val legacyCache: LegacyComponentCache,
 ) : RuleNotificationWorker(context, params) {
 
     override fun getNotificationTitle(): Int = R.string.core_rule_reset_pm_please_wait
 
-    // Privileges (root/Shizuku) are enforced by the underlying controller; any failure here
-    // surfaces as UNEXPECTED_EXCEPTION, matching the user-facing error flow for IFW reset.
-    override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        Timber.i("Start restoring PM-blocked components to default state")
-        var count = 0
-        try {
-            componentRepository.restorePmBlockedComponents()
-                .collectIndexed { index, component ->
-                    updateNotification(component.name, index + 1, 0)
-                    count = index + 1
-                }
-        } catch (e: RuntimeException) {
-            Timber.e(e, "Failed to restore PM-blocked components")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
-            )
-        }
-        Timber.i("Restored $count PM-blocked components")
-        Result.success(workDataOf(PARAM_RESTORED_COUNT to count))
+    override suspend fun doWork(): Result {
+        val user = inputData.userOr(PARAM_TARGET_USER, ownUser())
+        Timber.i("Reset the PM settings of user ${user.value}")
+        val result = reset.reset(user) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        Timber.i("Reset PM settings: $result")
+        legacyCache.refreshAfter(result, user)
+        return result.toWorkResult(PARAM_RESTORED_COUNT) { it.changedCount(RuleWorkType.RESET_PM) }
     }
 
     companion object {
+        /** Output: the components whose setting was cleared. */
         const val PARAM_RESTORED_COUNT = "param_restored_count"
 
-        fun resetPmWork() = OneTimeWorkRequestBuilder<ResetPmWorker>()
+        /** Resets [targetUser], by default the user Blocker runs in. */
+        fun resetPmWork(targetUser: UserId? = null) = OneTimeWorkRequestBuilder<ResetPmWorker>()
+            .setInputData(inputOf(PARAM_TARGET_USER to targetUser?.value))
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
     }

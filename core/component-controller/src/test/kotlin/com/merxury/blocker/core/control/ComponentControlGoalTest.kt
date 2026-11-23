@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.control
 
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
@@ -25,6 +26,8 @@ import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import kotlinx.coroutines.test.runTest
@@ -196,30 +199,111 @@ class ComponentControlGoalTest {
     }
 
     @Test
-    fun givenManifestDisabledAtDefault_whenUnblock_thenEnabled() = runTest {
+    fun givenManifestDisabledAtDefault_whenUnblock_thenLeftAtDefaultWithoutACall() = runTest {
         val events = fixture.run(unblock(HIDDEN))
+
+        assertThat(events.outcomeOf(HIDDEN)).isEqualTo(achieved(HIDDEN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+        assertThat(fixture.executor.calls).isEmpty()
+    }
+
+    @Test
+    fun givenManifestDisabledAtDefault_whenEnable_thenEnabled() = runTest {
+        val events = fixture.run(enable(HIDDEN))
 
         assertThat(events.outcomeOf(HIDDEN)).isEqualTo(achieved(HIDDEN, PmSetting.ENABLED, IfwBlock.NOT_BLOCKED))
     }
 
     @Test
-    fun givenManifestDisabledAndDisabled_whenUnblock_thenEnabled() = runTest {
+    fun givenManifestDisabledAndDisabled_whenUnblock_thenBackToTheManifestDefault() = runTest {
         fixture.system.put(OWNER, HIDDEN.id, PmSetting.DISABLED)
 
         val events = fixture.run(unblock(HIDDEN))
 
+        assertThat(events.outcomeOf(HIDDEN)).isEqualTo(achieved(HIDDEN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+    }
+
+    @Test
+    fun givenManifestDisabledAndDisabled_whenEnable_thenEnabled() = runTest {
+        fixture.system.put(OWNER, HIDDEN.id, PmSetting.DISABLED)
+
+        val events = fixture.run(enable(HIDDEN))
+
         assertThat(events.outcomeOf(HIDDEN)).isEqualTo(achieved(HIDDEN, PmSetting.ENABLED, IfwBlock.NOT_BLOCKED))
     }
 
     @Test
-    fun givenManifestEnabledAndDisabledComponents_whenUnblock_thenOneCallPerTargetSetting() = runTest {
+    fun givenManifestEnabledAndDisabledComponents_whenEnable_thenOneCallPerTargetSetting() = runTest {
+        fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
+        fixture.system.put(OWNER, SYNC.id, PmSetting.DISABLED)
+        fixture.system.put(OWNER, HIDDEN.id, PmSetting.DISABLED)
+
+        fixture.run(enable(MAIN, SYNC, HIDDEN))
+
+        assertThat(fixture.system.log).containsExactly("read $PKG", "set $PKG 2 DEFAULT", "set $PKG 1 ENABLED", "read $PKG").inOrder()
+    }
+
+    @Test
+    fun givenManifestEnabledAndDisabledComponents_whenUnblock_thenAllInOneCallToDefault() = runTest {
         fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
         fixture.system.put(OWNER, SYNC.id, PmSetting.DISABLED)
         fixture.system.put(OWNER, HIDDEN.id, PmSetting.DISABLED)
 
         fixture.run(unblock(MAIN, SYNC, HIDDEN))
 
-        assertThat(fixture.system.log).containsExactly("read $PKG", "set $PKG 2 DEFAULT", "set $PKG 1 ENABLED", "read $PKG").inOrder()
+        assertThat(fixture.system.log).containsExactly("read $PKG", "set $PKG 3 DEFAULT", "read $PKG").inOrder()
+    }
+
+    @Test
+    fun givenEveryGoalLayerManifestAndSetting_whenControlled_thenTheTruthTableHolds() = runTest {
+        // From a DISABLED setting or an unconditional rule, or neither: what each goal leaves.
+        for (goal in ControlGoal.entries) {
+            for (layers in listOf(PM_ONLY, IFW_ONLY, BOTH)) {
+                for (enabledInManifest in listOf(true, false)) {
+                    for (setting in listOf(PmSetting.DEFAULT, PmSetting.ENABLED, PmSetting.DISABLED)) {
+                        for (ruled in listOf(false, true)) {
+                            val component = declaration("Case", ComponentType.SERVICE, enabledInManifest = enabledInManifest)
+                            val case = ControlFixture()
+                            case.system.put(OWNER, component.id, setting)
+                            if (ruled) case.blockInIfw(component)
+
+                            val outcome = case.run(ControlRequest(OWNER, listOf(component), goal, layers)).outcomeOf(component)
+
+                            val expectedPm = if (ControlLayer.PACKAGE_MANAGER in layers) expectedSetting(goal, enabledInManifest, setting) else setting
+                            val expectedIfw = when {
+                                ControlLayer.INTENT_FIREWALL !in layers -> if (ruled) IfwBlock.BLOCKED else IfwBlock.NOT_BLOCKED
+                                goal == ControlGoal.BLOCK -> IfwBlock.BLOCKED
+                                else -> IfwBlock.NOT_BLOCKED
+                            }
+                            val label = "$goal $layers manifest=$enabledInManifest $setting ruled=$ruled"
+                            assertWithMessage(label).that(outcome.state).isEqualTo(ControlState(expectedPm, expectedIfw))
+                            assertWithMessage(label).that(outcome.result).isEqualTo(ControlResult.ACHIEVED)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun expectedSetting(goal: ControlGoal, enabledInManifest: Boolean, setting: PmSetting): PmSetting = when (goal) {
+        ControlGoal.BLOCK -> PmSetting.DISABLED
+
+        ControlGoal.UNBLOCK -> if (setting == PmSetting.DISABLED) PmSetting.DEFAULT else setting
+
+        ControlGoal.ENABLE -> when {
+            setting == PmSetting.ENABLED || (setting == PmSetting.DEFAULT && enabledInManifest) -> setting
+            enabledInManifest -> PmSetting.DEFAULT
+            else -> PmSetting.ENABLED
+        }
+    }
+
+    @Test
+    fun givenPmRefused_whenEnableShippedDisabledComponent_thenFailed() = runTest {
+        fixture.system.protected += HIDDEN.id
+
+        val outcome = fixture.run(enable(HIDDEN, layers = PM_ONLY)).outcomeOf(HIDDEN)
+
+        assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+        assertThat(outcome.state.pm).isEqualTo(PmSetting.DEFAULT)
     }
 
     @Test

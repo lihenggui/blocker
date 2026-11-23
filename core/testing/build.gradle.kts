@@ -40,5 +40,6 @@ dependencies {
     implementation(projects.core.componentController)
     implementation(projects.core.domain)
     implementation(projects.core.ifwApi)
+    implementation(projects.core.rule)
     implementation(projects.core.designsystem)
 }

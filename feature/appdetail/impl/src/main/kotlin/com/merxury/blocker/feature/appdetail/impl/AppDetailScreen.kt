@@ -67,6 +67,7 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -105,6 +106,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSI
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.STARTED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
+import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -271,24 +273,7 @@ fun AppDetailScreen(
         }
     }
     event?.let {
-        val messageRes = when (it.second) {
-            STARTED -> rulestring.core_rule_processing_please_wait
-
-            FINISHED -> rulestring.core_rule_done
-
-            FOLDER_NOT_DEFINED,
-            MISSING_STORAGE_PERMISSION,
-            -> rulestring.core_rule_error_msg_folder_not_defined
-
-            MISSING_ROOT_PERMISSION -> rulestring.core_rule_error_msg_missing_root_permission
-
-            UNEXPECTED_EXCEPTION -> rulestring.core_rule_error_msg_unexpected_exception
-
-            CANCELLED -> rulestring.core_rule_task_cancelled
-
-            else -> rulestring.core_rule_error_msg_unexpected_exception
-        }
-        val message = stringResource(id = messageRes)
+        val message = it.resultMessage(LocalResources.current) ?: stringResource(id = rulestring.core_rule_processing_please_wait)
         LaunchedEffect(message) {
             scope.launch {
                 snackbarHostState.currentSnackbarData?.dismiss()

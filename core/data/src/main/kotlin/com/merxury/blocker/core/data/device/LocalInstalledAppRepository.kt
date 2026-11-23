@@ -42,6 +42,7 @@ internal class LocalInstalledAppRepository @Inject constructor(
     private val reader: SystemPackageReader,
     private val users: DeviceUserRepository,
     private val appControl: AppControl,
+    private val pmBlocks: PmBlockRecords,
 ) : InstalledAppRepository {
 
     override fun apps(user: UserId): Flow<List<InstalledApp>> = dao.observeApps(user.value).map(List<AppEntity>::asApps)
@@ -54,7 +55,9 @@ internal class LocalInstalledAppRepository @Inject constructor(
         ensureUserCached(user)?.let { return ReadResult.Failure(it) }
         return when (val read = reader.apps(user)) {
             is ReadResult.Success -> {
-                dao.replaceApps(user.value, read.value.map { it.asEntity() })
+                val removed = dao.replaceApps(user.value, read.value.map { it.asEntity() })
+                // The system drops a user's settings of an app with the app, so Blocker's blocks go too.
+                removed.forEach { pmBlocks.forgetApp(AppKey(it, user)) }
                 ReadResult.Success(Unit)
             }
 
@@ -76,6 +79,7 @@ internal class LocalInstalledAppRepository @Inject constructor(
             is ReadResult.Failure -> if (read.reason is ReadFailure.PackageNotFound) {
                 Timber.i("$key is not installed, remove it from the cache")
                 dao.deleteApp(key.packageName, key.userId.value)
+                pmBlocks.forgetApp(key)
                 ReadResult.Success(null)
             } else {
                 Timber.w("Cannot read $key, keep the cached app: ${read.reason}")

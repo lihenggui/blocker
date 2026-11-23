@@ -31,6 +31,7 @@ import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.control.layersFor
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.model.privileged.CallFailure
@@ -144,25 +145,23 @@ internal class PrivilegedComponentControl @Inject constructor(
 
     private suspend fun changePm(app: AppKey, changes: List<Pair<ComponentId, PmSetting>>, identity: PrivilegedIdentity?, failures: Failures) {
         if (changes.isEmpty()) return
-        val knownFailure = when {
-            identity == null -> ControlFailure.ChannelUnavailable
-            !identity.canChangeComponents -> ControlFailure.NotPermitted("$identity may not change components")
-            else -> null
-        }
-        if (knownFailure != null) {
-            Timber.w("Cannot change ${changes.size} PM settings of $app: $knownFailure")
-            changes.forEach { (id, _) -> failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, knownFailure) }
+        if (identity == null) {
+            Timber.w("Cannot change ${changes.size} PM settings of $app: no channel")
+            changes.forEach { (id, _) -> failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, ControlFailure.ChannelUnavailable) }
             return
         }
-        changes.groupBy({ it.second }, { it.first }).forEach { (setting, ids) -> setPm(app, setting, ids, failures) }
+        changes.groupBy({ it.second }, { it.first }).forEach { (setting, ids) -> setPm(app, setting, ids, identity, failures) }
     }
 
     /**
      * Sets [ids] to [setting] in one call where the platform has one, which applies to all of
      * them or none. When the system refuses it, sets them one at a time, so a component the
-     * system protects fails alone.
+     * system protects fails alone. The shell may change components only of a test-only app, which
+     * the system decides; when it refuses the shell for one call, the package is not such an app,
+     * so the refusal stands for all of [ids] without asking again for each.
      */
-    private suspend fun setPm(app: AppKey, setting: PmSetting, ids: List<ComponentId>, failures: Failures) {
+    private suspend fun setPm(app: AppKey, setting: PmSetting, ids: List<ComponentId>, identity: PrivilegedIdentity, failures: Failures) {
+        fun refuseAll(failure: ControlFailure) = ids.forEach { failures.addIfAbsent(it, ControlLayer.PACKAGE_MANAGER, failure) }
         if (ids.size > 1 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val batch = sendPm(app, setting, ids)
             when {
@@ -170,18 +169,29 @@ internal class PrivilegedComponentControl @Inject constructor(
 
                 batch is CallResult.Failure && batch.reason == CallFailure.ChannelUnavailable -> {
                     Timber.w("Channel lost while setting ${ids.size} components of $app to $setting")
-                    ids.forEach { failures.addIfAbsent(it, ControlLayer.PACKAGE_MANAGER, ControlFailure.ChannelUnavailable) }
+                    refuseAll(ControlFailure.ChannelUnavailable)
+                    return
+                }
+
+                batch is CallResult.Failure && batch.reason is CallFailure.NotPermitted && identity == PrivilegedIdentity.SHELL -> {
+                    Timber.w("The shell may not change components of $app: ${batch.reason}")
+                    refuseAll(batch.reason.toControlFailure())
                     return
                 }
 
                 else -> Timber.w("The system refused to set ${ids.size} components of $app to $setting at once: $batch")
             }
         }
-        ids.forEach { id ->
+        for (id in ids) {
             val result = sendPm(app, setting, listOf(id))
             if (result is CallResult.Failure) {
                 Timber.w("Cannot set $id of user ${app.userId.value} to $setting: ${result.reason}")
-                failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, result.reason.toControlFailure())
+                val failure = result.reason.toControlFailure()
+                if (result.reason is CallFailure.NotPermitted && identity == PrivilegedIdentity.SHELL) {
+                    refuseAll(failure)
+                    return
+                }
+                failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, failure)
             }
         }
     }

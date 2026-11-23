@@ -21,15 +21,19 @@ import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.LegacyListPmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.LocalComponentStatusRepository
 import com.merxury.blocker.core.data.device.LocalDeviceUserRepository
 import com.merxury.blocker.core.data.device.LocalInstalledAppRepository
+import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.data.respository.component.LegacyPmBlockHook
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.data.respository.component.RecordingLegacyPmBlockHook
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.LocalComponentDetailRepository
 import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
@@ -132,4 +136,10 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindComponentStatusRepository(repository: LocalComponentStatusRepository): ComponentStatusRepository
+
+    @Binds
+    internal abstract fun bindPmBlockRecordSeeder(seeder: LegacyListPmBlockRecordSeeder): PmBlockRecordSeeder
+
+    @Binds
+    internal abstract fun bindLegacyPmBlockHook(hook: RecordingLegacyPmBlockHook): LegacyPmBlockHook
 }

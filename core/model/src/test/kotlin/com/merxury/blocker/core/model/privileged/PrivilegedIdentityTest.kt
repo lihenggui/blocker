@@ -23,19 +23,16 @@ class PrivilegedIdentityTest {
 
     @Test
     fun givenRoot_whenAskCapabilities_thenEverythingAllowed() {
-        assertThat(PrivilegedIdentity.ROOT.canChangeComponents).isTrue()
         assertThat(PrivilegedIdentity.ROOT.canWriteSystemFiles).isTrue()
     }
 
     @Test
     fun givenShell_whenAskCapabilities_thenNeitherComponentsNorSystemFiles() {
-        assertThat(PrivilegedIdentity.SHELL.canChangeComponents).isFalse()
         assertThat(PrivilegedIdentity.SHELL.canWriteSystemFiles).isFalse()
     }
 
     @Test
     fun givenSystem_whenAskCapabilities_thenComponentsAndSystemFiles() {
-        assertThat(PrivilegedIdentity.SYSTEM.canChangeComponents).isTrue()
         assertThat(PrivilegedIdentity.SYSTEM.canWriteSystemFiles).isTrue()
     }
 }

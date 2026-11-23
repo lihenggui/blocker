@@ -36,7 +36,7 @@ import org.robolectric.annotation.Config
 
 private val PACKAGES = listOf("com.example.a", "com.example.b", "com.example.c")
 
-/** [ComponentStatusRepository.refreshAll] and [ComponentStatusRepository.disabledByPackageManager]. */
+/** [ComponentStatusRepository.refreshAll]. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
 class RefreshAllTest : DeviceRepositoryTestBase() {
@@ -89,58 +89,6 @@ class RefreshAllTest : DeviceRepositoryTestBase() {
 
         assertThat((progress.last() as RefreshProgress.Refreshing).done).isEqualTo(1)
         assertThat(system.reads("declarations")).isLessThan(packages.size)
-    }
-
-    @Test
-    fun givenStaleCache_whenDisabledByPackageManager_thenAnswerFromTheSystemAndCacheUpdated() = runTest {
-        installAll()
-        val repository = components(backgroundScope)
-        val a = declaration("Main", packageName = "com.example.a")
-        val c = declaration("Main", packageName = "com.example.c")
-        system.put(OWNER, a, PmSetting.DISABLED)
-        repository.refreshAll(OWNER).toList()
-        system.put(OWNER, a, PmSetting.DEFAULT)
-        system.put(OWNER, c, PmSetting.DISABLED)
-        system.put(WORK, declaration("Main", packageName = "com.example.b"), PmSetting.DISABLED)
-
-        val disabled = repository.disabledByPackageManager(OWNER)
-
-        assertThat(disabled).isEqualTo(ReadResult.Success(listOf(ComponentKey(c.id, OWNER))))
-        assertThat(repository.component(ComponentKey(a.id, OWNER)).first()).isEqualTo(status(a, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
-        assertThat(repository.component(ComponentKey(c.id, OWNER)).first()).isEqualTo(status(c, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
-    }
-
-    @Test
-    fun givenOneAppsSettingsUnreadable_whenDisabledByPackageManager_thenFailure() = runTest {
-        installAll()
-        system.pmFailures["com.example.b"] = ReadFailure.ChannelUnavailable
-
-        val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
-
-        assertThat(disabled).isEqualTo(ReadResult.Failure(ReadFailure.ChannelUnavailable))
-    }
-
-    @Test
-    fun givenRulesUnreadable_whenDisabledByPackageManager_thenSettingsStillAnswered() = runTest {
-        installAll()
-        val a = declaration("Main", packageName = "com.example.a")
-        system.put(OWNER, a, PmSetting.DISABLED)
-        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
-        files.noAccess = true
-
-        val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
-
-        assertThat(disabled).isEqualTo(ReadResult.Success(listOf(ComponentKey(a.id, OWNER))))
-    }
-
-    @Test
-    fun givenAppRemovedDuringTheRead_whenDisabledByPackageManager_thenSkipped() = runTest {
-        installAll()
-        system.pmFailures["com.example.b"] = ReadFailure.PackageNotFound(AppKey("com.example.b", OWNER))
-
-        val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
-
-        assertThat(disabled).isEqualTo(ReadResult.Success(emptyList<ComponentKey>()))
     }
 
     @Test

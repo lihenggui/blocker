@@ -62,6 +62,8 @@ internal class LocalComponentRepository @Inject constructor(
     @ShizukuControl private val shizukuController: IController,
     @CombinedControl private val combinedController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    // Temporary, removed with this repository: records what these controllers disable through PM.
+    private val legacyPmBlocks: LegacyPmBlockHook,
 ) : ComponentRepository {
 
     override fun getAllComponents(): Flow<List<ComponentInfo>> = appComponentDao.getAll()
@@ -152,6 +154,7 @@ internal class LocalComponentRepository @Inject constructor(
             IFW_PLUS_PM -> controlInCombinedMode(component, newState)
         }
         updateComponentStatus(packageName, componentName)
+        legacyPmBlocks.afterControl(listOf(component), newState, effectiveControllerType)
         emit(result)
     }
 
@@ -208,6 +211,8 @@ internal class LocalComponentRepository @Inject constructor(
             Timber.e(e, "Cannot read back or save ${packageComponents.size} components of $packageName")
             null
         }
+        // Also after a failure or a cancellation, which may have left some components changed.
+        withContext(NonCancellable) { legacyPmBlocks.afterControl(packageComponents, newState, controllerType) }
         if (failure is CancellationException || failure is RootUnavailableException) throw failure
         if (failure != null) Timber.e(failure, "Cannot change components of $packageName")
         val results = (reconciled ?: packageComponents).map { component ->
@@ -314,23 +319,6 @@ internal class LocalComponentRepository @Inject constructor(
     override suspend fun deleteComponents(packageName: String) {
         appComponentDao.deleteByPackageName(packageName)
     }
-
-    override fun restorePmBlockedComponents(): Flow<ComponentInfo> = flow {
-        val entities = appComponentDao.getPmBlockedComponents()
-        Timber.i("Restoring ${entities.size} PM-blocked components to default state")
-        if (entities.isEmpty()) return@flow
-        val useShizuku = userDataRepository.userData.first().controllerType == SHIZUKU
-        val controller = if (useShizuku) shizukuController else pmController
-        controller.init()
-        // ComponentState.DEFAULT maps to `pm default-state`, which clears user overrides so the
-        // component falls back to its manifest-declared state. Errors propagate to the caller.
-        entities.forEach { entity ->
-            val component = entity.toComponentInfo()
-            controller.switchComponent(component, ComponentState.DEFAULT)
-            appComponentDao.update(entity.copy(pmBlocked = false))
-            emit(component)
-        }
-    }.flowOn(ioDispatcher)
 
     private suspend fun controlInIfwMode(
         component: ComponentInfo,

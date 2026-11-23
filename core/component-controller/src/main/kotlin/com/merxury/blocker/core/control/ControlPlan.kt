@@ -23,7 +23,6 @@ import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
@@ -31,21 +30,17 @@ import com.merxury.blocker.core.model.control.ControlResult
 
 // What a goal asks of each layer and how the state read back is judged, as ComponentControl says.
 
-/**
- * The layers a request changes and judges for this component: [requested], except that a provider,
- * which the firewall does not filter, uses its PackageManager setting instead. The same holds for
- * both goals, so an unblock with the layers a block used clears what that block set.
- */
-internal fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>): Set<ControlLayer> = if (type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)
-
 /** The setting to send so the PackageManager layer meets [goal], or null when it already does. */
 internal fun ComponentDeclaration.pmChange(goal: ControlGoal, layers: Set<ControlLayer>, current: PmSetting): PmSetting? {
     if (ControlLayer.PACKAGE_MANAGER !in layers) return null
     return when (goal) {
         ControlGoal.BLOCK -> PmSetting.DISABLED.takeIf { current != PmSetting.DISABLED }
 
+        // Only the block goes; an unread setting may be one, so it is cleared too.
+        ControlGoal.UNBLOCK -> PmSetting.DEFAULT.takeIf { current == PmSetting.DISABLED || current == PmSetting.UNKNOWN }
+
         // DEFAULT leaves no override, but would keep a component the manifest disables blocked.
-        ControlGoal.UNBLOCK -> when {
+        ControlGoal.ENABLE -> when {
             isPmClear(current) -> null
             enabledInManifest -> PmSetting.DEFAULT
             else -> PmSetting.ENABLED
@@ -54,8 +49,8 @@ internal fun ComponentDeclaration.pmChange(goal: ControlGoal, layers: Set<Contro
 }
 
 /**
- * Whether to block (true) or unblock (false) through the firewall, or null when the firewall is not
- * involved. There is no "already done": the rule store decides that under its own lock from the
+ * Whether to block (true) or unblock (false, for an unblock and an enable) through the firewall,
+ * or null when the firewall is not involved. There is no "already done": the rule store decides that under its own lock from the
  * file, writes nothing when the rules stay as they are, and a conditional rule is never removed.
  */
 internal fun ifwChange(goal: ControlGoal, layers: Set<ControlLayer>): Boolean? = if (ControlLayer.INTENT_FIREWALL in layers) goal == ControlGoal.BLOCK else null
@@ -82,7 +77,7 @@ internal fun judge(
 
         goal == ControlGoal.BLOCK -> if (missed.size < layers.size) ControlResult.PARTIAL else ControlResult.FAILED
 
-        // Unblocking moved a layer to the goal, but another requested one still blocks or cannot be read.
+        // Unblocking or enabling moved a layer to the goal, but another requested one does not meet it or cannot be read.
         layers.any { component.meets(goal, it, after) && !component.meets(goal, it, before) } -> ControlResult.PARTIAL
 
         else -> ControlResult.FAILED
@@ -98,11 +93,20 @@ private fun ComponentDeclaration.meets(goal: ControlGoal, layer: ControlLayer, s
         ControlLayer.INTENT_FIREWALL -> state.ifw == IfwBlock.BLOCKED
     }
 
+    // No block by the layer; the manifest default may still keep the component from running.
     ControlGoal.UNBLOCK -> when (layer) {
+        ControlLayer.PACKAGE_MANAGER -> state.pm != PmSetting.DISABLED && state.pm != PmSetting.UNKNOWN
+        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
+    }
+
+    ControlGoal.ENABLE -> when (layer) {
         ControlLayer.PACKAGE_MANAGER -> isPmClear(state.pm)
-        ControlLayer.INTENT_FIREWALL -> state.ifw == IfwBlock.NOT_BLOCKED || state.ifw == IfwBlock.CONDITIONAL
+        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
     }
 }
+
+/** Whether no unconditional rule blocks the component; a conditional rule is not Blocker's. */
+private val IfwBlock.isClear: Boolean get() = this == IfwBlock.NOT_BLOCKED || this == IfwBlock.CONDITIONAL
 
 /** Whether [setting] lets the component run. */
 private fun ComponentDeclaration.isPmClear(setting: PmSetting): Boolean = setting == PmSetting.ENABLED || (setting == PmSetting.DEFAULT && enabledInManifest)

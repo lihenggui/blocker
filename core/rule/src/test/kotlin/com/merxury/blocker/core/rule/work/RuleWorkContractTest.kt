@@ -6,7 +6,8 @@ package com.merxury.blocker.core.rule.work
 import android.net.Uri
 import androidx.work.WorkRequest
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.rule.backup.BackupSet
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,6 +46,16 @@ class RuleWorkContractTest {
     }
 
     @Test
+    fun whenReadingAddedOutputKeys_thenKeyStringsAreAsListed() {
+        assertThat(RuleWorkResult.PARAM_FAILED_COUNT).isEqualTo("param_failed_count")
+        assertThat(RuleWorkResult.PARAM_SKIPPED_COUNT).isEqualTo("param_skipped_count")
+        assertThat(RuleWorkResult.PARAM_UNCHANGED_COUNT).isEqualTo("param_unchanged_count")
+        assertThat(RuleWorkResult.PARAM_FIREWALL_UNAVAILABLE).isEqualTo("param_firewall_unavailable")
+        assertThat(RuleWorkResult.PARAM_UNREADABLE_APP_COUNT).isEqualTo("param_unreadable_app_count")
+        assertThat(RuleWorkResult.PARAM_CHANGED_COUNT).isEqualTo("param_changed_count")
+    }
+
+    @Test
     fun givenBlockerRuleExport_whenBuildingWork_thenInputKeysAreUnchanged() {
         val request = ExportBlockerRulesWorker.exportWork(
             folderPath = "content://tree/backup",
@@ -63,36 +74,53 @@ class RuleWorkContractTest {
     }
 
     @Test
-    fun givenBlockerRuleImport_whenBuildingWork_thenInputKeysAndControllerOrdinalAreUnchanged() {
+    fun givenBlockerRuleImport_whenBuildingWork_thenInputKeysAreUnchanged() {
         val request = ImportBlockerRuleWorker.importWork(
             backupPath = "content://tree/backup",
             restoreSystemApps = true,
-            controllerType = ControllerType.SHIZUKU,
             backupPackageName = "com.example.app",
         )
 
+        // The controller type no longer travels: the file's methods pick the layers, and an
+        // ordinal queued by an older build is ignored.
         assertThat(inputOf(request)).containsExactly(
             "param_folder_path",
             "content://tree/backup",
             "param_restore_sys_apps",
             true,
-            "param_controller_type",
-            2,
             "param_backup_package_name",
             "com.example.app",
         )
     }
 
     @Test
-    fun givenControllerTypes_whenBuildingImportWork_thenOrdinalsAreStable() {
-        // The ordinal is what travels in the work data, so reordering ControllerType breaks
-        // imports that were queued by an older build.
-        assertThat(ControllerType.entries.map { it.name to it.ordinal }).containsExactly(
-            "IFW" to 0,
-            "PM" to 1,
-            "SHIZUKU" to 2,
-            "IFW_PLUS_PM" to 3,
-        ).inOrder()
+    fun givenTargetUserAndSourceSet_whenBuildingImportWork_thenTheirIdsAreAdded() {
+        val request = ImportBlockerRuleWorker.importWork(
+            backupPath = "content://tree/backup",
+            restoreSystemApps = false,
+            targetUser = UserId(10),
+            sourceSet = BackupSet(UserId(11)),
+        )
+
+        assertThat(inputOf(request)).containsExactly(
+            "param_folder_path",
+            "content://tree/backup",
+            "param_restore_sys_apps",
+            false,
+            "param_target_user",
+            10,
+            "param_source_set_user",
+            11,
+        )
+    }
+
+    @Test
+    fun givenTargetUser_whenBuildingExportAndResetWork_thenItsIdIsAdded() {
+        val export = ExportBlockerRulesWorker.exportWork("content://tree/backup", backupSystemApps = false, user = UserId(10))
+
+        assertThat(inputOf(export)).containsEntry("param_target_user", 10)
+        assertThat(inputOf(ResetPmWorker.resetPmWork(UserId(10)))).containsExactly("param_target_user", 10)
+        assertThat(inputOf(ResetPmWorker.resetPmWork())).isEmpty()
     }
 
     @Test
@@ -122,18 +150,16 @@ class RuleWorkContractTest {
     }
 
     @Test
-    fun givenMatImport_whenBuildingWork_thenInputKeysAreUnchanged() {
+    fun givenMatImport_whenBuildingWork_thenInputKeysAreUnchangedWithoutTheControllerType() {
         val request = ImportMatRulesWorker.importWork(
             fileUri = Uri.parse("content://docs/mat.txt"),
-            controllerType = ControllerType.IFW_PLUS_PM,
             restoreSystemApps = false,
         )
 
+        // The controller type is read when the work runs instead of travelling as an ordinal.
         assertThat(inputOf(request)).containsExactly(
             "key_file_uri",
             "content://docs/mat.txt",
-            "param_controller_type",
-            3,
             "param_restore_sys_apps",
             false,
         )

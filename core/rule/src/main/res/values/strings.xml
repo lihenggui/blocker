@@ -26,10 +26,24 @@
     <string name="core_rule_import_app_rules_please_wait">Importing app rules, please wait…</string>
     <string name="core_rule_cancel">Cancel</string>
     <string name="core_rule_processing_please_wait">Processing, please wait…</string>
-    <string name="core_rule_done">Done</string>
     <string name="core_rule_error_msg_folder_not_defined">Backup folder is not defined, please go to settings to assign one.</string>
     <string name="core_rule_error_msg_missing_root_permission">Missing root permission, please grant permission to Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Unexpected exception, please report to developer.</string>
     <string name="core_rule_task_cancelled">Task cancelled</string>
     <string name="core_rule_copying_rules_to_internal_storage">Copying rules to internal storage…</string>
+    <plurals name="core_rule_result_changed">
+        <item quantity="one">Done. %1$d item changed.</item>
+        <item quantity="other">Done. %1$d items changed.</item>
+    </plurals>
+    <plurals name="core_rule_result_skipped">
+        <item quantity="one">\u0020%1$d item skipped.</item>
+        <item quantity="other">\u0020%1$d items skipped.</item>
+    </plurals>
+    <plurals name="core_rule_result_failed">
+        <item quantity="one">\u0020%1$d item failed.</item>
+        <item quantity="other">\u0020%1$d items failed.</item>
+    </plurals>
+    <string name="core_rule_result_firewall_unavailable">\u0020Intent Firewall rules could not be read, so they were left out.</string>
+    <string name="core_rule_error_msg_folder_unreachable">Cannot access the backup folder. Please choose it again in settings.</string>
+    <string name="core_rule_error_msg_mat_file_unreadable">Cannot read the selected file. Please choose it again.</string>
 </resources>

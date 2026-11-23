@@ -53,6 +53,7 @@ interface AppComponentDao {
     @Query("SELECT * FROM app_component WHERE package_name = :packageName")
     fun getByPackageName(packageName: String): Flow<List<AppComponentEntity>>
 
+    /** The components whose PM state was last seen as not enabled, which is what earlier versions reset. */
     @Query("SELECT * FROM app_component WHERE pm_blocked = 1")
     suspend fun getPmBlockedComponents(): List<AppComponentEntity>
 
