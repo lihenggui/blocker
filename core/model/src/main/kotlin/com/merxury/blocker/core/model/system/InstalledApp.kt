@@ -25,10 +25,13 @@ import kotlin.time.Instant
  * The APK, and so the version and SDK levels, is the same for every user that has the app. The
  * enabled setting and install times belong to the user in [key].
  *
+ * @property uid the app's Linux uid in the user in [key], which differs between users, or null when
+ * the system does not report it
  * @property apkPath the base APK, or null when the system does not report one
  */
 data class InstalledApp(
     val key: AppKey,
+    val uid: Int?,
     val label: String,
     val versionName: String,
     val versionCode: Long,

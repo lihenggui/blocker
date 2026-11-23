@@ -65,6 +65,7 @@ internal fun app(
 ) = AppEntity(
     packageName = packageName,
     userId = userId,
+    uid = 10_000 + userId * 100_000,
     label = label,
     versionName = "1.0",
     versionCode = 1,

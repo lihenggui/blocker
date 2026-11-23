@@ -90,6 +90,7 @@ class PlatformSystemPackageReaderTest {
                     sourceDir = "/data/app/example/base.apk"
                     minSdkVersion = 24
                     targetSdkVersion = 34
+                    uid = 10_123
                     nonLocalizedLabel = "Example"
                 }
             },
@@ -99,6 +100,7 @@ class PlatformSystemPackageReaderTest {
         val app = reader.apps(OWNER).getOrNull()!!.single()
 
         assertThat(app.key).isEqualTo(AppKey(PKG, OWNER))
+        assertThat(app.uid).isEqualTo(10_123)
         assertThat(app.label).isEqualTo("Example")
         assertThat(app.versionName).isEqualTo("1.2")
         assertThat(app.versionCode).isEqualTo(12)
@@ -129,6 +131,7 @@ class PlatformSystemPackageReaderTest {
 
         assertThat(app.label).isEqualTo(PKG)
         assertThat(app.apkPath).isNull()
+        assertThat(app.uid).isNull()
         assertThat(app.isSystem).isFalse()
     }
 

@@ -80,6 +80,7 @@ fun DeviceUser.asEntity() = DeviceUserEntity(
 data class AppEntity(
     @ColumnInfo(name = "package_name") val packageName: String,
     @ColumnInfo(name = "user_id") val userId: Int,
+    val uid: Int?,
     val label: String,
     @ColumnInfo(name = "version_name") val versionName: String,
     @ColumnInfo(name = "version_code") val versionCode: Long,
@@ -94,6 +95,7 @@ data class AppEntity(
 
 fun AppEntity.asExternalModel() = InstalledApp(
     key = AppKey(packageName, UserId(userId)),
+    uid = uid,
     label = label,
     versionName = versionName,
     versionCode = versionCode,
@@ -109,6 +111,7 @@ fun AppEntity.asExternalModel() = InstalledApp(
 fun InstalledApp.asEntity() = AppEntity(
     packageName = key.packageName,
     userId = key.userId.value,
+    uid = uid,
     label = label,
     versionName = versionName,
     versionCode = versionCode,

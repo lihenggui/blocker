@@ -72,6 +72,7 @@ internal fun installedApp(
     enabledSetting: AppEnabledSetting = AppEnabledSetting.DEFAULT,
 ) = InstalledApp(
     key = AppKey(packageName, user),
+    uid = 10_000 + user.value * 100_000,
     label = "Label of $packageName",
     versionName = "1.0",
     versionCode = 1,
