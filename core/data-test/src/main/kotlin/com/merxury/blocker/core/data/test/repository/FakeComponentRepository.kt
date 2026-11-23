@@ -78,6 +78,4 @@ class FakeComponentRepository @Inject constructor() : ComponentRepository {
     override suspend fun deleteComponents(packageName: String) {
         /* no-op */
     }
-
-    override fun restorePmBlockedComponents(): Flow<ComponentInfo> = flowOf()
 }

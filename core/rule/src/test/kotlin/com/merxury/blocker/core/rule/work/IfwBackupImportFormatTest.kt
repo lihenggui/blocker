@@ -4,40 +4,39 @@
 package com.merxury.blocker.core.rule.work
 
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.rule.backup.IfwRuleMerge
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
-import org.junit.Assert.assertThrows
+import com.merxury.core.ifw.xml.IfwXmlSerializer
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 /**
- * Pins what ImportIfwRulesWorker extracts from an IFW backup file, `ifw/<package>.xml`, which
- * ExportIfwRulesWorker copies verbatim from /data/system/ifw.
+ * Pins how an IFW backup file, `ifw/<package>.xml`, which ExportIfwRulesWorker copies verbatim
+ * from /data/system/ifw, is parsed, and what ImportIfwRulesWorker merges from it. The import used
+ * to extract bare component names and block them, dropping conditions and `block="false"`; it now
+ * merges the whole rules.
  */
 @RunWith(RobolectricTestRunner::class)
 class IfwBackupImportFormatTest {
     private val deserializer = IfwXmlDeserializer()
+    private val merge = IfwRuleMerge(IfwXmlSerializer())
 
     private fun resource(name: String): String = checkNotNull(javaClass.classLoader?.getResource("ifw-backup/$name")) {
         "Missing test resource $name"
     }.readText()
 
-    private fun component(packageName: String, name: String) = ComponentInfo(
-        packageName = packageName,
-        name = name,
-        type = ComponentType.ACTIVITY,
-    )
+    private fun parse(xml: String): IfwRules = deserializer.deserialize(xml)
 
     @Test
     fun givenBlockerWrittenFile_whenDeserializing_thenFiltersAreGroupedByComponentType() {
-        val rules = deserializer.deserialize(resource("blocker_written.xml"))
+        val rules = parse(resource("blocker_written.xml"))
 
         assertThat(rules.componentFiltersFor(IfwComponentType.ACTIVITY)).containsExactly(
             "com.example.app/com.example.app.MainActivity",
@@ -52,26 +51,19 @@ class IfwBackupImportFormatTest {
     }
 
     @Test
-    fun givenBlockerWrittenFile_whenExtractingImportComponents_thenSplitsPackageAndName() {
-        val components = extractIfwImportComponents(
-            deserializer.deserialize(resource("blocker_written.xml")),
-        )
+    fun givenBlockerWrittenFile_whenMergingIntoNoRules_thenTheSameRulesResult() {
+        val backup = parse(resource("blocker_written.xml"))
 
-        assertThat(components.activities).containsExactly(
-            component("com.example.app", "com.example.app.MainActivity"),
-            component("com.example.app", ".ui.SettingsActivity"),
-        ).inOrder()
-        assertThat(components.broadcasts).containsExactly(
-            component("com.example.app", "com.example.app.BootReceiver"),
-        )
-        assertThat(components.services).containsExactly(
-            component("com.example.app", "com.example.app.SyncService"),
-        )
+        val merged = merge.merge(IfwRules.empty(), backup)
+
+        assertThat(merged.rules).isEqualTo(backup)
+        assertThat(merged.added).isEqualTo(3)
+        assertThat(merged.present).isEqualTo(0)
     }
 
     @Test
     fun givenConditionalFile_whenDeserializing_thenConditionsAreKeptInTheModel() {
-        val rules = deserializer.deserialize(resource("conditional.xml"))
+        val rules = parse(resource("conditional.xml"))
 
         assertThat(rules.rules).hasSize(4)
         val viewActivity = rules.rules[0]
@@ -95,58 +87,48 @@ class IfwBackupImportFormatTest {
     }
 
     @Test
-    fun givenConditionalFile_whenExtractingImportComponents_thenOnlyTopLevelComponentFiltersAreReturned() {
-        val components = extractIfwImportComponents(
-            deserializer.deserialize(resource("conditional.xml")),
-        )
+    fun givenConditionalFile_whenMergingIntoNoRules_thenEveryRuleIsKeptWithItsConditions() {
+        val backup = parse(resource("conditional.xml"))
 
-        // The activity rule has an intent-filter selector next to its component-filter: the
-        // selector is dropped, so the import blocks ViewActivity for every intent.
-        assertThat(components.activities).containsExactly(
-            component("com.example.app", "com.example.app.ViewActivity"),
-        )
-        // The sender-package condition is dropped as well. The BOOT_COMPLETED rule has no
-        // component-filter, so it contributes nothing.
-        assertThat(components.broadcasts).containsExactly(
-            component("com.example.app", "com.example.app.GuardedReceiver"),
-        )
-        // A component-filter nested in <and> is not extracted, a top-level one is.
-        assertThat(components.services).containsExactly(
-            component("com.example.app", "com.example.app.PlainService"),
-        )
+        val merged = merge.merge(IfwRules.empty(), backup)
+
+        // The intent-filter of the activity rule, the BOOT_COMPLETED rule without a
+        // component-filter, the sender-package condition and the nested component-filter all
+        // survive; earlier versions blocked bare component names instead.
+        assertThat(merged.rules).isEqualTo(backup)
+        assertThat(merged.added).isEqualTo(4)
     }
 
     @Test
-    fun givenFileWithoutComponentFilters_whenExtractingImportComponents_thenAllListsAreEmpty() {
-        val components = extractIfwImportComponents(
-            deserializer.deserialize(
-                """
-                <rules>
-                  <broadcast block="true" log="true">
-                    <action equals="android.intent.action.BOOT_COMPLETED" />
-                  </broadcast>
-                </rules>
-                """.trimIndent(),
-            ),
+    fun givenFileWithoutComponentFilters_whenMerging_thenTheRuleIsAddedAsItIs() {
+        val backup = parse(
+            """
+            <rules>
+              <broadcast block="true" log="true">
+                <action equals="android.intent.action.BOOT_COMPLETED" />
+              </broadcast>
+            </rules>
+            """.trimIndent(),
         )
 
-        assertThat(components.activities).isEmpty()
-        assertThat(components.broadcasts).isEmpty()
-        assertThat(components.services).isEmpty()
+        assertThat(merge.merge(IfwRules.empty(), backup).rules).isEqualTo(backup)
     }
 
     @Test
-    fun givenEmptyRules_whenExtractingImportComponents_thenAllListsAreEmpty() {
-        val components = extractIfwImportComponents(IfwRules.empty())
+    fun givenEmptyRules_whenMerging_thenNothingChanges() {
+        val current = IfwRules(listOf(IfwRule(IfwComponentType.SERVICE, filters = listOf(IfwFilter.ComponentFilter("com.example.app/com.example.app.Sync")))))
 
-        assertThat(components).isEqualTo(
-            IfwImportComponents(emptyList(), emptyList(), emptyList()),
-        )
+        val merged = merge.merge(current, IfwRules.empty())
+
+        assertThat(merged.rules).isEqualTo(current)
+        assertThat(merged.added).isEqualTo(0)
+        assertThat(merged.present).isEqualTo(0)
     }
 
     @Test
-    fun givenComponentFilterWithoutSlash_whenExtractingImportComponents_thenThrowsIndexOutOfBounds() {
-        val rules = deserializer.deserialize(
+    fun givenComponentFilterWithoutSlash_whenMerging_thenTheFilterIsKeptAsWritten() {
+        // Earlier versions threw IndexOutOfBoundsException for this file.
+        val backup = parse(
             """
             <rules>
               <activity block="true" log="false">
@@ -156,12 +138,12 @@ class IfwBackupImportFormatTest {
             """.trimIndent(),
         )
 
-        assertThrows(IndexOutOfBoundsException::class.java) { extractIfwImportComponents(rules) }
+        assertThat(merge.merge(IfwRules.empty(), backup).rules).isEqualTo(backup)
     }
 
     @Test
-    fun givenBlockFalseRule_whenExtractingImportComponents_thenTheFilterIsStillReturned() {
-        val rules = deserializer.deserialize(
+    fun givenBlockFalseRule_whenMerging_thenItStaysAnAllowRule() {
+        val backup = parse(
             """
             <rules>
               <service block="false" log="false">
@@ -171,8 +153,9 @@ class IfwBackupImportFormatTest {
             """.trimIndent(),
         )
 
-        assertThat(extractIfwImportComponents(rules).services).containsExactly(
-            component("com.example.app", "com.example.app.Allowed"),
-        )
+        val merged = merge.merge(IfwRules.empty(), backup).rules
+
+        assertThat(merged).isEqualTo(backup)
+        assertThat(merged.rules.single().block).isFalse()
     }
 }

@@ -53,6 +53,9 @@ class FakeComponentStatusRepository : ComponentStatusRepository {
     /** When set, [refresh], [refreshAll] and [disabledByPackageManager] fail with it. */
     var refreshFailure: ReadFailure? = null
 
+    /** [refresh] of an app of one of these packages fails with its reason, after [refreshFailure]. */
+    val appRefreshFailures = mutableMapOf<String, ReadFailure>()
+
     /** When set, [control] emits these events instead of changing the cached state. */
     var controlEvents: ((ControlRequest) -> List<ControlEvent>)? = null
 
@@ -79,7 +82,8 @@ class FakeComponentStatusRepository : ComponentStatusRepository {
 
     override suspend fun refresh(app: AppKey): ReadResult<Unit> {
         refreshedApps += app
-        return refreshFailure?.let { ReadResult.Failure(it) } ?: ReadResult.Success(Unit)
+        val failure = refreshFailure ?: appRefreshFailures[app.packageName]
+        return failure?.let { ReadResult.Failure(it) } ?: ReadResult.Success(Unit)
     }
 
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {

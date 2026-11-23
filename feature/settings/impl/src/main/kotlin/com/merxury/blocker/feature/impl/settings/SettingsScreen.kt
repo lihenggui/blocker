@@ -130,8 +130,8 @@ fun SettingsScreen(
         }
     }
     event?.let {
-        val work = it.first
-        val result = it.second
+        val work = it.type
+        val result = it.result
         val messageRes = when (result) {
             RuleWorkResult.STARTED -> when (work) {
                 IMPORT_BLOCKER_RULES -> CoreRuleR.core_rule_import_app_rules_please_wait
@@ -156,7 +156,11 @@ fun SettingsScreen(
 
             else -> CoreRuleR.core_rule_error_msg_unexpected_exception
         }
-        val message = stringResource(id = messageRes)
+        val message = if (result == RuleWorkResult.FINISHED && it.failedCount > 0) {
+            stringResource(id = CoreRuleR.core_rule_done_with_failures, it.failedCount)
+        } else {
+            stringResource(id = messageRes)
+        }
         val duration = if (result == RuleWorkResult.STARTED) {
             SnackbarDuration.Long
         } else {

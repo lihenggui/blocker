@@ -36,7 +36,6 @@ import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
-import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.StubAnalyticsHelper
@@ -49,7 +48,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.rule.entity.RuleWorkResult
+import com.merxury.blocker.core.rule.entity.RuleWorkEvent
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_IFW_RULES
@@ -57,6 +56,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_PM
+import com.merxury.blocker.core.rule.entity.ruleWorkEventOf
 import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
@@ -95,7 +95,6 @@ class SettingsViewModel @Inject constructor(
             .map { userData ->
                 Success(
                     settings = UserEditableSettings(
-                        controllerType = userData.controllerType,
                         ruleServerProvider = userData.ruleServerProvider,
                         appDisplayLanguage = userData.appDisplayLanguage,
                         libDisplayLanguage = userData.libDisplayLanguage,
@@ -117,8 +116,7 @@ class SettingsViewModel @Inject constructor(
                 initialValue = Loading,
             )
 
-    // Int is the RuleWorkResult
-    private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
+    private val _eventFlow = MutableSharedFlow<RuleWorkEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     private suspend fun getPathFromUriString(path: String): String = withContext(ioDispatcher) {
@@ -233,16 +231,8 @@ class SettingsViewModel @Inject constructor(
     }
 
     private suspend fun listenWorkInfo(ruleWorkType: RuleWorkType, workInfo: WorkInfo) {
-        val state = workInfo.state
-        val outputData = workInfo.outputData
-        val workResult = when (state) {
-            State.ENQUEUED -> RuleWorkResult.STARTED
-            State.FAILED -> outputData.getInt(RuleWorkResult.PARAM_WORK_RESULT, -1)
-            State.SUCCEEDED -> RuleWorkResult.FINISHED
-            State.CANCELLED -> RuleWorkResult.CANCELLED
-            else -> return // Do not emit anything when it is running or blocked
-        }
-        _eventFlow.emit(ruleWorkType to workResult)
+        // Nothing is emitted while the work is running or blocked.
+        ruleWorkEventOf(ruleWorkType, workInfo)?.let { _eventFlow.emit(it) }
     }
 
     fun importBlockerRules() = viewModelScope.launch {
@@ -255,7 +245,6 @@ class SettingsViewModel @Inject constructor(
                 ImportBlockerRuleWorker.importWork(
                     backupPath = userData.ruleBackupFolder,
                     restoreSystemApps = userData.restoreSystemApp,
-                    controllerType = userData.controllerType,
                 ),
             )
             getWorkInfosForUniqueWorkLiveData(taskName)
@@ -378,9 +367,8 @@ class SettingsViewModel @Inject constructor(
                 "ImportMatRule",
                 ExistingWorkPolicy.KEEP,
                 ImportMatRulesWorker.importWork(
-                    fileUri,
-                    userData.controllerType,
-                    userData.restoreSystemApp,
+                    fileUri = fileUri,
+                    restoreSystemApps = userData.restoreSystemApp,
                 ),
             )
         }

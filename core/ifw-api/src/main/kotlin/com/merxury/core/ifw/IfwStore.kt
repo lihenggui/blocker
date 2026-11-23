@@ -147,6 +147,27 @@ interface IfwStore {
      */
     suspend fun clear(name: String): IfwResult<Boolean>
 
+    /**
+     * The rule file `<name>.xml` exactly as stored, for a backup, or null when there is none. A
+     * file that cannot be parsed is returned as it is; it fails with [IfwFailure.Unreadable] only
+     * when its content cannot be read at all. Reads under the name's lock, so it never sees a
+     * write half done, and acquires the privileged channel when needed.
+     *
+     * @param name a rule file name as [isRuleFileName] decides
+     */
+    suspend fun ruleFileText(name: String): IfwResult<String?>
+
+    /**
+     * Restores a rule file not named after a package, such as one the global rule editor stored,
+     * from a backup with [content] as it is, only when no file of that name exists; an existing
+     * file is never overwritten. Returns whether it wrote. Package files are restored through
+     * [update] instead.
+     *
+     * @throws IllegalArgumentException when [name] is a package name, as [isPackageRuleFileName]
+     * decides, or not a rule file name as [isRuleFileName] decides
+     */
+    suspend fun restoreRuleFile(name: String, content: String): IfwResult<Boolean>
+
     /** Drops the rules [blocks] remembers, so its next answers read the files again. */
     fun clearCache()
 

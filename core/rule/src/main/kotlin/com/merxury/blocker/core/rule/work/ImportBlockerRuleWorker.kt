@@ -16,279 +16,80 @@
 
 package com.merxury.blocker.core.rule.work
 
-import android.content.ComponentName
 import android.content.Context
-import android.content.pm.PackageManager
-import androidx.core.net.toUri
-import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.controllers.di.IfwControl
-import com.merxury.blocker.core.controllers.di.RootApiControl
-import com.merxury.blocker.core.controllers.di.ShizukuControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
-import com.merxury.blocker.core.model.rule.BlockerRule
-import com.merxury.blocker.core.rule.EXTENSION
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.entity.RuleWorkResult
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
-import com.merxury.blocker.core.rule.util.StorageUtil
-import com.merxury.blocker.core.utils.PackageInfoDataSource
-import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.blocker.core.rule.backup.BackupSet
+import com.merxury.blocker.core.rule.backup.BlockerRuleImporter
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
 import timber.log.Timber
 
+/** Restores a set of Blocker rule backups into one user through [BlockerRuleImporter]. */
 @HiltWorker
 class ImportBlockerRuleWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val pm: PackageManager,
-    private val packageInfoDataSource: PackageInfoDataSource,
-    @RootApiControl private val rootController: IController,
-    @IfwControl private val ifwController: IController,
-    @ShizukuControl private val shizukuController: IController,
-    private val intentFirewall: IIntentFirewall,
-    private val json: Json,
+    private val importer: BlockerRuleImporter,
+    private val legacyCache: LegacyComponentCache,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
-    private val ifwReader = IfwRunReader(intentFirewall)
-
     override fun getNotificationTitle(): Int = R.string.core_rule_import_app_rules_please_wait
 
-    @OptIn(ExperimentalSerializationApi::class)
-    override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        // Check storage permission first
-        val backupPath = inputData.getString(PARAM_FOLDER_PATH)
-        if (backupPath.isNullOrEmpty()) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
-            )
+    override suspend fun doWork(): Result {
+        val storage = when (val folder = openBackupFolder(context, inputData.getString(PARAM_FOLDER_PATH), ioDispatcher)) {
+            is BackupFolder.Ready -> folder.storage
+            is BackupFolder.Unusable -> return failureOf(folder.code)
         }
-        if (!StorageUtil.isFolderReadable(context, backupPath)) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
-            )
-        }
-        val controllerOrdinal =
-            inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
-        val controllerType = ControllerType.entries[controllerOrdinal]
-        val packageManager = context.packageManager
-        val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
-        val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
-        val documentDir = DocumentFile.fromTreeUri(context, backupPath.toUri())
-        if (documentDir == null) {
-            Timber.e("Cannot create DocumentFile")
-            return@withContext Result.failure()
-        }
-        if (!backupPackageName.isNullOrEmpty()) {
-            return@withContext importSingleRule(
-                packageManager,
-                documentDir,
-                backupPackageName,
-                controllerType,
-            )
-        }
-        Timber.i("Start to import app rules")
-        var successCount = 0
-        val unrestoredPackages = mutableListOf<String>()
-        try {
-            val files = documentDir.listFiles()
-                .filter { it.name?.endsWith(EXTENSION) == true }
-            val total = files.count()
-            var current = 1
-            files.forEach {
-                Timber.i("Import ${it.uri}")
-                context.contentResolver.openInputStream(it.uri)?.use { input ->
-                    val rule = json.decodeFromStream<BlockerRule>(input)
-                    val appInstalled =
-                        packageInfoDataSource.isAppInstalled(rule.packageName)
-                    val isSystemApp = packageInfoDataSource.isSystemApp(rule.packageName)
-                    if (!appInstalled) {
-                        Timber.w("App ${rule.packageName} is not installed, skipping")
-                        current++
-                        return@forEach
-                    }
-                    if (!shouldRestoreSystemApp && isSystemApp) {
-                        Timber.d("App ${rule.packageName} is a system app, skipping")
-                        current++
-                        return@forEach
-                    }
-                    setForeground(updateNotification(rule.packageName ?: "", current, total))
-                    val restoredComponentCount = import(rule, controllerType)
-                    if (restoredComponentCount == null) {
-                        unrestoredPackages += rule.packageName.orEmpty()
-                    } else if (restoredComponentCount > 0) {
-                        successCount++
-                    }
-                    current++
-                }
-            }
-            Timber.i("Import rules finished.")
-        } catch (e: RuntimeException) {
-            Timber.e(e, "Failed to import blocker rules")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
-            )
-        }
-        if (unrestoredPackages.isNotEmpty()) {
-            // No result code describes an unreadable rule file, so report the closest one.
-            Timber.e("IFW rules not restored, rule files cannot be read: ${unrestoredPackages.joinToString()}")
-            return@withContext Result.failure(
-                workDataOf(
-                    PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION,
-                    PARAM_IMPORT_COUNT to successCount,
-                ),
-            )
-        }
-        Timber.i("Imported $successCount rules.")
-        return@withContext Result.success(
-            workDataOf(PARAM_IMPORT_COUNT to successCount),
-        )
-    }
-
-    @OptIn(ExperimentalSerializationApi::class)
-    private suspend fun importSingleRule(
-        pm: PackageManager,
-        documentDir: DocumentFile,
-        packageName: String,
-        controllerType: ControllerType,
-    ): Result {
-        val appInstalled = packageInfoDataSource.isAppInstalled(packageName)
-        if (!appInstalled) {
-            Timber.w("App $packageName is not installed, skipping")
-            return Result.failure()
-        }
-        try {
-            val files = documentDir.listFiles()
-                .filter { it.name?.endsWith(EXTENSION) == true }
-            files.forEach {
-                Timber.i("Import ${it.uri}")
-                context.contentResolver.openInputStream(it.uri)?.use { input ->
-                    val rule = json.decodeFromStream<BlockerRule>(input)
-                    if (rule.packageName != packageName) {
-                        return@forEach
-                    }
-                    setForeground(updateNotification(rule.packageName ?: "", 1, 1))
-                    if (import(rule, controllerType) == null) {
-                        Timber.e("IFW rules not restored, rule file cannot be read: $packageName")
-                        return Result.failure(
-                            workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
-                        )
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to import blocker rules for $packageName")
-            return Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
-            )
-        }
-        return Result.success(
-            workDataOf(PARAM_IMPORT_COUNT to 1),
-        )
-    }
-
-    /**
-     * Returns the number of restored components, or null if the package's IFW rule file cannot be
-     * read, so its IFW entries were not restored. Its PackageManager entries are still applied.
-     */
-    private suspend fun import(rule: BlockerRule, type: ControllerType): Int? {
-        val fallbackController = if (type == SHIZUKU) {
-            shizukuController
-        } else {
-            rootController
-        }
-        var count = 0
-        var notAppliedIfwPackage: String? = null
-        // The package's IFW rules, read strictly once, when the first entry needs them.
-        var ifwRead: IfwRestoreRead? = null
-        rule.components.forEach {
-            if (it.method == IFW) {
-                if (it.type == PROVIDER) {
-                    // IFW controller did not support disabling provider
-                    // Fallback to other controller
-                    if (!it.state) {
-                        fallbackController.enable(it.toComponentInfo())
-                    } else {
-                        fallbackController.disable(it.toComponentInfo())
-                    }
-                } else {
-                    val read = ifwRead ?: ifwReader.readForRestore(it.packageName).also { result -> ifwRead = result }
-                    val currentState = when (read) {
-                        is IfwRestoreRead.Rules -> read.isEnabled(it.packageName, it.name)
-
-                        // Without root, keep the display read that restores have always used.
-                        IfwRestoreRead.RootUnavailable -> ifwController.checkComponentEnableState(
-                            it.packageName,
-                            it.name,
-                        )
-
-                        // Make no IFW changes to a file that cannot be read. The package is reported below.
-                        IfwRestoreRead.Unreadable -> return@forEach
-                    }
-                    if (currentState == it.state) return@forEach
-                    val applied = if (it.state) {
-                        ifwController.enable(it.toComponentInfo())
-                    } else {
-                        ifwController.disable(it.toComponentInfo())
-                    }
-                    if (!applied) notAppliedIfwPackage = it.packageName
-                }
-                count++
-            } else {
-                val currentState = packageInfoDataSource.checkComponentIsEnabled(
-                    ComponentName(it.packageName, it.name),
-                )
-                if (currentState == it.state) return@forEach
-                if (it.state) {
-                    fallbackController.enable(it.toComponentInfo())
-                } else {
-                    fallbackController.disable(it.toComponentInfo())
-                }
-                count++
-            }
-        }
-        if (ifwRead == IfwRestoreRead.Unreadable) return null
-        val ifwPackage = notAppliedIfwPackage
-        if (ifwPackage != null && intentFirewall.hasUnreadableRules(ifwPackage)) return null
-        return count
+        val target = inputData.userOr(PARAM_TARGET_USER, ownUser())
+        val source = BackupSet(inputData.userOr(PARAM_SOURCE_SET_USER, UserId.SYSTEM))
+        Timber.i("Restore the Blocker rules of set '${source.folder}' into user ${target.value}")
+        setForeground(updateNotification("", 0, 0))
+        val result = importer.import(
+            storage = storage,
+            source = source,
+            target = target,
+            packageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
+            includeSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false),
+        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        Timber.i("Restored Blocker rules: $result")
+        legacyCache.refreshAfter(result, target)
+        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.apps }
     }
 
     companion object {
+        /** Output: the apps whose state the restore changed. */
         const val PARAM_IMPORT_COUNT = "param_import_count"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
-        private const val PARAM_CONTROLLER_TYPE = "param_controller_type"
         private const val PARAM_BACKUP_PACKAGE_NAME = "param_backup_package_name"
 
+        /**
+         * Restores the set of [sourceSet], by default the owner's, from [backupPath] into
+         * [targetUser], by default the user Blocker runs in.
+         */
         fun importWork(
             backupPath: String?,
             restoreSystemApps: Boolean,
-            controllerType: ControllerType,
             backupPackageName: String? = null,
+            targetUser: UserId? = null,
+            sourceSet: BackupSet? = null,
         ) = OneTimeWorkRequestBuilder<ImportBlockerRuleWorker>()
             .setInputData(
-                workDataOf(
+                inputOf(
                     PARAM_FOLDER_PATH to backupPath,
                     PARAM_RESTORE_SYS_APPS to restoreSystemApps,
-                    PARAM_CONTROLLER_TYPE to controllerType.ordinal,
                     PARAM_BACKUP_PACKAGE_NAME to backupPackageName,
+                    PARAM_TARGET_USER to targetUser?.value,
+                    PARAM_SOURCE_SET_USER to sourceSet?.user?.value,
                 ),
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

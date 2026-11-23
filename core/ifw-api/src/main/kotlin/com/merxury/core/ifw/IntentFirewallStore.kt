@@ -43,8 +43,11 @@ private const val CHANGE_BUFFER = 64
 /**
  * [IfwStore] over an [IfwFileSystem] that throws [IfwAccessException] when the directory cannot
  * be reached; see [IfwStore] for the rules it applies.
+ *
+ * Public so tests of other modules can run the real rule semantics over an in-memory file
+ * system; the app gets its one instance from Hilt.
  */
-internal class IntentFirewallStore(
+class IntentFirewallStore(
     private val fileSystem: IfwFileSystem,
     private val serializer: IfwXmlSerializer,
     private val deserializer: IfwXmlDeserializer,
@@ -167,6 +170,43 @@ internal class IntentFirewallStore(
                 removed
             }
         }
+    }
+
+    override suspend fun ruleFileText(name: String): IfwResult<String?> {
+        requireRuleFileName(name)
+        return withLock(name) { readText(name) }
+    }
+
+    override suspend fun restoreRuleFile(name: String, content: String): IfwResult<Boolean> {
+        require(isRuleFileName(name) && !isPackageRuleFileName(name)) { "Not a rule file name outside the packages': $name" }
+        return withLock(name) {
+            when (val existing = readText(name)) {
+                is IfwResult.Failure -> existing
+
+                is IfwResult.Success -> if (existing.value != null) {
+                    IfwResult.Success(false)
+                } else {
+                    // Runs to its end once started, as a save does.
+                    when (val written = withContext(NonCancellable) { changeFile(name) { fileSystem.writeRules(name, content) } }) {
+                        is IfwResult.Success -> IfwResult.Success(true).also { Timber.i("Restored the IFW rule file $name.xml") }
+                        is IfwResult.Failure -> written
+                    }
+                }
+            }
+        }
+    }
+
+    /** The text of `<name>.xml` as stored, or null when there is none; call it under the name's lock. */
+    private suspend fun readText(name: String): IfwResult<String?> = try {
+        IfwResult.Success(fileSystem.readRules(name))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: IfwAccessException) {
+        Timber.d("Cannot reach the IFW rule file $name: ${e.message}")
+        IfwResult.Failure(IfwFailure.NoAccess)
+    } catch (e: Exception) {
+        Timber.e(e, "Cannot read the IFW rule file $name")
+        IfwResult.Failure(IfwFailure.Unreadable(name))
     }
 
     override fun clearCache() {

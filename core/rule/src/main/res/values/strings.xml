@@ -27,6 +27,7 @@
     <string name="core_rule_cancel">Cancel</string>
     <string name="core_rule_processing_please_wait">Processing, please wait…</string>
     <string name="core_rule_done">Done</string>
+    <string name="core_rule_done_with_failures">Done. Could not apply: %1$d</string>
     <string name="core_rule_error_msg_folder_not_defined">Backup folder is not defined, please go to settings to assign one.</string>
     <string name="core_rule_error_msg_missing_root_permission">Missing root permission, please grant permission to Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Unexpected exception, please report to developer.</string>

@@ -24,147 +24,81 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.controllers.di.CombinedControl
-import com.merxury.blocker.core.controllers.di.IfwControl
-import com.merxury.blocker.core.controllers.di.RootApiControl
-import com.merxury.blocker.core.controllers.di.ShizukuControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.ControllerType.IFW_PLUS_PM
-import com.merxury.blocker.core.model.data.ControllerType.PM
-import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
+import com.merxury.blocker.core.rule.backup.MatRuleImporter
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
-import com.merxury.blocker.core.utils.PackageInfoDataSource
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.IOException
 
+/**
+ * Blocks the components a MAT export lists for one user through [MatRuleImporter], with the
+ * controller type chosen when the work runs.
+ */
 @HiltWorker
 class ImportMatRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val packageInfoDataSource: PackageInfoDataSource,
-    @IfwControl private val ifwController: IController,
-    @RootApiControl private val rootController: IController,
-    @ShizukuControl private val shizukuController: IController,
-    @CombinedControl private val combinedController: IController,
+    private val importer: MatRuleImporter,
+    private val legacyCache: LegacyComponentCache,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
-    private val uriString = params.inputData.getString(PARAM_FILE_URI)
-
     override fun getNotificationTitle(): Int = R.string.core_rule_import_mat_rule_please_wait
 
-    override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        val uri = uriString?.toUri()
-        if (uri == null) {
-            Timber.e("File URI is null, cannot import MAT rules")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_STORAGE_PERMISSION),
-            )
-        }
-        val typeOrdinal = inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
-        val controller = when (ControllerType.entries[typeOrdinal]) {
-            IFW -> ifwController
-            PM -> rootController
-            SHIZUKU -> shizukuController
-            IFW_PLUS_PM -> combinedController
-        }
-        val shouldRestoreSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
-        val uninstalledAppList = mutableListOf<String>()
-        var total: Int
-        var current = 0
-        try {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                val fileContent = filterMatLines(stream.reader().readLines())
-                total = fileContent.count()
-                fileContent.forEach { line ->
-                    val (packageName, name) = parseMatLine(line)
-                    if (isApplicationUninstalled(context, uninstalledAppList, packageName)) {
-                        return@forEach
-                    }
-                    val isSystemApp = packageInfoDataSource.isSystemApp(
-                        packageName,
-                    )
-                    if (!shouldRestoreSystemApps && isSystemApp) {
-                        return@forEach
-                    }
-                    setForeground(updateNotification(packageName, current, total))
-                    val component = ComponentInfo(
-                        packageName = packageName,
-                        name = name,
-                        // The controller doesn't care about the type of the component
-                        // It will query internally, so we just set it to ACTIVITY
-                        // Just to avoid compilation error
-                        type = ACTIVITY,
-                    )
-                    controller.disable(component)
-                    current++
-                }
-            }
-        } catch (e: RuntimeException) {
-            Timber.e(e, "Failed to import MAT files.")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
-            )
-        } catch (e: IOException) {
-            Timber.e(e, "Error occurs while reading MAT files.")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
-            )
-        }
-        return@withContext Result.success(
-            workDataOf(PARAM_IMPORT_COUNT to current),
-        )
+    override suspend fun doWork(): Result {
+        val lines = readLines(inputData.getString(PARAM_FILE_URI)) ?: return failureOf(MISSING_STORAGE_PERMISSION)
+        val target = inputData.userOr(PARAM_TARGET_USER, ownUser())
+        Timber.i("Import ${lines.size} MAT lines into user ${target.value}")
+        val result = importer.import(
+            lines = lines,
+            target = target,
+            includeSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false),
+        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        Timber.i("Imported MAT rules: $result")
+        legacyCache.refreshAfter(result, target)
+        return result.toWorkResult(PARAM_IMPORT_COUNT) { it.applied }
     }
 
-    private fun isApplicationUninstalled(
-        context: Context,
-        savedList: MutableList<String>,
-        packageName: String,
-    ): Boolean {
-        if (packageName.trim().isEmpty()) {
-            return true
+    /** The lines of the file at [uri], or null when it cannot be opened or read. */
+    private suspend fun readLines(uri: String?): List<String>? = withContext(ioDispatcher) {
+        if (uri == null) {
+            Timber.e("No MAT file to import")
+            return@withContext null
         }
-        if (savedList.contains(packageName)) {
-            return true
+        try {
+            context.contentResolver.openInputStream(uri.toUri())?.use { it.reader().readLines() }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot read the MAT file $uri")
+            null
         }
-        if (!packageInfoDataSource.isAppInstalled(packageName)) {
-            savedList.add(packageName)
-            return true
-        }
-        return false
     }
 
     companion object {
+        /** Output: the components blocked. */
         const val PARAM_IMPORT_COUNT = "param_import_count"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
-        private const val PARAM_CONTROLLER_TYPE = "param_controller_type"
         private const val PARAM_FILE_URI = "key_file_uri"
 
+        /** Imports [fileUri] into [targetUser], by default the user Blocker runs in. */
         fun importWork(
             fileUri: Uri,
-            controllerType: ControllerType,
             restoreSystemApps: Boolean,
+            targetUser: UserId? = null,
         ): OneTimeWorkRequest = OneTimeWorkRequestBuilder<ImportMatRulesWorker>()
             .setInputData(
-                workDataOf(
+                inputOf(
                     PARAM_FILE_URI to fileUri.toString(),
-                    PARAM_CONTROLLER_TYPE to controllerType.ordinal,
                     PARAM_RESTORE_SYS_APPS to restoreSystemApps,
+                    PARAM_TARGET_USER to targetUser?.value,
                 ),
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

@@ -21,115 +21,48 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.entity.RuleWorkResult
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
-import com.merxury.blocker.core.rule.util.StorageUtil
-import com.merxury.core.ifw.IfwFileSystem
+import com.merxury.blocker.core.rule.backup.IfwRuleExporter
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.IOException
 
+/** Copies the device's Intent Firewall rule files into the backup folder through [IfwRuleExporter]. */
 @HiltWorker
 class ExportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val ifwFileSystem: IfwFileSystem,
+    private val exporter: IfwRuleExporter,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
     override fun getNotificationTitle(): Int = R.string.core_rule_backing_up_ifw_please_wait
 
-    override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        val folderPath = inputData.getString(PARAM_FOLDER_PATH)
-        if (folderPath.isNullOrEmpty()) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
-            )
+    override suspend fun doWork(): Result {
+        val storage = when (val folder = openBackupFolder(context, inputData.getString(PARAM_FOLDER_PATH), ioDispatcher)) {
+            is BackupFolder.Ready -> folder.storage
+            is BackupFolder.Unusable -> return failureOf(folder.code)
         }
-        if (!StorageUtil.isFolderReadable(context, folderPath)) {
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
-            )
-        }
-        val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
-        if (!backupPackageName.isNullOrEmpty()) {
-            try {
-                val result = exportForSingleApplication(backupPackageName, folderPath)
-                return@withContext Result.success(workDataOf(PARAM_EXPORT_COUNT to result))
-            } catch (e: IOException) {
-                Timber.e(e, "Can't read IFW rules for $backupPackageName")
-                return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
-                )
-            }
-        }
-        Timber.i("Start to export IFW rules.")
-        var current = 0
-        try {
-            val packages = ifwFileSystem.listRuleFiles()
-            val total = packages.count()
-            packages.forEach { packageName ->
-                val filename = "$packageName$IFW_EXTENSION"
-                Timber.i("Export $filename")
-                setForeground(updateNotification(filename, current, total))
-                val content = ifwFileSystem.readRules(packageName) ?: return@forEach
-                StorageUtil.saveIfwToStorage(context, folderPath, filename, content, ioDispatcher)
-                current++
-            }
-        } catch (e: RuntimeException) {
-            Timber.e(e, "Failed to export IFW rules")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
-            )
-        } catch (e: IOException) {
-            Timber.e(e, "Can't read IFW rules")
-            return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
-            )
-        }
-        Timber.i("Export IFW rules finished, success count = $current.")
-        return@withContext Result.success(
-            workDataOf(PARAM_EXPORT_COUNT to current),
-        )
-    }
-
-    // Export IFW rules for a single application
-    // Return value is the number of exported rules
-    private suspend fun exportForSingleApplication(packageName: String, backupFolder: String): Int {
-        Timber.d("Export IFW rules for $packageName")
-        return withContext(ioDispatcher) {
-            val targetFileName = packageName + IFW_EXTENSION
-            if (ifwFileSystem.fileExists(packageName)) {
-                val content = ifwFileSystem.readRules(packageName) ?: return@withContext 0
-                StorageUtil.saveIfwToStorage(
-                    context = context,
-                    baseFolder = backupFolder,
-                    filename = targetFileName,
-                    content = content,
-                    dispatcher = ioDispatcher,
-                )
-                1
-            } else {
-                0
-            }
-        }
+        Timber.i("Back up IFW rules")
+        val result = exporter.export(
+            storage = storage,
+            packageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
+        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        Timber.i("Backed up IFW rules: $result")
+        return result.toWorkResult(PARAM_EXPORT_COUNT) { it.apps }
     }
 
     companion object {
+        /** Output: the rule files copied. */
         const val PARAM_EXPORT_COUNT = "param_export_count"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_BACKUP_PACKAGE_NAME = "param_backup_package_name"
 
         fun exportWork(folderPath: String?, backupPackageName: String? = null) = OneTimeWorkRequestBuilder<ExportIfwRulesWorker>()
             .setInputData(
-                workDataOf(
+                inputOf(
                     PARAM_FOLDER_PATH to folderPath,
                     PARAM_BACKUP_PACKAGE_NAME to backupPackageName,
                 ),

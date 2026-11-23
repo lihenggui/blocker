@@ -25,4 +25,16 @@ object RuleWorkResult {
     const val MISSING_STORAGE_PERMISSION = 4
     const val UNEXPECTED_EXCEPTION = 5
     const val CANCELLED = 6
+
+    /** Output: how many items could not be done; see the run's summary for what an item is. */
+    const val PARAM_FAILED_COUNT = "param_failed_count"
+
+    /** Output: how many items were left alone on purpose, such as apps not installed. */
+    const val PARAM_SKIPPED_COUNT = "param_skipped_count"
+
+    /** Output: how many entries or rules already were as the backup says. */
+    const val PARAM_UNCHANGED_COUNT = "param_unchanged_count"
+
+    /** Output: whether the Intent Firewall rules could not be reached at all during the run. */
+    const val PARAM_FIREWALL_UNAVAILABLE = "param_firewall_unavailable"
 }

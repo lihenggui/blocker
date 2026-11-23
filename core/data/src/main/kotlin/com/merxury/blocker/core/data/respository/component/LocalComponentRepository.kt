@@ -315,23 +315,6 @@ internal class LocalComponentRepository @Inject constructor(
         appComponentDao.deleteByPackageName(packageName)
     }
 
-    override fun restorePmBlockedComponents(): Flow<ComponentInfo> = flow {
-        val entities = appComponentDao.getPmBlockedComponents()
-        Timber.i("Restoring ${entities.size} PM-blocked components to default state")
-        if (entities.isEmpty()) return@flow
-        val useShizuku = userDataRepository.userData.first().controllerType == SHIZUKU
-        val controller = if (useShizuku) shizukuController else pmController
-        controller.init()
-        // ComponentState.DEFAULT maps to `pm default-state`, which clears user overrides so the
-        // component falls back to its manifest-declared state. Errors propagate to the caller.
-        entities.forEach { entity ->
-            val component = entity.toComponentInfo()
-            controller.switchComponent(component, ComponentState.DEFAULT)
-            appComponentDao.update(entity.copy(pmBlocked = false))
-            emit(component)
-        }
-    }.flowOn(ioDispatcher)
-
     private suspend fun controlInIfwMode(
         component: ComponentInfo,
         newState: Boolean,

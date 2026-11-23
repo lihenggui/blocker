@@ -16,274 +16,70 @@
 
 package com.merxury.blocker.core.rule.work
 
-import android.content.ComponentName
 import android.content.Context
-import android.net.Uri
-import androidx.core.content.pm.PackageInfoCompat
-import androidx.core.net.toUri
-import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.ControllerType.PM
-import com.merxury.blocker.core.model.rule.BlockerRule
-import com.merxury.blocker.core.model.rule.ComponentRule
-import com.merxury.blocker.core.rule.EXTENSION
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.entity.RuleWorkResult
-import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
-import com.merxury.blocker.core.rule.util.StorageUtil
-import com.merxury.blocker.core.utils.PackageInfoDataSource
-import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.blocker.core.rule.backup.BlockerRuleExporter
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import timber.log.Timber
-import java.io.IOException
 
+/** Backs up Blocker rules of one user, or of one app, through [BlockerRuleExporter]. */
 @HiltWorker
 class ExportBlockerRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val intentFirewall: IIntentFirewall,
-    private val packageInfoDataSource: PackageInfoDataSource,
-    private val json: Json,
+    private val exporter: BlockerRuleExporter,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
-
-    private val ifwReader = IfwRunReader(intentFirewall)
 
     override fun getNotificationTitle(): Int = R.string.core_rule_backing_up_apps_please_wait
 
     override suspend fun doWork(): Result {
-        // Check storage permission first
-        val backupPath = inputData.getString(PARAM_FOLDER_PATH)
-        if (backupPath.isNullOrEmpty()) {
-            return Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
-            )
+        val storage = when (val folder = openBackupFolder(context, inputData.getString(PARAM_FOLDER_PATH), ioDispatcher)) {
+            is BackupFolder.Ready -> folder.storage
+            is BackupFolder.Unusable -> return failureOf(folder.code)
         }
-        if (!StorageUtil.isFolderReadable(context, backupPath)) {
-            return Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
-            )
-        }
-        // Check backing up one application or all applications
-        val packageName = inputData.getString(PARAM_BACKUP_APP_PACKAGE_NAME)
-        if (!packageName.isNullOrEmpty()) {
-            try {
-                backupSingleApp(packageName, backupPath)
-            } catch (e: IOException) {
-                // No result code describes an unreadable rule file, so report the closest one.
-                Timber.e(e, "Blocker rule not backed up, IFW rule file cannot be read: $packageName")
-                return Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
-                )
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to export blocker rule for $packageName")
-                return Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
-                )
-            }
-            return Result.success(workDataOf(PARAM_BACKUP_COUNT to 1))
-        }
-        // Notify users that work is being started
-        Timber.i("Start to backup app rules")
+        val user = inputData.userOr(PARAM_TARGET_USER, ownUser())
+        Timber.i("Back up Blocker rules of user ${user.value}")
         setForeground(updateNotification("", 0, 0))
-        // Backup logic
-        val shouldBackupSystemApp = inputData.getBoolean(PARAM_BACKUP_SYSTEM_APPS, false)
-        return withContext(ioDispatcher) {
-            var current = 1
-            val skippedPackages = mutableListOf<String>()
-            try {
-                val list = if (shouldBackupSystemApp) {
-                    packageInfoDataSource.getApplicationList()
-                } else {
-                    packageInfoDataSource.getThirdPartyApplicationList()
-                }
-                val total = list.count()
-                list.forEach {
-                    setForeground(updateNotification(it.packageName, current, total))
-                    try {
-                        export(it.packageName, backupPath.toUri())
-                    } catch (e: IOException) {
-                        // Keep the previous backup rather than overwrite it with guessed IFW states.
-                        Timber.e(e, "Cannot read IFW rules for ${it.packageName}")
-                        skippedPackages += it.packageName
-                    }
-                    current++
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to export blocker rules")
-                return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
-                )
-            }
-            if (skippedPackages.isNotEmpty()) {
-                // No result code describes an unreadable rule file, so report the closest one.
-                Timber.e("Blocker rules not backed up, IFW rule files cannot be read: ${skippedPackages.joinToString()}")
-                return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
-                )
-            }
-            // Success, show a toast then cancel notifications
-            Timber.i("Backup app rules finished.")
-            return@withContext Result.success(
-                workDataOf(PARAM_BACKUP_COUNT to current),
-            )
-        }
-    }
-
-    private suspend fun backupSingleApp(packageName: String, backupPath: String) {
-        Timber.d("Start to backup app rules for $packageName")
-        setForeground(updateNotification(packageName, 1, 1))
-        export(packageName, backupPath.toUri())
-    }
-
-    private suspend fun export(packageName: String, destUri: Uri): Boolean {
-        Timber.i("Export Blocker rules for $packageName")
-        // Read IFW states strictly and outside the try below. An unreadable rule file throws, so
-        // this package fails instead of overwriting its backup with guessed states. Without root
-        // the states are unknown, so only PackageManager states are backed up.
-        val rootAlreadyUnavailable = ifwReader.rootUnavailable
-        val isIfwEnabled = ifwReader.read(packageName)
-        if (ifwReader.rootUnavailable && !rootAlreadyUnavailable) {
-            Timber.w("Root unavailable, so IFW states are left out of this backup")
-        }
-        val applicationInfo = packageInfoDataSource.getApplicationComponents(packageName)
-        val rule = BlockerRule(
-            packageName = applicationInfo.packageName,
-            versionName = applicationInfo.versionName,
-            versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo),
-        )
-        try {
-            applicationInfo.receivers?.forEach {
-                val statePM = packageInfoDataSource.checkComponentIsEnabled(
-                    ComponentName(it.packageName, it.name),
-                )
-                rule.components += backupEntries(
-                    it.packageName,
-                    it.name,
-                    RECEIVER,
-                    ifwEnabled = isIfwEnabled?.invoke(it.packageName, it.name),
-                    pmEnabled = statePM,
-                )
-            }
-            applicationInfo.services?.forEach {
-                val statePM = packageInfoDataSource.checkComponentIsEnabled(
-                    ComponentName(it.packageName, it.name),
-                )
-                rule.components += backupEntries(
-                    it.packageName,
-                    it.name,
-                    SERVICE,
-                    ifwEnabled = isIfwEnabled?.invoke(it.packageName, it.name),
-                    pmEnabled = statePM,
-                )
-            }
-            applicationInfo.activities?.forEach {
-                val statePM = packageInfoDataSource.checkComponentIsEnabled(
-                    ComponentName(it.packageName, it.name),
-                )
-                rule.components += backupEntries(
-                    it.packageName,
-                    it.name,
-                    ACTIVITY,
-                    ifwEnabled = isIfwEnabled?.invoke(it.packageName, it.name),
-                    pmEnabled = statePM,
-                )
-            }
-            applicationInfo.providers?.forEach {
-                val statePM = packageInfoDataSource.checkComponentIsEnabled(
-                    ComponentName(it.packageName, it.name),
-                )
-                rule.components.add(
-                    ComponentRule(
-                        it.packageName,
-                        it.name,
-                        statePM,
-                        PROVIDER,
-                        PM,
-                    ),
-                )
-            }
-            val result = if (rule.components.isNotEmpty()) {
-                saveRuleToStorage(context, rule, packageName, destUri, ioDispatcher)
-            } else {
-                // No components exported, return true
-                true
-            }
-            return result
-        } catch (e: RuntimeException) {
-            Timber.e(e, "Failed to export $packageName")
-            return false
-        }
-    }
-
-    private suspend fun saveRuleToStorage(
-        context: Context,
-        rule: BlockerRule,
-        packageName: String,
-        destUri: Uri,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): Boolean {
-        val dir = DocumentFile.fromTreeUri(context, destUri)
-        if (dir == null) {
-            Timber.e("Cannot open $destUri")
-            return false
-        }
-        // Create blocker rule file
-        var file = dir.findFile(packageName + EXTENSION)
-        if (file == null) {
-            file = dir.createFile(BLOCKER_RULE_MIME, packageName)
-        }
-        if (file == null) {
-            Timber.w("Cannot create rule $packageName")
-            return false
-        }
-        return withContext(dispatcher) {
-            try {
-                context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
-                    val text = json.encodeToString(rule)
-                    it.write(text.toByteArray())
-                }
-                return@withContext true
-            } catch (e: Exception) {
-                Timber.e(e, "Cannot write rules for $packageName")
-                return@withContext false
-            }
-        }
+        val result = exporter.export(
+            storage = storage,
+            user = user,
+            packageName = inputData.getString(PARAM_BACKUP_APP_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
+            includeSystemApps = inputData.getBoolean(PARAM_BACKUP_SYSTEM_APPS, false),
+        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        Timber.i("Backed up Blocker rules: $result")
+        return result.toWorkResult(PARAM_BACKUP_COUNT) { it.apps }
     }
 
     companion object {
+        /** Output: the backup files written. */
         const val PARAM_BACKUP_COUNT = "param_backup_count"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_BACKUP_SYSTEM_APPS = "param_backup_system_apps"
         private const val PARAM_BACKUP_APP_PACKAGE_NAME = "param_backup_app_package_name"
-        private const val BLOCKER_RULE_MIME = "application/json"
 
+        /** Backs up [user]'s apps, by default the user Blocker runs in, into [folderPath]. */
         fun exportWork(
             folderPath: String?,
             backupSystemApps: Boolean,
             backupPackageName: String? = null,
+            user: UserId? = null,
         ) = OneTimeWorkRequestBuilder<ExportBlockerRulesWorker>()
             .setInputData(
-                workDataOf(
+                inputOf(
                     PARAM_FOLDER_PATH to folderPath,
                     PARAM_BACKUP_SYSTEM_APPS to backupSystemApps,
                     PARAM_BACKUP_APP_PACKAGE_NAME to backupPackageName,
+                    PARAM_TARGET_USER to user?.value,
                 ),
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

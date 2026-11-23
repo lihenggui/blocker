@@ -271,7 +271,7 @@ fun AppDetailScreen(
         }
     }
     event?.let {
-        val messageRes = when (it.second) {
+        val messageRes = when (it.result) {
             STARTED -> rulestring.core_rule_processing_please_wait
 
             FINISHED -> rulestring.core_rule_done
@@ -288,7 +288,11 @@ fun AppDetailScreen(
 
             else -> rulestring.core_rule_error_msg_unexpected_exception
         }
-        val message = stringResource(id = messageRes)
+        val message = if (it.result == FINISHED && it.failedCount > 0) {
+            stringResource(id = rulestring.core_rule_done_with_failures, it.failedCount)
+        } else {
+            stringResource(id = messageRes)
+        }
         LaunchedEffect(message) {
             scope.launch {
                 snackbarHostState.currentSnackbarData?.dismiss()
