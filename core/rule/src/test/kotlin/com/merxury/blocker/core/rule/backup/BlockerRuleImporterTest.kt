@@ -61,12 +61,12 @@ class BlockerRuleImporterTest {
 
         val result = importer.import(storage, BackupSet.OWNER, OWNER)
 
-        // Batched per goal and layers in the order they first appear; BootReceiver's PM entry asks
-        // for a setting that is not disabled, which it already is not. MainActivity says SERVICE and
+        // Batched per goal and layers in the order they first appear. MainActivity says SERVICE and
         // SHIZUKU, so it is a PM block of the declared activity; the provider entry with method IFW
         // is a block, which the control layer applies to its PackageManager setting.
         assertThat(components.requests).containsExactly(
             ControlRequest(OWNER, listOf(BOOT, DATA), ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL)),
+            ControlRequest(OWNER, listOf(BOOT), ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER)),
             ControlRequest(OWNER, listOf(SYNC), ControlGoal.UNBLOCK, setOf(ControlLayer.INTENT_FIREWALL)),
             ControlRequest(OWNER, listOf(SYNC, MAIN), ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER)),
         ).inOrder()
@@ -103,10 +103,12 @@ class BlockerRuleImporterTest {
 
         val result = importer.import(storage, BackupSet.OWNER, OWNER)
 
-        assertThat(components.requests).containsExactly(
-            ControlRequest(OWNER, listOf(disabled), ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)),
-        )
+        // Restores unblock, which leaves a DEFAULT setting alone and clears DISABLED to DEFAULT.
+        assertThat(components.requests.map { it.goal }.distinct()).containsExactly(ControlGoal.UNBLOCK)
+        assertThat(stateOf(OWNER, shippedOff)?.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(stateOf(OWNER, disabled)?.pm).isEqualTo(PmSetting.DEFAULT)
         assertThat(result.summary.unchanged).isEqualTo(1)
+        assertThat(result.summary.applied).isEqualTo(1)
     }
 
     @Test

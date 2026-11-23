@@ -71,6 +71,8 @@ internal fun block(layers: Set<ControlLayer>, vararg components: ComponentDeclar
 
 internal fun unblock(vararg components: ComponentDeclaration, layers: Set<ControlLayer> = BOTH, user: UserId = OWNER) = ControlRequest(user, components.toList(), ControlGoal.UNBLOCK, layers)
 
+internal fun enable(vararg components: ComponentDeclaration, layers: Set<ControlLayer> = BOTH, user: UserId = OWNER) = ControlRequest(user, components.toList(), ControlGoal.ENABLE, layers)
+
 internal fun List<ControlEvent>.outcomes(): List<ComponentOutcome> = filterIsInstance<ControlEvent.PackageDone>().flatMap { it.outcomes }
 
 internal fun List<ControlEvent>.outcomeOf(component: ComponentDeclaration, user: UserId = OWNER): ComponentOutcome = outcomes().single { it.key.id == component.id && it.key.userId == user }

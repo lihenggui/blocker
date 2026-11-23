@@ -214,12 +214,23 @@ class ComponentControlDeviceTest {
     }
 
     @Test
-    fun givenRoot_whenUnblockManifestDisabledComponent_thenEnabledAndStarts() = runBlocking<Unit> {
+    fun givenRoot_whenUnblockManifestDisabledComponent_thenLeftAtDefaultAndStillNotStarting() = runBlocking<Unit> {
         assertStarts(false, disabledActivity)
 
         val unblocked = apply(ControlGoal.UNBLOCK, PM, disabledActivity)
 
-        assertAchieved(unblocked.single(), ControlState(PmSetting.ENABLED, IfwBlock.NOT_BLOCKED))
+        assertAchieved(unblocked.single(), ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+        assertEquals(emptyMap<ComponentDeclaration, String>(), overrides(target))
+        assertStarts(false, disabledActivity)
+    }
+
+    @Test
+    fun givenRoot_whenEnableManifestDisabledComponent_thenEnabledAndStarts() = runBlocking<Unit> {
+        assertStarts(false, disabledActivity)
+
+        val enabled = apply(ControlGoal.ENABLE, PM, disabledActivity)
+
+        assertAchieved(enabled.single(), ControlState(PmSetting.ENABLED, IfwBlock.NOT_BLOCKED))
         assertEquals(mapOf(disabledActivity to "enabled"), overrides(target))
         assertStarts(true, disabledActivity)
     }

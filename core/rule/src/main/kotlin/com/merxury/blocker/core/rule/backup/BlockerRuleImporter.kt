@@ -23,9 +23,7 @@ import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
-import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.blockLayers
@@ -152,10 +150,9 @@ class BlockerRuleImporter @Inject constructor(
  * Entries for components the app does not declare are counted as skipped in [summary]; an entry
  * repeated with the same goal and layers counts once.
  *
- * A PM entry with `state=true` says the component was not disabled by PackageManager, which a
- * backup writes for DEFAULT and ENABLED alike, so it clears only a DISABLED setting. Clearing a
- * DEFAULT one would set ENABLED for a component the manifest ships disabled, which the backup
- * never recorded; such an entry counts as unchanged instead.
+ * `state=true` is an unblock, never an enable: a backup writes it for DEFAULT and ENABLED alike,
+ * so it only clears a DISABLED setting and leaves a component the manifest ships disabled at
+ * DEFAULT, as the backup recorded it.
  */
 internal fun restoreRequests(
     rule: BlockerRule,
@@ -163,34 +160,19 @@ internal fun restoreRequests(
     statuses: List<ComponentStatus>,
     summary: SummaryBuilder,
 ): List<ControlRequest> {
-    val declared = statuses.associateBy { it.declaration.id }
+    val declared = statuses.associate { it.declaration.id to it.declaration }
     val batches = linkedMapOf<Pair<ControlGoal, Set<ControlLayer>>, LinkedHashSet<ComponentDeclaration>>()
     rule.components.forEach { entry ->
-        val status = entry.idIn(app.packageName)?.let(declared::get)
-        if (status == null) {
+        val declaration = entry.idIn(app.packageName)?.let(declared::get)
+        if (declaration == null) {
             summary.skip(SkipReason.NOT_DECLARED)
             return@forEach
         }
         val goal = if (entry.state) ControlGoal.UNBLOCK else ControlGoal.BLOCK
         // The methods map to the same layers a block with that controller type uses.
-        val layers = entry.method.blockLayers.let { if (goal == ControlGoal.UNBLOCK) status.layersToClear(it) else it }
-        if (layers.isEmpty()) {
-            summary.unchanged++
-            return@forEach
-        }
-        batches.getOrPut(goal to layers) { linkedSetOf() } += status.declaration
+        batches.getOrPut(goal to entry.method.blockLayers) { linkedSetOf() } += declaration
     }
     return batches.map { (key, declarations) -> ControlRequest(app.userId, declarations.toList(), key.first, key.second) }
-}
-
-/**
- * Of [requested], the layers an unblock has to clear: the PackageManager layer only while it is
- * DISABLED or unknown. A provider has no firewall layer; it means its PackageManager setting.
- */
-private fun ComponentStatus.layersToClear(requested: Set<ControlLayer>): Set<ControlLayer> {
-    val layers = if (declaration.type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)
-    val pmClear = state.pm != PmSetting.DISABLED && state.pm != PmSetting.UNKNOWN
-    return if (pmClear) layers - ControlLayer.PACKAGE_MANAGER else layers
 }
 
 /**
