@@ -127,6 +127,23 @@ class ActivePrivilegedChannelTest {
     }
 
     @Test
+    fun givenFirstQuietConnectRunning_whenCheckedState_thenWaitsForItsResult() = scope.runTest {
+        val gate = CompletableDeferred<Unit>()
+        root.quietAcquireGate = gate
+        root.quietAcquireResult = ChannelState.Ready(PrivilegedIdentity.ROOT)
+        val channel = channel()
+
+        val checked = async { channel.checkedState() }
+        runCurrent()
+        assertThat(checked.isActive).isTrue()
+        gate.complete(Unit)
+
+        assertThat(checked.await()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        assertThat(root.quietAcquireCount).isEqualTo(1)
+        assertThat(root.acquireCount).isEqualTo(0)
+    }
+
+    @Test
     fun givenNothingGranted_whenExecuteIfReady_thenChannelUnavailableWithoutConnecting() = scope.runTest {
         val channel = channel()
 

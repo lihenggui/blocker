@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
@@ -217,6 +218,8 @@ private class HangingExecutor : PrivilegedExecutor {
     var cancelled = 0
 
     override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> = executeIfReady(call)
+
+    override suspend fun checkedState(): ChannelState = ChannelState.Ready(PrivilegedIdentity.ROOT)
 
     override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> {
         started++

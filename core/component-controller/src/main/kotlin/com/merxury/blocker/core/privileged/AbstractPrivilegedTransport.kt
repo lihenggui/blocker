@@ -24,18 +24,18 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 
 /**
  * What both transports share: the [state], one connect at a time, connecting before a call when
  * needed, and turning what a call threw into a [CallFailure] with [toCallFailure].
  *
- * [executeIfReady] on a channel nothing has tried to acquire yet first makes the attempt that
- * cannot prompt, [connectIfGranted], or waits for the one already running, so a caller started
- * in the background gets the privilege the user granted earlier.
+ * [checkedState], and with it [executeIfReady], on a channel nothing has tried to acquire yet
+ * first makes the attempt that cannot prompt, [connectIfGranted], or waits for the one already
+ * running, so a caller started in the background gets the privilege the user granted earlier.
  */
 internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
 
@@ -44,6 +44,9 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
 
     // Held while acquiring, by connect and connectIfGranted alike; nothing that holds it calls them.
     private val connectLock = Mutex()
+
+    // Counts the times connectLock was released, so checkedState can wait for an attempt to end.
+    private val attemptsEnded = MutableStateFlow(0L)
 
     /** Acquires the channel, which may show a permission prompt. Throws only cancellation. */
     protected abstract suspend fun acquire(): ChannelState
@@ -61,22 +64,52 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
      */
     protected abstract suspend fun <R> send(call: PrivilegedCall<R>): CallResult<R>
 
-    override suspend fun connect(): ChannelState = connectLock.withLock {
+    override suspend fun connect(): ChannelState = acquiring {
         acquire().also { updateState { _ -> it } }
     }
 
     override suspend fun connectIfGranted(): ChannelState {
         (state.value as? ChannelState.Ready)?.let { return it }
-        return connectLock.withLock {
+        return acquiring {
             (state.value as? ChannelState.Ready) ?: acquireIfGranted().also { updateState { _ -> it } }
         }
     }
 
-    /** Makes the first attempt to acquire, without a prompt, or waits for the one running. */
-    private suspend fun checkOnce() {
-        connectLock.withLock {
-            if (state.value == NOT_CHECKED) acquireIfGranted().also { updateState { _ -> it } }
+    /**
+     * Makes the first attempt to acquire without a prompt when the lock is free, and otherwise
+     * waits only for the attempt holding it to end: a [connect] queued behind a quiet attempt
+     * must not hold up a reader once the quiet attempt has decided.
+     */
+    override suspend fun checkedState(): ChannelState {
+        while (true) {
+            state.value.let { if (it != NOT_CHECKED) return it }
+            val ended = attemptsEnded.value
+            if (connectLock.tryLock()) {
+                try {
+                    if (state.value == NOT_CHECKED) acquireIfGranted().also { updateState { _ -> it } }
+                } finally {
+                    release()
+                }
+                return state.value
+            }
+            // Ends when the holder finishes or is cancelled; then the state or the lock decides.
+            attemptsEnded.first { it != ended }
         }
+    }
+
+    private suspend inline fun <T> acquiring(block: () -> T): T {
+        connectLock.lock()
+        try {
+            return block()
+        } finally {
+            release()
+        }
+    }
+
+    // Unlocks before counting, so a waiter that wakes up finds the lock free.
+    private fun release() {
+        connectLock.unlock()
+        attemptsEnded.update { it + 1 }
     }
 
     /**
@@ -93,8 +126,7 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
     }
 
     override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> {
-        if (state.value == NOT_CHECKED) checkOnce()
-        val ready = state.value as? ChannelState.Ready
+        val ready = checkedState() as? ChannelState.Ready
             ?: return CallResult.Failure(CallFailure.ChannelUnavailable)
         return try {
             send(call).also { result ->

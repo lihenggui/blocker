@@ -184,6 +184,52 @@ class AbstractPrivilegedTransportTest {
     }
 
     @Test
+    fun givenChecked_whenCheckedState_thenReturnsStateWithoutAnotherAttempt() = runTest {
+        transport.connectIfGranted()
+
+        assertThat(transport.checkedState()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(transport.quietAcquireCount).isEqualTo(1)
+        assertThat(transport.acquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenConnectQueuedBehindQuietAttempt_whenExecuteIfReady_thenDecidesWhenQuietAttemptEnds() = runTest {
+        val quietGate = CompletableDeferred<Unit>()
+        transport.quietAcquireGate = quietGate
+        transport.acquireGate = CompletableDeferred()
+        val quiet = async { transport.connectIfGranted() }
+        val read = async { transport.executeIfReady(CALL) }
+        runCurrent()
+        val prompt = async { transport.connect() }
+        runCurrent()
+
+        quietGate.complete(Unit)
+        quiet.await()
+        runCurrent()
+
+        assertThat(read.isCompleted).isTrue()
+        assertThat(read.await()).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(prompt.isActive).isTrue()
+        prompt.cancel()
+    }
+
+    @Test
+    fun givenQuietAttemptCancelled_whenCheckedState_thenMakesItsOwnAttempt() = runTest {
+        transport.quietAcquireGate = CompletableDeferred()
+        val quiet = async { transport.connectIfGranted() }
+        val checked = async { transport.checkedState() }
+        runCurrent()
+        transport.quietAcquireGate = null
+        transport.quietAcquireResult = READY_ROOT
+
+        quiet.cancel()
+
+        assertThat(checked.await()).isEqualTo(READY_ROOT)
+        assertThat(transport.quietAcquireCount).isEqualTo(2)
+        assertThat(transport.acquireCount).isEqualTo(0)
+    }
+
+    @Test
     fun givenCallThrows_whenExecute_thenEachKindMapped() = runTest {
         transport.connect()
         val cases = mapOf(

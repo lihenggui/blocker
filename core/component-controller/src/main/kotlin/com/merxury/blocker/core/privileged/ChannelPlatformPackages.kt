@@ -28,35 +28,37 @@ import javax.inject.Inject
 /**
  * The [PlatformPackages] the app reads through: [privileged] while the privileged channel is
  * [ChannelState.Ready], which reaches every user, and [local] otherwise, which reaches only the
- * user Blocker runs in. Reading never connects the channel, so it never shows a permission prompt.
- * Each request is routed on its own, so a channel that becomes ready is used from the next one.
+ * user Blocker runs in. Each request first waits for [PrivilegedExecutor.checkedState], so a read
+ * right after a cold start waits for the first attempt to acquire the channel without a prompt
+ * instead of reading only Blocker's own user; once that attempt ends unavailable, reads go local
+ * at once. Reading never connects the channel, so it never shows a permission prompt. Each
+ * request is routed on its own, so a channel that becomes ready is used from the next one.
  */
 internal class ChannelPlatformPackages(
-    private val channel: PrivilegedChannel,
+    private val channel: PrivilegedExecutor,
     private val privileged: PlatformPackages,
     private val local: PlatformPackages,
 ) : PlatformPackages {
 
     @Inject constructor(
-        channel: PrivilegedChannel,
+        channel: PrivilegedExecutor,
         privileged: PrivilegedPlatformPackages,
         local: LocalPlatformPackages,
     ) : this(channel, privileged as PlatformPackages, local as PlatformPackages)
 
-    private val active: PlatformPackages
-        get() = if (channel.state.value is ChannelState.Ready) privileged else local
+    private suspend fun active(): PlatformPackages = if (channel.checkedState() is ChannelState.Ready) privileged else local
 
-    override suspend fun users(): List<DeviceUser> = active.users()
+    override suspend fun users(): List<DeviceUser> = active().users()
 
-    override suspend fun installedPackages(user: UserId): List<PackageInfo> = active.installedPackages(user)
+    override suspend fun installedPackages(user: UserId): List<PackageInfo> = active().installedPackages(user)
 
-    override suspend fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo = active.packageInfo(packageName, flags, user)
+    override suspend fun packageInfo(packageName: String, flags: Int, user: UserId): PackageInfo = active().packageInfo(packageName, flags, user)
 
     override fun archiveInfo(apkPath: String, flags: Int): PackageInfo? = local.archiveInfo(apkPath, flags)
 
-    override suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId): List<Int?> = active.applicationEnabledSettings(packageNames, user)
+    override suspend fun applicationEnabledSettings(packageNames: List<String>, user: UserId): List<Int?> = active().applicationEnabledSettings(packageNames, user)
 
-    override suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> = active.componentEnabledSettings(packageName, classNames, user)
+    override suspend fun componentEnabledSettings(packageName: String, classNames: List<String>, user: UserId): List<Int?> = active().componentEnabledSettings(packageName, classNames, user)
 
     override fun label(application: ApplicationInfo): String = local.label(application)
 }

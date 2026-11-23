@@ -96,6 +96,8 @@ internal class ActivePrivilegedChannel(
     // Waits for the choice too: right after a cold start it may not have been read yet.
     override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> = current()?.executeIfReady(call) ?: CallResult.Failure(CallFailure.ChannelUnavailable)
 
+    override suspend fun checkedState(): ChannelState = current()?.checkedState() ?: ChannelState.Unavailable(UnavailableReason.FAILED)
+
     /** The chosen transport, waiting for the first read of the choice. Null when it cannot be read. */
     private suspend fun current(): PrivilegedTransport? = selected.value ?: try {
         transports.first()

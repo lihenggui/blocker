@@ -19,6 +19,8 @@ package com.merxury.blocker.core.privileged
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.privileged.calls.DeleteIfwRuleFile
 import com.merxury.blocker.core.privileged.calls.ListIfwRuleFiles
 import com.merxury.blocker.core.privileged.calls.ReadIfwRuleFile
@@ -111,6 +113,8 @@ private class ScriptedExecutor : PrivilegedExecutor {
     override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> = run(call, connect = true)
 
     override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> = run(call, connect = false)
+
+    override suspend fun checkedState(): ChannelState = ChannelState.Ready(PrivilegedIdentity.ROOT)
 
     @Suppress("UNCHECKED_CAST")
     private fun <R> run(call: PrivilegedCall<R>, connect: Boolean): CallResult<R> {
