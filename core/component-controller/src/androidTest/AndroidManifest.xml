@@ -9,6 +9,9 @@
             android:name="com.merxury.blocker.core.privileged.IfwFixtureActivity"
             android:exported="true" />
         <activity
+            android:name="com.merxury.blocker.core.privileged.HiddenFixtureActivity"
+            android:exported="false" />
+        <activity
             android:name="com.merxury.blocker.core.control.ControlFixtureActivity"
             android:exported="true" />
         <activity
