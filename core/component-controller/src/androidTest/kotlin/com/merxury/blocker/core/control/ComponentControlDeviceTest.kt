@@ -24,8 +24,6 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.controllers.wake.WakeFixtureService
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -51,11 +49,8 @@ import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
 import com.merxury.blocker.core.privileged.ChannelIfwFileSystem
 import com.merxury.blocker.core.privileged.PrivilegedPlatformPackages
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
+import com.merxury.blocker.core.privileged.connectedShizukuTransport
 import com.merxury.blocker.core.privileged.root.RootTransport
-import com.merxury.blocker.core.privileged.shizuku.ShizukuSystemServices
-import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
-import com.merxury.blocker.core.privileged.shizuku.ShizukuUserService
-import com.merxury.blocker.core.privileged.shizuku.ShizukuUserServiceConnector
 import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformSystemPackageReader
@@ -67,7 +62,6 @@ import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -82,7 +76,6 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.minutes
 
 private const val TAG = "ComponentControlTest"
 private const val UIDS_PER_USER = 100_000
@@ -94,11 +87,12 @@ private const val UIDS_PER_USER = 100_000
  * apply to every user.
  *
  * Arguments: `componentControlTest=root` goes through su granted to this test package;
- * `componentControlTest=shell` through a Shizuku server running as the shell, granted to this
- * package before the run starts. `targetUser=<id>` names the user whose copy of this package is
- * controlled, which must not be the user the run is in: a work profile from a run in the owner,
- * after `pm install-existing --user <id> <this package>`, or the owner from a run in the profile
- * started with `am instrument --user <id>`, for which su must accept requests from that profile.
+ * `componentControlTest=shell` through a Shizuku server running as the shell, started after this
+ * package was granted, see [connectedShizukuTransport]. `targetUser=<id>` names the user whose
+ * copy of this package is controlled, which must not be the user the run is in: a work profile
+ * from a run in the owner, after `pm install-existing --user <id> <this package>`, or the owner
+ * from a run in the profile started with `am instrument --user <id>`, for which su must accept
+ * requests from that profile.
  */
 class ComponentControlDeviceTest {
 
@@ -133,9 +127,11 @@ class ComponentControlDeviceTest {
         assertNotEquals(ownUser, target, "The target user must not be the user this run is in")
         // The Shizuku transport calls hidden interfaces in this process, as the app does.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) HiddenApiBypass.addHiddenApiExemptions("")
-        transport = if (mode == "root") RootTransport(BlockerRootSession(context), Dispatchers.IO) else shizukuTransport()
-        val identity = if (mode == "root") PrivilegedIdentity.ROOT else PrivilegedIdentity.SHELL
-        assertEquals(ChannelState.Ready(identity), transport.connect())
+        transport = if (mode == "root") {
+            RootTransport(BlockerRootSession(context), Dispatchers.IO).also { assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), it.connect()) }
+        } else {
+            connectedShizukuTransport(context, PrivilegedIdentity.SHELL)
+        }
         reader = PlatformSystemPackageReader(PrivilegedPlatformPackages(transport, LocalPlatformPackages(context)), Dispatchers.IO)
         store = IfwModule.providesIfwStore(ChannelIfwFileSystem(transport), IfwXmlSerializer(), IfwXmlDeserializer())
         control = PrivilegedComponentControl(transport, transport, reader, store)
@@ -148,13 +144,6 @@ class ComponentControlDeviceTest {
         assertFalse(disabledActivity.enabledInManifest)
         assertEquals(ComponentType.PROVIDER, provider.type)
         Log.i(TAG, "API ${Build.VERSION.SDK_INT}, run in user ${ownUser.value}, target user ${target.value}, via $mode")
-    }
-
-    private fun shizukuTransport(): ShizukuTransport {
-        val api = DefaultShizukuApi()
-        val initializer = ShizukuInitializer(api)
-        runBlocking { withTimeout(2.minutes) { initializer.awaitBinder() } }
-        return ShizukuTransport(initializer, api, ShizukuSystemServices(context), ShizukuUserService(ShizukuUserServiceConnector(context)), Dispatchers.IO)
     }
 
     @After

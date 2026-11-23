@@ -21,8 +21,6 @@ import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.controllers.wake.WakeFixtureService
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -36,10 +34,6 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.privileged.calls.ListIfwRuleFiles
 import com.merxury.blocker.core.privileged.root.RootTransport
-import com.merxury.blocker.core.privileged.shizuku.ShizukuSystemServices
-import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
-import com.merxury.blocker.core.privileged.shizuku.ShizukuUserService
-import com.merxury.blocker.core.privileged.shizuku.ShizukuUserServiceConnector
 import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.di.IfwModule
@@ -51,7 +45,6 @@ import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -59,7 +52,6 @@ import org.junit.Test
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.minutes
 
 private const val TAG = "IfwStoreDeviceTest"
 
@@ -71,7 +63,7 @@ private const val TAG = "IfwStoreDeviceTest"
  * `ifwStoreTest=shizuku` through the user service of a Shizuku server running as root;
  * `ifwStoreTest=system` through the user service of a Shizuku server running as the system uid;
  * `ifwStoreTest=shell` through a Shizuku server running as the shell, which must get no access.
- * Shizuku must have granted this package before the run starts.
+ * Shizuku must have been started after this package was granted, see [connectedShizukuTransport].
  */
 class IfwStoreDeviceTest {
 
@@ -91,23 +83,17 @@ class IfwStoreDeviceTest {
         // The Shizuku transport calls hidden interfaces in this process, as the app does.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) HiddenApiBypass.addHiddenApiExemptions("")
         transport = when (mode) {
-            "root" -> RootTransport(BlockerRootSession(context), Dispatchers.IO)
-            else -> shizukuTransport()
-        }
-        val expected = when (mode) {
-            "shell" -> PrivilegedIdentity.SHELL
-            "system" -> PrivilegedIdentity.SYSTEM
-            else -> PrivilegedIdentity.ROOT
-        }
-        assertEquals(ChannelState.Ready(expected), runBlocking { transport.connect() })
-        store = IfwModule.providesIfwStore(ChannelIfwFileSystem(transport), IfwXmlSerializer(), IfwXmlDeserializer())
-    }
+            "root" -> RootTransport(BlockerRootSession(context), Dispatchers.IO).also {
+                assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), runBlocking { it.connect() })
+            }
 
-    private fun shizukuTransport(): ShizukuTransport {
-        val api = DefaultShizukuApi()
-        val initializer = ShizukuInitializer(api)
-        runBlocking { withTimeout(2.minutes) { initializer.awaitBinder() } }
-        return ShizukuTransport(initializer, api, ShizukuSystemServices(context), ShizukuUserService(ShizukuUserServiceConnector(context)), Dispatchers.IO)
+            "shell" -> connectedShizukuTransport(context, PrivilegedIdentity.SHELL)
+
+            "system" -> connectedShizukuTransport(context, PrivilegedIdentity.SYSTEM)
+
+            else -> connectedShizukuTransport(context, PrivilegedIdentity.ROOT)
+        }
+        store = IfwModule.providesIfwStore(ChannelIfwFileSystem(transport), IfwXmlSerializer(), IfwXmlDeserializer())
     }
 
     @After
