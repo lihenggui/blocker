@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.appcontrol
 
+import android.os.Build
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -29,15 +30,22 @@ import com.merxury.blocker.core.privileged.PrivilegedChannel
  */
 
 /**
- * Why the identity the channel runs as cannot clear an app's cache, or null when it can. The
- * shell holds DELETE_CACHE_FILES but never INTERNAL_DELETE_CACHE_FILES (Android 7 to 16), and the
- * system drops such a request without calling back. Root passes every permission check, and the
- * system uid holds INTERNAL_DELETE_CACHE_FILES through the "android" package; the latter is read
- * from the platform source and not verified on a device.
+ * Why the identity the channel runs as cannot clear an app's cache, or null when it can. Up to
+ * Android 8.1 PackageManager asks for DELETE_CACHE_FILES, which the shell holds. From Android 9 it
+ * asks for INTERNAL_DELETE_CACHE_FILES, which the shell never holds (9 to 16), and drops a request
+ * from a caller with only DELETE_CACHE_FILES without calling back. Root passes every permission
+ * check, and the system uid holds INTERNAL_DELETE_CACHE_FILES through the "android" package; the
+ * latter is read from the platform source and not verified on a device.
  */
 internal suspend fun PrivilegedChannel.cacheClearingRefusal(): CallFailure? = when (identity()) {
     null -> CallFailure.ChannelUnavailable
-    PrivilegedIdentity.SHELL -> CallFailure.NotPermitted("The shell may not clear the cache of other apps")
+
+    PrivilegedIdentity.SHELL -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        CallFailure.NotPermitted("The shell may not clear the cache of other apps")
+    } else {
+        null
+    }
+
     PrivilegedIdentity.ROOT, PrivilegedIdentity.SYSTEM -> null
 }
 

@@ -21,8 +21,6 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.controllers.wake.WakeFixtureService
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
@@ -35,16 +33,12 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.AppEnabledSetting
 import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
 import com.merxury.blocker.core.privileged.calls.SetApplicationEnabledSetting
+import com.merxury.blocker.core.privileged.connectedShizukuTransport
 import com.merxury.blocker.core.privileged.root.RootTransport
-import com.merxury.blocker.core.privileged.shizuku.ShizukuSystemServices
-import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
-import com.merxury.blocker.core.privileged.shizuku.ShizukuUserService
-import com.merxury.blocker.core.privileged.shizuku.ShizukuUserServiceConnector
 import com.merxury.blocker.core.root.BlockerRootSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Assume.assumeTrue
@@ -55,7 +49,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "AppControlDeviceTest"
@@ -74,7 +67,9 @@ private const val TAG = "AppControlDeviceTest"
  * `dataFixture=<package>` names an installed debuggable app whose data the tests may clear. Any
  * debuggable app works, even one without code that never runs: the tests write its marker files
  * themselves with `run-as <package> touch files/marker cache/marker`, so the files belong to the
- * app's uid as if it had written them.
+ * app's uid as if it had written them. It must be installed for the owner only, with
+ * `pm install --user 0`, or uninstalled from the other user with `pm uninstall --user <id>`: a
+ * plain install also reaches every existing user.
  *
  * Shizuku reads an app's grant only when its server starts, so the order is: install this APK,
  * `pm grant <package> moe.shizuku.manager.permission.API_V23`, then start or restart the Shizuku
@@ -121,15 +116,12 @@ class AppControlDeviceTest {
     private fun connect(identity: PrivilegedIdentity) {
         assumeTrue(arguments.getString("appControlTest") == identity.name.lowercase())
         transport = if (identity == PrivilegedIdentity.ROOT && arguments.getString("rootVia") != "shizuku") {
-            RootTransport(BlockerRootSession(context), Dispatchers.IO)
+            RootTransport(BlockerRootSession(context), Dispatchers.IO).also {
+                assertEquals(ChannelState.Ready(identity), runBlocking { it.connect() })
+            }
         } else {
-            val api = DefaultShizukuApi()
-            val initializer = ShizukuInitializer(api)
-            runBlocking { withTimeout(2.minutes) { initializer.awaitBinder() } }
-            val userService = ShizukuUserService(ShizukuUserServiceConnector(context))
-            ShizukuTransport(initializer, api, ShizukuSystemServices(context), userService, Dispatchers.IO)
+            connectedShizukuTransport(context, identity)
         }
-        assertEquals(ChannelState.Ready(identity), runBlocking { transport.connect() })
         apps = PrivilegedAppControl(transport, transport)
         services = PrivilegedServiceControl(transport, transport)
         // Lets the fixture start while its app is in the background, as an app the user just used.
@@ -145,6 +137,7 @@ class AppControlDeviceTest {
         assertEquals(owners, context.packageManager.getApplicationEnabledSetting(self))
         assertEquals(AppEnabledSetting.ENABLED, apps.setEnabled(app, enabled = true).value())
         assertEquals(owners, context.packageManager.getApplicationEnabledSetting(self))
+        assertNotStoredForAppMissingInOtherUser()
     }
 
     @Test
@@ -217,14 +210,36 @@ class AppControlDeviceTest {
 
         val fixture = AppKey(dataFixture, UserId.SYSTEM)
         writeFixtureFiles()
-        logged("clear cache", apps.clearCache(fixture)).also { assertIs<CallFailure.NotPermitted>(it.failure()) }
-        assertEquals(listOf(true, true), fixtureFiles())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            logged("clear cache", apps.clearCache(fixture)).also { assertIs<CallFailure.NotPermitted>(it.failure()) }
+            assertEquals(listOf(true, true), fixtureFiles())
+        } else {
+            // Up to Android 8.1 the shell's DELETE_CACHE_FILES is enough.
+            apps.clearCache(fixture).value()
+            assertEquals(listOf(true, false), fixtureFiles())
+        }
         apps.clearData(fixture).value()
         assertEquals(listOf(false, false), fixtureFiles())
+
+        assertNotStoredForAppMissingInOtherUser()
 
         apps.uninstall(app).value()
         assertTrue(shell("pm list packages --user ${otherUser.value} $self").isBlank())
         assertEquals(self, context.packageManager.getPackageInfo(self, 0).packageName)
+    }
+
+    /**
+     * The data fixture is installed for the owner only. Changing its setting for the other user
+     * must fail and store nothing there: the identities the channel runs as are not held to
+     * package visibility, so the system itself would accept it.
+     */
+    private suspend fun assertNotStoredForAppMissingInOtherUser() {
+        val missing = AppKey(dataFixture, otherUser)
+        assertIs<CallFailure.TargetNotFound>(apps.setEnabled(missing, enabled = false).failure())
+        // The first such line is the user's package state; a later one lists its permissions.
+        val userLine = shell("dumpsys package $dataFixture").lines().map { it.trim() }
+            .first { it.startsWith("User ${otherUser.value}:") }
+        assertTrue("installed=false" in userLine && "enabled=0" in userLine, userLine)
     }
 
     private suspend fun startFixture() {

@@ -234,7 +234,20 @@ class PrivilegedCallsTest {
     }
 
     @Test
+    fun givenAppInOtherUserOnly_whenSetApplicationEnabledSetting_thenNameNotFoundAndNothingStored() {
+        pm.install(0, PKG)
+
+        assertThrows(NameNotFoundException::class.java) {
+            SetApplicationEnabledSetting(PKG, PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, WORK).run(system)
+        }
+
+        assertThat(pm.changes).isEmpty()
+        assertThat(pm.appSettings).isEmpty()
+    }
+
+    @Test
     fun whenSetApplicationEnabledSetting_thenSetForThatUserWithCallingPackage() {
+        pm.install(10, PKG)
         SetApplicationEnabledSetting(PKG, PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, WORK).run(system)
 
         assertThat(pm.changes).containsExactly("setApplicationEnabledSetting/${system.callerPackage}")

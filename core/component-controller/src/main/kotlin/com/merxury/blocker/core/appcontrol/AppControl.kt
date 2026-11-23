@@ -51,8 +51,8 @@ interface AppControl {
 
     /**
      * Deletes the app's cache and code cache for its user only. Root and the system uid may; the
-     * system ignores the shell's request without answering, so for the shell this is
-     * [CallFailure.NotPermitted] without asking the system.
+     * shell may up to Android 8.1. From Android 9 the system ignores the shell's request without
+     * answering, so for the shell this is [CallFailure.NotPermitted] without asking the system.
      */
     suspend fun clearCache(app: AppKey): CallResult<Unit>
 

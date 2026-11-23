@@ -85,7 +85,8 @@ internal data class ClearAppData(
  * Clears the cache and code cache of [packageName] for [user], internal and external, and only
  * for that user. Blocks until the system reports the outcome, at most [timeoutMillis].
  *
- * The system needs `INTERNAL_DELETE_CACHE_FILES`, which root has and the shell never has; a
+ * Up to Android 8.1 the system needs `DELETE_CACHE_FILES`, which root and the shell have. From
+ * Android 9 it needs `INTERNAL_DELETE_CACHE_FILES`, which root has and the shell never has; a
  * caller with only `DELETE_CACHE_FILES`, as the shell, is ignored without an answer, which shows
  * here as a [TimeoutException].
  *

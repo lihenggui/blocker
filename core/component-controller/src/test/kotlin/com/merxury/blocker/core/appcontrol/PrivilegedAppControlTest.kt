@@ -118,6 +118,34 @@ class PrivilegedAppControlTest {
     }
 
     @Test
+    @Config(sdk = [27])
+    fun givenShellOnAndroid8_1_whenClearCache_thenTheSystemIsAsked() = runTest {
+        transport.acquireResult = ChannelState.Ready(PrivilegedIdentity.SHELL)
+
+        assertThat(control.clearCache(APP)).isEqualTo(CallResult.Success(Unit))
+        assertThat(system.packageManager.cacheCleared).containsExactly(PKG to 10)
+    }
+
+    @Test
+    @Config(sdk = [28])
+    fun givenShellOnAndroid9_whenClearCache_thenNotPermittedWithoutAskingTheSystem() = runTest {
+        transport.acquireResult = ChannelState.Ready(PrivilegedIdentity.SHELL)
+
+        assertThat((control.clearCache(APP) as CallResult.Failure).reason).isInstanceOf(CallFailure.NotPermitted::class.java)
+        assertThat(system.packageManager.cacheCleared).isEmpty()
+    }
+
+    @Test
+    fun givenAppInOwnerOnly_whenSetEnabledForWorkProfile_thenTargetNotFoundAndNothingStored() = runTest {
+        system.packageManager.install(UserId.SYSTEM.value, "com.owner.only")
+
+        val result = control.setEnabled(AppKey("com.owner.only", WORK), enabled = false)
+
+        assertThat((result as CallResult.Failure).reason).isInstanceOf(CallFailure.TargetNotFound::class.java)
+        assertThat(system.packageManager.appSettings.keys).doesNotContain("com.owner.only" to WORK.value)
+    }
+
+    @Test
     fun givenNoChannel_whenClearCache_thenChannelUnavailable() = runTest {
         transport.acquireResult = ChannelState.Unavailable(UnavailableReason.DENIED)
 
