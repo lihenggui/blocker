@@ -22,9 +22,12 @@ import android.os.Parcelable
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallResult
-import com.merxury.blocker.core.privileged.CallReply
+import com.merxury.blocker.core.privileged.CallBytes
 import com.merxury.blocker.core.privileged.EchoInPrivilegedProcess
 import com.merxury.blocker.core.privileged.FakeSystemServices
+import com.merxury.blocker.core.privileged.MeasureInPrivilegedProcess
+import com.merxury.blocker.core.privileged.PrivilegedCall
+import com.merxury.blocker.core.privileged.awaitPipeWriters
 import com.merxury.blocker.core.privileged.calls.ForceStop
 import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.marshallCall
@@ -47,7 +50,7 @@ class PrivilegedCallRunnerTest {
     fun givenBlockerCalls_whenRun_thenCallRunsAndOutcomeArrives() {
         val call = EchoInPrivilegedProcess("hi")
 
-        val reply = runner.run(marshallCall(call))
+        val reply = runner.run(request(call))
 
         assertThat(decodeOutcome(call, reply.read())).isEqualTo(CallResult.Success("hi for ${system.callerPackage}"))
     }
@@ -56,19 +59,19 @@ class PrivilegedCallRunnerTest {
     fun givenOtherUidCalls_whenRun_thenSecurityException() {
         callerUid = BLOCKER_UID + 1
 
-        assertThrows(SecurityException::class.java) { runner.run(marshallCall(EchoInPrivilegedProcess("hi"))) }
+        assertThrows(SecurityException::class.java) { runner.run(request(EchoInPrivilegedProcess("hi"))) }
     }
 
     @Test
     fun givenShizukuPassedNoContext_whenRun_thenEveryCallerRefused() {
         val withoutContext = PrivilegedCallRunner(allowedUid = null, callingUid = { BLOCKER_UID }, system = system)
 
-        assertThrows(SecurityException::class.java) { withoutContext.run(marshallCall(EchoInPrivilegedProcess("hi"))) }
+        assertThrows(SecurityException::class.java) { withoutContext.run(request(EchoInPrivilegedProcess("hi"))) }
     }
 
     @Test
     fun givenCallThatNeedsNoPrivilegedProcess_whenRun_thenSecurityExceptionAndNotRun() {
-        assertThrows(SecurityException::class.java) { runner.run(marshallCall(ForceStop("com.example", UserId(10)))) }
+        assertThrows(SecurityException::class.java) { runner.run(request(ForceStop("com.example", UserId(10)))) }
         assertThat(system.activityManager.forceStopped).isEmpty()
     }
 
@@ -76,22 +79,35 @@ class PrivilegedCallRunnerTest {
     fun givenPlatformParcelable_whenRun_thenSecurityException() {
         val bytes = parcelOf(Intent::class.java.name, Intent("com.example.ACTION"))
 
-        assertThrows(SecurityException::class.java) { runner.run(bytes) }
+        assertThrows(SecurityException::class.java) { runner.run(CallBytes.request(bytes)) }
     }
 
     @Test
     fun givenOwnClassThatIsNoCall_whenRun_thenSecurityException() {
-        val bytes = parcelOf(CallReply::class.java.name, CallReply.of(byteArrayOf(1, 2, 3)))
+        val bytes = parcelOf(CallBytes::class.java.name, CallBytes.reply(byteArrayOf(1, 2, 3)))
 
-        assertThrows(SecurityException::class.java) { runner.run(bytes) }
+        assertThrows(SecurityException::class.java) { runner.run(CallBytes.request(bytes)) }
     }
 
     @Test
     fun givenUnknownClass_whenRun_thenSecurityException() {
         val bytes = parcelOf("com.example.NotThere", null)
 
-        assertThrows(SecurityException::class.java) { runner.run(bytes) }
+        assertThrows(SecurityException::class.java) { runner.run(CallBytes.request(bytes)) }
     }
+
+    @Test
+    fun givenLargeCall_whenRun_thenReadThroughPipeAndRun() {
+        val call = MeasureInPrivilegedProcess("b".repeat(200_000))
+        val request = request(call)
+        assertThat(awaitPipeWriters()).isTrue()
+
+        val reply = runner.run(request)
+
+        assertThat(decodeOutcome(call, reply.read())).isEqualTo(CallResult.Success(200_000))
+    }
+
+    private fun request(call: PrivilegedCall<*>) = CallBytes.request(marshallCall(call))
 
     private fun parcelOf(className: String, value: Parcelable?): ByteArray {
         val parcel = Parcel.obtain()

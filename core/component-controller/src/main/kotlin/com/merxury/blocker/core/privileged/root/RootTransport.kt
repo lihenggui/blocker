@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.privileged.root
 
-import android.os.Parcel
 import android.os.RemoteException
 import be.mygod.librootkotlinx.NoShellException
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -26,13 +25,14 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
-import com.merxury.blocker.core.privileged.CallReply
+import com.merxury.blocker.core.privileged.CallBytes
 import com.merxury.blocker.core.privileged.ChannelLostException
 import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.calls.CallerUid
 import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.identityOfUid
 import com.merxury.blocker.core.privileged.lostReason
+import com.merxury.blocker.core.privileged.marshallCall
 import com.merxury.blocker.core.root.BlockerRootSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -49,7 +49,7 @@ internal fun interface RootCommandRunner {
      * @throws NoShellException when su refuses or is missing
      * @throws RemoteException when the root process is gone
      */
-    suspend fun run(command: RootCallCommand): CallReply
+    suspend fun run(command: RootCallCommand): CallBytes
 }
 
 /**
@@ -104,11 +104,11 @@ internal class RootTransport(
     }
 
     private suspend fun <R> sendOnce(call: PrivilegedCall<R>): CallResult<R> {
-        val command = RootCallCommand(call)
-        val size = parceledSize(command)
-        check(size <= MAX_REQUEST_BYTES) { "$call needs $size bytes, more than one root call carries" }
+        // A call too large for one root call goes through a pipe. Closing this side's copy when
+        // the call ends, however it ends, stops the pipe's writer if the request never arrived.
+        val request = CallBytes.request(marshallCall(call))
         val reply = try {
-            runner.run(command)
+            runner.run(RootCallCommand(request))
         } catch (e: NoShellException) {
             throw ChannelLostException(UnavailableReason.DENIED, "No root shell", e)
         } catch (e: RemoteException) {
@@ -117,24 +117,10 @@ internal class RootTransport(
             // librootkotlinx also cancels a call when its root process closes.
             currentCoroutineContext().ensureActive()
             throw ChannelLostException(UnavailableReason.FAILED, "The root process closed", e)
+        } finally {
+            request.close()
         }
         val bytes = withContext(ioDispatcher) { reply.read() }
         return decodeOutcome(call, bytes)
-    }
-
-    private fun parceledSize(command: RootCallCommand): Int {
-        val parcel = Parcel.obtain()
-        try {
-            command.writeToParcel(parcel, 0)
-            return parcel.dataSize()
-        } finally {
-            parcel.recycle()
-        }
-    }
-
-    private companion object {
-        // librootkotlinx sends a request in a one-way binder call too, and a request that does not
-        // fit closes the whole root session.
-        const val MAX_REQUEST_BYTES = 128 * 1024
     }
 }

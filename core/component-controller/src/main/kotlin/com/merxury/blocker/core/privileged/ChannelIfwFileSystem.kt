@@ -31,8 +31,8 @@ import javax.inject.Inject
 
 /**
  * The Intent Firewall rule files, reached through the privileged channel the user chose: the root
- * process, or Shizuku's user service when Shizuku runs as root. Never falls back from one to the
- * other.
+ * process, or Shizuku's user service when Shizuku runs as root or the system uid. Never falls
+ * back from one to the other.
  *
  * Writes and [readRules] connect the channel when needed, which may show a permission prompt;
  * [readRulesIfConnected] never does. A channel that is unavailable, or whose identity may not

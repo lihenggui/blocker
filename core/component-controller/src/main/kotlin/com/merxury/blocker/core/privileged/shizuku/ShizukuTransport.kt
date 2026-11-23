@@ -31,7 +31,6 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
-import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
 import com.merxury.blocker.core.privileged.ChannelLostException
@@ -50,12 +49,13 @@ import javax.inject.Singleton
 
 /**
  * Runs calls in this process against system services reached through Shizuku or Sui, as the
- * uid the Shizuku server runs as: root, or the shell when Shizuku was started through adb.
+ * uid the Shizuku server runs as: root, the system uid, or the shell when Shizuku was started
+ * through adb.
  * Connecting asks for the Shizuku permission when it has not been granted yet.
  *
  * A call that [PrivilegedCall.needsPrivilegedProcess] runs in [ShizukuUserService] instead, and
- * only when the server runs as root; as the shell it fails with [CallFailure.NotPermitted] and
- * starts nothing.
+ * only when the server's identity can write system files, as root or the system uid; as the shell
+ * it fails with [CallFailure.NotPermitted] and starts nothing.
  *
  * Shizuku's binder events keep [state] current without a prompt: when the binder dies a ready
  * channel becomes [UnavailableReason.NOT_RUNNING], and when a new binder arrives a channel that has
@@ -87,7 +87,7 @@ internal class ShizukuTransport(
     override suspend fun acquire(): ChannelState = when (val result = initializer.registerShizuku()) {
         is RegisterShizukuResult.Granted -> identityOfUid(result.uid)?.let { ChannelState.Ready(it) }
             ?: ChannelState.Unavailable(UnavailableReason.FAILED)
-                .also { Timber.e("Shizuku runs as uid ${result.uid}, which is neither root nor the shell") }
+                .also { Timber.e("Shizuku runs as uid ${result.uid}, which is not root, system or the shell") }
 
         RegisterShizukuResult.Denied -> ChannelState.Unavailable(UnavailableReason.DENIED)
 
@@ -105,8 +105,8 @@ internal class ShizukuTransport(
         if (!shizuku.pingBinder()) throw ChannelLostException(UnavailableReason.NOT_RUNNING, "Shizuku is not running")
         val inProcess = !call.needsPrivilegedProcess
         val identity = (state.value as? ChannelState.Ready)?.identity
-        if (!inProcess && identity != PrivilegedIdentity.ROOT) {
-            return@withContext CallResult.Failure(CallFailure.NotPermitted("$call needs Shizuku running as root, not $identity"))
+        if (!inProcess && identity?.canWriteSystemFiles != true) {
+            return@withContext CallResult.Failure(CallFailure.NotPermitted("$call needs Shizuku running as root or system, not $identity"))
         }
         try {
             if (inProcess) CallResult.Success(call.run(system)) else userService.run(call)

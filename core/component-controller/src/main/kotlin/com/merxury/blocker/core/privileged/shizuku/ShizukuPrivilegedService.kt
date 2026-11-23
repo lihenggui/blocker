@@ -18,7 +18,7 @@ package com.merxury.blocker.core.privileged.shizuku
 
 import android.content.Context
 import android.os.Binder
-import com.merxury.blocker.core.privileged.CallReply
+import com.merxury.blocker.core.privileged.CallBytes
 import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.PrivilegedProcessSystemServices
 import com.merxury.blocker.core.privileged.SystemServices
@@ -43,7 +43,7 @@ internal class ShizukuPrivilegedService @JvmOverloads constructor(context: Conte
         system = PrivilegedProcessSystemServices,
     )
 
-    override fun run(call: ByteArray): CallReply = runner.run(call)
+    override fun run(call: CallBytes): CallBytes = runner.run(call)
 
     override fun destroy() {
         exitProcess(0)
@@ -62,20 +62,21 @@ internal class PrivilegedCallRunner(
 ) {
     /**
      * Checks the caller, then reads and runs the call. What the call throws is part of the
-     * outcome; what this throws reaches the caller as a binder exception.
+     * outcome; what this throws reaches the caller as a binder exception. Closes [request]
+     * either way, so a refused caller's pipe is not left open.
      *
      * @throws SecurityException when the caller is not the allowed uid or the call is not one of
      * Blocker's calls that need this process
      * @throws IllegalStateException when the request cannot be read or the reply not built
      */
-    fun run(bytes: ByteArray): CallReply {
+    fun run(request: CallBytes): CallBytes = request.use {
         val caller = callingUid()
         if (allowedUid == null) throw SecurityException("No app context from Shizuku, so no caller is served")
         if (caller != allowedUid) throw SecurityException("uid $caller may not use this service")
-        return try {
-            val call = unmarshallCall(bytes)
+        try {
+            val call = unmarshallCall(request.read(CallBytes.MAX_REQUEST_BYTES))
             if (!call.needsPrivilegedProcess) throw SecurityException("$call does not run in this service")
-            CallReply.of(encodeOutcome(call, system))
+            CallBytes.reply(encodeOutcome(call, system))
         } catch (e: SecurityException) {
             throw e
         } catch (e: Exception) {

@@ -33,10 +33,12 @@ import com.merxury.blocker.core.privileged.calls.InstalledPackages
 import com.merxury.blocker.core.privileged.calls.ListUsers
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.privileged.root.RootCallCommand
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.IOException
 
 private const val PKG = "com.example"
 private val WORK = UserId(10)
@@ -121,46 +123,65 @@ class CallOutcomeTest {
     }
 
     @Test
-    fun givenCall_whenParceled_thenSameCallArrives() {
+    @Suppress("DEPRECATION")
+    fun givenSmallCall_whenCommandParceled_thenSameCallArrivesInline() {
         val call = ComponentEnabledSettings(PKG, listOf("$PKG.Main"), WORK)
-        val parcel = Parcel.obtain()
-        try {
-            parcel.writeParcelable(RootCallCommand(call), 0)
-            parcel.setDataPosition(0)
-            @Suppress("DEPRECATION")
-            val arrived = parcel.readParcelable<RootCallCommand>(RootCallCommand::class.java.classLoader)
+        val request = CallBytes.request(marshallCall(call))
 
-            assertThat(arrived?.call).isEqualTo(call)
-        } finally {
-            parcel.recycle()
-        }
+        val arrived = crossed(RootCallCommand(request)) { it.readParcelable<RootCallCommand>(RootCallCommand::class.java.classLoader)!! }
+
+        assertThat(request.describeContents()).isEqualTo(0)
+        assertThat(unmarshallCall(arrived.request.read())).isEqualTo(call)
+    }
+
+    @Test
+    fun givenLargeCall_whenRequested_thenPipedAndWholeCallRead() {
+        val call = EchoInPrivilegedProcess("a".repeat(200_000))
+        val request = CallBytes.request(marshallCall(call))
+
+        assertThat(request.describeContents()).isEqualTo(Parcelable.CONTENTS_FILE_DESCRIPTOR)
+        assertThat(awaitPipeWriters()).isTrue()
+        assertThat(unmarshallCall(request.read(CallBytes.MAX_REQUEST_BYTES))).isEqualTo(call)
+        request.close()
+    }
+
+    @Test
+    fun givenRequestLargerThanReaderAllows_whenRead_thenIoException() {
+        val request = CallBytes.request(ByteArray(300 * 1024))
+        assertThat(awaitPipeWriters()).isTrue()
+
+        assertThrows(IOException::class.java) { request.read(maxBytes = 100 * 1024) }
+        request.close()
+    }
+
+    @Test
+    fun givenRequestAboveCap_whenCreated_thenIllegalState() {
+        assertThrows(IllegalStateException::class.java) { CallBytes.request(ByteArray(CallBytes.MAX_REQUEST_BYTES + 1)) }
     }
 
     @Test
     fun givenSmallOutcome_whenReplyParceled_thenSameBytesRead() {
         val bytes = encodeOutcome(ListUsers, system)
-        val parcel = Parcel.obtain()
-        try {
-            CallReply.of(bytes).writeToParcel(parcel, 0)
-            parcel.setDataPosition(0)
 
-            assertThat(CallReply.CREATOR.createFromParcel(parcel).read()).isEqualTo(bytes)
-        } finally {
-            parcel.recycle()
-        }
+        assertThat(crossed(CallBytes.reply(bytes)) { CallBytes.CREATOR.createFromParcel(it) }.read()).isEqualTo(bytes)
     }
 
     @Test
     fun givenLargeOutcome_whenReplyParceled_thenSameBytesReadThroughPipe() {
         val bytes = ByteArray(200 * 1024) { it.toByte() }
+        val reply = CallBytes.reply(bytes)
+
+        assertThat(reply.describeContents()).isEqualTo(Parcelable.CONTENTS_FILE_DESCRIPTOR)
+        assertThat(crossed(reply) { CallBytes.CREATOR.createFromParcel(it) }.read()).isEqualTo(bytes)
+    }
+
+    /** Writes [value] to a parcel and reads it back with [read], as a binder call would. */
+    private fun <T : Parcelable> crossed(value: Parcelable, read: (Parcel) -> T): T {
         val parcel = Parcel.obtain()
         try {
-            val reply = CallReply.of(bytes)
-            assertThat(reply.describeContents()).isEqualTo(Parcelable.CONTENTS_FILE_DESCRIPTOR)
-            reply.writeToParcel(parcel, 0)
+            if (value is RootCallCommand) parcel.writeParcelable(value, 0) else value.writeToParcel(parcel, 0)
             parcel.setDataPosition(0)
-
-            assertThat(CallReply.CREATOR.createFromParcel(parcel).read()).isEqualTo(bytes)
+            return read(parcel)
         } finally {
             parcel.recycle()
         }

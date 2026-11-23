@@ -30,12 +30,19 @@ import kotlinx.coroutines.flow.SharedFlow
  * files, such as the wake feature's, are not considered.
  *
  * ## What blocks a component
+ * Android selects a rule for an intent when the target matches one of the rule's
+ * `<component-filter>`s *or* the intent matches one of its `<intent-filter>`s; the rule then
+ * applies only when all its other top-level filter elements, such as `<sender>` or `<action>`,
+ * match too. So intent-filters are alternatives to component-filters, never conditions on them.
+ * Measured on API 28 and API 34: a `block="true"` rule with a component-filter for an activity and
+ * an intent-filter for an action nobody sends blocks `am start -n` of that activity; the same
+ * rule with an extra `<action equals>` that does not match lets it start, and with one that
+ * matches blocks it.
+ *
  * A rule *names* a component when it has a top-level `<component-filter>` for it. A rule is
  * *unconditional* when it has `block="true"` and every top-level filter element is a
- * `<component-filter>`. Its `log` attribute does not matter, and neither do its
- * `<intent-filter>`s: Android chooses a rule for an intent when the target matches one of its
- * component-filters *or* the intent matches one of its intent-filters, then applies the rule when
- * all its other filter elements match. A component of an activity, service or receiver is
+ * `<component-filter>`; its `log` attribute and its intent-filters do not matter. A component of
+ * an activity, service or receiver is
  * [IfwBlock.BLOCKED] when an unconditional rule of its type names it, else
  * [IfwBlock.CONDITIONAL] when a rule with `block="true"` and further filter elements, such as a
  * sender filter, names it, else [IfwBlock.NOT_BLOCKED]. Providers are never filtered and always
@@ -53,6 +60,11 @@ import kotlinx.coroutines.flow.SharedFlow
  * `<rules>` are dropped, and rules come out grouped by type. A file with an unknown filter
  * element cannot be read, so it is never rewritten.
  *
+ * ## Known limit
+ * [blocks] reads only the package's own file. Android merges every file in the directory, so a
+ * rule in another file that names the package's components, such as one of the wake feature's
+ * rules or a user's file under another name, is not reflected in the answer.
+ *
  * ## Cache
  * [blocks] answers from rules parsed earlier, so it may miss a change another writer made, such as
  * the older `IIntentFirewall`, until that package is written through this store or
@@ -63,6 +75,8 @@ interface IfwStore {
      * IFW state of each given component of one package. Never throws for expected failures: when
      * the file cannot be read or the rules cannot be reached, every filtered component is
      * [IfwBlock.UNKNOWN]. Never connects the privileged channel, so it never shows a prompt.
+     * Reads only `<packageName>.xml`; rules in other files that name these components are not
+     * considered, a known limit.
      *
      * @param components components of [packageName]
      */

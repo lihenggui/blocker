@@ -28,7 +28,7 @@ import be.mygod.librootkotlinx.systemContext
 import com.merxury.blocker.core.controllers.root.api.SystemServiceHelper
 
 /**
- * The system services as seen from a process that itself runs as root or the shell: the root
+ * The system services as seen from a process that itself runs as root, system or the shell: the root
  * process, or the Shizuku user service. They need no binder wrapper there.
  */
 internal object PrivilegedProcessSystemServices : SystemServices {

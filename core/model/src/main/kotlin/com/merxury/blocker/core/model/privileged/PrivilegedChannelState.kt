@@ -24,6 +24,13 @@ enum class PrivilegedIdentity {
     /** uid 0, from su or Shizuku started with root. */
     ROOT,
 
+    /**
+     * uid 1000, the system user, from a Shizuku server started as that uid, for example
+     * through an exploit on a device without root. The rule directory under `/data/system` is
+     * owned by this uid.
+     */
+    SYSTEM,
+
     /** uid 2000, from Shizuku started through adb. */
     SHELL,
     ;
@@ -32,10 +39,10 @@ enum class PrivilegedIdentity {
      * Whether the PackageManager setting of a single component can be changed. The shell may
      * change whole apps but not components.
      */
-    val canChangeComponents: Boolean get() = this == ROOT
+    val canChangeComponents: Boolean get() = this != SHELL
 
     /** Whether files under `/data/system`, such as Intent Firewall rules, can be written. */
-    val canWriteSystemFiles: Boolean get() = this == ROOT
+    val canWriteSystemFiles: Boolean get() = this != SHELL
 }
 
 /** Whether the privileged channel can be used right now. */

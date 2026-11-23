@@ -36,7 +36,12 @@ internal val ComponentType.ifwType: IfwComponentType?
         ComponentType.PROVIDER -> null
     }
 
-/** `block="true"` and no filter element but component-filters. Intent-filters are alternatives, not conditions. */
+/**
+ * `block="true"` and no top-level filter element but component-filters. Android selects a rule by
+ * its component-filters or its intent-filters and treats only the other top-level elements as
+ * conditions, so intent-filters do not make a rule conditional; measured on API 28 and API 34,
+ * see [IfwStore].
+ */
 private val IfwRule.isUnconditional: Boolean
     get() = block && filters.all { it is IfwFilter.ComponentFilter }
 

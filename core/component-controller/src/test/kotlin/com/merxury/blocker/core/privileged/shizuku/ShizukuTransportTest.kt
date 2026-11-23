@@ -66,7 +66,7 @@ class ShizukuTransportTest {
         val cases = mapOf(
             RegisterShizukuResult.Granted(0) to ChannelState.Ready(PrivilegedIdentity.ROOT),
             RegisterShizukuResult.Granted(2000) to ChannelState.Ready(PrivilegedIdentity.SHELL),
-            RegisterShizukuResult.Granted(1000) to ChannelState.Unavailable(UnavailableReason.FAILED),
+            RegisterShizukuResult.Granted(1000) to ChannelState.Ready(PrivilegedIdentity.SYSTEM),
             RegisterShizukuResult.Granted(-1) to ChannelState.Unavailable(UnavailableReason.FAILED),
             RegisterShizukuResult.Denied to ChannelState.Unavailable(UnavailableReason.DENIED),
             RegisterShizukuResult.NotRunning to ChannelState.Unavailable(UnavailableReason.NOT_RUNNING),
@@ -146,6 +146,17 @@ class ShizukuTransportTest {
 
         assertThat(result).isEqualTo(CallResult.Success("hi for ${system.callerPackage}"))
         assertThat(connector.services.single().calls).isEqualTo(1)
+    }
+
+    @Test
+    fun givenSystemUid_whenCallNeedsPrivilegedProcess_thenRunsInUserService() = scope.runTest {
+        initializer.result = RegisterShizukuResult.Granted(1000)
+        assertThat(transport.connect()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SYSTEM))
+
+        val result = transport.execute(EchoInPrivilegedProcess("hi"))
+
+        assertThat(result).isEqualTo(CallResult.Success("hi for ${system.callerPackage}"))
+        assertThat(connector.binds).isEqualTo(1)
     }
 
     @Test

@@ -19,8 +19,9 @@ package com.merxury.blocker.core.privileged.shizuku
 import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.DeadObjectException
-import com.merxury.blocker.core.privileged.CallReply
+import com.merxury.blocker.core.privileged.CallBytes
 import com.merxury.blocker.core.privileged.SystemServices
+import com.merxury.blocker.core.privileged.awaitPipeWriters
 
 internal const val BLOCKER_UID = 10_123
 
@@ -64,9 +65,10 @@ internal class FakeUserServiceConnector(private val system: SystemServices) : Us
         var calls = 0
             private set
 
-        override fun run(call: ByteArray): CallReply {
+        override fun run(call: CallBytes): CallBytes {
             calls++
             if (dead) throw DeadObjectException()
+            check(awaitPipeWriters())
             return runner.run(call)
         }
 

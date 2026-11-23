@@ -33,3 +33,11 @@ internal data class FailInPrivilegedProcess(val message: String) : PrivilegedCal
 
     override fun run(system: SystemServices): String = throw SecurityException(message)
 }
+
+/** A call that needs the privileged process and answers how long [text] is, so its answer stays small. */
+@Parcelize
+internal data class MeasureInPrivilegedProcess(val text: String) : PrivilegedCall<Int> {
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override fun run(system: SystemServices): Int = text.length
+}

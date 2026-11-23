@@ -76,7 +76,8 @@ private const val PIPED_ABOVE = 64 * 1024
  * changes another user's apps.
  *
  * Arguments: `privilegedRootTest=true` runs the root tests, through su granted to this test
- * package, or with `rootVia=shizuku` through a Shizuku server running as root;
+ * package, or with `rootVia=shizuku` through a Shizuku server running as root, or with
+ * `rootVia=shizuku-system` through one running as the system uid, which may change components too;
  * `privilegedShellTest=true` needs Shizuku started through adb with this package granted, and
  * waits for its binder, which may need a restart of Shizuku once the run has started;
  * `otherUser=<id>` names a started profile or user that has this test package installed, for
@@ -101,7 +102,10 @@ class PrivilegedChannelDeviceTest {
 
     private fun rootTransport(): AbstractPrivilegedTransport {
         assumeTrue(arguments.getString("privilegedRootTest") == "true")
-        if (arguments.getString("rootVia") == "shizuku") return shizukuTransport(PrivilegedIdentity.ROOT)
+        when (arguments.getString("rootVia")) {
+            "shizuku" -> return shizukuTransport(PrivilegedIdentity.ROOT)
+            "shizuku-system" -> return shizukuTransport(PrivilegedIdentity.SYSTEM)
+        }
         return RootTransport(BlockerRootSession(context), Dispatchers.IO).also {
             assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), runBlocking { it.connect() })
         }

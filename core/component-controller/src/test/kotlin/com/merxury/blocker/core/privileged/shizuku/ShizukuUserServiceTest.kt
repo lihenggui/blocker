@@ -22,6 +22,7 @@ import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.privileged.EchoInPrivilegedProcess
 import com.merxury.blocker.core.privileged.FailInPrivilegedProcess
 import com.merxury.blocker.core.privileged.FakeSystemServices
+import com.merxury.blocker.core.privileged.MeasureInPrivilegedProcess
 import com.merxury.blocker.core.privileged.PrivilegedProcessUnavailableException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.advanceTimeBy
@@ -49,6 +50,13 @@ class ShizukuUserServiceTest {
 
         assertThat(connector.binds).isEqualTo(1)
         assertThat(connector.services.single().calls).isEqualTo(2)
+    }
+
+    @Test
+    fun givenCallLargerThanOneTransaction_whenRun_thenRunsInService() = runTest {
+        val call = MeasureInPrivilegedProcess("c".repeat(600_000))
+
+        assertThat(userService.run(call)).isEqualTo(CallResult.Success(600_000))
     }
 
     @Test

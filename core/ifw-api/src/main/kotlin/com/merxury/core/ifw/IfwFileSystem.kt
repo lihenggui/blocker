@@ -51,7 +51,7 @@ class IfwAccessException(message: String) : IOException(message)
 
 /**
  * The [IfwFileSystem] that reaches the rule directory through the privileged channel the user
- * chose: the root process, or Shizuku running as root. [IfwStore] uses it.
+ * chose: the root process, or Shizuku running as root or the system uid. [IfwStore] uses it.
  */
 @Qualifier
 @Retention(AnnotationRetention.BINARY)

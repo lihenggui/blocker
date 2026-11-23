@@ -64,11 +64,13 @@ internal fun Throwable.lostReason(): UnavailableReason? = causes().firstNotNullO
 private const val MAX_CAUSES = 8
 
 private const val ROOT_UID = 0
+private const val SYSTEM_UID = 1000
 private const val SHELL_UID = 2000
 
 /** The identity a privileged process with [uid] has, or null for any other uid. */
 internal fun identityOfUid(uid: Int): PrivilegedIdentity? = when (uid) {
     ROOT_UID -> PrivilegedIdentity.ROOT
+    SYSTEM_UID -> PrivilegedIdentity.SYSTEM
     SHELL_UID -> PrivilegedIdentity.SHELL
     else -> null
 }

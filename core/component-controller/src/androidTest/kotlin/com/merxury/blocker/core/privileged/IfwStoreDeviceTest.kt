@@ -69,6 +69,7 @@ private const val TAG = "IfwStoreDeviceTest"
  *
  * Arguments: `ifwStoreTest=root` goes through su granted to this test package;
  * `ifwStoreTest=shizuku` through the user service of a Shizuku server running as root;
+ * `ifwStoreTest=system` through the user service of a Shizuku server running as the system uid;
  * `ifwStoreTest=shell` through a Shizuku server running as the shell, which must get no access.
  * Shizuku must have granted this package before the run starts.
  */
@@ -86,14 +87,18 @@ class IfwStoreDeviceTest {
 
     @Before
     fun connect() {
-        assumeTrue(mode in setOf("root", "shizuku", "shell"))
+        assumeTrue(mode in setOf("root", "shizuku", "system", "shell"))
         // The Shizuku transport calls hidden interfaces in this process, as the app does.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) HiddenApiBypass.addHiddenApiExemptions("")
         transport = when (mode) {
             "root" -> RootTransport(BlockerRootSession(context), Dispatchers.IO)
             else -> shizukuTransport()
         }
-        val expected = if (mode == "shell") PrivilegedIdentity.SHELL else PrivilegedIdentity.ROOT
+        val expected = when (mode) {
+            "shell" -> PrivilegedIdentity.SHELL
+            "system" -> PrivilegedIdentity.SYSTEM
+            else -> PrivilegedIdentity.ROOT
+        }
         assertEquals(ChannelState.Ready(expected), runBlocking { transport.connect() })
         store = IfwModule.providesIfwStore(ChannelIfwFileSystem(transport), IfwXmlSerializer(), IfwXmlDeserializer())
     }
@@ -107,7 +112,7 @@ class IfwStoreDeviceTest {
 
     @After
     fun removeRuleFile() = runBlocking<Unit> {
-        if (mode != "root" && mode != "shizuku") return@runBlocking
+        if (mode == "shell") return@runBlocking
         store.update(self) { IfwRules.empty() }
     }
 
@@ -151,9 +156,9 @@ class IfwStoreDeviceTest {
     @Test
     fun givenRulesLargerThanOneReply_whenReadBack_thenWhole() = runBlocking<Unit> {
         assumeTrue(mode != "shell")
-        // Large enough that the read answer, two bytes a char, takes the pipe, and small enough
-        // that the write request stays below the 128 KiB a root call carries.
-        val many = (1..400).associate {
+        // Far more than one binder transaction carries, so the request and the answer both take
+        // the pipe.
+        val many = (1..1500).associate {
             ComponentDeclaration(ComponentId(self, "$self.generated.Receiver$it"), ComponentType.RECEIVER, exported = true, enabledInManifest = true) to true
         }
 
@@ -162,7 +167,7 @@ class IfwStoreDeviceTest {
         assertTrue(result is IfwResult.Success && result.value.values.all { it == IfwBlock.BLOCKED }, "$result")
         val content = checkNotNull(ChannelIfwFileSystem(transport).readRules(self))
         Log.i(TAG, "${many.size} filters took ${content.length} chars")
-        assertTrue(content.length * 2 > 64 * 1024, "Too small to take the pipe: ${content.length}")
+        assertTrue(content.length * 2 > 300 * 1024, "Too small: ${content.length}")
         store.clearCache()
         assertTrue(store.blocks(self, many.keys).values.all { it == IfwBlock.BLOCKED })
     }
@@ -180,11 +185,12 @@ class IfwStoreDeviceTest {
 
     @Test
     fun givenUserServiceDiesDuringCall_whenNextCall_thenStartedAgainAndChannelStaysReady() = runBlocking<Unit> {
-        assumeTrue(mode == "shizuku")
+        assumeTrue(mode == "shizuku" || mode == "system")
         transport.execute(ListIfwRuleFiles).value()
+        val ready = transport.state.value
 
         assertEquals(CallResult.Failure(CallFailure.ChannelUnavailable), transport.execute(EndPrivilegedProcess))
-        assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), transport.state.value)
+        assertEquals(ready, transport.state.value)
         transport.execute(ListIfwRuleFiles).value()
     }
 

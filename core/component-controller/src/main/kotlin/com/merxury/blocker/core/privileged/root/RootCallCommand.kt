@@ -17,17 +17,23 @@
 package com.merxury.blocker.core.privileged.root
 
 import be.mygod.librootkotlinx.RootCommand
-import com.merxury.blocker.core.privileged.CallReply
-import com.merxury.blocker.core.privileged.PrivilegedCall
+import com.merxury.blocker.core.privileged.CallBytes
 import com.merxury.blocker.core.privileged.PrivilegedProcessSystemServices
 import com.merxury.blocker.core.privileged.encodeOutcome
+import com.merxury.blocker.core.privileged.unmarshallCall
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 
 /**
- * Runs [call] in the root process and sends back its outcome from [encodeOutcome]. A call that
- * throws still completes this command; only a broken root process fails it.
+ * Runs the call in [request], from [com.merxury.blocker.core.privileged.marshallCall], in the
+ * root process and sends back its outcome from [encodeOutcome]. A call that throws still
+ * completes this command; only a broken root process fails it.
  */
 @Parcelize
-internal class RootCallCommand(val call: PrivilegedCall<*>) : RootCommand<CallReply> {
-    override suspend fun execute(): CallReply = CallReply.of(encodeOutcome(call, PrivilegedProcessSystemServices))
+internal class RootCallCommand(val request: CallBytes) : RootCommand<CallBytes> {
+    override suspend fun execute(): CallBytes = withContext(Dispatchers.IO) {
+        val call = unmarshallCall(request.read(CallBytes.MAX_REQUEST_BYTES))
+        CallBytes.reply(encodeOutcome(call, PrivilegedProcessSystemServices))
+    }
 }

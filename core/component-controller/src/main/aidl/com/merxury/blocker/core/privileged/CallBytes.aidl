@@ -3,4 +3,4 @@
 
 package com.merxury.blocker.core.privileged;
 
-parcelable CallReply;
+parcelable CallBytes;

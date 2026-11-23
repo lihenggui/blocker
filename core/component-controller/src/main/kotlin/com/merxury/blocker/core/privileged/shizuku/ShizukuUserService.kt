@@ -23,6 +23,7 @@ import android.os.DeadObjectException
 import android.os.IBinder
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
+import com.merxury.blocker.core.privileged.CallBytes
 import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.PrivilegedProcessUnavailableException
 import com.merxury.blocker.core.privileged.decodeOutcome
@@ -116,11 +117,15 @@ internal class ShizukuUserService(
             )
         }
         val current = attach()
-        val reply = try {
-            current.service.run(marshallCall(call))
-        } catch (e: DeadObjectException) {
-            forget(current)
-            throw PrivilegedProcessUnavailableException("The Shizuku user service died while running $call", e)
+        // Closing this side's copy of a piped request when the call ends stops its writer even
+        // when the service never read it.
+        val reply = CallBytes.request(marshallCall(call)).use { request ->
+            try {
+                current.service.run(request)
+            } catch (e: DeadObjectException) {
+                forget(current)
+                throw PrivilegedProcessUnavailableException("The Shizuku user service died while running $call", e)
+            }
         }
         return decodeOutcome(call, reply.read())
     }
