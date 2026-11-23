@@ -39,6 +39,12 @@ sealed interface ReadFailure {
 
     /** The system, or the privileged service the read goes through, did not answer. */
     data object ChannelUnavailable : ReadFailure
+
+    /**
+     * The package's Intent Firewall rules could not be read: the privileged channel is not ready
+     * or may not read system files, or the rule file cannot be parsed.
+     */
+    data class RulesUnreadable(val packageName: String) : ReadFailure
 }
 
 /** The value, or null on failure. */

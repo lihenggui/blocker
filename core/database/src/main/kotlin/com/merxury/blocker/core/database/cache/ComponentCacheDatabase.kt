@@ -35,7 +35,8 @@ internal const val COMPONENT_CACHE_DATABASE_NAME = "component_cache"
  * per-user PackageManager settings and device-wide Intent Firewall state.
  *
  * It holds no user data and can be dropped and rebuilt from the system at any time, which is why
- * it is opened with destructive migration.
+ * it is opened with destructive migration. Public so that tests of the repositories over it can
+ * open an in-memory instance; production code gets [ComponentCacheDao] from Hilt.
  */
 @Database(
     entities = [
@@ -50,7 +51,7 @@ internal const val COMPONENT_CACHE_DATABASE_NAME = "component_cache"
     exportSchema = true,
 )
 @TypeConverters(CacheConverters::class)
-internal abstract class ComponentCacheDatabase : RoomDatabase() {
+abstract class ComponentCacheDatabase : RoomDatabase() {
     abstract fun componentCacheDao(): ComponentCacheDao
 }
 
