@@ -47,6 +47,7 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.getOrNull
 import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
 import com.merxury.blocker.core.privileged.ChannelIfwFileSystem
+import com.merxury.blocker.core.privileged.InMemoryRootGrantMemory
 import com.merxury.blocker.core.privileged.PrivilegedPlatformPackages
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.privileged.connectedShizukuTransport
@@ -128,7 +129,7 @@ class ComponentControlDeviceTest {
         // The Shizuku transport calls hidden interfaces in this process, as the app does.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) HiddenApiBypass.addHiddenApiExemptions("")
         transport = if (mode == "root") {
-            RootTransport(BlockerRootSession(context), Dispatchers.IO).also { assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), it.connect()) }
+            RootTransport(BlockerRootSession(context), InMemoryRootGrantMemory(remembered = false), Dispatchers.IO).also { assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), it.connect()) }
         } else {
             connectedShizukuTransport(context, PrivilegedIdentity.SHELL)
         }

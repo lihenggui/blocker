@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Process
 import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
+import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
@@ -51,7 +52,7 @@ private val SHIZUKU_BINDER_WAIT = 2.minutes
 internal fun connectedShizukuTransport(context: Context, expected: PrivilegedIdentity): ShizukuTransport {
     val api = DefaultShizukuApi()
     val initializer = ShizukuInitializer(api)
-    runBlocking { withTimeout(SHIZUKU_BINDER_WAIT) { initializer.awaitBinder() } }
+    awaitShizukuBinder(initializer)
     // The binder arrives with the server's answer for this uid, so this reads no stale state.
     if (!initializer.hasPermission()) {
         val granted = context.checkSelfPermission(SHIZUKU_PERMISSION) == PackageManager.PERMISSION_GRANTED
@@ -61,13 +62,21 @@ internal fun connectedShizukuTransport(context: Context, expected: PrivilegedIde
                 "Shizuku, and keep this package installed between runs.",
         )
     }
-    val transport = ShizukuTransport(
-        initializer,
-        api,
-        ShizukuSystemServices(context),
-        ShizukuUserService(ShizukuUserServiceConnector(context)),
-        Dispatchers.IO,
-    )
+    val transport = shizukuTransport(context, api)
     assertEquals(ChannelState.Ready(expected), runBlocking { transport.connect() })
     return transport
 }
+
+/** Waits for the binder Shizuku sends to this process, failing the test if none arrives. */
+internal fun awaitShizukuBinder(initializer: ShizukuInitializer = ShizukuInitializer(DefaultShizukuApi())) {
+    runBlocking { withTimeout(SHIZUKU_BINDER_WAIT) { initializer.awaitBinder() } }
+}
+
+/** A [ShizukuTransport] over [api] that nothing has connected yet. */
+internal fun shizukuTransport(context: Context, api: ShizukuApi = DefaultShizukuApi()): ShizukuTransport = ShizukuTransport(
+    ShizukuInitializer(api),
+    api,
+    ShizukuSystemServices(context),
+    ShizukuUserService(ShizukuUserServiceConnector(context)),
+    Dispatchers.IO,
+)

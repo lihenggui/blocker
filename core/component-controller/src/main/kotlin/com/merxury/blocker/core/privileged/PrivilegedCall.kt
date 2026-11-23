@@ -93,8 +93,10 @@ internal interface PrivilegedExecutor {
     suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R>
 
     /**
-     * Runs [call] only when the channel is already [ChannelState.Ready]; otherwise fails with
-     * [CallFailure.ChannelUnavailable]. Never connects, so never shows a prompt.
+     * Runs [call] only when the channel is [ChannelState.Ready]; otherwise fails with
+     * [CallFailure.ChannelUnavailable]. Never shows a prompt: when nothing has tried to acquire
+     * the channel yet, it first waits for [PrivilegedChannel.connectIfGranted], bounded by the
+     * transport's own timeouts, and never calls [PrivilegedChannel.connect].
      */
     suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R>
 }

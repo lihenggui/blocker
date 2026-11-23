@@ -26,9 +26,11 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface PrivilegedChannel {
     /**
-     * Last known state; starts [ChannelState.Unavailable] with [UnavailableReason.NOT_CHECKED].
-     * It changes on [connect], when a call finds the channel gone, and when the user picks a
-     * controller type that uses the other service.
+     * Last known state; starts [ChannelState.Unavailable] with [UnavailableReason.NOT_CHECKED]
+     * until the first attempt to acquire the channel ends, which [connectIfGranted] makes as soon
+     * as the controller type is known. It changes on [connect] and [connectIfGranted], when a call
+     * finds the channel gone, and when the user picks a controller type that uses the other
+     * service.
      */
     val state: StateFlow<ChannelState>
 
@@ -37,4 +39,18 @@ interface PrivilegedChannel {
      * [state]. Returns the new state; never throws except for cancellation.
      */
     suspend fun connect(): ChannelState
+
+    /**
+     * Acquires the channel only where that cannot show a prompt: Shizuku when its permission is
+     * already granted, root when su has given Blocker a root process before. Otherwise leaves it
+     * unavailable, with [UnavailableReason.DENIED] when nothing has been granted. Updates [state]
+     * as [connect] does and returns the new state, or the current one at once when it is already
+     * [ChannelState.Ready]. Runs one at a time with [connect]; safe to call often. Never throws
+     * except for cancellation.
+     *
+     * Root counts as granted while su gave Blocker a root process last time it was asked. A root
+     * manager whose grant has since been withdrawn or has run out, such as a Magisk grant for a
+     * limited time, answers that one su start as its settings say: by refusing, or with its prompt.
+     */
+    suspend fun connectIfGranted(): ChannelState
 }

@@ -18,6 +18,7 @@ package com.merxury.blocker.core.datastore
 
 import androidx.datastore.core.DataStore
 import com.merxury.blocker.core.model.preference.AppPropertiesData
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -31,6 +32,20 @@ class BlockerAppPropertiesDataStore @Inject constructor(
             lastOpenedAppListHash = it.lastOpenedAppListHash,
             lastOpenedRuleHash = it.lastOpenedRuleHash,
         )
+    }
+
+    /**
+     * Whether su last started a root process for Blocker, kept across process starts. Starting su
+     * again shows no prompt while the root manager keeps that grant.
+     */
+    val rootGrantRemembered: Flow<Boolean> = appProperties.data.map { it.rootGrantRemembered }
+
+    suspend fun setRootGrantRemembered(remembered: Boolean) {
+        appProperties.updateData {
+            it.copy {
+                rootGrantRemembered = remembered
+            }
+        }
     }
 
     suspend fun markComponentDatabaseInitialized() {

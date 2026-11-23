@@ -180,6 +180,8 @@ class AppPermissionMonitorTest {
             awaitCancellation()
         }
 
+        override suspend fun registerShizukuIfGranted(): RegisterShizukuResult = error("Not used by the monitor")
+
         override suspend fun awaitBinder() = awaitCancellation()
 
         override fun hasPermission(): Boolean = false

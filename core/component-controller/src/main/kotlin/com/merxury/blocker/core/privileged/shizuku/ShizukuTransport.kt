@@ -52,16 +52,17 @@ import javax.inject.Singleton
  * Runs calls in this process against system services reached through Shizuku or Sui, as the
  * uid the Shizuku server runs as: root, the system uid, or the shell when Shizuku was started
  * through adb.
- * Connecting asks for the Shizuku permission when it has not been granted yet.
+ * Connecting asks for the Shizuku permission when it has not been granted yet; connecting without
+ * a prompt waits briefly for the binder and leaves the channel [UnavailableReason.DENIED] instead.
  *
  * A call that [PrivilegedCall.needsPrivilegedProcess] runs in [ShizukuUserService] instead, and
  * only when the server's identity can write system files, as root or the system uid; as the shell
  * it fails with [CallFailure.NotPermitted] and starts nothing.
  *
  * Shizuku's binder events keep [state] current without a prompt: when the binder dies a ready
- * channel becomes [UnavailableReason.NOT_RUNNING], and when a new binder arrives a channel that has
- * been ready becomes ready again, as the uid the new server runs as, if the permission is still
- * granted. The listeners are registered once, for the life of this singleton.
+ * channel becomes [UnavailableReason.NOT_RUNNING], and when a new binder arrives a channel that is
+ * ready, or waiting for Shizuku to run, becomes ready as the uid the new server runs as, if the
+ * permission is granted. The listeners are registered once, for the life of this singleton.
  */
 @Singleton
 internal class ShizukuTransport(
@@ -85,7 +86,11 @@ internal class ShizukuTransport(
         shizuku.addBinderReceivedListener { onBinderReceived() }
     }
 
-    override suspend fun acquire(): ChannelState = when (val result = initializer.registerShizuku()) {
+    override suspend fun acquire(): ChannelState = stateOf(initializer.registerShizuku())
+
+    override suspend fun acquireIfGranted(): ChannelState = stateOf(initializer.registerShizukuIfGranted())
+
+    private fun stateOf(result: RegisterShizukuResult): ChannelState = when (result) {
         is RegisterShizukuResult.Granted -> identityOfUid(result.uid)?.let { ChannelState.Ready(it) }
             ?: ChannelState.Unavailable(UnavailableReason.FAILED)
                 .also { Timber.e("Shizuku runs as uid ${result.uid}, which is not root, system or the shell") }
@@ -131,7 +136,9 @@ internal class ShizukuTransport(
     private fun onBinderReceived() {
         // A new server may run as another uid; its user services are new too.
         userService.reset()
-        if (!hasBeenReady) return
+        // A refusal or a failure stands until the next connect.
+        val current = state.value
+        if (current !is ChannelState.Ready && current != NOT_RUNNING) return
         val next = try {
             if (shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                 identityOfUid(shizuku.getUid())?.let { ChannelState.Ready(it) }

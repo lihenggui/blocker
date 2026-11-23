@@ -52,6 +52,12 @@ class FakeShizukuInitializer(
         return if (permissionGranted) RegisterShizukuResult.Granted(shizukuUid) else RegisterShizukuResult.Denied
     }
 
+    override suspend fun registerShizukuIfGranted(): RegisterShizukuResult {
+        registerCallCount++
+        if (!running.value) return RegisterShizukuResult.NotRunning
+        return if (permissionGranted) RegisterShizukuResult.Granted(shizukuUid) else RegisterShizukuResult.Denied
+    }
+
     override suspend fun awaitBinder() {
         binderWaiterCount++
         try {

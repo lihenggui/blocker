@@ -51,7 +51,11 @@ internal class ShizukuInitializer @Inject constructor(
     private val shizuku: ShizukuApi,
 ) : IShizukuInitializer {
 
-    override suspend fun registerShizuku(): RegisterShizukuResult {
+    override suspend fun registerShizuku(): RegisterShizukuResult = register(mayAsk = true)
+
+    override suspend fun registerShizukuIfGranted(): RegisterShizukuResult = register(mayAsk = false)
+
+    private suspend fun register(mayAsk: Boolean): RegisterShizukuResult {
         if (withTimeoutOrNull(SHIZUKU_BINDER_TIMEOUT) { awaitBinder() } == null) {
             Timber.w("No Shizuku binder within $SHIZUKU_BINDER_TIMEOUT, Shizuku is not running")
             return NotRunning
@@ -64,6 +68,11 @@ internal class ShizukuInitializer @Inject constructor(
                 }
 
                 shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> Granted(getUid())
+
+                !mayAsk -> {
+                    Timber.i("Shizuku permission not granted, not asking for it")
+                    Denied
+                }
 
                 shizuku.shouldShowRequestPermissionRationale() -> {
                     Timber.e("User denied Shizuku permission.")

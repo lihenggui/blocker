@@ -206,6 +206,55 @@ class ShizukuInitializerTest {
     }
 
     @Test
+    fun givenPermissionGranted_whenRegisterIfGranted_thenGrantedWithoutDialog() = runTest {
+        shizuku.permissionGranted = true
+        shizuku.startServer()
+
+        assertEquals(Granted(SHELL_UID), initializer.registerShizukuIfGranted())
+        assertEquals(0, shizuku.requestPermissionCount)
+        shizuku.assertNoListeners()
+    }
+
+    @Test
+    fun givenPermissionNotGranted_whenRegisterIfGranted_thenDeniedAndNeverRequested() = runTest {
+        shizuku.startServer()
+
+        assertEquals(Denied, initializer.registerShizukuIfGranted())
+        assertEquals(0, shizuku.requestPermissionCount)
+        assertEquals(0L, currentTime)
+        shizuku.assertNoListeners()
+    }
+
+    @Test
+    fun givenShizukuNotRunning_whenRegisterIfGranted_thenNotRunningAfterBinderWait() = runTest {
+        assertEquals(NotRunning, initializer.registerShizukuIfGranted())
+        assertEquals(SHIZUKU_BINDER_TIMEOUT.inWholeMilliseconds, currentTime)
+        assertEquals(0, shizuku.requestPermissionCount)
+        shizuku.assertNoListeners()
+    }
+
+    @Test
+    fun givenBinderArrivesLate_whenRegisterIfGranted_thenWaitsForBinder() = runTest {
+        shizuku.permissionGranted = true
+
+        val result = async { initializer.registerShizukuIfGranted() }
+        advanceTimeBy(SHIZUKU_BINDER_TIMEOUT.inWholeMilliseconds / 2)
+        shizuku.startServer()
+
+        assertEquals(Granted(SHELL_UID), result.await())
+        shizuku.assertNoListeners()
+    }
+
+    @Test
+    fun givenPreV11Server_whenRegisterIfGranted_thenUnsupportedVersion() = runTest {
+        shizuku.preV11 = true
+        shizuku.startServer()
+
+        assertEquals(UnsupportedVersion, initializer.registerShizukuIfGranted())
+        assertEquals(0, shizuku.requestPermissionCount)
+    }
+
+    @Test
     fun givenPermissionCheckThrows_whenRegister_thenReturnsFailed() = runTest {
         shizuku.checkPermissionError = RuntimeException("binder died")
         shizuku.startServer()

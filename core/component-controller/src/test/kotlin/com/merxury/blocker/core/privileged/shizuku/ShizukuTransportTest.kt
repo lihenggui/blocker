@@ -83,6 +83,81 @@ class ShizukuTransportTest {
     }
 
     @Test
+    fun givenEachRegisterResult_whenConnectIfGranted_thenMatchingStateWithoutAsking() = scope.runTest {
+        val cases = mapOf(
+            RegisterShizukuResult.Denied to ChannelState.Unavailable(UnavailableReason.DENIED),
+            RegisterShizukuResult.NotRunning to ChannelState.Unavailable(UnavailableReason.NOT_RUNNING),
+            RegisterShizukuResult.UnsupportedVersion to ChannelState.Unavailable(UnavailableReason.UNSUPPORTED_VERSION),
+            RegisterShizukuResult.Failed(IllegalStateException()) to ChannelState.Unavailable(UnavailableReason.FAILED),
+            RegisterShizukuResult.Granted(0) to ChannelState.Ready(PrivilegedIdentity.ROOT),
+        )
+
+        cases.forEach { (registered, expected) ->
+            initializer.result = registered
+            assertThat(transport.connectIfGranted()).isEqualTo(expected)
+            assertThat(transport.state.value).isEqualTo(expected)
+        }
+        assertThat(initializer.asked).isEqualTo(0)
+        assertThat(initializer.checkedQuietly).isEqualTo(cases.size)
+    }
+
+    @Test
+    fun givenReady_whenConnectIfGranted_thenReturnsReadyWithoutWork() = scope.runTest {
+        transport.connect()
+
+        assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        assertThat(initializer.checkedQuietly).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNotChecked_whenExecuteIfReady_thenConnectsQuietlyAndRuns() = scope.runTest {
+        system.packageManager.install(10, PKG)
+
+        val result = transport.executeIfReady(ApplicationEnabledSettings(listOf(PKG), WORK))
+
+        assertThat(result).isInstanceOf(CallResult.Success::class.java)
+        assertThat(initializer.checkedQuietly).isEqualTo(1)
+        assertThat(initializer.asked).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNotGranted_whenExecuteIfReady_thenChannelUnavailableWithoutAsking() = scope.runTest {
+        initializer.result = RegisterShizukuResult.Denied
+
+        assertThat(transport.executeIfReady(ForceStop(PKG, WORK))).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(transport.executeIfReady(ForceStop(PKG, WORK))).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(initializer.checkedQuietly).isEqualTo(1)
+        assertThat(initializer.asked).isEqualTo(0)
+        assertThat(system.activityManager.forceStopped).isEmpty()
+    }
+
+    @Test
+    fun givenNotRunningWhenCheckedQuietly_whenShizukuStartsGranted_thenReadyWithoutPrompt() = scope.runTest {
+        initializer.result = RegisterShizukuResult.NotRunning
+        transport.connectIfGranted()
+
+        shizuku.restart(asUid = 0)
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        assertThat(shizuku.permissionRequests).isEqualTo(0)
+        assertThat(initializer.asked).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNotRunningWhenCheckedQuietly_whenShizukuStartsNotGranted_thenStaysUnavailableWithoutPrompt() = scope.runTest {
+        initializer.result = RegisterShizukuResult.NotRunning
+        transport.connectIfGranted()
+        shizuku.granted = false
+
+        shizuku.restart()
+
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
+        assertThat(shizuku.permissionRequests).isEqualTo(0)
+    }
+
+    @Test
     fun givenShellGranted_whenExecute_thenRunsAgainstShizukuServices() = scope.runTest {
         system.packageManager.install(10, PKG)
         system.packageManager.appSettings[PKG to 10] = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
@@ -276,10 +351,23 @@ class ShizukuTransportTest {
     }
 }
 
+/** Answers both registrations with [result]; the one that may ask counts as asking. */
 private class FakeShizukuInitializer : IShizukuInitializer {
     var result: RegisterShizukuResult = RegisterShizukuResult.Granted(2000)
+    var asked = 0
+        private set
+    var checkedQuietly = 0
+        private set
 
-    override suspend fun registerShizuku(): RegisterShizukuResult = result
+    override suspend fun registerShizuku(): RegisterShizukuResult {
+        asked++
+        return result
+    }
+
+    override suspend fun registerShizukuIfGranted(): RegisterShizukuResult {
+        checkedQuietly++
+        return result
+    }
     override suspend fun awaitBinder() = Unit
     override fun hasPermission(): Boolean = result is RegisterShizukuResult.Granted
     override fun getUid(): Int = (result as? RegisterShizukuResult.Granted)?.uid ?: -1

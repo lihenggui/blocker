@@ -19,6 +19,8 @@ package com.merxury.blocker.core.privileged
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
+import kotlinx.coroutines.CompletableDeferred
 
 /**
  * A transport that runs calls against [system] in this process, with switches for what acquiring
@@ -32,13 +34,31 @@ internal class FakeTransport(
     var acquireCount = 0
         private set
 
+    /** When set, [connect] waits for it, as a transport waits for a prompt to be answered. */
+    var acquireGate: CompletableDeferred<Unit>? = null
+
+    /** What the next [connectIfGranted] gives: by default, nothing was granted. */
+    var quietAcquireResult: ChannelState = ChannelState.Unavailable(UnavailableReason.DENIED)
+    var quietAcquireCount = 0
+        private set
+
+    /** When set, [connectIfGranted] waits for it, as a transport waits for su or a binder. */
+    var quietAcquireGate: CompletableDeferred<Unit>? = null
+
     /** Thrown by the next call instead of running it. */
     var throwOnSend: Exception? = null
     val sent = mutableListOf<PrivilegedCall<*>>()
 
     override suspend fun acquire(): ChannelState {
         acquireCount++
+        acquireGate?.await()
         return acquireResult
+    }
+
+    override suspend fun acquireIfGranted(): ChannelState {
+        quietAcquireCount++
+        quietAcquireGate?.await()
+        return quietAcquireResult
     }
 
     override suspend fun <R> send(call: PrivilegedCall<R>): CallResult<R> {

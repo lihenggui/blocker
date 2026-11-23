@@ -28,7 +28,9 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.calls.ForceStop
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -59,8 +61,93 @@ class ActivePrivilegedChannelTest {
     )
 
     @Test
-    fun givenNothingConnected_whenCreated_thenNotChecked() = scope.runTest {
-        assertThat(channel().state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+    fun givenQuietConnectRunning_whenCreated_thenNotCheckedUntilItEnds() = scope.runTest {
+        val gate = CompletableDeferred<Unit>()
+        root.quietAcquireGate = gate
+        val channel = channel()
+        assertThat(channel.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+
+        gate.complete(Unit)
+
+        assertThat(channel.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+    }
+
+    @Test
+    fun whenCreated_thenSelectedTransportConnectedQuietlyOnce() = scope.runTest {
+        root.quietAcquireResult = ChannelState.Ready(PrivilegedIdentity.ROOT)
+
+        val channel = channel()
+
+        assertThat(channel.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        assertThat(root.quietAcquireCount).isEqualTo(1)
+        assertThat(root.acquireCount).isEqualTo(0)
+        assertThat(shizuku.quietAcquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenTransportChanges_whenChosen_thenEachChoiceConnectedQuietly() = scope.runTest {
+        channel()
+
+        preferences.setControllerType(ControllerType.SHIZUKU)
+        runCurrent()
+        assertThat(shizuku.quietAcquireCount).isEqualTo(1)
+
+        preferences.setControllerType(ControllerType.IFW)
+        runCurrent()
+        assertThat(root.quietAcquireCount).isEqualTo(2)
+        assertThat(root.acquireCount + shizuku.acquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenRootBasedTypeChanges_whenChosen_thenNoNewQuietConnect() = scope.runTest {
+        channel()
+
+        preferences.setControllerType(ControllerType.IFW)
+        preferences.setControllerType(ControllerType.IFW_PLUS_PM)
+        runCurrent()
+
+        assertThat(root.quietAcquireCount).isEqualTo(1)
+    }
+
+    @Test
+    fun givenFirstQuietConnectRunning_whenExecuteIfReady_thenWaitsForItAndRuns() = scope.runTest {
+        val gate = CompletableDeferred<Unit>()
+        root.quietAcquireGate = gate
+        root.quietAcquireResult = ChannelState.Ready(PrivilegedIdentity.ROOT)
+        val channel = channel()
+
+        val read = async { channel.executeIfReady(CALL) }
+        runCurrent()
+        assertThat(read.isActive).isTrue()
+        gate.complete(Unit)
+
+        assertThat(read.await()).isEqualTo(CallResult.Success(Unit))
+        assertThat(root.quietAcquireCount).isEqualTo(1)
+        assertThat(root.acquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNothingGranted_whenExecuteIfReady_thenChannelUnavailableWithoutConnecting() = scope.runTest {
+        val channel = channel()
+
+        assertThat(channel.executeIfReady(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(root.acquireCount).isEqualTo(0)
+        assertThat(root.sent).isEmpty()
+    }
+
+    @Test
+    fun givenQuietConnectRunning_whenConnect_thenConnectsAfterIt() = scope.runTest {
+        val gate = CompletableDeferred<Unit>()
+        root.quietAcquireGate = gate
+        val channel = channel()
+
+        val connect = async { channel.connect() }
+        runCurrent()
+        assertThat(root.acquireCount).isEqualTo(0)
+        gate.complete(Unit)
+
+        assertThat(connect.await()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        assertThat(channel.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
     }
 
     @Test
@@ -98,7 +185,7 @@ class ActivePrivilegedChannelTest {
 
         preferences.setControllerType(ControllerType.SHIZUKU)
         runCurrent()
-        assertThat(channel.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        assertThat(channel.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
 
         channel.connect()
         assertThat(channel.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.SHELL))

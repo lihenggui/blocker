@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.model.system.getOrNull
 import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
@@ -62,6 +63,9 @@ private const val TAG = "PrivilegedChannelTest"
 // CallReply sends larger outcomes through a pipe.
 private const val PIPED_ABOVE = 64 * 1024
 
+// The Magisk app shows its su prompt; Shizuku asks in its RequestPermissionActivity.
+private val PROMPT_ACTIVITIES = listOf("com.topjohnwu.magisk", "RequestPermissionActivity")
+
 /**
  * Runs the privileged calls against the real system, as root and as the shell, and reads and
  * changes another user's apps.
@@ -73,6 +77,13 @@ private const val PIPED_ABOVE = 64 * 1024
  * after this package was granted, see [connectedShizukuTransport];
  * `otherUser=<id>` names a started profile or user that has this test package installed, for
  * example after `pm install-existing --user <id> <this package>`.
+ *
+ * `quietConnect=<case>` connects without a prompt in this new process, as work started in the
+ * background does, and checks in the system log that no su or Shizuku prompt was started. The
+ * cases need the device set up first: `root-granted` (su allows this package; also reads
+ * `otherUser`), `root-not-granted` (su has no answer for this package), `root-refused` (su denies
+ * this package), `shizuku-granted` (Shizuku allows this package; also reads `otherUser`) and
+ * `shizuku-not-granted` (Shizuku runs but does not allow this package).
  */
 class PrivilegedChannelDeviceTest {
 
@@ -97,7 +108,7 @@ class PrivilegedChannelDeviceTest {
             "shizuku" -> return connectedShizukuTransport(context, PrivilegedIdentity.ROOT)
             "shizuku-system" -> return connectedShizukuTransport(context, PrivilegedIdentity.SYSTEM)
         }
-        return RootTransport(BlockerRootSession(context), Dispatchers.IO).also {
+        return RootTransport(BlockerRootSession(context), InMemoryRootGrantMemory(remembered = false), Dispatchers.IO).also {
             assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), runBlocking { it.connect() })
         }
     }
@@ -105,6 +116,87 @@ class PrivilegedChannelDeviceTest {
     private fun shellTransport(): ShizukuTransport {
         assumeTrue(arguments.getString("privilegedShellTest") == "true")
         return connectedShizukuTransport(context, PrivilegedIdentity.SHELL)
+    }
+
+    /** Skips unless `quietConnect` is [case]; clears the log the prompt check reads. */
+    private fun quietConnectCase(case: String) {
+        assumeTrue(arguments.getString("quietConnect") == case)
+        shell("logcat -c")
+    }
+
+    @Test
+    fun givenRootGrantedBefore_whenReadInNewProcess_thenConnectsWithoutPromptAndReadsOtherUser() = runBlocking<Unit> {
+        quietConnectCase("root-granted")
+        val runner = SessionRootRunner()
+        val root = RootTransport(runner, InMemoryRootGrantMemory(remembered = true), Dispatchers.IO)
+
+        val packages = root.executeIfReady(InstalledPackages(otherUser)).value()
+
+        assertTrue(packages.any { it.packageName == self })
+        assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), root.state.value)
+        assertNoPromptStarted()
+    }
+
+    @Test
+    fun givenRootNeverGranted_whenConnectIfGranted_thenDeniedWithoutStartingSu() = runBlocking<Unit> {
+        quietConnectCase("root-not-granted")
+        val runner = SessionRootRunner()
+        val root = RootTransport(runner, InMemoryRootGrantMemory(remembered = false), Dispatchers.IO)
+
+        assertEquals(ChannelState.Unavailable(UnavailableReason.DENIED), root.connectIfGranted())
+        assertEquals(CallResult.Failure(CallFailure.ChannelUnavailable), root.executeIfReady(ListUsers))
+        assertEquals(0, runner.runs)
+        assertNoPromptStarted()
+    }
+
+    @Test
+    fun givenRootRefusedSinceGranted_whenConnectIfGranted_thenDeniedAndForgotten() = runBlocking<Unit> {
+        quietConnectCase("root-refused")
+        val grants = InMemoryRootGrantMemory(remembered = true)
+        val root = RootTransport(SessionRootRunner(), grants, Dispatchers.IO)
+
+        val state = root.connectIfGranted()
+
+        Log.i(TAG, "A refused su gives $state")
+        assertEquals(ChannelState.Unavailable(UnavailableReason.DENIED), state)
+        assertEquals(false, grants.remembered)
+        assertNoPromptStarted()
+    }
+
+    @Test
+    fun givenShizukuGranted_whenReadInNewProcess_thenConnectsWithoutPromptAndReadsOtherUser() = runBlocking<Unit> {
+        quietConnectCase("shizuku-granted")
+        val api = PromptCountingShizukuApi()
+        val shizuku = shizukuTransport(context, api)
+
+        val packages = shizuku.executeIfReady(InstalledPackages(otherUser)).value()
+
+        assertTrue(packages.any { it.packageName == self })
+        Log.i(TAG, "Shizuku connected without a prompt as ${shizuku.state.value}")
+        assertIs<ChannelState.Ready>(shizuku.state.value)
+        assertEquals(0, api.requests)
+        assertNoPromptStarted()
+    }
+
+    @Test
+    fun givenShizukuNotGranted_whenConnectIfGranted_thenDeniedWithoutAsking() = runBlocking<Unit> {
+        quietConnectCase("shizuku-not-granted")
+        awaitShizukuBinder()
+        val api = PromptCountingShizukuApi()
+        val shizuku = shizukuTransport(context, api)
+
+        assertEquals(ChannelState.Unavailable(UnavailableReason.DENIED), shizuku.connectIfGranted())
+        assertEquals(CallResult.Failure(CallFailure.ChannelUnavailable), shizuku.executeIfReady(ListUsers))
+        assertEquals(0, api.requests)
+        assertNoPromptStarted()
+    }
+
+    /** Fails when the system log shows a su or Shizuku permission prompt started since [quietConnectCase]. */
+    private fun assertNoPromptStarted() {
+        val starts = shell("logcat -d -b main -b system -s ActivityTaskManager:I").lines().filter { "START" in it }
+        Log.i(TAG, "Activities started: $starts")
+        val prompts = starts.filter { line -> PROMPT_ACTIVITIES.any { it in line } }
+        assertTrue(prompts.isEmpty(), "Prompts started: $prompts")
     }
 
     @Test

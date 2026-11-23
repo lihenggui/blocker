@@ -151,6 +151,8 @@ internal class FakeChannel(initial: ChannelState) : PrivilegedChannel {
         mutableState.value = connectResult
         return connectResult
     }
+
+    override suspend fun connectIfGranted(): ChannelState = state.value
 }
 
 /**

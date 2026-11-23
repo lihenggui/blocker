@@ -91,6 +91,8 @@ private class FixedChannel : PrivilegedChannel {
         connectCount++
         return state.value
     }
+
+    override suspend fun connectIfGranted(): ChannelState = state.value
 }
 
 /** Answers every request with its [name], so a test can tell which one was asked. */

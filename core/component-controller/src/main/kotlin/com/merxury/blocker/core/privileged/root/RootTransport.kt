@@ -56,26 +56,45 @@ internal fun interface RootCommandRunner {
  * Runs calls in a root process started through su with librootkotlinx. Connecting starts that
  * process, which shows the su prompt when root has not been granted yet.
  *
+ * [grants] remembers across process starts whether su gave a root process: a successful connect
+ * sets it and a refused su clears it. Connecting without a prompt starts su only while it is set,
+ * since su from an app the root manager has no answer for shows the root manager's prompt.
+ *
  * A call that finds the root process gone is sent once more on a fresh process, which librootkotlinx
  * starts without a prompt while root stays granted. Only when that fails too is the channel lost.
  */
 @Singleton
 internal class RootTransport(
     private val runner: RootCommandRunner,
+    private val grants: RootGrantMemory,
     private val ioDispatcher: CoroutineDispatcher,
 ) : AbstractPrivilegedTransport() {
 
     @Inject constructor(
         rootSession: BlockerRootSession,
+        grants: RootGrantMemory,
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
     ) : this(
         RootCommandRunner { command ->
             rootSession.use { server -> server.execute(command, RootCallCommand::class.java.classLoader) }
         },
+        grants,
         ioDispatcher,
     )
 
-    override suspend fun acquire(): ChannelState = try {
+    override suspend fun acquire(): ChannelState = startRootProcess().also {
+        if (it is ChannelState.Ready) grants.remember(true)
+    }
+
+    override suspend fun acquireIfGranted(): ChannelState {
+        if (!grants.isRemembered()) {
+            Timber.i("su has not given Blocker a root process before; not asking without a prompt")
+            return ChannelState.Unavailable(UnavailableReason.DENIED)
+        }
+        return acquire()
+    }
+
+    private suspend fun startRootProcess(): ChannelState = try {
         when (val result = sendOnce(CallerUid)) {
             is CallResult.Success -> identityOfUid(result.value)
                 ?.takeIf { it == PrivilegedIdentity.ROOT }
@@ -110,6 +129,8 @@ internal class RootTransport(
         val reply = try {
             runner.run(RootCallCommand(request))
         } catch (e: NoShellException) {
+            // su refused or is gone, so starting it again may prompt.
+            grants.remember(false)
             throw ChannelLostException(UnavailableReason.DENIED, "No root shell", e)
         } catch (e: RemoteException) {
             throw ChannelLostException(UnavailableReason.FAILED, "The root process is gone", e)

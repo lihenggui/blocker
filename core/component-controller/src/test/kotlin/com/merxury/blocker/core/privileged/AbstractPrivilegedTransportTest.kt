@@ -29,6 +29,10 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.calls.ForceStop
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,6 +42,7 @@ import org.robolectric.annotation.Config
 private val CALL = ForceStop("com.example", UserId(10))
 private val READY_ROOT = ChannelState.Ready(PrivilegedIdentity.ROOT)
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class AbstractPrivilegedTransportTest {
@@ -89,6 +94,93 @@ class AbstractPrivilegedTransportTest {
 
         assertThat(transport.acquireCount).isEqualTo(0)
         assertThat(transport.sent).isEmpty()
+    }
+
+    @Test
+    fun givenNotCheckedAndGranted_whenExecuteIfReady_thenConnectsQuietlyAndRuns() = runTest {
+        transport.quietAcquireResult = READY_ROOT
+
+        assertThat(transport.executeIfReady(CALL)).isEqualTo(CallResult.Success(Unit))
+
+        assertThat(transport.quietAcquireCount).isEqualTo(1)
+        assertThat(transport.acquireCount).isEqualTo(0)
+        assertThat(transport.state.value).isEqualTo(READY_ROOT)
+    }
+
+    @Test
+    fun givenQuietConnectFound_whenExecuteIfReadyAgain_thenNoSecondAttempt() = runTest {
+        transport.executeIfReady(CALL)
+        transport.executeIfReady(CALL)
+
+        assertThat(transport.quietAcquireCount).isEqualTo(1)
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+    }
+
+    @Test
+    fun givenQuietConnectRunning_whenExecuteIfReady_thenWaitsForItInsteadOfAnotherAttempt() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        transport.quietAcquireGate = gate
+        transport.quietAcquireResult = READY_ROOT
+        val first = async { transport.connectIfGranted() }
+        val read = async { transport.executeIfReady(CALL) }
+        runCurrent()
+        assertThat(read.isActive).isTrue()
+        assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+
+        gate.complete(Unit)
+
+        assertThat(first.await()).isEqualTo(READY_ROOT)
+        assertThat(read.await()).isEqualTo(CallResult.Success(Unit))
+        assertThat(transport.quietAcquireCount).isEqualTo(1)
+    }
+
+    @Test
+    fun givenReady_whenConnectIfGranted_thenReturnsReadyWithoutWork() = runTest {
+        transport.connect()
+
+        assertThat(transport.connectIfGranted()).isEqualTo(READY_ROOT)
+        assertThat(transport.quietAcquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenNotGranted_whenConnectIfGrantedTwice_thenTriesEachTimeWithoutConnecting() = runTest {
+        assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+
+        assertThat(transport.quietAcquireCount).isEqualTo(2)
+        assertThat(transport.acquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenQuietConnectRunning_whenConnect_thenRunsAfterItAndDecides() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        transport.quietAcquireGate = gate
+        val quiet = async { transport.connectIfGranted() }
+        val connect = async { transport.connect() }
+        runCurrent()
+        assertThat(transport.acquireCount).isEqualTo(0)
+
+        gate.complete(Unit)
+
+        assertThat(quiet.await()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(connect.await()).isEqualTo(READY_ROOT)
+        assertThat(transport.state.value).isEqualTo(READY_ROOT)
+    }
+
+    @Test
+    fun givenConnectRunning_whenConnectIfGranted_thenWaitsAndReturnsItsResultWithoutWork() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        transport.acquireGate = gate
+        val connect = async { transport.connect() }
+        val quiet = async { transport.connectIfGranted() }
+        runCurrent()
+        assertThat(quiet.isActive).isTrue()
+
+        gate.complete(Unit)
+
+        assertThat(connect.await()).isEqualTo(READY_ROOT)
+        assertThat(quiet.await()).isEqualTo(READY_ROOT)
+        assertThat(transport.quietAcquireCount).isEqualTo(0)
     }
 
     @Test
