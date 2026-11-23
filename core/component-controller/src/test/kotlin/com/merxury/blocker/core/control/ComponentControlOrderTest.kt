@@ -111,6 +111,22 @@ class ComponentControlOrderTest {
     }
 
     @Test
+    fun givenPackageLockHeldByAnotherFeature_whenApply_thenWaitsForItBeforeReading() = runTest {
+        val held = CompletableDeferred<Unit>()
+        val other = launch { fixture.locks.withLock(PKG) { held.await() } }
+        runCurrent()
+
+        val applying = launch { fixture.run(block(PM_ONLY, MAIN)) }
+        runCurrent()
+        assertThat(fixture.system.log).isEmpty()
+        held.complete(Unit)
+        other.join()
+        applying.join()
+
+        assertThat(fixture.system.log).containsExactly("read $PKG", "set $PKG 1 DISABLED", "read $PKG").inOrder()
+    }
+
+    @Test
     fun givenApplyHeldOnOnePackage_whenAnotherPackageApplied_thenItProceeds() = runTest {
         val held = CompletableDeferred<Unit>()
         fixture.system.beforeSet = { if (it.components.single().packageName == PKG) held.await() }
