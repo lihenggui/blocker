@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.control
 
 import android.content.ComponentName
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -149,10 +150,11 @@ class ComponentControlDeviceTest {
 
     @After
     fun restore() = runBlocking<Unit> {
-        if (mode != "root" || !::provider.isInitialized) return@runBlocking
+        if (!::provider.isInitialized) return@runBlocking
         val names = fixtures.map { ComponentName(self, it.id.className) }
+        // The shell may reset them only when this package is test-only, and then it may have changed them.
         transport.execute(SetComponentEnabledSettings(names, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, target))
-        store.update(self) { IfwRules.empty() }
+        if (mode == "root") store.update(self) { IfwRules.empty() }
     }
 
     @Test
@@ -252,15 +254,22 @@ class ComponentControlDeviceTest {
     }
 
     @Test
-    fun givenShell_whenBlockWithPm_thenNotPermittedAndNothingChanged() = runBlocking<Unit> {
+    fun givenShell_whenBlockWithPm_thenAndroidDecidesByWhetherTheAppIsTestOnly() = runBlocking<Unit> {
+        // Android lets the shell change components of a test-only app only.
+        val testOnly = context.applicationInfo.flags and ApplicationInfo.FLAG_TEST_ONLY != 0
+
         val outcome = apply(ControlGoal.BLOCK, PM, activity).single()
 
-        Log.i(TAG, "Shell block with PM: $outcome")
-        assertEquals(ControlResult.FAILED, outcome.result)
-        assertIs<ControlFailure.NotPermitted>(outcome.failures[PACKAGE_MANAGER])
-        assertEquals(PmSetting.DEFAULT, outcome.state.pm)
-        assertEquals(emptyMap<ComponentDeclaration, String>(), overrides(target))
-        assertStarts(true)
+        Log.i(TAG, "Shell block with PM, test-only $testOnly: $outcome")
+        if (testOnly) {
+            assertAchieved(outcome, ControlState(PmSetting.DISABLED, IfwBlock.UNKNOWN))
+        } else {
+            assertEquals(ControlResult.FAILED, outcome.result)
+            assertIs<ControlFailure.NotPermitted>(outcome.failures[PACKAGE_MANAGER])
+            assertEquals(PmSetting.DEFAULT, outcome.state.pm)
+            assertEquals(emptyMap<ComponentDeclaration, String>(), overrides(target))
+            assertStarts(true)
+        }
     }
 
     @Test

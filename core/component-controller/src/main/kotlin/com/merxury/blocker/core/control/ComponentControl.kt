@@ -78,9 +78,11 @@ import kotlinx.coroutines.flow.Flow
  * rolled back.
  *
  * Without a ready channel nothing is sent and the layers fail with
- * [ControlFailure.ChannelUnavailable]. An identity that may not change components, such as Shizuku
- * running as the shell, gets [ControlFailure.NotPermitted] for the PackageManager layer without a
- * call, and one that may not write system files gets it for the firewall layer without a call.
+ * [ControlFailure.ChannelUnavailable]. Shizuku running as the shell may change the components of
+ * a test-only app only; the system decides, so the PackageManager call is sent and its refusal
+ * becomes [ControlFailure.NotPermitted], once per package and setting rather than once per
+ * component. An identity that may not write system files, such as the shell, gets
+ * [ControlFailure.NotPermitted] for the firewall layer without a call.
  *
  * ## Order and cancellation
  * The work on one package holds that package's lock, shared by every request in the process,
