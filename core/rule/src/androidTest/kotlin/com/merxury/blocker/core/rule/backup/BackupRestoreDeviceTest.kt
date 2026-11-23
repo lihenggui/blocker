@@ -20,6 +20,7 @@ import android.os.Build
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.DisabledComponents
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -69,7 +70,10 @@ private const val TAG = "BackupRestoreDeviceTest"
 private const val APP_B = "blk.synth.b"
 private const val APP_C = "blk.synth.c"
 private const val OWN_RULE_FILE = "bk7b-own-rules"
-private val TEST_APPS = setOf(APP_B, APP_C)
+
+// The package of core:component-controller's device tests, which ships an activity disabled.
+private const val DISABLED_TARGET = "com.merxury.blocker.core.controller.test"
+private val TEST_APPS = setOf(APP_B, APP_C, DISABLED_TARGET)
 
 // A rule a user wrote by hand: block the receiver only for senders outside the system, and an
 // allow rule for a service.
@@ -90,8 +94,10 @@ private val HAND_WRITTEN_RULES = """
 /**
  * Runs backup, restore, IFW backup, MAT import and PackageManager reset with the app's bindings
  * against the real system, for the owner and a work profile. The device is prepared from outside:
- * root granted to this package, `blk.synth.b` installed for the owner and the profile, and
- * `blk.synth.c` for the owner. Backups go to a folder in this package's files directory through
+ * root granted to this package; `blk.synth.b` installed for the owner and the profile;
+ * `blk.synth.c` for the owner and the profile, so taking it away from the owner keeps the
+ * package; and core:component-controller's device test APK for the owner, whose activity the
+ * manifest ships disabled. Backups go to a folder in this package's files directory through
  * [FileBackupStorage], since the Storage Access Framework picker cannot be driven from a test.
  *
  * Arguments `backupRestore=root` and `profileUser=<id>`; without them every test is skipped. Run
@@ -154,6 +160,9 @@ class BackupRestoreDeviceTest {
         }
         store.clear(APP_B)
         store.clear(APP_C)
+        // The reset case takes APP_C away from the owner; ENABLE leaves a setting UNBLOCK keeps.
+        su("pm install-existing --user 0 $APP_C")
+        su("pm default-state --user 0 $DISABLED_TARGET/com.merxury.blocker.core.control.ControlFixtureDisabledActivity")
         folder.deleteRecursively()
     }
 
@@ -249,26 +258,47 @@ class BackupRestoreDeviceTest {
     }
 
     @Test
-    fun givenTwoPackagesAndAComponentTheSystemRefuses_whenResettingPm_thenTheOthersAreRestored() = runBlocking<Unit> {
+    fun givenTwoPackagesAndOneTheSystemRefuses_whenResettingPm_thenTheOtherIsRestored() = runBlocking<Unit> {
         runCase()
         val owner = UserId.SYSTEM
         val inB = declaration(owner, "com.google.android.gms.measurement.AppMeasurementService")
-        declared(AppKey(APP_C, owner))
         val inC = declaration(owner, "com.google.android.gms.measurement.AppMeasurementService", APP_C)
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), inB)
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), inC)
-        // Root is refused only for a class the app does not declare, which a stale cache can hold.
-        // Shipped disabled, so clearing it needs an ENABLED setting the system is asked for.
-        val stale = ComponentDeclaration(ComponentId(APP_C, "$APP_C.RemovedService"), ComponentType.SERVICE, exported = false, enabledInManifest = false)
 
-        val result = PackageManagerReset(StaleComponent(components, stale), channel).reset(owner)
+        // APP_C goes away for the owner after the settings were read, so the system refuses it.
+        val result = PackageManagerReset(TestAppsOnly(components) { request -> if (request.components.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel).reset(owner)
 
         Log.i(TAG, "PM reset $result")
         assertEquals(PmSetting.DEFAULT, pm(owner, inB))
-        assertEquals(PmSetting.DEFAULT, pm(owner, inC))
         val summary = (result as RuleRunResult.Completed).summary
-        assertEquals(2, summary.applied)
-        assertEquals(mapOf(FailureReason.SYSTEM_ERROR to 1), summary.failed)
+        assertEquals(1, summary.applied)
+        assertEquals(1, summary.failedCount)
+    }
+
+    @Test
+    fun givenManifestDisabledComponent_whenRestoredResetAndEnabled_thenDefaultTwiceThenEnabled() = runBlocking<Unit> {
+        runCase()
+        val owner = UserId.SYSTEM
+        val shippedOff = declaration(owner, "com.merxury.blocker.core.control.ControlFixtureDisabledActivity", DISABLED_TARGET)
+        assertFalse(shippedOff.enabledInManifest)
+        assertEquals(PmSetting.DEFAULT, pm(owner, shippedOff))
+        val exported = exporter.export(storage, owner, packageName = DISABLED_TARGET)
+        Log.i(TAG, "export $exported")
+
+        control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), shippedOff)
+        val restored = importer.import(storage, BackupSet.OWNER, owner, packageName = DISABLED_TARGET)
+        Log.i(TAG, "restore $restored")
+        // The backup said "not disabled", which a restore clears to DEFAULT, never ENABLED.
+        assertEquals(PmSetting.DEFAULT, pm(owner, shippedOff))
+
+        control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), shippedOff)
+        val reset = PackageManagerReset(TestAppsOnly(components), channel).reset(owner)
+        Log.i(TAG, "PM reset $reset")
+        assertEquals(PmSetting.DEFAULT, pm(owner, shippedOff))
+
+        control(owner, ControlGoal.ENABLE, setOf(ControlLayer.PACKAGE_MANAGER), shippedOff)
+        assertEquals(PmSetting.ENABLED, pm(owner, shippedOff))
     }
 
     private suspend fun declared(app: AppKey): List<ComponentStatus> {
@@ -296,20 +326,33 @@ class BackupRestoreDeviceTest {
 }
 
 /**
- * [ComponentStatusRepository] that also reports [stale] as declared and disabled, as a cache that
- * missed an app update would, so the system is asked to change a class it does not have. The
- * disabled components are limited to the test apps, so the device's own are left alone.
+ * [ComponentStatusRepository] whose disabled components are limited to the test apps, so a reset
+ * leaves the device's own alone. [beforeControl] runs before each request reaches the system.
  */
-private class StaleComponent(
+private class TestAppsOnly(
     private val delegate: ComponentStatusRepository,
-    private val stale: ComponentDeclaration,
+    private val beforeControl: (ControlRequest) -> Unit = {},
 ) : ComponentStatusRepository by delegate {
-    override fun components(app: AppKey): Flow<List<ComponentStatus>> = delegate.components(app).map { statuses ->
-        if (app.packageName == stale.id.packageName) statuses + ComponentStatus(stale, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED)) else statuses
+    override fun control(request: ControlRequest): Flow<ControlEvent> {
+        beforeControl(request)
+        return delegate.control(request)
     }
 
-    override suspend fun disabledByPackageManager(user: UserId): ReadResult<List<ComponentKey>> = when (val read = delegate.disabledByPackageManager(user)) {
-        is ReadResult.Success -> ReadResult.Success(read.value.filter { it.id.packageName in TEST_APPS } + ComponentKey(stale.id, user))
+    override suspend fun disabledByPackageManager(user: UserId): ReadResult<DisabledComponents> = when (val read = delegate.disabledByPackageManager(user)) {
+        is ReadResult.Success -> ReadResult.Success(
+            DisabledComponents(
+                components = read.value.components.filter { it.id.packageName in TEST_APPS },
+                unreadableApps = read.value.unreadableApps.filter { it.packageName in TEST_APPS },
+            ),
+        )
+
         is ReadResult.Failure -> read
     }
+}
+
+/** Runs [command] through su, which this test package is granted. */
+private fun su(command: String) {
+    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
+    val output = process.inputStream.bufferedReader().readText()
+    Log.i(TAG, "su $command: exit ${process.waitFor()} $output")
 }

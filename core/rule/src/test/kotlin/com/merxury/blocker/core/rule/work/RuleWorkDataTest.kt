@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.rule.backup.BackupSet
 import com.merxury.blocker.core.rule.backup.FailureReason
 import com.merxury.blocker.core.rule.backup.PackageManagerReset
 import com.merxury.blocker.core.rule.backup.RuleRunResult
@@ -85,6 +86,8 @@ class RuleWorkDataTest {
             3,
             RuleWorkResult.PARAM_UNCHANGED_COUNT,
             1,
+            RuleWorkResult.PARAM_UNREADABLE_APP_COUNT,
+            0,
             RuleWorkResult.PARAM_FIREWALL_UNAVAILABLE,
             true,
         )
@@ -109,6 +112,13 @@ class RuleWorkDataTest {
     @Test
     fun givenNothingToDo_whenMapping_thenItSucceeds() {
         assertThat(completed(RuleRunSummary())).isInstanceOf(ListenableWorker.Result.Success::class.java)
+    }
+
+    @Test
+    fun givenNoSourceSet_whenReadingImportInput_thenTheTargetUsersOwnSetIsRead() {
+        assertThat(Data.EMPTY.sourceSetFor(UserId.SYSTEM)).isEqualTo(BackupSet.OWNER)
+        assertThat(Data.EMPTY.sourceSetFor(UserId(10))).isEqualTo(BackupSet(UserId(10)))
+        assertThat(workDataOf(PARAM_SOURCE_SET_USER to 0).sourceSetFor(UserId(10))).isEqualTo(BackupSet.OWNER)
     }
 
     @Test

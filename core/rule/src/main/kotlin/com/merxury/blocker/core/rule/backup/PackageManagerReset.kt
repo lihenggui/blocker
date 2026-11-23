@@ -29,8 +29,10 @@ import javax.inject.Inject
 
 /**
  * Clears every PackageManager setting that disables a component for one user, as read from the
- * system when the reset runs, one package at a time. Intent Firewall rules are not touched. A
- * package or component the system refuses fails alone; the others are still cleared.
+ * system when the reset runs, one package at a time, back to DEFAULT, so each component follows
+ * its manifest again. Intent Firewall rules are not touched. A package or component the system
+ * refuses fails alone, and an app whose settings cannot be read is counted as
+ * [FailureReason.STATE_UNREADABLE]; the others are still cleared.
  */
 class PackageManagerReset @Inject constructor(
     private val components: ComponentStatusRepository,
@@ -42,12 +44,13 @@ class PackageManagerReset @Inject constructor(
      */
     suspend fun reset(user: UserId, onProgress: RuleRunProgress = { _, _, _ -> }): RuleRunResult {
         channel.connect()
-        val disabled = when (val read = components.disabledByPackageManager(user)) {
+        val found = when (val read = components.disabledByPackageManager(user)) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
         }
         val summary = SummaryBuilder()
-        val byPackage = disabled.groupBy { it.id.packageName }
+        summary.fail(FailureReason.STATE_UNREADABLE, found.unreadableApps.size)
+        val byPackage = found.components.groupBy { it.id.packageName }
         byPackage.entries.forEachIndexed { index, (packageName, keys) ->
             onProgress(packageName, index, byPackage.size)
             val statuses = components.components(AppKey(packageName, user)).first().associateBy { it.declaration.id }

@@ -34,6 +34,7 @@ import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -122,6 +123,30 @@ class MatAndResetTest {
         assertThat(result.summary.applied).isEqualTo(2)
         assertThat(result.summary.failed).containsExactly(FailureReason.NO_PRIVILEGE, 1)
         assertThat(result.summary.changedPackages).containsExactly(APP, "com.other")
+    }
+
+    @Test
+    fun givenOneAppUnreadable_whenResettingPm_thenTheOthersAreResetAndItIsCounted() = runTest {
+        val other = declaration("Tracker", SYNC.type, "com.other")
+        components.sendComponents(OWNER, listOf(status(BOOT, pm = PmSetting.DISABLED), status(other, pm = PmSetting.DISABLED)))
+        components.appRefreshFailures["com.other"] = ReadFailure.ChannelUnavailable
+
+        val result = reset.reset(OWNER)
+
+        assertThat(components.requests.single().components).containsExactly(BOOT)
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(result.summary.failed).containsExactly(FailureReason.STATE_UNREADABLE, 1)
+    }
+
+    @Test
+    fun givenManifestDisabledComponent_whenResettingPm_thenItGoesBackToDefault() = runTest {
+        val shippedOff = declaration("Off", SYNC.type, enabledInManifest = false)
+        components.sendComponents(OWNER, listOf(status(shippedOff, pm = PmSetting.DISABLED)))
+
+        reset.reset(OWNER)
+
+        assertThat(components.requests.single().goal).isEqualTo(ControlGoal.UNBLOCK)
+        assertThat(components.allComponents(OWNER).first().single().state.pm).isEqualTo(PmSetting.DEFAULT)
     }
 
     @Test

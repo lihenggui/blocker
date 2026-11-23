@@ -22,6 +22,7 @@ import androidx.work.Data
 import androidx.work.ListenableWorker
 import androidx.work.workDataOf
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.rule.backup.BackupSet
 import com.merxury.blocker.core.rule.backup.BackupStorage
 import com.merxury.blocker.core.rule.backup.FailureReason
 import com.merxury.blocker.core.rule.backup.RuleRunResult
@@ -33,7 +34,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 /** Input: the id of the user whose state a work reads or changes; absent means the user Blocker runs in. */
 internal const val PARAM_TARGET_USER = "param_target_user"
 
-/** Input: the user id of the backup set an import reads; absent means the owner's set. */
+/** Input: the user id of the backup set an import reads; absent means the target user's own set. */
 internal const val PARAM_SOURCE_SET_USER = "param_source_set_user"
 
 // Android gives each user a range of this many uids.
@@ -47,6 +48,9 @@ internal fun Data.userOr(key: String, default: UserId): UserId {
     val value = getInt(key, -1)
     return if (value >= 0) UserId(value) else default
 }
+
+/** The backup set an import reads: the one given, or else [target]'s own. */
+internal fun Data.sourceSetFor(target: UserId): BackupSet = BackupSet(userOr(PARAM_SOURCE_SET_USER, target))
 
 /** Input data with every non-null value of [pairs]; null values are left out, so they read as absent. */
 internal fun inputOf(vararg pairs: Pair<String, Any?>): Data = workDataOf(*pairs.filter { it.second != null }.toTypedArray())
@@ -85,6 +89,7 @@ internal fun RuleRunResult.toWorkResult(countKey: String, count: (RuleRunSummary
             RuleWorkResult.PARAM_FAILED_COUNT to summary.failedCount,
             RuleWorkResult.PARAM_SKIPPED_COUNT to summary.skippedCount,
             RuleWorkResult.PARAM_UNCHANGED_COUNT to summary.unchanged,
+            RuleWorkResult.PARAM_UNREADABLE_APP_COUNT to (summary.failed[FailureReason.STATE_UNREADABLE] ?: 0),
             RuleWorkResult.PARAM_FIREWALL_UNAVAILABLE to summary.firewallUnavailable,
         )
         if (summary.applied > 0 || summary.failedCount == 0) {

@@ -105,15 +105,27 @@ class RefreshAllTest : DeviceRepositoryTestBase() {
 
         val disabled = repository.disabledByPackageManager(OWNER)
 
-        assertThat(disabled).isEqualTo(ReadResult.Success(listOf(ComponentKey(c.id, OWNER))))
+        assertThat(disabled).isEqualTo(ReadResult.Success(DisabledComponents(listOf(ComponentKey(c.id, OWNER)), emptyList())))
         assertThat(repository.component(ComponentKey(a.id, OWNER)).first()).isEqualTo(status(a, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
         assertThat(repository.component(ComponentKey(c.id, OWNER)).first()).isEqualTo(status(c, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
     }
 
     @Test
-    fun givenOneAppsSettingsUnreadable_whenDisabledByPackageManager_thenFailure() = runTest {
+    fun givenOneAppsSettingsUnreadable_whenDisabledByPackageManager_thenTheOthersAreAnsweredAndItIsListed() = runTest {
         installAll()
+        val a = declaration("Main", packageName = "com.example.a")
+        system.put(OWNER, a, PmSetting.DISABLED)
         system.pmFailures["com.example.b"] = ReadFailure.ChannelUnavailable
+
+        val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
+
+        assertThat(disabled).isEqualTo(ReadResult.Success(DisabledComponents(listOf(ComponentKey(a.id, OWNER)), listOf(AppKey("com.example.b", OWNER)))))
+    }
+
+    @Test
+    fun givenAppListUnreadable_whenDisabledByPackageManager_thenFailure() = runTest {
+        installAll()
+        system.appsFailures[OWNER] = ReadFailure.ChannelUnavailable
 
         val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
 
@@ -130,7 +142,7 @@ class RefreshAllTest : DeviceRepositoryTestBase() {
 
         val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
 
-        assertThat(disabled).isEqualTo(ReadResult.Success(listOf(ComponentKey(a.id, OWNER))))
+        assertThat(disabled).isEqualTo(ReadResult.Success(DisabledComponents(listOf(ComponentKey(a.id, OWNER)), emptyList())))
     }
 
     @Test
@@ -140,7 +152,7 @@ class RefreshAllTest : DeviceRepositoryTestBase() {
 
         val disabled = components(backgroundScope).disabledByPackageManager(OWNER)
 
-        assertThat(disabled).isEqualTo(ReadResult.Success(emptyList<ComponentKey>()))
+        assertThat(disabled).isEqualTo(ReadResult.Success(DisabledComponents(emptyList(), emptyList())))
     }
 
     @Test

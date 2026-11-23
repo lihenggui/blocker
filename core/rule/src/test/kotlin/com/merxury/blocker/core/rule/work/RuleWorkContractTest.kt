@@ -51,6 +51,7 @@ class RuleWorkContractTest {
         assertThat(RuleWorkResult.PARAM_SKIPPED_COUNT).isEqualTo("param_skipped_count")
         assertThat(RuleWorkResult.PARAM_UNCHANGED_COUNT).isEqualTo("param_unchanged_count")
         assertThat(RuleWorkResult.PARAM_FIREWALL_UNAVAILABLE).isEqualTo("param_firewall_unavailable")
+        assertThat(RuleWorkResult.PARAM_UNREADABLE_APP_COUNT).isEqualTo("param_unreadable_app_count")
     }
 
     @Test

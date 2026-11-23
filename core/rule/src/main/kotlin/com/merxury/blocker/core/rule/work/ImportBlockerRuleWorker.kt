@@ -50,7 +50,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
             is BackupFolder.Unusable -> return failureOf(folder.code)
         }
         val target = inputData.userOr(PARAM_TARGET_USER, ownUser())
-        val source = BackupSet(inputData.userOr(PARAM_SOURCE_SET_USER, UserId.SYSTEM))
+        val source = inputData.sourceSetFor(target)
         Timber.i("Restore the Blocker rules of set '${source.folder}' into user ${target.value}")
         setForeground(updateNotification("", 0, 0))
         val result = importer.import(
@@ -73,8 +73,9 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         private const val PARAM_BACKUP_PACKAGE_NAME = "param_backup_package_name"
 
         /**
-         * Restores the set of [sourceSet], by default the owner's, from [backupPath] into
-         * [targetUser], by default the user Blocker runs in.
+         * Restores [sourceSet] from [backupPath] into [targetUser], by default the user Blocker
+         * runs in. The set defaults to the target user's own: the owner's for the owner, the
+         * `user-<id>` one for another user.
          */
         fun importWork(
             backupPath: String?,

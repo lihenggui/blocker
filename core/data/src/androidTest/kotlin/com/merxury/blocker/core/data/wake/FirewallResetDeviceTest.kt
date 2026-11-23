@@ -66,16 +66,37 @@ class FirewallResetDeviceTest {
     }
 
     @Test
-    fun givenDamagedAndValidRuleFiles_whenResetAll_thenBothDeleted() = runBlocking<Unit> {
+    fun givenDamagedValidAndOwnRuleFiles_whenResetAll_thenEveryOneDeleted() = runBlocking<Unit> {
         runCase("root", "shizuku-root")
         userData.setControllerType(if (case == "root") ControllerType.PM else ControllerType.SHIZUKU)
+        val before = (store.ruleFileNames() as IfwResult.Success).value
         val reported = mutableListOf<String>()
 
         val removed = repository.reset(null) { pkg, index, total -> reported += "$pkg $index/$total" }
 
-        Log.i(TAG, "$case: removed $removed, reported $reported")
-        assertEquals(2, removed)
+        Log.i(TAG, "$case: files before $before, removed $removed, reported $reported")
+        assertEquals(before.size, removed)
         assertEquals(IfwResult.Success(emptyList()), store.ruleFileNames())
+    }
+
+    /**
+     * Argument `resetPackage=<package>`: the one package whose file is reset; the other files
+     * placed before the run must stay.
+     */
+    @Test
+    fun givenSeveralRuleFiles_whenResetOnePackage_thenOnlyItsFileDeleted() = runBlocking<Unit> {
+        val target = InstrumentationRegistry.getArguments().getString("resetPackage")
+        assumeTrue(target != null)
+        runCase("root", "shizuku-root")
+        userData.setControllerType(if (case == "root") ControllerType.PM else ControllerType.SHIZUKU)
+        val before = (store.ruleFileNames() as IfwResult.Success).value
+
+        val removed = repository.reset(target) { _, _, _ -> }
+
+        val after = (store.ruleFileNames() as IfwResult.Success).value
+        Log.i(TAG, "$case: files before $before, removed $removed for $target, after $after")
+        assertEquals(1, removed)
+        assertEquals(before - target, after)
     }
 
     @Test

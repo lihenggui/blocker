@@ -147,20 +147,27 @@ internal class LocalComponentStatusRepository @Inject constructor(
         }
     }
 
-    override suspend fun disabledByPackageManager(user: UserId): ReadResult<List<ComponentKey>> {
+    override suspend fun disabledByPackageManager(user: UserId): ReadResult<DisabledComponents> {
         val apps = when (val listed = listApps(user)) {
             is ReadResult.Success -> listed.value
             is ReadResult.Failure -> return listed
         }
         val disabled = mutableListOf<ComponentKey>()
-        var failure: ReadFailure? = null
+        val unreadable = mutableListOf<AppKey>()
         refreshEach(apps).collect { (app, refresh) ->
             if (refresh.removed) return@collect
             refresh.pmSettings?.forEach { (id, setting) -> if (setting == PmSetting.DISABLED) disabled += ComponentKey(id, user) }
-            if (failure == null) failure = refresh.pmFailure?.also { Timber.w("Cannot read the PM settings of ${app.key}: $it") }
+            refresh.pmFailure?.let {
+                Timber.w("Cannot read the PM settings of ${app.key}: $it")
+                unreadable += app.key
+            }
         }
-        return failure?.let { ReadResult.Failure(it) }
-            ?: ReadResult.Success(disabled.sortedWith(compareBy({ it.id.packageName }, { it.id.className })))
+        return ReadResult.Success(
+            DisabledComponents(
+                components = disabled.sortedWith(compareBy({ it.id.packageName }, { it.id.className })),
+                unreadableApps = unreadable.sortedBy { it.packageName },
+            ),
+        )
     }
 
     /** Refreshes the user's app list and returns the apps it stored. */

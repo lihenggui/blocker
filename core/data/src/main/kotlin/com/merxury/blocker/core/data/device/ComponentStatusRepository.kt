@@ -118,13 +118,26 @@ interface ComponentStatusRepository {
     /**
      * The components whose PackageManager setting is [PmSetting.DISABLED] for [user], read from the
      * system for every app installed for that user rather than taken from the cache. Refreshes the
-     * apps and their components as [refreshAll] does on the way.
+     * apps and their components as [refreshAll] does on the way. An app whose settings cannot be
+     * read does not stop the others; it is listed in [DisabledComponents.unreadableApps], and an
+     * app removed meanwhile is skipped.
      *
-     * @return the components by package and class name, or the first failure that kept an app's
-     * settings from being read; an app removed meanwhile is skipped, not a failure
+     * @return what was found, or the failure that kept the user's app list from being read
      */
-    suspend fun disabledByPackageManager(user: UserId): ReadResult<List<ComponentKey>>
+    suspend fun disabledByPackageManager(user: UserId): ReadResult<DisabledComponents>
 }
+
+/**
+ * What [ComponentStatusRepository.disabledByPackageManager] found.
+ *
+ * @property components by package and class name
+ * @property unreadableApps apps whose settings could not be read, by package name; their disabled
+ * components are not in [components]
+ */
+data class DisabledComponents(
+    val components: List<ComponentKey>,
+    val unreadableApps: List<AppKey>,
+)
 
 /** Progress of [ComponentStatusRepository.refreshAll]. */
 sealed interface RefreshProgress {

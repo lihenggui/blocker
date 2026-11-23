@@ -35,6 +35,9 @@ object RuleWorkResult {
     /** Output: how many entries or rules already were as the backup says. */
     const val PARAM_UNCHANGED_COUNT = "param_unchanged_count"
 
+    /** Output: how many apps' state could not be read from the system, part of the failed count. */
+    const val PARAM_UNREADABLE_APP_COUNT = "param_unreadable_app_count"
+
     /** Output: whether the Intent Firewall rules could not be reached at all during the run. */
     const val PARAM_FIREWALL_UNAVAILABLE = "param_firewall_unavailable"
 }
