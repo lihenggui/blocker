@@ -30,6 +30,7 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.model.system.getOrNull
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
@@ -48,7 +49,7 @@ class LocalSystemPackageReaderDeviceTest {
     private val context: Context = InstrumentationRegistry.getInstrumentation().context
     private val platform = LocalPlatformPackages(context)
     private val reader = PlatformSystemPackageReader(platform, Dispatchers.IO)
-    private val ownUser = platform.users().single().id
+    private val ownUser = runBlocking { platform.users() }.single().id
     private val self = AppKey(context.packageName, ownUser)
     private val disabledService = ComponentId(self.packageName, "$FIXTURE.DisabledByResourceService")
 
@@ -87,7 +88,7 @@ class LocalSystemPackageReaderDeviceTest {
 
     @Test
     fun givenComponentNotInManifest_whenReadPmSettings_thenNoOverrideReported() = runTest {
-        // Android 14 answers DEFAULT for a name the app does not declare; older releases reject it.
+        // Android 9 and 14 answer DEFAULT for a name the app does not declare; a release may refuse.
         val setting = readSetting(ComponentId(self.packageName, "$FIXTURE.Missing"))
 
         assertTrue(setting == PmSetting.DEFAULT || setting == PmSetting.UNKNOWN, "was $setting")

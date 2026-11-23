@@ -267,6 +267,12 @@ private class FakeShizukuApi : ShizukuApi {
 
     override fun isPreV11(): Boolean = preV11
 
+    override fun pingBinder(): Boolean = binderReady
+
+    override fun addBinderReceivedListener(listener: Shizuku.OnBinderReceivedListener) = Unit
+
+    override fun addBinderDeadListener(listener: Shizuku.OnBinderDeadListener) = Unit
+
     override fun checkSelfPermission(): Int {
         checkPermissionError?.let { throw it }
         return if (permissionGranted) PERMISSION_GRANTED else PERMISSION_DENIED

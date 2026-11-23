@@ -25,13 +25,16 @@ graph TB
     :core:model[model]:::android-library
     :core:network[network]:::android-library
     :core:rule[rule]:::android-library
+    :core:system[system]:::android-library
   end
 
   :core:common -.-> :core:model
   :core:component-controller -.-> :core:common
+  :core:component-controller -.-> :core:datastore
   :core:component-controller -.-> :core:datastore-proto
   :core:component-controller -.-> :core:ifw-api
   :core:component-controller -.-> :core:model
+  :core:component-controller -.-> :core:system
   :core:data -.-> :core:analytics
   :core:data --> :core:common
   :core:data -.-> :core:component-controller
@@ -57,6 +60,8 @@ graph TB
   :core:rule -.-> :core:component-controller
   :core:rule -.-> :core:data
   :core:rule -.-> :core:ifw-api
+  :core:system -.-> :core:common
+  :core:system --> :core:model
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

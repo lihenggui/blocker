@@ -15,18 +15,27 @@ graph TB
     direction TB
     :core:common[common]:::android-library
     :core:component-controller[component-controller]:::android-library
+    :core:datastore[datastore]:::android-library
     :core:datastore-proto[datastore-proto]:::jvm-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
+    :core:system[system]:::android-library
   end
 
   :core:common -.-> :core:model
   :core:component-controller -.-> :core:common
+  :core:component-controller -.-> :core:datastore
   :core:component-controller -.-> :core:datastore-proto
   :core:component-controller -.-> :core:ifw-api
   :core:component-controller -.-> :core:model
+  :core:component-controller -.-> :core:system
+  :core:datastore -.-> :core:common
+  :core:datastore --> :core:datastore-proto
+  :core:datastore --> :core:model
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
+  :core:system -.-> :core:common
+  :core:system --> :core:model
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;
