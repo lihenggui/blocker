@@ -95,6 +95,7 @@ class SettingsViewModel @Inject constructor(
             .map { userData ->
                 Success(
                     settings = UserEditableSettings(
+                        controllerType = userData.controllerType,
                         ruleServerProvider = userData.ruleServerProvider,
                         appDisplayLanguage = userData.appDisplayLanguage,
                         libDisplayLanguage = userData.libDisplayLanguage,
