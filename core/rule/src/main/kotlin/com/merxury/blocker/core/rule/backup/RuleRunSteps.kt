@@ -26,11 +26,24 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
+
+/**
+ * Connects the privileged channel, which may show the su or Shizuku prompt, and says whether it is
+ * ready with an identity [allows] accepts. Every run is started by the user, so each connects once
+ * before it reads users or apps; otherwise another user's apps could not be seen.
+ */
+internal suspend fun PrivilegedChannel.connectAllowing(allows: (PrivilegedIdentity) -> Boolean = { true }): Boolean {
+    val state = connect()
+    return state is ChannelState.Ready && allows(state.identity)
+}
 
 /** Reports progress: [current] is the item worked on, [done] of [total] are finished. */
 typealias RuleRunProgress = suspend (current: String, done: Int, total: Int) -> Unit

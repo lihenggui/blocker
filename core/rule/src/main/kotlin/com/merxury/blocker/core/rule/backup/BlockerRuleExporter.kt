@@ -73,6 +73,7 @@ class BlockerRuleExporter @Inject constructor(
         includeSystemApps: Boolean = false,
         onProgress: RuleRunProgress = { _, _, _ -> },
     ): RuleRunResult {
+        // A backup of the user Blocker runs in works without privilege, with PM entries only.
         channel.connect()
         // Older controllers write the rule files behind the store's back.
         ifwStore.clearCache()

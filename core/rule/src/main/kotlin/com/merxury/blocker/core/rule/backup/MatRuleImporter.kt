@@ -56,7 +56,7 @@ class MatRuleImporter @Inject constructor(
         includeSystemApps: Boolean = false,
         onProgress: RuleRunProgress = { _, _, _ -> },
     ): RuleRunResult {
-        channel.connect()
+        if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
         val layers = userData.userData.first().controllerType.blockLayers
         val apps = when (val read = installedApps.installedApps(target)) {
             is ReadResult.Success -> read.value

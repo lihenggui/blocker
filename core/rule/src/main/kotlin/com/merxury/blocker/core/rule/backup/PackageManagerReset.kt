@@ -43,7 +43,7 @@ class PackageManagerReset @Inject constructor(
      * privileged channel first, which may show the su or Shizuku prompt.
      */
     suspend fun reset(user: UserId, onProgress: RuleRunProgress = { _, _, _ -> }): RuleRunResult {
-        channel.connect()
+        if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
         val found = when (val read = components.disabledByPackageManager(user)) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)

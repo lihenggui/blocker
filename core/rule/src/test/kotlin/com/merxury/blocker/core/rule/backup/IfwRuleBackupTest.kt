@@ -17,9 +17,18 @@
 package com.merxury.blocker.core.rule.backup
 
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.device.DeviceUserRepository
+import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.storage.FakeBackupStorage
@@ -59,8 +68,9 @@ class IfwRuleBackupTest {
         systemUsers = listOf(DeviceUser(OWNER, null, UserKind.OWNER, null, true), DeviceUser(WORK, null, UserKind.WORK_PROFILE, OWNER, true))
     }
     private val installedApps = FakeInstalledAppRepository()
-    private val exporter = IfwRuleExporter(store)
-    private val importer = IfwRuleImporter(store, deviceUsers, installedApps, IfwXmlDeserializer(), IfwXmlSerializer())
+    private val channel = FakePrivilegedChannel()
+    private val exporter = IfwRuleExporter(store, channel)
+    private val importer = IfwRuleImporter(store, deviceUsers, installedApps, channel, IfwXmlDeserializer(), IfwXmlSerializer())
 
     private fun rulesOn(name: String) = fileSystem.fileContent(name)?.let { IfwXmlDeserializer().deserialize(it) }
 
@@ -175,18 +185,115 @@ class IfwRuleBackupTest {
     }
 
     @Test
-    fun givenPackagesInstalledForAnotherUserOnlyOrNotAtAll_whenImporting_thenOnlyInstalledOnesAreRestored() = runTest {
+    fun givenAppInstalledForAnotherUserOnlyAndSystemApp_whenImporting_thenTheFirstIsMergedAndTheSystemOneLeft() = runTest {
         installedApps.sendApps(listOf(installedApp(user = WORK), installedApp("com.system", isSystem = true)))
         storage.putFile("ifw/$APP.xml", BLOCKER_RULE)
-        storage.putFile("ifw/com.gone.xml", BLOCKER_RULE)
         storage.putFile("ifw/com.system.xml", BLOCKER_RULE)
 
         val result = importer.import(storage)
 
         assertThat(fileSystem.fileContent(APP)).isNotNull()
-        assertThat(fileSystem.fileContent("com.gone")).isNull()
         assertThat(fileSystem.fileContent("com.system")).isNull()
-        assertThat(result.summary.skipped).containsExactly(SkipReason.APP_NOT_INSTALLED, 1, SkipReason.SYSTEM_APP, 1)
+        assertThat(result.summary.skipped).containsExactly(SkipReason.SYSTEM_APP, 1)
+    }
+
+    @Test
+    fun givenChannelNotConnected_whenImporting_thenItConnectsBeforeReadingTheUsersAndRestoresAProfileOnlyApp() = runTest {
+        // Before a connect the system shows only the user Blocker runs in.
+        val channel = FakePrivilegedChannel(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        val users = object : DeviceUserRepository by deviceUsers {
+            override suspend fun refresh(): ReadResult<List<DeviceUser>> = if (channel.state.value is ChannelState.Ready) {
+                deviceUsers.refresh()
+            } else {
+                ReadResult.Success(listOf(DeviceUser(OWNER, null, UserKind.OWNER, null, true)))
+            }
+        }
+        installedApps.sendApps(listOf(installedApp(user = WORK)))
+        storage.putFile("ifw/$APP.xml", BLOCKER_RULE)
+
+        val result = IfwRuleImporter(store, users, installedApps, channel, IfwXmlDeserializer(), IfwXmlSerializer()).import(storage)
+
+        assertThat(channel.connectCount).isEqualTo(1)
+        assertThat(result.summary.apps).isEqualTo(1)
+        assertThat(rulesOn(APP)).isEqualTo(IfwXmlDeserializer().deserialize(BLOCKER_RULE))
+    }
+
+    @Test
+    fun givenNoChannelOrTheShell_whenImportingOrExporting_thenTheRunFailsForPrivilege() = runTest {
+        storage.putFile("ifw/$APP.xml", BLOCKER_RULE)
+        for (state in listOf(ChannelState.Unavailable(UnavailableReason.DENIED), ChannelState.Ready(PrivilegedIdentity.SHELL))) {
+            channel.connectResult = state
+
+            assertThat(importer.import(storage)).isEqualTo(RuleRunResult.Failed(FailureReason.NO_PRIVILEGE))
+            assertThat(exporter.export(storage)).isEqualTo(RuleRunResult.Failed(FailureReason.NO_PRIVILEGE))
+        }
+        assertThat(fileSystem.changeCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenAUsersAppsUnreadable_whenImporting_thenTheRunFailsInsteadOfMissingItsApps() = runTest {
+        installedApps.sendApps(listOf(installedApp(user = WORK)))
+        val users = object : DeviceUserRepository by deviceUsers {}
+        val apps = object : InstalledAppRepository by installedApps {
+            override suspend fun refresh(user: UserId): ReadResult<Unit> = if (user == WORK) ReadResult.Failure(ReadFailure.UserNotReachable(WORK)) else installedApps.refresh(user)
+        }
+        storage.putFile("ifw/$APP.xml", BLOCKER_RULE)
+
+        val result = IfwRuleImporter(store, users, apps, channel, IfwXmlDeserializer(), IfwXmlSerializer()).import(storage)
+
+        assertThat(result).isEqualTo(RuleRunResult.Failed(FailureReason.NO_PRIVILEGE))
+        assertThat(fileSystem.fileContent(APP)).isNull()
+    }
+
+    @Test
+    fun givenFilesNotOfAnInstalledApp_whenImporting_thenEachIsRestoredWholeOnlyWhereNoneExists() = runTest {
+        // Names that look like packages are not taken for apps: only installed apps are merged.
+        storage.putFile("ifw/privacy.rules.xml", CONDITIONAL_RULE)
+        storage.putFile("ifw/my-rules.xml", BLOCKER_RULE)
+        storage.putFile("ifw/com.gone.xml", BLOCKER_RULE)
+        storage.putFile("ifw/com.kept.xml", BLOCKER_RULE)
+        fileSystem.putFile("com.kept", "on the device")
+
+        val result = importer.import(storage)
+
+        assertThat(fileSystem.fileContent("privacy.rules")).isEqualTo(CONDITIONAL_RULE)
+        assertThat(fileSystem.fileContent("my-rules")).isEqualTo(BLOCKER_RULE)
+        assertThat(fileSystem.fileContent("com.gone")).isEqualTo(BLOCKER_RULE)
+        assertThat(fileSystem.fileContent("com.kept")).isEqualTo("on the device")
+        assertThat(result.summary.apps).isEqualTo(3)
+        assertThat(result.summary.skipped).containsExactly(SkipReason.FILE_NOT_RESTORED, 1)
+    }
+
+    @Test
+    fun givenOneAppAsked_whenImporting_thenOnlyRulesActingOnThatAppAloneAreMerged() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        storage.putFile(
+            "ifw/$APP.xml",
+            """<rules>
+              <activity block="true" log="false">
+                <component-filter name="$APP/$APP.MainActivity" />
+              </activity>
+              <service block="true" log="false">
+                <component-filter name="$APP/$APP.SyncService" />
+                <component-filter name="com.victim/com.victim.Sync" />
+              </service>
+              <broadcast block="true" log="true">
+                <action equals="android.intent.action.BOOT_COMPLETED" />
+              </broadcast>
+              <activity block="true" log="false">
+                <intent-filter>
+                  <action name="android.intent.action.VIEW" />
+                </intent-filter>
+                <component-filter name="$APP/$APP.ViewActivity" />
+              </activity>
+            </rules>""",
+        )
+
+        val result = importer.import(storage, packageName = APP)
+
+        assertThat(rulesOn(APP)).isEqualTo(IfwXmlDeserializer().deserialize(BLOCKER_RULE))
+        assertThat(result.summary.skipped).containsExactly(SkipReason.OTHER_APP, 3)
+        assertThat(result.summary.applied).isEqualTo(1)
     }
 
     @Test
@@ -201,6 +308,7 @@ class IfwRuleBackupTest {
         assertThat(fileSystem.fileContent("kept-rules")).isEqualTo("on the device")
         assertThat(result.summary.skipped).containsExactly(SkipReason.FILE_NOT_RESTORED, 1)
         assertThat(result.summary.apps).isEqualTo(1)
+        assertThat(channel.connectCount).isEqualTo(1)
     }
 
     @Test

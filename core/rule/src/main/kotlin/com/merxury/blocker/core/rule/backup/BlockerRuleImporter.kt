@@ -29,7 +29,6 @@ import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.blockLayers
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.rule.BlockerRule
-import com.merxury.blocker.core.model.rule.ComponentRule
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
@@ -49,6 +48,10 @@ import javax.inject.Inject
  * and `state=true` clears it, leaving the other layer alone. The component's type comes from what
  * the installed app declares, never from the file; entries for components it does not declare are
  * skipped. A component already in the state an entry asks for counts as unchanged.
+ *
+ * A file is for the app it is named after, `<package>.json`, and is applied to that app only: a
+ * file whose `packageName` differs is skipped whole, and an entry naming another package is
+ * skipped, both as [SkipReason.OTHER_APP].
  */
 class BlockerRuleImporter @Inject constructor(
     private val installedApps: InstalledAppRepository,
@@ -61,7 +64,7 @@ class BlockerRuleImporter @Inject constructor(
      * installed for [target], third-party apps only unless [includeSystemApps], or only the file
      * of [packageName] when given, whatever kind of app it is. A file that cannot be read or
      * names an unknown value fails alone. Connects the privileged channel first, which may show
-     * the su or Shizuku prompt.
+     * the su or Shizuku prompt, and fails for privilege when it is not ready.
      */
     suspend fun import(
         storage: BackupStorage,
@@ -71,7 +74,7 @@ class BlockerRuleImporter @Inject constructor(
         includeSystemApps: Boolean = false,
         onProgress: RuleRunProgress = { _, _, _ -> },
     ): RuleRunResult {
-        channel.connect()
+        if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
         val files = try {
             if (packageName != null) {
                 listOf(source.fileOf(packageName))
@@ -90,7 +93,14 @@ class BlockerRuleImporter @Inject constructor(
         files.forEachIndexed { index, path ->
             onProgress(path.substringAfterLast('/'), index, files.size)
             val rule = readRule(storage, path, summary) ?: return@forEachIndexed
-            val app = apps[rule.packageName]
+            // The file is for the package it is named after, which is the selected app for one.
+            val filePackage = path.substringAfterLast('/').removeSuffix(BLOCKER_RULE_EXTENSION)
+            if (rule.packageName != filePackage) {
+                Timber.w("The backup $path names ${rule.packageName}, leave it")
+                summary.skip(SkipReason.OTHER_APP)
+                return@forEachIndexed
+            }
+            val app = apps[filePackage]
             when {
                 app == null -> summary.skip(SkipReason.APP_NOT_INSTALLED)
                 packageName == null && app.isSystem && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP)
@@ -147,8 +157,9 @@ class BlockerRuleImporter @Inject constructor(
 
 /**
  * The requests that restore [rule] into [app], one per goal and layers, each in the file's order.
- * Entries for components the app does not declare are counted as skipped in [summary]; an entry
- * repeated with the same goal and layers counts once.
+ * Entries naming another package are skipped as [SkipReason.OTHER_APP], entries for components the
+ * app does not declare as [SkipReason.NOT_DECLARED]; a class starting with `.` is resolved against
+ * the package, and an entry repeated with the same goal and layers counts once.
  *
  * `state=true` is an unblock, never an enable: a backup writes it for DEFAULT and ENABLED alike,
  * so it only clears a DISABLED setting and leaves a component the manifest ships disabled at
@@ -163,7 +174,11 @@ internal fun restoreRequests(
     val declared = statuses.associate { it.declaration.id to it.declaration }
     val batches = linkedMapOf<Pair<ControlGoal, Set<ControlLayer>>, LinkedHashSet<ComponentDeclaration>>()
     rule.components.forEach { entry ->
-        val declaration = entry.idIn(app.packageName)?.let(declared::get)
+        if (entry.packageName.isNotBlank() && entry.packageName != app.packageName) {
+            summary.skip(SkipReason.OTHER_APP)
+            return@forEach
+        }
+        val declaration = ComponentId.unflatten("${app.packageName}/${entry.name}")?.let(declared::get)
         if (declaration == null) {
             summary.skip(SkipReason.NOT_DECLARED)
             return@forEach
@@ -173,13 +188,4 @@ internal fun restoreRequests(
         batches.getOrPut(goal to entry.method.blockLayers) { linkedSetOf() } += declaration
     }
     return batches.map { (key, declarations) -> ControlRequest(app.userId, declarations.toList(), key.first, key.second) }
-}
-
-/**
- * The component this entry names in [packageName]: a class starting with `.` is resolved against
- * the package; an entry for another package, or with a name that is not a class, names none.
- */
-private fun ComponentRule.idIn(packageName: String): ComponentId? {
-    if (this.packageName.isNotBlank() && this.packageName != packageName) return null
-    return ComponentId.unflatten("$packageName/$name")
 }

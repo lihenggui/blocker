@@ -129,7 +129,10 @@ class IntentFirewallStoreAccessTest {
 
         assertThat(fileSystem.fileContent("my-rules")).isEqualTo(UNKNOWN_ELEMENT_XML)
         assertThat(fileSystem.fileContent("kept-rules")).isEqualTo("on the device")
-        assertThrows(IllegalArgumentException::class.java) { runBlocking { store.restoreRuleFile(PKG, LEGACY_XML) } }
+        // A name that looks like a package is just a name here.
+        assertThat(store.restoreRuleFile("privacy.rules", LEGACY_XML)).isEqualTo(IfwResult.Success(true))
+        assertThat(fileSystem.fileContent("privacy.rules")).isEqualTo(LEGACY_XML)
+        assertThrows(IllegalArgumentException::class.java) { runBlocking { store.restoreRuleFile("../escape", LEGACY_XML) } }
     }
 
     @Test

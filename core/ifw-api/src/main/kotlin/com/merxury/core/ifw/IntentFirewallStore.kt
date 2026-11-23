@@ -178,7 +178,7 @@ class IntentFirewallStore(
     }
 
     override suspend fun restoreRuleFile(name: String, content: String): IfwResult<Boolean> {
-        require(isRuleFileName(name) && !isPackageRuleFileName(name)) { "Not a rule file name outside the packages': $name" }
+        requireRuleFileName(name)
         return withLock(name) {
             when (val existing = readText(name)) {
                 is IfwResult.Failure -> existing
@@ -188,7 +188,14 @@ class IntentFirewallStore(
                 } else {
                     // Runs to its end once started, as a save does.
                     when (val written = withContext(NonCancellable) { changeFile(name) { fileSystem.writeRules(name, content) } }) {
-                        is IfwResult.Success -> IfwResult.Success(true).also { Timber.i("Restored the IFW rule file $name.xml") }
+                        is IfwResult.Success -> {
+                            Timber.i("Restored the IFW rule file $name.xml")
+                            // The cache may hold "no file" for it from an earlier read.
+                            cache.remove(name)
+                            mutableChanges.emit(name)
+                            IfwResult.Success(true)
+                        }
+
                         is IfwResult.Failure -> written
                     }
                 }

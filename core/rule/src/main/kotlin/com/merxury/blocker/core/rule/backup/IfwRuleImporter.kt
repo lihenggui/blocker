@@ -18,11 +18,14 @@ package com.merxury.blocker.core.rule.backup
 
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.core.ifw.IfwStore
-import com.merxury.core.ifw.isPackageRuleFileName
 import com.merxury.core.ifw.isRuleFileName
+import com.merxury.core.ifw.model.IfwFilter
+import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
@@ -36,25 +39,33 @@ import javax.inject.Inject
  * package through [IfwStore]: conditions and `block="false"` rules are kept, and a rule already
  * there is not added twice.
  *
- * A backup file that cannot be parsed is skipped; a damaged rule file on the device makes its
- * package fail without being overwritten. Only packages installed for at least one user are
- * restored, since the rules apply to every user. A backed-up file not named after a package, a
- * user's own such as `my-rules.xml`, is restored byte for byte only when no file of that name is
- * on the device, and only when no single package was asked for.
+ * A backup file named after an app installed for at least one user is merged into that app's
+ * file, since the rules apply to every user. Any other file, whatever its name looks like, such as
+ * a user's own `privacy.rules.xml` or the file of an app no longer installed, is restored whole,
+ * byte for byte, only when no file of that name is on the device; it is never merged or
+ * overwritten. A backup file that cannot be parsed is skipped; a damaged rule file on the device
+ * makes its package fail without being overwritten.
+ *
+ * A restore of one app reads only that app's file and merges only the rules that act on that app
+ * alone: rules whose top-level component-filters all name it and that have no intent-filter. A
+ * rule naming another app's component, or selecting by intent, would act on other apps, so it is
+ * skipped as [SkipReason.OTHER_APP].
  */
 class IfwRuleImporter @Inject constructor(
     private val ifwStore: IfwStore,
     private val deviceUsers: DeviceUserRepository,
     private val installedApps: InstalledAppRepository,
+    private val channel: PrivilegedChannel,
     private val deserializer: IfwXmlDeserializer,
     serializer: IfwXmlSerializer,
 ) {
     private val merge = IfwRuleMerge(serializer)
 
     /**
-     * Restores every backed-up file whose package is installed, third-party packages only unless
-     * [includeSystemApps], or only [packageName]'s file when given. Acquires the privileged
-     * channel when needed.
+     * Restores every backed-up file, merging those of installed apps, third-party apps only unless
+     * [includeSystemApps], or only the rules of the installed app [packageName] when given.
+     * Connects the privileged channel first, which may show the su or Shizuku prompt, and fails for
+     * privilege when it cannot reach the rule directory or another user's apps.
      */
     suspend fun import(
         storage: BackupStorage,
@@ -62,6 +73,8 @@ class IfwRuleImporter @Inject constructor(
         includeSystemApps: Boolean = false,
         onProgress: RuleRunProgress = { _, _, _ -> },
     ): RuleRunResult {
+        // Before the users are read: without the channel only the user Blocker runs in is seen.
+        if (!channel.connectAllowing { it.canWriteSystemFiles }) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
         val files = try {
             storage.listFiles(IFW_BACKUP_FOLDER).filter { it.endsWith(IFW_RULE_EXTENSION) }.sorted()
         } catch (e: BackupStorageException) {
@@ -78,19 +91,27 @@ class IfwRuleImporter @Inject constructor(
             val name = file.removeSuffix(IFW_RULE_EXTENSION)
             val isSystem = installed[name]
             when {
-                !isPackageRuleFileName(name) -> restoreOwnFile(storage, name, summary)
-                isSystem == null -> summary.skip(SkipReason.APP_NOT_INSTALLED)
+                !isRuleFileName(name) -> summary.skip(SkipReason.FILE_NOT_RESTORED)
+                isSystem == null && packageName != null -> summary.skip(SkipReason.APP_NOT_INSTALLED)
+                isSystem == null -> restoreWholeFile(storage, name, summary)
                 isSystem && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP)
-                else -> importFile(storage, name, summary)
+                else -> importFile(storage, name, onlyThisApp = packageName != null, summary)
             }
         }
         return RuleRunResult.Completed(summary.build())
     }
 
-    private suspend fun importFile(storage: BackupStorage, packageName: String, summary: SummaryBuilder) {
-        val backup = readBackup(storage, packageName) ?: run {
+    private suspend fun importFile(storage: BackupStorage, packageName: String, onlyThisApp: Boolean, summary: SummaryBuilder) {
+        val read = readBackup(storage, packageName) ?: run {
             summary.fail(FailureReason.BACKUP_UNREADABLE)
             return
+        }
+        val backup = if (onlyThisApp) {
+            val (own, other) = read.rules.partition { it.actsOnlyOn(packageName) }
+            summary.skip(SkipReason.OTHER_APP, other.size)
+            IfwRules(own)
+        } else {
+            read
         }
         var merged: MergedIfwRules? = null
         when (val result = ifwStore.update(packageName) { current -> merge.merge(current, backup).also { merged = it }.rules }) {
@@ -111,14 +132,10 @@ class IfwRuleImporter @Inject constructor(
     }
 
     /**
-     * Restores the backup of a user's own rule file `<name>.xml` byte for byte, only when no file
-     * of that name is on the device; such a file is never merged or overwritten.
+     * Restores the backup `<name>.xml` of a file that is not an installed app's byte for byte, only
+     * when no file of that name is on the device; such a file is never merged or overwritten.
      */
-    private suspend fun restoreOwnFile(storage: BackupStorage, name: String, summary: SummaryBuilder) {
-        if (!isRuleFileName(name)) {
-            summary.skip(SkipReason.FILE_NOT_RESTORED)
-            return
-        }
+    private suspend fun restoreWholeFile(storage: BackupStorage, name: String, summary: SummaryBuilder) {
         val text = try {
             storage.read(ifwBackupPathOf(name))
         } catch (e: CancellationException) {
@@ -158,8 +175,9 @@ class IfwRuleImporter @Inject constructor(
     }
 
     /**
-     * Whether each package installed for at least one user that can be read is a system app,
-     * by package name. Fails only when no user's apps can be read.
+     * Whether each package installed for at least one user is a system app, by package name. Fails
+     * when any user's apps cannot be read, since a package installed only there would be taken
+     * for one that is not installed.
      */
     private suspend fun installedOnDevice(): ReadResult<Map<String, Boolean>> {
         val users = when (val read = deviceUsers.refresh()) {
@@ -167,17 +185,27 @@ class IfwRuleImporter @Inject constructor(
             is ReadResult.Failure -> return read
         }
         val installed = mutableMapOf<String, Boolean>()
-        var failure: ReadResult.Failure? = null
-        users.forEach { user ->
+        for (user in users) {
             when (val read = installedApps.installedApps(user.id)) {
                 is ReadResult.Success -> read.value.values.forEach { installed.merge(it.key.packageName, it.isSystem, Boolean::or) }
 
                 is ReadResult.Failure -> {
                     Timber.w("Cannot read the apps of user ${user.id.value}: ${read.reason}")
-                    failure = read
+                    return read
                 }
             }
         }
-        return failure?.takeIf { installed.isEmpty() && users.isNotEmpty() } ?: ReadResult.Success(installed)
+        return ReadResult.Success(installed)
     }
+}
+
+/**
+ * Whether this rule acts on [packageName]'s components alone: it has no intent-filter, which would
+ * select intents for any app, and its top-level component-filters, of which it has one at least,
+ * all name components of [packageName].
+ */
+internal fun IfwRule.actsOnlyOn(packageName: String): Boolean {
+    if (intentFilters.isNotEmpty()) return false
+    val named = filters.filterIsInstance<IfwFilter.ComponentFilter>()
+    return named.isNotEmpty() && named.all { ComponentId.unflatten(it.name)?.packageName == packageName }
 }

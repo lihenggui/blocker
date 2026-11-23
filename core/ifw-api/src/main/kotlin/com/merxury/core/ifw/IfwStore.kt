@@ -158,13 +158,12 @@ interface IfwStore {
     suspend fun ruleFileText(name: String): IfwResult<String?>
 
     /**
-     * Restores a rule file not named after a package, such as one the global rule editor stored,
-     * from a backup with [content] as it is, only when no file of that name exists; an existing
-     * file is never overwritten. Returns whether it wrote. Package files are restored through
-     * [update] instead.
+     * Restores the rule file `<name>.xml` from a backup with [content] as it is, only when no file
+     * of that name exists; an existing file is never overwritten or merged with. Returns whether it
+     * wrote. For files a restore does not merge, such as one the global rule editor stored or the
+     * file of an app no longer installed; it emits on [changes] when it wrote.
      *
-     * @throws IllegalArgumentException when [name] is a package name, as [isPackageRuleFileName]
-     * decides, or not a rule file name as [isRuleFileName] decides
+     * @param name a rule file name as [isRuleFileName] decides
      */
     suspend fun restoreRuleFile(name: String, content: String): IfwResult<Boolean>
 

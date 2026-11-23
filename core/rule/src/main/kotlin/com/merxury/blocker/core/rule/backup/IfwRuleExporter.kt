@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.rule.backup
 
 import com.merxury.blocker.core.model.ifw.IfwResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.isPackageRuleFileName
 import kotlinx.coroutines.CancellationException
@@ -40,16 +41,19 @@ internal fun ifwBackupPathOf(packageName: String): String = pathOf(IFW_BACKUP_FO
  */
 class IfwRuleExporter @Inject constructor(
     private val ifwStore: IfwStore,
+    private val channel: PrivilegedChannel,
 ) {
     /**
      * Copies every rule file, or only [packageName]'s when given; a package without a file is
-     * left out. Acquires the privileged channel when needed.
+     * left out. Connects the privileged channel first, which may show the su or Shizuku prompt,
+     * and fails for privilege when it cannot reach the rule directory.
      */
     suspend fun export(
         storage: BackupStorage,
         packageName: String? = null,
         onProgress: RuleRunProgress = { _, _, _ -> },
     ): RuleRunResult {
+        if (!channel.connectAllowing { it.canWriteSystemFiles }) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
         val packages = if (packageName != null) {
             listOf(packageName).filter(::isPackageRuleFileName)
         } else {

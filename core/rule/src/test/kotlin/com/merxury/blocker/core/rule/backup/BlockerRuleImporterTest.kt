@@ -31,6 +31,8 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
@@ -47,7 +49,8 @@ class BlockerRuleImporterTest {
     private val installedApps = FakeInstalledAppRepository()
     private val components = FakeComponentStatusRepository()
     private val storage = FakeBackupStorage()
-    private val importer = BlockerRuleImporter(installedApps, components, FakePrivilegedChannel(), backupJson)
+    private val channel = FakePrivilegedChannel()
+    private val importer = BlockerRuleImporter(installedApps, components, channel, backupJson)
 
     private val allRunnable = listOf(status(BOOT), status(SYNC), status(MAIN), status(DATA))
 
@@ -191,6 +194,44 @@ class BlockerRuleImporterTest {
         importer.import(storage, BackupSet.OWNER, OWNER)
 
         assertThat(stateOf(OWNER, BOOT)?.pm).isEqualTo(PmSetting.DISABLED)
+    }
+
+    @Test
+    fun givenFileNamingAnotherPackage_whenImporting_thenItIsNotAppliedToThatApp() = runTest {
+        val other = declaration("Sync", SYNC.type, "com.other")
+        installedApps.sendApps(listOf(installedApp(), installedApp("com.other")))
+        components.sendComponents(OWNER, listOf(status(BOOT), status(other)))
+        // A file named after one app whose content names another, in a full and a single-app restore.
+        storage.putFile("$APP.json", rule(entry(other, false, "PM"), packageName = "com.other"))
+
+        val full = importer.import(storage, BackupSet.OWNER, OWNER)
+        val single = importer.import(storage, BackupSet.OWNER, OWNER, packageName = APP)
+
+        assertThat(components.requests).isEmpty()
+        assertThat(full.summary.skipped).containsExactly(SkipReason.OTHER_APP, 1)
+        assertThat(single.summary.skipped).containsExactly(SkipReason.OTHER_APP, 1)
+        assertThat(stateOf(OWNER, other)?.pm).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test
+    fun givenEntryNamingAnotherPackage_whenImporting_thenOnlyThatEntryIsSkipped() = runTest {
+        val other = declaration("Sync", SYNC.type, "com.other")
+        installedApps.sendApps(listOf(installedApp(), installedApp("com.other")))
+        components.sendComponents(OWNER, listOf(status(BOOT), status(other)))
+        storage.putFile("$APP.json", rule(entry(BOOT, false, "PM"), entry(other, false, "PM")))
+
+        val result = importer.import(storage, BackupSet.OWNER, OWNER, packageName = APP)
+
+        assertThat(components.requests.flatMap { request -> request.components }).containsExactly(BOOT)
+        assertThat(result.summary.skipped).containsExactly(SkipReason.OTHER_APP, 1)
+        assertThat(stateOf(OWNER, other)?.pm).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test
+    fun givenNoChannel_whenImporting_thenTheRunFailsForPrivilege() = runTest {
+        channel.connectResult = ChannelState.Unavailable(UnavailableReason.DENIED)
+
+        assertThat(importer.import(storage, BackupSet.OWNER, OWNER)).isEqualTo(RuleRunResult.Failed(FailureReason.NO_PRIVILEGE))
     }
 
     @Test

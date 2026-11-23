@@ -29,6 +29,8 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
@@ -42,8 +44,9 @@ class MatAndResetTest {
     private val installedApps = FakeInstalledAppRepository()
     private val components = FakeComponentStatusRepository()
     private val userData = TestUserDataRepository()
-    private val mat = MatRuleImporter(installedApps, components, FakePrivilegedChannel(), userData)
-    private val reset = PackageManagerReset(components, FakePrivilegedChannel())
+    private val channel = FakePrivilegedChannel()
+    private val mat = MatRuleImporter(installedApps, components, channel, userData)
+    private val reset = PackageManagerReset(components, channel)
 
     @Test
     fun givenMatLines_whenImporting_thenDeclaredComponentsAreBlockedAndTheRestCounted() = runTest {
@@ -147,6 +150,15 @@ class MatAndResetTest {
 
         assertThat(components.requests.single().goal).isEqualTo(ControlGoal.UNBLOCK)
         assertThat(components.allComponents(OWNER).first().single().state.pm).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test
+    fun givenNoChannel_whenImportingMatOrResettingPm_thenTheRunFailsForPrivilege() = runTest {
+        channel.connectResult = ChannelState.Unavailable(UnavailableReason.DENIED)
+
+        assertThat(mat.import(listOf("$APP/.BootReceiver"), OWNER)).isEqualTo(RuleRunResult.Failed(FailureReason.NO_PRIVILEGE))
+        assertThat(reset.reset(OWNER)).isEqualTo(RuleRunResult.Failed(FailureReason.NO_PRIVILEGE))
+        assertThat(components.requests).isEmpty()
     }
 
     @Test

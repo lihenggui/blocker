@@ -20,6 +20,8 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.rule.BlockerRule
 import com.merxury.blocker.core.model.rule.ComponentRule
 import com.merxury.blocker.core.model.system.ReadFailure
@@ -163,6 +165,20 @@ class BlockerRuleExporterTest {
 
         exporter.export(storage, OWNER, includeSystemApps = true)
         assertThat(storage.allFiles.keys).containsExactly("$APP.json", "com.system.json")
+    }
+
+    @Test
+    fun givenNoChannel_whenExportingTheOwnUser_thenPmEntriesAreStillWritten() = runTest {
+        // A backup without root keeps working, as issue #1611 asks, and says IFW was unavailable.
+        channel.connectResult = ChannelState.Unavailable(UnavailableReason.DENIED)
+        installedApps.sendApps(listOf(installedApp()))
+        components.sendComponents(OWNER, listOf(status(BOOT, ifw = IfwBlock.UNKNOWN)))
+        components.setFirewallReadable(false)
+
+        val result = exporter.export(storage, OWNER)
+
+        assertThat(decode("$APP.json").components).containsExactly(ComponentRule(APP, BOOT.id.className, true, BOOT.type, ControllerType.PM))
+        assertThat(result.summary.firewallUnavailable).isTrue()
     }
 
     @Test

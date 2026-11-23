@@ -47,11 +47,19 @@ enum class SkipReason {
     MALFORMED_LINE,
 
     /**
-     * A backed-up rule file not named after a package, such as a user's own `my-rules.xml`, that
-     * is not restored because a file of that name is on the device, which is never overwritten,
-     * or because Blocker may not write a file of that name. Counts files.
+     * A backed-up rule file that is not an installed app's, such as a user's own `my-rules.xml`,
+     * and is not restored because a file of that name is on the device, which is never
+     * overwritten, or because Blocker may not write a file of that name. Counts files.
      */
     FILE_NOT_RESTORED,
+
+    /**
+     * A file, entry or rule that would act on another app than the one it is restored for: a
+     * Blocker rule file or entry naming another package than the file's, or in a restore of one
+     * app, an Intent Firewall rule naming another app's component or selecting by intent. Counts
+     * files, entries or rules.
+     */
+    OTHER_APP,
 }
 
 /** Why something could not be done. Each reason says what it counts. */
