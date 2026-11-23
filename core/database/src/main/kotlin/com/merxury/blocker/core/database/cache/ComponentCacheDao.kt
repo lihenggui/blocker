@@ -48,6 +48,16 @@ internal const val ALL_COMPONENTS_QUERY =
         JOIN_STATE_FOR_USER +
         " WHERE a.user_id = :userId"
 
+/**
+ * The components of `:packageName` while it is installed for `:userId`, found through the app's
+ * primary key, so the app row and the components are read in one snapshot.
+ */
+private const val INSTALLED_COMPONENTS_QUERY =
+    "SELECT $COMPONENT_COLUMNS FROM app AS a " +
+        "JOIN component_declaration AS d ON d.package_name = a.package_name " +
+        JOIN_STATE_FOR_USER +
+        " WHERE a.package_name = :packageName AND a.user_id = :userId"
+
 /** The app index already yields package order, so SQLite sorts only the classes of each package. */
 internal const val COMPONENT_ORDER = " ORDER BY a.package_name, d.class_name"
 
@@ -146,10 +156,18 @@ abstract class ComponentCacheDao {
 
     // Components
 
-    /** The components of [packageName] with [userId]'s settings, by class name. */
+    /**
+     * The components of [packageName] with [userId]'s settings, by class name. Empty while the app
+     * is not installed for [userId], even when another user's copy keeps the declarations. The app
+     * row is part of the same query, so removing the app emits the empty list at once rather than
+     * the declarations without their settings.
+     */
     fun observeComponents(packageName: String, userId: Int): Flow<List<ComponentRow>> = queryComponents(packageName, userId).distinctUntilChanged()
 
-    /** One component with [userId]'s setting, or null while it is not declared. */
+    /**
+     * One component with [userId]'s setting, or null while it is not declared or the app is not
+     * installed for [userId].
+     */
     fun observeComponent(packageName: String, className: String, userId: Int): Flow<ComponentRow?> = queryComponent(packageName, className, userId).distinctUntilChanged()
 
     /** The declarations stored for [packageName], by class name. Empty when it has not been read. */
@@ -227,6 +245,31 @@ abstract class ComponentCacheDao {
         upsertIfwBlockRows(changed.map { (className, block) -> ComponentIfwBlockEntity(packageName, className, block) })
     }
 
+    /**
+     * Stores what one read of [packageName] found in a single transaction, so an observer sees
+     * either none of it or all of it, never new declarations without their state or one layer
+     * changed without the other. In order: [declarations] with [appLastUpdateTime] as
+     * [replaceDeclarations] stores them, when given; [userId]'s [pmSettings] as [upsertPmSettings]
+     * stores them; and [ifwBlocks] as [upsertIfwBlocks] stores them. Maps are keyed by class name.
+     *
+     * @return false, writing nothing, when [declarations] are given and no user has the package
+     */
+    @Transaction
+    open suspend fun storePackageState(
+        packageName: String,
+        userId: Int,
+        declarations: List<ComponentDeclarationEntity>?,
+        appLastUpdateTime: Instant?,
+        pmSettings: Map<String, PmSetting>,
+        ifwBlocks: Map<String, IfwBlock>,
+    ): Boolean {
+        require((declarations == null) == (appLastUpdateTime == null)) { "Declarations of $packageName need their scan time" }
+        if (declarations != null && appLastUpdateTime != null && !replaceDeclarations(packageName, declarations, appLastUpdateTime)) return false
+        upsertPmSettings(packageName, userId, pmSettings)
+        upsertIfwBlocks(packageName, ifwBlocks)
+        return true
+    }
+
     /** Forgets the Intent Firewall state of [packageName], so its components read as not read yet. */
     @Query("DELETE FROM component_ifw_block WHERE package_name = :packageName")
     abstract suspend fun clearIfwBlocks(packageName: String)
@@ -292,14 +335,12 @@ abstract class ComponentCacheDao {
     protected abstract suspend fun isInstalled(packageName: String, userId: Int): Boolean
 
     @Query(
-        "SELECT $COMPONENT_COLUMNS FROM component_declaration AS d $JOIN_STATE_FOR_USER " +
-            "WHERE d.package_name = :packageName ORDER BY d.class_name",
+        "$INSTALLED_COMPONENTS_QUERY ORDER BY d.class_name",
     )
     protected abstract fun queryComponents(packageName: String, userId: Int): Flow<List<ComponentRow>>
 
     @Query(
-        "SELECT $COMPONENT_COLUMNS FROM component_declaration AS d $JOIN_STATE_FOR_USER " +
-            "WHERE d.package_name = :packageName AND d.class_name = :className",
+        "$INSTALLED_COMPONENTS_QUERY AND d.class_name = :className",
     )
     protected abstract fun queryComponent(packageName: String, className: String, userId: Int): Flow<ComponentRow?>
 

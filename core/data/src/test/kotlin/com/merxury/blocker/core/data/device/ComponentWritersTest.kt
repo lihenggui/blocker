@@ -96,6 +96,24 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
     }
 
     @Test
+    fun givenObservedComponents_whenControlChangesBothLayers_thenNextItemShowsBoth() = runTest {
+        val repository = components(backgroundScope)
+        system.install(installedApp(PKG), MAIN)
+        repository.refresh(OWNER_APP)
+        componentControl.apply = {
+            flow { emit(ControlEvent.PackageDone(PKG, listOf(outcome(MAIN, PmSetting.DISABLED, IfwBlock.BLOCKED)))) }
+        }
+
+        repository.components(OWNER_APP).test {
+            assertThat(awaitItem()).containsExactly(status(MAIN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+
+            repository.control(ControlRequest(OWNER, listOf(MAIN), ControlGoal.BLOCK, ControlLayer.entries.toSet())).toList()
+
+            assertThat(awaitItem()).containsExactly(status(MAIN, PmSetting.DISABLED, IfwBlock.BLOCKED))
+        }
+    }
+
+    @Test
     fun givenControlOutcomeUnknown_whenControl_thenStoredUnknownNotKeptAsBefore() = runTest {
         val repository = components(backgroundScope)
         system.install(installedApp(PKG), MAIN)

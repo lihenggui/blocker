@@ -39,7 +39,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -102,17 +101,11 @@ internal class LocalComponentStatusRepository @Inject constructor(
 
     override val firewallReadable: Flow<Boolean> = channel.state.map { it.allowsFirewallReads }.distinctUntilChanged()
 
-    // Declarations are shared by every user who has the package, so they stay cached while this
-    // user does not have it; the app row says whether it does.
-    override fun components(app: AppKey): Flow<List<ComponentStatus>> = combine(
-        dao.observeApp(app.packageName, app.userId.value),
-        dao.observeComponents(app.packageName, app.userId.value),
-    ) { installed, rows -> if (installed == null) emptyList() else rows.asStatuses() }.distinctUntilChanged()
+    // The cache query reads the app row with the components, so an app removed for this user
+    // emits an empty list at once, never its shared declarations without settings.
+    override fun components(app: AppKey): Flow<List<ComponentStatus>> = dao.observeComponents(app.packageName, app.userId.value).map(List<ComponentRow>::asStatuses)
 
-    override fun component(key: ComponentKey): Flow<ComponentStatus?> = combine(
-        dao.observeApp(key.id.packageName, key.userId.value),
-        dao.observeComponent(key.id.packageName, key.id.className, key.userId.value),
-    ) { installed, row -> if (installed == null) null else row?.asStatus() }.distinctUntilChanged()
+    override fun component(key: ComponentKey): Flow<ComponentStatus?> = dao.observeComponent(key.id.packageName, key.id.className, key.userId.value).map { it?.asStatus() }
 
     override fun allComponents(user: UserId): Flow<List<ComponentStatus>> = dao.observeAllComponents(user.value).map(List<ComponentRow>::asStatuses)
 
@@ -190,12 +183,21 @@ internal class LocalComponentStatusRepository @Inject constructor(
 
     private suspend fun refreshPackage(key: AppKey, app: InstalledApp?, appFailure: ReadFailure?): PackageRefresh = lockOf(key.packageName).withLock { packages.refresh(key, app, appFailure) }
 
-    /** Stores the read-back state of each outcome; runs to its end once the event has arrived. */
+    /**
+     * Stores the read-back state of each outcome, both layers in one transaction; runs to its end
+     * once the event has arrived.
+     */
     private suspend fun store(event: ControlEvent.PackageDone) = withContext(NonCancellable) {
         lockOf(event.packageName).withLock {
             event.outcomes.groupBy { it.key.userId }.forEach { (user, outcomes) ->
-                dao.upsertPmSettings(event.packageName, user.value, outcomes.associate { it.key.id.className to it.state.pm })
-                dao.upsertIfwBlocks(event.packageName, outcomes.associate { it.key.id.className to it.state.ifw })
+                dao.storePackageState(
+                    packageName = event.packageName,
+                    userId = user.value,
+                    declarations = null,
+                    appLastUpdateTime = null,
+                    pmSettings = outcomes.associate { it.key.id.className to it.state.pm },
+                    ifwBlocks = outcomes.associate { it.key.id.className to it.state.ifw },
+                )
             }
         }
     }
