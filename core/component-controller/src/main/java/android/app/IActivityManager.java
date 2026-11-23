@@ -18,6 +18,7 @@ package android.app;
 
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.IPackageDataObserver;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.IInterface;
@@ -43,9 +44,27 @@ public interface IActivityManager extends IInterface {
 
     void getMemoryInfo(ActivityManager.MemoryInfo outInfo) throws RemoteException;
 
+    /** Android 7. */
+    ComponentName startService(IApplicationThread caller, Intent service,
+            String resolvedType, String callingPackage, int userId) throws RemoteException;
+
+    /** Android 8 to 10. */
+    ComponentName startService(IApplicationThread caller, Intent service,
+            String resolvedType, boolean requireForeground, String callingPackage, int userId)
+            throws RemoteException;
+
+    /** Android 11 and later. */
     ComponentName startService(IApplicationThread caller, Intent service,
             String resolvedType, boolean requireForeground, String callingPackage,
             String callingFeatureId, int userId);
+
+    /** Android 7 and 8. */
+    boolean clearApplicationUserData(String packageName, IPackageDataObserver observer,
+            int userId) throws RemoteException;
+
+    /** Android 9 and later. */
+    boolean clearApplicationUserData(String packageName, boolean keepState,
+            IPackageDataObserver observer, int userId) throws RemoteException;
 
     int stopService(IApplicationThread caller, Intent service, String resolvedType, int userId);
 

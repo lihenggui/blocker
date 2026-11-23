@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.privileged
 
 import android.app.IActivityManager
+import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
 import android.os.IUserManager
 import android.os.Parcel
@@ -32,6 +33,12 @@ internal interface SystemServices {
     val packageManager: IPackageManager
     val activityManager: IActivityManager
     val userManager: IUserManager
+
+    /**
+     * The package installer, called as the privileged identity. The default asks [packageManager]
+     * for it, which is right where calls reach the system directly, as in the root process.
+     */
+    val packageInstaller: IPackageInstaller get() = packageManager.packageInstaller
 
     /** What to pass where the system asks for the calling package. */
     val callerPackage: String

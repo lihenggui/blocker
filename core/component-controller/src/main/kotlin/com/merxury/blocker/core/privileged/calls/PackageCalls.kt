@@ -90,6 +90,10 @@ internal data class ApplicationEnabledSettings(
 /**
  * Sets the enabled setting of the whole app [packageName] for [user]. The shell may do this too.
  *
+ * Root, the shell and the system uid are not held to package visibility, so the system would store
+ * a setting for a user that does not have the app; this refuses that instead.
+ *
+ * @throws NameNotFoundException when [packageName] is not installed for [user]
  * @param newState `COMPONENT_ENABLED_STATE_DEFAULT`, `_ENABLED`, `_DISABLED`, `_DISABLED_USER` or
  * `_DISABLED_UNTIL_USED`
  */
@@ -105,6 +109,8 @@ internal data class SetApplicationEnabledSetting(
     }
 
     override fun run(system: SystemServices) {
+        packageInfo(system, packageName, 0, user)
+            ?: throw NameNotFoundException("$packageName is not installed for user ${user.value}")
         system.packageManager.setApplicationEnabledSetting(
             packageName,
             newState,
@@ -134,7 +140,8 @@ internal fun packageInfo(system: SystemServices, packageName: String, flags: Int
     system.packageManager.getPackageInfo(packageName, flags, user.value)
 }
 
-private fun requireUser(system: SystemServices, user: UserId) {
+/** @throws IllegalArgumentException when [user] does not exist */
+internal fun requireUser(system: SystemServices, user: UserId) {
     requireNotNull(system.userManager.getUserInfo(user.value)) { "No user ${user.value}" }
 }
 

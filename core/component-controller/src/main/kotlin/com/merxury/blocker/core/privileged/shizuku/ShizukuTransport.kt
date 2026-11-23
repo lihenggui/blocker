@@ -19,6 +19,7 @@ package com.merxury.blocker.core.privileged.shizuku
 import android.app.ActivityManagerNative
 import android.app.IActivityManager
 import android.content.Context
+import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import android.os.Build
@@ -175,6 +176,11 @@ internal class ShizukuSystemServices @Inject constructor(
     }
 
     override val userManager: IUserManager by lazy { IUserManager.Stub.asInterface(service("user")) }
+
+    // The binder the package manager hands out would be called as this app; wrap it too.
+    override val packageInstaller: IPackageInstaller by lazy {
+        IPackageInstaller.Stub.asInterface(ShizukuBinderWrapper(packageManager.packageInstaller.asBinder()))
+    }
 
     override val callerPackage: String get() = context.packageName
 

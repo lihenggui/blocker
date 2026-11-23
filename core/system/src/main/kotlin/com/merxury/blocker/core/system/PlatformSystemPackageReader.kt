@@ -30,7 +30,6 @@ import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.system.AppEnabledSetting
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
@@ -186,28 +185,13 @@ class PlatformSystemPackageReader @Inject constructor(
             versionName = versionName.orEmpty(),
             versionCode = getVersionCode(),
             isSystem = application != null && application.flags and ApplicationInfo.FLAG_SYSTEM != 0,
-            enabledSetting = enabledSetting.toAppEnabledSetting(),
+            enabledSetting = appEnabledSettingOf(enabledSetting),
             apkPath = application?.sourceDir,
             firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
             lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
             minSdk = application?.minSdkVersion ?: 0,
             targetSdk = application?.targetSdkVersion ?: 0,
         )
-    }
-
-    private fun Int?.toAppEnabledSetting(): AppEnabledSetting = when (this) {
-        PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> AppEnabledSetting.DEFAULT
-
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> AppEnabledSetting.ENABLED
-
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> AppEnabledSetting.DISABLED
-
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER -> AppEnabledSetting.DISABLED_USER
-
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED -> AppEnabledSetting.DISABLED_UNTIL_USED
-
-        // Unreadable, for example because the app was removed after it was listed.
-        else -> AppEnabledSetting.UNKNOWN
     }
 
     private fun PackageInfo.declarations(packageName: String): List<ComponentDeclaration> = activities.declarations(packageName, ComponentType.ACTIVITY) +
