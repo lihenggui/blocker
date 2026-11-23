@@ -21,6 +21,7 @@ import android.os.DeadObjectException
 import android.os.RemoteException
 import be.mygod.librootkotlinx.NoShellException
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -181,6 +182,153 @@ class AbstractPrivilegedTransportTest {
         assertThat(connect.await()).isEqualTo(READY_ROOT)
         assertThat(quiet.await()).isEqualTo(READY_ROOT)
         assertThat(transport.quietAcquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenChecked_whenCheckedState_thenReturnsStateWithoutAnotherAttempt() = runTest {
+        transport.connectIfGranted()
+
+        assertThat(transport.checkedState()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(transport.quietAcquireCount).isEqualTo(1)
+        assertThat(transport.acquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenConnectQueuedBehindQuietAttempt_whenExecuteIfReady_thenDecidesWhenQuietAttemptEnds() = runTest {
+        val quietGate = CompletableDeferred<Unit>()
+        transport.quietAcquireGate = quietGate
+        transport.acquireGate = CompletableDeferred()
+        val quiet = async { transport.connectIfGranted() }
+        val read = async { transport.executeIfReady(CALL) }
+        runCurrent()
+        val prompt = async { transport.connect() }
+        runCurrent()
+
+        quietGate.complete(Unit)
+        quiet.await()
+        runCurrent()
+
+        assertThat(read.isCompleted).isTrue()
+        assertThat(read.await()).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(prompt.isActive).isTrue()
+        prompt.cancel()
+    }
+
+    @Test
+    fun givenQuietAttemptCancelled_whenCheckedState_thenMakesItsOwnAttempt() = runTest {
+        transport.quietAcquireGate = CompletableDeferred()
+        val quiet = async { transport.connectIfGranted() }
+        val checked = async { transport.checkedState() }
+        runCurrent()
+        transport.quietAcquireGate = null
+        transport.quietAcquireResult = READY_ROOT
+
+        quiet.cancel()
+
+        assertThat(checked.await()).isEqualTo(READY_ROOT)
+        assertThat(transport.quietAcquireCount).isEqualTo(2)
+        assertThat(transport.acquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenReaderCancelledThenQueuedQuietConnectCancelled_whenAnotherReaderWaits_thenItCompletes() = runTest {
+        transport.quietAcquireGate = CompletableDeferred()
+        val readerA = async { transport.checkedState() }
+        runCurrent()
+        val background = async { transport.connectIfGranted() }
+        val readerB = async { transport.checkedState() }
+        runCurrent()
+
+        readerA.cancel()
+        runCurrent()
+        // The background quiet connect now holds the attempt; later attempts pass at once.
+        assertThat(transport.quietAcquireCount).isEqualTo(2)
+        transport.quietAcquireGate = null
+        transport.quietAcquireResult = READY_ROOT
+        background.cancel()
+        runCurrent()
+        assertThat(readerB.isCompleted).isTrue()
+
+        assertThat(readerB.await()).isEqualTo(READY_ROOT)
+        assertThat(transport.acquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenManyReadersOnNotChecked_whenQuietAttemptEnds_thenOneAttemptAnswersAll() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        transport.quietAcquireGate = gate
+        transport.quietAcquireResult = READY_ROOT
+        val readers = List(10) { async { transport.checkedState() } }
+        runCurrent()
+        assertThat(readers.none { it.isCompleted }).isTrue()
+
+        gate.complete(Unit)
+
+        assertThat(readers.map { it.await() }.toSet()).containsExactly(READY_ROOT)
+        assertThat(transport.quietAcquireCount).isEqualTo(1)
+        assertThat(transport.acquireCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenConnectReadyWhileQuietAttemptRuns_whenQuietAttemptEndsDenied_thenReadyStands() = runTest {
+        val prompt = CompletableDeferred<Unit>()
+        val quietGate = CompletableDeferred<Unit>()
+        transport.acquireGate = prompt
+        transport.quietAcquireGate = quietGate
+        val connect = async { transport.connect() }
+        runCurrent()
+        val reader = async { transport.checkedState() }
+        runCurrent()
+        assertThat(transport.quietAcquireCount).isEqualTo(1)
+
+        prompt.complete(Unit)
+        assertThat(connect.await()).isEqualTo(READY_ROOT)
+        quietGate.complete(Unit)
+
+        assertThat(reader.await()).isEqualTo(READY_ROOT)
+        assertThat(transport.state.value).isEqualTo(READY_ROOT)
+    }
+
+    @Test
+    fun givenConnectPrompting_whenReaderOnNotChecked_thenAnsweredWithoutWaitingForThePrompt() = runTest {
+        transport.acquireGate = CompletableDeferred()
+        val connect = async { transport.connect() }
+        runCurrent()
+
+        assertThat(transport.checkedState()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(connect.isActive).isTrue()
+        connect.cancel()
+    }
+
+    @Test
+    fun givenEachParticipantCancelledInTurn_whenGatesOpen_thenEveryOtherOneCompletes() = runTest {
+        repeat(4) { cancelled ->
+            val transport = FakeTransport()
+            val quietGate = CompletableDeferred<Unit>()
+            val prompt = CompletableDeferred<Unit>()
+            transport.quietAcquireGate = quietGate
+            transport.acquireGate = prompt
+            val participants = buildList {
+                add(async { transport.checkedState() })
+                runCurrent()
+                add(async { transport.connectIfGranted() })
+                add(async { transport.connect() })
+                add(async { transport.checkedState() })
+                runCurrent()
+            }
+
+            participants[cancelled].cancel()
+            runCurrent()
+            quietGate.complete(Unit)
+            prompt.complete(Unit)
+            runCurrent()
+
+            participants.forEachIndexed { index, participant ->
+                if (index != cancelled) assertWithMessage("participant $index with $cancelled cancelled").that(participant.isCompleted).isTrue()
+            }
+            // A connect cancelled while it waits for the quiet attempt never prompts.
+            assertThat(transport.acquireCount).isEqualTo(if (cancelled == 2) 0 else 1)
+        }
     }
 
     @Test

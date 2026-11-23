@@ -168,6 +168,8 @@ internal class FakeExecutor(private val system: FakePmSystem, private val channe
         return executeIfReady(call)
     }
 
+    override suspend fun checkedState(): ChannelState = channel.state.value
+
     @Suppress("UNCHECKED_CAST")
     override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> {
         val ready = channel.state.value as? ChannelState.Ready ?: return CallResult.Failure(CallFailure.ChannelUnavailable)

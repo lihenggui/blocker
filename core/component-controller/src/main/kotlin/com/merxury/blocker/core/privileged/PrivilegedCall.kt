@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import kotlinx.parcelize.Parceler
 
 /** The hidden system service interfaces as the privileged identity sees them. */
@@ -114,12 +115,20 @@ internal interface PrivilegedExecutor {
     suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R>
 
     /**
-     * Runs [call] only when the channel is [ChannelState.Ready]; otherwise fails with
-     * [CallFailure.ChannelUnavailable]. Never shows a prompt: when nothing has tried to acquire
-     * the channel yet, it first waits for [PrivilegedChannel.connectIfGranted], bounded by the
-     * transport's own timeouts, and never calls [PrivilegedChannel.connect].
+     * Runs [call] only when [checkedState] is [ChannelState.Ready]; otherwise fails with
+     * [CallFailure.ChannelUnavailable]. Never shows a prompt.
      */
     suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R>
+
+    /**
+     * The channel's state once the first attempt to acquire it has ended. Returns the state at
+     * once unless it is still [UnavailableReason.NOT_CHECKED]; then makes the attempt that cannot
+     * prompt, as [PrivilegedChannel.connectIfGranted] does, or waits for the quiet attempt already
+     * running, bounded by the transport's own timeouts. Never waits for a prompt to be answered and
+     * never calls [PrivilegedChannel.connect]. When the attempt it waited for was cancelled, it
+     * makes its own. Never throws except for cancellation.
+     */
+    suspend fun checkedState(): ChannelState
 }
 
 /** One way to reach the system with privilege: a root process or Shizuku. */
