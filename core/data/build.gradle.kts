@@ -24,6 +24,8 @@ plugins {
 android {
     namespace = "com.merxury.blocker.core.data"
     testOptions.unitTests.isIncludeAndroidResources = true
+    // The device tests run the app's Hilt graph.
+    defaultConfig.testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
 }
 dependencies {
     api(projects.core.common)
@@ -46,4 +48,10 @@ dependencies {
     testImplementation(libs.room.runtime)
     testImplementation(libs.truth)
     testImplementation(libs.turbine)
+
+    androidTestImplementation(projects.core.testing)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.hiddenapibypass)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
 }

@@ -26,11 +26,20 @@ class WakeAuthorizationRepository @Inject constructor(
         if (userData.userData.first().controllerType != ControllerType.SHIZUKU) root.isRootAvailable()
     }
 
+    /**
+     * How the wake feature reaches its own rule files for a reset, or null when it cannot. With
+     * the Shizuku controller type, su is tried only after an earlier grant, as in the background,
+     * so a reset there never shows a su prompt.
+     */
     internal suspend fun resetTransport(): WakeResetTransport? = when {
         hasAuthorizedWakeFirewallService() && !root.hasBackgroundRoot() -> WakeResetTransport.SHIZUKU_ROOT
-        root.isRootAvailable() -> WakeResetTransport.DIRECT_ROOT
+        hasRootForReset() -> WakeResetTransport.DIRECT_ROOT
         else -> null
     }
 
-    internal suspend fun canClearManualRules(transport: WakeResetTransport) = transport == WakeResetTransport.DIRECT_ROOT || root.isRootAvailable()
+    private suspend fun hasRootForReset(): Boolean = if (userData.userData.first().controllerType == ControllerType.SHIZUKU) {
+        root.hasBackgroundRoot()
+    } else {
+        root.isRootAvailable()
+    }
 }
