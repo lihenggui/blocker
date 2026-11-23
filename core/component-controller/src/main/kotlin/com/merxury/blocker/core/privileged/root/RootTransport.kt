@@ -28,6 +28,7 @@ import com.merxury.blocker.core.privileged.AbstractPrivilegedTransport
 import com.merxury.blocker.core.privileged.CallBytes
 import com.merxury.blocker.core.privileged.ChannelLostException
 import com.merxury.blocker.core.privileged.PrivilegedCall
+import com.merxury.blocker.core.privileged.PrivilegedProcessUnavailableException
 import com.merxury.blocker.core.privileged.calls.CallerUid
 import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.identityOfUid
@@ -62,6 +63,8 @@ internal fun interface RootCommandRunner {
  *
  * A call that finds the root process gone is sent once more on a fresh process, which librootkotlinx
  * starts without a prompt while root stays granted. Only when that fails too is the channel lost.
+ * A call that is not [PrivilegedCall.retryable] is not sent again: it fails as unavailable and
+ * leaves the channel ready, since the next call starts a fresh process.
  */
 @Singleton
 internal class RootTransport(
@@ -118,6 +121,8 @@ internal class RootTransport(
     } catch (e: ChannelLostException) {
         // A refused su would refuse again.
         if (e.reason == UnavailableReason.DENIED) throw e
+        // It may already have reached the system; the caller decides what to do.
+        if (!call.retryable) throw PrivilegedProcessUnavailableException("The root process went away while running $call", e)
         Timber.w(e, "The root process went away; sending $call again on a new one")
         sendOnce(call)
     }

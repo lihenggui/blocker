@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.CallBytes
+import com.merxury.blocker.core.privileged.ConsumeOnce
 import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.MeasureInPrivilegedProcess
 import com.merxury.blocker.core.privileged.awaitPipeWriters
@@ -179,6 +180,26 @@ class RootTransportTest {
         assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
         assertThat(runner.sent).isEqualTo(3)
         assertThat(transport.state.value).isEqualTo(ChannelState.Unavailable(UnavailableReason.FAILED))
+    }
+
+    @Test
+    fun givenNotRetryableCallAndRootProcessDies_whenExecute_thenNotSentAgainAndStillReady() = scope.runTest {
+        transport.connect()
+        runner.failures += RootServer.UnexpectedExitException()
+
+        assertThat(transport.execute(ConsumeOnce("report"))).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(runner.sent).isEqualTo(2)
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+    }
+
+    @Test
+    fun givenNotRetryableCall_whenExecuteAfterRootProcessDied_thenRunsOnNewProcess() = scope.runTest {
+        transport.connect()
+        runner.failures += RootServer.UnexpectedExitException()
+        transport.execute(ConsumeOnce("lost"))
+
+        assertThat(transport.execute(ConsumeOnce("report"))).isEqualTo(CallResult.Success("report"))
+        assertThat(runner.sent).isEqualTo(3)
     }
 
     @Test

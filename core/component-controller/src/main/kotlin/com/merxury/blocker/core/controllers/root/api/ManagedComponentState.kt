@@ -6,12 +6,12 @@ package com.merxury.blocker.core.controllers.root.api
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.IPackageManager
-import android.content.pm.PackageManager
-import android.os.Build
 import be.mygod.librootkotlinx.ParcelableBoolean
 import be.mygod.librootkotlinx.RootCommand
 import com.merxury.blocker.core.controllers.wake.WakeSystemReader
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.wake.WakeAccess
+import com.merxury.blocker.core.privileged.calls.compareAndSetComponentEnabled
 import com.merxury.blocker.core.root.RootCommandExecutor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.parcelize.Parcelize
@@ -50,17 +50,5 @@ private data class ChangeIfCurrent(
     override suspend fun execute() = ParcelableBoolean(apply(RootApiServices.pm, RootApiServices.packageName))
 
     // The policy is restricted to devices with a single owner profile.
-    fun apply(pm: IPackageManager, caller: String): Boolean {
-        val component = ComponentName(pkg, name)
-        val user = 0
-        val current = pm.getComponentEnabledSetting(component, user)
-        if (current == after) return true
-        if (current != before) return false
-        if (Build.VERSION.SDK_INT >= 34) {
-            pm.setComponentEnabledSetting(component, after, PackageManager.DONT_KILL_APP, user, caller)
-        } else {
-            pm.setComponentEnabledSetting(component, after, PackageManager.DONT_KILL_APP, user)
-        }
-        return pm.getComponentEnabledSetting(component, user) == after
-    }
+    fun apply(pm: IPackageManager, caller: String): Boolean = pm.compareAndSetComponentEnabled(ComponentName(pkg, name), UserId.SYSTEM, before, after, caller)
 }

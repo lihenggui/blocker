@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.appcontrol
 
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -80,4 +81,17 @@ interface AppControl {
      * answers uid 0 with user 0 alone.
      */
     suspend fun runningPackages(user: UserId): CallResult<Set<String>>
+
+    /**
+     * Starts the activity [key] for its user in a new task, as `am start -n` does. Root and the
+     * system uid may start any activity, the shell only an exported one; anything else, such as a
+     * permission the activity requires, is [CallFailure.NotPermitted]. A class that is not an
+     * activity of the app is [CallFailure.TargetNotFound], and any other result the system
+     * reports is [CallFailure.SystemError] with its code.
+     *
+     * Success means the system accepted the start, not that the activity appeared: the system
+     * answers a start that the Intent Firewall blocks as a success on every release, so a caller
+     * that needs to know checks the activity's firewall state itself.
+     */
+    suspend fun startActivity(key: ComponentKey): CallResult<Unit>
 }

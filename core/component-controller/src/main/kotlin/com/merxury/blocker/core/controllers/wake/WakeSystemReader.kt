@@ -103,14 +103,30 @@ internal enum class WakeCommand(val args: List<String>) {
         }
     }
 
-    fun execute(profile: Int, root: Boolean, appUid: Int, boot: Int, argument: Long, output: OutputStream) {
+    /**
+     * The process to start: [arguments] behind a shell that drops stderr, through `su` when
+     * [root] asks this process to gain root first. A process that already runs privileged passes
+     * false.
+     */
+    fun processCommand(profile: Int, root: Boolean, appUid: Int, boot: Int, argument: Long = 0): List<String> {
         val command = arguments(profile, appUid, boot, argument)
-        val id = WakeStatsCodec.configId(appUid, boot)
         // Only constant argv and a validated integer reach su. Never accept shell text over Binder.
         val argv = if (root) listOf("su", "-c", command.joinToString(" ") { "'$it'" }) else command
         // Keep stderr out of binary statsd reports on every supported API, including Android 7.
         // The shell only redirects descriptors. Each argument is passed through unchanged.
-        val process = ProcessBuilder(listOf("/system/bin/sh", "-c", """exec "$@" 2>/dev/null""", "blocker") + argv).start()
+        return listOf("/system/bin/sh", "-c", """exec "$@" 2>/dev/null""", "blocker") + argv
+    }
+
+    /**
+     * Runs [processCommand], writes at most 12 MiB of its stdout to [output] and kills it after
+     * 12 seconds. [INSTALL] feeds the statsd config on stdin, owned by uid 0 through `su` and by
+     * this process's uid otherwise.
+     *
+     * @throws IOException when the command fails, is killed or prints more
+     */
+    fun execute(profile: Int, root: Boolean, appUid: Int, boot: Int, argument: Long, output: OutputStream) {
+        val id = WakeStatsCodec.configId(appUid, boot)
+        val process = ProcessBuilder(processCommand(profile, root, appUid, boot, argument)).start()
         val timeout = timer.schedule({ process.destroy() }, 12, TimeUnit.SECONDS)
         try {
             process.outputStream.use { if (this == INSTALL) it.write(WakeStatsCodec.config(id, if (root) 0 else android.os.Process.myUid())) }

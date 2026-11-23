@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.privileged.calls
 
 import android.content.ComponentName
+import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
@@ -89,6 +90,51 @@ internal data class SetComponentEnabledSettings(
             components.forEach { pm.setComponentEnabledSetting(it, newState, 0, user.value) }
         }
     }
+}
+
+/**
+ * Changes [component]'s PackageManager setting for [user] from [expected] to [newState] without
+ * stopping its app (`DONT_KILL_APP`), only if it still holds [expected]. True when the setting
+ * already is [newState], or reads back as [newState] after the change; false, without a change,
+ * when it holds anything else. Only root and the system uid may change components.
+ *
+ * @param expected the setting the caller saw, `COMPONENT_ENABLED_STATE_DEFAULT`, `_ENABLED` or
+ * `_DISABLED`
+ * @param newState the setting to store, one of the same values
+ */
+@Parcelize
+@TypeParceler<UserId, UserIdParceler>
+internal data class SetComponentEnabledIfCurrent(
+    val component: ComponentName,
+    val user: UserId,
+    val expected: Int,
+    val newState: Int,
+) : PrivilegedCall<Boolean> {
+    init {
+        require(expected in COMPONENT_SETTINGS) { "Not a component enabled setting: $expected" }
+        require(newState in COMPONENT_SETTINGS) { "Not a component enabled setting: $newState" }
+    }
+
+    override fun run(system: SystemServices): Boolean = system.packageManager.compareAndSetComponentEnabled(component, user, expected, newState, system.callerPackage)
+}
+
+/** The compare-and-set of [SetComponentEnabledIfCurrent]; see there. */
+internal fun IPackageManager.compareAndSetComponentEnabled(
+    component: ComponentName,
+    user: UserId,
+    expected: Int,
+    newState: Int,
+    callerPackage: String,
+): Boolean {
+    val current = getComponentEnabledSetting(component, user.value)
+    if (current == newState) return true
+    if (current != expected) return false
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP, user.value, callerPackage)
+    } else {
+        setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP, user.value)
+    }
+    return getComponentEnabledSetting(component, user.value) == newState
 }
 
 // The only values PackageManager stores for a component.

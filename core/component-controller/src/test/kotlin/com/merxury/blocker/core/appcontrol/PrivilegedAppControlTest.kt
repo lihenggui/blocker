@@ -211,4 +211,41 @@ class PrivilegedAppControlTest {
         assertThat(services.stop(ComponentKey(service, WORK))).isEqualTo(CallResult.Success(Unit))
         assertThat(system.activityManager.serviceCalls).containsExactly("start7 $PKG/.SyncService 10", "stop $PKG/.SyncService 10").inOrder()
     }
+
+    @Test
+    fun whenStartActivity_thenStartedForThatUserAfterConnecting() = runTest {
+        val activity = ComponentKey(ComponentId(PKG, "$PKG.MainActivity"), WORK)
+
+        assertThat(control.startActivity(activity)).isEqualTo(CallResult.Success(Unit))
+
+        assertThat(transport.acquireCount).isEqualTo(1)
+        assertThat(system.activityManager.activityStarts.single()).endsWith("$PKG/.MainActivity 268435456 10")
+    }
+
+    @Test
+    fun givenUnexpectedStartResult_whenStartActivity_thenSystemErrorWithCode() = runTest {
+        system.activityManager.startActivityResult = 102
+
+        val result = control.startActivity(ComponentKey(ComponentId(PKG, "$PKG.MainActivity"), WORK))
+
+        assertThat(result).isEqualTo(CallResult.Failure(CallFailure.SystemError("Activity start failed with result 102")))
+    }
+
+    @Test
+    fun givenNotExportedForShell_whenStartActivity_thenNotPermitted() = runTest {
+        system.activityManager.failure = SecurityException("Permission Denial: not exported")
+
+        val result = control.startActivity(ComponentKey(ComponentId(PKG, "$PKG.Hidden"), WORK))
+
+        assertThat(result).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("Permission Denial: not exported")))
+    }
+
+    @Test
+    fun givenUnknownClass_whenStartActivity_thenTargetNotFound() = runTest {
+        system.activityManager.startActivityResult = -92
+
+        val result = control.startActivity(ComponentKey(ComponentId(PKG, "$PKG.Missing"), WORK))
+
+        assertThat((result as CallResult.Failure).reason).isInstanceOf(CallFailure.TargetNotFound::class.java)
+    }
 }

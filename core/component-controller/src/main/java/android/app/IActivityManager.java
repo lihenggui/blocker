@@ -20,6 +20,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.IPackageDataObserver;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.IInterface;
 import android.os.RemoteException;
@@ -67,6 +68,17 @@ public interface IActivityManager extends IInterface {
             IPackageDataObserver observer, int userId) throws RemoteException;
 
     int stopService(IApplicationThread caller, Intent service, String resolvedType, int userId);
+
+    /** Android 7 to 10; later releases still have it but route it to the one with a feature id. */
+    int startActivityAsUser(IApplicationThread caller, String callingPackage, Intent intent,
+            String resolvedType, IBinder resultTo, String resultWho, int requestCode, int flags,
+            ProfilerInfo profilerInfo, Bundle options, int userId) throws RemoteException;
+
+    /** Android 11 and later. */
+    int startActivityAsUserWithFeature(IApplicationThread caller, String callingPackage,
+            String callingFeatureId, Intent intent, String resolvedType, IBinder resultTo,
+            String resultWho, int requestCode, int flags, ProfilerInfo profilerInfo,
+            Bundle options, int userId) throws RemoteException;
 
     @RequiresApi(26)
     abstract class Stub extends Binder implements IActivityManager {
