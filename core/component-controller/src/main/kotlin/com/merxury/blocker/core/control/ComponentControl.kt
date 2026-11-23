@@ -41,12 +41,15 @@ import kotlinx.coroutines.flow.Flow
  * unconditional rule for it. A provider is not filtered by the firewall, so where the firewall was
  * asked for, its PackageManager setting is changed instead.
  *
- * [ControlGoal.UNBLOCK] makes a component runnable and clears every layer, whatever the request's
- * layers: a [PmSetting.DISABLED] setting becomes [PmSetting.DEFAULT], which leaves no override
- * behind, or [PmSetting.ENABLED] when the manifest ships the component disabled, so a component
- * the manifest disables is also set enabled when it is at [PmSetting.DEFAULT]. The component is
- * removed from the unconditional firewall rules. A conditional rule is not Blocker's to remove;
- * when only that is left, the component is [Availability.Conditional] and counts as achieved.
+ * [ControlGoal.UNBLOCK] clears only the requested layers, so "reset the PackageManager settings"
+ * and "reset the firewall rules" stay separate; to make a component runnable, request every layer
+ * ([ControlLayer.entries]). Clearing the PackageManager layer turns a [PmSetting.DISABLED] setting
+ * into [PmSetting.DEFAULT], which leaves no override behind, or [PmSetting.ENABLED] when the
+ * manifest ships the component disabled, so a component the manifest disables is also set enabled
+ * when it is at [PmSetting.DEFAULT]. Clearing the firewall layer removes the component from the
+ * unconditional firewall rules. A conditional rule is not Blocker's to remove; when only that is
+ * left, the firewall layer counts as clear and the component is [Availability.Conditional]. As for
+ * a block, a provider asked to clear the firewall layer clears its PackageManager setting instead.
  *
  * ## How the outcome is decided
  * Each package's state is read first. PackageManager calls are sent only for components whose
@@ -58,10 +61,12 @@ import kotlinx.coroutines.flow.Flow
  * decides whether the firewall needs a change. The outcome comes from the state read back
  * afterwards, never from what a call answered. A block is [ControlResult.ACHIEVED] when every
  * layer it uses shows the component blocked, [ControlResult.PARTIAL] when some do, and
- * [ControlResult.FAILED] when none does. An unblock is achieved when the component is
- * [Availability.Runnable] or [Availability.Conditional]; partial when a layer that did not meet
- * the goal before does now but the goal is not confirmed, also when another layer cannot be read;
- * and failed when no layer moved toward the goal. A layer whose call succeeded but whose state
+ * [ControlResult.FAILED] when none does. An unblock is achieved when every layer it uses is clear,
+ * even if a layer it was not asked to clear still blocks the component; the state reported then
+ * shows that layer as it is. With every layer requested, achieved means [Availability.Runnable]
+ * or [Availability.Conditional]. An unblock is partial when a layer that was not clear before is
+ * now but another requested layer is not clear or cannot be read, and failed when no requested
+ * layer moved toward the goal. A layer whose call succeeded but whose state
  * does not show it fails with [ControlFailure.StateNotConfirmed]. A partial result is kept, not
  * rolled back.
  *
@@ -100,7 +105,7 @@ interface ComponentControl {
      * outcome, including those that needed no change. A failure never stops the remaining
      * packages, and the flow never throws except for cancellation.
      *
-     * [ControlLayer]s for a block come from the request; see [ComponentControl].
+     * The [ControlLayer]s to set or clear come from the request for either goal; see [ComponentControl].
      */
     fun apply(request: ControlRequest): Flow<ControlEvent>
 }

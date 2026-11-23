@@ -32,17 +32,11 @@ import com.merxury.blocker.core.model.control.ControlResult
 // What a goal asks of each layer and how the state read back is judged, as ComponentControl says.
 
 /**
- * The layers [goal] changes and judges for [component]. A block uses [requested], except that a
- * provider, which the firewall does not filter, uses the PackageManager setting. An unblock uses
- * every layer that applies.
+ * The layers a request changes and judges for this component: [requested], except that a provider,
+ * which the firewall does not filter, uses its PackageManager setting instead. The same holds for
+ * both goals, so an unblock with the layers a block used clears what that block set.
  */
-internal fun ComponentDeclaration.layersFor(goal: ControlGoal, requested: Set<ControlLayer>): Set<ControlLayer> {
-    val filtered = type.isFilteredByIntentFirewall
-    return when (goal) {
-        ControlGoal.BLOCK -> if (filtered) requested else setOf(ControlLayer.PACKAGE_MANAGER)
-        ControlGoal.UNBLOCK -> if (filtered) ControlLayer.entries.toSet() else setOf(ControlLayer.PACKAGE_MANAGER)
-    }
-}
+internal fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>): Set<ControlLayer> = if (type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)
 
 /** The setting to send so the PackageManager layer meets [goal], or null when it already does. */
 internal fun ComponentDeclaration.pmChange(goal: ControlGoal, layers: Set<ControlLayer>, current: PmSetting): PmSetting? {
@@ -80,14 +74,15 @@ internal fun judge(
     after: ControlState,
     failures: Map<ControlLayer, ControlFailure>,
 ): ComponentOutcome {
-    // For an unblock, no layer missed exactly when the component is runnable or conditional.
+    // Only the requested layers count: an unblock of one layer is achieved when that layer is
+    // clear, even if another layer still blocks; the state reported still shows that layer.
     val missed = layers.filterNot { component.meets(goal, it, after) }
     val result = when {
         missed.isEmpty() -> ControlResult.ACHIEVED
 
         goal == ControlGoal.BLOCK -> if (missed.size < layers.size) ControlResult.PARTIAL else ControlResult.FAILED
 
-        // Unblocking moved a layer to the goal, but another one still blocks or cannot be read.
+        // Unblocking moved a layer to the goal, but another requested one still blocks or cannot be read.
         layers.any { component.meets(goal, it, after) && !component.meets(goal, it, before) } -> ControlResult.PARTIAL
 
         else -> ControlResult.FAILED

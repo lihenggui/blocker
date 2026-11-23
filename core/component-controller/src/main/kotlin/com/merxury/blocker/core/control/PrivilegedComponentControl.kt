@@ -105,7 +105,7 @@ internal class PrivilegedComponentControl @Inject constructor(
      * the package's lock. Once a change is sent, the rest runs even if the caller is cancelled.
      */
     private suspend fun controlPackage(app: AppKey, components: List<ComponentDeclaration>, request: ControlRequest): List<ComponentOutcome> {
-        val layers = components.associate { it.id to it.layersFor(request.goal, request.layers) }
+        val layers = components.associate { it.id to it.layersFor(request.layers) }
         val before = readState(app, components)
         val pmChanges = components.mapNotNull { component ->
             component.pmChange(request.goal, layers.getValue(component.id), before.getValue(component.id).pm)?.let { component.id to it }

@@ -18,6 +18,12 @@ package com.merxury.blocker.core.data.di
 
 import com.merxury.blocker.core.data.appstate.AppStateCache
 import com.merxury.blocker.core.data.appstate.IAppStateCache
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.DeviceUserRepository
+import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.LocalComponentStatusRepository
+import com.merxury.blocker.core.data.device.LocalDeviceUserRepository
+import com.merxury.blocker.core.data.device.LocalInstalledAppRepository
 import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -117,4 +123,13 @@ abstract class DataModule {
     internal abstract fun bindDebloatableComponentRepository(
         debloatableComponentRepository: LocalDebloatableComponentRepository,
     ): DebloatableComponentRepository
+
+    @Binds
+    internal abstract fun bindDeviceUserRepository(repository: LocalDeviceUserRepository): DeviceUserRepository
+
+    @Binds
+    internal abstract fun bindInstalledAppRepository(repository: LocalInstalledAppRepository): InstalledAppRepository
+
+    @Binds
+    internal abstract fun bindComponentStatusRepository(repository: LocalComponentStatusRepository): ComponentStatusRepository
 }

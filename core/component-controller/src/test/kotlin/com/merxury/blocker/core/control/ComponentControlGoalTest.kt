@@ -20,6 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
@@ -128,23 +129,61 @@ class ComponentControlGoalTest {
     }
 
     @Test
-    fun givenBlockedInBothLayers_whenUnblockWithPmLayers_thenEveryLayerCleared() = runTest {
+    fun givenBlockedInBothLayers_whenUnblockWithPm_thenOnlyPmClearedAndAchievedWithRuleShown() = runTest {
         fixture.system.put(OWNER, SYNC.id, PmSetting.DISABLED)
         fixture.blockInIfw(SYNC)
 
         val events = fixture.run(unblock(SYNC, layers = PM_ONLY))
 
-        assertThat(events.outcomeOf(SYNC)).isEqualTo(achieved(SYNC, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+        assertThat(events.outcomeOf(SYNC)).isEqualTo(achieved(SYNC, PmSetting.DEFAULT, IfwBlock.BLOCKED))
+        assertThat(fixture.ifwWrites).isEmpty()
+        assertThat(fixture.files.rulesText()).contains(SYNC.id.flatten())
     }
 
     @Test
-    fun givenPmDisabledOnly_whenUnblockWithIfwLayers_thenPmClearedToo() = runTest {
+    fun givenBlockedInBothLayers_whenUnblockWithIfw_thenOnlyRuleRemovedAndPmKept() = runTest {
+        fixture.system.put(OWNER, BOOT.id, PmSetting.DISABLED)
+        fixture.blockInIfw(BOOT)
+
+        val events = fixture.run(unblock(BOOT, layers = IFW_ONLY))
+
+        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
+        assertThat(fixture.executor.calls).isEmpty()
+        assertThat(fixture.ifwWrites).containsExactly("delete $PKG")
+    }
+
+    @Test
+    fun givenPmDisabledOnly_whenUnblockWithIfw_thenNothingSent() = runTest {
         fixture.system.put(OWNER, BOOT.id, PmSetting.DISABLED)
 
         val events = fixture.run(unblock(BOOT, layers = IFW_ONLY))
 
-        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
+        assertThat(fixture.executor.calls).isEmpty()
         assertThat(fixture.ifwWrites).isEmpty()
+    }
+
+    @Test
+    fun givenDisabledProvider_whenUnblockWithIfw_thenPmClearedInstead() = runTest {
+        fixture.system.put(OWNER, FILES.id, PmSetting.DISABLED)
+
+        val events = fixture.run(unblock(FILES, layers = IFW_ONLY))
+
+        assertThat(events.outcomeOf(FILES)).isEqualTo(achieved(FILES, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+    }
+
+    @Test
+    fun givenPmRefused_whenUnblockWithPmOfComponentAlsoBlockedByRule_thenFailedNotPartial() = runTest {
+        fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
+        fixture.blockInIfw(MAIN)
+        fixture.system.protected += MAIN.id
+
+        val events = fixture.run(unblock(MAIN, layers = PM_ONLY))
+
+        val outcome = events.outcomeOf(MAIN)
+        assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+        assertThat(outcome.state).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED))
+        assertThat(outcome.failures.keys).containsExactly(ControlLayer.PACKAGE_MANAGER)
     }
 
     @Test

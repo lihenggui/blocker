@@ -69,7 +69,7 @@ internal fun declaration(
 
 internal fun block(layers: Set<ControlLayer>, vararg components: ComponentDeclaration, user: UserId = OWNER) = ControlRequest(user, components.toList(), ControlGoal.BLOCK, layers)
 
-internal fun unblock(vararg components: ComponentDeclaration, layers: Set<ControlLayer> = PM_ONLY, user: UserId = OWNER) = ControlRequest(user, components.toList(), ControlGoal.UNBLOCK, layers)
+internal fun unblock(vararg components: ComponentDeclaration, layers: Set<ControlLayer> = BOTH, user: UserId = OWNER) = ControlRequest(user, components.toList(), ControlGoal.UNBLOCK, layers)
 
 internal fun List<ControlEvent>.outcomes(): List<ComponentOutcome> = filterIsInstance<ControlEvent.PackageDone>().flatMap { it.outcomes }
 

@@ -26,7 +26,10 @@ enum class ControlGoal {
     /** Stop the component through the requested layers. */
     BLOCK,
 
-    /** Make the component runnable, whatever layer stops it. */
+    /**
+     * Clear the requested layers. With every layer, [ControlLayer.entries], the component becomes
+     * runnable; with fewer, a layer that was not requested may still block it.
+     */
     UNBLOCK,
 }
 
@@ -37,10 +40,9 @@ enum class ControlGoal {
  * change to them reaches every user.
  * @property components in the order to work through them; packages are handled in the order they
  * first appear, and a component listed twice counts once
- * @property layers the layers a [ControlGoal.BLOCK] uses; not empty for a block, ignored for
- * [ControlGoal.UNBLOCK], which clears every layer. A provider is not filtered by the Intent
- * Firewall, so a block that asks for [ControlLayer.INTENT_FIREWALL] uses
- * [ControlLayer.PACKAGE_MANAGER] for it instead.
+ * @property layers the layers the goal sets or clears; never empty. A provider is not filtered by
+ * the Intent Firewall, so a request that asks for [ControlLayer.INTENT_FIREWALL] uses
+ * [ControlLayer.PACKAGE_MANAGER] for it instead, for either goal.
  */
 data class ControlRequest(
     val user: UserId,
@@ -49,7 +51,7 @@ data class ControlRequest(
     val layers: Set<ControlLayer>,
 ) {
     init {
-        require(goal == ControlGoal.UNBLOCK || layers.isNotEmpty()) { "A block needs at least one layer" }
+        require(layers.isNotEmpty()) { "A request needs at least one layer" }
     }
 }
 

@@ -49,8 +49,8 @@ class ControlRequestTest {
     }
 
     @Test
-    fun givenUnblockWithoutLayers_whenCreate_thenAccepted() {
-        assertThat(ControlRequest(UserId.SYSTEM, emptyList(), ControlGoal.UNBLOCK, emptySet()).layers).isEmpty()
+    fun givenUnblockWithoutLayers_whenCreate_thenRejected() {
+        assertThrows(IllegalArgumentException::class.java) { ControlRequest(UserId.SYSTEM, emptyList(), ControlGoal.UNBLOCK, emptySet()) }
     }
 
     @Test
