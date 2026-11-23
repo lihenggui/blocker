@@ -65,11 +65,10 @@ internal class IfwController @Inject constructor(
             return 0
         }
         var succeededCount = 0
-        val list = componentList.map { ComponentName(it.packageName, it.name) }
-        intentFirewall.removeAllComponentFilters(list) {
+        val componentsByName = componentList.associateBy { ComponentName(it.packageName, it.name) }
+        intentFirewall.removeAllComponentFilters(componentsByName.keys.toList()) {
             succeededCount++
-            val component = componentList
-                .find { info -> info.packageName == it.packageName && info.name == it.className }
+            val component = componentsByName[it]
             if (component != null) {
                 action(component)
             }
@@ -86,11 +85,10 @@ internal class IfwController @Inject constructor(
             return 0
         }
         var succeededCount = 0
-        val list = componentList.map { ComponentName(it.packageName, it.name) }
-        intentFirewall.addAllComponentFilters(list) {
+        val componentsByName = componentList.associateBy { ComponentName(it.packageName, it.name) }
+        intentFirewall.addAllComponentFilters(componentsByName.keys.toList()) {
             succeededCount++
-            val component = componentList
-                .find { info -> info.packageName == it.packageName && info.name == it.className }
+            val component = componentsByName[it]
             if (component != null) {
                 action(component)
             }

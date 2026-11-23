@@ -1,0 +1,117 @@
+/*
+ * Copyright 2026 Blocker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.merxury.blocker.core.controllers.utils
+
+import android.content.ComponentName
+import android.content.pm.IPackageManager
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.merxury.blocker.core.exception.RootUnavailableException
+import com.merxury.blocker.core.model.data.ComponentInfo
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+
+// Bound Binder payloads even for apps declaring unusually many components.
+private const val COMPONENTS_PER_BATCH = 200
+
+/**
+ * Changes components one app and at most [COMPONENTS_PER_BATCH] components at a time with
+ * [applyBatch]. The system batch call rejects the whole chunk when one component in it no
+ * longer exists, so a chunk that fails is retried one component at a time with [applyOne]:
+ * the valid components still change and only the failing ones are left out.
+ * [onApplied] runs for each applied component. Returns how many were applied.
+ */
+internal suspend fun controlComponentBatches(
+    components: List<ComponentInfo>,
+    applyBatch: suspend (List<ComponentInfo>) -> Boolean,
+    applyOne: suspend (ComponentInfo) -> Boolean,
+    onApplied: suspend (ComponentInfo) -> Unit,
+): Int {
+    var succeeded = 0
+    components.distinctBy { it.packageName to it.name }.groupBy { it.packageName }.values.forEach { packageComponents ->
+        packageComponents.chunked(COMPONENTS_PER_BATCH).forEach { batch ->
+            if (tryControl("${batch.size} components of ${batch.first().packageName}") { applyBatch(batch) }) {
+                batch.forEach { onApplied(it) }
+                succeeded += batch.size
+            } else {
+                succeeded += controlComponentsOneByOne(batch, applyOne, onApplied)
+            }
+        }
+    }
+    return succeeded
+}
+
+/**
+ * Changes each component with [applyOne]. A component that fails is logged and left out
+ * without stopping the others. [onApplied] runs for each applied component.
+ * Returns how many were applied.
+ */
+internal suspend fun controlComponentsOneByOne(
+    components: List<ComponentInfo>,
+    applyOne: suspend (ComponentInfo) -> Boolean,
+    onApplied: suspend (ComponentInfo) -> Unit,
+): Int {
+    var succeeded = 0
+    components.forEach { component ->
+        if (tryControl("${component.packageName}/${component.name}") { applyOne(component) }) {
+            onApplied(component)
+            succeeded++
+        }
+    }
+    return succeeded
+}
+
+/**
+ * Sends one change with [control] and returns false when it fails. Nothing is sent once the
+ * caller is cancelled, but a change that has been sent runs to the end: cancelling a root
+ * command only stops the wait, and a change that lands after the caller reads the state back
+ * would never be recorded. Cancellation propagates, and so does a missing root grant: every
+ * remaining call would fail the same way, so retrying cannot help.
+ */
+private suspend fun tryControl(target: String, control: suspend () -> Boolean): Boolean {
+    currentCoroutineContext().ensureActive()
+    return try {
+        withContext(NonCancellable) { control() }.also { applied -> if (!applied) Timber.w("Cannot change $target") }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: RootUnavailableException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.w(e, "Cannot change $target")
+        false
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+internal fun IPackageManager.setComponentsEnabled(
+    components: List<ComponentName>,
+    state: Int,
+    userId: Int,
+    callingPackage: String,
+) {
+    val settings = components.map { PackageManager.ComponentEnabledSetting(it, state, 0) }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        setComponentEnabledSettings(settings, userId, callingPackage)
+    } else {
+        setComponentEnabledSettings(settings, userId)
+    }
+}

@@ -29,6 +29,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppComponentDao {
+    @Query("SELECT * FROM app_component")
+    fun getAll(): Flow<List<AppComponentEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg appComponentEntities: AppComponentEntity)
 
@@ -52,6 +55,10 @@ interface AppComponentDao {
 
     @Query("SELECT * FROM app_component WHERE pm_blocked = 1")
     suspend fun getPmBlockedComponents(): List<AppComponentEntity>
+
+    /** Sets only the PM state of an indexed component. Does nothing for a component that is not indexed. */
+    @Query("UPDATE app_component SET pm_blocked = :pmBlocked WHERE package_name = :packageName AND component_name = :componentName")
+    suspend fun updatePmBlocked(packageName: String, componentName: String, pmBlocked: Boolean): Int
 
     @Query(
         "SELECT * FROM app_component WHERE package_name = :packageName " +

@@ -31,8 +31,12 @@ import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -129,61 +133,50 @@ internal class IntentFirewall @Inject constructor(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
-        if (!rootChecker.isRootAvailable()) {
-            throw RootUnavailableException()
-        }
         Timber.i("Add component filters for ${list.size} components")
-        val groupedMap = list.groupBy { it.packageName }
-        groupedMap.keys.forEach { packageName ->
-            val added = mutableListOf<ComponentName>()
-            val saved = updateRules(packageName) { current ->
-                var rules = current
-                groupedMap[packageName]?.forEach componentLoop@{ component ->
-                    val type = componentTypeResolver.getComponentType(packageName, component.className)
-                    if (type == PROVIDER) {
-                        Timber.d("Cannot add IFW rule for $component")
-                        return@componentLoop
-                    }
-                    val ifwType = type.toIfwComponentType() ?: return@componentLoop
-                    val formattedName = component.flattenToString()
-                    rules = rules.addComponentFilter(ifwType, formattedName)
-                    added += component
-                }
-                rules
-            }
-            // Report only saved changes, and outside the lock so callbacks cannot deadlock on it.
-            if (saved) added.forEach { callback(it) }
-        }
+        updateComponentFilters(list, callback) { rules, type, name -> rules.addComponentFilter(type, name) }
     }
 
     override suspend fun removeAllComponentFilters(
         list: List<ComponentName>,
         callback: suspend (ComponentName) -> Unit,
     ) {
+        Timber.i("Remove component filters for ${list.size} components")
+        updateComponentFilters(list, callback) { rules, type, name -> rules.removeComponentFilter(type, name) }
+    }
+
+    /**
+     * Applies [change] to every component of a package in one [updateRules] call, so each
+     * package is read, changed and written once under its lock. Component types are resolved
+     * once per package before the lock is taken. [callback] runs only for packages whose rules
+     * were saved or already matched, and outside the lock so it cannot deadlock on it.
+     */
+    private suspend fun updateComponentFilters(
+        list: List<ComponentName>,
+        callback: suspend (ComponentName) -> Unit,
+        change: (IfwRules, IfwComponentType, String) -> IfwRules,
+    ) {
         if (!rootChecker.isRootAvailable()) {
             throw RootUnavailableException()
         }
-        Timber.i("Remove component filters for ${list.size} components")
-        val groupedMap = list.groupBy { it.packageName }
-        groupedMap.keys.forEach { packageName ->
-            val removed = mutableListOf<ComponentName>()
-            val saved = updateRules(packageName) { current ->
-                var rules = current
-                groupedMap[packageName]?.forEach componentLoop@{ component ->
-                    val type = componentTypeResolver.getComponentType(packageName, component.className)
-                    if (type == PROVIDER) {
-                        Timber.d("Cannot remove IFW rule for $component")
-                        return@componentLoop
-                    }
-                    val ifwType = type.toIfwComponentType() ?: return@componentLoop
-                    val formattedName = component.flattenToString()
-                    rules = rules.removeComponentFilter(ifwType, formattedName)
-                    removed += component
+        list.distinct().groupBy { it.packageName }.forEach { (packageName, components) ->
+            // A cancelled caller changes no further package.
+            currentCoroutineContext().ensureActive()
+            val types = componentTypeResolver.getComponentTypes(packageName, components.map { it.className })
+            val changes = components.mapNotNull { component ->
+                val ifwType = types[component.className]?.toIfwComponentType()
+                if (ifwType == null) {
+                    Timber.d("Cannot change IFW rule for $component")
+                    null
+                } else {
+                    component to ifwType
                 }
-                rules
             }
-            // Report only saved changes, and outside the lock so callbacks cannot deadlock on it.
-            if (saved) removed.forEach { callback(it) }
+            if (changes.isEmpty()) return@forEach
+            val saved = updateRules(packageName) { current ->
+                changes.fold(current) { rules, (component, type) -> change(rules, type, component.flattenToString()) }
+            }
+            if (saved) changes.forEach { (component, _) -> callback(component) }
         }
     }
 
@@ -251,7 +244,11 @@ internal class IntentFirewall @Inject constructor(
 
     /**
      * Applies [transform] to the current rules and saves the result under the package lock.
+     * Skips the write when the rules already have the requested content.
      * Returns false without writing when the current rules cannot be read.
+     * A write that has started runs to the end even if the caller is cancelled: cancelling a
+     * root command only stops the wait, so the file could still change after the caller has
+     * read it back.
      */
     private suspend fun updateRules(packageName: String, transform: suspend (IfwRules) -> IfwRules): Boolean = withPackageLock(packageName) {
         val current = loadRulesLocked(packageName).rulesOrNull()
@@ -259,7 +256,8 @@ internal class IntentFirewall @Inject constructor(
             Timber.w("Leave IFW rules for $packageName untouched because they cannot be read")
             return@withPackageLock false
         }
-        saveRulesLocked(packageName, transform(current))
+        val updated = transform(current)
+        if (updated != current) withContext(NonCancellable) { saveRulesLocked(packageName, updated) }
         true
     }
 
@@ -335,20 +333,23 @@ private fun IfwRules.addComponentFilter(
 }
 
 /**
- * Removes a component-filter from the rules for the given component type.
- * Returns a new [IfwRules] instance with the filter removed.
+ * Removes a component-filter from every rule of the given component type that has it, since
+ * the editor can split one type over several rules and any of them blocks the component.
+ * Returns a new [IfwRules] instance with the filter removed. Other filters, conditions and
+ * attributes stay as they are. A rule is dropped only when it is left with no filters and no
+ * intent filters, because intent filters block intents independently of the component.
  */
 private fun IfwRules.removeComponentFilter(
     componentType: IfwComponentType,
     name: String,
 ): IfwRules {
     val filter = IfwFilter.ComponentFilter(name)
-    val existingRule = rulesFor(componentType).firstOrNull() ?: return this
-    val updatedFilters = existingRule.filters - filter
-    return if (updatedFilters.isEmpty()) {
-        IfwRules(rules.filter { it !== existingRule })
-    } else {
-        val updatedRule = existingRule.copy(filters = updatedFilters)
-        IfwRules(rules.map { if (it === existingRule) updatedRule else it })
-    }
+    if (rulesFor(componentType).none { filter in it.filters }) return this
+    return IfwRules(
+        rules.mapNotNull { rule ->
+            if (rule.componentType != componentType || filter !in rule.filters) return@mapNotNull rule
+            val updatedFilters = rule.filters.filterNot { it == filter }
+            if (updatedFilters.isEmpty() && rule.intentFilters.isEmpty()) null else rule.copy(filters = updatedFilters)
+        },
+    )
 }

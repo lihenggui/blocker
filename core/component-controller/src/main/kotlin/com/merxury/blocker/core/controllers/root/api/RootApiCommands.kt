@@ -27,11 +27,13 @@ import android.content.pm.IPackageManager
 import android.content.pm.VersionedPackage
 import android.os.Build
 import android.os.Parcelable
+import androidx.annotation.RequiresApi
 import be.mygod.librootkotlinx.ParcelableBoolean
 import be.mygod.librootkotlinx.ParcelableStringList
 import be.mygod.librootkotlinx.RootCommand
 import be.mygod.librootkotlinx.systemContext
 import com.merxury.blocker.core.controllers.utils.ContextUtils.userId
+import com.merxury.blocker.core.controllers.utils.setComponentsEnabled
 import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.parcelize.Parcelize
 import timber.log.Timber
@@ -93,6 +95,18 @@ internal data class SetComponentEnabledSettingCommand(
                 RootApiServices.userId,
             )
         }
+        return ParcelableBoolean(true)
+    }
+}
+
+@Parcelize
+internal data class SetComponentsEnabledSettingCommand(
+    private val components: List<ComponentName>,
+    private val state: Int,
+) : RootCommand<ParcelableBoolean> {
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    override suspend fun execute(): ParcelableBoolean {
+        RootApiServices.pm.setComponentsEnabled(components, state, RootApiServices.userId, RootApiServices.packageName)
         return ParcelableBoolean(true)
     }
 }

@@ -208,7 +208,8 @@ class DebloaterViewModel @Inject constructor(
             )
             val components = entities.map { it.toComponentInfo() }
             userDataRepository.userData.first().controllerType
-            var successCount = 0
+            var processedCount = 0
+            var failedCount = 0
             componentRepository.batchControlComponent(
                 components = components,
                 newState = enable,
@@ -228,9 +229,17 @@ class DebloaterViewModel @Inject constructor(
                     )
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect { _ ->
-                    successCount++
-                    Timber.v("Controlled $successCount/${components.size} components")
+                .collect { result ->
+                    processedCount++
+                    if (!result.succeeded) {
+                        failedCount++
+                        val component = result.component
+                        changeDebloatableComponentUiStatus(
+                            changed = entities.filter { it.packageName == component.packageName && it.componentName == component.name },
+                            enabled = !enable,
+                        )
+                    }
+                    Timber.v("Controlled $processedCount/${components.size} components, $failedCount failed")
                 }
         }
     }

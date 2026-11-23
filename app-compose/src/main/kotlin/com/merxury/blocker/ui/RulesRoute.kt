@@ -35,7 +35,6 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.navigation.Navigator
-import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.generalrule.api.navigation.GeneralRuleNavKey
 import com.merxury.blocker.feature.generalrule.impl.GeneralRulesScreen
 import com.merxury.blocker.feature.generalrule.impl.GeneralRulesViewModel
@@ -67,7 +66,6 @@ private fun RulesRoute(
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(RulesTab.TRACKERS) }
     val rulesTitle = stringResource(R.string.rules)
-    val snackbarHostState = LocalSnackbarHostState.current
     val generalRulesViewModel = hiltViewModel<GeneralRulesViewModel, GeneralRulesViewModel.Factory>(
         key = key.initialRuleId,
     ) { factory ->
@@ -91,7 +89,6 @@ private fun RulesRoute(
     when (selectedTab) {
         RulesTab.TRACKERS -> GeneralRulesScreen(
             navigateToRuleDetail = navigator::navigateToRuleDetail,
-            snackbarHostState = snackbarHostState,
             title = rulesTitle,
             belowTopBar = tabRow,
             modifier = modifier.fillMaxSize(),

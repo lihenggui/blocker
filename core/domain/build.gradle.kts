@@ -45,4 +45,5 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.robolectric)
 }

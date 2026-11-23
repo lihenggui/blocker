@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.test.repository
 
+import com.merxury.blocker.core.data.respository.component.ComponentControlResult
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
@@ -28,6 +29,8 @@ import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 class FakeComponentRepository @Inject constructor() : ComponentRepository {
+    override fun getAllComponents(): Flow<List<ComponentInfo>> = flowOf(emptyList())
+
     override fun getComponent(name: String): Flow<ComponentInfo?> = flowOf()
 
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = flowOf(emptyList())
@@ -55,11 +58,14 @@ class FakeComponentRepository @Inject constructor() : ComponentRepository {
         components: List<ComponentInfo>,
         newState: Boolean,
         controllerType: ControllerType?,
-    ): Flow<ComponentInfo> = flowOf(
-        ComponentInfo(
-            name = "",
-            packageName = "",
-            type = ACTIVITY,
+    ): Flow<ComponentControlResult> = flowOf(
+        ComponentControlResult(
+            component = ComponentInfo(
+                name = "",
+                packageName = "",
+                type = ACTIVITY,
+            ),
+            succeeded = true,
         ),
     )
 

@@ -133,6 +133,8 @@ class FakeGeneralRuleRepository @Inject constructor() : GeneralRuleRepository {
 
     override suspend fun saveGeneralRule(rule: GeneralRule) = Unit
 
+    override suspend fun updateMatchedAppCounts(counts: Map<Int, Int>) = Unit
+
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = getGeneralRules().map { rules ->
         rules.filter { rule ->
             rule.name.contains(keyword, ignoreCase = true) || rule.searchKeyword.contains(keyword)

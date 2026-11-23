@@ -62,6 +62,11 @@
     <string name="core_ui_disabling_component_hint">A desativar componentes, por favor aguarde… (%1$d/%2$d)</string>
     <string name="core_ui_enabling_component_hint">A ativar componentes, por favor aguarde… (%1$d/%2$d)</string>
     <string name="core_ui_operation_completed">Operação concluída</string>
+    <plurals name="core_ui_operation_completed_with_failures">
+        <item quantity="one">Operação concluída. Não foi possível alterar %1$d componente</item>
+        <item quantity="many">Operação concluída. Não foi possível alterar %1$d componentes</item>
+        <item quantity="other">Operação concluída. Não foi possível alterar %1$d componentes</item>
+    </plurals>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Deseja limpar os dados deste app?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Deseja desinstalar este app?</string>
     <string name="core_ui_found">Encontrado</string>

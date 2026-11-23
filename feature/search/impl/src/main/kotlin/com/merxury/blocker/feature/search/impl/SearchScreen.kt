@@ -92,6 +92,7 @@ import com.merxury.blocker.feature.search.impl.screen.SearchingScreen
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import com.merxury.blocker.core.ui.R.plurals as uiplurals
 import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
@@ -162,18 +163,23 @@ fun SearchScreen(
     }
 }
 
+private fun completedMessage(context: Context, failed: Int): String = if (failed > 0) {
+    context.resources.getQuantityString(uiplurals.core_ui_operation_completed_with_failures, failed, failed)
+} else {
+    context.getString(uistring.core_ui_operation_completed)
+}
+
 private fun handleEnableAppClick(
     context: Context,
     viewModel: SearchViewModel,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 ) {
-    val doneMessage = context.getString(uistring.core_ui_operation_completed)
-    viewModel.controlAllSelectedComponents(true) { current, total ->
+    viewModel.controlAllSelectedComponents(true) { current, total, failed ->
         scope.launch {
             if (current == total) {
                 snackbarHostState.showSnackbar(
-                    message = doneMessage,
+                    message = completedMessage(context, failed),
                     duration = Short,
                     withDismissAction = true,
                 )
@@ -198,12 +204,11 @@ private fun handleBlockAllClick(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 ) {
-    val doneMessage = context.getString(uistring.core_ui_operation_completed)
-    viewModel.controlAllSelectedComponents(false) { current, total ->
+    viewModel.controlAllSelectedComponents(false) { current, total, failed ->
         scope.launch {
             if (current == total) {
                 snackbarHostState.showSnackbar(
-                    message = doneMessage,
+                    message = completedMessage(context, failed),
                     duration = Short,
                     withDismissAction = true,
                 )

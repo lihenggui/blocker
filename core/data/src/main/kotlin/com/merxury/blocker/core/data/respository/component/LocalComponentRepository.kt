@@ -27,6 +27,7 @@ import com.merxury.blocker.core.database.app.toAppComponentEntity
 import com.merxury.blocker.core.database.app.toComponentInfo
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -37,7 +38,9 @@ import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -45,8 +48,10 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.zip
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.TimeSource
 
 internal class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
@@ -58,6 +63,10 @@ internal class LocalComponentRepository @Inject constructor(
     @CombinedControl private val combinedController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentRepository {
+
+    override fun getAllComponents(): Flow<List<ComponentInfo>> = appComponentDao.getAll()
+        .map { list -> list.map { it.toComponentInfo() } }
+        .flowOn(ioDispatcher)
 
     override fun getComponent(name: String): Flow<ComponentInfo?> = appComponentDao.getByName(name)
         .map { it?.toComponentInfo() }
@@ -150,55 +159,146 @@ internal class LocalComponentRepository @Inject constructor(
         components: List<ComponentInfo>,
         newState: Boolean,
         controllerType: ControllerType?,
-    ): Flow<ComponentInfo> = flow {
+    ): Flow<ComponentControlResult> = flow {
         Timber.i("Batch control ${components.size} components to state $newState")
         val effectiveControllerType = controllerType ?: userDataRepository.userData.first().controllerType
-        val controller = when (effectiveControllerType) {
+        val packages = components.distinctBy { it.packageName to it.name }.groupBy { it.packageName }
+        packages.values.forEach { packageComponents ->
+            controlPackage(packageComponents, newState, effectiveControllerType).forEach { emit(it) }
+        }
+    }
+        .flowOn(ioDispatcher)
+
+    /**
+     * Changes the components of one app, then reads back and saves the state the device reports
+     * for them, also when the change failed or was cancelled part way. A failure is logged and
+     * reported per component, so the caller can go on with the next app. Cancellation and a
+     * missing root grant are rethrown once the state is saved, so no further app is started:
+     * without root every other app would fail the same way.
+     */
+    private suspend fun controlPackage(
+        packageComponents: List<ComponentInfo>,
+        newState: Boolean,
+        controllerType: ControllerType,
+    ): List<ComponentControlResult> {
+        val packageName = packageComponents.first().packageName
+        val started = TimeSource.Monotonic.markNow()
+        val applied = mutableSetOf<Pair<String, String>>()
+        val failure: Exception? = try {
+            changePackage(packageComponents, newState, controllerType) { applied += it.packageName to it.name }
+            null
+        } catch (e: CancellationException) {
+            e
+        } catch (e: Exception) {
+            e
+        }
+        val reconciled = try {
+            // Changes made before a cancellation or a lost root grant still have to be saved.
+            withContext(NonCancellable) {
+                if (failure is RootUnavailableException) {
+                    savePmState(packageComponents)
+                    null
+                } else {
+                    readBackAndSave(packageComponents)
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot read back or save ${packageComponents.size} components of $packageName")
+            null
+        }
+        if (failure is CancellationException || failure is RootUnavailableException) throw failure
+        if (failure != null) Timber.e(failure, "Cannot change components of $packageName")
+        val results = (reconciled ?: packageComponents).map { component ->
+            val succeeded = reconciled != null &&
+                (component.packageName to component.name) in applied &&
+                component.hasRequestedState(controllerType, newState)
+            ComponentControlResult(component, succeeded)
+        }
+        Timber.d("Controlled ${packageComponents.size} components of $packageName in ${started.elapsedNow()}, ${results.count { !it.succeeded }} failed")
+        return results
+    }
+
+    /**
+     * Changes one app's components. The controllers send nothing more once the caller is
+     * cancelled, and let the change they have already sent finish, so the read-back that
+     * follows sees every change that was made.
+     */
+    private suspend fun changePackage(
+        components: List<ComponentInfo>,
+        newState: Boolean,
+        controllerType: ControllerType,
+        onApplied: suspend (ComponentInfo) -> Unit,
+    ) {
+        val controller = when (controllerType) {
             IFW -> ifwController
             PM -> pmController
             SHIZUKU -> shizukuController
             IFW_PLUS_PM -> combinedController
         }
-        // Filter providers first in the list if preferred controller is IFW
-        if (effectiveControllerType == IFW) {
-            // IFW doesn't have the ability to enable/disable providers
-            val providers = components.filter { it.type == ComponentType.PROVIDER }
-            providers.forEach {
-                if (newState) {
-                    pmController.enable(it)
-                } else {
-                    pmController.disable(it)
-                }
-                emit(it)
-            }
-            // if users want to enable the component, check if it's blocked by PM controller
-            if (newState) {
-                val blockedByPm = components.filter {
-                    it.pmBlocked && it.type != ComponentType.PROVIDER
-                }
-                blockedByPm.forEach {
-                    pmController.enable(it)
-                }
-            }
+        if (controllerType != IFW) {
+            controller.batchSwitch(components, newState, onApplied)
+            return
         }
+        // IFW cannot block providers, so PM changes them.
+        val (providers, ifwComponents) = components.partition { it.type == ComponentType.PROVIDER }
+        pmController.batchSwitch(providers, newState, onApplied)
         if (newState) {
-            controller.batchEnable(components) {
-                emit(it)
-            }
-        } else {
-            controller.batchDisable(components) {
-                emit(it)
-            }
+            // Enabling also lifts PM blocks left on components that IFW controls.
+            val pmStates = pmController.checkComponentEnableStates(ifwComponents)
+            pmController.batchEnable(ifwComponents.filter { pmStates[it] == false }) {}
         }
-        val updatedComponents = components.map {
-            it.copy(
-                pmBlocked = !pmController.checkComponentEnableState(it.packageName, it.name),
-                ifwBlocked = !ifwController.checkComponentEnableState(it.packageName, it.name),
-            ).toAppComponentEntity()
-        }
-        appComponentDao.upsertComponentList(updatedComponents)
+        controller.batchSwitch(ifwComponents, newState, onApplied)
     }
-        .flowOn(ioDispatcher)
+
+    private suspend fun IController.batchSwitch(
+        components: List<ComponentInfo>,
+        enable: Boolean,
+        onApplied: suspend (ComponentInfo) -> Unit,
+    ) {
+        if (enable) batchEnable(components, onApplied) else batchDisable(components, onApplied)
+    }
+
+    /** Reads the PM and IFW state of [components] from the device and saves it. */
+    private suspend fun readBackAndSave(components: List<ComponentInfo>): List<ComponentInfo> {
+        val pmStates = pmController.checkComponentEnableStates(components)
+        val ifwStates = ifwController.checkComponentEnableStates(components)
+        val reconciled = components.map {
+            it.copy(pmBlocked = !pmStates.getValue(it), ifwBlocked = !ifwStates.getValue(it))
+        }
+        appComponentDao.upsertComponentList(reconciled.map { it.toAppComponentEntity() })
+        return reconciled
+    }
+
+    /**
+     * Saves only the PM state of [components], which is read without root, to the rows that
+     * already exist for them. Without root the IFW rules cannot be read and an unreadable file
+     * reads as not blocked, so no IFW state is written and no row with an unverified IFW state
+     * is added. The callers' IFW flags may come from such a read.
+     */
+    private suspend fun savePmState(components: List<ComponentInfo>) {
+        val pmStates = pmController.checkComponentEnableStates(components)
+        components.forEach {
+            appComponentDao.updatePmBlocked(it.packageName, it.name, pmBlocked = !pmStates.getValue(it))
+        }
+    }
+
+    private fun ComponentInfo.hasRequestedState(controllerType: ControllerType, enabled: Boolean): Boolean = when (controllerType) {
+        IFW -> if (type == ComponentType.PROVIDER) {
+            pmBlocked != enabled
+        } else if (enabled) {
+            !pmBlocked && !ifwBlocked
+        } else {
+            ifwBlocked
+        }
+
+        PM -> pmBlocked != enabled
+
+        SHIZUKU -> pmBlocked != enabled
+
+        IFW_PLUS_PM -> pmBlocked != enabled && (type == ComponentType.PROVIDER || ifwBlocked != enabled)
+    }
 
     override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
         .map { list ->

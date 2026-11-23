@@ -45,12 +45,14 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
 ) : GeneralRuleRepository {
 
     override fun getGeneralRules(): Flow<List<GeneralRule>> = generalRuleDao.getGeneralRuleEntities()
-        .mapNotNull { it.map(GeneralRuleEntity::asExternalModel) }
-        .map {
-            // Fallback to rules in the data folder if the database is empty
-            it.ifEmpty {
-                dataSource.getGeneralRules().first()
+        .map { cachedRules ->
+            val rules = cachedRules.ifEmpty {
+                // Cache fallback rules before their matched counts can be updated.
+                val fallbackRules = dataSource.getGeneralRules().first()
+                    .map(GeneralRule::fromExternalModel)
+                generalRuleDao.getOrInitializeGeneralRules(fallbackRules)
             }
+            rules.map(GeneralRuleEntity::asExternalModel)
         }
 
     override fun getGeneralRule(id: Int): Flow<GeneralRule> = generalRuleDao.getGeneralRuleEntity(id)
@@ -90,6 +92,10 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
 
     override suspend fun saveGeneralRule(rule: GeneralRule) {
         generalRuleDao.upsertGeneralRule(rule.fromExternalModel())
+    }
+
+    override suspend fun updateMatchedAppCounts(counts: Map<Int, Int>) {
+        generalRuleDao.updateMatchedAppCounts(counts)
     }
 
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = generalRuleDao.searchGeneralRule(keyword)
