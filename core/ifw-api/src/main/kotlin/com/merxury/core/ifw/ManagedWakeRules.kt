@@ -7,9 +7,6 @@ import android.content.Context
 import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
-import be.mygod.librootkotlinx.ParcelableBoolean
-import be.mygod.librootkotlinx.RootCommand
-import be.mygod.librootkotlinx.RootCommandNoResult
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -19,9 +16,6 @@ import com.merxury.core.ifw.model.StringMatcher
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.parcelize.Parcelize
 import java.io.File
 import javax.inject.Inject
 
@@ -29,29 +23,37 @@ private const val AUTOMATIC_FILE = "blocker-managed-wake"
 private const val PROBE_FILE = "blocker-wake-capability-probe"
 data class WakeServiceFilter(val caller: String, val target: String, val service: String, val action: String)
 
-enum class WakeResetTransport { DIRECT_ROOT, SHIZUKU_ROOT }
-
 fun interface ManagedWakeReset {
-    /** Returns whether the requested scope still contains manual rules. */
-    suspend fun resetFirewall(packageName: String?, transport: WakeResetTransport): Boolean
+    /**
+     * Resets the wake feature's rules of [packageName], or all of them when null. Returns false,
+     * without a change, when the privileged channel cannot write them.
+     */
+    suspend fun resetFirewall(packageName: String?): Boolean
 }
 
+/**
+ * Writes the wake feature's own Intent Firewall files. A call that cannot be made throws; the
+ * caller decides beforehand whether the channel may write them.
+ */
 interface WakeRuleWriter {
-    suspend fun write(xml: String?, probe: Boolean)
-    suspend fun reset(packageName: String?, transport: WakeResetTransport): Boolean
+    /** Replaces the [kind] file with [xml], or deletes it when [xml] is null. */
+    suspend fun write(kind: WakeRuleFileKind, xml: String?)
+
+    /** Removes the rules for [packageName] from the managed file, or both files when null. */
+    suspend fun reset(packageName: String?)
 }
 
 class ManagedWakeRules @Inject constructor(
     private val writer: WakeRuleWriter,
     @param:ApplicationContext private val context: Context,
 ) {
-    suspend fun reset(packageName: String?, transport: WakeResetTransport) = writer.reset(packageName, transport)
+    suspend fun reset(packageName: String?) = writer.reset(packageName)
 
     suspend fun supportsPeerFilter(): Boolean = testPeerFilter(context, writer)
 
     suspend fun replace(paths: Collection<WakeServiceFilter>) {
-        writer.write(renderWakeRules(paths), false)
-        writer.write(null, true)
+        writer.write(WakeRuleFileKind.MANAGED, renderWakeRules(paths))
+        writer.write(WakeRuleFileKind.PROBE, null)
     }
 }
 
@@ -74,21 +76,6 @@ internal fun renderWakeRules(paths: Collection<WakeServiceFilter>, forcePackageF
         )
     }
     return if (rules.isEmpty()) null else IfwXmlSerializer().serialize(IfwRules(rules))
-}
-
-@Parcelize
-class WriteWakeRules(private val owner: String, private val xml: String?, private val probe: Boolean = false) : RootCommandNoResult {
-    override suspend fun execute() = withContext(Dispatchers.IO) {
-        writeManagedWakeFile(owner, xml, probe)
-        null
-    }
-}
-
-@Parcelize
-data class ResetWakeRules(val owner: String, val packageName: String?) : RootCommand<ParcelableBoolean> {
-    override suspend fun execute() = withContext(Dispatchers.IO) {
-        ParcelableBoolean(resetManagedWakeFiles(owner, packageName))
-    }
 }
 
 /** The two Intent Firewall files the wake feature owns per installation, kept outside `IfwStore`. */
@@ -121,25 +108,7 @@ private val PACKAGE_NAME = Regex("""[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+""")
 /** Whether [name] is a package name as the wake rule files accept it, for an owner or a target. */
 fun isWakePackageName(name: String): Boolean = name.matches(PACKAGE_NAME)
 
-private fun kindOf(probe: Boolean) = if (probe) WakeRuleFileKind.PROBE else WakeRuleFileKind.MANAGED
-
 internal fun isManagedWakeName(name: String): Boolean = name == AUTOMATIC_FILE || name == PROBE_FILE || name.startsWith("$AUTOMATIC_FILE-") || name.startsWith("$PROBE_FILE-")
-
-/** Clears this installation's automatic rules and reports whether manual rules still require direct root. */
-fun resetManagedWakeFiles(owner: String, packageName: String?): Boolean {
-    if (packageName == null) {
-        writeManagedWakeFile(owner, null, false)
-        writeManagedWakeFile(owner, null, true)
-    } else {
-        removeManagedWakePackage(owner, packageName)
-    }
-    val directory = File(IfwStorageUtils.ifwFolder)
-    if (!directory.exists()) return false
-    return checkNotNull(directory.list()).any { file ->
-        file.endsWith(".xml") && !isManagedWakeName(file.removeSuffix(".xml")) &&
-            (packageName == null || file == "$packageName.xml")
-    }
-}
 
 internal fun withoutWakePackage(xml: String, target: String): String? {
     val original = IfwXmlDeserializer().deserialize(xml)
@@ -149,10 +118,6 @@ internal fun withoutWakePackage(xml: String, target: String): String? {
     if (remaining.size == original.rules.size) return xml
     return if (remaining.isEmpty()) null else IfwXmlSerializer().serialize(IfwRules(remaining))
 }
-
-private fun removeManagedWakePackage(owner: String, packageName: String) = removeWakeRuleTarget(owner, WakeRuleFileKind.MANAGED, packageName)
-
-fun writeManagedWakeFile(owner: String, xml: String?, probe: Boolean) = writeWakeRuleFile(owner, kindOf(probe), xml)
 
 /**
  * Replaces [owner]'s [kind] file in [directory] with [xml], so readers only ever see the old or

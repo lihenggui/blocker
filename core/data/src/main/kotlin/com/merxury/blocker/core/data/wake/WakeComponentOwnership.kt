@@ -20,7 +20,7 @@ class WakeComponentOwnership @Inject constructor(
     suspend fun recover() {
         val local = history.readProtections().filter { it.needsComponentJournal() }.associateBy { it.pathId }
         val stored = journal.read()
-        if (stored.isEmpty()) {
+        if (stored == null) {
             // Migrate an existing local journal before making further PackageManager changes.
             if (local.isNotEmpty()) journal.write(Json.encodeToString(local.values.toList()))
             return

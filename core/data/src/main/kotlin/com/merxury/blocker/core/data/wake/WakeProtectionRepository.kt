@@ -4,32 +4,60 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.controllers.root.api.ManagedComponentState
+import com.merxury.blocker.core.controllers.wake.ManagedComponentState
+import com.merxury.blocker.core.database.record.PmBlockRecordDao
 import com.merxury.blocker.core.database.wake.WakeProtection
-import com.merxury.blocker.core.model.wake.WakeAccess
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.core.ifw.ManagedWakeRules
-import com.merxury.core.ifw.WakeResetTransport
 import com.merxury.core.ifw.WakeServiceFilter
+import timber.log.Timber
 import javax.inject.Inject
 
+/**
+ * The user whose components the wake feature changes. It enforces only on a device whose one user
+ * is the owner, see [ReviewedWakePaths.evaluate], and observes otherwise.
+ */
+private val WAKE_USER = UserId.SYSTEM
+
+/**
+ * Applies the reviewed wake paths through the privileged channel the user chose. Only an identity
+ * that may write system files, root or the system uid, changes anything; with any other state the
+ * feature observes only.
+ */
 class WakeProtectionRepository @Inject constructor(
     private val repository: WakeRepository,
     private val ownership: WakeComponentOwnership,
     private val catalog: ReviewedWakePaths,
     private val rules: ManagedWakeRules,
     private val components: ManagedComponentState,
+    private val channel: PrivilegedChannel,
+    private val userBlocks: PmBlockRecordDao,
 ) {
-    suspend fun resetFirewall(packageName: String?, transport: WakeResetTransport): Boolean {
+    /**
+     * The channel for this run's changes, acquired without a prompt: background work must never
+     * show one. Pass it to [revokeStaleFirewallRules] and [applyReviewedPaths].
+     */
+    suspend fun writeChannel(): ChannelState = channel.connectIfGranted()
+
+    /**
+     * Resets the wake rules of [packageName], or all of them when null. Returns false, without a
+     * change, when the channel cannot write them. Never shows a prompt; a reset the user asked for
+     * runs after the rule store's own calls, which connect the channel when needed.
+     */
+    suspend fun resetFirewall(packageName: String?): Boolean {
+        if (!writeChannel().mayEnforce) return false
         val alreadyPending = repository.rulesPending
         repository.markRulesPending(true)
         repository.resetFirewall(packageName)
-        val manualRulesRemain = rules.reset(packageName, transport)
+        rules.reset(packageName)
         repository.markRulesPending(packageName != null && alreadyPending)
-        return manualRulesRemain
+        return true
     }
 
-    suspend fun applyReviewedPaths(capture: WakeImport, access: WakeAccess, now: Long): String {
-        val canManageComponents = access != WakeAccess.SHIZUKU_SHELL && !capture.binderFallback
+    suspend fun applyReviewedPaths(capture: WakeImport, writes: ChannelState, now: Long): String {
+        val canManageComponents = writes.mayEnforce && !capture.binderFallback
         if (canManageComponents) ownership.recover()
         val previous = repository.protections()
         val candidates = catalog.evaluate(repository.observedComponents(now - WAKE_HISTORY_RETENTION_MILLIS), capture.identities, capture.profiles, previous, repository.firewallResets())
@@ -40,30 +68,24 @@ class WakeProtectionRepository @Inject constructor(
             reconcileComponents(previous, candidates.filter { it.method == "PM" })
         }
         if (capture.binderFallback) return "SHIZUKU_USER_SERVICE_UNAVAILABLE"
-        if (access == WakeAccess.SHIZUKU_SHELL) return "OBSERVING_WITH_SHELL"
-        return reconcileFirewall(access, previous.filter { it.method == "IFW" }, candidates.filter { it.method == "IFW" })
+        if (!writes.mayEnforce) return writes.observingStatus()
+        return reconcileFirewall(previous.filter { it.method == "IFW" }, candidates.filter { it.method == "IFW" })
     }
 
-    suspend fun revokeStaleFirewallRules(access: WakeAccess) {
-        val transport = when (access) {
-            WakeAccess.DIRECT_ROOT -> WakeResetTransport.DIRECT_ROOT
-            WakeAccess.SHIZUKU_ROOT -> WakeResetTransport.SHIZUKU_ROOT
-            else -> return
-        }
+    suspend fun revokeStaleFirewallRules(writes: ChannelState) {
+        if (!writes.mayEnforce) return
         val installed = repository.protections().filter { it.method == "IFW" && it.configured }
         val staleTargets = installed.filterNot(catalog::isCurrent).map { it.target }.toSet()
         if (staleTargets.isEmpty()) return
 
         // Drop old revisions even when the following evidence collection fails.
         repository.markRulesPending(true)
-        for (target in staleTargets) rules.reset(target, transport)
+        for (target in staleTargets) rules.reset(target)
         repository.saveProtections(installed.filter { it.target in staleTargets }.map { it.copy(configured = false) })
     }
 
-    private suspend fun reconcileFirewall(access: WakeAccess, previous: List<WakeProtection>, requested: List<WakeProtection>): String {
+    private suspend fun reconcileFirewall(previous: List<WakeProtection>, requested: List<WakeProtection>): String {
         if (requested.isEmpty() && previous.none { it.configured } && !repository.rulesPending) return "OK"
-        // Only Shizuku 13+ supplies the package context used to authenticate file writes.
-        if (access == WakeAccess.SHIZUKU_LEGACY_ROOT) return "IFW_REQUIRES_ROOT_OR_SHIZUKU_13"
 
         repository.markRulesPending(true)
         val peerUnavailable = requested.any { it.caller != it.target } && !rules.supportsPeerFilter()
@@ -81,7 +103,17 @@ class WakeProtectionRepository @Inject constructor(
         for (old in active.values.filter { it.pathId !in ids }) {
             val original = old.previousState ?: continue
             if (catalog.sameInstallation(old) && catalog.currentState(old) == disabled) {
-                check(components.compareAndSet(old.target, old.component, disabled, original))
+                var blockedByUser = false
+                val restored = components.compareAndSet(old.target, old.component, WAKE_USER, disabled, original) {
+                    blockedByUser = isBlockedByUser(old)
+                    !blockedByUser
+                }
+                if (blockedByUser) {
+                    // The user blocked it through Blocker too: it stays disabled and only the claim goes.
+                    Timber.i("Keep ${old.target}/${old.component} disabled: the user blocked it")
+                } else {
+                    check(restored)
+                }
             }
             ownership.save(old.copy(configured = false, pendingChange = false))
         }
@@ -109,8 +141,23 @@ class WakeProtectionRepository @Inject constructor(
             if (!path.pendingChange && current != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) continue
             val saved = path.copy(previousState = path.previousState ?: current, pendingChange = true)
             ownership.save(saved)
-            check(components.compareAndSet(path.target, path.component, requireNotNull(saved.previousState), disabled))
+            check(components.compareAndSet(path.target, path.component, WAKE_USER, requireNotNull(saved.previousState), disabled))
             ownership.save(saved.copy(configured = true, pendingChange = false))
         }
     }
+
+    /**
+     * Whether the user blocked [path]'s component through Blocker: it is in the record of the
+     * components Blocker disabled. Read under the package's lock, which that record is written under.
+     */
+    private suspend fun isBlockedByUser(path: WakeProtection): Boolean = userBlocks.getByPackage(path.target, WAKE_USER.value).any { it.className == path.component }
+}
+
+/** Whether the wake feature may change the system through a channel in this state. */
+private val ChannelState.mayEnforce: Boolean get() = this is ChannelState.Ready && identity.canWriteSystemFiles
+
+/** The status of a run that observes only because of this state. */
+private fun ChannelState.observingStatus(): String = when (this) {
+    is ChannelState.Ready -> "OBSERVING_WITH_${identity.name}"
+    is ChannelState.Unavailable -> "OBSERVING_WITHOUT_CHANNEL_${reason.name}"
 }

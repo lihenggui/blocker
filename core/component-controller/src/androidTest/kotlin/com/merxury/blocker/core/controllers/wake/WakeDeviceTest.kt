@@ -16,14 +16,9 @@ import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.os.SystemClock
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.controllers.root.api.ManagedComponentState
-import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.blocker.core.root.BlockerRootSession
-import com.merxury.blocker.core.root.RootCommandExecutor
 import com.merxury.blocker.core.utils.LibrootRootAvailabilityChecker
 import com.merxury.blocker.core.wake.proto.WakeStats
-import com.merxury.core.ifw.WakeServiceFilter
-import com.merxury.core.ifw.renderWakeRules
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
@@ -41,6 +36,10 @@ class WakeFixtureService : Service() {
     override fun onBind(intent: Intent): IBinder = Binder()
 }
 
+/**
+ * Reads the wake feature's evidence through Shizuku (`wakeDeviceTest=true`). Its writes are in
+ * [WakeWriteDeviceTest].
+ */
 class WakeDeviceTest {
     @Test fun givenAuthorizedBinderFallback_whenReadingDiagnostics_thenPackagesAndServicesAreVisible() = runTest {
         assumeTrue(InstrumentationRegistry.getArguments().getString("wakeDeviceTest") == "true")
@@ -55,83 +54,6 @@ class WakeDeviceTest {
             val packages = WakeSystemEvidence.packages(session.read(WakeCommand.PACKAGES).decodeToString())
             assertTrue(packages.any { it.packageName == context.packageName })
             assertTrue(session.read(WakeCommand.SERVICES).decodeToString().contains("ACTIVITY MANAGER SERVICES"))
-        }
-    }
-
-    @Test fun givenRootShizuku_whenDisablingAndRestoringAService_thenItsProcessSurvives() = runTest {
-        assumeTrue(InstrumentationRegistry.getArguments().getString("wakeRootServiceTest") == "true")
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        withContext(Dispatchers.IO) {
-            awaitShizuku()
-            val root = BlockerRootSession(context)
-            val reader = WakeSystemReader(context, LibrootRootAvailabilityChecker(root, context))
-            assertEquals(WakeAccess.SHIZUKU_ROOT, reader.access())
-            val controller = ManagedComponentState(RootCommandExecutor(root), reader, context)
-            val fixture = ComponentName(context, WakeFixtureService::class.java)
-            val original = context.packageManager.getComponentEnabledSetting(fixture)
-            assertEquals(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, original)
-            val disabled = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-            try {
-                assertTrue(controller.compareAndSet(fixture.packageName, fixture.className, original, disabled))
-                assertEquals(disabled, context.packageManager.getComponentEnabledSetting(fixture))
-            } finally {
-                assertTrue(controller.compareAndSet(fixture.packageName, fixture.className, disabled, original))
-            }
-        }
-    }
-
-    @Test fun givenRootUserService_whenWritingAndRemovingProbe_thenProbeFileTracksBothChanges() = runTest {
-        assumeTrue(InstrumentationRegistry.getArguments().getString("wakeRootServiceTest") == "true")
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        withContext(Dispatchers.IO) {
-            awaitShizuku()
-            val reader = WakeSystemReader(context, LibrootRootAvailabilityChecker(BlockerRootSession(context), context))
-            assertEquals(WakeAccess.SHIZUKU_ROOT, reader.access())
-            val probe = "blocker-wake-capability-probe-${context.packageName}.xml"
-            assertTrue(probe !in shell("su 0 ls /data/system/ifw").lines())
-            reader.withSession(WakeAccess.SHIZUKU_ROOT) {
-                try {
-                    it.writeFirewall("<rules/>", true)
-                    assertEquals("<rules/>", shell("su 0 cat /data/system/ifw/$probe"))
-                } finally {
-                    it.writeFirewall(null, true)
-                }
-                assertTrue(probe !in shell("su 0 ls /data/system/ifw").lines())
-            }
-        }
-    }
-
-    @Test fun givenOnlyRootShizuku_whenResettingOneTarget_thenOtherManagedAndManualRulesSurvive() = runTest {
-        assumeTrue(InstrumentationRegistry.getArguments().getString("wakeRootServiceTest") == "true")
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        withContext(Dispatchers.IO) {
-            awaitShizuku()
-            val reader = WakeSystemReader(context, LibrootRootAvailabilityChecker(BlockerRootSession(context), context))
-            val file = "/data/system/ifw/blocker-managed-wake-${context.packageName}.xml"
-            val target = "blocker.test.first"
-            val manual = "/data/system/ifw/$target.xml"
-            val other = "blocker.test.second"
-            val filters = listOf(target, other).map { WakeServiceFilter(it, it, "$it.Service", "test.WAKE") }
-            val xml = requireNotNull(renderWakeRules(filters))
-            assertEquals("", shell("su 0 ls $file $manual 2>/dev/null"))
-            reader.withSession(WakeAccess.SHIZUKU_ROOT) { session ->
-                assertTrue("Shizuku root user service must be attached", session.supportsRecorder)
-                try {
-                    shell("su 0 touch $manual")
-                    session.writeFirewall(xml, false)
-                    assertTrue(session.resetFirewall(target))
-                    assertEquals(renderWakeRules(filters.drop(1)), shell("su 0 cat $file"))
-                    assertEquals(manual, shell("su 0 ls $manual"))
-                    assertTrue(!session.resetFirewall(other))
-                    assertEquals("", shell("su 0 ls $file 2>/dev/null"))
-                } finally {
-                    try {
-                        session.writeFirewall(null, false)
-                    } finally {
-                        shell("su 0 rm -f $manual")
-                    }
-                }
-            }
         }
     }
 

@@ -9,6 +9,7 @@ import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.ManagedWakeReset
 import kotlinx.coroutines.CancellationException
+import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 
@@ -21,11 +22,10 @@ import javax.inject.Inject
  * the controller type is Shizuku. They are deleted without being read, so a damaged file goes too.
  * A reset of every rule file also removes those the global rule editor stored under names of their
  * own; a reset of one package touches only that package's file. They go first because deleting
- * them connects the channel, which may obtain the Shizuku grant the wake feature then uses for its
- * files.
+ * them connects the channel, which may show its prompt; the wake feature's files then go through
+ * the same channel without asking again.
  */
 class FirewallResetRepository @Inject constructor(
-    private val authorization: WakeAuthorizationRepository,
     private val managed: ManagedWakeReset,
     private val rules: IfwStore,
     private val firewall: IIntentFirewall,
@@ -34,11 +34,10 @@ class FirewallResetRepository @Inject constructor(
      * Resets the rules of the package [target], or every rule file when null, reporting each
      * file with [onDelete] (rule file name, position from 1, count) before deleting it.
      *
-     * Returns the number of rule files removed. Returns null when the rule directory cannot be
-     * reached through the chosen channel, unless the wake feature, reaching it on its own, reports
-     * that no rule file in scope remains, which leaves nothing to reset. Throws [IOException]
-     * when deleting a file fails; files deleted before it stay deleted. The wake feature's files
-     * are reset in every case.
+     * Returns the number of rule files removed, or null when the rule directory cannot be reached
+     * through the chosen channel. Throws [IOException] when deleting a file fails; files deleted
+     * before it stay deleted. The wake feature's files are reset in every case, when the channel
+     * may write them.
      */
     suspend fun reset(target: String?, onDelete: suspend (String, Int, Int) -> Unit): Int? {
         try {
@@ -56,10 +55,8 @@ class FirewallResetRepository @Inject constructor(
                 }
                 throw e
             }
-            val rulesRemain = resetWakeFiles(target)
-            // Without access the rule files may still be gone: the wake feature reaches the
-            // directory on its own and reports what remains.
-            return removed ?: if (rulesRemain == false) 0 else null
+            resetWakeFiles(target)
+            return removed
         } finally {
             // Screens not yet cut over to IfwStore still read through IIntentFirewall and its
             // cache; drop this once that cutover is done.
@@ -91,9 +88,8 @@ class FirewallResetRepository @Inject constructor(
         return removed
     }
 
-    /**
-     * Resets the wake feature's files and returns whether rule files in scope remain, as it sees
-     * them, or null when it cannot reach its files; then it cannot have written any.
-     */
-    private suspend fun resetWakeFiles(target: String?): Boolean? = authorization.resetTransport()?.let { managed.resetFirewall(target, it) }
+    /** Resets the wake feature's files; a channel that may not write them cannot have written any. */
+    private suspend fun resetWakeFiles(target: String?) {
+        if (!managed.resetFirewall(target)) Timber.i("Wake rules not reset: the privileged channel cannot write them")
+    }
 }

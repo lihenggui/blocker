@@ -55,7 +55,7 @@ internal suspend fun testPeerFilter(context: Context, writer: WakeRuleWriter): B
         val differentSender = "blocker.probe.p" + java.util.UUID.randomUUID().toString().replace("-", "")
         val alternate = self.copy(caller = differentSender, action = "$action.OTHER_SENDER")
         val xml = renderWakeRules(listOf(self, alternate), forcePackageFilter = true)
-        writer.write(xml, true)
+        writer.write(WakeRuleFileKind.PROBE, xml)
         val deadline = SystemClock.elapsedRealtime() + 8000
         while (SystemClock.elapsedRealtime() < deadline) {
             delay(250)
@@ -68,7 +68,7 @@ internal suspend fun testPeerFilter(context: Context, writer: WakeRuleWriter): B
     } catch (_: SecurityException) {
         conclusive = true
     } finally {
-        withContext(NonCancellable + Dispatchers.IO) { writer.write(null, true) }
+        withContext(NonCancellable + Dispatchers.IO) { writer.write(WakeRuleFileKind.PROBE, null) }
     }
     if (conclusive && generation >= 0) {
         prefs.edit {

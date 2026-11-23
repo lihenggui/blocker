@@ -19,8 +19,6 @@ package com.merxury.blocker.core.privileged
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
-import com.merxury.blocker.core.model.privileged.ChannelState
-import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.privileged.calls.DeleteIfwRuleFile
 import com.merxury.blocker.core.privileged.calls.ListIfwRuleFiles
 import com.merxury.blocker.core.privileged.calls.ReadIfwRuleFile
@@ -102,23 +100,5 @@ class ChannelIfwFileSystemTest {
 
         assertThat(fileSystem.deleteRules(PKG)).isFalse()
         assertThat(executor.runs.single()).isEqualTo(DeleteIfwRuleFile(PKG) to true)
-    }
-}
-
-/** Answers every call with [answer] and records each with whether it could connect. */
-private class ScriptedExecutor : PrivilegedExecutor {
-    var answer: (PrivilegedCall<*>) -> CallResult<*> = { CallResult.Failure(CallFailure.ChannelUnavailable) }
-    val runs = mutableListOf<Pair<PrivilegedCall<*>, Boolean>>()
-
-    override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> = run(call, connect = true)
-
-    override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> = run(call, connect = false)
-
-    override suspend fun checkedState(): ChannelState = ChannelState.Ready(PrivilegedIdentity.ROOT)
-
-    @Suppress("UNCHECKED_CAST")
-    private fun <R> run(call: PrivilegedCall<R>, connect: Boolean): CallResult<R> {
-        runs += call to connect
-        return answer(call) as CallResult<R>
     }
 }

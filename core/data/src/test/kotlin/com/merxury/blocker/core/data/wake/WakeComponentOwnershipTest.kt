@@ -36,6 +36,16 @@ class WakeComponentOwnershipTest {
         verify(dao, times(2)).putProtections(listOf(owned))
     }
 
+    @Test fun givenNoJournalYet_whenRecoveringOwnership_thenLocalEntriesAreWrittenToIt() = runTest {
+        whenever(dao.readProtections()).thenReturn(listOf(owned))
+        whenever(journal.read()).thenReturn(null)
+        ownership.recover()
+        val encoded = argumentCaptor<String>()
+        verify(journal).write(encoded.capture())
+        assertThat(encoded.firstValue).contains("\"pathId\":\"path\"")
+        verify(dao, never()).putProtections(any())
+    }
+
     @Test fun givenInterruptedRelease_whenRecoveringOwnership_thenLocalEntryCannotReclaimComponent() = runTest {
         whenever(dao.readProtections()).thenReturn(listOf(owned))
         whenever(journal.read()).thenReturn("[]")

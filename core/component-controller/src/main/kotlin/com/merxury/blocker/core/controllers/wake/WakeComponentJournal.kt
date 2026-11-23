@@ -7,42 +7,30 @@ import android.content.Context
 import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
-import be.mygod.librootkotlinx.ParcelableString
-import be.mygod.librootkotlinx.RootCommand
-import com.merxury.blocker.core.model.wake.WakeAccess
-import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.privileged.PrivilegedExecutor
+import com.merxury.blocker.core.privileged.calls.ReadWakeJournal
+import com.merxury.blocker.core.privileged.calls.ReplaceWakeJournal
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.parcelize.Parcelize
 import java.io.File
 import javax.inject.Inject
 
-/** Recovery metadata lives under the same privileged lifetime as a PackageManager override. */
-class WakeComponentJournal @Inject constructor(
-    private val root: RootCommandExecutor,
-    private val reader: WakeSystemReader,
-    @param:ApplicationContext private val context: Context,
+/**
+ * Recovery metadata, kept with the same privileged lifetime as a PackageManager override. Read
+ * and written through the privileged channel the user chose, only when it is ready: it never
+ * connects, so it never shows a prompt, and throws when the call cannot be made.
+ */
+class WakeComponentJournal @Inject internal constructor(
+    private val executor: PrivilegedExecutor,
+    @param:ApplicationContext context: Context,
 ) {
-    suspend fun read(): String = access(null)
+    private val owner = context.packageName
+
+    /** The journal, or null when none has been written. */
+    suspend fun read(): String? = executor.executeIfReady(ReadWakeJournal(owner)).orThrow("read the component journal")
+
     suspend fun write(contents: String) {
-        access(contents)
+        executor.executeIfReady(ReplaceWakeJournal(owner, contents)).orThrow("write the component journal")
     }
-
-    private suspend fun access(replacement: String?): String = when (val access = reader.access()) {
-        WakeAccess.DIRECT_ROOT -> root.execute(ComponentJournalCommand(context.packageName, replacement)).value
-        WakeAccess.SHIZUKU_ROOT, WakeAccess.SHIZUKU_LEGACY_ROOT -> reader.withSession(access) { it.componentJournal(replacement) }
-        else -> error("Root authorization required for component rollback")
-    }
-}
-
-@Parcelize
-private data class ComponentJournalCommand(val owner: String, val replacement: String?) : RootCommand<ParcelableString> {
-    override suspend fun execute() = ParcelableString(componentJournalFile(owner, replacement))
-}
-
-internal fun componentJournalFile(owner: String, replacement: String?): String {
-    if (replacement == null) return readComponentJournal(owner).orEmpty()
-    writeComponentJournal(owner, replacement)
-    return ""
 }
 
 /** The directory of the component journal: system-owned, so it lives as long as the settings it records. */
