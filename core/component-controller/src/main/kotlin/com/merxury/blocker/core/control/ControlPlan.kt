@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.control
 
-import com.merxury.blocker.core.model.component.Availability
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
@@ -24,7 +23,6 @@ import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.component.availability
 import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
@@ -61,16 +59,12 @@ internal fun ComponentDeclaration.pmChange(goal: ControlGoal, layers: Set<Contro
     }
 }
 
-/** Whether to block (true) or unblock (false) through the firewall, or null when nothing is needed. */
-internal fun ifwChange(goal: ControlGoal, layers: Set<ControlLayer>, current: IfwBlock): Boolean? {
-    if (ControlLayer.INTENT_FIREWALL !in layers) return null
-    return when (goal) {
-        ControlGoal.BLOCK -> true.takeIf { current != IfwBlock.BLOCKED }
-
-        // A conditional rule is not Blocker's to remove.
-        ControlGoal.UNBLOCK -> false.takeIf { current == IfwBlock.BLOCKED || current == IfwBlock.UNKNOWN }
-    }
-}
+/**
+ * Whether to block (true) or unblock (false) through the firewall, or null when the firewall is not
+ * involved. There is no "already done": the rule store decides that under its own lock from the
+ * file, writes nothing when the rules stay as they are, and a conditional rule is never removed.
+ */
+internal fun ifwChange(goal: ControlGoal, layers: Set<ControlLayer>): Boolean? = if (ControlLayer.INTENT_FIREWALL in layers) goal == ControlGoal.BLOCK else null
 
 /**
  * Judges [component] by [after], the state read back. [before] is the state the request started
@@ -93,9 +87,8 @@ internal fun judge(
 
         goal == ControlGoal.BLOCK -> if (missed.size < layers.size) ControlResult.PARTIAL else ControlResult.FAILED
 
-        // Unblocking moved a layer that blocked, but another one still blocks.
-        component.availability(after) is Availability.Blocked &&
-            layers.any { component.meets(goal, it, after) && !component.meets(goal, it, before) } -> ControlResult.PARTIAL
+        // Unblocking moved a layer to the goal, but another one still blocks or cannot be read.
+        layers.any { component.meets(goal, it, after) && !component.meets(goal, it, before) } -> ControlResult.PARTIAL
 
         else -> ControlResult.FAILED
     }

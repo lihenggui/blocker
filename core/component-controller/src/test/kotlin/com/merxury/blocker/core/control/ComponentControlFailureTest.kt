@@ -83,7 +83,7 @@ class ComponentControlFailureTest {
     }
 
     @Test
-    fun givenShellIdentity_whenBlockWithIfw_thenNotPermittedAsTheStoreReportsAndNothingWritten() = runTest {
+    fun givenShellIdentity_whenBlockWithIfw_thenNotPermittedWithoutCallingTheStore() = runTest {
         val fixture = ControlFixture(SHELL)
         // What the store sees through a channel that runs as the shell.
         fixture.files.noAccess = true
@@ -94,7 +94,18 @@ class ComponentControlFailureTest {
         assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
         assertThat(outcome.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.UNKNOWN))
         assertThat(outcome.failures.getValue(ControlLayer.INTENT_FIREWALL)).isInstanceOf(ControlFailure.NotPermitted::class.java)
-        assertThat(fixture.ifwWrites).isEmpty()
+        // Only the peeks of the reads; no read-modify-write was attempted.
+        assertThat(fixture.files.operations.filterNot { it.startsWith("peek") }).isEmpty()
+    }
+
+    @Test
+    fun givenRulesUnreachableAfterConnect_whenBlockWithIfw_thenChannelUnavailable() = runTest {
+        val fixture = ControlFixture()
+        fixture.files.noAccess = true
+
+        val events = fixture.run(block(IFW_ONLY, MAIN))
+
+        assertThat(events.outcomeOf(MAIN).failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.ChannelUnavailable)
     }
 
     @Test
@@ -163,7 +174,7 @@ class ComponentControlFailureTest {
     }
 
     @Test
-    fun givenRulesUnreadable_whenUnblockRunnableComponent_thenFailedNotRunnable() = runTest {
+    fun givenRulesUnreadableAndPmClear_whenUnblock_thenFailedAsNothingMoved() = runTest {
         val fixture = ControlFixture()
         fixture.files.unreadablePackages += PKG
 
@@ -188,6 +199,20 @@ class ComponentControlFailureTest {
         assertThat(outcome.result).isEqualTo(ControlResult.PARTIAL)
         assertThat(outcome.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.BLOCKED))
         assertThat(outcome.failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.WriteFailed("Disk full"))
+    }
+
+    @Test
+    fun givenPmDisabledAndRulesUnreadable_whenUnblock_thenPmClearedAndPartial() = runTest {
+        val fixture = ControlFixture()
+        fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
+        fixture.files.unreadablePackages += PKG
+
+        val events = fixture.run(unblock(MAIN))
+
+        val outcome = events.outcomeOf(MAIN)
+        assertThat(outcome.result).isEqualTo(ControlResult.PARTIAL)
+        assertThat(outcome.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.UNKNOWN))
+        assertThat(outcome.failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.RulesUnreadable)
     }
 
     @Test

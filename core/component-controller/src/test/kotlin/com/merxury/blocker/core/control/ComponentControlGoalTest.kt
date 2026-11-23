@@ -206,15 +206,39 @@ class ComponentControlGoalTest {
     }
 
     @Test
-    fun givenAlreadyBlocked_whenBlockWithBoth_thenNothingSentAndNoReadBack() = runTest {
+    fun givenAlreadyBlocked_whenBlockWithBoth_thenNoPmCallAndStoreWritesNothing() = runTest {
         fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
         fixture.blockInIfw(MAIN)
 
         val events = fixture.run(block(BOTH, MAIN))
 
         assertThat(events.outcomeOf(MAIN)).isEqualTo(achieved(MAIN, PmSetting.DISABLED, IfwBlock.BLOCKED))
-        assertThat(fixture.system.log).containsExactly("read $PKG")
+        assertThat(fixture.system.log).containsExactly("read $PKG", "read $PKG").inOrder()
+        assertThat(fixture.files.operations).contains("read $PKG")
         assertThat(fixture.ifwWrites).isEmpty()
+    }
+
+    @Test
+    fun givenAlreadyBlockedInPm_whenBlockWithPm_thenNothingSentAndNoReadBack() = runTest {
+        fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
+
+        val events = fixture.run(block(PM_ONLY, MAIN))
+
+        assertThat(events.outcomeOf(MAIN)).isEqualTo(achieved(MAIN, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
+        assertThat(fixture.system.log).containsExactly("read $PKG")
+    }
+
+    @Test
+    fun givenCachedRuleRemovedByAnotherWriter_whenBlockWithIfw_thenStoreRereadsAndWrites() = runTest {
+        fixture.blockInIfw(MAIN)
+        // Another tool empties the file; the store still remembers the rule.
+        fixture.files.putFile(PKG, "<rules />")
+
+        val events = fixture.run(block(IFW_ONLY, MAIN))
+
+        assertThat(events.outcomeOf(MAIN)).isEqualTo(achieved(MAIN, PmSetting.DEFAULT, IfwBlock.BLOCKED))
+        assertThat(fixture.ifwWrites).containsExactly("write $PKG")
+        assertThat(fixture.files.rulesText()).contains(MAIN.id.flatten())
     }
 
     @Test
@@ -228,12 +252,12 @@ class ComponentControlGoalTest {
     }
 
     @Test
-    fun givenAlreadyRunnable_whenUnblock_thenNothingSent() = runTest {
+    fun givenAlreadyRunnable_whenUnblock_thenNoPmCallAndNoRuleWrite() = runTest {
         val events = fixture.run(unblock(MAIN, FILES))
 
         assertThat(events.outcomes().map { it.result }).containsExactly(ControlResult.ACHIEVED, ControlResult.ACHIEVED)
         assertThat(fixture.executor.calls).isEmpty()
-        assertThat(fixture.files.operations.filterNot { it.startsWith("peek") }).isEmpty()
+        assertThat(fixture.ifwWrites).isEmpty()
     }
 
     @Test

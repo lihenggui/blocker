@@ -49,23 +49,26 @@ import kotlinx.coroutines.flow.Flow
  * when only that is left, the component is [Availability.Conditional] and counts as achieved.
  *
  * ## How the outcome is decided
- * Each package's state is read first, and only the changes still needed are sent: one
- * PackageManager call per package and target setting where the platform can change many
- * components in one call (Android 13 and later), one Intent Firewall write per package, none at
- * all when nothing has to change. A refused batch call is repeated one component at a time, so a
- * protected component fails alone. The outcome comes from the state read back afterwards, never
- * from what a call answered. A block is [ControlResult.ACHIEVED] when every layer it uses shows
- * the component blocked, [ControlResult.PARTIAL] when some do, and [ControlResult.FAILED] when
- * none does. An unblock is achieved when the component is [Availability.Runnable] or
- * [Availability.Conditional], partial when it cleared a layer that blocked before but another one
- * still blocks, and failed otherwise, also when part of the state cannot be read. A layer whose
- * call succeeded but whose state does not show it fails with [ControlFailure.StateNotConfirmed].
- * A partial result is kept, not rolled back.
+ * Each package's state is read first. PackageManager calls are sent only for components whose
+ * setting does not already meet the goal: one call per package and target setting where the
+ * platform can change many components in one call (Android 13 and later). A refused batch call is
+ * repeated one component at a time, so a protected component fails alone. Every component whose
+ * goal involves the Intent Firewall goes to the rule store in one change per package; the store
+ * re-reads the file under its lock and writes nothing when the rules stay as they are, so it alone
+ * decides whether the firewall needs a change. The outcome comes from the state read back
+ * afterwards, never from what a call answered. A block is [ControlResult.ACHIEVED] when every
+ * layer it uses shows the component blocked, [ControlResult.PARTIAL] when some do, and
+ * [ControlResult.FAILED] when none does. An unblock is achieved when the component is
+ * [Availability.Runnable] or [Availability.Conditional]; partial when a layer that did not meet
+ * the goal before does now but the goal is not confirmed, also when another layer cannot be read;
+ * and failed when no layer moved toward the goal. A layer whose call succeeded but whose state
+ * does not show it fails with [ControlFailure.StateNotConfirmed]. A partial result is kept, not
+ * rolled back.
  *
  * Without a ready channel nothing is sent and the layers fail with
  * [ControlFailure.ChannelUnavailable]. An identity that may not change components, such as Shizuku
  * running as the shell, gets [ControlFailure.NotPermitted] for the PackageManager layer without a
- * call; the firewall layer fails as the rule store reports for that identity.
+ * call, and one that may not write system files gets it for the firewall layer without a call.
  *
  * ## Order and cancellation
  * The work on one package holds that package's lock, shared by every request in the process,
@@ -73,8 +76,9 @@ import kotlinx.coroutines.flow.Flow
  * A request locks one package at a time, in its own order. A package whose changes have been sent
  * runs to its read-back even when the collector cancels; no further package is started.
  *
- * The Intent Firewall state comes from the rule store, which answers from rules it read earlier
- * and may miss a change another writer made to a file it has not written itself.
+ * The Intent Firewall state reported comes from the rule store, which answers from rules it read
+ * earlier and may miss a change another writer made to a file it has not written itself; after a
+ * change through the store it reflects the file the store just read or wrote.
  */
 interface ComponentControl {
     /**

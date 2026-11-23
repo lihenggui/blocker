@@ -187,7 +187,6 @@ class ComponentControlDeviceTest {
 
     @Test
     fun givenRoot_whenBlockWithIfwThenUnblock_thenRuleForFilteredTypesAndPmForProvider() = runBlocking<Unit> {
-
         val blocked = apply(ControlGoal.BLOCK, IFW, activity, service, provider)
 
         assertAchieved(blocked[0], ControlState(PmSetting.DEFAULT, IfwBlock.BLOCKED))
@@ -209,7 +208,6 @@ class ComponentControlDeviceTest {
 
     @Test
     fun givenRoot_whenBlockWithBothThenUnblock_thenBothLayersSetAndCleared() = runBlocking<Unit> {
-
         val blocked = apply(ControlGoal.BLOCK, BOTH, activity, service)
 
         blocked.forEach { assertAchieved(it, ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED)) }
@@ -255,7 +253,6 @@ class ComponentControlDeviceTest {
 
     @Test
     fun givenShell_whenBlockWithPm_thenNotPermittedAndNothingChanged() = runBlocking<Unit> {
-
         val outcome = apply(ControlGoal.BLOCK, PM, activity).single()
 
         Log.i(TAG, "Shell block with PM: $outcome")
@@ -268,7 +265,6 @@ class ComponentControlDeviceTest {
 
     @Test
     fun givenShell_whenBlockWithIfw_thenNotPermittedAndStateUnknown() = runBlocking<Unit> {
-
         val outcome = apply(ControlGoal.BLOCK, IFW, activity).single()
 
         Log.i(TAG, "Shell block with IFW: $outcome")

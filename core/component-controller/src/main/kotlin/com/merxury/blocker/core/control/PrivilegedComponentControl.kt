@@ -111,7 +111,7 @@ internal class PrivilegedComponentControl @Inject constructor(
             component.pmChange(request.goal, layers.getValue(component.id), before.getValue(component.id).pm)?.let { component.id to it }
         }
         val ifwChanges = components.mapNotNull { component ->
-            ifwChange(request.goal, layers.getValue(component.id), before.getValue(component.id).ifw)?.let { component to it }
+            ifwChange(request.goal, layers.getValue(component.id))?.let { component to it }
         }.toMap()
         val failures: Failures = mutableMapOf()
         val after = if (pmChanges.isEmpty() && ifwChanges.isEmpty()) {
@@ -197,12 +197,14 @@ internal class PrivilegedComponentControl @Inject constructor(
 
     private suspend fun changeIfw(packageName: String, changes: Map<ComponentDeclaration, Boolean>, identity: PrivilegedIdentity?, failures: Failures) {
         if (changes.isEmpty()) return
-        val failure = if (identity == null) {
-            ControlFailure.ChannelUnavailable
-        } else {
-            when (val result = ifwStore.setBlocked(packageName, changes)) {
+        val failure = when {
+            identity == null -> ControlFailure.ChannelUnavailable
+
+            !identity.canWriteSystemFiles -> ControlFailure.NotPermitted("$identity may not write the Intent Firewall rules")
+
+            else -> when (val result = ifwStore.setBlocked(packageName, changes)) {
                 is IfwResult.Success -> return
-                is IfwResult.Failure -> result.reason.toControlFailure(identity)
+                is IfwResult.Failure -> result.reason.toControlFailure()
             }
         }
         Timber.w("Cannot change IFW rules of ${changes.size} components of $packageName: $failure")
@@ -270,15 +272,9 @@ private fun CallFailure.toControlFailure(): ControlFailure = when (this) {
     is CallFailure.SystemError -> ControlFailure.SystemError(message)
 }
 
-/** The store reports both a missing channel and an identity without access as no access. */
-private fun IfwFailure.toControlFailure(identity: PrivilegedIdentity): ControlFailure = when (this) {
-    IfwFailure.NoAccess -> if (identity.canWriteSystemFiles) {
-        ControlFailure.ChannelUnavailable
-    } else {
-        ControlFailure.NotPermitted("$identity may not write the Intent Firewall rules")
-    }
-
+/** Called only with an identity that may write the rules, so no access means the channel went away. */
+private fun IfwFailure.toControlFailure(): ControlFailure = when (this) {
+    IfwFailure.NoAccess -> ControlFailure.ChannelUnavailable
     is IfwFailure.Unreadable -> ControlFailure.RulesUnreadable
-
     is IfwFailure.WriteFailed -> ControlFailure.WriteFailed(message)
 }
