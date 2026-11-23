@@ -19,6 +19,8 @@ package com.merxury.blocker.core.database
 import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.InstalledAppDao
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
+import com.merxury.blocker.core.database.cache.ComponentCacheDao
+import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
 import com.merxury.blocker.core.database.debloater.DebloatableComponentDao
 import com.merxury.blocker.core.database.debloater.DebloaterDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
@@ -44,4 +46,7 @@ internal object DaosModule {
 
     @Provides
     fun provideDebloatableComponentDao(database: DebloaterDatabase): DebloatableComponentDao = database.DebloatableComponentDao()
+
+    @Provides
+    fun provideComponentCacheDao(database: ComponentCacheDatabase): ComponentCacheDao = database.componentCacheDao()
 }
