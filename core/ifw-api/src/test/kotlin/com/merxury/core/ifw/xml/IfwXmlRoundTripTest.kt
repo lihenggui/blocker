@@ -258,4 +258,45 @@ class IfwXmlRoundTripTest {
             result.componentFiltersFor(IfwComponentType.SERVICE),
         )
     }
+
+    @Test
+    fun givenHandWrittenConditionalFile_whenRoundTripping_thenNothingIsLost() {
+        val xml = """
+            <rules>
+              <activity block="true" log="false">
+                <intent-filter>
+                  <action name="android.intent.action.VIEW" />
+                  <scheme name="https" />
+                </intent-filter>
+                <component-filter name="com.example/com.example.ViewActivity" />
+              </activity>
+              <broadcast block="true" log="true">
+                <and>
+                  <action equals="android.intent.action.BOOT_COMPLETED" />
+                  <not>
+                    <sender type="system" />
+                  </not>
+                </and>
+                <sender-package name="com.example.sender" />
+                <component-filter name="com.example/com.example.Boot" />
+              </broadcast>
+              <service block="false" log="false">
+                <sender-permission name="android.permission.BIND_JOB_SERVICE" />
+                <component-filter name="com.example/com.example.Job" />
+              </service>
+            </rules>
+        """.trimIndent()
+        val parsed = deserializer.deserialize(xml)
+
+        assertEquals(parsed, roundTrip(parsed))
+        assertEquals(3, parsed.rules.size)
+        assertEquals(listOf("android.intent.action.VIEW"), parsed.rules[0].intentFilters.single().actions)
+        assertEquals(listOf("https"), parsed.rules[0].intentFilters.single().schemes)
+        assertEquals(3, parsed.rules[1].filters.size)
+        assertEquals(false, parsed.rules[2].block)
+        assertEquals(
+            setOf("com.example/com.example.Boot"),
+            roundTrip(parsed).componentFiltersFor(IfwComponentType.BROADCAST),
+        )
+    }
 }
