@@ -22,6 +22,7 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
   contains shared models.
 - [`core/component-controller`](core/component-controller) implements privileged
   operations. [`core/ifw-api`](core/ifw-api) owns IFW rules and XML.
+  [`core/system`](core/system) reads users, installed apps, and declared components.
 - [`core/database`](core/database), [`core/datastore`](core/datastore), and
   [`core/datastore-proto`](core/datastore-proto) own Room and Proto DataStore.
   [`core/network`](core/network) provides Retrofit clients.
