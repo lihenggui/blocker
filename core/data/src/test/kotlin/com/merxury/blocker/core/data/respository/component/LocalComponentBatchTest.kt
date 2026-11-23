@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.respository.component
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.AppComponentEntity
+import com.merxury.blocker.core.database.app.toAppComponentEntity
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
@@ -183,28 +184,30 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun givenRootLostAfterOneChange_whenApplyingBatch_thenSavesThatAppAndStopsBeforeTheNext() = runTest {
+    fun givenRootLostAfterOneChange_whenStoredIfwStateDiffers_thenUpdatesOnlyPmStateOfIndexedRowsAndStops() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
-        val ifwBlockedSecond = second.copy(ifwBlocked = true)
+        val storedFirst = first.copy(ifwBlocked = true).toAppComponentEntity()
+        val storing = StoringComponentDao(listOf(storedFirst))
+        val repository = LocalComponentRepository(mock(), storing, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher)
         pm.rootLostAfterChanges = 1
 
+        // The caller's IFW flag comes from a read that reports unreadable rules as not blocked.
         assertFailsWith<RootUnavailableException> {
-            repository.batchControlComponent(listOf(first, ifwBlockedSecond, last), false).toList()
+            repository.batchControlComponent(listOf(first, second, last), false).toList()
         }
 
         assertEquals(listOf(first), pm.disabled)
-        val saved = argumentCaptor<List<AppComponentEntity>>()
-        verify(dao).upsertComponentList(saved.capture())
-        // PM state is read back without root. IFW rules cannot be read, so the stored flag stays.
-        assertEquals(
-            listOf(Triple(first.name, true, false), Triple(second.name, false, true)),
-            saved.firstValue.map { Triple(it.componentName, it.pmBlocked, it.ifwBlocked) },
-        )
+        assertEquals(0, storing.upserts)
+        assertEquals(mapOf(storing.key(storedFirst) to storedFirst.copy(pmBlocked = true)), storing.rows)
     }
 
     @Test
-    fun givenRootDenied_whenApplyingBatch_thenSavesTheFirstAppUnchangedAndStops() = runTest {
+    fun givenRootDenied_whenApplyingBatch_thenSavesOnlyPmStateOfIndexedRowsAndStops() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+        val storedFirst = first.copy(ifwBlocked = true).toAppComponentEntity()
+        val staleSecond = second.copy(pmBlocked = true).toAppComponentEntity()
+        val storing = StoringComponentDao(listOf(storedFirst, staleSecond))
+        val repository = LocalComponentRepository(mock(), storing, users, pm, ifw, shizuku, mock(), dispatcher.testDispatcher)
         pm.rootLostAfterChanges = 0
 
         assertFailsWith<RootUnavailableException> {
@@ -212,9 +215,30 @@ class LocalComponentBatchTest {
         }
 
         assertEquals(emptyList(), pm.disabled)
-        val saved = argumentCaptor<List<AppComponentEntity>>()
-        verify(dao).upsertComponentList(saved.capture())
-        assertEquals(listOf(first.name to false, second.name to false), saved.firstValue.map { it.componentName to it.pmBlocked })
+        assertEquals(0, storing.upserts)
+        assertEquals(
+            mapOf(storing.key(storedFirst) to storedFirst, storing.key(staleSecond) to staleSecond.copy(pmBlocked = false)),
+            storing.rows,
+        )
+    }
+
+    /** Keeps rows by primary key, as Room does for the two writes the batch path uses. */
+    private class StoringComponentDao(rows: List<AppComponentEntity>) : AppComponentDao by mock() {
+        val rows = rows.associateBy { key(it) }.toMutableMap()
+        var upserts = 0
+
+        fun key(row: AppComponentEntity) = row.packageName to row.componentName
+
+        override suspend fun upsertComponentList(componentList: List<AppComponentEntity>) {
+            upserts++
+            componentList.forEach { rows[key(it)] = it }
+        }
+
+        override suspend fun updatePmBlocked(packageName: String, componentName: String, pmBlocked: Boolean): Int {
+            val row = rows[packageName to componentName] ?: return 0
+            rows[packageName to componentName] = row.copy(pmBlocked = pmBlocked)
+            return 1
+        }
     }
 
     private class StatefulController : IController {

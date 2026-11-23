@@ -194,10 +194,14 @@ internal class LocalComponentRepository @Inject constructor(
         }
         val reconciled = try {
             // Changes made before a cancellation or a lost root grant still have to be saved.
-            // Without root the IFW rules cannot be read, and an unreadable file reads as not
-            // blocked, so the stored IFW state is kept. PM state is read without root.
-            val readIfw = failure !is RootUnavailableException
-            withContext(NonCancellable) { readBackAndSave(packageComponents, readIfw) }
+            withContext(NonCancellable) {
+                if (failure is RootUnavailableException) {
+                    savePmState(packageComponents)
+                    null
+                } else {
+                    readBackAndSave(packageComponents)
+                }
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -256,19 +260,28 @@ internal class LocalComponentRepository @Inject constructor(
         if (enable) batchEnable(components, onApplied) else batchDisable(components, onApplied)
     }
 
-    /**
-     * Reads the PM state of [components] from the device, and the IFW state if [readIfw], and
-     * saves it. Without [readIfw] each component keeps the IFW state it was passed with.
-     */
-    private suspend fun readBackAndSave(components: List<ComponentInfo>, readIfw: Boolean): List<ComponentInfo> {
+    /** Reads the PM and IFW state of [components] from the device and saves it. */
+    private suspend fun readBackAndSave(components: List<ComponentInfo>): List<ComponentInfo> {
         val pmStates = pmController.checkComponentEnableStates(components)
-        val ifwStates = if (readIfw) ifwController.checkComponentEnableStates(components) else null
+        val ifwStates = ifwController.checkComponentEnableStates(components)
         val reconciled = components.map {
-            val ifwBlocked = if (ifwStates != null) !ifwStates.getValue(it) else it.ifwBlocked
-            it.copy(pmBlocked = !pmStates.getValue(it), ifwBlocked = ifwBlocked)
+            it.copy(pmBlocked = !pmStates.getValue(it), ifwBlocked = !ifwStates.getValue(it))
         }
         appComponentDao.upsertComponentList(reconciled.map { it.toAppComponentEntity() })
         return reconciled
+    }
+
+    /**
+     * Saves only the PM state of [components], which is read without root, to the rows that
+     * already exist for them. Without root the IFW rules cannot be read and an unreadable file
+     * reads as not blocked, so no IFW state is written and no row with an unverified IFW state
+     * is added. The callers' IFW flags may come from such a read.
+     */
+    private suspend fun savePmState(components: List<ComponentInfo>) {
+        val pmStates = pmController.checkComponentEnableStates(components)
+        components.forEach {
+            appComponentDao.updatePmBlocked(it.packageName, it.name, pmBlocked = !pmStates.getValue(it))
+        }
     }
 
     private fun ComponentInfo.hasRequestedState(controllerType: ControllerType, enabled: Boolean): Boolean = when (controllerType) {
