@@ -41,7 +41,6 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import kotlin.test.assertEquals
@@ -118,57 +117,39 @@ class LocalComponentBatchTest {
     }
 
     @Test
-    fun givenChangeInFlight_whenCollectorIsCancelled_thenSavesTheStateTheChangeLeftAndStops() = runTest {
+    fun givenOneByOneChangeInFlight_whenCollectorIsCancelled_thenItFinishesAndNoFurtherCallIsSent() = runTest {
         users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
-        val started = CompletableDeferred<Unit>()
+        val third = first.copy(name = "com.tracker.Third")
+        val secondSent = CompletableDeferred<Unit>()
         val land = CompletableDeferred<Unit>()
+        var calls = 0
         pm.applyChange = { change ->
-            started.complete(Unit)
-            backgroundScope.async {
-                land.await()
+            if (++calls == 2) {
+                secondSent.complete(Unit)
+                // Like a root command: cancelling the caller stops its wait, not the change.
+                backgroundScope.async {
+                    land.await()
+                    change()
+                }.await()
+            } else {
                 change()
-            }.await()
+            }
         }
-        val job = launch { repository.batchControlComponent(listOf(first, second, last), false).collect() }
-        started.await()
+        val job = launch { repository.batchControlComponent(listOf(first, second, third, last), false).collect() }
+        secondSent.await()
 
         job.cancel()
         runCurrent()
         land.complete(Unit)
         job.join()
 
-        val saved = argumentCaptor<List<AppComponentEntity>>()
-        verify(dao).upsertComponentList(saved.capture())
-        assertEquals(listOf(first.name to true, second.name to true), saved.firstValue.map { it.componentName to it.pmBlocked })
         assertEquals(listOf(first, second), pm.disabled)
-    }
-
-    @Test
-    fun givenFirstChunkInFlight_whenCollectorIsCancelled_thenTheNextChunkIsNotStarted() = runTest {
-        users.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
-        val components = List(250) { ComponentInfo("com.example", "com.tracker.Service$it", SERVICE) }
-        val started = CompletableDeferred<Unit>()
-        val land = CompletableDeferred<Unit>()
-        pm.applyChange = { change ->
-            started.complete(Unit)
-            backgroundScope.async {
-                land.await()
-                change()
-            }.await()
-        }
-        val job = launch { repository.batchControlComponent(components, false).collect() }
-        started.await()
-
-        job.cancel()
-        runCurrent()
-        land.complete(Unit)
-        job.join()
-
-        // A chunk holds at most 200 components; the one in flight finishes, the rest never start.
-        assertEquals(components.take(200), pm.disabled)
         val saved = argumentCaptor<List<AppComponentEntity>>()
         verify(dao).upsertComponentList(saved.capture())
-        assertEquals(List(200) { true } + List(50) { false }, saved.firstValue.map { it.pmBlocked })
+        assertEquals(
+            listOf(first.name to true, second.name to true, third.name to false),
+            saved.firstValue.map { it.componentName to it.pmBlocked },
+        )
     }
 
     @Test

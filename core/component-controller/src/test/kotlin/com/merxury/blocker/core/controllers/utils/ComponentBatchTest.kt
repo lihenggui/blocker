@@ -24,6 +24,11 @@ import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,8 +40,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33, 35])
 class ComponentBatchTest {
@@ -122,6 +129,74 @@ class ComponentBatchTest {
 
         assertEquals(1, count)
         assertEquals(listOf(components[2]), processed)
+    }
+
+    @Test
+    fun givenBatchCallInFlight_whenCancelled_thenItFinishesAndTheNextChunkIsNotSent() = runTest {
+        val many = List(250) { ComponentInfo("com.example", "com.tracker.Service$it", SERVICE) }
+        val sent = mutableListOf<List<ComponentInfo>>()
+        val landed = mutableListOf<List<ComponentInfo>>()
+        val firstSent = CompletableDeferred<Unit>()
+        val land = CompletableDeferred<Unit>()
+        val job = launch {
+            controlComponentBatches(
+                many,
+                applyBatch = { batch ->
+                    sent += batch
+                    firstSent.complete(Unit)
+                    // Like a root command: cancelling the caller stops its wait, not the change.
+                    backgroundScope.async {
+                        land.await()
+                        landed += batch
+                    }.await()
+                    true
+                },
+                applyOne = { error("A batch that was sent must not be retried") },
+                onApplied = {},
+            )
+        }
+        firstSent.await()
+
+        job.cancel()
+        runCurrent()
+        assertFalse(job.isCompleted, "The caller waits for the call it has sent")
+        land.complete(Unit)
+        job.join()
+
+        assertEquals(listOf(many.take(200)), sent)
+        assertEquals(sent, landed)
+    }
+
+    @Test
+    fun givenOneByOneCallInFlight_whenCancelled_thenItFinishesAndNoFurtherCallIsSent() = runTest {
+        val sent = mutableListOf<ComponentInfo>()
+        val landed = mutableListOf<ComponentInfo>()
+        val secondSent = CompletableDeferred<Unit>()
+        val land = CompletableDeferred<Unit>()
+        val job = launch {
+            controlComponentsOneByOne(
+                components,
+                applyOne = { component ->
+                    sent += component
+                    if (sent.size == 2) {
+                        secondSent.complete(Unit)
+                        backgroundScope.async { land.await() }.await()
+                    }
+                    landed += component
+                    true
+                },
+                onApplied = {},
+            )
+        }
+        secondSent.await()
+
+        job.cancel()
+        runCurrent()
+        land.complete(Unit)
+        job.join()
+
+        assertEquals(components.take(2), sent)
+        assertEquals(sent, landed)
     }
 
     @Test

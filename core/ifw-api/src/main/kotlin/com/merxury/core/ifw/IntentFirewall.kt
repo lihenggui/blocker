@@ -31,8 +31,12 @@ import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -156,6 +160,8 @@ internal class IntentFirewall @Inject constructor(
             throw RootUnavailableException()
         }
         list.distinct().groupBy { it.packageName }.forEach { (packageName, components) ->
+            // A cancelled caller changes no further package.
+            currentCoroutineContext().ensureActive()
             val types = componentTypeResolver.getComponentTypes(packageName, components.map { it.className })
             val changes = components.mapNotNull { component ->
                 val ifwType = types[component.className]?.toIfwComponentType()
@@ -240,6 +246,9 @@ internal class IntentFirewall @Inject constructor(
      * Applies [transform] to the current rules and saves the result under the package lock.
      * Skips the write when the rules already have the requested content.
      * Returns false without writing when the current rules cannot be read.
+     * A write that has started runs to the end even if the caller is cancelled: cancelling a
+     * root command only stops the wait, so the file could still change after the caller has
+     * read it back.
      */
     private suspend fun updateRules(packageName: String, transform: suspend (IfwRules) -> IfwRules): Boolean = withPackageLock(packageName) {
         val current = loadRulesLocked(packageName).rulesOrNull()
@@ -248,7 +257,7 @@ internal class IntentFirewall @Inject constructor(
             return@withPackageLock false
         }
         val updated = transform(current)
-        if (updated != current) saveRulesLocked(packageName, updated)
+        if (updated != current) withContext(NonCancellable) { saveRulesLocked(packageName, updated) }
         true
     }
 

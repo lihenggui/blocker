@@ -41,8 +41,6 @@ import com.merxury.blocker.core.result.Result.Success
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -54,9 +52,6 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.TimeSource
-
-// Same as the controllers' system batch size, so a cancelled run waits for at most one call.
-private const val COMPONENTS_PER_CHANGE = 200
 
 internal class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
@@ -222,24 +217,11 @@ internal class LocalComponentRepository @Inject constructor(
     }
 
     /**
-     * Changes one app's components at most [COMPONENTS_PER_CHANGE] at a time. A chunk that has
-     * started runs to the end even if the caller is cancelled: cancelling a root command only
-     * stops the wait, and a change that lands after the read-back would never be saved.
-     * Cancellation takes effect before the next chunk instead.
+     * Changes one app's components. The controllers send nothing more once the caller is
+     * cancelled, and let the change they have already sent finish, so the read-back that
+     * follows sees every change that was made.
      */
     private suspend fun changePackage(
-        packageComponents: List<ComponentInfo>,
-        newState: Boolean,
-        controllerType: ControllerType,
-        onApplied: suspend (ComponentInfo) -> Unit,
-    ) {
-        packageComponents.chunked(COMPONENTS_PER_CHANGE).forEach { chunk ->
-            currentCoroutineContext().ensureActive()
-            withContext(NonCancellable) { changeComponents(chunk, newState, controllerType, onApplied) }
-        }
-    }
-
-    private suspend fun changeComponents(
         components: List<ComponentInfo>,
         newState: Boolean,
         controllerType: ControllerType,

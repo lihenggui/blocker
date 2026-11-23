@@ -34,8 +34,10 @@ import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
@@ -552,6 +554,47 @@ class IntentFirewallNewModelTest {
             ),
             intentFirewall.getRules(testPackage),
         )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenWriteInFlight_whenCallerIsCancelled_thenItFinishesAndTheNextPackageIsNotWritten() = runTest {
+        val otherPackage = "com.other"
+        val otherReceiver = "com.other.Receiver"
+        componentTypeResolver.setComponentType(otherPackage, otherReceiver, ComponentType.RECEIVER)
+        val writeSent = CompletableDeferred<Unit>()
+        val land = CompletableDeferred<Unit>()
+        val firewall = IntentFirewall(
+            rootChecker = rootChecker,
+            componentTypeResolver = componentTypeResolver,
+            fileSystem = object : IfwFileSystem by fileSystem {
+                override suspend fun writeRules(packageName: String, content: String) {
+                    writeSent.complete(Unit)
+                    // Like a root command: cancelling the caller stops its wait, not the write.
+                    backgroundScope.async {
+                        land.await()
+                        fileSystem.writeRules(packageName, content)
+                    }.await()
+                }
+            },
+            serializer = IfwXmlSerializer(),
+            deserializer = IfwXmlDeserializer(),
+        )
+        val job = launch {
+            firewall.addAllComponentFilters(
+                listOf(ComponentName(testPackage, testReceiver), ComponentName(otherPackage, otherReceiver)),
+            )
+        }
+        writeSent.await()
+
+        job.cancel()
+        testScheduler.runCurrent()
+        assertFalse(job.isCompleted, "The caller waits for the write it has sent")
+        land.complete(Unit)
+        job.join()
+
+        assertTrue(fileSystem.fileExists(testPackage))
+        assertFalse(fileSystem.fileExists(otherPackage))
     }
 
     @Test

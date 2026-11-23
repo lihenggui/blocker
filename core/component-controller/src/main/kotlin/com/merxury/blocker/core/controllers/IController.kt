@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.controllers
 
+import com.merxury.blocker.core.controllers.utils.controlComponentsOneByOne
 import com.merxury.blocker.core.model.ComponentState
 import com.merxury.blocker.core.model.data.ComponentInfo
 
@@ -43,33 +44,21 @@ interface IController {
 
     suspend fun disable(component: ComponentInfo): Boolean
 
+    /**
+     * Enables each component on its own and calls [action] for each one that changed. A failure
+     * does not stop the others. Once cancelled, no further component is changed, but the one in
+     * progress finishes. Returns how many changed.
+     */
     suspend fun batchEnable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        var succeededCount = 0
-        componentList.forEach {
-            if (enable(it)) {
-                succeededCount++
-                action(it)
-            }
-        }
-        return succeededCount
-    }
+    ): Int = controlComponentsOneByOne(componentList, applyOne = { enable(it) }, onApplied = action)
 
+    /** Disables each component on its own, like [batchEnable]. */
     suspend fun batchDisable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
-    ): Int {
-        var succeededCount = 0
-        componentList.forEach {
-            if (disable(it)) {
-                succeededCount++
-                action(it)
-            }
-        }
-        return succeededCount
-    }
+    ): Int = controlComponentsOneByOne(componentList, applyOne = { disable(it) }, onApplied = action)
 
     suspend fun checkComponentEnableState(packageName: String, componentName: String): Boolean
 

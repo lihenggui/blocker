@@ -24,6 +24,10 @@ import androidx.annotation.RequiresApi
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 // Bound Binder payloads even for apps declaring unusually many components.
@@ -77,18 +81,24 @@ internal suspend fun controlComponentsOneByOne(
 }
 
 /**
- * Returns false when [control] fails. Cancellation propagates, and so does a missing root
- * grant: every remaining call would fail the same way, so retrying cannot help.
+ * Sends one change with [control] and returns false when it fails. Nothing is sent once the
+ * caller is cancelled, but a change that has been sent runs to the end: cancelling a root
+ * command only stops the wait, and a change that lands after the caller reads the state back
+ * would never be recorded. Cancellation propagates, and so does a missing root grant: every
+ * remaining call would fail the same way, so retrying cannot help.
  */
-private suspend fun tryControl(target: String, control: suspend () -> Boolean): Boolean = try {
-    control().also { applied -> if (!applied) Timber.w("Cannot change $target") }
-} catch (e: CancellationException) {
-    throw e
-} catch (e: RootUnavailableException) {
-    throw e
-} catch (e: Exception) {
-    Timber.w(e, "Cannot change $target")
-    false
+private suspend fun tryControl(target: String, control: suspend () -> Boolean): Boolean {
+    currentCoroutineContext().ensureActive()
+    return try {
+        withContext(NonCancellable) { control() }.also { applied -> if (!applied) Timber.w("Cannot change $target") }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: RootUnavailableException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.w(e, "Cannot change $target")
+        false
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)

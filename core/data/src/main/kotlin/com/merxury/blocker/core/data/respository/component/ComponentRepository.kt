@@ -46,8 +46,8 @@ interface ComponentRepository {
      * Changes [components] app by app and emits one result per distinct component once its app
      * has been changed, read back and saved. A component or app that cannot be changed is
      * reported as failed and the remaining apps still run. The flow fails only when it is
-     * cancelled or root is unavailable, and then only after the app in progress has been read
-     * back and saved. A cancelled run finishes the change already sent, at most 200 components.
+     * cancelled or root is unavailable, and then only after the state of the app in progress has
+     * been saved. A cancelled run sends no further change but finishes the one already sent.
      */
     fun batchControlComponent(
         components: List<ComponentInfo>,
