@@ -34,5 +34,8 @@ dependencies {
     implementation(projects.core.model)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
+    testImplementation(libs.truth)
+    testImplementation(libs.turbine)
 }

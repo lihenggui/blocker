@@ -26,8 +26,13 @@ import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.privileged.CallBytes
 import com.merxury.blocker.core.privileged.FakeSystemServices
+import com.merxury.blocker.core.privileged.MeasureInPrivilegedProcess
+import com.merxury.blocker.core.privileged.awaitPipeWriters
 import com.merxury.blocker.core.privileged.calls.ForceStop
+import com.merxury.blocker.core.privileged.encodeOutcome
+import com.merxury.blocker.core.privileged.unmarshallCall
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -55,6 +60,13 @@ class RootTransportTest {
     @Test
     fun givenRootProcessNotUidZero_whenConnect_thenFailed() = scope.runTest {
         runner.uid = 2000
+
+        assertThat(transport.connect()).isEqualTo(ChannelState.Unavailable(UnavailableReason.FAILED))
+    }
+
+    @Test
+    fun givenRootProcessRunsAsSystemUid_whenConnect_thenFailed() = scope.runTest {
+        runner.uid = 1000
 
         assertThat(transport.connect()).isEqualTo(ChannelState.Unavailable(UnavailableReason.FAILED))
     }
@@ -99,6 +111,28 @@ class RootTransportTest {
     }
 
     @Test
+    fun givenCallLargerThanOneRootCall_whenExecute_thenSentThroughPipeAndRun() = scope.runTest {
+        transport.connect()
+        val call = MeasureInPrivilegedProcess("x".repeat(300_000))
+
+        val result = transport.execute(call)
+
+        assertThat(result).isEqualTo(CallResult.Success(300_000))
+        assertThat(runner.requestSizes.last()).isGreaterThan(64 * 1024)
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+    }
+
+    @Test
+    fun givenLargeCallAndRootProcessDiesOnce_whenExecute_thenSentWholeAgain() = scope.runTest {
+        transport.connect()
+        runner.failures += RootServer.UnexpectedExitException()
+        val call = MeasureInPrivilegedProcess("y".repeat(300_000))
+
+        assertThat(transport.execute(call)).isInstanceOf(CallResult.Success::class.java)
+        assertThat(runner.sent).isEqualTo(3)
+    }
+
+    @Test
     fun givenCallFailsInRootProcess_whenExecute_thenNoRetry() = scope.runTest {
         transport.connect()
         runner.system.activityManager.failure = SecurityException("no")
@@ -109,19 +143,24 @@ class RootTransportTest {
 }
 
 /**
- * Plays the root process: runs each command against [system] as [uid] and encodes the outcome as
- * the root process does, unless a queued failure is thrown first, as librootkotlinx would.
+ * Plays the root process: runs each command's call against [system] as [uid] and encodes the
+ * outcome as the root process does, unless a queued failure is thrown first, before the request
+ * is read, as librootkotlinx would.
  */
 private class FakeRootRunner : RootCommandRunner {
     val system = FakeSystemServices()
     val failures = ArrayDeque<Exception>()
     var uid = 0
     var sent = 0
+    val requestSizes = mutableListOf<Int>()
 
-    override suspend fun run(command: RootCallCommand): RootCallReply {
+    override suspend fun run(command: RootCallCommand): CallBytes {
         sent++
         failures.removeFirstOrNull()?.let { throw it }
         ShadowProcess.setUid(uid)
-        return RootCallReply.of(encodeOutcome(command.call, system))
+        check(awaitPipeWriters())
+        val bytes = command.request.read(CallBytes.MAX_REQUEST_BYTES)
+        requestSizes += bytes.size
+        return CallBytes.reply(encodeOutcome(unmarshallCall(bytes), system))
     }
 }

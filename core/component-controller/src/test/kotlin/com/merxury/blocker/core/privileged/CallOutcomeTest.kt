@@ -14,37 +14,39 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.privileged.root
+package com.merxury.blocker.core.privileged
 
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.DeadObjectException
 import android.os.Parcel
+import android.os.Parcelable
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
-import com.merxury.blocker.core.privileged.FakeSystemServices
-import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.privileged.calls.GetPackageInfo
 import com.merxury.blocker.core.privileged.calls.InstalledPackages
 import com.merxury.blocker.core.privileged.calls.ListUsers
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
+import com.merxury.blocker.core.privileged.root.RootCallCommand
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.IOException
 
 private const val PKG = "com.example"
 private val WORK = UserId(10)
 
-/** What travels back from the root process: each kind of result and every failure. */
+/** What travels back from a privileged process: each kind of result and every failure. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
-class RootCallOutcomeTest {
+class CallOutcomeTest {
 
     private val system = FakeSystemServices()
 
@@ -121,32 +123,72 @@ class RootCallOutcomeTest {
     }
 
     @Test
-    fun givenCall_whenParceled_thenSameCallArrives() {
+    @Suppress("DEPRECATION")
+    fun givenSmallCall_whenCommandParceled_thenSameCallArrivesInline() {
         val call = ComponentEnabledSettings(PKG, listOf("$PKG.Main"), WORK)
+        val request = CallBytes.request(marshallCall(call))
+
+        val arrived = crossed(RootCallCommand(request)) { it.readParcelable<RootCallCommand>(RootCallCommand::class.java.classLoader)!! }
+
+        assertThat(request.describeContents()).isEqualTo(0)
+        assertThat(unmarshallCall(arrived.request.read())).isEqualTo(call)
+    }
+
+    @Test
+    fun givenLargeCall_whenRequested_thenPipedAndWholeCallRead() {
+        val call = EchoInPrivilegedProcess("a".repeat(200_000))
+        val request = CallBytes.request(marshallCall(call))
+
+        assertThat(request.describeContents()).isEqualTo(Parcelable.CONTENTS_FILE_DESCRIPTOR)
+        assertThat(awaitPipeWriters()).isTrue()
+        assertThat(unmarshallCall(request.read(CallBytes.MAX_REQUEST_BYTES))).isEqualTo(call)
+        request.close()
+    }
+
+    @Test
+    fun givenRequestLargerThanReaderAllows_whenRead_thenIoException() {
+        val request = CallBytes.request(ByteArray(300 * 1024))
+        assertThat(awaitPipeWriters()).isTrue()
+
+        assertThrows(IOException::class.java) { request.read(maxBytes = 100 * 1024) }
+        request.close()
+    }
+
+    @Test
+    fun givenRequestAboveCap_whenCreated_thenIllegalState() {
+        assertThrows(IllegalStateException::class.java) { CallBytes.request(ByteArray(CallBytes.MAX_REQUEST_BYTES + 1)) }
+    }
+
+    @Test
+    fun givenSmallOutcome_whenReplyParceled_thenSameBytesRead() {
+        val bytes = encodeOutcome(ListUsers, system)
+
+        assertThat(crossed(CallBytes.reply(bytes)) { CallBytes.CREATOR.createFromParcel(it) }.read()).isEqualTo(bytes)
+    }
+
+    @Test
+    fun givenLargeOutcome_whenReplyParceled_thenSameBytesReadThroughPipe() {
+        val bytes = ByteArray(200 * 1024) { it.toByte() }
+        val reply = CallBytes.reply(bytes)
+
+        assertThat(reply.describeContents()).isEqualTo(Parcelable.CONTENTS_FILE_DESCRIPTOR)
+        assertThat(crossed(reply) { CallBytes.CREATOR.createFromParcel(it) }.read()).isEqualTo(bytes)
+    }
+
+    /** Writes [value] to a parcel and reads it back with [read], as a binder call would. */
+    private fun <T : Parcelable> crossed(value: Parcelable, read: (Parcel) -> T): T {
         val parcel = Parcel.obtain()
         try {
-            parcel.writeParcelable(RootCallCommand(call), 0)
+            if (value is RootCallCommand) parcel.writeParcelable(value, 0) else value.writeToParcel(parcel, 0)
             parcel.setDataPosition(0)
-            @Suppress("DEPRECATION")
-            val arrived = parcel.readParcelable<RootCallCommand>(RootCallCommand::class.java.classLoader)
-
-            assertThat(arrived?.call).isEqualTo(call)
+            return read(parcel)
         } finally {
             parcel.recycle()
         }
     }
 
     @Test
-    fun givenSmallOutcome_whenReplyParceled_thenSameBytesRead() {
-        val bytes = encodeOutcome(ListUsers, system)
-        val parcel = Parcel.obtain()
-        try {
-            RootCallReply.of(bytes).writeToParcel(parcel, 0)
-            parcel.setDataPosition(0)
-
-            assertThat(RootCallReply.CREATOR.createFromParcel(parcel).read()).isEqualTo(bytes)
-        } finally {
-            parcel.recycle()
-        }
+    fun givenCallThatFailsInPrivilegedProcess_whenRoundTrip_thenFailureKept() {
+        assertThat(roundTrip(FailInPrivilegedProcess("no"))).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("no")))
     }
 }

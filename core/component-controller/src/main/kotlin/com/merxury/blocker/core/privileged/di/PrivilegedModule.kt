@@ -17,10 +17,13 @@
 package com.merxury.blocker.core.privileged.di
 
 import com.merxury.blocker.core.privileged.ActivePrivilegedChannel
+import com.merxury.blocker.core.privileged.ChannelIfwFileSystem
 import com.merxury.blocker.core.privileged.ChannelPlatformPackages
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.PrivilegedExecutor
 import com.merxury.blocker.core.system.PlatformPackages
+import com.merxury.core.ifw.IfwFileSystem
+import com.merxury.core.ifw.PrivilegedIfwFileSystem
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -37,4 +40,8 @@ internal interface PrivilegedModule {
 
     @Binds
     fun bindsPlatformPackages(packages: ChannelPlatformPackages): PlatformPackages
+
+    @Binds
+    @PrivilegedIfwFileSystem
+    fun bindsPrivilegedIfwFileSystem(fileSystem: ChannelIfwFileSystem): IfwFileSystem
 }

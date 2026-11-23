@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.privileged.root
+package com.merxury.blocker.core.privileged
 
 import android.os.Parcel
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
-import com.merxury.blocker.core.privileged.PrivilegedCall
-import com.merxury.blocker.core.privileged.SystemServices
-import com.merxury.blocker.core.privileged.toCallFailure
 import kotlinx.coroutines.CancellationException
 
 private const val OUTCOME_SUCCESS = 0
@@ -34,8 +31,8 @@ private const val SYSTEM_ERROR = 3
 
 /**
  * Runs [call] against [system] and returns its outcome as bytes for [decodeOutcome]: the result,
- * or the [CallFailure] what it threw maps to. Runs in the root process, whose exceptions cannot
- * all be sent back as they are.
+ * or the [CallFailure] what it threw maps to. Runs in a privileged process, the root process or the
+ * Shizuku user service, whose exceptions cannot all be sent back as they are.
  */
 internal fun <R> encodeOutcome(call: PrivilegedCall<R>, system: SystemServices): ByteArray {
     val parcel = Parcel.obtain()

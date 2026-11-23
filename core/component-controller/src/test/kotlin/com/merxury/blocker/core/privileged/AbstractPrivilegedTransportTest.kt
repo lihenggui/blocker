@@ -130,6 +130,15 @@ class AbstractPrivilegedTransportTest {
     }
 
     @Test
+    fun givenPrivilegedProcessGone_whenExecute_thenChannelUnavailableAndStillReady() = runTest {
+        transport.connect()
+        transport.throwOnSend = PrivilegedProcessUnavailableException("died", DeadObjectException())
+
+        assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(transport.state.value).isEqualTo(READY_ROOT)
+    }
+
+    @Test
     fun givenRootRevoked_whenExecute_thenChannelUnavailableAndDenied() = runTest {
         transport.connect()
         transport.throwOnSend = RemoteException("closed").apply { initCause(NoShellException("denied")) }

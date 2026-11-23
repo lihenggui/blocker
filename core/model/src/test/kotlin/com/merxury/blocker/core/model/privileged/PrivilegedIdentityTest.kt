@@ -32,4 +32,10 @@ class PrivilegedIdentityTest {
         assertThat(PrivilegedIdentity.SHELL.canChangeComponents).isFalse()
         assertThat(PrivilegedIdentity.SHELL.canWriteSystemFiles).isFalse()
     }
+
+    @Test
+    fun givenSystem_whenAskCapabilities_thenComponentsAndSystemFiles() {
+        assertThat(PrivilegedIdentity.SYSTEM.canChangeComponents).isTrue()
+        assertThat(PrivilegedIdentity.SYSTEM.canWriteSystemFiles).isTrue()
+    }
 }

@@ -4,5 +4,8 @@
             android:name="com.merxury.blocker.core.controllers.wake.WakeFixtureService"
             android:exported="false"
             android:process=":wake_fixture" />
+        <activity
+            android:name="com.merxury.blocker.core.privileged.IfwFixtureActivity"
+            android:exported="true" />
     </application>
 </manifest>
