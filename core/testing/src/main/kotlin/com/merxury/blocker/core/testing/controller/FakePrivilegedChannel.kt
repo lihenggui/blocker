@@ -41,6 +41,9 @@ class FakePrivilegedChannel(
         return connectResult
     }
 
+    /** Never prompts and never changes the state: it answers with what the channel already has. */
+    override suspend fun connectIfGranted(): ChannelState = mutableState.value
+
     /** Sets the state as a connect, a lost channel or a change of controller type would. */
     fun setState(state: ChannelState) {
         mutableState.value = state
