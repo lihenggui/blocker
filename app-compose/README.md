@@ -150,7 +150,9 @@ graph TB
   :core:network --> :core:model
   :core:provider -.-> :core:analytics
   :core:provider -.-> :core:common
+  :core:provider -.-> :core:component-controller
   :core:provider -.-> :core:data
+  :core:provider -.-> :core:domain
   :core:provider -.-> :core:model
   :core:rule -.-> :core:common
   :core:rule -.-> :core:component-controller

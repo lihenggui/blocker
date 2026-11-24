@@ -52,7 +52,7 @@ import javax.inject.Singleton
  *
  * Each time the choice selects a transport, at process start and when the user switches between
  * root and Shizuku, [scope] runs [connectIfGranted] on it, so work started in the background and
- * the first screen get the privilege the user granted before, without a prompt. Switching between
+ * the first screen get the privilege the user granted before under the quiet policy. Switching between
  * the types that share the root transport changes nothing to acquire.
  */
 @Singleton

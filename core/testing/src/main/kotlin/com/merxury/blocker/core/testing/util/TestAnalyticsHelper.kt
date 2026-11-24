@@ -24,6 +24,8 @@ class TestAnalyticsHelper : AnalyticsHelper {
     private val events = mutableListOf<AnalyticsEvent>()
     private val _enableStatisticsUpdates = mutableListOf<Boolean>()
 
+    val loggedEvents: List<AnalyticsEvent> get() = events.toList()
+
     /** Every value passed to [setEnableStatistics], in call order. */
     val enableStatisticsUpdates: List<Boolean> get() = _enableStatisticsUpdates
 

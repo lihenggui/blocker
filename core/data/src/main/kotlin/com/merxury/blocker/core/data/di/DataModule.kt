@@ -33,9 +33,7 @@ import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.component.LegacyPmBlockHook
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
-import com.merxury.blocker.core.data.respository.component.RecordingLegacyPmBlockHook
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.LocalComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSource
@@ -135,7 +133,4 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindPmBlockRecordSeeder(seeder: LegacyListPmBlockRecordSeeder): PmBlockRecordSeeder
-
-    @Binds
-    internal abstract fun bindLegacyPmBlockHook(hook: RecordingLegacyPmBlockHook): LegacyPmBlockHook
 }

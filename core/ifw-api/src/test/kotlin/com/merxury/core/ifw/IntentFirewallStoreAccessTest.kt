@@ -203,6 +203,16 @@ class IntentFirewallStoreAccessTest {
     }
 
     @Test
+    fun givenCachedRulesAndExternalEdit_whenRefreshingBlocks_thenReadsTheFileWithoutConnecting() = runTest {
+        store.blocks(PKG, listOf(MAIN))
+        fileSystem.putFile(PKG, LEGACY_XML)
+
+        assertThat(store.blocks(PKG, listOf(MAIN), refresh = true)).containsExactly(MAIN.id, IfwBlock.BLOCKED)
+        assertThat(store.blocks(PKG, listOf(MAIN))).containsExactly(MAIN.id, IfwBlock.BLOCKED)
+        assertThat(fileSystem.operations).containsExactly("peek $PKG", "peek $PKG").inOrder()
+    }
+
+    @Test
     fun givenExternalWriterAfterCache_whenSetBlocked_thenChangeBuiltOnTheFile() = runTest {
         store.blocks(PKG, listOf(MAIN))
         fileSystem.putFile(PKG, LEGACY_XML)

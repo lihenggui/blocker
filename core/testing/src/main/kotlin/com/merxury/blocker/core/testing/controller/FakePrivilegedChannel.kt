@@ -37,6 +37,9 @@ class FakePrivilegedChannel(
     var connectCount = 0
         private set
 
+    var quietConnectCount = 0
+        private set
+
     override suspend fun connect(): ChannelState {
         connectCount++
         mutableState.value = connectResult
@@ -53,10 +56,13 @@ class FakePrivilegedChannel(
      * Never prompts and never changes the state: it answers with what the channel has, after the
      * first check when [firstCheckPending] is set.
      */
-    override suspend fun connectIfGranted(): ChannelState = if (firstCheckPending) {
-        mutableState.first { it != ChannelState.Unavailable(UnavailableReason.NOT_CHECKED) }
-    } else {
-        mutableState.value
+    override suspend fun connectIfGranted(): ChannelState {
+        quietConnectCount++
+        return if (firstCheckPending) {
+            mutableState.first { it != ChannelState.Unavailable(UnavailableReason.NOT_CHECKED) }
+        } else {
+            mutableState.value
+        }
     }
 
     /** Sets the state as a connect, a lost channel or a change of controller type would. */

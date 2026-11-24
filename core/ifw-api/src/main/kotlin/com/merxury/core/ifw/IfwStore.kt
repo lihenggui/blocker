@@ -86,8 +86,9 @@ interface IfwStore {
      * considered, a known limit.
      *
      * @param components components of [packageName]
+     * @param refresh read this package's rule file even when its rules are already cached
      */
-    suspend fun blocks(packageName: String, components: Collection<ComponentDeclaration>): Map<ComponentId, IfwBlock>
+    suspend fun blocks(packageName: String, components: Collection<ComponentDeclaration>, refresh: Boolean = false): Map<ComponentId, IfwBlock>
 
     /**
      * Blocks (true) or unblocks (false) components of one package in one read-modify-write.
@@ -95,8 +96,13 @@ interface IfwStore {
      * provider is not an error, it stays [IfwBlock.NOT_BLOCKED] and nothing is written for it.
      *
      * @param changes components of [packageName], each with whether to block it
+     * @param onWrite receives the components whose rules changed after the file write succeeds
      */
-    suspend fun setBlocked(packageName: String, changes: Map<ComponentDeclaration, Boolean>): IfwResult<Map<ComponentId, IfwBlock>>
+    suspend fun setBlocked(
+        packageName: String,
+        changes: Map<ComponentDeclaration, Boolean>,
+        onWrite: ((Collection<ComponentId>) -> Unit)? = null,
+    ): IfwResult<Map<ComponentId, IfwBlock>>
 
     /**
      * Full rules of the rule file `<name>.xml` for the editor; empty when there is no such file.

@@ -25,18 +25,11 @@ interface ComponentRepository {
 
     fun getComponent(name: String): Flow<ComponentInfo?>
 
-    fun getComponentList(packageName: String): Flow<List<ComponentInfo>>
-
     fun getComponentList(packageName: String, type: ComponentType): Flow<List<ComponentInfo>>
 
     fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>>
 
     fun updateComponentList(packageName: String): Flow<Result<Unit>>
-
-    fun controlComponent(
-        component: ComponentInfo,
-        newState: Boolean,
-    ): Flow<Boolean>
 
     suspend fun saveComponents(components: List<ComponentInfo>)
 

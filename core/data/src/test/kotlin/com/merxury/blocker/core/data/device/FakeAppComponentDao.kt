@@ -37,12 +37,6 @@ internal class FakeAppComponentDao : AppComponentDao {
 
     override suspend fun insert(vararg appComponentEntities: AppComponentEntity) = put(appComponentEntities.toList())
 
-    override suspend fun update(appComponentEntity: AppComponentEntity): Int {
-        if (appComponentEntity.key() !in rows.value) return 0
-        put(listOf(appComponentEntity))
-        return 1
-    }
-
     override suspend fun delete(appComponentEntity: AppComponentEntity): Int = delete(listOf(appComponentEntity))
 
     override suspend fun delete(entities: List<AppComponentEntity>): Int {

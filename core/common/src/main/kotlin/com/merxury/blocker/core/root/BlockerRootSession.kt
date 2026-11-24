@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.root
 
 import android.content.Context
+import be.mygod.librootkotlinx.RootServer
 import be.mygod.librootkotlinx.RootSession
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -28,4 +29,16 @@ class BlockerRootSession @Inject constructor(
 ) : RootSession() {
     override val context: Context
         get() = appContext
+
+    @Volatile
+    private var initializedServer: RootServer? = null
+
+    /** Whether the initialized server is still running. Calls hold a lease through [use]. */
+    val hasActiveServer: Boolean
+        get() = initializedServer?.active == true
+
+    override suspend fun initServer(server: RootServer) {
+        super.initServer(server)
+        initializedServer = server
+    }
 }

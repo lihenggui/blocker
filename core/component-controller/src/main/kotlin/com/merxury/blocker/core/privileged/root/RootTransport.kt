@@ -34,6 +34,7 @@ import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.identityOfUid
 import com.merxury.blocker.core.privileged.lostReason
 import com.merxury.blocker.core.privileged.marshallCall
+import com.merxury.blocker.core.privileged.permissionPromptsAllowed
 import com.merxury.blocker.core.root.BlockerRootSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -58,8 +59,7 @@ internal fun interface RootCommandRunner {
  * process, which shows the su prompt when root has not been granted yet.
  *
  * [grants] remembers across process starts whether su gave a root process: a successful connect
- * sets it and a refused su clears it. Connecting without a prompt starts su only while it is set,
- * since su from an app the root manager has no answer for shows the root manager's prompt.
+ * sets it and a refused su clears it. Quiet connects and calls start su only while it is set.
  *
  * A call that finds the root process gone is sent once more on a fresh process, which librootkotlinx
  * starts without a prompt while root stays granted. Only when that fails too is the channel lost.
@@ -71,6 +71,7 @@ internal class RootTransport(
     private val runner: RootCommandRunner,
     private val grants: RootGrantMemory,
     private val ioDispatcher: CoroutineDispatcher,
+    private val hasActiveServer: () -> Boolean,
 ) : AbstractPrivilegedTransport() {
 
     @Inject constructor(
@@ -83,19 +84,20 @@ internal class RootTransport(
         },
         grants,
         ioDispatcher,
+        { rootSession.hasActiveServer },
     )
 
     override suspend fun acquire(): ChannelState = startRootProcess().also {
         if (it is ChannelState.Ready) grants.remember(true)
     }
 
-    override suspend fun acquireIfGranted(): ChannelState {
-        if (!grants.isRemembered()) {
-            Timber.i("su has not given Blocker a root process before; not asking without a prompt")
-            return ChannelState.Unavailable(UnavailableReason.DENIED)
-        }
-        return acquire()
+    override suspend fun acquireIfGranted(): ChannelState = if (grants.isRemembered()) {
+        startRootProcess()
+    } else {
+        ChannelState.Unavailable(UnavailableReason.DENIED)
     }
+
+    override suspend fun isConnectionCurrent(): Boolean = hasActiveServer() && grants.isRemembered()
 
     private suspend fun startRootProcess(): ChannelState = try {
         when (val result = sendOnce(CallerUid)) {
@@ -128,6 +130,11 @@ internal class RootTransport(
     }
 
     private suspend fun <R> sendOnce(call: PrivilegedCall<R>): CallResult<R> {
+        // Check before taking the session lease, since use can start su even if a server
+        // was active just before the call.
+        if (!permissionPromptsAllowed() && !grants.isRemembered()) {
+            throw ChannelLostException(UnavailableReason.DENIED, "No remembered root grant")
+        }
         // A call too large for one root call goes through a pipe. Closing this side's copy when
         // the call ends, however it ends, stops the pipe's writer if the request never arrived.
         val request = CallBytes.request(marshallCall(call))

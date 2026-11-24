@@ -72,6 +72,15 @@ data class ComponentOutcome(
     }
 }
 
+/** Observes the writes of one control call. */
+interface ComponentWriteObserver {
+    /** Checked after the package has been read and immediately before its first write. */
+    fun canStart(): Boolean
+
+    /** The IDs acknowledged by the system for a single completed write. */
+    fun onWrite(components: Collection<ComponentId>)
+}
+
 /** Progress of a request, package by package. */
 sealed interface ControlEvent {
     /** Every requested component of [packageName], each once. */

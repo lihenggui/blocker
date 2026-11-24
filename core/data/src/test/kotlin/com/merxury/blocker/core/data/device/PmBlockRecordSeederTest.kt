@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.data.device
 
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.respository.component.RecordingLegacyPmBlockHook
 import com.merxury.blocker.core.database.app.AppComponentEntity
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.datastore.copy
@@ -26,8 +25,6 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.PmSetting
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.async
@@ -45,14 +42,11 @@ private val OTHER_SELF_OFF = declaration("SelfOff", ComponentType.RECEIVER, pack
 
 private fun ComponentDeclaration.legacyRow(pmBlocked: Boolean) = AppComponentEntity(id.packageName, id.className, ifwBlocked = false, pmBlocked = pmBlocked, type = type, exported = true)
 
-private fun ComponentDeclaration.info() = ComponentInfo(id.packageName, id.className, type)
-
-/** The one-time seed from the old component list and the hook that records the old screens' blocks. */
+/** The one-time seed from the old component list for installs that upgrade. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
-class PmBlockSeedAndLegacyHookTest : DeviceRepositoryTestBase() {
+class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
     private val own = ownUser()
-    private val hook = RecordingLegacyPmBlockHook(system, pmBlocks)
 
     private suspend fun markOldListInitialized() = appProperties.updateData { it.copy { componentDatabaseInitialized = true } }
 
@@ -136,55 +130,5 @@ class PmBlockSeedAndLegacyHookTest : DeviceRepositoryTestBase() {
         assertThat(pmBlocks.of(own)).isEmpty()
         assertThat(system.settings[own to SELF_OFF.id]).isEqualTo(PmSetting.DISABLED)
         assertThat(system.settings[own to OTHER_SELF_OFF.id]).isEqualTo(PmSetting.DISABLED)
-    }
-
-    @Test
-    fun givenOldScreenDisablesThroughPackageManager_whenHooked_thenWhatReadsDisabledIsRecorded() = runTest {
-        installForOwnUser()
-        system.put(own, TRACKER, PmSetting.DISABLED)
-
-        hook.afterControl(listOf(TRACKER.info(), SELF_OFF.info()), enabled = false, ControllerType.PM)
-
-        // The system refused SELF_OFF, so it reads DEFAULT and is not recorded.
-        assertThat(pmBlocks.of(own)).containsExactly(TRACKER.key())
-    }
-
-    @Test
-    fun givenOldScreenDisablesThroughTheFirewall_whenHooked_thenOnlyTheProviderIsRecorded() = runTest {
-        installForOwnUser()
-        // Disabled by the app itself; the firewall block did not change its setting.
-        system.put(own, SELF_OFF, PmSetting.DISABLED)
-        system.put(own, DATA, PmSetting.DISABLED)
-
-        hook.afterControl(listOf(SELF_OFF.info(), DATA.info()), enabled = false, ControllerType.IFW)
-
-        assertThat(pmBlocks.of(own)).containsExactly(DATA.key())
-    }
-
-    @Test
-    fun givenRecordedBlocks_whenAnOldScreenEnables_thenWhatReadsEnabledIsDroppedAndAnUnreadableAppKeepsItsRecords() = runTest {
-        installForOwnUser()
-        pmBlocks.record(listOf(TRACKER.key(), SELF_OFF.key(), OTHER_SELF_OFF.key()))
-        system.put(own, SELF_OFF, PmSetting.DISABLED)
-        system.pmFailures[OTHER_PKG] = ReadFailure.ChannelUnavailable
-
-        hook.afterControl(listOf(TRACKER.info(), SELF_OFF.info()), enabled = true, ControllerType.IFW)
-        hook.afterControl(listOf(OTHER_SELF_OFF.info()), enabled = true, ControllerType.PM)
-
-        assertThat(pmBlocks.of(own)).containsExactly(SELF_OFF.key(), OTHER_SELF_OFF.key()).inOrder()
-    }
-
-    @Test
-    fun givenOldScreenBlocks_whenTheResetRuns_thenTheyAreClearedButNotWhatTheAppDisabled() = runTest {
-        installForOwnUser()
-        val repository = components(backgroundScope)
-        repository.refresh(AppKey(PKG, own))
-        system.put(own, SELF_OFF, PmSetting.DISABLED)
-        system.put(own, TRACKER, PmSetting.DISABLED)
-        hook.afterControl(listOf(TRACKER.info()), enabled = false, ControllerType.SHIZUKU)
-
-        val found = repository.disabledByBlocker(own)
-
-        assertThat(found).isEqualTo(ReadResult.Success(DisabledComponents(listOf(TRACKER.key()), emptyList())))
     }
 }

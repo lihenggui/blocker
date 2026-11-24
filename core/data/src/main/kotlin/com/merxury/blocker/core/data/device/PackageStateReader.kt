@@ -113,6 +113,7 @@ internal class PackageStateReader @Inject constructor(
         automatic: Boolean = false,
         previous: AppEntity? = null,
         forceDeclarations: Boolean = false,
+        requireFirewall: Boolean = false,
     ): PackageRefresh {
         val packageName = key.packageName
         val failures = listOfNotNull(appFailure).toMutableList()
@@ -173,8 +174,8 @@ internal class PackageStateReader @Inject constructor(
             return aborted(ReadFailure.ChannelUnavailable)
         }
         val ifwReadable = channel.state.value.allowsFirewallReads
-        val ifw = readIfw(packageName, declarations)
-        if (ifw == null && (ifwWasReadable || ifwReadable || channel.state.value.allowsFirewallReads)) {
+        val ifw = readIfw(packageName, declarations, refresh = forceDeclarations)
+        if (ifw == null && (requireFirewall || ifwWasReadable || ifwReadable || channel.state.value.allowsFirewallReads)) {
             val failure = ReadFailure.RulesUnreadable(packageName)
             if (automatic) return aborted(failure)
             failures += failure
@@ -218,8 +219,10 @@ internal class PackageStateReader @Inject constructor(
     suspend fun refreshIfw(packageName: String) {
         val declarations = dao.getDeclarations(packageName).map { it.asExternalModel() }
         if (declarations.isEmpty()) return
-        val ifw = readIfw(packageName, declarations)
-        if (ifw == null) Timber.w("Cannot read the changed IFW rules of $packageName, store them as unknown")
+        val ifw = readIfw(packageName, declarations) ?: run {
+            Timber.w("Cannot read the changed IFW rules of $packageName, keep the cached state")
+            return
+        }
         withContext(NonCancellable) { dao.upsertIfwBlocks(packageName, ifwBlocksOf(declarations, ifw)) }
     }
 
@@ -227,11 +230,15 @@ internal class PackageStateReader @Inject constructor(
      * The firewall state of [declarations], or null when the rules cannot be read. Providers are
      * not filtered, so they are always [IfwBlock.NOT_BLOCKED].
      */
-    private suspend fun readIfw(packageName: String, declarations: List<ComponentDeclaration>): Map<ComponentId, IfwBlock>? {
+    private suspend fun readIfw(
+        packageName: String,
+        declarations: List<ComponentDeclaration>,
+        refresh: Boolean = false,
+    ): Map<ComponentId, IfwBlock>? {
         val filtered = declarations.filter { it.type.isFilteredByIntentFirewall }
         if (filtered.isEmpty()) return declarations.associate { it.id to IfwBlock.NOT_BLOCKED }
         if (!isPackageRuleFileName(packageName)) return null
-        val blocks = ifwStore.blocks(packageName, declarations)
+        val blocks = ifwStore.blocks(packageName, declarations, refresh)
         // The store answers UNKNOWN for every filtered component when it cannot read the rules.
         return blocks.takeIf { filtered.none { blocks[it.id] == null || blocks[it.id] == IfwBlock.UNKNOWN } }
     }

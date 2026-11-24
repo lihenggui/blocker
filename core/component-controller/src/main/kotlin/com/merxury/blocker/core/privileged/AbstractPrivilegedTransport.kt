@@ -34,7 +34,7 @@ import timber.log.Timber
  * needed, and turning what a call threw into a [CallFailure] with [toCallFailure].
  *
  * [checkedState], and with it [executeIfReady], on a channel nothing has tried to acquire yet
- * first makes the attempt that cannot prompt, [connectIfGranted], or waits for the one already
+ * first makes a quiet attempt or waits for the one already
  * running, so a caller started in the background gets the privilege the user granted earlier.
  *
  * Quiet attempts and connects each run one at a time under their own lock, and only `withLock`
@@ -59,15 +59,19 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
 
     // How many connects have published their result, so a quiet attempt can tell one landed while it ran.
     private var connectsPublished = 0L
+    private var quietAttemptsPublished = 0L
 
     /** Acquires the channel, which may show a permission prompt. Throws only cancellation. */
     protected abstract suspend fun acquire(): ChannelState
 
     /**
-     * Acquires the channel only if that cannot show a prompt, and otherwise returns why it stays
+     * Acquires the channel under the quiet permission policy, and otherwise returns why it stays
      * unavailable. Throws only cancellation.
      */
     protected abstract suspend fun acquireIfGranted(): ChannelState
+
+    /** Whether a previously ready connection can be reused without acquiring it again. */
+    protected open suspend fun isConnectionCurrent(): Boolean = true
 
     /**
      * Runs [call] through the channel. Returns the outcome when the other side of the channel
@@ -76,24 +80,32 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
      */
     protected abstract suspend fun <R> send(call: PrivilegedCall<R>): CallResult<R>
 
-    override suspend fun connect(): ChannelState = connectLock.withLock {
-        // A quiet attempt already running decides first, so the two rarely acquire at once.
-        quietLock.withLock { }
-        acquire().also { result ->
-            synchronized(publishLock) {
-                connectsPublished++
-                mutableState.value = result
+    override suspend fun connect(): ChannelState {
+        if (!permissionPromptsAllowed()) return connectIfGranted()
+        return connectLock.withLock {
+            // A quiet attempt already running decides first, so the two rarely acquire at once.
+            quietLock.withLock { }
+            acquire().also { result ->
+                synchronized(publishLock) {
+                    connectsPublished++
+                    mutableState.value = result
+                }
             }
         }
     }
 
     override suspend fun connectIfGranted(): ChannelState {
-        (state.value as? ChannelState.Ready)?.let { return it }
-        // A connect already running decides for this call too. Not holding quietLock while
-        // waiting keeps readers from waiting for its prompt.
+        val attemptsBefore = synchronized(publishLock) { connectsPublished + quietAttemptsPublished }
+        if (!connectLock.isLocked && !quietLock.isLocked) readyConnection()?.let { return it }
+        // Keep quietLock free so regular reads never queue behind a permission prompt.
         connectLock.withLock { }
-        return quietLock.withLock { (state.value as? ChannelState.Ready) ?: attemptQuietly() }
+        return quietLock.withLock {
+            val completed = synchronized(publishLock) { connectsPublished + quietAttemptsPublished != attemptsBefore }
+            if (completed) state.value else readyConnection() ?: attemptQuietly()
+        }
     }
+
+    private suspend fun readyConnection(): ChannelState.Ready? = (state.value as? ChannelState.Ready)?.takeIf { isConnectionCurrent() }
 
     /**
      * Makes the quiet attempt, or waits for the one running and then reads what it decided.
@@ -114,8 +126,9 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
      */
     private suspend fun attemptQuietly(): ChannelState {
         val connectsBefore = synchronized(publishLock) { connectsPublished }
-        val result = acquireIfGranted()
+        val result = withoutPermissionPrompts { acquireIfGranted() }
         synchronized(publishLock) {
+            quietAttemptsPublished++
             if (connectsPublished == connectsBefore) mutableState.value = result
         }
         return state.value
@@ -130,11 +143,14 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
     }
 
     override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> {
+        if (!permissionPromptsAllowed()) return executeIfReady(call)
         if (state.value !is ChannelState.Ready) connect()
-        return executeIfReady(call)
+        return executeOnChannel(call)
     }
 
-    override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> {
+    override suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R> = withoutPermissionPrompts { executeOnChannel(call) }
+
+    private suspend fun <R> executeOnChannel(call: PrivilegedCall<R>): CallResult<R> {
         val ready = checkedState() as? ChannelState.Ready
             ?: return CallResult.Failure(CallFailure.ChannelUnavailable)
         return try {
