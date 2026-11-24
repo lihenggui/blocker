@@ -16,12 +16,14 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
-import com.merxury.blocker.core.data.respository.component.CacheComponentDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
@@ -29,9 +31,9 @@ import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -46,57 +48,57 @@ private const val EXTENSION = "json"
 @Singleton
 internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
-    private val componentDataSource: CacheComponentDataSource,
+    private val components: ComponentStatusRepository,
+    selectedUsers: SelectedUserRepository,
     @FilesDir private val filesDir: File,
     @GeneratedRuleBaseFolder private val generatedRuleBaseFolder: String,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
 
+    private val ownUser = selectedUsers.ownUser
     private val _eventFlow =
         MutableSharedFlow<ComponentDetail>(replay = 1, onBufferOverflow = DROP_OLDEST)
     val eventFlow = _eventFlow.asSharedFlow()
 
-    override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
-        val workingDir = getWorkingDirWithLang()
-        val customizedComponents = workingDir.listFilesRecursively()
-            .map { file ->
-                val relativePath = file.relativeTo(workingDir)
-                val componentName = relativePath.path
-                    .replace(File.separator, ".")
-                    .removeSuffix(".$EXTENSION")
-                componentName
-            }
-            .mapNotNull { componentName ->
-                componentDataSource.getComponent(packageName, componentName).first()
-            }
-            .mapNotNull { componentInfo ->
-                val path = componentInfo.name.replace(".", File.separator)
-                    .plus(".$EXTENSION")
-                val file = workingDir.resolve(path)
-                if (!file.exists()) {
-                    return@mapNotNull null
+    override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = components.components(AppKey(packageName, ownUser))
+        .map { statuses ->
+            val names = statuses.map { it.declaration.id.className }.toHashSet()
+            if (names.isEmpty()) return@map emptyList()
+            val workingDir = getWorkingDirWithLang()
+            workingDir.listFilesRecursively()
+                .map { file ->
+                    file.relativeTo(workingDir).path
+                        .replace(File.separator, ".")
+                        .removeSuffix(".$EXTENSION")
                 }
-                return@mapNotNull try {
-                    json.decodeFromString<ComponentDetail>(file.readText())
-                } catch (e: SerializationException) {
-                    Timber.e(
-                        e,
-                        "Error in decoding contents in ${file.absolutePath} " +
-                            "for the ComponentDetail",
-                    )
-                    null
-                } catch (e: IllegalArgumentException) {
-                    Timber.e(
-                        e,
-                        "File ${file.absolutePath} " +
-                            "is not valid for a ComponentDetail class",
-                    )
-                    null
+                .filter { it in names }
+                .mapNotNull { componentName ->
+                    val path = componentName.replace(".", File.separator)
+                        .plus(".$EXTENSION")
+                    val file = workingDir.resolve(path)
+                    if (!file.exists()) {
+                        return@mapNotNull null
+                    }
+                    return@mapNotNull try {
+                        json.decodeFromString<ComponentDetail>(file.readText())
+                    } catch (e: SerializationException) {
+                        Timber.e(
+                            e,
+                            "Error in decoding contents in ${file.absolutePath} " +
+                                "for the ComponentDetail",
+                        )
+                        null
+                    } catch (e: IllegalArgumentException) {
+                        Timber.e(
+                            e,
+                            "File ${file.absolutePath} " +
+                                "is not valid for a ComponentDetail class",
+                        )
+                        null
+                    }
                 }
-            }
-        emit(customizedComponents)
-    }
+        }
         .flowOn(ioDispatcher)
 
     override fun getByComponentName(name: String): Flow<ComponentDetail?> = flow {
