@@ -40,6 +40,7 @@ internal class InMemoryRootGrantMemory(remembered: Boolean) : RootGrantMemory {
 /** Runs commands in a root process started through su, as the app does, and counts them. */
 internal class SessionRootRunner : RootCommandRunner {
     private val session = BlockerRootSession(InstrumentationRegistry.getInstrumentation().targetContext)
+    val hasActiveServer: Boolean get() = session.activeServer != null
 
     @Volatile
     var runs = 0
