@@ -63,12 +63,6 @@ internal class FakeAppComponentDao : AppComponentDao {
         return rows.value.values.filter { it.pmBlocked }
     }
 
-    override suspend fun updatePmBlocked(packageName: String, componentName: String, pmBlocked: Boolean): Int {
-        val row = rows.value[packageName to componentName] ?: return 0
-        put(listOf(row.copy(pmBlocked = pmBlocked)))
-        return 1
-    }
-
     override fun getByPackageNameAndComponentName(packageName: String, componentName: String): Flow<AppComponentEntity?> = rows.map { it[packageName to componentName] }
 
     override fun getByPackageNameAndType(packageName: String, type: ComponentType): Flow<List<AppComponentEntity>> = rows.map { all -> all.values.filter { it.packageName == packageName && it.type == type } }

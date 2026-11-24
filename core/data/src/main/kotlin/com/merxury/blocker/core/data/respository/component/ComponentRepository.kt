@@ -18,7 +18,6 @@ package com.merxury.blocker.core.data.respository.component
 
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
@@ -37,21 +36,7 @@ interface ComponentRepository {
     fun controlComponent(
         component: ComponentInfo,
         newState: Boolean,
-        controllerType: ControllerType? = null,
     ): Flow<Boolean>
-
-    /**
-     * Changes [components] app by app and emits one result per distinct component once its app
-     * has been changed, read back and saved. A component or app that cannot be changed is
-     * reported as failed and the remaining apps still run. The flow fails only when it is
-     * cancelled or root is unavailable, and then only after the state of the app in progress has
-     * been saved. A cancelled run sends no further change but finishes the one already sent.
-     */
-    fun batchControlComponent(
-        components: List<ComponentInfo>,
-        newState: Boolean,
-        controllerType: ControllerType? = null,
-    ): Flow<ComponentControlResult>
 
     suspend fun saveComponents(components: List<ComponentInfo>)
 

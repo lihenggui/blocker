@@ -11,7 +11,6 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import dagger.hilt.internal.GeneratedComponent
@@ -55,7 +54,6 @@ class ComponentProviderContractTest {
         override fun controlComponent(
             component: ComponentInfo,
             newState: Boolean,
-            controllerType: ControllerType?,
         ): Flow<Boolean> {
             controls += Control(component, newState)
             return flowOf(controlResult)
