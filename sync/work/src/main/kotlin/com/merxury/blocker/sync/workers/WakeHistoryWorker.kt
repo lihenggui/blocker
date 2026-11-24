@@ -40,8 +40,9 @@ class WakeHistoryWorker @AssistedInject constructor(
 
 /**
  * Schedules the wake feature's collection: every 30 minutes, after other packages change, and as
- * soon as the privileged channel becomes ready or changes identity, such as after the grant at
- * first launch. It only observes the channel; acquiring it is up to the channel and the screens.
+ * soon as the privileged channel becomes ready or changes identity while no collection is waiting
+ * or running, such as after the grant at first launch. It only observes the channel; acquiring it
+ * is up to the channel and the screens.
  */
 @Singleton
 class WakeWork @Inject constructor(
@@ -68,9 +69,10 @@ class WakeWork @Inject constructor(
         }
         enqueue(context)
         scope.launch {
-            // Any identity reads, root and system also write. A job backing off after the
-            // channel was lost must not delay its return.
-            authorization.readyIdentity.collect { if (it != null) enqueue(context, ExistingWorkPolicy.REPLACE) }
+            // Any identity reads, root and system also write. A run already waiting or running
+            // stays: the run itself connects the channel quietly, so replacing it here would
+            // cancel it, and a run backing off after the channel was lost would restart at once.
+            authorization.readyIdentity.collect { if (it != null) enqueue(context) }
         }
     }
 
