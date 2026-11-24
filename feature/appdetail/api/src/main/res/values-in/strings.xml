@@ -9,6 +9,7 @@
     <string name="feature_appdetail_api_target_sdk_version">Versi SDK Rujukan</string>
     <string name="feature_appdetail_api_minimum_sdk_version">Versi SDK minimum</string>
     <string name="feature_appdetail_api_last_update_time">Perbarui Terakhir</string>
+    <string name="feature_appdetail_api_data_dir">Direktori Data</string>
     <string name="feature_appdetail_api_block_all_of_this_page">Blokir semua di laman ini</string>
     <string name="feature_appdetail_api_enable_all_of_this_page">Aktifkan semua di laman ini</string>
     <string name="feature_appdetail_api_blocking_effect">Efek pemblokiran</string>

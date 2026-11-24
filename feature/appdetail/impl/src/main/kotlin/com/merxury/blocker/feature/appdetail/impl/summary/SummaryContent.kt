@@ -72,6 +72,7 @@ internal fun SummaryContent(
                     targetSdkVersion = app.targetSdk,
                     minSdkVersion = app.minSdk,
                     lastUpdateTime = app.lastUpdateTime,
+                    dataDir = app.dataDir,
                     isLibCheckerInstalled = isLibCheckerInstalled,
                     onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = onExportRules,
@@ -90,6 +91,7 @@ private fun AppSummary(
     targetSdkVersion: Int,
     minSdkVersion: Int,
     lastUpdateTime: Instant,
+    dataDir: String?,
     isLibCheckerInstalled: Boolean,
     onShowAppInfoClick: () -> Unit,
     onExportRules: () -> Unit,
@@ -124,6 +126,12 @@ private fun AppSummary(
                 .withZone(ZoneId.systemDefault())
                 .format(lastUpdateTime.toJavaInstant()),
         )
+        if (dataDir != null) {
+            BlockerSettingItem(
+                title = stringResource(id = string.feature_appdetail_api_data_dir),
+                summary = dataDir,
+            )
+        }
         if (isLibCheckerInstalled) {
             BlockerSettingItem(
                 title = stringResource(id = string.feature_appdetail_api_app_info),

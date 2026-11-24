@@ -204,6 +204,37 @@ class AppDetailScreenTest {
         assertThat(launched).isEqualTo(1)
     }
 
+    @Test
+    fun givenDataDirectory_whenAppInfoShown_thenItIsListed() {
+        composeTestRule.setContent {
+            BlockerTheme {
+                AppDetailContent(
+                    header = AppHeaderUiState(app = previewHeaderApp.copy(dataDir = "/data/user/10/com.merxury.blocker")),
+                    list = componentTab().copy(tabs = TabState(listOf(AppDetailTabs.Info), AppDetailTabs.Info)),
+                    control = ControlUiState(),
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_data_dir)).assertExists()
+        composeTestRule.onNodeWithText("/data/user/10/com.merxury.blocker").assertExists()
+    }
+
+    @Test
+    fun givenNoDataDirectory_whenAppInfoShown_thenNoRow() {
+        composeTestRule.setContent {
+            BlockerTheme {
+                AppDetailContent(
+                    header = AppHeaderUiState(app = previewHeaderApp.copy(dataDir = null)),
+                    list = componentTab().copy(tabs = TabState(listOf(AppDetailTabs.Info), AppDetailTabs.Info)),
+                    control = ControlUiState(),
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_data_dir)).assertDoesNotExist()
+    }
+
     private fun showHeader(launch: LaunchMode, onLaunch: () -> Unit = {}) {
         composeTestRule.setContent {
             BlockerTheme {

@@ -50,6 +50,7 @@ data class AppHeaderUiState(
  * An app as the header and the app info tab show it.
  *
  * @property uid the app's uid in its user, or null when the system does not report it
+ * @property dataDir the app's data directory in its user, or null when the system does not report it
  */
 data class HeaderApp(
     val packageName: String,
@@ -61,6 +62,7 @@ data class HeaderApp(
     val targetSdk: Int,
     val minSdk: Int,
     val lastUpdateTime: Instant,
+    val dataDir: String?,
 )
 
 /** How tapping the app icon opens the app. */

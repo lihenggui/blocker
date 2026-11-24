@@ -205,4 +205,5 @@ private fun InstalledApp.toHeaderApp() = HeaderApp(
     targetSdk = targetSdk,
     minSdk = minSdk,
     lastUpdateTime = lastUpdateTime,
+    dataDir = dataDir,
 )

@@ -71,6 +71,7 @@ internal fun installedApp(key: AppKey, label: String = "Example") = InstalledApp
     enabledSetting = AppEnabledSetting.DEFAULT,
     enabled = true,
     apkPath = "/data/app/${key.packageName}/base.apk",
+    dataDir = "/data/user/${key.userId.value}/${key.packageName}",
     firstInstallTime = Instant.fromEpochMilliseconds(1_000),
     lastUpdateTime = Instant.fromEpochMilliseconds(2_000),
     minSdk = 24,

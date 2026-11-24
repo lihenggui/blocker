@@ -126,6 +126,7 @@ class AppHeaderViewModelTest {
         assertThat(state.app?.packageName).isEqualTo(PACKAGE)
         assertThat(state.profile).isEqualTo(ProfileLabel.Work)
         assertThat(state.launch).isEqualTo(LaunchMode.PROFILE)
+        assertThat(state.app?.dataDir).isEqualTo("/data/user/10/$PACKAGE")
     }
 
     @Test

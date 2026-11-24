@@ -26,6 +26,7 @@
     <string name="feature_appdetail_api_import_ifw_rules">Importar Regras IFW</string>
     <string name="feature_appdetail_api_reset_ifw">Resetar IFW</string>
     <string name="feature_appdetail_api_last_update_time">Última atualização</string>
+    <string name="feature_appdetail_api_data_dir">Diretório de dados</string>
     <string name="feature_appdetail_api_blocking_effect">Efeito do bloqueio</string>
     <string name="feature_appdetail_api_recommended_blocking">Recomenda-se bloquear</string>
     <string name="feature_appdetail_api_belonging_sdk">SDK pertencente</string>

@@ -36,6 +36,7 @@ internal val previewHeaderApp = HeaderApp(
     targetSdk = 36,
     minSdk = 24,
     lastUpdateTime = Instant.fromEpochMilliseconds(1_700_000_000_000),
+    dataDir = "/data/user/0/$PREVIEW_PACKAGE",
 )
 
 private fun previewRow(
