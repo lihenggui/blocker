@@ -106,11 +106,23 @@ class WakeStatsCodecTest {
         assertThrows(WakeReportUnsupportedException::class.java) { WakeStatsCodec.decode("  Usage: dump-report".toByteArray(), 1000, 990, 2000, id) }
     }
 
-    @Test fun givenBytesThatAreNoProtobuf_whenDecoding_thenRecorderUnavailableOnThisRelease() {
+    @Test fun givenBytesThatAreNoProtobuf_whenDecoding_thenNoReportWithWhatArrived() {
         // A length-delimited field 1 that claims more bytes than follow.
         val garbage = byteArrayOf(0x0a, 0x7f, 0x01)
 
-        assertThrows(WakeReportUnsupportedException::class.java) { WakeStatsCodec.decode(garbage, 1000, 990, 2000, id) }
+        val failure = assertThrows(IllegalArgumentException::class.java) { WakeStatsCodec.decode(garbage, 1000, 990, 2000, id) }
+
+        assertThat(failure).hasMessageThat().isEqualTo("statsd answered with no report: 3 bytes")
+    }
+
+    @Test fun givenErrorText_whenDecoding_thenNoReportWithTheTextNotUnavailableOnThisRelease() {
+        // Text that would parse as unknown protobuf fields.
+        val error = "Error: permission denied for config 42\nmore\n".toByteArray()
+
+        val failure = assertThrows(IllegalArgumentException::class.java) { WakeStatsCodec.decode(error, 1000, 990, 2000, id) }
+
+        assertThat(failure).hasMessageThat().isEqualTo("statsd answered with no report: Error: permission denied for config 42")
+        assertThat(failure).isNotInstanceOf(WakeReportUnsupportedException::class.java)
     }
 
     @Test fun givenReportWithoutThisConfig_whenDecoding_thenMissingConfig() {
