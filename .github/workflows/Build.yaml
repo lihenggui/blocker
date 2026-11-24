@@ -91,6 +91,16 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
+      # Robolectric downloads an Android runtime jar per SDK level while the tests run, outside
+      # Gradle's dependency cache. Without this every run fetches them again, and one failed
+      # request fails every test class that needs that level.
+      - name: Cache Robolectric Android runtimes
+        uses: actions/cache@v6
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: robolectric-runtimes-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: robolectric-runtimes-
+
       - name: Accept Android licenses
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
