@@ -18,7 +18,7 @@ package com.merxury.blocker.feature.appdetail.impl
 
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.control.ControlGoal
-import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.control.QueuedControlMessage
 
 /**
  * The changes of components in flight and what they ended in.
@@ -49,16 +49,4 @@ data class BatchProgress(
     val goal: ControlGoal,
     val done: Int?,
     val total: Int,
-)
-
-/**
- * A message waiting to be told. Two equal messages, such as the same switch failing twice, are
- * queued apart by their [id].
- *
- * @property component the component the message is about, or null for a batch summary
- */
-data class QueuedControlMessage(
-    val id: Long,
-    val message: ControlMessage,
-    val component: ComponentId? = null,
 )

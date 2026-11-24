@@ -20,20 +20,32 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.respository.app.AppRepository
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.GatherAllMatchedComponentsUseCase
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
-import com.merxury.blocker.core.domain.UpdateRuleMatchedAppsUseCase
+import com.merxury.blocker.core.domain.control.BatchKey
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
+import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
+import com.merxury.blocker.core.domain.search.ComponentIndex
+import com.merxury.blocker.core.domain.search.IndexState
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.ProcessingProgress
+import com.merxury.blocker.core.ui.control.QueuedControlMessage
+import com.merxury.blocker.core.ui.control.batchSummary
+import com.merxury.blocker.core.ui.control.enqueue
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import dagger.assisted.Assisted
@@ -42,227 +54,222 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+/**
+ * The general rules with the number of apps of the selected user each matches, and blocking or
+ * enabling every component they match. The counts follow the component cache, see
+ * [GeneralRuleMatcher]; while the screen is shown the user's apps are read into the cache, see
+ * [ComponentIndex], and the top bar shows how far that got.
+ */
 @HiltViewModel(assistedFactory = GeneralRulesViewModel.Factory::class)
 class GeneralRulesViewModel @AssistedInject constructor(
-    private val appRepository: AppRepository,
-    private val appPropertiesRepository: AppPropertiesRepository,
+    private val selectedUsers: SelectedUserRepository,
     private val generalRuleRepository: GeneralRuleRepository,
-    private val componentRepository: ComponentRepository,
+    private val appPropertiesRepository: AppPropertiesRepository,
     private val initGeneralRuleUseCase: InitializeRuleStorageUseCase,
     private val searchRule: SearchGeneralRuleUseCase,
-    private val updateRules: UpdateRuleMatchedAppsUseCase,
-    private val gatherAllMatchedComponents: GatherAllMatchedComponentsUseCase,
+    private val ruleMatcher: GeneralRuleMatcher,
+    private val componentIndex: ComponentIndex,
+    private val batches: ComponentBatchRunner,
+    private val layersFor: GetControlLayersUseCase,
+    private val channel: PrivilegedChannel,
     private val analyticsHelper: AnalyticsHelper,
     private val savedStateHandle: SavedStateHandle,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Assisted val initialRuleId: String,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<GeneralRuleUiState>(GeneralRuleUiState.Loading)
-    val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
-    private val _errorState = MutableStateFlow<UiMessage?>(null)
-    val errorState = _errorState.asStateFlow()
-    private val loadExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Timber.e(throwable, "Error occurred while loading general rules")
-        _errorState.value = throwable.toErrorMessage()
-        _uiState.value = (GeneralRuleUiState.Error(throwable.toErrorMessage()))
-    }
-    private var loadRuleJob: Job? = null
-    private var matchingComplete = false
-    private val _processingProgress = MutableStateFlow<ProcessingProgress?>(null)
-    val processingProgress = _processingProgress.asStateFlow()
-    private val _isProcessing = MutableStateFlow(false)
-    val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
+    private val rulesReady = MutableStateFlow(false)
+    private val alert = MutableStateFlow<UiMessage?>(null)
 
-    // Key used to save and retrieve the currently selected topic id from saved state.
+    // The goal of a batch whose components are being gathered, before it runs; null otherwise.
+    private val gathering = MutableStateFlow<ControlGoal?>(null)
+    private val messages = MutableStateFlow<List<QueuedControlMessage>>(emptyList())
+    private var nextMessageId = 0L
+    private var rulesSynced = false
+
+    // Key used to save and retrieve the currently selected rule id from saved state.
     private val selectedRuleIdKey = "selectedRuleIdKey"
     private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
         key = selectedRuleIdKey,
         initialValue = initialRuleId,
     )
 
-    init {
-        loadData()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val rules: Flow<GeneralRuleUiState> = combine(rulesReady, selectedUsers.selectedUser, ::Pair)
+        .flatMapLatest { (ready, user) -> if (ready) rulesOf(user) else flowOf(GeneralRuleUiState.Loading) }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val batch: Flow<ProcessingProgress?> = combine(
+        selectedUsers.selectedUser.flatMapLatest { user ->
+            batches.running(BatchKey.GeneralRules(user)).flatMapLatest { run ->
+                run?.step?.map { step ->
+                    // A batch of one request reports only once it ends.
+                    val done = step.done.takeIf { step.total > BATCH_LIMIT }
+                    ProcessingProgress(current = done ?: 0, total = step.total, isEnabling = run.goal != ControlGoal.BLOCK, isIndeterminate = done == null)
+                } ?: flowOf(null)
+            }
+        },
+        gathering,
+    ) { running, gathering ->
+        // Until the batch runs, its components are read: shown as loading, as no total is known.
+        running ?: gathering?.let { ProcessingProgress(current = 0, total = 0, isEnabling = it != ControlGoal.BLOCK, isComplete = false) }
     }
 
-    fun dismissAlert() = viewModelScope.launch {
-        _errorState.emit(null)
+    val uiState: StateFlow<GeneralRulesScreenUiState> = combine(rules, batch, alert, messages, ::GeneralRulesScreenUiState)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = GeneralRulesScreenUiState(),
+        )
+
+    /**
+     * Keeps the rules and their matches current while the screen is shown: prepares the rule
+     * storage and updates the rules from it once, and reads the selected user's apps into the
+     * component cache the first time this run shows that user, and again when that ran with less
+     * access than the privileged channel has now. Returns only when cancelled.
+     */
+    suspend fun keepFresh(): Unit = coroutineScope {
+        launch { prepareRules() }
+        combine(selectedUsers.selectedUser, channel.state) { user, _ -> user }
+            .collect(componentIndex::ensureIndexed)
+    }
+
+    fun dismissAlert() {
+        alert.value = null
     }
 
     fun onRuleClick(ruleId: String?) {
         savedStateHandle[selectedRuleIdKey] = ruleId
-        loadSelectedRule()
     }
 
+    /**
+     * Blocks every component the rules match in the selected user's apps, through the layers of
+     * the controller type, or removes every block of them, through every layer, as a batch in the
+     * app detail does; one message tells how it ended.
+     */
     fun controlAllComponents(enable: Boolean) {
-        if (_isProcessing.value) return
-        _isProcessing.value = true
-        _processingProgress.value = ProcessingProgress(0, 0, enable, isComplete = false)
+        val user = selectedUsers.selectedUser.value
+        if (gathering.value != null || batches.current(BatchKey.GeneralRules(user)) != null) return
+        val goal = if (enable) ControlGoal.UNBLOCK else ControlGoal.BLOCK
+        gathering.value = goal
         viewModelScope.launch {
             try {
                 analyticsHelper.logControlAllSdksClicked(newState = enable)
-                val components = gatherAllMatchedComponents().first()
-                if (components.isEmpty()) {
-                    _processingProgress.value = null
-                    return@launch
-                }
-                var processed = 0
-                var failed = 0
-                _processingProgress.value = ProcessingProgress(0, components.size, enable, isComplete = false)
-                componentRepository.batchControlComponent(components, enable).collect { result ->
-                    processed++
-                    if (!result.succeeded) failed++
-                    _processingProgress.value = ProcessingProgress(processed, components.size, enable, isComplete = false, failed = failed)
-                }
-                // Collection ends only after controller state reconciliation and database writes.
-                _processingProgress.value = ProcessingProgress(components.size, components.size, enable, isComplete = true, failed = failed)
-            } catch (exception: CancellationException) {
-                _processingProgress.value = null
-                throw exception
-            } catch (exception: Exception) {
-                _processingProgress.value = null
-                _errorState.value = exception.toErrorMessage()
+                startBatch(user, goal)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Cannot gather the components the general rules match for user ${user.value}")
+                alert.value = e.toErrorMessage()
             } finally {
-                _isProcessing.value = false
+                gathering.value = null
             }
         }
     }
 
-    fun dismissProcessingProgress() {
-        _processingProgress.value = null
+    /** Asks for root or Shizuku access, which may show a prompt. */
+    fun grantAccess() = viewModelScope.launch {
+        if (channel.connect() !is ChannelState.Ready) Timber.i("Access was not granted from the general rules")
     }
 
-    private fun loadSelectedRule() {
-        _uiState.update {
-            if (it is GeneralRuleUiState.Success) {
-                it.copy(selectedRuleId = selectedRuleId.value)
-            } else {
-                it
-            }
+    fun onMessageShown(id: Long) {
+        messages.update { queued -> queued.filterNot { it.id == id } }
+    }
+
+    /**
+     * Sends what the rules match now as one batch through [batches], so it ends even when the
+     * screen goes away. Components another batch is changing are left out, and nothing starts
+     * while another batch of the rule list runs for the user.
+     */
+    private suspend fun startBatch(user: UserId, goal: ControlGoal) {
+        val declarations = ruleMatcher.matches(user).first().allComponents
+            .map { it.declaration }
+            .filterNot { batches.isInFlight(ComponentKey(it.id, user)) }
+        if (declarations.isEmpty()) return
+        val run = batches.reserve(BatchKey.GeneralRules(user), goal, declarations.map { it.id }) ?: return
+        var started = false
+        try {
+            batches.start(run, declarations, layersFor(goal))
+            started = true
+            gathering.value = null
+            tell(QueuedControlMessage(nextMessageId++, batchSummary(run.outcomes.await())))
+        } finally {
+            if (!started) batches.release(run)
         }
     }
 
-    private fun loadData() {
-        loadRuleJob?.cancel()
-        loadRuleJob = viewModelScope.launch(loadExceptionHandler) {
-            if (!shouldRefreshList()) {
-                Timber.d("No need to refresh the list")
-                updateMatchedAppInfo()
-                showGeneralRuleList(skipLoading = true)
-                return@launch
-            }
-            _uiState.emit(GeneralRuleUiState.Loading)
+    private fun rulesOf(user: UserId): Flow<GeneralRuleUiState> = combine(
+        searchRule(user),
+        componentIndex.state(user),
+        selectedRuleId,
+    ) { rules, index, selected ->
+        GeneralRuleUiState.Success(
+            matchedRules = rules.filter { it.matchedAppCount > 0 },
+            unmatchedRules = rules.filter { it.matchedAppCount == 0 },
+            matchProgress = index.progress(),
+            selectedRuleId = selected,
+        ) as GeneralRuleUiState
+    }.catch { e ->
+        Timber.e(e, "Cannot load the general rules")
+        emit(GeneralRuleUiState.Error(e.toErrorMessage()))
+    }
+
+    /** Copies the rules into storage when missing, then updates the cached rules from it once. */
+    private suspend fun prepareRules() {
+        if (!rulesReady.value) {
             initGeneralRuleUseCase()
-                .catch { _uiState.emit(GeneralRuleUiState.Error(it.toErrorMessage())) }
-                .takeWhile { state -> state != InitializeState.Done }
-                .collect { state ->
-                    Timber.d("Initialize general rule: $state")
+                .catch { Timber.e(it, "Cannot prepare the rule storage") }
+                .takeWhile { it != InitializeState.Done }
+                .collect { Timber.d("Initialize general rule: $it") }
+            rulesReady.value = true
+        }
+        if (rulesSynced) return
+        rulesSynced = true
+        syncRules()
+    }
+
+    /** Updates the cached rules from storage when the rules there changed since the last update. */
+    private suspend fun syncRules() {
+        try {
+            val ruleHash = generalRuleRepository.getRuleHash().first()
+            if (ruleHash == appPropertiesRepository.appProperties.first().lastOpenedRuleHash) return
+            generalRuleRepository.updateGeneralRule()
+                .flowOn(ioDispatcher)
+                .collect { result ->
+                    when (result) {
+                        is Result.Success -> appPropertiesRepository.updateLastOpenedRuleHash(ruleHash)
+                        is Result.Error -> alert.value = result.exception.toErrorMessage()
+                        Result.Loading -> Unit
+                    }
                 }
-            Timber.v("Get general rules from local storage")
-            launch { updateGeneralRule() }
-            showGeneralRuleList()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot update the general rules")
+            alert.value = e.toErrorMessage()
         }
     }
 
-    private suspend fun showGeneralRuleList(skipLoading: Boolean = false) {
-        searchRule()
-            .catch { _uiState.emit(GeneralRuleUiState.Error(it.toErrorMessage())) }
-            .distinctUntilChanged()
-            .collect { rules ->
-                val matchedRules = rules.filter { it.matchedAppCount > 0 }
-                val unmatchedRules = rules.filter { it.matchedAppCount == 0 }
-                _uiState.update { state ->
-                    val newState = if (state is GeneralRuleUiState.Success) {
-                        state.copy(matchedRules = matchedRules, unmatchedRules = unmatchedRules)
-                    } else {
-                        GeneralRuleUiState.Success(
-                            matchedRules = matchedRules,
-                            unmatchedRules = unmatchedRules,
-                            matchProgress = if (matchingComplete) 1F else 0F,
-                        )
-                    }
-                    if (!skipLoading) {
-                        newState
-                    } else {
-                        newState.copy(matchProgress = 1F)
-                    }
-                }
-            }
-    }
-
-    private suspend fun updateGeneralRule() {
-        // Get general from network first
-        generalRuleRepository.updateGeneralRule()
-            .flowOn(ioDispatcher)
-            .collect { result ->
-                when (result) {
-                    is Result.Success -> updateMatchedAppInfo()
-
-                    is Result.Error -> _errorState.emit(result.exception.toErrorMessage())
-
-                    else -> {
-                        // Do nothing
-                    }
-                }
-            }
-    }
-
-    private suspend fun updateMatchedAppInfo() {
-        updateRules().first()
-        matchingComplete = true
-        _uiState.update {
-            if (it is GeneralRuleUiState.Success) it.copy(matchProgress = 1F) else it
-        }
-        saveHash()
-    }
-
-    private suspend fun shouldRefreshList(): Boolean {
-        val appProperties = appPropertiesRepository.appProperties.first()
-        val lastOpenedAppListHash = appProperties.lastOpenedAppListHash
-        val lastOpenedRuleHash = appProperties.lastOpenedRuleHash
-        if (lastOpenedAppListHash.isEmpty() || lastOpenedRuleHash.isEmpty()) {
-            Timber.d("User opened this screen for the first time, should refresh the list")
-            return true
-        }
-        val currentAppListHash = getCurrentAppListHash()
-        val currentRuleHash = getCurrentRuleHash()
-        val appListChanged = currentAppListHash != lastOpenedAppListHash
-        val ruleChanged = currentRuleHash != lastOpenedRuleHash
-        val shouldReloadList = appListChanged || ruleChanged
-        Timber.d(
-            "App list changed: $appListChanged, rule changed: $ruleChanged, " +
-                "should reload the list: $shouldReloadList",
-        )
-        return shouldReloadList
-    }
-
-    private suspend fun getCurrentAppListHash(): String = appRepository.getApplicationList()
-        .first()
-        .hashCode()
-        .toString()
-
-    private suspend fun getCurrentRuleHash(): String = generalRuleRepository.getRuleHash()
-        .first()
-
-    private suspend fun saveHash() {
-        val appListHash = getCurrentAppListHash()
-        val ruleHash = getCurrentRuleHash()
-        Timber.d("Save app list hash: $appListHash, rule hash: $ruleHash")
-        appPropertiesRepository.updateLastOpenedAppListHash(appListHash)
-        appPropertiesRepository.updateLastOpenedRuleHash(ruleHash)
+    private fun tell(message: QueuedControlMessage) {
+        messages.update { it.enqueue(message) }
     }
 
     @AssistedFactory
@@ -273,8 +280,35 @@ class GeneralRulesViewModel @AssistedInject constructor(
     }
 }
 
+/** How far the reading of the user's apps into the cache got, from 0 to 1. */
+private fun IndexState.progress(): Float = when (this) {
+    IndexState.NotIndexed -> 0F
+    is IndexState.Indexing -> if (total == 0) 0F else done.toFloat() / total
+    is IndexState.Indexed -> 1F
+}
+
+/**
+ * What the general rules screen shows.
+ *
+ * @property rules the rules with their matches
+ * @property batch the progress of the batch of every matched component, or null
+ * @property alert a failure to update the rules, shown until dismissed
+ * @property messages outcomes of batches to tell, oldest first; see [GeneralRulesViewModel.onMessageShown]
+ */
+data class GeneralRulesScreenUiState(
+    val rules: GeneralRuleUiState = GeneralRuleUiState.Loading,
+    val batch: ProcessingProgress? = null,
+    val alert: UiMessage? = null,
+    val messages: List<QueuedControlMessage> = emptyList(),
+)
+
 sealed interface GeneralRuleUiState {
     data object Loading : GeneralRuleUiState
+
+    /**
+     * @property matchProgress how far the user's apps were read into the cache, from 0 to 1; the
+     * batch actions are offered at 1
+     */
     data class Success(
         val matchedRules: List<GeneralRule>,
         val unmatchedRules: List<GeneralRule>,

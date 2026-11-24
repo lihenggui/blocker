@@ -150,7 +150,7 @@ class SearchViewModel @Inject internal constructor(
             if (keyword.isEmpty()) {
                 flowOf(keyword to SearchResults.Idle)
             } else {
-                combine(appResults(user, keyword), componentResults(user, keyword), searchRules(keyword)) { apps, components, rules ->
+                combine(appResults(user, keyword), componentResults(user, keyword), searchRules(user, keyword)) { apps, components, rules ->
                     keyword to SearchResults.Loaded(
                         apps = apps.first,
                         showServiceInfo = apps.second,

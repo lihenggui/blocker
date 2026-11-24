@@ -196,7 +196,7 @@ class SearchViewModelTest {
 
     @Test
     fun givenRulesAndComponents_whenSearched_thenRulesSplitByMatchedAppsAndTheTabsCounted() = runTest {
-        fixture.rules.sendRuleList(listOf(rule(1, "Push SDK", matchedAppCount = 2), rule(2, "Push kit", matchedAppCount = 0), rule(3, "Other", matchedAppCount = 1)))
+        fixture.rules.sendRuleList(listOf(rule(1, "Push SDK", keywords = listOf("com.push.Push")), rule(2, "Push kit", keywords = listOf("com.kit.")), rule(3, "Other", keywords = listOf("com.push."))))
         fixture.installedApps.sendApps(listOf(installedApp("com.push")))
         fixture.components.sendComponents(OWNER, listOf(component("com.push", "PushA"), component("com.push", "PushB")))
         collectState()
@@ -208,6 +208,24 @@ class SearchViewModelTest {
         assertThat(loaded.unmatchedRules.map { it.id }).containsExactly(2)
         // The components tab counts the apps they were found in, as the old search did.
         assertThat(viewModel.uiState.value.tabs.itemCount).containsExactly(SearchTab.APPS, 1, SearchTab.COMPONENTS, 1, SearchTab.RULES, 2)
+    }
+
+    @Test
+    fun givenWorkProfileSelected_whenRulesSearched_thenTheyAreSplitByItsApps() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.rules.sendRuleList(listOf(rule(1, "Push SDK", keywords = listOf("com.push.")), rule(2, "Push kit", keywords = listOf("com.kit."))))
+        fixture.installedApps.sendApps(listOf(installedApp("com.push"), installedApp("com.kit", WORK)))
+        fixture.components.sendComponents(OWNER, listOf(component("com.push", "PushA")))
+        fixture.components.sendComponents(WORK, listOf(component("com.kit", "KitA")))
+        collectState()
+        searchNow("push")
+        assertThat(fixture.loaded().matchedRules.map { it.id }).containsExactly(1)
+
+        viewModel.selectUser(WORK)
+        runCurrent()
+
+        assertThat(fixture.loaded().matchedRules.map { it.id to it.matchedAppCount }).containsExactly(2 to 1)
+        assertThat(fixture.loaded().unmatchedRules.map { it.id }).containsExactly(1)
     }
 
     @Test

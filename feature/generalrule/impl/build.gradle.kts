@@ -27,6 +27,7 @@ android {
 dependencies {
     implementation(projects.feature.generalrule.api)
     implementation(projects.feature.ruledetail.api)
+    implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
@@ -39,5 +40,6 @@ dependencies {
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
+    testImplementation(libs.truth)
     testImplementation(libs.turbine)
 }

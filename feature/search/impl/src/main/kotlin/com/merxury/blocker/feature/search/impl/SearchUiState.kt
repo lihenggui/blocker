@@ -84,7 +84,7 @@ sealed interface SearchResults {
      * What the cache holds for the keyword.
      *
      * @property components by app, in the order of their package names
-     * @property matchedRules the general rules that match an installed app; [unmatchedRules] the rest
+     * @property matchedRules the general rules that match components of the user's apps; [unmatchedRules] the rest
      * @property showServiceInfo whether the app rows show their service counts, as the user chose
      */
     data class Loaded(

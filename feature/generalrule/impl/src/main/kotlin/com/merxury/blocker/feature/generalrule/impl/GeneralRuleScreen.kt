@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,7 +32,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
@@ -42,8 +46,10 @@ import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
+import com.merxury.blocker.core.ui.control.ControlMessageSnackbar
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
@@ -63,17 +69,18 @@ fun GeneralRulesScreen(
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-    val isProcessing by viewModel.isProcessing.collectAsStateWithLifecycle()
-    val progress by viewModel.processingProgress.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(viewModel, lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { viewModel.keepFresh() }
+    }
     Box(modifier = modifier) {
         GeneralRulesScreen(
             showTopBar = showTopBar,
             title = title,
             belowTopBar = belowTopBar,
             highlightSelectedRule = highlightSelectedRule,
-            uiState = uiState,
-            isProcessing = isProcessing,
+            uiState = uiState.rules,
+            isProcessing = uiState.batch != null,
             navigateToRuleDetail = {
                 viewModel.onRuleClick(it)
                 navigateToRuleDetail(it)
@@ -82,15 +89,21 @@ fun GeneralRulesScreen(
             onEnableAllClick = { viewModel.controlAllComponents(true) },
         )
         ProcessingProgressSnackbar(
-            progress = progress,
-            onDismiss = viewModel::dismissProcessingProgress,
+            progress = uiState.batch,
+            onDismiss = {},
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
-    if (errorState != null) {
+    ControlMessageSnackbar(
+        messages = uiState.messages,
+        snackbarHostState = LocalSnackbarHostState.current,
+        onShow = viewModel::onMessageShown,
+        onGrantAccess = viewModel::grantAccess,
+    )
+    uiState.alert?.let { alert ->
         BlockerErrorAlertDialog(
-            title = errorState?.title.orEmpty(),
-            text = errorState?.content.orEmpty(),
+            title = alert.title,
+            text = alert.content.orEmpty(),
             onDismissRequest = viewModel::dismissAlert,
         )
     }
