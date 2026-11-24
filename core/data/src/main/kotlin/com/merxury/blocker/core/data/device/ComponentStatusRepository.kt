@@ -80,7 +80,8 @@ interface ComponentStatusRepository {
 
     /**
      * The components of the apps cached for [user] whose class name contains [keyword], ignoring
-     * ASCII case. `%` and `_` match themselves.
+     * case as Android's SQLite `LIKE` does, which folds letters beyond ASCII too. `%` and `_`
+     * match themselves.
      */
     fun search(user: UserId, keyword: String): Flow<List<ComponentStatus>>
 
