@@ -20,14 +20,23 @@ import com.merxury.blocker.core.control.ComponentControl
 import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.ComponentRow
 import com.merxury.blocker.core.database.cache.asExternalModel
+import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
+import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
+import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.control.layersFor
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
@@ -40,6 +49,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -72,7 +82,7 @@ internal const val REFRESH_PARALLELISM = 4
  * right after that refresh, and a refresh that starts later reads the system after the change.
  */
 @Singleton
-internal class LocalComponentStatusRepository @Inject constructor(
+internal class LocalComponentStatusRepository(
     private val dao: ComponentCacheDao,
     private val installedApps: InstalledAppRepository,
     private val packages: PackageStateReader,
@@ -81,8 +91,22 @@ internal class LocalComponentStatusRepository @Inject constructor(
     private val seeder: PmBlockRecordSeeder,
     channel: PrivilegedChannel,
     ifwStore: IfwStore,
-    @ApplicationScope appScope: CoroutineScope,
+    appScope: CoroutineScope,
+    private val self: AppKey,
 ) : ComponentStatusRepository {
+
+    @Inject constructor(
+        dao: ComponentCacheDao,
+        installedApps: InstalledAppRepository,
+        packages: PackageStateReader,
+        componentControl: ComponentControl,
+        pmBlocks: PmBlockRecords,
+        seeder: PmBlockRecordSeeder,
+        channel: PrivilegedChannel,
+        ifwStore: IfwStore,
+        @ApplicationScope appScope: CoroutineScope,
+        @AppPackageName appPackageName: String,
+    ) : this(dao, installedApps, packages, componentControl, pmBlocks, seeder, channel, ifwStore, appScope, AppKey(appPackageName, ownUser()))
 
     private val locks = ConcurrentHashMap<String, Mutex>()
 
@@ -143,10 +167,44 @@ internal class LocalComponentStatusRepository @Inject constructor(
     }
 
     override fun control(request: ControlRequest): Flow<ControlEvent> = flow {
-        componentControl.apply(request).collect { event ->
-            if (event is ControlEvent.PackageDone) store(request, event)
-            emit(event)
+        val (own, others) = request.components.partition { request.goal == ControlGoal.BLOCK && AppKey(it.id.packageName, request.user) == self }
+        val refused = refuseOwn(request, own)
+        refused?.let { emit(it) }
+        val refusedCount = refused?.outcomes?.size ?: 0
+        if (others.isEmpty()) {
+            emit(ControlEvent.Finished(achieved = 0, partial = 0, failed = refusedCount))
+            return@flow
         }
+        componentControl.apply(request.copy(components = others)).collect { event ->
+            when (event) {
+                is ControlEvent.PackageDone -> {
+                    store(request, event)
+                    emit(event)
+                }
+
+                is ControlEvent.Finished -> emit(event.copy(failed = event.failed + refusedCount))
+            }
+        }
+    }
+
+    /**
+     * Blocking Blocker's own components in the user it runs in could only break the app in use,
+     * whichever screen, import or restore asks, so they are never sent. They end as not
+     * permitted, with the state the cache holds, which stays as it is.
+     */
+    private suspend fun refuseOwn(request: ControlRequest, own: List<ComponentDeclaration>): ControlEvent.PackageDone? {
+        if (own.isEmpty()) return null
+        Timber.w("Refuse to block ${own.size} components of Blocker itself for user ${request.user.value}")
+        val outcomes = own.distinctBy { it.id }.map { declaration ->
+            val key = ComponentKey(declaration.id, request.user)
+            ComponentOutcome(
+                key = key,
+                state = component(key).first()?.state ?: ControlState(PmSetting.UNKNOWN, IfwBlock.UNKNOWN),
+                result = ControlResult.FAILED,
+                failures = declaration.layersFor(request.layers).associateWith { ControlFailure.NotPermitted(message = null) },
+            )
+        }
+        return ControlEvent.PackageDone(self.packageName, outcomes)
     }
 
     override suspend fun disabledByBlocker(user: UserId): ReadResult<DisabledComponents> {
