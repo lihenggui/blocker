@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.device
 
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
@@ -150,6 +151,13 @@ interface ComponentStatusRepository {
      * writes complete.
      */
     fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver? = null): Flow<ControlEvent>
+
+    /**
+     * Clears PackageManager blocks found by [disabledByBlocker]. Like [control], stores the
+     * read-back and updates the records before emitting the result. Also drops records for
+     * changes the system refused even under root or the system UID.
+     */
+    fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent>
 
     /**
      * The components Blocker disabled through PackageManager for [user] that are still

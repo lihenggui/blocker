@@ -272,7 +272,7 @@ class BackupRestoreDeviceTest {
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), inC)
 
         // APP_C goes away for the owner after the settings were read, so the system refuses it.
-        val result = PackageManagerReset(BeforeControl(components) { request -> if (request.components.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel, seeder).reset(owner)
+        val result = PackageManagerReset(BeforeReset(components) { declarations -> if (declarations.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel, seeder).reset(owner)
 
         Log.i(TAG, "PM reset $result")
         assertEquals(PmSetting.DEFAULT, pm(owner, inB))
@@ -380,14 +380,14 @@ class BackupRestoreDeviceTest {
     }
 }
 
-/** [ComponentStatusRepository] that runs [beforeControl] before each request reaches the system. */
-private class BeforeControl(
+/** Runs [beforeReset] before a PackageManager reset reaches the system. */
+private class BeforeReset(
     private val delegate: ComponentStatusRepository,
-    private val beforeControl: (ControlRequest) -> Unit = {},
+    private val beforeReset: (List<ComponentDeclaration>) -> Unit,
 ) : ComponentStatusRepository by delegate {
-    override fun control(request: ControlRequest): Flow<ControlEvent> {
-        beforeControl(request)
-        return delegate.control(request)
+    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent> {
+        beforeReset(components)
+        return delegate.resetPmBlocks(user, components)
     }
 }
 

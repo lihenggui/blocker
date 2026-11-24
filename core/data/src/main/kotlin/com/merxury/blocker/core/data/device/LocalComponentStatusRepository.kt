@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
+import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
@@ -295,7 +296,21 @@ internal class LocalComponentStatusRepository(
         emit(RefreshProgress.Finished(total = apps.size, failed = failed, appListFailure = null))
     }
 
-    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
+    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = control(request, keepKnownState, writeObserver, forgetRefusedPmBlocks = false)
+
+    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent> = control(
+        ControlRequest(user, components, ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER)),
+        keepKnownState = false,
+        writeObserver = null,
+        forgetRefusedPmBlocks = true,
+    )
+
+    private fun control(
+        request: ControlRequest,
+        keepKnownState: Boolean,
+        writeObserver: ComponentWriteObserver?,
+        forgetRefusedPmBlocks: Boolean,
+    ): Flow<ControlEvent> = flow {
         val (own, others) = request.components.partition { request.goal == ControlGoal.BLOCK && AppKey(it.id.packageName, request.user) == self }
         val refused = refuseOwn(request, own)
         refused?.let { emit(it) }
@@ -309,7 +324,7 @@ internal class LocalComponentStatusRepository(
             componentControl.apply(request.copy(components = others), writeObserver).collect { event ->
                 when (event) {
                     is ControlEvent.PackageDone -> {
-                        store(request, event, keepKnownState)
+                        store(request, event, keepKnownState, forgetRefusedPmBlocks)
                         controlActivity.recordWrites(AppKey(event.packageName, request.user), event.pmWrites)
                         emit(event)
                     }
@@ -428,7 +443,12 @@ internal class LocalComponentStatusRepository(
      * Stores the read-back state of each outcome, both layers in one transaction, then updates the
      * record of Blocker's PackageManager blocks from it; runs to its end once the event has arrived.
      */
-    private suspend fun store(request: ControlRequest, event: ControlEvent.PackageDone, keepKnownState: Boolean) = withContext(NonCancellable) {
+    private suspend fun store(
+        request: ControlRequest,
+        event: ControlEvent.PackageDone,
+        keepKnownState: Boolean,
+        forgetRefusedPmBlocks: Boolean,
+    ) = withContext(NonCancellable) {
         lockOf(event.packageName).withLock {
             event.outcomes.groupBy { it.key.userId }.forEach { (user, outcomes) ->
                 dao.storePackageState(
@@ -440,7 +460,7 @@ internal class LocalComponentStatusRepository(
                     ifwBlocks = outcomes.associate { it.key.id.className to it.state.ifw }.filterValues { !keepKnownState || it != IfwBlock.UNKNOWN },
                 )
             }
-            pmBlocks.afterControl(request, event)
+            pmBlocks.afterControl(request, event, forgetRefusedPmBlocks)
         }
     }
 

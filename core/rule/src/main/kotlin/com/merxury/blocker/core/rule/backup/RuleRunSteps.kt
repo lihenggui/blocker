@@ -24,7 +24,7 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
-import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
@@ -68,18 +69,18 @@ internal suspend fun ComponentStatusRepository.freshComponents(app: AppKey): Rea
 }
 
 /**
- * Carries out [request] and counts each requested component once in [summary]: unchanged when
+ * Counts each requested component once in [summary]: unchanged when
  * the goal was met and the state read back equals [states], applied when it was met by a change,
  * failed with its first layer's reason otherwise. [states] is updated with the state read back, so
  * a later request for the same components compares with it.
  */
-internal suspend fun ComponentStatusRepository.controlAndCount(
-    request: ControlRequest,
+internal suspend fun Flow<ControlEvent>.countControlOutcomes(
+    goal: ControlGoal,
     states: MutableMap<ComponentId, ControlState>,
     summary: SummaryBuilder,
 ): Int {
     var applied = 0
-    control(request).collect { event ->
+    collect { event ->
         if (event !is ControlEvent.PackageDone) return@collect
         event.outcomes.forEach { outcome ->
             val id = outcome.key.id
@@ -88,7 +89,7 @@ internal suspend fun ComponentStatusRepository.controlAndCount(
             states[id] = outcome.state
             when {
                 outcome.result != ControlResult.ACHIEVED -> {
-                    Timber.w("Cannot ${request.goal} ${id.flatten()} for user ${request.user.value}: ${outcome.failures}")
+                    Timber.w("Cannot $goal ${id.flatten()} for user ${outcome.key.userId.value}: ${outcome.failures}")
                     summary.fail(outcome.failures.values.first().reason)
                 }
 

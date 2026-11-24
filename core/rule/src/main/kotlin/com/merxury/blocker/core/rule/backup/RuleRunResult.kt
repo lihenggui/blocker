@@ -158,7 +158,8 @@ internal val ReadFailure.reason: FailureReason
 /** The failure category of one layer of a control request. */
 internal val ControlFailure.reason: FailureReason
     get() = when (this) {
-        ControlFailure.ChannelUnavailable, is ControlFailure.NotPermitted -> FailureReason.NO_PRIVILEGE
+        ControlFailure.ChannelUnavailable -> FailureReason.NO_PRIVILEGE
+        is ControlFailure.NotPermitted -> if (isSystemRefusal) FailureReason.SYSTEM_ERROR else FailureReason.NO_PRIVILEGE
         ControlFailure.RulesUnreadable -> FailureReason.RULES_UNREADABLE
         is ControlFailure.WriteFailed -> FailureReason.WRITE_FAILED
         is ControlFailure.TargetNotFound, is ControlFailure.SystemError, ControlFailure.StateNotConfirmed -> FailureReason.SYSTEM_ERROR

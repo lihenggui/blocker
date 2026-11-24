@@ -20,6 +20,7 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 
 /** Why one layer of a component does not show what was asked for. */
 sealed interface ControlFailure {
@@ -27,7 +28,10 @@ sealed interface ControlFailure {
     data object ChannelUnavailable : ControlFailure
 
     /** The identity the channel runs as may not do this, or the system protects the component. */
-    data class NotPermitted(val message: String?) : ControlFailure
+    data class NotPermitted(val message: String?, val identity: PrivilegedIdentity? = null) : ControlFailure {
+        /** Whether the system refused the change even with a root or system identity. */
+        val isSystemRefusal: Boolean get() = identity == PrivilegedIdentity.ROOT || identity == PrivilegedIdentity.SYSTEM
+    }
 
     /** The package, component or user is not known to the system. */
     data class TargetNotFound(val message: String?) : ControlFailure

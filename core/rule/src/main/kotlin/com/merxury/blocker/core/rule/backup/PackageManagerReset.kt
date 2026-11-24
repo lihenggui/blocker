@@ -19,10 +19,8 @@ package com.merxury.blocker.core.rule.backup
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
-import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import kotlinx.coroutines.flow.first
@@ -34,7 +32,8 @@ import javax.inject.Inject
  * components Blocker recorded as disabled by itself and that the system still shows DISABLED when
  * the reset runs are cleared, see [ComponentStatusRepository.disabledByBlocker]; components the app
  * or the system disabled are left alone, and Intent Firewall rules are not touched. Each cleared
- * component loses its record.
+ * component loses its record, as does one the system refuses to clear even with root or the
+ * system UID.
  *
  * Every count is of components: cleared ones are applied; recorded ones of apps no longer installed
  * are skipped as [SkipReason.APP_NOT_INSTALLED], and those the app no longer declares as
@@ -69,9 +68,8 @@ class PackageManagerReset @Inject constructor(
             val declarations = keys.mapNotNull { statuses[it.id]?.declaration }
             summary.skip(SkipReason.NOT_DECLARED, keys.size - declarations.size)
             if (declarations.isEmpty()) return@forEachIndexed
-            val request = ControlRequest(user, declarations, ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER))
             val states = statuses.mapValues { it.value.state }.toMutableMap()
-            if (components.controlAndCount(request, states, summary) > 0) summary.apps++
+            if (components.resetPmBlocks(user, declarations).countControlOutcomes(ControlGoal.UNBLOCK, states, summary) > 0) summary.apps++
         }
         return RuleRunResult.Completed(summary.build())
     }

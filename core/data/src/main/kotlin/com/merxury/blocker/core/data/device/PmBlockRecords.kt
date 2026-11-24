@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.layersFor
@@ -46,14 +47,15 @@ internal fun ownUser(): UserId = UserId(Process.myUid() / UIDS_PER_USER)
  * ## Who writes
  * - [afterControl], for each package a control finishes, under that package's lock right after its
  *   read-back is stored: a block through PackageManager records what reads back DISABLED, and any
- *   request drops what reads back as not disabled.
+ *   request drops what reads back as not disabled. A reset also drops blocks the system refuses
+ *   to clear even under root or the system UID.
  * - [afterRefresh], for each package refresh under the same lock: drops what reads back as not
  *   disabled, which the user or the app changed elsewhere, and what the app no longer declares.
  * - [forgetApp] and [forgetUninstalled] when a live read confirms the app is gone for the user,
  *   including records left behind by earlier removals.
  * - [PmBlockRecordSeeder] records blocks from the legacy component list once during upgrade.
  *
- * A setting that cannot be read, [PmSetting.UNKNOWN], never drops a record.
+ * An unreadable setting alone never drops a record.
  */
 internal class PmBlockRecords @Inject constructor(
     private val dao: PmBlockRecordDao,
@@ -90,14 +92,25 @@ internal class PmBlockRecords @Inject constructor(
      * dropped. A provider blocked with the firewall layer only is blocked through PackageManager,
      * so it is recorded too.
      */
-    suspend fun afterControl(request: ControlRequest, event: ControlEvent.PackageDone) {
+    suspend fun afterControl(request: ControlRequest, event: ControlEvent.PackageDone, forgetRefusedPmBlocks: Boolean) {
         val declarations = request.components.associateBy { it.id }
         val (disabled, cleared) = event.outcomes.filter { it.state.pm != PmSetting.UNKNOWN }.partition { it.state.pm == PmSetting.DISABLED }
         val recorded = disabled.filter { outcome ->
             request.goal == ControlGoal.BLOCK && declarations[outcome.key.id]?.layersFor(request.layers)?.contains(ControlLayer.PACKAGE_MANAGER) == true
         }
         record(recorded.map { it.key })
-        forget(cleared.map { it.key })
+        val refused = if (forgetRefusedPmBlocks) {
+            event.outcomes.filter { outcome ->
+                val failure = outcome.failures[ControlLayer.PACKAGE_MANAGER]
+                failure is ControlFailure.NotPermitted && failure.isSystemRefusal
+            }.map { outcome ->
+                Timber.w("Forget PM block ${outcome.key.id.flatten()} for user ${outcome.key.userId.value} after a system refusal")
+                outcome.key
+            }
+        } else {
+            emptyList()
+        }
+        forget(cleared.map { it.key } + refused)
     }
 
     /**

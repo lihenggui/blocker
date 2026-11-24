@@ -328,7 +328,7 @@ class RootTransportTest {
         transport.connect()
         runner.system.activityManager.failure = SecurityException("no")
 
-        assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("no")))
+        assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("no", PrivilegedIdentity.ROOT)))
         assertThat(runner.sent).isEqualTo(2)
     }
 }

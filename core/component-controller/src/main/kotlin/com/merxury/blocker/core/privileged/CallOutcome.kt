@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.privileged
 
 import android.os.Parcel
+import android.os.Process
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import kotlinx.coroutines.CancellationException
@@ -78,6 +79,7 @@ private fun Parcel.writeCallFailure(failure: CallFailure) {
         is CallFailure.NotPermitted -> {
             writeInt(NOT_PERMITTED)
             writeString(failure.message)
+            writeInt(Process.myUid())
         }
 
         is CallFailure.TargetNotFound -> {
@@ -94,8 +96,16 @@ private fun Parcel.writeCallFailure(failure: CallFailure) {
 
 private fun Parcel.readCallFailure(): CallFailure = when (val kind = readInt()) {
     CHANNEL_UNAVAILABLE -> CallFailure.ChannelUnavailable
-    NOT_PERMITTED -> CallFailure.NotPermitted(readString())
+
+    NOT_PERMITTED -> {
+        val message = readString()
+        val identity = if (dataAvail() >= Int.SIZE_BYTES) identityOfUid(readInt()) else null
+        CallFailure.NotPermitted(message, identity)
+    }
+
     TARGET_NOT_FOUND -> CallFailure.TargetNotFound(readString())
+
     SYSTEM_ERROR -> CallFailure.SystemError(readString())
+
     else -> error("Unknown failure $kind")
 }

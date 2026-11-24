@@ -200,9 +200,9 @@ internal class FakeExecutor(private val system: FakePmSystem, private val channe
         system.beforeSet(set)
         val failure = when {
             system.callFailure != null -> system.callFailure
-            ready.identity == PrivilegedIdentity.SHELL && ids.any { it.packageName !in system.testOnly } -> CallFailure.NotPermitted("Shell cannot change components")
+            ready.identity == PrivilegedIdentity.SHELL && ids.any { it.packageName !in system.testOnly } -> CallFailure.NotPermitted("Shell cannot change components", ready.identity)
             ids.any { it.packageName in system.missing } -> CallFailure.TargetNotFound("Unknown package")
-            ids.any { it in system.protected } -> CallFailure.NotPermitted("Protected component")
+            ids.any { it in system.protected } -> CallFailure.NotPermitted("Protected component", ready.identity)
             else -> null
         }
         if (failure != null) return CallResult.Failure(failure)

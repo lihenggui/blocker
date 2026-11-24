@@ -25,6 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
@@ -38,6 +39,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowProcess
 import java.io.IOException
 
 private const val PKG = "com.example"
@@ -190,5 +192,15 @@ class CallOutcomeTest {
     @Test
     fun givenCallThatFailsInPrivilegedProcess_whenRoundTrip_thenFailureKept() {
         assertThat(roundTrip(FailInPrivilegedProcess("no"))).isEqualTo(CallResult.Failure(CallFailure.NotPermitted("no")))
+    }
+
+    @Test
+    fun givenPrivilegedProcessIdentity_whenRefusalRoundTrips_thenIdentityIsKept() {
+        for (identity in PrivilegedIdentity.entries) {
+            ShadowProcess.setUid(identity.uid)
+            val expected = CallResult.Failure(CallFailure.NotPermitted("no", identity))
+
+            assertThat(roundTrip(FailInPrivilegedProcess("no"))).isEqualTo(expected)
+        }
     }
 }
