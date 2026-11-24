@@ -16,19 +16,19 @@
 
 package com.merxury.blocker.core.data.device
 
-import android.os.SystemClock
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /** Tracks package writes through their cache read-back, including across the chunks of a batch. */
 @Singleton
 class PackageControlActivity internal constructor(private val elapsedRealtime: () -> Long) {
-    @Inject constructor() : this(SystemClock::elapsedRealtime)
+    @Inject constructor() : this(::packageChangeTimeMillis)
 
     private val lock = Any()
     private val active = MutableStateFlow<Map<String, ActiveControl>>(emptyMap())
@@ -106,3 +106,5 @@ class PackageControlActivity internal constructor(private val elapsedRealtime: (
         const val MAX_RECENT_PACKAGES = 512
     }
 }
+
+internal fun packageChangeTimeMillis(): Long = TimeUnit.NANOSECONDS.toMillis(System.nanoTime())

@@ -199,7 +199,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN, SYNC, DATA)
         // The user enabled MAIN in another app; an update dropped SYNC.
         system.put(OWNER, MAIN, PmSetting.ENABLED)
-        system.install(installedApp(PKG, lastUpdateTime = 3_000), MAIN, SELF_OFF, DATA)
+        system.install(installedApp(PKG, lastUpdateTime = 3_000).copy(versionCode = 2), MAIN, SELF_OFF, DATA)
 
         repository.refresh(AppKey(PKG, OWNER))
 

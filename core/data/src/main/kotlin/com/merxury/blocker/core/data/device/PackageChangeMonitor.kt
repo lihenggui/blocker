@@ -21,7 +21,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import android.os.SystemClock
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -65,7 +64,7 @@ class PackageChangeMonitor internal constructor(
         channel: PrivilegedChannel,
         @ApplicationScope scope: CoroutineScope,
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
-    ) : this(context, cache, users, controlActivity, channel, scope, ioDispatcher, SystemClock::elapsedRealtime)
+    ) : this(context, cache, users, controlActivity, channel, scope, ioDispatcher, ::packageChangeTimeMillis)
 
     private val started = AtomicBoolean(false)
     private val requests = Channel<Unit>(Channel.CONFLATED)
