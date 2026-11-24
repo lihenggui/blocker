@@ -16,15 +16,12 @@
 
 package com.merxury.blocker.feature.debloater.impl
 
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.ui.coil.ApkIcon
 
-/**
- * Represents a group of debloatable apps activities matched for a specific app
- *
- * @param header The header information for the matched app
- * @param targets The list of debloatable apps UI items belonging to this app
- */
 data class MatchedTarget(
-    val header: MatchedHeaderData,
+    val app: AppKey,
+    val title: String,
+    val icon: ApkIcon?,
     val targets: List<DebloatableComponentUiItem>,
 )

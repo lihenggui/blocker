@@ -28,6 +28,7 @@ android {
 
 dependencies {
     implementation(projects.feature.debloater.api)
+    implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(libs.androidx.compose.material)
@@ -38,9 +39,8 @@ dependencies {
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
-    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.truth)
     testImplementation(projects.core.testing)
-    testImplementation(projects.core.dataTest)
     testFossImplementation(projects.core.screenshotTesting)
 
 }

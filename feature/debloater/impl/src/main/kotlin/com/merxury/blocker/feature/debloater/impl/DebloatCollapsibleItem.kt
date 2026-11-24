@@ -51,8 +51,8 @@ import com.merxury.blocker.feature.debloater.impl.DebloaterPreviewParameterData.
 fun DebloatCollapsibleItem(
     matchedTarget: MatchedTarget,
     modifier: Modifier = Modifier,
-    onBlockAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = { _ -> },
+    onBlockAllInItemClick: (MatchedTarget) -> Unit = { _ -> },
+    onEnableAllInItemClick: (MatchedTarget) -> Unit = { _ -> },
     expanded: Boolean = false,
     onCardArrowClick: (String) -> Unit = {},
 ) {
@@ -62,17 +62,17 @@ fun DebloatCollapsibleItem(
         BlockerIcons.ExpandMore
     }
     val items = listOf(
-        DropDownMenuItem(string.core_ui_block_all_components, { onBlockAllInItemClick(matchedTarget.targets) }),
-        DropDownMenuItem(string.core_ui_enable_all_components, { onEnableAllInItemClick(matchedTarget.targets) }),
+        DropDownMenuItem(string.core_ui_block_all_components, { onBlockAllInItemClick(matchedTarget) }),
+        DropDownMenuItem(string.core_ui_enable_all_components, { onEnableAllInItemClick(matchedTarget) }),
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCardArrowClick(matchedTarget.header.uniqueId) }
+            .clickable { onCardArrowClick(matchedTarget.app.packageName) }
             .padding(vertical = 8.dp),
     ) {
-        IconButton(onClick = { onCardArrowClick(matchedTarget.header.uniqueId) }) {
+        IconButton(onClick = { onCardArrowClick(matchedTarget.app.packageName) }) {
             Icon(
                 imageVector = expandIcon,
                 contentDescription = if (expanded) {
@@ -85,7 +85,7 @@ fun DebloatCollapsibleItem(
         AsyncImage(
             modifier = Modifier.size(48.dp),
             model = Builder(LocalContext.current)
-                .data(matchedTarget.header.icon)
+                .data(matchedTarget.icon)
                 .error(BlockerIcons.Android)
                 .placeholder(BlockerIcons.Android)
                 .build(),
@@ -93,11 +93,11 @@ fun DebloatCollapsibleItem(
         )
         Spacer(modifier = Modifier.width(16.dp))
         DebloatAppInfo(
-            label = matchedTarget.header.title,
+            label = matchedTarget.title,
             blockedCount = matchedTarget.targets
-                .count { it.entity.pmBlocked || it.entity.ifwBlocked },
+                .count { !it.component.enabled },
             enabledCount = matchedTarget.targets
-                .count { !it.entity.pmBlocked && !it.entity.ifwBlocked },
+                .count { it.component.enabled },
             modifier = Modifier.fillMaxWidth(0.8f),
         )
         Spacer(modifier = Modifier.weight(1f))

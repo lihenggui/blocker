@@ -55,6 +55,7 @@ fun DebloatableAppSubItem(
     modifier: Modifier = Modifier,
     onSwitchClick: (DebloatableComponentUiItem, Boolean) -> Unit = { _, _ -> },
     isSelected: Boolean = false,
+    inFlight: Boolean = false,
 ) {
     val animatedColor = animateColorAsState(
         targetValue = if (isSelected) {
@@ -75,26 +76,23 @@ fun DebloatableAppSubItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.fillMaxWidth(0.8f)) {
-            val displayTitle = item.entity.displayName.takeIf { it.isNotBlank() } ?: item.entity.simpleName
+            val displayTitle = item.displayName.takeIf { it.isNotBlank() } ?: item.key.id.simpleName
             BlockerBodyLargeText(
                 modifier = Modifier.fillMaxWidth(),
                 text = displayTitle,
             )
             BlockerBodyMediumText(
-                text = item.entity.componentName,
+                text = item.className,
                 style = MaterialTheme.typography.bodyMedium.condensedRegular(),
             )
 
             // Display chips for different component types
-            val hasAnyChip = item.isLauncherEntry || item.isDeeplinkEntry || item.isShareableComponent ||
-                item.isWakelockComponent || item.isAutoStartReceiver || item.isExportedNoPerm ||
-                item.isForegroundService || item.isPushService || item.isDangerousProvider
-            if (hasAnyChip) {
+            if (item.kinds.isNotEmpty()) {
                 Spacer(modifier = Modifier.padding(top = 4.dp))
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    if (item.isLauncherEntry) {
+                    if (ComponentClassification.LAUNCHER in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -110,7 +108,7 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isShareableComponent) {
+                    if (ComponentClassification.SHAREABLE in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -122,7 +120,7 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isDeeplinkEntry) {
+                    if (ComponentClassification.DEEPLINK in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -134,7 +132,7 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isWakelockComponent) {
+                    if (ComponentClassification.WAKELOCK in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -146,7 +144,7 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isAutoStartReceiver) {
+                    if (ComponentClassification.AUTO_START in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -158,7 +156,7 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isExportedNoPerm) {
+                    if (ComponentClassification.EXPORTED_NO_PERM in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -174,7 +172,7 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isForegroundService) {
+                    if (ComponentClassification.FOREGROUND_SERVICE in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -186,7 +184,7 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isPushService) {
+                    if (ComponentClassification.PUSH_SERVICE in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -198,7 +196,7 @@ fun DebloatableAppSubItem(
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
-                    if (item.isDangerousProvider) {
+                    if (ComponentClassification.DANGEROUS_PROVIDER in item.kinds) {
                         AssistChip(
                             onClick = { },
                             label = {
@@ -220,6 +218,7 @@ fun DebloatableAppSubItem(
         Spacer(modifier = Modifier.weight(1f))
         BlockerSwitch(
             checked = enabled,
+            enabled = !inFlight,
             onCheckedChange = {
                 onSwitchClick(item, !enabled)
             },

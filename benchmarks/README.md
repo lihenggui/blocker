@@ -185,6 +185,7 @@ graph TB
   :feature:applist:impl -.-> :feature:settings:api
   :feature:debloater:api --> :core:navigation
   :feature:debloater:api -.-> :core:ui
+  :feature:debloater:impl -.-> :core:component-controller
   :feature:debloater:impl -.-> :core:data
   :feature:debloater:impl -.-> :core:designsystem
   :feature:debloater:impl -.-> :core:domain

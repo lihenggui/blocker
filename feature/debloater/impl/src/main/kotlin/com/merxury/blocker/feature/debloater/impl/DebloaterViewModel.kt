@@ -16,38 +16,52 @@
 
 package com.merxury.blocker.feature.debloater.impl
 
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.PermissionStatus
-import com.merxury.blocker.core.database.debloater.DebloatableComponentEntity
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.domain.control.BatchKey
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner
+import com.merxury.blocker.core.domain.control.ControlComponentUseCase
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
+import com.merxury.blocker.core.domain.search.ComponentIndex
+import com.merxury.blocker.core.domain.search.IndexState
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.control.QueuedControlMessage
+import com.merxury.blocker.core.ui.control.enqueue
+import com.merxury.blocker.core.ui.control.toMessage
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -55,298 +69,216 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+data class DebloaterUiState(
+    val content: Result<List<MatchedTarget>> = Result.Loading,
+    val searchQuery: String = "",
+    val componentTypeFilter: Set<ComponentClassification> = emptySet(),
+    val hasRootPermission: Boolean = false,
+    val inFlight: Set<ComponentKey> = emptySet(),
+    val messages: List<QueuedControlMessage> = emptyList(),
+    val alert: UiMessage? = null,
+)
+
 @HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
 class DebloaterViewModel @Inject constructor(
-    private val debloatableComponentRepository: DebloatableComponentRepository,
+    private val selectedUsers: SelectedUserRepository,
+    private val matches: DebloaterMatches,
+    private val componentIndex: ComponentIndex,
+    private val componentStatuses: ComponentStatusRepository,
+    private val batches: ComponentBatchRunner,
+    private val controlComponent: ControlComponentUseCase,
+    private val layersFor: GetControlLayersUseCase,
+    private val channel: PrivilegedChannel,
     permissionMonitor: PermissionMonitor,
-    private val componentRepository: ComponentRepository,
-    private val userDataRepository: UserDataRepository,
-    private val pm: PackageManager,
     private val analyticsHelper: AnalyticsHelper,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
+    private val filters = MutableStateFlow(Filters())
+    private val singles = MutableStateFlow<Set<ComponentKey>>(emptySet())
+    private val feedback = MutableStateFlow<Map<UserId, Feedback>>(emptyMap())
+    private var nextMessageId = 0L
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Timber.e(throwable, "Error in DebloaterViewModel")
-        _errorState.update { throwable.toErrorMessage() }
-    }
+    private val content = selectedUsers.selectedUser.flatMapLatest { user ->
+        content(user).map { user to it }
+    }.combine(filters) { (user, content), filters ->
+        FilteredContent(user, content.filteredBy(filters), filters)
+    }.flowOn(cpuDispatcher)
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
+    private val inFlight = combine(singles, batches.inFlight) { singles, pending -> singles + pending }
 
-    private val _componentTypeFilter = MutableStateFlow<Set<ComponentClassification>>(setOf())
-    val componentTypeFilter = _componentTypeFilter.asStateFlow()
-
-    private val _errorState = MutableStateFlow<UiMessage?>(null)
-    val errorState = _errorState.asStateFlow()
-
-    val hasRootPermission: StateFlow<Boolean> = permissionMonitor.permissionStatus
+    private val permission = permissionMonitor.permissionStatus
         .map { it != PermissionStatus.NO_PERMISSION }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false,
+        .catch {
+            Timber.e(it, "Cannot read debloater permissions")
+            emit(false)
+        }
+        .onStart { emit(false) }
+
+    val uiState: StateFlow<DebloaterUiState> = combine(
+        selectedUsers.selectedUser,
+        content,
+        inFlight,
+        feedback,
+        permission,
+    ) { user, filtered, inFlight, feedback, hasRootPermission ->
+        val feedbackForUser = feedback[user]
+        DebloaterUiState(
+            content = filtered.content.takeIf { filtered.user == user } ?: Result.Loading,
+            searchQuery = filtered.filters.query,
+            componentTypeFilter = filtered.filters.kinds,
+            hasRootPermission = hasRootPermission,
+            inFlight = inFlight,
+            messages = feedbackForUser?.messages.orEmpty(),
+            alert = feedbackForUser?.alert,
         )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000, replayExpirationMillis = 0), DebloaterUiState())
 
-    private var controlComponentJob: Job? = null
+    private fun content(user: UserId): Flow<Result<List<MatchedTarget>>> = combine(
+        channel.state.onEach { componentIndex.ensureIndexed(user) },
+        componentIndex.state(user),
+    ) { _, index -> index }
+        .flatMapLatest { index -> indexedContent(user, index) }
+        .onStart { emit(Result.Loading) }
 
-    private val _debloatableUiState = MutableStateFlow<Result<List<MatchedTarget>>>(Result.Loading)
-    val debloatableUiState: StateFlow<Result<List<MatchedTarget>>> =
-        _debloatableUiState.asStateFlow()
-
-    private var loadDataJob: Job? = null
-    private var cachedEntities: List<DebloatableComponentEntity> = emptyList()
-
-    init {
-        loadData()
-        observeSearchAndFilterChanges()
-    }
-
-    private fun loadData() {
-        loadDataJob?.cancel()
-        loadDataJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            debloatableComponentRepository.getDebloatableComponent()
-                .catch { exception ->
-                    Timber.e(exception, "Error loading debloatable components")
-                    _debloatableUiState.update { Result.Error(exception) }
+    private fun indexedContent(user: UserId, index: IndexState): Flow<Result<List<MatchedTarget>>> = flow {
+        when (index) {
+            is IndexState.Indexed -> {
+                index.exception?.let { throw it }
+                if (index.appListFailure != null) {
+                    Timber.w("Cannot list the apps of user ${user.value}: ${index.appListFailure}")
+                    emit(Result.Error(IllegalStateException()))
+                } else {
+                    emitAll(matches.forUser(user).map { Result.Success(it) })
                 }
-                .collect { entities ->
-                    cachedEntities = entities
-                    applyFiltersAndUpdate()
-                }
-        }
-    }
-
-    private fun observeSearchAndFilterChanges() {
-        viewModelScope.launch {
-            combine(_searchQuery, _componentTypeFilter) { query, typeFilter ->
-                query to typeFilter
-            }.collect {
-                applyFiltersAndUpdate()
             }
-        }
-    }
 
-    private fun applyFiltersAndUpdate() {
-        try {
-            val query = _searchQuery.value
-            val typeFilter = _componentTypeFilter.value
-            Timber.d("Filtering ${cachedEntities.size} debloatable components, query: $query, typeFilter: $typeFilter")
-            val filtered = groupAndFilterDebloatableComponents(cachedEntities, query, typeFilter)
-            _debloatableUiState.update { Result.Success(filtered) }
-        } catch (e: Exception) {
-            Timber.e(e, "Error filtering debloatable components")
-            _debloatableUiState.update { Result.Error(e) }
+            is IndexState.Indexing, IndexState.NotIndexed -> emit(Result.Loading)
         }
+    }.catch { error ->
+        Timber.e(error, "Cannot load debloatable components of user ${user.value}")
+        emit(Result.Error(error))
     }
 
     fun updateSearchQuery(query: String) {
-        _searchQuery.update { query }
-        if (query.isNotBlank()) {
-            analyticsHelper.logSearchQueryUpdated()
-        }
+        filters.update { it.copy(query = query) }
+        if (query.isNotBlank()) analyticsHelper.logSearchQueryUpdated()
     }
 
-    fun updateComponentTypeFilter(types: Set<ComponentClassification>) {
-        _componentTypeFilter.update { types }
-        analyticsHelper.logComponentTypeFilterChanged(selectedCount = types.size)
+    fun updateComponentTypeFilter(kinds: Set<ComponentClassification>) {
+        filters.update { it.copy(kinds = kinds) }
+        analyticsHelper.logComponentTypeFilterChanged(kinds.size)
     }
 
-    fun controlComponent(entity: DebloatableComponentEntity, enabled: Boolean) {
-        controlComponentJob?.cancel()
-        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            analyticsHelper.logComponentControlled(
-                enabled = enabled,
-                isShareable = isShareableComponent(entity),
-                isLauncherEntry = isLauncherEntry(entity),
-                isDeeplinkEntry = isDeeplinkEntry(entity),
-            )
-            val componentInfo = entity.toComponentInfo()
-            componentRepository.controlComponent(
-                component = componentInfo,
-                newState = enabled,
-                controllerType = ControllerType.IFW_PLUS_PM,
-            )
-                .onStart {
-                    changeDebloatableComponentUiStatus(
-                        changed = listOf(entity),
-                        enabled = enabled,
-                    )
-                }
-                .catch { error ->
-                    Timber.e(error, "Error controlling component: ${entity.componentName}")
-                    changeDebloatableComponentUiStatus(
-                        changed = listOf(entity),
-                        enabled = !enabled,
-                    )
-                    _errorState.emit(error.toErrorMessage())
-                }
-                .collect { success ->
-                    if (!success) {
-                        Timber.w("Failed to control component: ${entity.componentName}")
-                        changeDebloatableComponentUiStatus(
-                            changed = listOf(entity),
-                            enabled = !enabled,
-                        )
-                    }
-                }
-        }
-    }
-
-    fun controlAllComponents(
-        entities: List<DebloatableComponentEntity>,
-        enable: Boolean,
-    ) {
-        controlComponentJob?.cancel()
-        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            analyticsHelper.logBatchComponentsControlled(
-                enabled = enable,
-                componentCount = entities.size,
-                shareableCount = entities.count { isShareableComponent(it) },
-                launcherEntryCount = entities.count { isLauncherEntry(it) },
-                deeplinkEntryCount = entities.count { isDeeplinkEntry(it) },
-            )
-            val components = entities.map { it.toComponentInfo() }
-            userDataRepository.userData.first().controllerType
-            var processedCount = 0
-            var failedCount = 0
-            componentRepository.batchControlComponent(
-                components = components,
-                newState = enable,
-                controllerType = ControllerType.IFW_PLUS_PM,
-            )
-                .onStart {
-                    changeDebloatableComponentUiStatus(
-                        changed = entities,
-                        enabled = enable,
-                    )
-                }
-                .catch { exception ->
-                    Timber.e(exception, "Error batch controlling components")
-                    changeDebloatableComponentUiStatus(
-                        changed = entities,
-                        enabled = !enable,
-                    )
-                    _errorState.emit(exception.toErrorMessage())
-                }
-                .collect { result ->
-                    processedCount++
-                    if (!result.succeeded) {
-                        failedCount++
-                        val component = result.component
-                        changeDebloatableComponentUiStatus(
-                            changed = entities.filter { it.packageName == component.packageName && it.componentName == component.name },
-                            enabled = !enable,
-                        )
-                    }
-                    Timber.v("Controlled $processedCount/${components.size} components, $failedCount failed")
-                }
-        }
-    }
-
-    private fun changeDebloatableComponentUiStatus(
-        changed: List<DebloatableComponentEntity>,
-        enabled: Boolean,
-    ) {
-        cachedEntities = cachedEntities.map { entity ->
-            val shouldUpdate = changed.any { changedEntity ->
-                changedEntity.packageName == entity.packageName &&
-                    changedEntity.componentName == entity.componentName
-            }
-            if (shouldUpdate) {
-                entity.copy(ifwBlocked = !enabled, pmBlocked = !enabled)
-            } else {
-                entity
+    fun setEnabled(item: DebloatableComponentUiItem, enabled: Boolean) {
+        val key = item.key
+        if (key.userId != selectedUsers.selectedUser.value || isInFlight(key)) return
+        val goal = if (enabled) ControlGoal.ENABLE else ControlGoal.BLOCK
+        singles.update { it + key }
+        viewModelScope.launch {
+            try {
+                analyticsHelper.logComponentControlled(
+                    enabled = enabled,
+                    isShareable = ComponentClassification.SHAREABLE in item.kinds,
+                    isLauncherEntry = ComponentClassification.LAUNCHER in item.kinds,
+                    isDeeplinkEntry = ComponentClassification.DEEPLINK in item.kinds,
+                )
+                val outcome = controlComponent(key, goal)
+                if (outcome == null) tellFailure(key, goal) else outcome.toMessage(goal)?.let { tell(it, key) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Cannot change ${key.id} for user ${key.userId.value}")
+                tellFailure(key, goal)
+            } finally {
+                singles.update { it - key }
             }
         }
-        applyFiltersAndUpdate()
+    }
+
+    fun setAllEnabled(app: AppKey, items: List<DebloatableComponentUiItem>, enabled: Boolean) {
+        if (app.userId != selectedUsers.selectedUser.value) return
+        val targets = items.filter { it.key.userId == app.userId && it.key.id.packageName == app.packageName && !isInFlight(it.key) }
+        if (targets.isEmpty()) return
+        val ids = targets.map { it.key.id }.distinct()
+        // Enable all has always enabled components explicitly, including ones shipped disabled.
+        val goal = if (enabled) ControlGoal.ENABLE else ControlGoal.BLOCK
+        val run = batches.reserve(BatchKey.Debloater(app.userId), goal, ids) ?: return
+        batches.start(run) {
+            val cached = componentStatuses.components(app).first().associateBy { it.declaration.id }
+            ControlRequest(app.userId, ids.mapNotNull { cached[it]?.declaration }, goal, layersFor(goal))
+        }
+        viewModelScope.launch {
+            try {
+                analyticsHelper.logBatchComponentsControlled(
+                    enabled = enabled,
+                    componentCount = targets.size,
+                    shareableCount = targets.count { ComponentClassification.SHAREABLE in it.kinds },
+                    launcherEntryCount = targets.count { ComponentClassification.LAUNCHER in it.kinds },
+                    deeplinkEntryCount = targets.count { ComponentClassification.DEEPLINK in it.kinds },
+                )
+                val outcomes = run.outcomes.await()
+                val failed = ids.size - outcomes.count { it.result == ControlResult.ACHIEVED }
+                Timber.v("Changed ${ids.size - failed}/${ids.size} debloatable components of $app")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Cannot change debloatable components of $app")
+                updateFeedback(app.userId) { it.copy(alert = e.toErrorMessage()) }
+            }
+        }
+    }
+
+    fun onMessageShown(id: Long) {
+        feedback.update { users ->
+            users.mapValues { (_, feedback) -> feedback.copy(messages = feedback.messages.filterNot { it.id == id }) }
+        }
+    }
+
+    fun grantAccess() {
+        viewModelScope.launch { channel.connect() }
     }
 
     fun dismissError() {
-        _errorState.update { null }
+        updateFeedback(selectedUsers.selectedUser.value) { it.copy(alert = null) }
     }
 
-    fun triggerTestShare(context: Context) {
+    fun onTestShare() {
         analyticsHelper.logTestShareTriggered()
-        val sendIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "Test share message from Blocker")
-            type = "*/*"
-        }
-        val shareIntent = Intent.createChooser(sendIntent, null)
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(shareIntent)
     }
 
-    private fun groupAndFilterDebloatableComponents(
-        entities: List<DebloatableComponentEntity>,
-        query: String,
-        typeFilter: Set<ComponentClassification>,
-    ): List<MatchedTarget> {
-        val grouped = entities.groupBy { it.packageName }
-        return grouped.mapNotNull { (packageName, debloatableComponents) ->
-            val packageInfo = try {
-                pm.getPackageInfoCompat(packageName, 0)
-            } catch (e: PackageManager.NameNotFoundException) {
-                Timber.w(e, "Package not found: $packageName")
-                return@mapNotNull null
-            }
+    private fun isInFlight(key: ComponentKey): Boolean = key in singles.value || batches.isInFlight(key)
 
-            val appPermissions = try {
-                pm.getPackageInfoCompat(packageName, PackageManager.GET_PERMISSIONS)
-                    ?.requestedPermissions?.toList() ?: emptyList()
-            } catch (e: Exception) {
-                Timber.w(e, "Failed to get permissions for package: $packageName")
-                emptyList()
-            }
+    private fun tellFailure(key: ComponentKey, goal: ControlGoal) = tell(ControlMessage.ComponentNotChanged(key.id.simpleName, goal), key)
 
-            val appLabel = packageInfo?.applicationInfo?.loadLabel(pm)?.toString() ?: packageName
-
-            val nonLauncherComponents = debloatableComponents.filter { entity ->
-                !isLauncherEntry(entity)
-            }
-
-            val textFilteredTargets = if (query.isBlank()) {
-                nonLauncherComponents
-            } else {
-                nonLauncherComponents.filter { entity ->
-                    appLabel.contains(query, ignoreCase = true) ||
-                        entity.componentName.contains(query, ignoreCase = true) ||
-                        entity.simpleName.contains(query, ignoreCase = true) ||
-                        entity.displayName.contains(query, ignoreCase = true)
-                }
-            }
-
-            val filteredTargets = textFilteredTargets.filter { entity ->
-                entity.matchesClassifications(typeFilter, appPermissions)
-            }
-
-            if (filteredTargets.isNotEmpty()) {
-                val uiItems = filteredTargets.map { entity ->
-                    DebloatableComponentUiItem(
-                        entity = entity,
-                        isShareableComponent = isShareableComponent(entity),
-                        isLauncherEntry = false,
-                        isDeeplinkEntry = isDeeplinkEntry(entity),
-                        isWakelockComponent = isWakelockComponent(entity, appPermissions),
-                        isAutoStartReceiver = isAutoStartReceiver(entity),
-                        isExportedNoPerm = isExportedNoPerm(entity),
-                        isForegroundService = isForegroundService(entity),
-                        isPushService = isPushService(entity),
-                        isDangerousProvider = isDangerousProvider(entity),
-                    )
-                }
-                MatchedTarget(
-                    header = MatchedHeaderData(
-                        title = appLabel,
-                        uniqueId = packageName,
-                        icon = packageInfo,
-                    ),
-                    targets = uiItems,
-                )
-            } else {
-                null
-            }
-        }
+    private fun tell(message: ControlMessage, key: ComponentKey) {
+        if (key.userId != selectedUsers.selectedUser.value) return
+        val queued = QueuedControlMessage(nextMessageId++, message, key.id)
+        updateFeedback(key.userId) { it.copy(messages = it.messages.enqueue(queued)) }
     }
+
+    private fun updateFeedback(user: UserId, update: (Feedback) -> Feedback) {
+        feedback.update { users -> users + (user to update(users[user] ?: Feedback())) }
+    }
+
+    private fun Result<List<MatchedTarget>>.filteredBy(filters: Filters): Result<List<MatchedTarget>> {
+        if (this !is Result.Success || (filters.query.isBlank() && filters.kinds.isEmpty())) return this
+        return Result.Success(
+            data.mapNotNull { app ->
+                val labelMatches = filters.query.isBlank() || app.title.contains(filters.query, ignoreCase = true)
+                val targets = app.targets.filter { item ->
+                    (
+                        labelMatches || item.className.contains(filters.query, ignoreCase = true) ||
+                            item.displayName.contains(filters.query, ignoreCase = true)
+                        ) &&
+                        (filters.kinds.isEmpty() || filters.kinds.any { it in item.kinds })
+                }
+                app.copy(targets = targets).takeIf { targets.isNotEmpty() }
+            },
+        )
+    }
+
+    private data class Filters(val query: String = "", val kinds: Set<ComponentClassification> = emptySet())
+    private data class FilteredContent(val user: UserId, val content: Result<List<MatchedTarget>>, val filters: Filters)
+    private data class Feedback(val messages: List<QueuedControlMessage> = emptyList(), val alert: UiMessage? = null)
 }
