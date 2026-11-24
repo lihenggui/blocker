@@ -148,6 +148,7 @@ internal class FakeSystem : SystemPackageReader {
     val users: MutableList<DeviceUser> = Collections.synchronizedList(mutableListOf(deviceUser(OWNER), deviceUser(WORK)))
     internal val apps = ConcurrentHashMap<AppKey, InstalledApp>()
     val declarations = ConcurrentHashMap<String, List<ComponentDeclaration>>()
+    val declarationsByUser = ConcurrentHashMap<AppKey, List<ComponentDeclaration>>()
     val settings = ConcurrentHashMap<Pair<UserId, ComponentId>, PmSetting>()
 
     /** Each read as `users`, `apps <user>`, `app <key>`, `declarations <package>` or `pm <key>`. */
@@ -204,7 +205,7 @@ internal class FakeSystem : SystemPackageReader {
         log += "declarations ${app.packageName}"
         declarationFailures[app.packageName]?.let { return ReadResult.Failure(it) }
         if (!apps.containsKey(app)) return ReadResult.Failure(ReadFailure.PackageNotFound(app))
-        return ReadResult.Success(declarations[app.packageName].orEmpty())
+        return ReadResult.Success(declarationsByUser[app] ?: declarations[app.packageName].orEmpty())
     }
 
     override suspend fun pmSettings(app: AppKey, components: Collection<ComponentId>): ReadResult<Map<ComponentId, PmSetting>> {

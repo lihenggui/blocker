@@ -158,10 +158,17 @@ internal class LocalComponentStatusRepository(
     override suspend fun refresh(app: AppKey): ReadResult<Unit> = lockOf(app.packageName).withLock {
         val previous = dao.getApp(app.packageName, app.userId.value)
         val (installed, appFailure) = when (val read = installedApps.refreshApp(app)) {
-            is ReadResult.Success -> (read.value ?: return@withLock ReadResult.Failure(ReadFailure.PackageNotFound(app))) to null
+            is ReadResult.Success -> {
+                if (read.value == null) {
+                    packages.forgetDeclarationRetryIfUncached(app.packageName)
+                    return@withLock ReadResult.Failure(ReadFailure.PackageNotFound(app))
+                }
+                read.value to null
+            }
+
             is ReadResult.Failure -> null to read.reason
         }
-        refreshPackageLocked(app, installed, appFailure, previous = previous).asResult()
+        refreshPackageLocked(app, installed, appFailure, previous = previous, forceDeclarations = true).asResult()
     }
 
     /**
@@ -207,7 +214,8 @@ internal class LocalComponentStatusRepository(
         val recorded = pmBlocks.of(user).map { it.id.packageName }
         val candidates = installed.filter { (name, revision) ->
             val app = cached[name]
-            if (app == null) indexed else app.versionCode != revision.versionCode || app.lastUpdateTime != revision.lastUpdateTime
+            packages.needsDeclarationRetry(name) ||
+                if (app == null) indexed else app.versionCode != revision.versionCode || app.lastUpdateTime != revision.lastUpdateTime
         }.keys + ((cached.keys + recorded) - installed.keys) + retries.filter { it.userId == user }.map { it.packageName }
         for (packageName in candidates) {
             if (!canRead(user)) break
@@ -241,7 +249,11 @@ internal class LocalComponentStatusRepository(
         val previous = dao.getApp(app.packageName, app.userId.value)
         val installed = when (val read = installedApps.readForRefresh(app)) {
             is ReadResult.Success -> read.value
-            is ReadResult.Failure -> return read
+
+            is ReadResult.Failure -> {
+                if (read.reason is ReadFailure.PackageNotFound) packages.forgetDeclarationRetryIfUncached(app.packageName)
+                return read
+            }
         }
         if (installed.enabledSetting == AppEnabledSetting.UNKNOWN) {
             Timber.w("PackageManager did not return the app enabled setting for $app")
@@ -394,8 +406,9 @@ internal class LocalComponentStatusRepository(
         appFailure: ReadFailure?,
         automatic: Boolean = false,
         previous: AppEntity? = null,
+        forceDeclarations: Boolean = false,
     ): PackageRefresh {
-        val refresh = packages.refresh(key, app, appFailure, automatic, previous)
+        val refresh = packages.refresh(key, app, appFailure, automatic, previous, forceDeclarations)
         if (!refresh.removed) withContext(NonCancellable) { pmBlocks.afterRefresh(key, refresh) }
         if (refresh.removed || refresh.failures.isEmpty()) retries -= key
         return refresh

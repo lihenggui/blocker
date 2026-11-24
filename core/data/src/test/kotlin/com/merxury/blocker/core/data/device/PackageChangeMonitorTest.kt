@@ -47,6 +47,7 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.AppEnabledSetting
 import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
@@ -542,38 +543,77 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
     }
 
     @Test
-    fun givenSameVersionWithFewerDeclarations_whenRefreshed_thenKeepSharedCacheAndOldScan() = runTest {
+    fun givenLockedFirstReader_whenAnUnlockedUserReconciles_thenReplaceWithTheFullList() = runTest {
         val workApp = installedApp(PKG, WORK)
         system.install(app, main, replacement)
         system.install(workApp)
         system.put(OWNER, replacement, PmSetting.DISABLED)
-        val cache = components(backgroundScope)
-        cache.refresh(app.key)
-        cache.refresh(workApp.key)
+        val (cache, monitor) = startMonitor()
+        apps.refresh(WORK)
         val record = ComponentKey(replacement.id, OWNER)
         pmBlocks.record(listOf(record))
         runCurrent()
         store.setBlocked(PKG, mapOf(replacement to true))
         runCurrent()
         val before = cache.components(app.key).first()
-        val updated = installedApp(PKG, WORK, lastUpdateTime = 3_000)
-        system.install(updated, main)
+        val ownerUpdated = installedApp(PKG, lastUpdateTime = 3_000)
+        val workUpdated = ownerUpdated.copy(key = workApp.key, uid = workApp.uid)
+        val added = declaration("Added")
+        system.install(ownerUpdated, main, replacement, added)
+        system.install(workUpdated)
+        system.declarationsByUser[app.key] = listOf(main)
+        system.users.clear()
+        system.users += listOf(deviceUser(OWNER).copy(unlocked = false), deviceUser(WORK).copy(unlocked = true))
 
-        startMonitor(cache)
+        announce(Intent.ACTION_PACKAGE_CHANGED)
+        settle()
 
         assertThat(system.reads("declarations")).isEqualTo(2)
         assertThat(dao.scanMarker(PKG)).isEqualTo(app.lastUpdateTime)
-        assertThat(apps.app(workApp.key).first()).isEqualTo(workApp)
+        assertThat(apps.app(app.key).first()).isEqualTo(app)
         assertThat(cache.components(app.key).first()).isEqualTo(before)
         assertThat(pmBlocks.of(OWNER)).containsExactly(record)
 
-        // Even once the app list has advanced every row, the older same-version scan survives.
-        system.install(installedApp(PKG, lastUpdateTime = 3_000))
+        // A retry still needs to read declarations after the app list has caught up for both users.
         apps.refresh(OWNER)
         apps.refresh(WORK)
-        repeat(2) { cache.refresh(workApp.key) }
+        advanceTimeBy(30_000)
+        monitor.onForeground()
+        settle()
+
+        assertThat(system.reads("declarations")).isEqualTo(3)
+        assertThat(dao.scanMarker(PKG)).isEqualTo(workUpdated.lastUpdateTime)
+        assertThat(cache.components(app.key).first().map { it.declaration }).containsExactly(main, replacement, added)
+        assertThat(cache.components(workApp.key).first().map { it.declaration }).containsExactly(main, replacement, added)
+        assertThat(pmBlocks.of(OWNER)).containsExactly(record)
+    }
+
+    @Test
+    fun givenUnknownLiveStateAndUnchangedRevision_whenRefreshShrinks_thenReconcileAgainAfterUnlock() = runTest {
+        system.install(app, main, replacement)
+        val (cache, monitor) = startMonitor()
+        val before = cache.components(app.key).first()
+        system.install(app, main)
+        system.usersFailure = ReadFailure.ChannelUnavailable
+
+        assertThat(cache.refresh(app.key)).isEqualTo(ReadResult.Failure(ReadFailure.ManifestUnreadable(PKG)))
         assertThat(dao.scanMarker(PKG)).isEqualTo(app.lastUpdateTime)
         assertThat(cache.components(app.key).first()).isEqualTo(before)
+
+        system.usersFailure = null
+        system.users.removeAll { it.id == OWNER }
+        system.users += deviceUser(OWNER).copy(unlocked = true)
+        advanceTimeBy(30_000)
+        monitor.onForeground()
+        settle()
+
+        assertThat(system.reads("declarations")).isEqualTo(3)
+        assertThat(cache.components(app.key).first().map { it.declaration }).containsExactly(main)
+
+        advanceTimeBy(30_000)
+        monitor.onForeground()
+        settle()
+        assertThat(system.reads("declarations")).isEqualTo(3)
     }
 
     @Test

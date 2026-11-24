@@ -70,6 +70,34 @@ class RefreshAllTest : DeviceRepositoryTestBase() {
     }
 
     @Test
+    fun givenStoppedUserAndSmallerList_whenIndexing_thenRetryAfterTheUserStartsAndUnlocks() = runTest {
+        val app = installedApp(PKG, WORK)
+        val main = declaration("Main")
+        val split = declaration("Split")
+        val repository = components(backgroundScope)
+        system.install(app, main, split)
+        repository.refreshAll(WORK).toList()
+        val updated = installedApp(PKG, WORK, lastUpdateTime = 3_000)
+        system.install(updated, main)
+        system.users.removeAll { it.id == WORK }
+        system.users += deviceUser(WORK).copy(running = false, unlocked = true)
+
+        val stopped = repository.refreshAll(WORK).toList()
+
+        assertThat(stopped.last()).isEqualTo(RefreshProgress.Finished(total = 1, failed = 1, appListFailure = null))
+        assertThat(dao.scanMarker(PKG)).isEqualTo(app.lastUpdateTime)
+        assertThat(repository.components(app.key).first().map { it.declaration }).containsExactly(main, split)
+
+        system.users.removeAll { it.id == WORK }
+        system.users += deviceUser(WORK).copy(unlocked = true)
+        val unlocked = repository.refreshAll(WORK).toList()
+
+        assertThat(unlocked.last()).isEqualTo(RefreshProgress.Finished(total = 1, failed = 0, appListFailure = null))
+        assertThat(dao.scanMarker(PKG)).isEqualTo(updated.lastUpdateTime)
+        assertThat(repository.components(app.key).first().map { it.declaration }).containsExactly(main)
+    }
+
+    @Test
     fun givenAppListUnreadable_whenRefreshAll_thenOnlyFinishedWithTheFailure() = runTest {
         installAll()
         system.appsFailures[OWNER] = ReadFailure.ChannelUnavailable
