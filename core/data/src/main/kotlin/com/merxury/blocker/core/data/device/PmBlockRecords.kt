@@ -51,9 +51,7 @@ internal fun ownUser(): UserId = UserId(Process.myUid() / UIDS_PER_USER)
  *   disabled, which the user or the app changed elsewhere, and what the app no longer declares.
  * - [forgetApp] and [forgetUninstalled] when a live read confirms the app is gone for the user,
  *   including records left behind by earlier removals.
- * - The one-time seed from the component list of earlier versions, see [PmBlockRecordSeeder], and
- *   while old screens still change components through the old controllers, the hook in the old
- *   component repository. Both add and drop records through [record] and [forget].
+ * - [PmBlockRecordSeeder] records blocks from the legacy component list once during upgrade.
  *
  * A setting that cannot be read, [PmSetting.UNKNOWN], never drops a record.
  */

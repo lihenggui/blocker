@@ -19,12 +19,14 @@ package com.merxury.blocker.core.testing.repository.device
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import javax.inject.Inject
 
-/** [PmBlockRecordSeeder] that seeds nothing and counts its calls in [calls]. */
+/** [PmBlockRecordSeeder] that returns [seeded] and counts its calls in [calls]. */
 class FakePmBlockRecordSeeder @Inject constructor() : PmBlockRecordSeeder {
+    var seeded = true
     var calls = 0
         private set
 
-    override suspend fun seedOnce() {
+    override suspend fun seedOnce(): Boolean {
         calls++
+        return seeded
     }
 }

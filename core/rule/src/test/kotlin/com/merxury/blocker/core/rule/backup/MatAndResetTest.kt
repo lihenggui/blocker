@@ -36,6 +36,7 @@ import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
+import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -46,7 +47,7 @@ class MatAndResetTest {
     private val userData = TestUserDataRepository()
     private val channel = FakePrivilegedChannel()
     private val mat = MatRuleImporter(installedApps, components, channel, userData)
-    private val reset = PackageManagerReset(components, channel)
+    private val reset = PackageManagerReset(components, channel, FakePmBlockRecordSeeder())
 
     @Test
     fun givenMatLines_whenImporting_thenDeclaredComponentsAreBlockedAndTheRestCounted() = runTest {
@@ -94,6 +95,20 @@ class MatAndResetTest {
         mat.import(listOf("$APP/.BootReceiver"), OWNER)
 
         assertThat(components.requests.single().layers).containsExactly(ControlLayer.PACKAGE_MANAGER)
+    }
+
+    @Test
+    fun givenPmBlocksWrittenByMat_whenResetting_thenTheRecordedComponentsReturnToDefault() = runTest {
+        userData.setControllerType(ControllerType.PM)
+        installedApps.sendApps(listOf(installedApp()))
+        components.sendComponents(OWNER, listOf(status(BOOT)))
+        val key = ComponentKey(BOOT.id, OWNER)
+
+        assertThat((mat.import(listOf(BOOT.id.flatten()), OWNER) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+        assertThat(components.component(key).first()?.state?.pm).isEqualTo(PmSetting.DISABLED)
+        assertThat((reset.reset(OWNER) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+        assertThat(components.component(key).first()?.state?.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(components.recorded).isEmpty()
     }
 
     @Test

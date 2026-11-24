@@ -101,7 +101,6 @@ internal class LocalComponentStatusRepository(
     private val packages: PackageStateReader,
     private val componentControl: ComponentControl,
     private val pmBlocks: PmBlockRecords,
-    private val seeder: PmBlockRecordSeeder,
     private val channel: PrivilegedChannel,
     ifwStore: IfwStore,
     appScope: CoroutineScope,
@@ -116,14 +115,13 @@ internal class LocalComponentStatusRepository(
         packages: PackageStateReader,
         componentControl: ComponentControl,
         pmBlocks: PmBlockRecords,
-        seeder: PmBlockRecordSeeder,
         channel: PrivilegedChannel,
         ifwStore: IfwStore,
         @ApplicationScope appScope: CoroutineScope,
         @AppPackageName appPackageName: String,
         reader: SystemPackageReader,
         controlActivity: PackageControlActivity,
-    ) : this(dao, installedApps, packages, componentControl, pmBlocks, seeder, channel, ifwStore, appScope, AppKey(appPackageName, ownUser()), reader, controlActivity)
+    ) : this(dao, installedApps, packages, componentControl, pmBlocks, channel, ifwStore, appScope, AppKey(appPackageName, ownUser()), reader, controlActivity)
 
     private val locks = ConcurrentHashMap<String, Mutex>()
     private val scanLocks = ConcurrentHashMap<UserId, Mutex>()
@@ -343,7 +341,6 @@ internal class LocalComponentStatusRepository(
     }
 
     override suspend fun disabledByBlocker(user: UserId): ReadResult<DisabledComponents> {
-        seeder.seedOnce()
         val recordedApps = pmBlocks.of(user).groupBy { it.id.packageName }
         // Listing the apps also drops the records of apps gone for the user.
         val apps = when (val listed = listApps(user)) {

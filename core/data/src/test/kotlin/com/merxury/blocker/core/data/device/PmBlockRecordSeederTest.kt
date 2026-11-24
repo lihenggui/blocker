@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.device
 
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteReadOnlyDatabaseException
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
@@ -30,6 +31,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -62,7 +64,7 @@ class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
     private suspend fun assertSeedFrom(version: Int) {
         createDatabase(version, TRACKER to true, SELF_OFF to true, DATA to false)
 
-        seeder.seedOnce()
+        assertThat(seeder.seedOnce()).isTrue()
         val first = recordDao.getByUser(own.value)
         assertThat(pmBlocks.of(own)).containsExactly(SELF_OFF.key(), TRACKER.key()).inOrder()
         assertThat(appProperties.data.value.pmBlockRecordsSeeded).isTrue()
@@ -72,9 +74,91 @@ class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
         // after a crash between setting the flag and deleting the file cannot seed it twice.
         createDatabase(version, DATA to true)
         val restarted = InstalledAppDbPmBlockRecordSeeder(applicationContext, Dispatchers.IO, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
-        restarted.seedOnce()
+        assertThat(restarted.seedOnce()).isTrue()
 
         assertThat(recordDao.getByUser(own.value)).isEqualTo(first)
+        assertThat(legacyDb.exists()).isFalse()
+    }
+
+    @Test
+    fun givenHotRollbackJournal_whenSeeded_thenRecoversTheCommittedBlocks() = runTest {
+        createDatabase(1, TRACKER to true)
+        val copy = legacyDb.resolveSibling("interrupted")
+        val journal = File(legacyDb.path + "-journal")
+        val copiedJournal = File(copy.path + "-journal")
+
+        SQLiteDatabase.openDatabase(legacyDb.path, null, SQLiteDatabase.OPEN_READWRITE).use { database ->
+            database.rawQuery("PRAGMA journal_mode=TRUNCATE", null).use {
+                assertThat(it.moveToFirst()).isTrue()
+                assertThat(it.getString(0)).isEqualTo("truncate")
+            }
+            database.execSQL("PRAGMA synchronous=FULL")
+            database.execSQL("CREATE TABLE journal_padding (value BLOB)")
+            repeat(32) { database.execSQL("INSERT INTO journal_padding VALUES (zeroblob(8192))") }
+            database.execSQL("PRAGMA cache_size=3")
+            database.beginTransaction()
+            try {
+                database.execSQL("UPDATE app_component SET pm_blocked = 0")
+                // Spill dirty pages so SQLite syncs a real journal before committing.
+                database.execSQL("UPDATE journal_padding SET value = randomblob(8192)")
+                legacyDb.copyTo(copy)
+                journal.copyTo(copiedJournal)
+            } finally {
+                database.endTransaction()
+            }
+        }
+        copy.copyTo(legacyDb, overwrite = true)
+        copiedJournal.copyTo(journal, overwrite = true)
+
+        val flags = SQLiteDatabase.OPEN_READONLY or SQLiteDatabase.NO_LOCALIZED_COLLATORS
+        val failure = assertThrows(SQLiteReadOnlyDatabaseException::class.java) {
+            SQLiteDatabase.openDatabase(legacyDb.path, null, flags).use { database ->
+                database.rawQuery("SELECT pm_blocked FROM app_component", null).use { it.moveToFirst() }
+            }
+        }
+        assertThat(failure).hasMessageThat().contains("SQLITE_READONLY_ROLLBACK")
+        assertThat(seeder.seedOnce()).isTrue()
+        assertThat(pmBlocks.of(own)).containsExactly(TRACKER.key())
+        assertThat(legacyDb.exists()).isFalse()
+        assertThat(journal.exists()).isFalse()
+    }
+
+    @Test
+    fun givenUncheckpointedWal_whenSeeded_thenIncludesBlocksFromCommittedFrames() = runTest {
+        createDatabase(2, TRACKER to false)
+        val copy = legacyDb.resolveSibling("uncheckpointed")
+        val suffixes = listOf("", "-wal", "-shm")
+
+        SQLiteDatabase.openDatabase(legacyDb.path, null, SQLiteDatabase.OPEN_READWRITE).use { database ->
+            assertThat(database.enableWriteAheadLogging()).isTrue()
+            database.rawQuery("PRAGMA wal_autocheckpoint=0", null).use {
+                assertThat(it.moveToFirst()).isTrue()
+                assertThat(it.getInt(0)).isEqualTo(0)
+            }
+            val before = legacyDb.readBytes()
+            database.execSQL("UPDATE app_component SET pm_blocked = 1")
+            assertThat(legacyDb.readBytes()).isEqualTo(before)
+            assertThat(File(legacyDb.path + "-wal").length()).isGreaterThan(32L)
+            suffixes.forEach { File(legacyDb.path + it).copyTo(File(copy.path + it)) }
+        }
+        suffixes.forEach { File(copy.path + it).copyTo(File(legacyDb.path + it), overwrite = true) }
+
+        assertThat(seeder.seedOnce()).isTrue()
+        assertThat(pmBlocks.of(own)).containsExactly(TRACKER.key())
+        suffixes.forEach { assertThat(File(legacyDb.path + it).exists()).isFalse() }
+    }
+
+    @Test
+    fun givenAnInvalidRowAndValidBlocks_whenSeeded_thenOnlyValidBlocksAreRecorded() = runTest {
+        createDatabase(2, TRACKER to true, SELF_OFF to true)
+        SQLiteDatabase.openDatabase(legacyDb.path, null, SQLiteDatabase.OPEN_READWRITE).use { database ->
+            database.execSQL("INSERT INTO app_component VALUES ('', 'Invalid', 0, 1, 'SERVICE', 1)")
+            database.execSQL("INSERT INTO app_component VALUES ('com.example', 'bad/name', 0, 1, 'SERVICE', 1)")
+        }
+
+        assertThat(seeder.seedOnce()).isTrue()
+        assertThat(pmBlocks.of(own)).containsExactly(SELF_OFF.key(), TRACKER.key())
+        assertThat(appProperties.data.value.pmBlockRecordsSeeded).isTrue()
         assertThat(legacyDb.exists()).isFalse()
     }
 
@@ -103,10 +187,11 @@ class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
     }
 
     @Test
-    fun givenUpgradeWithoutStartupSeed_whenSelectedForReset_thenOnlyStillDisabledComponentsAreListed() = runTest {
+    fun givenSeededBlocks_whenReadingDisabledComponents_thenOnlyStillDisabledComponentsAreListed() = runTest {
         system.install(installedApp(PKG, own), TRACKER, SELF_OFF)
         createDatabase(1, TRACKER to true, SELF_OFF to true)
         system.put(own, TRACKER, PmSetting.DISABLED)
+        assertThat(seeder.seedOnce()).isTrue()
 
         val found = components(backgroundScope).disabledByBlocker(own)
 
@@ -144,15 +229,14 @@ class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
     fun givenUnreadableDatabase_whenSeeded_thenKeepsItAndRetriesAfterRecovery() = runTest {
         legacyDb.writeText("damaged SQLite file")
 
-        seeder.seedOnce()
-
+        assertThat(seeder.seedOnce()).isFalse()
         assertThat(legacyDb.readText()).isEqualTo("damaged SQLite file")
         assertThat(appProperties.data.value.pmBlockRecordsSeeded).isFalse()
         assertThat(pmBlocks.of(own)).isEmpty()
 
         legacyDb.delete()
         createDatabase(2, TRACKER to true)
-        seeder.seedOnce()
+        assertThat(seeder.seedOnce()).isTrue()
 
         assertThat(pmBlocks.of(own)).containsExactly(TRACKER.key())
         assertThat(legacyDb.exists()).isFalse()

@@ -20,6 +20,7 @@ import android.os.Build
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -108,6 +109,8 @@ class BackupRestoreDeviceTest {
 
     @get:Rule
     val hilt = HiltAndroidRule(this)
+
+    @Inject lateinit var seeder: PmBlockRecordSeeder
 
     @Inject lateinit var exporter: BlockerRuleExporter
 
@@ -269,7 +272,7 @@ class BackupRestoreDeviceTest {
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), inC)
 
         // APP_C goes away for the owner after the settings were read, so the system refuses it.
-        val result = PackageManagerReset(BeforeControl(components) { request -> if (request.components.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel).reset(owner)
+        val result = PackageManagerReset(BeforeControl(components) { request -> if (request.components.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel, seeder).reset(owner)
 
         Log.i(TAG, "PM reset $result")
         assertEquals(PmSetting.DEFAULT, pm(owner, inB))

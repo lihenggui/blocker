@@ -48,10 +48,10 @@ import javax.inject.Singleton
  */
 interface PmBlockRecordSeeder {
     /**
-     * Seeds the record unless it was seeded before. Never throws except for cancellation; a seed
-     * that fails is logged and tried again by the next call.
+     * Returns true when the record has been seeded or there is no legacy file. A failed seed
+     * leaves the legacy file for the next call to retry. Only cancellation is thrown.
      */
-    suspend fun seedOnce()
+    suspend fun seedOnce(): Boolean
 }
 
 /**
@@ -65,6 +65,10 @@ interface PmBlockRecordSeeder {
  * upgrade is as broad as the reset of earlier versions, once; the record is exact from then on, as
  * that reset drops what it cleared and refreshes drop what is no longer disabled. The reset clears
  * only what is still DISABLED when it runs, so a flag the system has meanwhile cleared costs nothing.
+ *
+ * The released app did not update `pm_blocked` for backup restores, MAT imports, or provider
+ * fallback writes. If the app was never scanned again, its missing blocks are outside both this
+ * seed and the released app's reset.
  *
  * Components the wake feature disabled and still claims are left out: they are not the user's
  * blocks, and the wake feature restores them itself when it lets go of them. It changes components
@@ -80,24 +84,27 @@ internal class InstalledAppDbPmBlockRecordSeeder @Inject constructor(
 ) : PmBlockRecordSeeder {
     private val mutex = Mutex()
 
-    override suspend fun seedOnce() {
-        withContext(ioDispatcher) {
-            mutex.withLock {
-                try {
-                    val file = context.getDatabasePath(LEGACY_DATABASE)
-                    if (!properties.pmBlockRecordsSeeded.first()) {
-                        seed(file)
-                        properties.markPmBlockRecordsSeeded()
-                    }
-                    // A restart after the flag was written or a failed deletion only retries cleanup.
-                    SQLiteDatabase.deleteDatabase(file)
-                    if (file.exists()) Timber.w("Cannot delete the old installed app database")
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Timber.e(e, "Cannot migrate the old installed app database, try again next time")
+    override suspend fun seedOnce(): Boolean = withContext(ioDispatcher) {
+        mutex.withLock {
+            var seeded = false
+            try {
+                val file = context.getDatabasePath(LEGACY_DATABASE)
+                val exists = legacyDatabaseExists(file)
+                seeded = !exists
+                if (!properties.pmBlockRecordsSeeded.first()) {
+                    if (exists) seed(file)
+                    properties.markPmBlockRecordsSeeded()
                 }
+                seeded = true
+                // A restart after the flag was written or a failed deletion only retries cleanup.
+                SQLiteDatabase.deleteDatabase(file)
+                if (file.exists()) Timber.w("Cannot delete the old installed app database")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Cannot finish migrating the old installed app database, try again next time")
             }
+            seeded
         }
     }
 
@@ -112,19 +119,10 @@ internal class InstalledAppDbPmBlockRecordSeeder @Inject constructor(
         Timber.i("Seeded ${keys.size} PM blocks of user ${user.value} from the old component list")
     }
 
-    // Released versions 1 and 2 have the same app_component schema. Keep the file if it cannot
-    // be opened or if its table has changed. Only a confirmed missing file or table is empty.
+    // Released versions 1 and 2 have the same app_component schema. A writable open lets SQLite
+    // recover an interrupted write. Keep the file if it cannot be opened or its schema has changed.
     private fun readBlockedComponents(file: File): List<ComponentId> {
-        if (!file.exists()) {
-            if (file.parentFile?.list()?.contains(file.name) == false) return emptyList()
-            try {
-                Os.stat(file.path)
-            } catch (e: ErrnoException) {
-                if (e.errno == OsConstants.ENOENT) return emptyList()
-                throw e
-            }
-        }
-        val flags = SQLiteDatabase.OPEN_READONLY or SQLiteDatabase.NO_LOCALIZED_COLLATORS
+        val flags = SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.NO_LOCALIZED_COLLATORS
         val database = SQLiteDatabase.openDatabase(file.path, null, flags) { Timber.w("The old installed app database is corrupt") }
         database.use { database ->
             val hasTable = database.rawQuery(
@@ -148,12 +146,28 @@ internal class InstalledAppDbPmBlockRecordSeeder @Inject constructor(
             ).use { cursor ->
                 buildList {
                     while (cursor.moveToNext()) {
-                        val packageName = checkNotNull(cursor.getStringOrNull(0))
-                        val className = checkNotNull(cursor.getStringOrNull(1))
-                        add(checkNotNull(ComponentId.unflatten("$packageName/$className")))
+                        val packageName = cursor.getStringOrNull(0)
+                        val className = cursor.getStringOrNull(1)
+                        val id = if (packageName != null && className != null) ComponentId.unflatten("$packageName/$className") else null
+                        if (id == null) {
+                            Timber.w("Skipping invalid component in the old installed app database: %s/%s", packageName, className)
+                        } else {
+                            add(id)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private fun legacyDatabaseExists(file: File): Boolean {
+        if (file.exists()) return true
+        if (file.parentFile?.list()?.contains(file.name) == false) return false
+        return try {
+            Os.stat(file.path)
+            true
+        } catch (e: ErrnoException) {
+            if (e.errno == OsConstants.ENOENT) false else throw e
         }
     }
 

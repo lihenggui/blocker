@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.rule.backup
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.UserId
@@ -44,6 +45,7 @@ import javax.inject.Inject
 class PackageManagerReset @Inject constructor(
     private val components: ComponentStatusRepository,
     private val channel: PrivilegedChannel,
+    private val seeder: PmBlockRecordSeeder,
 ) {
     /**
      * Unblocks the PackageManager layer of each component Blocker disabled for [user]. Connects
@@ -51,6 +53,7 @@ class PackageManagerReset @Inject constructor(
      */
     suspend fun reset(user: UserId, onProgress: RuleRunProgress = { _, _, _ -> }): RuleRunResult {
         if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
+        if (!seeder.seedOnce()) return RuleRunResult.Failed(FailureReason.STATE_UNREADABLE)
         val found = when (val read = components.disabledByBlocker(user)) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
