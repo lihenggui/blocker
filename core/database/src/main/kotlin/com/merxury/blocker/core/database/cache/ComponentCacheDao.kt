@@ -126,11 +126,18 @@ abstract class ComponentCacheDao {
     @Query("SELECT DISTINCT user_id FROM app ORDER BY user_id")
     abstract suspend fun appUsers(): List<Int>
 
+    /** Settings are evidence of an index for this user. Declarations are shared across users. */
+    @Query("SELECT EXISTS(SELECT 1 FROM component_pm_setting WHERE user_id = :userId)")
+    abstract suspend fun hasIndexedApps(userId: Int): Boolean
+
     @Query(
-        "SELECT app.package_name FROM app JOIN component_scan USING(package_name) " +
-            "WHERE app.user_id = :userId AND component_scan.app_last_update_time = app.last_update_time",
+        "SELECT EXISTS(SELECT 1 FROM app WHERE package_name = :packageName " +
+            "AND version_code = :versionCode AND last_update_time = :updateTime)",
     )
-    abstract suspend fun appsWithCurrentDeclarations(userId: Int): List<String>
+    abstract suspend fun hasAppRevision(packageName: String, versionCode: Long, updateTime: Instant): Boolean
+
+    @Query("SELECT EXISTS(SELECT 1 FROM app WHERE package_name = :packageName AND last_update_time = :updateTime)")
+    abstract suspend fun hasAppAtUpdateTime(packageName: String, updateTime: Instant): Boolean
 
     /**
      * The apps for [userId] whose label or package name contains [keyword], ignoring case as
@@ -170,11 +177,13 @@ abstract class ComponentCacheDao {
         upsertApps(listOf(app))
     }
 
-    // A version can change without advancing the millisecond timestamp used by the scan marker.
+    // Once a new version is published, an old scan can no longer establish its version from
+    // that row. Keep the scan if another user's row still identifies it as the new version.
     private suspend fun invalidateScanIfVersionChanged(app: AppEntity, previous: AppEntity?) {
-        if (previous != null && previous.lastUpdateTime == app.lastUpdateTime && previous.versionCode != app.versionCode) {
-            deleteScan(app.packageName)
-        }
+        if (previous?.versionCode == app.versionCode) return
+        val marker = scanMarker(app.packageName) ?: return
+        if (previous == null && !hasAppAtUpdateTime(app.packageName, marker)) return
+        if (!hasAppRevision(app.packageName, app.versionCode, marker)) deleteScan(app.packageName)
     }
 
     /**
@@ -301,6 +310,29 @@ abstract class ComponentCacheDao {
         if (declarations != null && appLastUpdateTime != null && !replaceDeclarations(packageName, declarations, appLastUpdateTime)) return false
         upsertPmSettings(packageName, userId, pmSettings)
         upsertIfwBlocks(packageName, ifwBlocks)
+        return true
+    }
+
+    /**
+     * Publishes the app revision with a complete automatic refresh. Existing app rows keep their
+     * old revision until the state has been written. A new app needs its parent row for the
+     * settings foreign key, so it is inserted inside the same transaction.
+     */
+    @Transaction
+    open suspend fun storeRefreshedApp(
+        app: AppEntity,
+        previous: AppEntity?,
+        declarations: List<ComponentDeclarationEntity>?,
+        pmSettings: Map<String, PmSetting>,
+        ifwBlocks: Map<String, IfwBlock>,
+    ): Boolean {
+        val current = getApp(app.packageName, app.userId)
+        if (current != previous && current != app) return false
+        if (declarations == null && scanMarker(app.packageName) != app.lastUpdateTime) return false
+        val isNew = current == null
+        if (isNew) upsertApps(listOf(app))
+        storePackageState(app.packageName, app.userId, declarations, app.lastUpdateTime.takeIf { declarations != null }, pmSettings, ifwBlocks)
+        if (!isNew) upsertApps(listOf(app))
         return true
     }
 

@@ -30,7 +30,7 @@ class PackageControlActivityTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenOverlappingControls_whenOneIsCancelled_thenRefreshWaitsForTheOther() = runTest {
-        val activity = PackageControlActivity()
+        val activity = PackageControlActivity { testScheduler.currentTime }
         val release = CompletableDeferred<Unit>()
         val cancelledControl = launch {
             activity.duringControl(setOf("example.app")) { awaitCancellation() }

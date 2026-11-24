@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.device
 
 import com.merxury.blocker.core.control.ComponentControl
+import com.merxury.blocker.core.database.cache.AppEntity
 import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.ComponentRow
 import com.merxury.blocker.core.database.cache.asExternalModel
@@ -38,6 +39,8 @@ import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.control.layersFor
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.system.AppEnabledSetting
+import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
@@ -57,7 +60,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
@@ -70,6 +75,7 @@ import javax.inject.Singleton
  * reads and the database writes.
  */
 internal const val REFRESH_PARALLELISM = 4
+internal const val AUTOMATIC_REFRESH_PARALLELISM = 2
 
 /**
  * [ComponentStatusRepository] over the component cache.
@@ -119,6 +125,8 @@ internal class LocalComponentStatusRepository(
 
     private val locks = ConcurrentHashMap<String, Mutex>()
     private val scanLocks = ConcurrentHashMap<UserId, Mutex>()
+    private val automaticRefreshes = Semaphore(AUTOMATIC_REFRESH_PARALLELISM)
+    private val retries = ConcurrentHashMap.newKeySet<AppKey>()
 
     init {
         // Rule editor saves and imports change the rules without going through control().
@@ -148,27 +156,45 @@ internal class LocalComponentStatusRepository(
     override fun search(user: UserId, keyword: String): Flow<List<ComponentStatus>> = dao.searchComponents(user.value, keyword).map(List<ComponentRow>::asStatuses)
 
     override suspend fun refresh(app: AppKey): ReadResult<Unit> = lockOf(app.packageName).withLock {
-        refreshAppAndComponents(app, automatic = false)
+        val previous = dao.getApp(app.packageName, app.userId.value)
+        val (installed, appFailure) = when (val read = installedApps.refreshApp(app)) {
+            is ReadResult.Success -> (read.value ?: return@withLock ReadResult.Failure(ReadFailure.PackageNotFound(app))) to null
+            is ReadResult.Failure -> null to read.reason
+        }
+        refreshPackageLocked(app, installed, appFailure, previous = previous).asResult()
     }
 
     /**
      * A broadcast is an invalidation. Confirm live presence in case a reinstall followed removal,
      * and return false to retry if a write started or a newer broadcast arrived while queued.
      */
-    suspend fun refreshAfterPackageChange(app: AppKey, isLatest: () -> Boolean): Boolean = lockOf(app.packageName).withLock {
-        if (controlActivity.isActive(app.packageName) || !isLatest()) return@withLock false
-        refreshAutomatically(app)
-        true
+    suspend fun refreshAfterPackageChange(app: AppKey, isLatest: () -> Boolean): Boolean = automaticRefreshes.withPermit {
+        lockOf(app.packageName).withLock {
+            if (controlActivity.isActive(app.packageName) || !isLatest()) return@withLock false
+            refreshAutomatically(app)
+            true
+        }
     }
 
     suspend fun usersWithCachedApps(): List<UserId> = dao.appUsers().map(::UserId)
+
+    suspend fun liveUsers(): Map<UserId, DeviceUser> = when (val read = reader.users()) {
+        is ReadResult.Success -> read.value.associateBy { it.id }
+
+        is ReadResult.Failure -> {
+            Timber.w("Cannot read user states for package reconciliation: ${read.reason}")
+            installedApps.cachedUsers().associateBy { it.id }
+        }
+    }
 
     /**
      * Runs under the same per-user lock as a full component index. The version list only
      * selects candidates: each candidate is read live under the package lock before any write.
      */
-    suspend fun reconcile(user: UserId) = scanLockOf(user).withLock {
-        if (!canRead(user)) return@withLock
+    suspend fun reconcile(user: UserId, state: DeviceUser?) = scanLockOf(user).withLock {
+        if (!canRead(user) || state?.running == false || state?.unlocked == false) return@withLock
+        val cached = dao.getApps(user.value).associateBy { it.packageName }
+        if (cached.isEmpty()) return@withLock
         val installed = when (val read = reader.packageRevisions(user)) {
             is ReadResult.Success -> read.value
 
@@ -177,27 +203,32 @@ internal class LocalComponentStatusRepository(
                 return@withLock
             }
         }
-        val cached = dao.getApps(user.value).associateBy { it.packageName }
-        val scanned = dao.appsWithCurrentDeclarations(user.value).toSet()
+        val indexed = dao.hasIndexedApps(user.value)
+        val recorded = pmBlocks.of(user).map { it.id.packageName }
         val candidates = installed.filter { (name, revision) ->
             val app = cached[name]
-            app == null || app.versionCode != revision.versionCode ||
-                app.lastUpdateTime != revision.lastUpdateTime || name !in scanned
-        }.keys + (cached.keys - installed.keys)
+            if (app == null) indexed else app.versionCode != revision.versionCode || app.lastUpdateTime != revision.lastUpdateTime
+        }.keys + ((cached.keys + recorded) - installed.keys) + retries.filter { it.userId == user }.map { it.packageName }
         for (packageName in candidates) {
             if (!canRead(user)) break
-            lockOf(packageName).withLock { refreshAutomatically(AppKey(packageName, user)) }
+            automaticRefreshes.withPermit {
+                lockOf(packageName).withLock { refreshAutomatically(AppKey(packageName, user)) }
+            }
         }
     }
 
     private fun canRead(user: UserId): Boolean = user == self.userId || channel.state.value is ChannelState.Ready
 
     private suspend fun refreshAutomatically(app: AppKey) {
+        // Keep same-revision failures eligible for the next reconciliation.
+        retries += app
         try {
             if (!canRead(app.userId)) return
-            val result = refreshAppAndComponents(app, automatic = true)
+            val result = readAndStoreAutomatically(app)
             if (result is ReadResult.Failure && result.reason !is ReadFailure.PackageNotFound) {
                 Timber.w("Cannot refresh changed package $app: ${result.reason}")
+            } else {
+                retries -= app
             }
         } catch (e: CancellationException) {
             throw e
@@ -206,16 +237,17 @@ internal class LocalComponentStatusRepository(
         }
     }
 
-    private suspend fun refreshAppAndComponents(app: AppKey, automatic: Boolean): ReadResult<Unit> {
-        val (installed, appFailure) = when (val read = installedApps.refreshApp(app, keepBlockRecordsOnRemoval = automatic)) {
-            is ReadResult.Success -> (read.value ?: return ReadResult.Failure(ReadFailure.PackageNotFound(app))) to null
-
-            is ReadResult.Failure -> {
-                if (automatic) return read
-                null to read.reason
-            }
+    private suspend fun readAndStoreAutomatically(app: AppKey): ReadResult<Unit> {
+        val previous = dao.getApp(app.packageName, app.userId.value)
+        val installed = when (val read = installedApps.readForRefresh(app)) {
+            is ReadResult.Success -> read.value
+            is ReadResult.Failure -> return read
         }
-        return refreshPackageLocked(app, installed, appFailure, automatic).asResult()
+        if (installed.enabledSetting == AppEnabledSetting.UNKNOWN) {
+            Timber.w("PackageManager did not return the app enabled setting for $app")
+            return ReadResult.Failure(ReadFailure.ChannelUnavailable)
+        }
+        return refreshPackageLocked(app, installed, appFailure = null, automatic = true, previous = previous).asResult()
     }
 
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {
@@ -258,6 +290,7 @@ internal class LocalComponentStatusRepository(
                 when (event) {
                     is ControlEvent.PackageDone -> {
                         store(request, event)
+                        controlActivity.recordWrites(AppKey(event.packageName, request.user), event.pmWrites)
                         emit(event)
                     }
 
@@ -289,6 +322,7 @@ internal class LocalComponentStatusRepository(
 
     override suspend fun disabledByBlocker(user: UserId): ReadResult<DisabledComponents> {
         seeder.seedOnce()
+        val recordedApps = pmBlocks.of(user).groupBy { it.id.packageName }
         // Listing the apps also drops the records of apps gone for the user.
         val apps = when (val listed = listApps(user)) {
             is ReadResult.Success -> listed.value.associateBy { it.key.packageName }
@@ -298,15 +332,13 @@ internal class LocalComponentStatusRepository(
         val unreadable = mutableListOf<AppKey>()
         var notInstalled = 0
         var notDeclared = 0
-        pmBlocks.of(user).groupBy { it.id.packageName }.forEach { (packageName, recorded) ->
+        recordedApps.forEach { (packageName, recorded) ->
             val key = AppKey(packageName, user)
             val app = apps[packageName]
             val refresh = if (app == null) PackageRefresh.removed(key) else refreshPackage(key, app, appFailure = null)
             val settings = refresh.pmSettings
             when {
                 refresh.removed -> {
-                    // Also a record the app list could not drop, such as one seeded for an app gone before.
-                    pmBlocks.forgetApp(key)
                     notInstalled += recorded.size
                 }
 
@@ -361,9 +393,11 @@ internal class LocalComponentStatusRepository(
         app: InstalledApp?,
         appFailure: ReadFailure?,
         automatic: Boolean = false,
+        previous: AppEntity? = null,
     ): PackageRefresh {
-        val refresh = packages.refresh(key, app, appFailure, requirePrivilegedAccess = automatic && key.userId != self.userId)
-        if (!automatic || !refresh.removed) withContext(NonCancellable) { pmBlocks.afterRefresh(key, refresh) }
+        val refresh = packages.refresh(key, app, appFailure, automatic, previous)
+        if (!refresh.removed) withContext(NonCancellable) { pmBlocks.afterRefresh(key, refresh) }
+        if (refresh.removed || refresh.failures.isEmpty()) retries -= key
         return refresh
     }
 

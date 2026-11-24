@@ -16,24 +16,47 @@
 
 package com.merxury.blocker.core.data.device
 
+import android.os.SystemClock
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.UserId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /** Tracks package writes through their cache read-back, including across the chunks of a batch. */
 @Singleton
-class PackageControlActivity @Inject constructor() {
-    private val active = MutableStateFlow<Map<String, Int>>(emptyMap())
+class PackageControlActivity internal constructor(private val elapsedRealtime: () -> Long) {
+    @Inject constructor() : this(SystemClock::elapsedRealtime)
+
+    private val lock = Any()
+    private val active = MutableStateFlow<Map<String, ActiveControl>>(emptyMap())
+    private val recent = LinkedHashMap<AppKey, RecentControl>()
 
     suspend fun <T> duringControl(packages: Set<String>, action: suspend () -> T): T {
         if (packages.isEmpty()) return action()
-        changeCounts(packages, 1)
+        synchronized(lock) {
+            val now = elapsedRealtime()
+            active.value = active.value.toMutableMap().apply {
+                packages.forEach { name ->
+                    val control = get(name)
+                    put(name, control?.copy(count = control.count + 1) ?: ActiveControl(1, now))
+                }
+            }
+        }
         try {
             return action()
         } finally {
-            changeCounts(packages, -1)
+            endControl(packages)
+        }
+    }
+
+    internal fun recordWrites(app: AppKey, components: Set<ComponentId>) {
+        if (components.isEmpty()) return
+        synchronized(lock) {
+            val control = active.value[app.packageName] ?: return
+            control.writes.getOrPut(app.userId, ::mutableSetOf).addAll(components.map { it.className })
         }
     }
 
@@ -43,12 +66,43 @@ class PackageControlActivity @Inject constructor() {
         active.first { packageName !in it }
     }
 
-    private fun changeCounts(packages: Set<String>, delta: Int) = active.update { counts ->
-        counts.toMutableMap().apply {
+    internal fun coversChange(app: AppKey, components: Set<String>, receivedAt: Long): Boolean = synchronized(lock) {
+        if (components.isEmpty() || app.packageName in components) return@synchronized false
+        val control = recent[app] ?: return@synchronized false
+        receivedAt in control.startedAt..(control.finishedAt + RECENT_MILLIS) && control.components.containsAll(components)
+    }
+
+    private fun endControl(packages: Set<String>) = synchronized(lock) {
+        val now = elapsedRealtime()
+        recent.values.removeAll { now - it.finishedAt > RECENT_MILLIS }
+        active.value = active.value.toMutableMap().apply {
             packages.forEach { name ->
-                val count = getOrDefault(name, 0) + delta
-                if (count == 0) remove(name) else put(name, count)
+                val control = getValue(name)
+                if (control.count > 1) {
+                    put(name, control.copy(count = control.count - 1))
+                } else {
+                    remove(name)
+                    control.writes.forEach { (user, components) ->
+                        val app = AppKey(name, user)
+                        recent.remove(app)
+                        recent[app] = RecentControl(control.startedAt, now, components.toSet())
+                    }
+                }
             }
         }
+        while (recent.size > MAX_RECENT_PACKAGES) recent.remove(recent.keys.first())
+    }
+
+    private data class ActiveControl(
+        val count: Int,
+        val startedAt: Long,
+        val writes: MutableMap<UserId, MutableSet<String>> = mutableMapOf(),
+    )
+
+    private data class RecentControl(val startedAt: Long, val finishedAt: Long, val components: Set<String>)
+
+    private companion object {
+        const val RECENT_MILLIS = 3_000L
+        const val MAX_RECENT_PACKAGES = 512
     }
 }

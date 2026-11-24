@@ -26,12 +26,18 @@ import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
@@ -45,6 +51,7 @@ class PackageChangeMonitor internal constructor(
     private val cache: LocalComponentStatusRepository,
     private val users: SelectedUserRepository,
     private val controlActivity: PackageControlActivity,
+    private val channel: PrivilegedChannel,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val elapsedRealtime: () -> Long,
@@ -55,12 +62,14 @@ class PackageChangeMonitor internal constructor(
         cache: LocalComponentStatusRepository,
         users: SelectedUserRepository,
         controlActivity: PackageControlActivity,
+        channel: PrivilegedChannel,
         @ApplicationScope scope: CoroutineScope,
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
-    ) : this(context, cache, users, controlActivity, scope, ioDispatcher, SystemClock::elapsedRealtime)
+    ) : this(context, cache, users, controlActivity, channel, scope, ioDispatcher, SystemClock::elapsedRealtime)
 
     private val started = AtomicBoolean(false)
-    private val foreground = Channel<Unit>(Channel.CONFLATED)
+    private val requests = Channel<Unit>(Channel.CONFLATED)
+    private val readyRequest = AtomicBoolean(false)
     private val pending = mutableMapOf<String, PendingChange>()
 
     private val receiver = object : BroadcastReceiver() {
@@ -70,7 +79,12 @@ class PackageChangeMonitor internal constructor(
             if (action == Intent.ACTION_PACKAGE_REMOVED && intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return
             val uri = intent.data?.takeIf { it.scheme == PACKAGE_SCHEME } ?: return
             val name = uri.schemeSpecificPart?.takeIf { it.isNotEmpty() } ?: return
-            enqueue(name)
+            val components = if (action == Intent.ACTION_PACKAGE_CHANGED) {
+                intent.getStringArrayExtra(Intent.EXTRA_CHANGED_COMPONENT_NAME_LIST)?.takeIf { it.isNotEmpty() }?.toSet()
+            } else {
+                null
+            }
+            enqueue(name, components)
         }
     }
 
@@ -90,8 +104,18 @@ class PackageChangeMonitor internal constructor(
                 }
             }
             try {
-                onForeground()
-                reconcileOnForeground()
+                coroutineScope {
+                    launch(start = CoroutineStart.UNDISPATCHED) {
+                        channel.state.map { (it as? ChannelState.Ready)?.identity }.distinctUntilChanged().collect { identity ->
+                            if (identity != null) {
+                                readyRequest.set(true)
+                                requests.trySend(Unit)
+                            }
+                        }
+                    }
+                    onForeground()
+                    reconcileRequests()
+                }
             } finally {
                 if (registered) safely("unregister for package changes") { context.unregisterReceiver(receiver) }
             }
@@ -99,46 +123,58 @@ class PackageChangeMonitor internal constructor(
     }
 
     fun onForeground() {
-        foreground.trySend(Unit)
+        requests.trySend(Unit)
     }
 
-    private suspend fun reconcileOnForeground() {
+    private suspend fun reconcileRequests() {
         var lastFinished: Long? = null
-        for (request in foreground) {
-            if (lastFinished?.let { elapsedRealtime() - it < FOREGROUND_INTERVAL_MILLIS } == true) continue
+        for (request in requests) {
+            val forced = readyRequest.getAndSet(false)
+            if (!forced && lastFinished?.let { elapsedRealtime() - it < FOREGROUND_INTERVAL_MILLIS } == true) continue
             safely("find users with cached apps") {
-                val reconcileUsers = setOf(users.ownUser, users.selectedUser.value) + cache.usersWithCachedApps()
-                for (user in reconcileUsers) safely("reconcile packages of user ${user.value}") { cache.reconcile(user) }
+                val reconcileUsers = cache.usersWithCachedApps()
+                if (reconcileUsers.isNotEmpty()) {
+                    val states = cache.liveUsers()
+                    for (user in reconcileUsers) {
+                        safely("reconcile packages of user ${user.value}") { cache.reconcile(user, states[user]) }
+                    }
+                }
             }
             lastFinished = elapsedRealtime()
         }
     }
 
-    private fun enqueue(packageName: String) {
+    private fun enqueue(packageName: String, components: Set<String>?) {
+        val now = elapsedRealtime()
+        val key = AppKey(packageName, users.ownUser)
+        if (components != null && !controlActivity.isActive(packageName) && controlActivity.coversChange(key, components, now)) return
         synchronized(pending) {
-            val event = Event(elapsedRealtime())
             val existing = pending[packageName]
             if (existing != null) {
-                existing.latest = event
+                val earlier = existing.latest
+                val combined = if (earlier.components == null || components == null) null else earlier.components + components
+                existing.latest = Event(now, earlier.firstReceivedAt, combined)
                 return
             }
-            val change = PendingChange(event)
+            val change = PendingChange(Event(now, now, components))
             pending[packageName] = change
-            scope.launch(ioDispatcher) { refreshChanges(packageName, change) }
+            scope.launch(ioDispatcher) { refreshChanges(key, change) }
         }
     }
 
-    private suspend fun refreshChanges(packageName: String, change: PendingChange) {
+    private suspend fun refreshChanges(key: AppKey, change: PendingChange) {
+        val packageName = key.packageName
         try {
             while (true) {
                 val event = synchronized(pending) { change.latest }
                 delay(DEBOUNCE_MILLIS - (elapsedRealtime() - event.receivedAt))
                 controlActivity.awaitIdle(packageName)
                 // Include changes received while waiting for a control or the quiet period.
-                val refreshed = cache.refreshAfterPackageChange(AppKey(packageName, users.ownUser)) {
-                    synchronized(pending) { change.latest === event }
-                }
-                if (!refreshed) continue
+                val covered = event.components?.let {
+                    controlActivity.coversChange(key, it, event.firstReceivedAt) &&
+                        controlActivity.coversChange(key, it, event.receivedAt)
+                } == true
+                if (!covered && !cache.refreshAfterPackageChange(key) { synchronized(pending) { change.latest === event } }) continue
                 synchronized(pending) {
                     if (change.latest === event) {
                         pending.remove(packageName)
@@ -161,7 +197,7 @@ class PackageChangeMonitor internal constructor(
         false
     }
 
-    private class Event(val receivedAt: Long)
+    private class Event(val receivedAt: Long, val firstReceivedAt: Long, val components: Set<String>?)
     private class PendingChange(var latest: Event)
 
     private companion object {

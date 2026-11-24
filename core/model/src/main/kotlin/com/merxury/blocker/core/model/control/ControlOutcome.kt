@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.model.control
 
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
@@ -77,6 +78,7 @@ sealed interface ControlEvent {
     data class PackageDone(
         val packageName: String,
         val outcomes: List<ComponentOutcome>,
+        val pmWrites: Set<ComponentId> = emptySet(),
     ) : ControlEvent
 
     /**

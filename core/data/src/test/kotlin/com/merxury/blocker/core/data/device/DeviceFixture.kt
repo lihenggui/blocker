@@ -125,12 +125,13 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
     internal val channel = FakePrivilegedChannel()
     internal val componentControl = FakeComponentControl()
     internal val appControl = FakeAppControl(system)
-    internal val users = LocalDeviceUserRepository(dao, system)
-    internal val controlActivity = PackageControlActivity()
+    internal val users = LocalDeviceUserRepository(dao, system, channel, pmBlocks)
+    internal var elapsedRealtime: () -> Long = { 0L }
+    internal val controlActivity = PackageControlActivity { elapsedRealtime() }
     internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks, controlActivity)
 
     /** Starts collecting the rule store's changes in [scope], as the app scope would. */
-    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel), componentControl, pmBlocks, seeder, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity)
+    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel, apps), componentControl, pmBlocks, seeder, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity)
 
     @After
     fun closeDatabase() {

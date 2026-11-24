@@ -57,6 +57,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -185,7 +186,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
         assertThat(apps.app(app.key).first()).isNull()
         assertThat(fixture.cache.components(app.key).first()).isEmpty()
         assertThat(fixture.cache.components(workApp.key).first().single().declaration).isEqualTo(main)
-        assertThat(pmBlocks.of(OWNER)).containsExactly(recorded)
+        assertThat(pmBlocks.of(OWNER)).isEmpty()
         assertThat(files.fileContent(PKG)).isEqualTo(before)
     }
 
@@ -305,7 +306,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
         assertThat(system.log.filter { it.startsWith("app ") }).containsExactly("app ${updated.key}", "app ${added.key}", "app ${gone.key}")
         assertThat(apps.apps(OWNER).first()).containsExactly(updated, added, unchanged)
         assertThat(fixture.cache.components(app.key).first().single().declaration).isEqualTo(replacement)
-        assertThat(pmBlocks.of(OWNER)).containsExactly(recorded)
+        assertThat(pmBlocks.of(OWNER)).isEmpty()
     }
 
     @Test
@@ -325,7 +326,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
     }
 
     @Test
-    fun givenOnlyAnotherUserCached_whenStartingWithoutAccess_thenAddOwnUserAndKeepTheCache() = runTest {
+    fun givenOnlyAnotherUserCached_whenStartingWithoutAccess_thenSkipBothUsers() = runTest {
         val workApp = installedApp(PKG, WORK)
         dao.upsertUser(deviceUser(WORK).asEntity())
         dao.upsertApp(workApp.asEntity())
@@ -333,9 +334,9 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
         channel.setState(noAccess)
         system.install(app, main)
 
-        startMonitor()
+        startMonitor(components(backgroundScope))
 
-        assertThat(apps.app(app.key).first()).isEqualTo(app)
+        assertThat(apps.app(app.key).first()).isNull()
         assertThat(apps.app(workApp.key).first()).isEqualTo(workApp)
         assertThat(system.log).doesNotContain("revisions ${WORK.value}")
     }
@@ -348,20 +349,18 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
         cache.refresh(workApp.key)
         channel.setState(noAccess)
         system.apps.remove(workApp.key)
-        val fixture = startMonitor(cache)
+        startMonitor(cache)
 
         assertThat(system.log).doesNotContain("revisions ${WORK.value}")
         assertThat(apps.app(workApp.key).first()).isEqualTo(workApp)
 
-        channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
         system.beforeRevisionsRead = { user ->
             if (user == WORK) {
                 channel.setState(noAccess)
                 system.appsFailures[WORK] = ReadFailure.UserNotReachable(WORK)
             }
         }
-        advanceTimeBy(30_000)
-        fixture.monitor.onForeground()
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
         settle()
 
         assertThat(system.log).contains("revisions ${WORK.value}")
@@ -381,6 +380,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
 
         startMonitor(cache)
 
+        assertThat(apps.app(workApp.key).first()).isEqualTo(workApp)
         val component = cache.components(workApp.key).first().single()
         assertThat(component.declaration).isEqualTo(main)
         assertThat(component.state.pm).isEqualTo(PmSetting.DISABLED)
@@ -422,6 +422,8 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
             release.await()
         }
         val cache = components(backgroundScope)
+        system.install(app, main)
+        cache.refresh(app.key)
         val monitor = createMonitor(cache)
         monitor.start()
         reading.await()
@@ -443,7 +445,9 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
     fun givenReadsThrow_whenMoreEventsArrive_thenBothMonitorsKeepWorking() = runTest {
         system.install(app, main)
         system.beforeRevisionsRead = { error("Cannot list packages") }
-        val fixture = startMonitor()
+        val cache = components(backgroundScope)
+        apps.refreshApp(app.key)
+        val fixture = startMonitor(cache)
 
         system.afterPmRead = { error("Cannot read settings") }
         announce(Intent.ACTION_PACKAGE_CHANGED)
@@ -465,6 +469,8 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
 
     @Test
     fun givenTwoStarts_whenPackageBroadcasts_thenOnlyOneReceiverAndInitialReconciliationRun() = runTest {
+        system.install(app, main)
+        apps.refreshApp(app.key)
         val monitor = createMonitor(components(backgroundScope))
         monitor.start()
         monitor.start()
@@ -476,25 +482,335 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
         assertThat(system.reads("revisions ")).isEqualTo(1)
     }
 
-    private fun TestScope.createMonitor(cache: LocalComponentStatusRepository) = PackageChangeMonitor(
-        context,
-        cache,
-        FakeSelectedUserRepository(OWNER),
-        controlActivity,
-        backgroundScope,
-        StandardTestDispatcher(testScheduler),
-        { testScheduler.currentTime },
-    )
+    @Test
+    fun givenCachedProfiles_whenStoppedOrLocked_thenReconcileOnlyAfterUnlock() = runTest {
+        val workApp = installedApp(PKG, WORK)
+        system.install(workApp, main)
+        val cache = components(backgroundScope)
+        cache.refresh(workApp.key)
+        system.install(workApp.copy(versionCode = 2), replacement)
+        val profile = deviceUser(WORK)
+        system.users.removeAll { it.id == WORK }
+        system.users += profile.copy(running = false, unlocked = false)
 
-    private fun TestScope.startMonitor(cache: LocalComponentStatusRepository = components(backgroundScope)): Fixture {
+        val fixture = startMonitor(cache)
+        assertThat(system.reads("revisions ")).isEqualTo(0)
+
+        system.users.removeAll { it.id == WORK }
+        system.users += profile.copy(running = true, unlocked = false)
+        advanceTimeBy(30_000)
+        fixture.monitor.onForeground()
+        settle()
+        assertThat(system.reads("revisions ")).isEqualTo(0)
+        assertThat(apps.app(workApp.key).first()).isEqualTo(workApp)
+
+        system.users.removeAll { it.id == WORK }
+        system.users += profile.copy(running = true, unlocked = true)
+        advanceTimeBy(30_000)
+        fixture.monitor.onForeground()
+        settle()
+        assertThat(system.reads("revisions ")).isEqualTo(1)
+        assertThat(cache.components(workApp.key).first().single().declaration).isEqualTo(replacement)
+    }
+
+    @Test
+    fun givenTwoUsersAtOldVersion_whenOtaKeepsTimestamp_thenReadDeclarationsOnce() = runTest {
+        val workApp = installedApp(PKG, WORK)
+        system.install(app, main)
+        system.install(workApp, main)
+        val cache = components(backgroundScope)
+        cache.refresh(app.key)
+        cache.refresh(workApp.key)
+        system.log.clear()
+        val ownerUpdated = app.copy(versionCode = 2)
+        val workUpdated = workApp.copy(versionCode = 2)
+        system.install(ownerUpdated, replacement)
+        system.install(workUpdated)
+
+        startMonitor(cache)
+
+        assertThat(system.reads("declarations")).isEqualTo(1)
+        assertThat(system.reads("pm ")).isEqualTo(2)
+        assertThat(apps.app(app.key).first()).isEqualTo(ownerUpdated)
+        assertThat(apps.app(workApp.key).first()).isEqualTo(workUpdated)
+
+        // The same invariant applies when the app-list or detail path catches up afterward.
+        system.install(ownerUpdated.copy(versionCode = 3), main)
+        cache.refresh(app.key)
+        dao.upsertApp(workUpdated.copy(versionCode = 3).asEntity())
+        assertThat(dao.scanMarker(PKG)).isEqualTo(app.lastUpdateTime)
+    }
+
+    @Test
+    fun givenSameVersionWithFewerDeclarations_whenRefreshed_thenKeepSharedCacheAndOldScan() = runTest {
+        val workApp = installedApp(PKG, WORK)
+        system.install(app, main, replacement)
+        system.install(workApp)
+        system.put(OWNER, replacement, PmSetting.DISABLED)
+        val cache = components(backgroundScope)
+        cache.refresh(app.key)
+        cache.refresh(workApp.key)
+        val record = ComponentKey(replacement.id, OWNER)
+        pmBlocks.record(listOf(record))
+        runCurrent()
+        store.setBlocked(PKG, mapOf(replacement to true))
+        runCurrent()
+        val before = cache.components(app.key).first()
+        val updated = installedApp(PKG, WORK, lastUpdateTime = 3_000)
+        system.install(updated, main)
+
+        startMonitor(cache)
+
+        assertThat(system.reads("declarations")).isEqualTo(2)
+        assertThat(dao.scanMarker(PKG)).isEqualTo(app.lastUpdateTime)
+        assertThat(apps.app(workApp.key).first()).isEqualTo(workApp)
+        assertThat(cache.components(app.key).first()).isEqualTo(before)
+        assertThat(pmBlocks.of(OWNER)).containsExactly(record)
+
+        // Even once the app list has advanced every row, the older same-version scan survives.
+        system.install(installedApp(PKG, lastUpdateTime = 3_000))
+        apps.refresh(OWNER)
+        apps.refresh(WORK)
+        repeat(2) { cache.refresh(workApp.key) }
+        assertThat(dao.scanMarker(PKG)).isEqualTo(app.lastUpdateTime)
+        assertThat(cache.components(app.key).first()).isEqualTo(before)
+    }
+
+    @Test
+    fun givenSameRevisionAndPmFailure_whenBroadcastAborts_thenNextReconciliationRetries() = runTest {
+        system.install(app, main)
+        system.put(OWNER, main, PmSetting.DISABLED)
+        val fixture = startMonitor()
+        val key = ComponentKey(main.id, OWNER)
+        pmBlocks.record(listOf(key))
+        system.install(app.copy(enabled = false, enabledSetting = AppEnabledSetting.DISABLED))
+        system.pmFailures[PKG] = ReadFailure.ChannelUnavailable
+
+        announce(Intent.ACTION_PACKAGE_CHANGED)
+        settle()
+        assertThat(apps.app(app.key).first()).isEqualTo(app)
+        assertThat(fixture.cache.components(app.key).first().single().state.pm).isEqualTo(PmSetting.DISABLED)
+        assertThat(pmBlocks.of(OWNER)).containsExactly(key)
+
+        system.pmFailures.clear()
+        system.put(OWNER, main, PmSetting.DEFAULT)
+        advanceTimeBy(30_000)
+        fixture.monitor.onForeground()
+        settle()
+        assertThat(system.reads("pm ")).isEqualTo(3)
+        assertThat(apps.app(app.key).first()?.enabled).isFalse()
+        assertThat(fixture.cache.components(app.key).first().single().state.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(pmBlocks.of(OWNER)).isEmpty()
+    }
+
+    @Test
+    fun givenKnownFirewallState_whenRuleReadFails_thenKeepBothLayersAndAppRevision() = runTest {
+        system.install(app, main)
+        val fixture = startMonitor()
+        store.setBlocked(PKG, mapOf(main to true))
+        runCurrent()
+        store.clearCache()
+        files.unreadablePackages += PKG
+        system.put(OWNER, main, PmSetting.DISABLED)
+        system.install(app.copy(versionCode = 2))
+
+        announce(Intent.ACTION_PACKAGE_REPLACED)
+        settle()
+
+        assertThat(apps.app(app.key).first()).isEqualTo(app)
+        assertThat(fixture.cache.components(app.key).first().single().state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.BLOCKED))
+    }
+
+    @Test
+    fun givenFreshCacheOrAppListOnly_whenReconciling_thenNoIndividualReadsUntilIndex() = runTest {
+        repeat(8) { system.install(installedApp("example.app$it"), declaration("Main", packageName = "example.app$it")) }
+        val cache = components(backgroundScope)
+        val fixture = startMonitor(cache)
+        assertThat(system.reads("revisions ")).isEqualTo(0)
+
+        apps.refresh(OWNER)
+        system.install(app, main)
+        advanceTimeBy(30_000)
+        fixture.monitor.onForeground()
+        settle()
+        assertThat(system.reads("revisions ")).isEqualTo(1)
+        assertThat(system.reads("app ")).isEqualTo(0)
+        assertThat(system.reads("declarations")).isEqualTo(0)
+        assertThat(system.reads("pm ")).isEqualTo(0)
+
+        cache.refreshAll(OWNER).toList()
+        assertThat(system.reads("declarations")).isEqualTo(9)
+        assertThat(system.reads("pm ")).isEqualTo(9)
+    }
+
+    @Test
+    fun givenSharedDeclarationsFromOwner_whenWorkProfileHasOnlyAppList_thenDoNotIndexNewWorkApps() = runTest {
+        val workApp = installedApp(PKG, WORK)
+        system.install(app, main)
+        system.install(workApp)
+        val cache = components(backgroundScope)
+        cache.refresh(app.key)
+        apps.refresh(WORK)
+        val added = installedApp("example.worknew", WORK)
+        system.install(added)
+        system.log.clear()
+
+        startMonitor(cache)
+
+        assertThat(system.reads("revisions ")).isEqualTo(2)
+        assertThat(system.reads("app ")).isEqualTo(0)
+        assertThat(apps.app(added.key).first()).isNull()
+    }
+
+    @Test
+    fun givenOwnToggle_whenMatchingBroadcastArrivesLate_thenSkipItAndRefreshExternalChanges() = runTest {
+        system.install(app, main, replacement)
+        val fixture = startMonitor()
+        componentControl.apply = { request ->
+            flow {
+                system.put(OWNER, main, PmSetting.DISABLED)
+                val outcome = ComponentOutcome(
+                    ComponentKey(main.id, request.user),
+                    ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED),
+                    ControlResult.ACHIEVED,
+                    emptyMap(),
+                )
+                emit(ControlEvent.PackageDone(PKG, listOf(outcome), setOf(main.id)))
+            }
+        }
+        fixture.cache.control(ControlRequest(OWNER, listOf(main), ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER))).toList()
+        system.log.clear()
+
+        advanceTimeBy(1_000)
+        announce(Intent.ACTION_PACKAGE_CHANGED, components = listOf(main.id.className))
+        settle()
+        assertThat(system.reads("app ")).isEqualTo(0)
+
+        system.put(OWNER, replacement, PmSetting.DISABLED)
+        announce(Intent.ACTION_PACKAGE_CHANGED, components = listOf(main.id.className, replacement.id.className))
+        settle()
+        assertThat(system.reads("app ")).isEqualTo(1)
+        assertThat(fixture.cache.components(app.key).first().map { it.state.pm }).containsExactly(PmSetting.DISABLED, PmSetting.DISABLED)
+
+        announce(Intent.ACTION_PACKAGE_CHANGED, components = listOf(PKG))
+        settle()
+        assertThat(system.reads("app ")).isEqualTo(2)
+
+        advanceTimeBy(3_000)
+        announce(Intent.ACTION_PACKAGE_CHANGED, components = listOf(main.id.className))
+        settle()
+        assertThat(system.reads("app ")).isEqualTo(3)
+    }
+
+    @Test
+    fun givenOrphanedRecord_whenReconciliationConfirmsRemoval_thenForgetIt() = runTest {
+        val cached = installedApp("example.cached")
+        system.install(cached)
+        apps.refresh(OWNER)
+        val record = ComponentKey(main.id, OWNER)
+        pmBlocks.record(listOf(record))
+
+        startMonitor(components(backgroundScope))
+
+        assertThat(apps.app(app.key).first()).isNull()
+        assertThat(pmBlocks.of(OWNER)).isEmpty()
+        assertThat(system.reads("app ")).isEqualTo(1)
+    }
+
+    @Test
+    fun givenNoFirewallAccessByDesign_whenPackageChanges_thenKeepKnownFirewallAndUpdatePm() = runTest {
+        system.install(app, main)
+        val fixture = startMonitor()
+        store.setBlocked(PKG, mapOf(main to true))
+        runCurrent()
+        store.clearCache()
+        channel.setState(noAccess)
+        files.noAccess = true
+        system.put(OWNER, main, PmSetting.DISABLED)
+
+        announce(Intent.ACTION_PACKAGE_CHANGED)
+        settle()
+
+        assertThat(fixture.cache.components(app.key).first().single().state).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED))
+    }
+
+    @Test
+    fun givenThreeHundredBroadcasts_whenRefreshing_thenLimitConcurrentReads() = runTest {
+        startMonitor()
+        var inFlight = 0
+        var highWaterMark = 0
+        system.afterPmRead = {
+            inFlight++
+            highWaterMark = maxOf(highWaterMark, inFlight)
+            delay(20)
+            inFlight--
+        }
+        repeat(300) {
+            val name = "example.package$it"
+            system.install(installedApp(name), declaration("Main", packageName = name))
+            announce(Intent.ACTION_PACKAGE_ADDED, packageName = name)
+        }
+
+        advanceTimeBy(10_000)
+
+        assertThat(system.reads("pm ")).isEqualTo(300)
+        assertThat(apps.apps(OWNER).first()).hasSize(300)
+        assertThat(highWaterMark).isEqualTo(AUTOMATIC_REFRESH_PARALLELISM)
+        assertThat(inFlight).isEqualTo(0)
+    }
+
+    @Test
+    fun givenCachedWorkApp_whenChannelBecomesReadyDuringThrottle_thenReconcileImmediately() = runTest {
+        val workApp = installedApp(PKG, WORK)
+        system.install(workApp, main)
+        val cache = components(backgroundScope)
+        cache.refresh(workApp.key)
+        channel.setState(noAccess)
+        val updated = workApp.copy(versionCode = 2)
+        system.install(updated, replacement)
+
+        startMonitor(cache)
+        assertThat(system.reads("revisions ")).isEqualTo(0)
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        runCurrent()
+
+        assertThat(testScheduler.currentTime).isEqualTo(0)
+        assertThat(system.reads("revisions ")).isEqualTo(1)
+        assertThat(apps.app(workApp.key).first()).isEqualTo(updated)
+        assertThat(cache.components(workApp.key).first().single().declaration).isEqualTo(replacement)
+    }
+
+    private fun TestScope.createMonitor(cache: LocalComponentStatusRepository): PackageChangeMonitor {
+        elapsedRealtime = { testScheduler.currentTime }
+        return PackageChangeMonitor(
+            context,
+            cache,
+            FakeSelectedUserRepository(OWNER),
+            controlActivity,
+            channel,
+            backgroundScope,
+            StandardTestDispatcher(testScheduler),
+            elapsedRealtime,
+        )
+    }
+
+    private suspend fun TestScope.startMonitor(): Fixture {
+        val cache = components(backgroundScope)
+        system.apps.keys.filter { it.userId == OWNER }.forEach { cache.refresh(it) }
+        return startMonitor(cache)
+    }
+
+    private fun TestScope.startMonitor(cache: LocalComponentStatusRepository): Fixture {
         val monitor = createMonitor(cache)
         monitor.start()
         runCurrent()
         return Fixture(cache, monitor)
     }
 
-    private fun announce(action: String, replacing: Boolean = false) {
-        context.sendBroadcast(Intent(action, Uri.fromParts("package", PKG, null)).putExtra(Intent.EXTRA_REPLACING, replacing))
+    private fun announce(action: String, replacing: Boolean = false, packageName: String = PKG, components: List<String>? = null) {
+        val intent = Intent(action, Uri.fromParts("package", packageName, null)).putExtra(Intent.EXTRA_REPLACING, replacing)
+        components?.let { intent.putExtra(Intent.EXTRA_CHANGED_COMPONENT_NAME_LIST, it.toTypedArray()) }
+        context.sendBroadcast(intent)
         shadowOf(Looper.getMainLooper()).idle()
     }
 
