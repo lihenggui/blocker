@@ -131,6 +131,31 @@ class AppHeaderViewModelTest {
     }
 
     @Test
+    fun givenWorkProfileApp_whenTheUsersAreNotCachedYet_thenNoProfileUntilTheyAre() = runTest {
+        val viewModel = viewModel(userId = WORK.value)
+        assertThat(viewModel.uiState.value.profile).isNull()
+        fixture.installedApps.sendApps(listOf(installedApp(WORK_APP)))
+        collect(viewModel)
+
+        assertThat(viewModel.uiState.value.app).isNotNull()
+        assertThat(viewModel.uiState.value.profile).isNull()
+
+        fixture.deviceUsers.sendUsers(listOf(ownerUser, workUser))
+
+        assertThat(viewModel.uiState.value.profile).isEqualTo(ProfileLabel.Work)
+    }
+
+    @Test
+    fun givenUsersCachedWithoutTheAppsUser_whenShown_thenTheUserIsNumbered() = runTest {
+        val viewModel = viewModel(userId = WORK.value)
+        fixture.deviceUsers.sendUsers(listOf(ownerUser))
+        fixture.installedApps.sendApps(listOf(installedApp(WORK_APP)))
+        collect(viewModel)
+
+        assertThat(viewModel.uiState.value.profile).isEqualTo(ProfileLabel.Numbered(WORK.value))
+    }
+
+    @Test
     fun givenSecondaryUsersApp_whenShown_thenItCannotBeLaunchedFromHere() = runTest {
         val guest = DeviceUser(UserId(11), name = "Guest", kind = UserKind.SECONDARY, parent = null, running = false)
         val viewModel = viewModel(userId = 11)

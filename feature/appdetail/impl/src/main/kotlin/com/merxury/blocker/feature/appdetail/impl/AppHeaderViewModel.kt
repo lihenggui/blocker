@@ -126,7 +126,7 @@ class AppHeaderViewModel @AssistedInject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = AppHeaderUiState(profile = profileOf(emptyList())),
+        initialValue = AppHeaderUiState(),
     )
 
     fun exportBlockerRules() = startRuleWork(RuleWorkType.EXPORT_BLOCKER_RULES, "ExportBlockerRule", ExistingWorkPolicy.REPLACE) {
@@ -187,8 +187,12 @@ class AppHeaderViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * The profile of another user's app: its label once the users are cached, numbered when they
+     * are and the app's user is not among them, and none while no user is cached yet.
+     */
     private fun profileOf(users: List<DeviceUser>): ProfileLabel? {
-        if (app.userId == ownUser) return null
+        if (app.userId == ownUser || users.isEmpty()) return null
         return users.find { it.id == app.userId }?.profileLabel() ?: ProfileLabel.Numbered(app.userId.value)
     }
 

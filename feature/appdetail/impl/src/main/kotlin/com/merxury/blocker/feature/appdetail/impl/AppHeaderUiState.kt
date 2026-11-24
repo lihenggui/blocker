@@ -26,7 +26,8 @@ import kotlin.time.Instant
  * The header of the detail screen and the actions on the whole app.
  *
  * @property app the app as cached for its user; null while it is not cached
- * @property profile the profile the app belongs to when it is not the user Blocker runs in
+ * @property profile the profile the app belongs to when it is not the user Blocker runs in; null
+ * also while the users are not cached yet
  * @property launch how the app can be opened from here
  * @property showLibChecker whether LibChecker can show the app: it is installed, and so is the app,
  * for the user Blocker runs in
