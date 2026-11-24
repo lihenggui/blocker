@@ -106,7 +106,8 @@ internal fun AppDetailTopBar(
         subtitle = app?.packageName.orEmpty(),
         summary = summary,
         iconSource = app?.icon,
-        onIconClick = { if (header.launch != LaunchMode.NONE) actions.onLaunchApp() },
+        // An app that cannot be opened from here offers no launch action at all.
+        onIconClick = actions.onLaunchApp.takeIf { header.launch != LaunchMode.NONE },
         modifier = modifier
             .fillMaxWidth()
             .height(with(LocalDensity.current) { toolbarState.height.toDp() }),

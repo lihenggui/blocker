@@ -19,9 +19,11 @@ package com.merxury.blocker.feature.appdetail.impl
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -29,6 +31,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.designsystem.component.COLLAPSING_TOP_APP_BAR_ICON_TAG
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.control.ControlFailure
@@ -38,6 +41,7 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowItem
+import com.merxury.blocker.feature.appdetail.impl.ui.TopBarActions
 import com.merxury.blocker.feature.appdetail.impl.ui.text
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
@@ -181,6 +185,36 @@ class AppDetailScreenTest {
         }
 
         composeTestRule.onNodeWithText("2.0.4 (2004) · ${text(string.feature_appdetail_api_profile_work)}").assertExists()
+    }
+
+    @Test
+    fun givenAppOfAnotherUserOutsideTheProfileGroup_whenShown_thenNoLaunchAction() {
+        showHeader(LaunchMode.NONE)
+
+        composeTestRule.onNodeWithTag(COLLAPSING_TOP_APP_BAR_ICON_TAG).assertExists().assert(hasClickAction().not())
+    }
+
+    @Test
+    fun givenLaunchableApp_whenIconTapped_thenLaunched() {
+        var launched = 0
+        showHeader(LaunchMode.PROFILE) { launched++ }
+
+        composeTestRule.onNodeWithTag(COLLAPSING_TOP_APP_BAR_ICON_TAG).assert(hasClickAction()).performClick()
+
+        assertThat(launched).isEqualTo(1)
+    }
+
+    private fun showHeader(launch: LaunchMode, onLaunch: () -> Unit = {}) {
+        composeTestRule.setContent {
+            BlockerTheme {
+                AppDetailContent(
+                    header = AppHeaderUiState(app = previewHeaderApp, launch = launch),
+                    list = componentTab(),
+                    control = ControlUiState(),
+                    topBarActions = TopBarActions(onLaunchApp = onLaunch),
+                )
+            }
+        }
     }
 
     @Test
