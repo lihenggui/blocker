@@ -17,6 +17,9 @@
 package com.merxury.blocker.feature.applist.impl
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -97,6 +100,24 @@ class AppListScreenTest {
         composeTestRule.onNodeWithText(text(string.feature_applist_api_profile_work)).performClick()
 
         assertThat(selected).containsExactly(WORK)
+    }
+
+    @Test
+    fun givenServiceInfoShown_whenCountsDropped_thenRowsCountAgain() {
+        val counted = mutableListOf<String>()
+        val rows = previewAppRows(OWNER).take(1)
+        var state by mutableStateOf(AppListUiState(OWNER, OWNER, apps = AppsUiState.Loaded(rows), showServiceInfo = true))
+        composeTestRule.setContent {
+            BlockerTheme {
+                AppListScreen(uiState = state, countServices = { counted += it.packageName })
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        state = state.copy(apps = AppsUiState.Loaded(rows.map { it.copy(services = null) }))
+        composeTestRule.waitForIdle()
+
+        assertThat(counted).containsExactly("com.merxury.blocker", "com.merxury.blocker")
     }
 
     @Test

@@ -44,8 +44,8 @@ import com.merxury.blocker.feature.applist.impl.AppAction
 import com.merxury.blocker.feature.applist.impl.AppRow
 
 /**
- * The apps of one user. While [countServices] is set, each row shown reads its service counts
- * through it, cancelled when the row leaves the screen.
+ * The apps of one user. While [countServices] is set, each row shown without service counts reads
+ * them through it, cancelled when the row leaves the screen.
  */
 @Composable
 internal fun UserAppList(
@@ -62,7 +62,8 @@ internal fun UserAppList(
         LazyColumn(state = listState) {
             items(apps, key = { it.key.packageName }) { app ->
                 if (countServices != null) {
-                    LaunchedEffect(app.key, app.versionCode) { countServices(app.key) }
+                    // Counts dropped by a refresh or an action are read again while the row shows.
+                    LaunchedEffect(app.key, app.versionCode, app.services == null) { countServices(app.key) }
                 }
                 AppListItem(
                     label = app.label,

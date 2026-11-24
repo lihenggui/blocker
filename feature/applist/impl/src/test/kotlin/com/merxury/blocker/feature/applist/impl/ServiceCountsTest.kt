@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
@@ -175,14 +176,19 @@ class ServiceCountsTest {
     }
 
     @Test
-    fun givenChannelNotReady_whenCounted_thenNothingReadOrShown() = runTest {
-        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+    fun givenChannelNotReady_whenCounting_thenWaitsUntilReady() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
         showApp()
-
-        countNow()
+        val counting = launch { viewModel.countServices(app) }
+        advanceTimeBy(1_000)
 
         assertThat(fixture.components.refreshedApps).isEmpty()
         assertThat(fixture.rows().single().services).isNull()
+
+        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        counting.join()
+
+        assertThat(fixture.rows().single().services).isEqualTo(ServiceCounts(running = 1, blocked = 2, total = 4))
     }
 
     @Test

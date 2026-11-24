@@ -44,16 +44,18 @@ internal class ServiceCounter @Inject constructor(
     private val permits = Semaphore(MAX_CONCURRENT)
 
     /**
-     * Refreshes [app]'s components, then counts its services that run, that are blocked and in
-     * total. While the Intent Firewall rules cannot be reached at all, such as with Shizuku
-     * running as the shell, blocked counts what the PackageManager settings and the manifest
-     * block, which is all that can be known then. Null when any part cannot be read otherwise:
-     * without the privileged channel, which running services need, when the refresh fails, or when
-     * a service's state is unknown for another reason, such as a damaged rule file.
+     * Waits until the privileged channel is ready, which listing running services needs, then
+     * refreshes [app]'s components and counts its services that run, that are blocked and in total.
+     * While the Intent Firewall rules cannot be reached at all, such as with Shizuku running as the
+     * shell, blocked counts what the PackageManager settings and the manifest block, which is all
+     * that can be known then. Null when any part cannot be read otherwise: when the refresh fails,
+     * running services cannot be listed, or a service's state is unknown for another reason, such
+     * as a damaged rule file. The caller cancels the wait when the counts are no longer wanted.
      */
     suspend fun count(app: AppKey): ServiceCounts? {
-        // Listing running services connects the channel, which may prompt; a list never asks.
-        if (channel.state.value !is ChannelState.Ready) return null
+        // Listing running services connects the channel, which may prompt; a list never asks, so
+        // it waits for the channel to be ready, as it becomes at start or after an action.
+        channel.state.first { it is ChannelState.Ready }
         return permits.withPermit {
             val refreshed = components.refresh(app)
             if (refreshed is ReadResult.Failure) {
