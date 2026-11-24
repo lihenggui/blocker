@@ -101,6 +101,7 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 ### Guidance for new code
 
 - Keep DAOs, data sources, and privileged calls behind data or domain APIs.
+  `SettingsViewModel` accesses `BlockerPreferencesDataSource` directly.
   The IFW editors work directly with `IfwStore`.
 - Add a use case only for logic shared by several ViewModels. Keep single-screen
   orchestration in its ViewModel and data access in the repository.
@@ -120,6 +121,8 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 - Use the selected `PrivilegedChannel` for typed system calls. Request access
   in the foreground with `connect()` and check existing grants with
   `connectIfGranted()` when a caller cannot prompt.
+- The per-app and global IFW rule editors always use root, regardless of the
+  selected controller type.
 - PackageManager and privileged Shizuku persist enabled state in each user's
   `package_restrictions.xml` under `/data/system/users/`. Apps can detect that state.
 - `IfwStore` reads and replaces XML in `/data/system/ifw/` and reports changes
