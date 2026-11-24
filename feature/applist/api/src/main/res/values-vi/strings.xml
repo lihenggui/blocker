@@ -39,7 +39,6 @@
     <string name="feature_applist_api_refresh_failed">Không thể làm mới danh sách ứng dụng. Đang hiển thị danh sách đã lưu gần nhất.</string>
     <string name="feature_applist_api_retry">Thử lại</string>
     <string name="feature_applist_api_load_failed">Không thể tải danh sách ứng dụng. Kéo xuống để thử lại.</string>
-    <string name="feature_applist_api_other_profile_note">Tính năng chỉnh sửa thành phần của ứng dụng trong các hồ sơ khác sẽ có cùng màn hình chi tiết ứng dụng trong bản cập nhật sau.</string>
     <string name="feature_applist_api_clear_data_confirm">Bạn có muốn xóa dữ liệu của ứng dụng này không? Trong khi xóa, Android cũng dừng ứng dụng ở mọi người dùng và hồ sơ trên thiết bị này.</string>
     <string name="feature_applist_api_uninstall_for_profile_confirm">Bạn có muốn gỡ cài đặt ứng dụng này khỏi %1$s không? Những người dùng và hồ sơ khác có ứng dụng này vẫn giữ nó. Ứng dụng chỉ bị xóa khỏi thiết bị khi không còn người dùng nào có nó.</string>
     <string name="feature_applist_api_enable_failed">Không thể bật %1$s</string>

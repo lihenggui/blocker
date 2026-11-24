@@ -36,8 +36,8 @@ import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtonIte
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.applist.api.R.string
-import com.merxury.blocker.feature.applist.impl.ProfileLabel
 import com.merxury.blocker.feature.applist.impl.ProfileTab
 
 /** Switches the list between the users in [profiles]; a stopped user says it is not running. */

@@ -31,13 +31,7 @@ internal data class PendingConfirmation(
     val app: AppKey,
 )
 
-/** Saves an open actions sheet's app with its user, so a restored sheet acts on the same app. */
-internal val AppKeySaver: Saver<AppKey?, Any> = listSaver(
-    save = { key -> key?.let { listOf(it.packageName, it.userId.value) }.orEmpty() },
-    restore = { values -> if (values.isEmpty()) null else AppKey(values[0] as String, UserId(values[1] as Int)) },
-)
-
-/** Saves a pending confirmation with its app's user, as [AppKeySaver] does. */
+/** Saves a pending confirmation with its app's user, so a restored dialog acts on the same app. */
 internal val PendingConfirmationSaver: Saver<PendingConfirmation?, Any> = listSaver(
     save = { pending -> pending?.let { listOf(it.action.name, it.app.packageName, it.app.userId.value) }.orEmpty() },
     restore = { values ->

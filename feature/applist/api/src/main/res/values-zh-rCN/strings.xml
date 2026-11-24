@@ -39,7 +39,6 @@
     <string name="feature_applist_api_refresh_failed">无法刷新应用列表，正在显示上次保存的列表。</string>
     <string name="feature_applist_api_retry">重试</string>
     <string name="feature_applist_api_load_failed">无法加载应用列表，请下拉重试。</string>
-    <string name="feature_applist_api_other_profile_note">编辑其他资料中应用的组件将在后续更新中随应用详情页面一同提供。</string>
     <string name="feature_applist_api_clear_data_confirm">要清除此应用的数据吗？清除时，Android 还会在此设备的所有用户和资料中停止该应用。</string>
     <string name="feature_applist_api_uninstall_for_profile_confirm">要从“%1$s”中卸载此应用吗？拥有此应用的其他用户和资料会保留它。当没有任何用户拥有此应用时，它才会从设备中移除。</string>
     <string name="feature_applist_api_enable_failed">无法启用 %1$s</string>

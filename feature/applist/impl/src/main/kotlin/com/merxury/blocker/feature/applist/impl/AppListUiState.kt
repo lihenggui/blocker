@@ -21,6 +21,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.applist.ServiceCounts
 import com.merxury.blocker.core.ui.coil.ApkIcon
+import com.merxury.blocker.core.ui.profile.ProfileLabel
 
 /**
  * What the app list shows: the apps of [selectedUser], and a switcher between [profiles] when
@@ -81,20 +82,6 @@ data class ProfileTab(
     val label: ProfileLabel,
     val running: Boolean,
 )
-
-sealed interface ProfileLabel {
-    /** The device owner. */
-    data object Personal : ProfileLabel
-
-    /** A managed work profile. */
-    data object Work : ProfileLabel
-
-    /** Another user or profile, with the name the system gives it. */
-    data class Named(val name: String) : ProfileLabel
-
-    /** Another user or profile whose name cannot be read. */
-    data class Numbered(val id: Int) : ProfileLabel
-}
 
 enum class AppAction {
     ENABLE,

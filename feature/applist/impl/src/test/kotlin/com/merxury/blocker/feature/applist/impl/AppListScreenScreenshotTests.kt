@@ -25,7 +25,7 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.feature.applist.impl.component.AppActionsContent
+import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.applist.impl.component.previewAppRows
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
@@ -91,21 +91,6 @@ class AppListScreenScreenshotTests {
     @Test
     fun appListScreen_empty() = captureWithDark("AppListScreenEmpty", ownApps.copy(apps = AppsUiState.Loaded(emptyList())))
 
-    @Test
-    fun appActionsSheet() {
-        composeTestRule.captureMultiDevice("AppActionsSheet") { ActionsSheet() }
-    }
-
-    @Test
-    fun appActionsSheet_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppActionsSheet",
-            darkMode = true,
-        ) { ActionsSheet() }
-    }
-
     private fun captureWithDark(name: String, uiState: AppListUiState) {
         composeTestRule.captureMultiDevice(name) { Screen(uiState) }
         composeTestRule.captureForDevice(
@@ -121,15 +106,6 @@ class AppListScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppListScreen(uiState = uiState)
-            }
-        }
-    }
-
-    @Composable
-    private fun ActionsSheet() {
-        BlockerTheme {
-            Surface {
-                AppActionsContent(app = previewAppRows(WORK)[2], onAction = {})
             }
         }
     }
