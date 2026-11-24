@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.component.UserId
  * whose owner cannot be read
  * @property running whether the user is started; a stopped user's apps can still be read and
  * changed with root, and the change applies when the user next starts
+ * @property unlocked whether credential-encrypted storage is unlocked, or null when unknown
  */
 data class DeviceUser(
     val id: UserId,
@@ -33,6 +34,7 @@ data class DeviceUser(
     val kind: UserKind,
     val parent: UserId?,
     val running: Boolean,
+    val unlocked: Boolean? = null,
 )
 
 enum class UserKind {

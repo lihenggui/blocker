@@ -49,8 +49,8 @@ internal fun ownUser(): UserId = UserId(Process.myUid() / UIDS_PER_USER)
  *   request drops what reads back as not disabled.
  * - [afterRefresh], for each package refresh under the same lock: drops what reads back as not
  *   disabled, which the user or the app changed elsewhere, and what the app no longer declares.
- * - [forgetApp] when an app is removed from the cache for a user, as the system has dropped that
- *   user's settings for it with the app.
+ * - [forgetApp] and [forgetUninstalled] when a live read confirms the app is gone for the user,
+ *   including records left behind by earlier removals.
  * - The one-time seed from the component list of earlier versions, see [PmBlockRecordSeeder], and
  *   while old screens still change components through the old controllers, the hook in the old
  *   component repository. Both add and drop records through [record] and [forget].
@@ -78,6 +78,12 @@ internal class PmBlockRecords @Inject constructor(
 
     /** Drops every record of [app]. */
     suspend fun forgetApp(app: AppKey) = dao.deleteByPackage(app.packageName, app.userId.value)
+
+    suspend fun forgetUser(user: UserId) = dao.deleteByUser(user.value)
+
+    suspend fun forgetUninstalled(user: UserId, installed: Set<String>) {
+        forget(of(user).filter { it.id.packageName !in installed })
+    }
 
     /**
      * Updates the record from the state [request] read back for one package: under a

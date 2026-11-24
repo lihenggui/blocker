@@ -37,6 +37,7 @@ import com.merxury.blocker.core.model.control.layersFor
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -198,7 +199,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN, SYNC, DATA)
         // The user enabled MAIN in another app; an update dropped SYNC.
         system.put(OWNER, MAIN, PmSetting.ENABLED)
-        system.install(installedApp(PKG, lastUpdateTime = 3_000), MAIN, SELF_OFF, DATA)
+        system.install(installedApp(PKG, lastUpdateTime = 3_000).copy(versionCode = 2), MAIN, SELF_OFF, DATA)
 
         repository.refresh(AppKey(PKG, OWNER))
 
@@ -245,6 +246,54 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
 
         assertThat(recorded(WORK)).isEmpty()
         assertThat(recorded(OWNER)).containsExactly(MAIN.key(OWNER))
+    }
+
+    @Test
+    fun givenOrphanedRecords_whenAppListRefreshes_thenForgetOnlyUninstalledPackages() = runTest {
+        val orphan = ComponentKey(ComponentId("com.gone", "com.gone.Main"), OWNER)
+        val ownerRecord = MAIN.key(OWNER)
+        val workRecord = MAIN.key(WORK)
+        pmBlocks.record(listOf(orphan, ownerRecord, workRecord))
+        system.install(installedApp(PKG), MAIN)
+
+        apps.refresh(OWNER)
+
+        assertThat(recorded(OWNER)).containsExactly(ownerRecord)
+        assertThat(recorded(WORK)).containsExactly(workRecord)
+    }
+
+    @Test
+    fun givenOrphanedRecord_whenManuallyRefreshingMissingApp_thenForgetIt() = runTest {
+        val key = AppKey(PKG, OWNER)
+        pmBlocks.record(listOf(MAIN.key(OWNER)))
+
+        components(backgroundScope).refresh(key)
+
+        assertThat(recorded(OWNER)).isEmpty()
+    }
+
+    @Test
+    fun givenGoneAppAndOrphanedRecord_whenFullIndexListsApps_thenForgetBoth() = runTest {
+        val repository = installed(backgroundScope)
+        pmBlocks.record(listOf(MAIN.key(OWNER), ComponentKey(ComponentId("com.gone", "com.gone.Main"), OWNER), MAIN.key(WORK)))
+        system.apps.remove(AppKey(PKG, OWNER))
+
+        repository.refreshAll(OWNER).toList()
+
+        assertThat(recorded(OWNER)).isEmpty()
+        assertThat(recorded(WORK)).containsExactly(MAIN.key(WORK))
+    }
+
+    @Test
+    fun givenAppRemovedWhileIndexReadsSettings_whenPackageDisappears_thenForgetRecords() = runTest {
+        val repository = installed(backgroundScope)
+        pmBlocks.record(listOf(MAIN.key(OWNER)))
+        system.pmFailures[PKG] = ReadFailure.PackageNotFound(AppKey(PKG, OWNER))
+
+        repository.refreshAll(OWNER).toList()
+
+        assertThat(recorded(OWNER)).isEmpty()
+        assertThat(apps.app(AppKey(PKG, OWNER)).first()).isNull()
     }
 
     @Test

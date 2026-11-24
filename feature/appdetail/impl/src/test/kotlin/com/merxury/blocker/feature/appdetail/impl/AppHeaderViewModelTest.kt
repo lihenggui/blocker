@@ -117,6 +117,21 @@ class AppHeaderViewModelTest {
     }
 
     @Test
+    fun givenAppDetailOpen_whenCachedAppIsUpdated_thenHeaderUsesTheNewApkAndVersion() = runTest {
+        val viewModel = viewModel()
+        val app = installedApp(OWN_APP)
+        fixture.installedApps.sendApps(listOf(app))
+        collect(viewModel)
+
+        val updated = app.copy(apkPath = "/updated/base.apk", versionCode = 12)
+        fixture.installedApps.sendApps(listOf(updated))
+
+        val header = checkNotNull(viewModel.uiState.value.app)
+        assertThat(header.icon.apkPath).isEqualTo(updated.apkPath)
+        assertThat(header.versionCode).isEqualTo(updated.versionCode)
+    }
+
+    @Test
     fun givenWorkProfileApp_whenShown_thenTheHeaderNamesTheProfileAndLaunchesThroughTheLauncher() = runTest {
         val viewModel = viewModel(userId = WORK.value)
         fixture.deviceUsers.sendUsers(listOf(ownerUser, workUser))

@@ -87,14 +87,15 @@ interface ComponentStatusRepository {
 
     /**
      * Reads [app] and stores its cached row, then reads and stores three parts in this order:
-     * the declarations, only when they have not been read for the app's current `lastUpdateTime`;
+     * the live declarations, even when the app's `lastUpdateTime` matches the cached scan;
      * the PackageManager settings of every component for that user, in one call; and the Intent
      * Firewall state of every component. A part that cannot be read is stored as unknown, the
      * others are still stored. Declarations that cannot be re-read are kept, with their old scan
-     * marker, so the next refresh tries again. The records of what Blocker disabled in the app for
-     * that user are dropped for components whose setting read DEFAULT or ENABLED, as the user or
-     * the app re-enabled them elsewhere, and, when the declarations are current, for components
-     * the app no longer declares; all of them when the app is gone.
+     * marker, so the next refresh tries again. A smaller list for the same version is accepted
+     * only from a user known to be running and unlocked. Records of what Blocker disabled in the
+     * app for that user are dropped for components whose setting read DEFAULT or ENABLED, as the
+     * user or the app re-enabled them elsewhere, and, when the declarations are current, for
+     * components the app no longer declares; all of them when the app is gone.
      *
      * @return success when every part was read. Otherwise the first failure in the order app,
      * declarations, settings, firewall, with every part that was read already stored. Firewall
@@ -106,9 +107,10 @@ interface ComponentStatusRepository {
     suspend fun refresh(app: AppKey): ReadResult<Unit>
 
     /**
-     * Refreshes the apps of [user], then the components of each app as [refresh] does, a few
-     * apps at a time. A failed app does not stop the others; cancelling the collection stops
-     * between reads, and a package whose writes have started finishes them. Emits
+     * Refreshes the apps of [user], then the components of each app a few apps at a time. It can
+     * reuse declarations already scanned for the current revision. A failed app does not stop
+     * the others. Cancelling the collection stops between reads, and a package whose writes have
+     * started finishes them. Emits
      * [RefreshProgress.Refreshing] once the app list is read and after each app, and ends with
      * [RefreshProgress.Finished], which a collector that cancels never sees.
      */

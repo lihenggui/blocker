@@ -70,15 +70,21 @@ class ComponentRefreshTest : DeviceRepositoryTestBase() {
     }
 
     @Test
-    fun givenMarkerMatchesLastUpdateTime_whenRefresh_thenDeclarationsNotReadAgainButStateIs() = runTest {
+    fun givenUnlockedUserAndUnchangedRevision_whenRefreshReadsFewerDeclarations_thenReplaceTheList() = runTest {
         val repository = components(backgroundScope)
-        system.install(installedApp(PKG), MAIN)
+        val app = installedApp(PKG)
+        system.users.removeAll { it.id == OWNER }
+        system.users += deviceUser(OWNER).copy(unlocked = true)
+        system.install(app, MAIN, SYNC)
         repository.refresh(OWNER_APP)
+        system.install(app, MAIN)
         system.put(OWNER, MAIN, PmSetting.DISABLED)
 
-        repository.refresh(OWNER_APP)
+        val result = repository.refresh(OWNER_APP)
 
-        assertThat(system.reads("declarations")).isEqualTo(1)
+        assertThat(result).isEqualTo(ReadResult.Success(Unit))
+        assertThat(system.reads("declarations")).isEqualTo(2)
+        assertThat(dao.scanMarker(PKG)).isEqualTo(app.lastUpdateTime)
         assertThat(repository.components(OWNER_APP).first()).containsExactly(status(MAIN, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
     }
 

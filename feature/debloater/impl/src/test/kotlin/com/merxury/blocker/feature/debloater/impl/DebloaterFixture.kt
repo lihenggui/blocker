@@ -20,6 +20,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DebloaterApk
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
+import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.PermissionStatus
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
@@ -95,7 +96,7 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
             emitAll(components.components(app))
         }
     }
-    val batches = ComponentBatchRunner(repository, appScope)
+    val batches = ComponentBatchRunner(repository, appScope, PackageControlActivity())
     val index = ComponentIndex(repository, channel, appScope)
     private val layers = GetControlLayersUseCase(preferences)
     val viewModel = DebloaterViewModel(

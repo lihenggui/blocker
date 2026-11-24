@@ -60,8 +60,8 @@ class CallOutcomeTest {
         assertThat(roundTrip(ListUsers)).isEqualTo(
             CallResult.Success(
                 listOf(
-                    DeviceUser(UserId(0), "Owner", UserKind.OWNER, parent = null, running = true),
-                    DeviceUser(WORK, "Work", UserKind.WORK_PROFILE, parent = UserId(0), running = false),
+                    DeviceUser(UserId(0), "Owner", UserKind.OWNER, parent = null, running = true, unlocked = true),
+                    DeviceUser(WORK, "Work", UserKind.WORK_PROFILE, parent = UserId(0), running = false, unlocked = false),
                 ),
             ),
         )

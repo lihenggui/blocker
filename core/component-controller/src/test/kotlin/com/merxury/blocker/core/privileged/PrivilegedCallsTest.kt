@@ -52,7 +52,7 @@ class PrivilegedCallsTest {
     private fun component(name: String) = ComponentName(PKG, "$PKG.$name")
 
     @Test
-    fun givenOwnerWorkProfileAndSecondary_whenListUsers_thenKindParentAndRunningFilled() {
+    fun givenOwnerWorkProfileAndSecondary_whenListUsers_thenKindParentAndLockStateFilled() {
         system.userManager.addUser(0, "Owner")
         system.userManager.addUser(10, "Work", FLAG_MANAGED_PROFILE, parent = 0)
         system.userManager.addUser(11, "Guest")
@@ -62,10 +62,10 @@ class PrivilegedCallsTest {
         val users = ListUsers.run(system)
 
         assertThat(users).containsExactly(
-            DeviceUser(OWNER, "Owner", UserKind.OWNER, parent = null, running = true),
-            DeviceUser(WORK, "Work", UserKind.WORK_PROFILE, parent = OWNER, running = true),
-            DeviceUser(UserId(11), "Guest", UserKind.SECONDARY, parent = null, running = false),
-            DeviceUser(UserId(12), "Clone", UserKind.OTHER_PROFILE, parent = OWNER, running = false),
+            DeviceUser(OWNER, "Owner", UserKind.OWNER, parent = null, running = true, unlocked = true),
+            DeviceUser(WORK, "Work", UserKind.WORK_PROFILE, parent = OWNER, running = true, unlocked = false),
+            DeviceUser(UserId(11), "Guest", UserKind.SECONDARY, parent = null, running = false, unlocked = false),
+            DeviceUser(UserId(12), "Clone", UserKind.OTHER_PROFILE, parent = OWNER, running = false, unlocked = false),
         ).inOrder()
         assertThat(system.userManager.getUsersArity).isEqualTo(3)
     }
@@ -126,9 +126,20 @@ class PrivilegedCallsTest {
     fun givenPackageInOtherUserOnly_whenGetPackageInfo_thenNameNotFound() {
         pm.install(10, PKG)
 
-        assertThat(GetPackageInfo(PKG, PackageManager.GET_SERVICES, WORK).run(system).packageName).isEqualTo(PKG)
-        assertThat(pm.flagsSeen.last()).isEqualTo(PackageManager.GET_SERVICES.toLong())
+        val flags = PackageManager.GET_SERVICES or PackageManager.MATCH_DIRECT_BOOT_AWARE or PackageManager.MATCH_DIRECT_BOOT_UNAWARE
+        assertThat(GetPackageInfo(PKG, flags, WORK).run(system).packageName).isEqualTo(PKG)
+        assertThat(pm.flagsSeen.last()).isEqualTo(flags.toLong())
         assertThrows(NameNotFoundException::class.java) { GetPackageInfo(PKG, 0, OWNER).run(system) }
+    }
+
+    @Test
+    @Config(sdk = [24])
+    fun givenAndroid7_whenGetPackageInfo_thenBothDirectBootFlagsReachIntOverload() {
+        pm.install(10, PKG)
+        val flags = PackageManager.GET_SERVICES or PackageManager.MATCH_DIRECT_BOOT_AWARE or PackageManager.MATCH_DIRECT_BOOT_UNAWARE
+
+        assertThat(GetPackageInfo(PKG, flags, WORK).run(system).packageName).isEqualTo(PKG)
+        assertThat(pm.flagsSeen.last()).isEqualTo(flags.toLong())
     }
 
     @Test

@@ -85,9 +85,9 @@ internal class PrivilegedComponentControl @Inject constructor(
         packages.forEach { (packageName, components) ->
             currentCoroutineContext().ensureActive()
             val app = AppKey(packageName, request.user)
-            val outcomes = locks.withLock(packageName) { controlPackage(app, components, request) }
-            results += outcomes.map { it.result }
-            emit(ControlEvent.PackageDone(packageName, outcomes))
+            val event = locks.withLock(packageName) { controlPackage(app, components, request) }
+            results += event.outcomes.map { it.result }
+            emit(event)
         }
         emit(
             ControlEvent.Finished(
@@ -102,7 +102,7 @@ internal class PrivilegedComponentControl @Inject constructor(
      * Reads, changes what is needed and reads back the components of one package; call it under
      * the package's lock. Once a change is sent, the rest runs even if the caller is cancelled.
      */
-    private suspend fun controlPackage(app: AppKey, components: List<ComponentDeclaration>, request: ControlRequest): List<ComponentOutcome> {
+    private suspend fun controlPackage(app: AppKey, components: List<ComponentDeclaration>, request: ControlRequest): ControlEvent.PackageDone {
         val identity = (channel.state.value as? ChannelState.Ready)?.identity
         val layers = components.associate { it.id to it.layersFor(request.layers).reachableBy(request.goal, identity) }
         val before = readState(app, components)
@@ -122,10 +122,14 @@ internal class PrivilegedComponentControl @Inject constructor(
                 readState(app, components)
             }
         }
-        return components.map { component ->
+        val outcomes = components.map { component ->
             val id = component.id
             judge(component, app.userId, request.goal, layers.getValue(id), before.getValue(id), after.getValue(id), failures[id].orEmpty())
         }
+        val pmWrites = pmChanges.filter { (id, setting) ->
+            ControlLayer.PACKAGE_MANAGER !in failures[id].orEmpty() && after.getValue(id).pm == setting
+        }.mapTo(mutableSetOf()) { (id, _) -> id }
+        return ControlEvent.PackageDone(app.packageName, outcomes, pmWrites)
     }
 
     /**

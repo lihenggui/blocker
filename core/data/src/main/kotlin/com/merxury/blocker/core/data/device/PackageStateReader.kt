@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import com.merxury.blocker.core.database.cache.AppEntity
 import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.asEntity
 import com.merxury.blocker.core.database.cache.asExternalModel
@@ -24,6 +25,7 @@ import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.system.InstalledApp
@@ -36,7 +38,9 @@ import com.merxury.core.ifw.isPackageRuleFileName
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
+import kotlin.time.Instant
 
 /**
  * What one package refresh could read.
@@ -82,7 +86,16 @@ internal class PackageStateReader @Inject constructor(
     private val reader: SystemPackageReader,
     private val ifwStore: IfwStore,
     private val channel: PrivilegedChannel,
+    private val installedApps: LocalInstalledAppRepository,
 ) {
+    // Declarations are shared. The next complete read can come from any user with the package.
+    private val declarationRetries = ConcurrentHashMap.newKeySet<String>()
+
+    fun needsDeclarationRetry(packageName: String): Boolean = packageName in declarationRetries
+
+    suspend fun forgetDeclarationRetryIfUncached(packageName: String) {
+        if (needsDeclarationRetry(packageName) && dao.getDeclarations(packageName).isEmpty()) declarationRetries -= packageName
+    }
 
     /**
      * Reads every part first, then writes them in one transaction, in the order the cache
@@ -93,13 +106,36 @@ internal class PackageStateReader @Inject constructor(
      * @param app the app as just read, or null when it could not be read ([appFailure] says why);
      * then the cached declarations are used as they are
      */
-    suspend fun refresh(key: AppKey, app: InstalledApp?, appFailure: ReadFailure?): PackageRefresh {
-        val failures = listOfNotNull(appFailure).toMutableList()
+    suspend fun refresh(
+        key: AppKey,
+        app: InstalledApp?,
+        appFailure: ReadFailure?,
+        automatic: Boolean = false,
+        previous: AppEntity? = null,
+        forceDeclarations: Boolean = false,
+    ): PackageRefresh {
         val packageName = key.packageName
+        val failures = listOfNotNull(appFailure).toMutableList()
         val cached = dao.getDeclarations(packageName).map { it.asExternalModel() }
-        val fresh = if (app != null && dao.scanMarker(packageName) != app.lastUpdateTime) {
+        val marker = dao.scanMarker(packageName)
+        val ifwWasReadable = channel.state.value.allowsFirewallReads
+        val sameVersion = app != null && scanIsForVersion(app, previous, marker)
+        val retryDeclarations = needsDeclarationRetry(packageName)
+        var verifiedDeclarations = false
+        val fresh = if (app != null && (forceDeclarations || retryDeclarations || !sameVersion || marker != app.lastUpdateTime)) {
+            // An unlock during the read cannot establish that the read started unlocked.
+            val unlockedBefore = (retryDeclarations || (sameVersion && cached.isNotEmpty())) && isRunningAndUnlocked(key.userId)
             when (val read = reader.declarations(key)) {
-                is ReadResult.Success -> read.value
+                is ReadResult.Success -> {
+                    val shrank = sameVersion && read.value.distinctBy { it.id }.size < cached.size
+                    verifiedDeclarations = unlockedBefore && (shrank || retryDeclarations) && isRunningAndUnlocked(key.userId)
+                    if (shrank && !verifiedDeclarations) {
+                        declarationRetries += packageName
+                        Timber.w("Defer smaller declaration list for $key at version ${app.versionCode}: user is not known to be running and unlocked")
+                        return aborted(ReadFailure.ManifestUnreadable(packageName))
+                    }
+                    read.value
+                }
 
                 is ReadResult.Failure -> {
                     if (read.reason is ReadFailure.PackageNotFound) return remove(key)
@@ -111,6 +147,8 @@ internal class PackageStateReader @Inject constructor(
         } else {
             null
         }
+        if (automatic && failures.isNotEmpty()) return aborted(failures.first())
+
         val declarations = fresh ?: cached
         val declarationsCurrent = app != null && failures.isEmpty()
         var pmFailure: ReadFailure? = if (declarations.isEmpty()) failures.lastOrNull() else null
@@ -122,6 +160,7 @@ internal class PackageStateReader @Inject constructor(
 
                 is ReadResult.Failure -> {
                     if (read.reason is ReadFailure.PackageNotFound) return remove(key)
+                    if (automatic) return aborted(read.reason)
                     Timber.w("Cannot read the PM settings of $key, store them as unknown: ${read.reason}")
                     failures += read.reason
                     pmFailure = read.reason
@@ -129,25 +168,51 @@ internal class PackageStateReader @Inject constructor(
                 }
             }
         }
+        if (automatic && declarations.any { pm?.get(it.id).let { setting -> setting == null || setting == PmSetting.UNKNOWN } }) {
+            Timber.w("PackageManager did not return all component settings for $key")
+            return aborted(ReadFailure.ChannelUnavailable)
+        }
+        val ifwReadable = channel.state.value.allowsFirewallReads
         val ifw = readIfw(packageName, declarations)
-        // Without file access the rules are out of reach by design, which firewallReadable reports.
-        if (ifw == null && channel.state.value.allowsFirewallReads) failures += ReadFailure.RulesUnreadable(packageName)
+        if (ifw == null && (ifwWasReadable || ifwReadable || channel.state.value.allowsFirewallReads)) {
+            val failure = ReadFailure.RulesUnreadable(packageName)
+            if (automatic) return aborted(failure)
+            failures += failure
+        }
+        val pmSettings = declarations.associate { it.id.className to (pm?.get(it.id) ?: PmSetting.UNKNOWN) }
+        val ifwBlocks = ifwBlocksOf(declarations, ifw).filterValues { !automatic || it != IfwBlock.UNKNOWN }
+        val entities = fresh?.map { it.asEntity() }
         val stored = withContext(NonCancellable) {
-            dao.storePackageState(
-                packageName = packageName,
-                userId = key.userId.value,
-                declarations = fresh?.map { it.asEntity() },
-                appLastUpdateTime = app?.lastUpdateTime?.takeIf { fresh != null },
-                pmSettings = declarations.associate { it.id.className to (pm?.get(it.id) ?: PmSetting.UNKNOWN) },
-                ifwBlocks = ifwBlocksOf(declarations, ifw),
-            )
+            if (automatic) {
+                val failure = installedApps.storeRefresh(checkNotNull(app), previous, entities, pmSettings, ifwBlocks)
+                if (failure != null) return@withContext aborted(failure)
+            } else if (!dao.storePackageState(packageName, key.userId.value, entities, app?.lastUpdateTime?.takeIf { fresh != null }, pmSettings, ifwBlocks)) {
+                Timber.i("$packageName was removed from the cache while it was read")
+                forgetDeclarationRetryIfUncached(packageName)
+                return@withContext PackageRefresh.removed(key)
+            }
+            if (verifiedDeclarations) declarationRetries -= packageName
+            PackageRefresh(failures, pm, pmFailure, declarationsCurrent)
         }
-        if (!stored) {
-            Timber.i("$packageName was removed from the cache while it was read")
-            return PackageRefresh.removed(key)
-        }
-        return PackageRefresh(failures, pm, pmFailure, declarationsCurrent)
+        return stored
     }
+
+    private suspend fun isRunningAndUnlocked(user: UserId): Boolean = when (val read = reader.users()) {
+        is ReadResult.Success -> read.value.any { it.id == user && it.running && it.unlocked == true }
+        is ReadResult.Failure -> false
+    }
+
+    private suspend fun scanIsForVersion(app: InstalledApp, previous: AppEntity?, marker: Instant?): Boolean {
+        if (marker == null) return false
+        val name = app.key.packageName
+        if (previous?.versionCode == app.versionCode && previous.lastUpdateTime == marker) return true
+        if (dao.hasAppRevision(name, app.versionCode, marker)) return true
+        // A same-version reinstall can move all app timestamps past the scan. An observed
+        // version change instead invalidates the old marker before updating an app row.
+        return (previous == null || previous.versionCode == app.versionCode) && !dao.hasAppAtUpdateTime(name, marker)
+    }
+
+    private fun aborted(failure: ReadFailure) = PackageRefresh(listOf(failure), null, failure)
 
     /** Re-reads the firewall state of the cached declarations of [packageName] and stores it. */
     suspend fun refreshIfw(packageName: String) {
@@ -181,8 +246,8 @@ internal class PackageStateReader @Inject constructor(
     }
 
     private suspend fun remove(key: AppKey): PackageRefresh {
-        Timber.i("$key is not installed any more, remove it from the cache")
-        withContext(NonCancellable) { dao.deleteApp(key.packageName, key.userId.value) }
+        installedApps.remove(key)
+        forgetDeclarationRetryIfUncached(key.packageName)
         return PackageRefresh.removed(key)
     }
 }

@@ -19,6 +19,7 @@ package com.merxury.blocker.core.domain.control
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -57,7 +58,7 @@ class ComponentBatchRunnerTest {
 
     @Test
     fun givenBatchesOfTwoScreens_whenRunning_thenEveryComponentOfBothIsInFlightForItsUser() = runTest {
-        val runner = ComponentBatchRunner(FakeComponentStatusRepository(), backgroundScope)
+        val runner = ComponentBatchRunner(FakeComponentStatusRepository(), backgroundScope, PackageControlActivity())
 
         runner.inFlight.test {
             assertThat(awaitItem()).isEmpty()
@@ -78,7 +79,7 @@ class ComponentBatchRunnerTest {
     @Test
     fun givenReservedBatch_whenPreparationCompletes_thenSendPreparedComponentsAndReturnTheirOutcomes() = runTest {
         val repository = FakeComponentStatusRepository()
-        val runner = ComponentBatchRunner(repository, backgroundScope)
+        val runner = ComponentBatchRunner(repository, backgroundScope, PackageControlActivity())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver, service))!!
         val prepared = CompletableDeferred<ControlRequest>()
@@ -100,7 +101,7 @@ class ComponentBatchRunnerTest {
     @Test
     fun givenReservedBatch_whenPreparationThrows_thenOutcomesFailAndReservationIsReleased() = runTest {
         val repository = FakeComponentStatusRepository()
-        val runner = ComponentBatchRunner(repository, backgroundScope)
+        val runner = ComponentBatchRunner(repository, backgroundScope, PackageControlActivity())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver))!!
         val failure = IllegalStateException("Cannot prepare batch")
@@ -117,7 +118,7 @@ class ComponentBatchRunnerTest {
     fun givenBatchHasNotStarted_whenItsScopeIsCancelled_thenOutcomesAreCancelledWithoutAnEmptyList() = runTest {
         val job = Job()
         val scope = CoroutineScope(job + StandardTestDispatcher(testScheduler))
-        val runner = ComponentBatchRunner(FakeComponentStatusRepository(), scope)
+        val runner = ComponentBatchRunner(FakeComponentStatusRepository(), scope, PackageControlActivity())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver))!!
         val preparing = CompletableDeferred<Unit>()
@@ -139,7 +140,7 @@ class ComponentBatchRunnerTest {
         val job = Job()
         val scope = CoroutineScope(job + StandardTestDispatcher(testScheduler))
         val repository = FakeComponentStatusRepository()
-        val runner = ComponentBatchRunner(repository, scope)
+        val runner = ComponentBatchRunner(repository, scope, PackageControlActivity())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver))!!
         val preparing = CompletableDeferred<Unit>()
@@ -176,7 +177,7 @@ class ComponentBatchRunnerTest {
                 awaitCancellation()
             }
         }
-        val runner = ComponentBatchRunner(repository, scope)
+        val runner = ComponentBatchRunner(repository, scope, PackageControlActivity())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver))!!
         runner.start(run) { request() }

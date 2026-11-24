@@ -40,6 +40,7 @@ import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.PrivilegedExecutor
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
+import com.merxury.blocker.core.system.PackageRevision
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.core.ifw.IfwStore
@@ -218,6 +219,7 @@ internal class FakeExecutor(private val system: FakePmSystem, private val channe
 }
 
 internal class FakeReader(private val system: FakePmSystem) : SystemPackageReader {
+    override suspend fun packageRevisions(user: UserId): ReadResult<Map<String, PackageRevision>> = error("Not used")
     override suspend fun pmSettings(app: AppKey, components: Collection<ComponentId>): ReadResult<Map<ComponentId, PmSetting>> {
         system.log += "read ${app.packageName}"
         system.beforeRead()

@@ -118,6 +118,23 @@ class PlatformSystemPackageReaderTest {
     }
 
     @Test
+    fun givenWorkPackages_whenListingRevisions_thenReadVersionAndTimeWithoutPerAppSettings() = scope.runTest {
+        platform.install(OWNER, packageInfo(PKG) { longVersionCode = 1 })
+        platform.install(
+            WORK,
+            packageInfo(PKG) {
+                longVersionCode = 12
+                lastUpdateTime = 2_000
+            },
+        )
+
+        val revisions = reader.packageRevisions(WORK).getOrNull()
+
+        assertThat(revisions).containsExactly(PKG, PackageRevision(12, Instant.fromEpochMilliseconds(2_000)))
+        assertThat(platform.appSettingRequests).isEmpty()
+    }
+
+    @Test
     fun givenAppInTwoUsers_whenReadApps_thenEachUserHasItsOwnSetting() = scope.runTest {
         platform.install(OWNER, packageInfo(PKG))
         platform.install(WORK, packageInfo(PKG))
@@ -240,7 +257,7 @@ class PlatformSystemPackageReaderTest {
             declaration("Boot", ComponentType.RECEIVER, exported = true, enabledInManifest = false),
             declaration("Data", ComponentType.PROVIDER),
         )
-        assertThat(platform.flagsRequested.single() and PackageManager.MATCH_DISABLED_COMPONENTS).isNotEqualTo(0)
+        assertThat(platform.flagsRequested.single() and DECLARATION_MATCH_FLAGS).isEqualTo(DECLARATION_MATCH_FLAGS)
     }
 
     @Test
@@ -259,6 +276,8 @@ class PlatformSystemPackageReaderTest {
 
         assertThat(declarations).hasSize(5)
         assertThat(platform.archivePathsParsed).isEmpty()
+        assertThat(platform.flagsRequested).hasSize(5)
+        assertThat(platform.flagsRequested.map { it and DECLARATION_MATCH_FLAGS }.distinct()).containsExactly(DECLARATION_MATCH_FLAGS)
     }
 
     @Test
@@ -271,6 +290,7 @@ class PlatformSystemPackageReaderTest {
 
         assertThat(declarations).hasSize(5)
         assertThat(platform.archivePathsParsed).containsExactly("/data/app/example/base.apk")
+        assertThat(platform.archiveFlags.single() and DECLARATION_MATCH_FLAGS).isEqualTo(DECLARATION_MATCH_FLAGS)
     }
 
     @Test
@@ -444,6 +464,7 @@ private class FakePlatformPackages : PlatformPackages {
     var dropLastSetting = false
     val archives = mutableMapOf<String, PackageInfo>()
     val archivePathsParsed = mutableListOf<String>()
+    val archiveFlags = mutableListOf<Int>()
     val flagsRequested = mutableListOf<Int>()
     val unreadableApps = mutableSetOf<String>()
 
@@ -502,6 +523,7 @@ private class FakePlatformPackages : PlatformPackages {
 
     override fun archiveInfo(apkPath: String, flags: Int): PackageInfo? {
         archivePathsParsed += apkPath
+        archiveFlags += flags
         return archives[apkPath]
     }
 
@@ -539,3 +561,6 @@ private class FakePlatformPackages : PlatformPackages {
         if (dead) throw RuntimeException("Package manager has died")
     }
 }
+
+private const val DECLARATION_MATCH_FLAGS = PackageManager.MATCH_DISABLED_COMPONENTS or
+    PackageManager.MATCH_DIRECT_BOOT_AWARE or PackageManager.MATCH_DIRECT_BOOT_UNAWARE

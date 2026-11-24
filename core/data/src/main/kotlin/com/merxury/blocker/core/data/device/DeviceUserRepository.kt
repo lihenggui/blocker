@@ -19,17 +19,23 @@ package com.merxury.blocker.core.data.device
 import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.asEntity
 import com.merxury.blocker.core.database.cache.asExternalModel
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.system.SystemPackageReader
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 /**
  * The users on the device, as last read from the system into the component cache. Without root or
- * Shizuku the system shows only the user Blocker runs in, so that is all a refresh can store.
+ * Shizuku a refresh updates only the user Blocker runs in.
  */
 interface DeviceUserRepository {
     /** The cached users, by id. Emits again whenever they change. */
@@ -48,14 +54,36 @@ interface DeviceUserRepository {
 internal class LocalDeviceUserRepository @Inject constructor(
     private val dao: ComponentCacheDao,
     private val reader: SystemPackageReader,
+    private val channel: PrivilegedChannel,
+    private val pmBlocks: PmBlockRecords,
 ) : DeviceUserRepository {
 
     override val users: Flow<List<DeviceUser>> = dao.observeUsers().map { users -> users.map { it.asExternalModel() } }
 
+    /** Caches a user for a package refresh without replacing the list of other users. */
+    suspend fun cacheUser(user: UserId): ReadResult<List<DeviceUser>> {
+        val read = reader.users()
+        if (read is ReadResult.Success) {
+            read.value.firstOrNull { it.id == user }?.let { dao.upsertUser(it.asEntity()) }
+        }
+        return read
+    }
+
     override suspend fun refresh(): ReadResult<List<DeviceUser>> {
+        val hadAccess = channel.state.value is ChannelState.Ready
         val read = reader.users()
         when (read) {
-            is ReadResult.Success -> dao.replaceUsers(read.value.map { it.asEntity() })
+            is ReadResult.Success -> withContext(NonCancellable) {
+                val live = read.value.map { it.asEntity() }
+                if (hadAccess && channel.state.value is ChannelState.Ready) {
+                    val removed = users.first().map { it.id }.toSet() - read.value.map { it.id }.toSet()
+                    removed.forEach { pmBlocks.forgetUser(it) }
+                    dao.replaceUsers(live)
+                } else {
+                    live.forEach { dao.upsertUser(it) }
+                }
+            }
+
             is ReadResult.Failure -> Timber.w("Cannot read the users, keep the cached ones: ${read.reason}")
         }
         return read
