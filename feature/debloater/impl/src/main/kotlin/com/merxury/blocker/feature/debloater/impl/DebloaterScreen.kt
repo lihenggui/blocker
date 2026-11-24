@@ -65,6 +65,7 @@ fun DebloaterScreen(
     viewModel: DebloaterViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val noRootPermissionWarning = stringResource(R.string.feature_debloater_api_no_root_permission)
 
@@ -116,7 +117,7 @@ fun DebloaterScreen(
         DebloaterScreenContent(
             modifier = Modifier.padding(padding),
             debloatableUiState = uiState.content,
-            searchQuery = uiState.searchQuery,
+            searchQuery = searchQuery,
             componentTypeFilter = uiState.componentTypeFilter,
             errorState = uiState.alert,
             inFlight = uiState.inFlight,

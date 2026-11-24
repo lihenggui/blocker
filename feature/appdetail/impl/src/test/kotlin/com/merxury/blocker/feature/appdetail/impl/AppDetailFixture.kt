@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail.impl
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.work.WorkManager
 import com.merxury.blocker.core.appcontrol.ServiceControl
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
@@ -111,6 +112,7 @@ internal class AppDetailFixture(
     searchKeyword: List<String> = emptyList(),
     rulesRead: Boolean = true,
     descriptionsRead: Boolean = true,
+    savedStateHandle: SavedStateHandle = SavedStateHandle(),
 ) {
     val selectedUsers = FakeSelectedUserRepository(OWNER)
     val deviceUsers = FakeDeviceUserRepository()
@@ -156,6 +158,7 @@ internal class AppDetailFixture(
             userId = userId,
             tab = tab,
             searchKeyword = searchKeyword,
+            savedStateHandle = savedStateHandle,
         )
     }
 

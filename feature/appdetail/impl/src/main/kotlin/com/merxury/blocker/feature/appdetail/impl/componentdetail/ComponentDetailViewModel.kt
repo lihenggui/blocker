@@ -33,10 +33,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -51,6 +52,7 @@ class ComponentDetailViewModel @AssistedInject constructor(
     @Assisted val componentName: String,
 ) : ViewModel() {
     private val edited = MutableStateFlow<ComponentDetail?>(null)
+    val editedDetail: StateFlow<ComponentDetail?> = edited.asStateFlow()
 
     // What the user saved before wins over the description that came with the rules.
     private val stored = flow {
@@ -60,21 +62,22 @@ class ComponentDetailViewModel @AssistedInject constructor(
         emit(detail)
     }.flowOn(ioDispatcher)
 
-    val uiState: StateFlow<ComponentDetailUiState> = combine(stored, edited) { stored, edited ->
-        Success(detail = edited ?: stored)
-    }.stateIn(
+    val uiState: StateFlow<ComponentDetailUiState> = stored.map(::Success).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = Loading,
     )
 
-    fun onInfoChanged(detail: ComponentDetail) {
-        edited.value = detail
+    fun onInfoChanged(change: ComponentDetail.() -> ComponentDetail) {
+        val detail = edited.value ?: (uiState.value as? Success)?.detail ?: return
+        edited.value = detail.change()
     }
 
-    fun save(detail: ComponentDetail) = viewModelScope.launch {
-        componentDetailRepository.saveComponentDetail(detail)
-            .collect {}
+    fun save(detail: ComponentDetail) {
+        val current = edited.value ?: detail
+        viewModelScope.launch {
+            componentDetailRepository.saveComponentDetail(current).collect {}
+        }
     }
 
     @AssistedFactory

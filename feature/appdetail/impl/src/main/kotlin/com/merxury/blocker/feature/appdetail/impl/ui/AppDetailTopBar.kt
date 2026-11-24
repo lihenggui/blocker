@@ -72,6 +72,7 @@ class TopBarActions(
 internal fun AppDetailTopBar(
     header: AppHeaderUiState,
     list: ComponentListUiState,
+    searchQuery: String?,
     toolbarState: ToolbarState,
     actions: TopBarActions,
     modifier: Modifier = Modifier,
@@ -104,12 +105,13 @@ internal fun AppDetailTopBar(
         showBackButton = showBackButton,
         progress = toolbarState.progress,
         onNavigationClick = {
-            if (list.isSearchMode) actions.onSearchModeChange(false) else actions.onBack()
+            if (searchQuery != null) actions.onSearchModeChange(false) else actions.onBack()
         },
         title = app?.label.orEmpty(),
         actions = {
             TopBarActionRow(
                 list = list,
+                searchQuery = searchQuery,
                 hasCustomizedRules = header.hasCustomizedRules,
                 actions = actions,
                 batchRunning = batchRunning,
@@ -133,6 +135,7 @@ internal fun AppDetailTopBar(
 @Composable
 private fun TopBarActionRow(
     list: ComponentListUiState,
+    searchQuery: String?,
     hasCustomizedRules: Boolean,
     actions: TopBarActions,
     batchRunning: Boolean,
@@ -146,13 +149,13 @@ private fun TopBarActionRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (tab.listsComponents) {
-            if (list.isSearchMode) {
+            if (searchQuery != null) {
                 // Opened with a keyword, as from the search, the keyboard stays closed.
-                val focusOnStart = remember { list.keyword.isEmpty() }
+                val focusOnStart = remember { searchQuery.isEmpty() }
                 BlockerSearchTextField(
                     modifier = Modifier.weight(1f),
                     focusOnStart = focusOnStart,
-                    searchQuery = list.keyword,
+                    searchQuery = searchQuery,
                     onSearchQueryChange = actions.onSearch,
                     onSearchTrigger = actions.onSearch,
                     placeholder = {

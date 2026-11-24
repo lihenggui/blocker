@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.debloater.impl
 
+import androidx.lifecycle.SavedStateHandle
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DebloaterApk
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
@@ -69,7 +70,7 @@ internal val workUser = DeviceUser(work, null, UserKind.WORK_PROFILE, owner, tru
 internal const val SELF = "example.blocker"
 internal const val APP = "example.app"
 
-internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineDispatcher) {
+internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineDispatcher, savedStateHandle: SavedStateHandle = SavedStateHandle()) {
     val users = FakeSelectedUserRepository(owner).apply { sendUsers(listOf(ownerUser, workUser)) }
     val apps = FakeInstalledAppRepository()
     val components = FakeComponentStatusRepository()
@@ -111,6 +112,7 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
         },
         analyticsHelper = TestAnalyticsHelper(),
         cpuDispatcher = dispatcher,
+        savedStateHandle = savedStateHandle,
     )
 
     fun install(vararg installed: InstalledApp) {
