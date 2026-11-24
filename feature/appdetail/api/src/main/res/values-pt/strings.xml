@@ -47,9 +47,6 @@
     <string name="feature_appdetail_api_enabled_first">Habilitado primeiro</string>
     <string name="feature_appdetail_api_none">Nenhum</string>
     <string name="feature_appdetail_api_ascending">Crescente</string>
-    <string name="feature_appdetail_api_block">Bloquear</string>
-    <string name="feature_appdetail_api_enable">Ativar</string>
-    <string name="feature_appdetail_api_changing">Alterando…</string>
     <string name="feature_appdetail_api_refresh_failed">Não foi possível atualizar os componentes. Mostrando o último estado salvo.</string>
     <string name="feature_appdetail_api_not_installed">Este app não está instalado para este usuário.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Os apps deste usuário não podem ser lidos agora. Conceda acesso root ou Shizuku.</string>
@@ -57,8 +54,6 @@
     <string name="feature_appdetail_api_read_no_answer">O serviço do sistema não respondeu. Tente novamente.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">O arquivo de regras do Intent Firewall do app não pode ser lido. Ele pode estar danificado.</string>
     <string name="feature_appdetail_api_launch_failed">Não foi possível abrir %1$s</string>
-    <string name="feature_appdetail_api_launch_blocked">%1$s está bloqueado por uma regra do Intent Firewall, então não abriu.</string>
-    <string name="feature_appdetail_api_launch_conditional">Uma regra condicional do Intent Firewall pode ter impedido %1$s de abrir.</string>
     <string name="feature_appdetail_api_stop_failed">Não foi possível parar %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">O Blocker não conseguiu verificar o acesso root ou Shizuku, então não pode ler este app. Conceda acesso para tentar novamente.</string>
     <string name="feature_appdetail_api_profile_personal">Perfil pessoal</string>

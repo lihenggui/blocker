@@ -22,6 +22,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.model.system.AppAction
 import com.merxury.blocker.core.model.system.AppActionFailure
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.control.withAccessHint
 import com.merxury.blocker.core.ui.profile.ProfileTab
 import com.merxury.blocker.core.ui.profile.text
 
@@ -37,8 +38,8 @@ val AppAction.needsConfirmation: Boolean
     get() = this == AppAction.CLEAR_DATA || this == AppAction.UNINSTALL
 
 /**
- * Asks before clearing data or uninstalling. Clearing data stops the app in every user, which the
- * question says. With more than one user, uninstalling names the profile it applies to.
+ * Asks before clearing data or uninstalling. With more than one user, uninstalling names the
+ * profile it applies to.
  *
  * @param profile the profile whose app this is, when the list switches between several
  */
@@ -51,7 +52,7 @@ fun AppActionConfirmDialog(
     onDismissRequest: () -> Unit,
 ) {
     val text = when {
-        action == AppAction.CLEAR_DATA -> stringResource(string.core_ui_clear_data_confirm)
+        action == AppAction.CLEAR_DATA -> stringResource(string.core_ui_do_you_want_to_clear_data_of_this_app)
         profile != null -> stringResource(string.core_ui_uninstall_for_profile_confirm, profile.label.text())
         else -> stringResource(string.core_ui_do_you_want_to_uninstall_this_app)
     }
@@ -63,12 +64,15 @@ fun AppActionConfirmDialog(
     )
 }
 
-/** What a snackbar says about [this] failure. */
+/** Whether the failure came from missing root or Shizuku access, which the user can grant. */
+val AppActionFailed.needsAccess: Boolean get() = reason == AppActionFailure.NoAccess
+
+/**
+ * What a snackbar says about [this] failure: which action failed, and how to get access when its
+ * lack was the cause. Other causes are not told, as the user cannot act on them.
+ */
 @Composable
-fun AppActionFailed.text(): String {
-    val title = stringResource(action.failureTitle(), appLabel)
-    return "$title\n${reason.text()}"
-}
+fun AppActionFailed.text(): String = withAccessHint(stringResource(action.failureTitle(), appLabel), needsAccess)
 
 private fun AppAction.failureTitle(): Int = when (this) {
     AppAction.ENABLE -> string.core_ui_enable_app_failed
@@ -77,18 +81,4 @@ private fun AppAction.failureTitle(): Int = when (this) {
     AppAction.CLEAR_CACHE -> string.core_ui_clear_cache_failed
     AppAction.CLEAR_DATA -> string.core_ui_clear_data_failed
     AppAction.UNINSTALL -> string.core_ui_uninstall_app_failed
-}
-
-@Composable
-private fun AppActionFailure.text(): String = when (this) {
-    AppActionFailure.NoAccess -> stringResource(string.core_ui_reason_no_access)
-
-    AppActionFailure.NeedsRoot -> stringResource(string.core_ui_reason_app_needs_root)
-
-    AppActionFailure.NotPermitted -> stringResource(string.core_ui_reason_not_permitted)
-
-    AppActionFailure.NotFound -> stringResource(string.core_ui_reason_app_not_found)
-
-    is AppActionFailure.SystemError -> message?.let { stringResource(string.core_ui_reason_system_error, it) }
-        ?: stringResource(string.core_ui_reason_system_error_unknown)
 }

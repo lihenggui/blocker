@@ -19,35 +19,31 @@ package com.merxury.blocker.feature.appdetail.impl.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.ui.control.withAccessHint
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.api.R.string
 import com.merxury.blocker.feature.appdetail.impl.ActionFailure
 import com.merxury.blocker.feature.appdetail.impl.ListMessage
 import com.merxury.blocker.core.ui.R.string as uiString
 
-/** What a snackbar says about [this] message. */
+/** What a snackbar says about [this] message: one line, and how to get access when its lack was the cause. */
 @Composable
 internal fun ListMessage.text(): String = when (this) {
-    is ListMessage.RefreshFailed -> lines(stringResource(string.feature_appdetail_api_refresh_failed), reason.text())
-    is ListMessage.LaunchFailed -> lines(stringResource(string.feature_appdetail_api_launch_failed, name), reason.text())
-    is ListMessage.LaunchBlockedByRule -> stringResource(string.feature_appdetail_api_launch_blocked, name)
-    is ListMessage.LaunchMayBeBlocked -> stringResource(string.feature_appdetail_api_launch_conditional, name)
-    is ListMessage.StopFailed -> lines(stringResource(string.feature_appdetail_api_stop_failed, name), reason.text())
+    is ListMessage.RefreshFailed -> withAccessHint(stringResource(string.feature_appdetail_api_refresh_failed), needsAccess)
+    is ListMessage.LaunchFailed -> withAccessHint(stringResource(string.feature_appdetail_api_launch_failed, name), needsAccess)
+    is ListMessage.StopFailed -> withAccessHint(stringResource(string.feature_appdetail_api_stop_failed, name), needsAccess)
     ListMessage.GrantFailed -> stringResource(uiString.core_ui_grant_failed)
     ListMessage.AccessCheckFailed -> stringResource(string.feature_appdetail_api_access_not_checked)
 }
 
-@Composable
-private fun ActionFailure.text(): String = when (this) {
-    ActionFailure.NoAccess -> stringResource(uiString.core_ui_reason_no_access)
-
-    ActionFailure.NotPermitted -> stringResource(uiString.core_ui_reason_not_permitted)
-
-    ActionFailure.NotFound -> stringResource(uiString.core_ui_reason_component_not_found)
-
-    is ActionFailure.SystemError -> message?.let { stringResource(uiString.core_ui_reason_system_error, it) }
-        ?: stringResource(uiString.core_ui_reason_system_error_unknown)
-}
+/** Whether granting root or Shizuku access would let [this] work, which the message offers. */
+internal val ListMessage.needsAccess: Boolean
+    get() = when (this) {
+        is ListMessage.RefreshFailed -> reason == ReadFailure.ChannelUnavailable || reason is ReadFailure.UserNotReachable
+        is ListMessage.LaunchFailed -> reason == ActionFailure.NoAccess
+        is ListMessage.StopFailed -> reason == ActionFailure.NoAccess
+        ListMessage.GrantFailed, ListMessage.AccessCheckFailed -> false
+    }
 
 /** Why the app could not be read, as the user is told. */
 @Composable
@@ -67,5 +63,3 @@ internal fun ProfileLabel.headerText(): String = when (this) {
     is ProfileLabel.Named -> name
     is ProfileLabel.Numbered -> stringResource(string.feature_appdetail_api_profile_user, id)
 }
-
-private fun lines(vararg lines: String?): String = lines.filterNotNull().joinToString("\n")

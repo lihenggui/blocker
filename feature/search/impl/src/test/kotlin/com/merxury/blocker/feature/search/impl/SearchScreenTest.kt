@@ -22,7 +22,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotFocused
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -34,7 +40,6 @@ import androidx.compose.ui.test.performTouchInput
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.AppAction
 import com.merxury.blocker.feature.search.impl.component.SearchActions
@@ -59,7 +64,7 @@ class SearchScreenTest {
 
     private val asked = mutableListOf<String>()
     private val appActions = mutableListOf<Pair<AppKey, AppAction>>()
-    private val toggled = mutableListOf<ComponentId>()
+    private val switched = mutableListOf<Pair<String, Boolean>>()
     private val selectedUsers = mutableListOf<UserId>()
     private var state by mutableStateOf(SearchStates.idle())
     private var query by mutableStateOf("")
@@ -69,10 +74,9 @@ class SearchScreenTest {
         onAppAction = { app, action -> appActions += app to action },
         onOpenGroup = { asked += "openGroup ${it.app}" },
         onOpenComponent = { asked += "openComponent ${it.id.simpleName}" },
+        onSwitch = { component, enabled -> switched += component.id.simpleName to enabled },
         onSelectionModeChange = { asked += "selectionMode $it" },
-        onToggleSelected = { toggled += it },
         onToggleSelectedApp = { asked += "toggleApp $it" },
-        onGrantAccess = { asked += "grantAccess" },
         onOpenRule = { asked += "openRule $it" },
     )
 
@@ -159,33 +163,49 @@ class SearchScreenTest {
     }
 
     @Test
-    fun givenComponents_whenShown_thenTheirStateAndReasonsShow() {
+    fun givenComponents_whenShown_thenEachHasOneSwitchThatAsksForTheOtherState() {
         show(SearchStates.shown(SearchTab.COMPONENTS))
 
-        composeTestRule.onNodeWithText(text(uiString.core_ui_blocked_by_package_manager)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_conditional_rule)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown)).assertIsDisplayed()
+        switchOf("com.example.chat", "PushReceiver").assertIsOff().performClick()
+        switchOf("com.example.chat", "PushService").assertIsOn().performClick()
+
+        assertThat(switched).containsExactly("PushReceiver" to true, "PushService" to false).inOrder()
+        assertThat(asked).isEmpty()
     }
 
     @Test
-    fun givenComponents_whenOneIsLongPressed_thenSelectionModeStartsWithIt() {
+    fun givenChangeInFlight_whenItsSwitchIsTapped_thenTheTapIsIgnored() {
+        show(SearchStates.batchRunning())
+
+        switchOf("com.example.chat", "PushReceiver").assertIsNotEnabled().performClick()
+
+        assertThat(switched).isEmpty()
+    }
+
+    private fun switchOf(packageName: String, name: String) = composeTestRule.onNode(
+        isToggleable() and hasAnyAncestor(hasTestTag("search:component:${id(packageName, name).className}")),
+    )
+
+    @Test
+    fun givenComponents_whenOneIsLongPressed_thenSelectionModeStartsWithItsApp() {
         show(SearchStates.shown(SearchTab.COMPONENTS))
 
         composeTestRule.onNodeWithText("PushReceiver").performTouchInput { longClick() }
 
-        assertThat(asked).containsExactly("selectionMode true")
-        assertThat(toggled).containsExactly(id("com.example.chat", "PushReceiver"))
+        assertThat(asked).containsExactly("selectionMode true", "toggleApp ${AppKey("com.example.chat", OWNER)}").inOrder()
     }
 
     @Test
-    fun givenSelectionMode_whenAComponentIsTapped_thenItIsToggledNotOpened() {
+    fun givenSelectionMode_whenAComponentOrAnAppIsTapped_thenItsAppIsToggledNotOpened() {
         show(SearchStates.selecting())
 
         composeTestRule.onNodeWithText("PushProvider").performClick()
         composeTestRule.onNodeWithText("Chat").performClick()
 
-        assertThat(toggled).containsExactly(id("com.example.mail", "PushProvider"))
-        assertThat(asked).containsExactly("toggleApp ${AppKey("com.example.chat", OWNER)}")
+        assertThat(asked).containsExactly(
+            "toggleApp ${AppKey("com.example.mail", OWNER)}",
+            "toggleApp ${AppKey("com.example.chat", OWNER)}",
+        ).inOrder()
     }
 
     @Test
@@ -194,28 +214,25 @@ class SearchScreenTest {
         composeTestRule.onNodeWithText(plural(searchPlurals.feature_search_api_selected_app_count, 2)).assertIsDisplayed()
 
         composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_block_selected)).performClick()
-        composeTestRule.onNodeWithText(plural(uiPlurals.core_ui_block_all, 3)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(plural(uiPlurals.core_ui_block_all, 4)).assertIsDisplayed()
         composeTestRule.onNodeWithText(text(android.R.string.ok)).performClick()
 
         assertThat(asked).containsExactly("block")
     }
 
     @Test
-    fun givenIndexing_whenShown_thenItsProgressShowsAboveTheResults() {
+    fun givenIndexing_whenShown_thenABarShowsAboveTheResultsWithoutText() {
         show(SearchStates.indexing())
 
-        composeTestRule.onNodeWithText(text(string.feature_search_api_indexing_progress, 34, 212)).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("search:indexing").assertIsDisplayed()
         composeTestRule.onNodeWithText("PushReceiver").assertIsDisplayed()
     }
 
     @Test
-    fun givenNoAccess_whenGrantIsTapped_thenAccessIsAskedFor() {
-        show(SearchStates.noAccess())
+    fun givenComponents_whenShown_thenTheirTabCountsTheApps() {
+        show(SearchStates.shown(SearchTab.COMPONENTS))
 
-        composeTestRule.onNodeWithText(text(uiString.core_ui_banner_no_access)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).performClick()
-
-        assertThat(asked).containsExactly("grantAccess")
+        composeTestRule.onNodeWithText(text(uiString.core_ui_component_with_count, 2)).assertIsDisplayed()
     }
 
     @Test
@@ -241,24 +258,5 @@ class SearchScreenTest {
         composeTestRule.onNodeWithText("Push SDK").performClick()
 
         assertThat(asked).containsExactly("openRule 1")
-    }
-
-    @Test
-    fun givenUnknownState_whenItsTagIsTapped_thenWhyIsExplained() {
-        show(SearchStates.shown(SearchTab.COMPONENTS))
-
-        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown)).performClick()
-
-        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown_no_firewall_access)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(android.R.string.ok)).performClick()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown_no_firewall_access)).assertDoesNotExist()
-        assertThat(asked).isEmpty()
-    }
-
-    @Test
-    fun givenUserNotIndexed_whenShown_thenTheComponentsTabHasNoCount() {
-        show(SearchStates.indexing())
-
-        composeTestRule.onNodeWithText(text(string.feature_search_api_component_not_counted)).assertIsDisplayed()
     }
 }

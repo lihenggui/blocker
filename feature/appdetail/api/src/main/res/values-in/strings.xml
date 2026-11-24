@@ -45,9 +45,6 @@
     <string name="feature_appdetail_api_disabled_first">Nonaktif dahulu</string>
     <string name="feature_appdetail_api_enabled_first">Aktif dahulu</string>
     <string name="feature_appdetail_api_none">Kosong</string>
-    <string name="feature_appdetail_api_block">Blokir</string>
-    <string name="feature_appdetail_api_enable">Aktifkan</string>
-    <string name="feature_appdetail_api_changing">Mengubah…</string>
     <string name="feature_appdetail_api_refresh_failed">Tidak dapat memuat ulang komponen. Menampilkan status terakhir yang tersimpan.</string>
     <string name="feature_appdetail_api_not_installed">Aplikasi ini tidak terpasang untuk pengguna ini.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Aplikasi pengguna ini tidak dapat dibaca sekarang. Berikan akses root atau Shizuku.</string>
@@ -55,8 +52,6 @@
     <string name="feature_appdetail_api_read_no_answer">Layanan sistem tidak merespons. Coba lagi.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">File aturan Intent Firewall aplikasi tidak dapat dibaca. File mungkin rusak.</string>
     <string name="feature_appdetail_api_launch_failed">Tidak dapat membuka %1$s</string>
-    <string name="feature_appdetail_api_launch_blocked">%1$s diblokir oleh aturan Intent Firewall, jadi tidak terbuka.</string>
-    <string name="feature_appdetail_api_launch_conditional">Aturan bersyarat Intent Firewall mungkin mencegah %1$s terbuka.</string>
     <string name="feature_appdetail_api_stop_failed">Tidak dapat menghentikan %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker tidak dapat memeriksa akses root atau Shizuku-nya, jadi tidak dapat membaca aplikasi ini. Berikan akses untuk mencoba lagi.</string>
     <string name="feature_appdetail_api_profile_personal">Profil pribadi</string>

@@ -18,14 +18,11 @@ package com.merxury.blocker.feature.search.impl
 
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.coil.ApkIcon
-import com.merxury.blocker.core.ui.control.ModeBanner
-import com.merxury.blocker.core.ui.control.UnknownCause
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.core.ui.profile.ProfileTab
 
@@ -44,8 +41,8 @@ internal object SearchStates {
             label = "Chat",
             icon = ApkIcon("com.example.chat", apkPath = null, versionCode = 1, uid = null),
             components = listOf(
-                FoundComponent(id("com.example.chat", "PushReceiver"), ComponentType.RECEIVER, FoundState.BLOCKED, setOf(BlockReason.PM_SETTING)),
-                FoundComponent(id("com.example.chat", "PushService"), ComponentType.SERVICE, FoundState.RUNNABLE, conditional = true),
+                FoundComponent(id("com.example.chat", "PushReceiver"), ComponentType.RECEIVER, enabled = false),
+                FoundComponent(id("com.example.chat", "PushService"), ComponentType.SERVICE, enabled = true),
             ),
         ),
         ComponentGroup(
@@ -53,8 +50,8 @@ internal object SearchStates {
             label = "Mail",
             icon = ApkIcon("com.example.mail", apkPath = null, versionCode = 1, uid = null),
             components = listOf(
-                FoundComponent(id("com.example.mail", "PushActivity"), ComponentType.ACTIVITY, FoundState.UNKNOWN, unknownCause = UnknownCause.NO_FIREWALL_ACCESS),
-                FoundComponent(id("com.example.mail", "PushProvider"), ComponentType.PROVIDER, FoundState.BLOCKED, setOf(BlockReason.IFW_RULE, BlockReason.MANIFEST_DEFAULT)),
+                FoundComponent(id("com.example.mail", "PushActivity"), ComponentType.ACTIVITY, enabled = true),
+                FoundComponent(id("com.example.mail", "PushProvider"), ComponentType.PROVIDER, enabled = false),
             ),
         ),
     )
@@ -76,10 +73,10 @@ internal object SearchStates {
 
     fun loading() = idle().copy(keyword = KEYWORD, results = SearchResults.Loading)
 
-    fun shown(tab: SearchTab, results: SearchResults.Loaded = loaded(), componentsCounted: Boolean = true) = idle().copy(
+    fun shown(tab: SearchTab, results: SearchResults.Loaded = loaded()) = idle().copy(
         keyword = KEYWORD,
         results = results,
-        tabs = tabsOf(results, tab, componentsCounted),
+        tabs = tabsOf(results, tab),
         selectionActionsEnabled = true,
     )
 
@@ -87,7 +84,7 @@ internal object SearchStates {
 
     fun selecting() = shown(SearchTab.COMPONENTS).copy(
         isSelectionMode = true,
-        selected = groups().first().components.map { it.id }.toSet() + id("com.example.mail", "PushActivity"),
+        selected = groups().flatMap { group -> group.components.map { it.id } }.toSet(),
     )
 
     /** A batch over the first app's components, which show as changing. */
@@ -96,11 +93,7 @@ internal object SearchStates {
         return shown(SearchTab.COMPONENTS, loaded().copy(components = groups)).copy(batch = ProcessingProgress(current = 200, total = 450, isEnabling = false))
     }
 
-    fun indexing() = shown(SearchTab.COMPONENTS, componentsCounted = false).copy(indexing = IndexingProgress(done = 34, total = 212))
-
-    fun banners() = shown(SearchTab.COMPONENTS).copy(banners = listOf(ModeBanner.NEEDS_ROOT, ModeBanner.FIREWALL_UNAVAILABLE))
-
-    fun noAccess() = shown(SearchTab.COMPONENTS).copy(banners = listOf(ModeBanner.NO_ACCESS))
+    fun indexing() = shown(SearchTab.COMPONENTS).copy(indexing = IndexingProgress(done = 34, total = 212))
 
     fun workProfile() = shown(SearchTab.APPS, loaded(WORK)).copy(selectedUser = WORK, profiles = profiles)
 }

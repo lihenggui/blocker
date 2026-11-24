@@ -40,7 +40,6 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ControlMessage
-import com.merxury.blocker.core.ui.control.LayerFailure
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
@@ -66,6 +65,8 @@ class SearchSelectionTest {
     private val pushA = id("com.a", "PushReceiver")
     private val pushService = id("com.a", "PushService")
     private val pushB = id("com.b", "PushReceiver")
+    private val appA = AppKey("com.a", OWNER)
+    private val appB = AppKey("com.b", OWNER)
 
     @Before
     fun setUp() {
@@ -92,11 +93,11 @@ class SearchSelectionTest {
     private fun summary(): ControlMessage.BatchDone = (viewModel.uiState.value.messages.single().message as SearchMessage.Control).message as ControlMessage.BatchDone
 
     @Test
-    fun givenResults_whenAComponentIsLongPressed_thenSelectionModeStartsWithIt() = runTest {
+    fun givenResults_whenAComponentIsLongPressed_thenSelectionModeStartsWithItsApp() = runTest {
         showPush()
 
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushB)
+        viewModel.toggleSelectedApp(appB)
 
         val state = viewModel.uiState.value
         assertThat(state.isSelectionMode).isTrue()
@@ -109,9 +110,9 @@ class SearchSelectionTest {
         showPush()
         viewModel.setSelectionMode(true)
 
-        viewModel.toggleSelectedApp(AppKey("com.a", OWNER))
+        viewModel.toggleSelectedApp(appA)
         assertThat(viewModel.uiState.value.selected).containsExactly(pushA, pushService)
-        viewModel.toggleSelectedApp(AppKey("com.a", OWNER))
+        viewModel.toggleSelectedApp(appA)
 
         assertThat(viewModel.uiState.value.selected).isEmpty()
     }
@@ -133,7 +134,7 @@ class SearchSelectionTest {
     fun givenSelection_whenAnotherTabIsShown_thenSelectionModeEnds() = runTest {
         showPush()
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushA)
+        viewModel.toggleSelectedApp(appA)
 
         viewModel.selectTab(SearchTab.APPS)
 
@@ -146,8 +147,8 @@ class SearchSelectionTest {
         fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW_PLUS_PM))
         showPush()
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushA)
-        viewModel.toggleSelected(pushB)
+        viewModel.toggleSelectedApp(appA)
+        viewModel.toggleSelectedApp(appB)
 
         viewModel.blockSelected()
         runCurrent()
@@ -155,18 +156,16 @@ class SearchSelectionTest {
         val request = fixture.components.requests.single()
         assertThat(request.goal).isEqualTo(ControlGoal.BLOCK)
         assertThat(request.layers).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
-        assertThat(request.components.map { it.id }).containsExactly(pushA, pushB)
-        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 2, notChanged = 0, mostCommon = null, identity = PrivilegedIdentity.ROOT))
+        assertThat(request.components.map { it.id }).containsExactly(pushA, pushService, pushB)
+        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
         assertThat(viewModel.uiState.value.isSelectionMode).isFalse()
-        val found = fixture.loaded().components.flatMap { it.components }.associateBy { it.id }
-        assertThat(found.getValue(pushA).state).isEqualTo(FoundState.BLOCKED)
-        assertThat(found.getValue(pushB).state).isEqualTo(FoundState.BLOCKED)
-        assertThat(found.getValue(pushService).state).isEqualTo(FoundState.RUNNABLE)
+        val found = fixture.loaded().components.flatMap { it.components }
+        assertThat(found.map { it.enabled }.toSet()).containsExactly(false)
         assertThat(fixture.analytics.hasLogged(AnalyticsEvent("search_screen_batch_operation_performed", listOf(Param("new_state", "false"))))).isTrue()
     }
 
     @Test
-    fun givenBlockedSelection_whenEnabled_thenEveryLayerIsUnblockedAndShippedOffOnesAreCounted() = runTest {
+    fun givenBlockedSelection_whenEnabled_thenEveryLayerIsUnblocked() = runTest {
         fixture.components.sendComponents(
             OWNER,
             listOf(
@@ -184,12 +183,11 @@ class SearchSelectionTest {
         val request = fixture.components.requests.single()
         assertThat(request.goal).isEqualTo(ControlGoal.UNBLOCK)
         assertThat(request.layers).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
-        assertThat(summary().changed).isEqualTo(2)
-        assertThat(summary().staysOffAsShipped).isEqualTo(1)
+        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
     }
 
     @Test
-    fun givenSomeComponentsFail_whenBlocked_thenTheSummaryTellsTheMostCommonReason() = runTest {
+    fun givenComponentsFail_whenBlocked_thenTheSummaryCountsThem() = runTest {
         fixture.components.controlEvents = { request ->
             val outcomes = request.components.map { declaration ->
                 ComponentOutcome(
@@ -204,21 +202,20 @@ class SearchSelectionTest {
         }
         showPush()
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushA)
-        viewModel.toggleSelected(pushB)
+        viewModel.toggleSelectedApp(appA)
+        viewModel.toggleSelectedApp(appB)
 
         viewModel.blockSelected()
         runCurrent()
 
-        assertThat(summary().notChanged).isEqualTo(2)
-        assertThat(summary().mostCommon).isEqualTo(LayerFailure(ControlLayer.PACKAGE_MANAGER, ControlFailure.NotPermitted("shell")))
+        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 3))
     }
 
     @Test
     fun givenBatchRunning_whenShown_thenItsComponentsAreInFlightAndTheActionsWait() = runTest {
         showPush()
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushA)
+        viewModel.toggleSelectedApp(appA)
         // Reserved but not sent, as while the cache is being read.
         val run = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.BLOCK, listOf(pushA))!!
         runCurrent()
@@ -259,7 +256,7 @@ class SearchSelectionTest {
         fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
         showPush()
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushA)
+        viewModel.toggleSelectedApp(appA)
 
         viewModel.selectUser(WORK)
 
@@ -277,7 +274,7 @@ class SearchSelectionTest {
         runCurrent()
         viewModel.selectTab(SearchTab.COMPONENTS)
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushA)
+        viewModel.toggleSelectedApp(AppKey("com.a", WORK))
         assertThat(viewModel.uiState.value.selected).containsExactly(pushA)
         return pushA
     }
@@ -326,27 +323,27 @@ class SearchSelectionTest {
     }
 
     @Test
-    fun givenComponentGoneBeforeTheBatch_whenBlocked_thenToldAsNotFound() = runTest {
+    fun givenComponentGoneBeforeTheBatch_whenBlocked_thenCountedAsNotChanged() = runTest {
         showPush()
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushA)
-        viewModel.toggleSelected(pushB)
+        viewModel.toggleSelectedApp(appA)
+        viewModel.toggleSelectedApp(appB)
+        // B's component goes while A's stay.
         fixture.components.sendComponents(OWNER, listOf(component("com.a", "PushReceiver"), component("com.a", "PushService", type = ComponentType.SERVICE)))
         runCurrent()
 
         viewModel.blockSelected()
         runCurrent()
 
-        assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(pushA)
-        assertThat(summary().changed to summary().notChanged).isEqualTo(1 to 1)
-        assertThat(summary().mostCommon).isEqualTo(LayerFailure(ControlLayer.PACKAGE_MANAGER, ControlFailure.TargetNotFound(message = null)))
+        assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(pushA, pushService)
+        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 1))
     }
 
     @Test
     fun givenAppDetailBatchChangingASelectedComponent_whenShown_thenItIsInFlightAndTheSelectionWaits() = runTest {
         showPush()
         viewModel.setSelectionMode(true)
-        viewModel.toggleSelected(pushA)
+        viewModel.toggleSelectedApp(appA)
         assertThat(viewModel.uiState.value.selectionActionsEnabled).isTrue()
 
         val run = fixture.batches.reserve(BatchKey.App(AppKey("com.a", OWNER)), ControlGoal.BLOCK, listOf(pushA))!!

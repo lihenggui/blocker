@@ -33,9 +33,4 @@
     <string name="feature_search_api_search_hint">应用、组件和规则</string>
     <string name="feature_search_api_no_search_result">暂无搜索结果</string>
     <string name="feature_search_api_check_icon">选中</string>
-    <string name="feature_search_api_indexing">正在索引应用…</string>
-    <string name="feature_search_api_indexing_progress">正在索引应用 %1$d/%2$d</string>
-    <string name="feature_search_api_index_incomplete">部分组件状态无法读取，显示为未知。</string>
-    <string name="feature_search_api_index_failed">无法列出该用户的应用，只能找到之前已读取的组件。</string>
-    <string name="feature_search_api_component_not_counted">组件</string>
 </resources>

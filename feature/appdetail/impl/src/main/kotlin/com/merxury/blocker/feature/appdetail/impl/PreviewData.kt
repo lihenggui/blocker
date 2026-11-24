@@ -17,13 +17,11 @@
 package com.merxury.blocker.feature.appdetail.impl
 
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.ui.coil.ApkIcon
-import com.merxury.blocker.core.ui.control.UnknownCause
 import kotlin.time.Instant
 
-/* Data for previews and screenshot tests: one row in each state a component can show. */
+/* Data for previews and screenshot tests. */
 
 private const val PREVIEW_PACKAGE = "com.merxury.blocker"
 
@@ -45,37 +43,31 @@ internal val previewHeaderApp = HeaderApp(
 private fun previewRow(
     name: String,
     type: ComponentType,
-    switch: SwitchState,
-    blockedBy: Set<BlockReason> = emptySet(),
-    conditional: Boolean = false,
-    unknownCause: UnknownCause? = null,
+    enabled: Boolean,
     isRunning: Boolean = false,
     description: String? = null,
 ) = ComponentRow(
     id = ComponentId(PREVIEW_PACKAGE, "$PREVIEW_PACKAGE.$name"),
     type = type,
-    switch = switch,
-    blockedBy = blockedBy,
-    conditional = conditional,
-    unknownCause = unknownCause,
+    enabled = enabled,
     isRunning = isRunning,
     description = description,
 )
 
-/** Activities in each state: runnable, blocked by each mechanism and by both, conditional, unknown. */
+/** Activities on and off, as their switches show them. */
 internal val previewActivityRows = listOf(
-    previewRow("MainActivity", ComponentType.ACTIVITY, SwitchState.ON, description = "The screen the launcher opens"),
-    previewRow("AdActivity", ComponentType.ACTIVITY, SwitchState.OFF, blockedBy = setOf(BlockReason.PM_SETTING)),
-    previewRow("TrackerActivity", ComponentType.ACTIVITY, SwitchState.OFF, blockedBy = setOf(BlockReason.IFW_RULE)),
-    previewRow("SurveyActivity", ComponentType.ACTIVITY, SwitchState.OFF, blockedBy = setOf(BlockReason.PM_SETTING, BlockReason.IFW_RULE)),
-    previewRow("DebugActivity", ComponentType.ACTIVITY, SwitchState.OFF, blockedBy = setOf(BlockReason.MANIFEST_DEFAULT)),
-    previewRow("ShareActivity", ComponentType.ACTIVITY, SwitchState.ON, conditional = true),
-    previewRow("SettingsActivity", ComponentType.ACTIVITY, SwitchState.UNKNOWN, unknownCause = UnknownCause.RULES_UNREADABLE),
+    previewRow("MainActivity", ComponentType.ACTIVITY, enabled = true, description = "The screen the launcher opens"),
+    previewRow("AdActivity", ComponentType.ACTIVITY, enabled = false),
+    previewRow("TrackerActivity", ComponentType.ACTIVITY, enabled = false),
+    previewRow("SurveyActivity", ComponentType.ACTIVITY, enabled = false),
+    previewRow("DebugActivity", ComponentType.ACTIVITY, enabled = false),
+    previewRow("ShareActivity", ComponentType.ACTIVITY, enabled = true),
+    previewRow("SettingsActivity", ComponentType.ACTIVITY, enabled = true),
 )
 
 internal val previewServiceRows = listOf(
-    previewRow("SyncService", ComponentType.SERVICE, SwitchState.ON, isRunning = true),
-    previewRow("PushService", ComponentType.SERVICE, SwitchState.OFF, blockedBy = setOf(BlockReason.IFW_RULE)),
+    previewRow("SyncService", ComponentType.SERVICE, enabled = true, isRunning = true),
+    previewRow("PushService", ComponentType.SERVICE, enabled = false),
 )
 
 internal val previewComponents = AppComponents(activities = previewActivityRows, services = previewServiceRows)

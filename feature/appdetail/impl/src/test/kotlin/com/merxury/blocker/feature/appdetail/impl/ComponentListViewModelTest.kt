@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.appdetail.impl
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.appcontrol.ServiceControl
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
@@ -37,8 +36,6 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.control.ModeBanner
-import com.merxury.blocker.core.ui.control.UnknownCause
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -81,45 +78,42 @@ class ComponentListViewModelTest {
     }
 
     @Test
-    fun givenEveryAvailability_whenShown_thenEachRowShowsItsState() = runTest {
+    fun givenEveryState_whenShown_thenEachSwitchIsOffExactlyWhenSomethingKnownBlocks() = runTest {
         fixture.sendComponents(
             component("Runnable"),
             component("ByPm", pm = PmSetting.DISABLED),
             component("ByIfw", ifw = IfwBlock.BLOCKED),
-            component("ByBoth", pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED),
             component("ByManifest", enabledInManifest = false),
             component("EnabledOverManifest", pm = PmSetting.ENABLED, enabledInManifest = false),
             component("Conditional", ifw = IfwBlock.CONDITIONAL),
-            component("ByPmAndConditional", pm = PmSetting.DISABLED, ifw = IfwBlock.CONDITIONAL),
-            component("Unknown", ifw = IfwBlock.UNKNOWN),
+            component("IfwUnknown", ifw = IfwBlock.UNKNOWN),
             component("PmUnknown", pm = PmSetting.UNKNOWN),
         )
 
         show()
 
-        assertThat(row("Runnable")).isEqualTo(ComponentRow(id("Runnable"), ComponentType.ACTIVITY, SwitchState.ON))
-        assertThat(row("ByPm").blockedBy).containsExactly(BlockReason.PM_SETTING)
-        assertThat(row("ByIfw").blockedBy).containsExactly(BlockReason.IFW_RULE)
-        assertThat(row("ByBoth").blockedBy).containsExactly(BlockReason.PM_SETTING, BlockReason.IFW_RULE)
-        assertThat(row("ByManifest").let { it.switch to it.blockedBy }).isEqualTo(SwitchState.OFF to setOf(BlockReason.MANIFEST_DEFAULT))
-        assertThat(row("EnabledOverManifest").switch).isEqualTo(SwitchState.ON)
-        assertThat(row("Conditional").let { it.switch to it.conditional }).isEqualTo(SwitchState.ON to true)
-        assertThat(row("ByPmAndConditional").let { Triple(it.switch, it.blockedBy, it.conditional) })
-            .isEqualTo(Triple(SwitchState.OFF, setOf(BlockReason.PM_SETTING), true))
-        assertThat(row("Unknown").let { it.switch to it.unknownCause }).isEqualTo(SwitchState.UNKNOWN to UnknownCause.RULES_UNREADABLE)
-        assertThat(row("PmUnknown").let { it.switch to it.unknownCause }).isEqualTo(SwitchState.UNKNOWN to UnknownCause.PM_UNREADABLE)
+        assertThat(row("Runnable")).isEqualTo(ComponentRow(id("Runnable"), ComponentType.ACTIVITY, enabled = true))
+        val enabled = listOf("ByPm", "ByIfw", "ByManifest", "EnabledOverManifest", "Conditional", "IfwUnknown", "PmUnknown").associateWith { row(it).enabled }
+        assertThat(enabled).containsExactly(
+            "ByPm", false,
+            "ByIfw", false,
+            "ByManifest", false,
+            "EnabledOverManifest", true,
+            "Conditional", true,
+            "IfwUnknown", true,
+            "PmUnknown", true,
+        )
     }
 
     @Test
-    fun givenFirewallNotReadable_whenItsStateIsUnknown_thenTheCauseIsTheMode() = runTest {
+    fun givenFirewallNotReadable_whenShown_thenThePackageManagerStateDecides() = runTest {
         fixture.components.setFirewallReadable(false)
         fixture.sendComponents(component("Main", ifw = IfwBlock.UNKNOWN), component("Off", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN))
 
         show()
 
-        assertThat(row("Main").unknownCause).isEqualTo(UnknownCause.NO_FIREWALL_ACCESS)
-        // A known block wins over the unread firewall.
-        assertThat(row("Off").blockedBy).containsExactly(BlockReason.PM_SETTING)
+        assertThat(row("Main").enabled).isTrue()
+        assertThat(row("Off").enabled).isFalse()
     }
 
     @Test
@@ -128,7 +122,7 @@ class ComponentListViewModelTest {
 
         show()
 
-        assertThat(fixture.loaded().providers.single().let { it.switch to it.conditional }).isEqualTo(SwitchState.ON to false)
+        assertThat(fixture.loaded().providers.single().enabled).isTrue()
     }
 
     @Test
@@ -151,7 +145,7 @@ class ComponentListViewModelTest {
         show()
 
         val state = viewModel.uiState.value
-        assertThat(row("Main").switch).isEqualTo(SwitchState.OFF)
+        assertThat(row("Main").enabled).isFalse()
         assertThat(state.message).isEqualTo(ListMessage.RefreshFailed(ReadFailure.RulesUnreadable(PACKAGE)))
         assertThat(state.isRefreshing).isFalse()
 
@@ -428,15 +422,14 @@ class ComponentListViewModelTest {
     }
 
     @Test
-    fun givenActivityBlockedByIfw_whenLaunchAccepted_thenToldItIsBlockedByARule() = runTest {
+    fun givenActivityBlockedByIfw_whenLaunchAccepted_thenNothingIsTold() = runTest {
         fixture.sendComponents(component("Ad", ifw = IfwBlock.BLOCKED), component("Share", ifw = IfwBlock.CONDITIONAL))
         show()
 
         viewModel.launchActivity(id("Ad"))
-        assertThat(viewModel.uiState.value.message).isEqualTo(ListMessage.LaunchBlockedByRule("Ad"))
-
         viewModel.launchActivity(id("Share"))
-        assertThat(viewModel.uiState.value.message).isEqualTo(ListMessage.LaunchMayBeBlocked("Share"))
+
+        assertThat(viewModel.uiState.value.message).isNull()
     }
 
     @Test
@@ -534,7 +527,7 @@ class ComponentListViewModelTest {
         val rule = (viewModel.uiState.value.matchedRules as MatchedRulesUiState.Loaded).rules.single()
         assertThat(rule.title).isEqualTo("Firebase")
         assertThat(rule.icon).isEqualTo(File("/files/rules/icon/firebase.png"))
-        assertThat(rule.rows.map { it.id to it.switch }).containsExactly(id("firebase.Messaging") to SwitchState.OFF)
+        assertThat(rule.rows.map { it.id to it.enabled }).containsExactly(id("firebase.Messaging") to false)
         assertThat(viewModel.uiState.value.tabs.items).contains(AppDetailTabs.Sdk)
     }
 
@@ -546,30 +539,6 @@ class ComponentListViewModelTest {
         show()
 
         assertThat(row("Main").description).isEqualTo("The first screen")
-    }
-
-    @Test
-    fun givenEachChannelState_whenShown_thenTheMatchingBanners() = runTest {
-        fixture.sendComponents(component("Main"))
-        show()
-
-        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
-        assertThat(viewModel.uiState.value.banners).isEmpty()
-
-        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
-        assertThat(viewModel.uiState.value.banners).containsExactly(ModeBanner.NO_ACCESS)
-
-        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
-        fixture.components.setFirewallReadable(false)
-        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.SHIZUKU))
-        assertThat(viewModel.uiState.value.banners).containsExactly(ModeBanner.NEEDS_ROOT)
-
-        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW_PLUS_PM))
-        assertThat(viewModel.uiState.value.banners).containsExactly(ModeBanner.NEEDS_ROOT, ModeBanner.FIREWALL_UNAVAILABLE).inOrder()
-
-        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
-        fixture.components.setFirewallReadable(true)
-        assertThat(viewModel.uiState.value.banners).isEmpty()
     }
 
     @Test
@@ -591,7 +560,7 @@ class ComponentListViewModelTest {
 
         viewModel.grantAccess()
 
-        assertThat(viewModel.uiState.value.banners).isEmpty()
+        assertThat(fixture.channel.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
         assertThat(fixture.components.refreshedApps).hasSize(2)
     }
 

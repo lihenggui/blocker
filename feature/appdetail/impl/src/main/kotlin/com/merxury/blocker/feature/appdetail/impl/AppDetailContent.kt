@@ -165,8 +165,8 @@ internal fun AppDetailContent(
 
 /**
  * What shows while the app is not cached: loading, or why it could not be read. Where access to
- * root or Shizuku would let it be read, access can be granted from here, as the tabs' banner
- * offers, since without the app there are no tabs.
+ * root or Shizuku would let it be read, access can be granted from here, since without the app
+ * there is nothing to act on.
  */
 @Composable
 private fun AppNotShown(list: ComponentListUiState, onGrantAccess: () -> Unit, modifier: Modifier = Modifier) {
@@ -242,12 +242,10 @@ private fun AppDetailTabs(
                     data = list.matchedRules,
                     inFlight = inFlight,
                     batchRunning = batchRunning,
-                    banners = list.banners,
                     actions = rowActions,
                     navigateToRuleDetail = actions.navigateToRuleDetail,
                     onBlockAll = actions.onBlockAllInRule,
                     onEnableAll = actions.onEnableAllInRule,
-                    onGrantAccess = actions.onGrantAccess,
                 )
 
                 else -> when (val components = list.components) {
@@ -256,13 +254,11 @@ private fun AppDetailTabs(
                     is ComponentsUiState.Loaded -> ComponentTabContent(
                         rows = components.components.of(tab),
                         inFlight = inFlight,
-                        banners = list.banners,
                         isRefreshing = list.isRefreshing,
                         actions = rowActions,
                         isSelectionMode = list.isSelectionMode,
                         selected = list.selected,
                         onRefresh = actions.onRefresh,
-                        onGrantAccess = actions.onGrantAccess,
                     )
                 }
             }

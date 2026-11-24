@@ -81,7 +81,6 @@ fun AppListItem(
     iconModifier: Modifier = Modifier,
     icon: Any? = null,
     serviceCounts: ServiceCounts? = null,
-    showForceStop: Boolean = isAppRunning,
     onClick: (String) -> Unit = {},
     onClearCacheClick: (String) -> Unit = {},
     onClearDataClick: (String) -> Unit = {},
@@ -141,7 +140,7 @@ fun AppListItem(
         AppListItemMenuList(
             expanded = expanded,
             offset = offset,
-            isAppRunning = showForceStop,
+            isAppRunning = isAppRunning,
             isAppEnabled = isAppEnabled,
             onClearCacheClick = { onClearCacheClick(packageName) },
             onClearDataClick = { onClearDataClick(packageName) },

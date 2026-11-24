@@ -32,7 +32,5 @@
     <string name="feature_applist_api_none">Không</string>
     <string name="feature_applist_api_running_apps">Ứng dụng đang chạy</string>
     <string name="feature_applist_api_disabled_apps">Ứng dụng đã vô hiệu hóa</string>
-    <string name="feature_applist_api_refresh_failed">Không thể làm mới danh sách ứng dụng. Đang hiển thị danh sách đã lưu gần nhất.</string>
-    <string name="feature_applist_api_retry">Thử lại</string>
     <string name="feature_applist_api_load_failed">Không thể tải danh sách ứng dụng. Kéo xuống để thử lại.</string>
 </resources>

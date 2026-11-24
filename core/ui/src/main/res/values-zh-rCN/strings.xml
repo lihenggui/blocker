@@ -150,7 +150,6 @@
     <string name="core_ui_profile_work">工作</string>
     <string name="core_ui_profile_user">用户 %1$d</string>
     <string name="core_ui_profile_not_running">未运行</string>
-    <string name="core_ui_clear_data_confirm">要清除此应用的数据吗？清除时，Android 还会在此设备的所有用户和资料中停止该应用。</string>
     <string name="core_ui_uninstall_for_profile_confirm">要从“%1$s”中卸载此应用吗？拥有此应用的其他用户和资料会保留它。当没有任何用户拥有此应用时，它才会从设备中移除。</string>
     <string name="core_ui_enable_app_failed">无法启用 %1$s</string>
     <string name="core_ui_disable_app_failed">无法禁用 %1$s</string>
@@ -159,47 +158,10 @@
     <string name="core_ui_clear_data_failed">无法清除 %1$s 的数据</string>
     <string name="core_ui_uninstall_app_failed">无法卸载 %1$s</string>
     <string name="core_ui_reason_no_access">请授予 Blocker Root 或 Shizuku 权限后重试。</string>
-    <string name="core_ui_reason_app_needs_root">需要 Root。通过 adb 启动的 Shizuku 无法执行此操作。</string>
-    <string name="core_ui_reason_not_permitted">在当前的权限模式下系统不允许此操作。</string>
-    <string name="core_ui_reason_app_not_found">该用户已不再安装此应用。</string>
-    <string name="core_ui_reason_system_error">系统报告了错误：%1$s</string>
-    <string name="core_ui_reason_system_error_unknown">系统报告了错误。</string>
     <string name="core_ui_unknown">未知</string>
-    <string name="core_ui_blocked_by_package_manager">Package Manager</string>
-    <string name="core_ui_blocked_by_intent_firewall">Intent Firewall</string>
-    <string name="core_ui_disabled_by_app">应用默认禁用</string>
-    <string name="core_ui_conditional_rule">条件规则</string>
-    <string name="core_ui_banner_no_access">Blocker 没有 Root 或 Shizuku 权限，因此无法更改组件，也无法读取所有状态。</string>
     <string name="core_ui_grant_access">授予权限</string>
-    <string name="core_ui_banner_needs_root">Shizuku 通过 adb 运行。更改组件需要 Root；Android 仅允许对仅供测试的应用执行此操作。</string>
-    <string name="core_ui_banner_firewall_unavailable">当前模式无法读取或更改 Intent Firewall 规则。</string>
     <string name="core_ui_block_component_failed">无法阻止 %1$s</string>
     <string name="core_ui_enable_component_failed">无法启用 %1$s</string>
-    <string name="core_ui_block_component_partial">%1$s 仅被部分阻止</string>
-    <string name="core_ui_enable_component_partial">%1$s 仅被部分启用</string>
-    <string name="core_ui_layer_reason">%1$s：%2$s</string>
-    <string name="core_ui_batch_summary">%1$s，%2$s</string>
-    <string name="core_ui_batch_most_common">最常见原因：%1$s</string>
-    <string name="core_ui_batch_nothing_needed">无需更改任何组件</string>
-    <string name="core_ui_reason_component_needs_root">当前模式无法更改组件，需要 Root。</string>
-    <string name="core_ui_reason_component_not_found">未在该用户下找到此应用或组件。</string>
-    <string name="core_ui_reason_rules_unreadable">无法读取该应用的 Intent Firewall 规则文件。</string>
-    <string name="core_ui_reason_write_failed">无法写入 Intent Firewall 规则：%1$s</string>
-    <string name="core_ui_reason_write_failed_unknown">无法写入 Intent Firewall 规则。</string>
-    <string name="core_ui_reason_not_confirmed">更改已发送，但系统中未体现。</string>
-    <string name="core_ui_reason_not_permitted_detail">系统不允许此操作：%1$s</string>
-    <plurals name="core_ui_batch_changed">
-        <item quantity="other">已更改 %1$d 个组件</item>
-    </plurals>
-    <plurals name="core_ui_batch_not_changed">
-        <item quantity="other">%1$d 个无法更改</item>
-    </plurals>
-    <plurals name="core_ui_batch_stays_off_as_shipped">
-        <item quantity="other">%1$d 个组件仍保持关闭，因为应用默认将其禁用；可用其开关单独强制开启</item>
-    </plurals>
     <string name="core_ui_grant_failed">Blocker 仍没有 Root 或 Shizuku 权限。</string>
-    <string name="core_ui_unknown_state_title">为什么状态未知</string>
-    <string name="core_ui_unknown_pm">Blocker 无法读取此组件在该用户下的 Package Manager 设置。请授予 Root 或 Shizuku 权限，然后下拉刷新。</string>
-    <string name="core_ui_unknown_no_firewall_access">当前模式无法读取 Intent Firewall 规则。请授予 Root 权限，或以 Root 方式启动 Shizuku，然后下拉刷新。</string>
-    <string name="core_ui_unknown_rules_unreadable">无法读取此应用的 Intent Firewall 规则文件，文件可能已损坏，因此 Blocker 不会改动它。在应用信息标签页中重置 IFW 会删除该文件。</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">您想要清除此应用的数据吗？</string>
 </resources>

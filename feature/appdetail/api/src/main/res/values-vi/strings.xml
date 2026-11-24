@@ -59,9 +59,6 @@
     <string name="feature_appdetail_api_disabled_first">Vô hiệu trước</string>
     <string name="feature_appdetail_api_enabled_first">Kích hoạt trước</string>
     <string name="feature_appdetail_api_none">Không</string>
-    <string name="feature_appdetail_api_block">Chặn</string>
-    <string name="feature_appdetail_api_enable">Bật</string>
-    <string name="feature_appdetail_api_changing">Đang thay đổi…</string>
     <string name="feature_appdetail_api_refresh_failed">Không thể làm mới thành phần. Đang hiển thị trạng thái đã lưu gần nhất.</string>
     <string name="feature_appdetail_api_not_installed">Ứng dụng này chưa được cài cho người dùng này.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Hiện không đọc được ứng dụng của người dùng này. Hãy cấp quyền root hoặc Shizuku.</string>
@@ -69,8 +66,6 @@
     <string name="feature_appdetail_api_read_no_answer">Dịch vụ hệ thống không phản hồi. Hãy thử lại.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">Không đọc được tệp quy tắc Intent Firewall của ứng dụng. Tệp có thể đã bị hỏng.</string>
     <string name="feature_appdetail_api_launch_failed">Không thể mở %1$s</string>
-    <string name="feature_appdetail_api_launch_blocked">%1$s bị một quy tắc Intent Firewall chặn nên không mở được.</string>
-    <string name="feature_appdetail_api_launch_conditional">Một quy tắc Intent Firewall có điều kiện có thể đã ngăn %1$s mở ra.</string>
     <string name="feature_appdetail_api_stop_failed">Không thể dừng %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker không kiểm tra được quyền root hoặc Shizuku nên không thể đọc ứng dụng này. Hãy cấp quyền để thử lại.</string>
     <string name="feature_appdetail_api_profile_personal">Hồ sơ cá nhân</string>

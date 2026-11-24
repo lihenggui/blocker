@@ -32,7 +32,5 @@
     <string name="feature_applist_api_none">无</string>
     <string name="feature_applist_api_running_apps">运行中的应用</string>
     <string name="feature_applist_api_disabled_apps">已禁用的应用</string>
-    <string name="feature_applist_api_refresh_failed">无法刷新应用列表，正在显示上次保存的列表。</string>
-    <string name="feature_applist_api_retry">重试</string>
     <string name="feature_applist_api_load_failed">无法加载应用列表，请下拉重试。</string>
 </resources>

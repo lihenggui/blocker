@@ -4,7 +4,6 @@
     <string name="core_ui_profile_work">Công việc</string>
     <string name="core_ui_profile_user">Người dùng %1$d</string>
     <string name="core_ui_profile_not_running">Không chạy</string>
-    <string name="core_ui_clear_data_confirm">Bạn có muốn xóa dữ liệu của ứng dụng này không? Trong khi xóa, Android cũng dừng ứng dụng ở mọi người dùng và hồ sơ trên thiết bị này.</string>
     <string name="core_ui_uninstall_for_profile_confirm">Bạn có muốn gỡ cài đặt ứng dụng này khỏi %1$s không? Những người dùng và hồ sơ khác có ứng dụng này vẫn giữ nó. Ứng dụng chỉ bị xóa khỏi thiết bị khi không còn người dùng nào có nó.</string>
     <string name="core_ui_enable_app_failed">Không thể bật %1$s</string>
     <string name="core_ui_disable_app_failed">Không thể tắt %1$s</string>
@@ -13,47 +12,10 @@
     <string name="core_ui_clear_data_failed">Không thể xóa dữ liệu của %1$s</string>
     <string name="core_ui_uninstall_app_failed">Không thể gỡ cài đặt %1$s</string>
     <string name="core_ui_reason_no_access">Hãy cấp cho Blocker quyền root hoặc Shizuku rồi thử lại.</string>
-    <string name="core_ui_reason_app_needs_root">Cần root. Shizuku khởi động qua adb không thể làm việc này.</string>
-    <string name="core_ui_reason_not_permitted">Hệ thống không cho phép việc này với chế độ truy cập hiện tại.</string>
-    <string name="core_ui_reason_app_not_found">Ứng dụng không còn được cài đặt cho người dùng này.</string>
-    <string name="core_ui_reason_system_error">Hệ thống báo lỗi: %1$s</string>
-    <string name="core_ui_reason_system_error_unknown">Hệ thống báo lỗi.</string>
     <string name="core_ui_unknown">Không rõ</string>
-    <string name="core_ui_blocked_by_package_manager">Package Manager</string>
-    <string name="core_ui_blocked_by_intent_firewall">Intent Firewall</string>
-    <string name="core_ui_disabled_by_app">Bị ứng dụng tắt sẵn</string>
-    <string name="core_ui_conditional_rule">Quy tắc có điều kiện</string>
-    <string name="core_ui_banner_no_access">Blocker không có quyền root hoặc Shizuku, nên không thể thay đổi thành phần và không đọc được mọi trạng thái.</string>
     <string name="core_ui_grant_access">Cấp quyền</string>
-    <string name="core_ui_banner_needs_root">Shizuku đang chạy qua adb. Thay đổi thành phần cần root; Android chỉ cho phép với ứng dụng chỉ dành để thử nghiệm.</string>
-    <string name="core_ui_banner_firewall_unavailable">Không thể đọc hoặc thay đổi quy tắc Intent Firewall ở chế độ hiện tại.</string>
     <string name="core_ui_block_component_failed">Không thể chặn %1$s</string>
     <string name="core_ui_enable_component_failed">Không thể bật %1$s</string>
-    <string name="core_ui_block_component_partial">%1$s chỉ bị chặn một phần</string>
-    <string name="core_ui_enable_component_partial">%1$s chỉ được bật một phần</string>
-    <string name="core_ui_layer_reason">%1$s: %2$s</string>
-    <string name="core_ui_batch_summary">%1$s, %2$s</string>
-    <string name="core_ui_batch_most_common">Thường gặp nhất: %1$s</string>
-    <string name="core_ui_batch_nothing_needed">Không có gì cần thay đổi</string>
-    <string name="core_ui_reason_component_needs_root">Chế độ hiện tại không thể thay đổi thành phần. Cần có root.</string>
-    <string name="core_ui_reason_component_not_found">Không tìm thấy ứng dụng hoặc thành phần cho người dùng này.</string>
-    <string name="core_ui_reason_rules_unreadable">Không đọc được tệp quy tắc Intent Firewall của ứng dụng.</string>
-    <string name="core_ui_reason_write_failed">Không thể ghi quy tắc Intent Firewall: %1$s</string>
-    <string name="core_ui_reason_write_failed_unknown">Không thể ghi quy tắc Intent Firewall.</string>
-    <string name="core_ui_reason_not_confirmed">Đã gửi thay đổi, nhưng hệ thống không ghi nhận.</string>
-    <string name="core_ui_reason_not_permitted_detail">Hệ thống không cho phép việc này: %1$s</string>
-    <plurals name="core_ui_batch_changed">
-        <item quantity="other">Đã thay đổi %1$d thành phần</item>
-    </plurals>
-    <plurals name="core_ui_batch_not_changed">
-        <item quantity="other">%1$d không thể thay đổi</item>
-    </plurals>
-    <plurals name="core_ui_batch_stays_off_as_shipped">
-        <item quantity="other">%1$d thành phần vẫn tắt vì ứng dụng tắt sẵn chúng; bật một thành phần bằng công tắc của nó để buộc bật</item>
-    </plurals>
     <string name="core_ui_grant_failed">Blocker vẫn chưa có quyền root hoặc Shizuku.</string>
-    <string name="core_ui_unknown_state_title">Vì sao không rõ trạng thái</string>
-    <string name="core_ui_unknown_pm">Blocker không đọc được cài đặt Package Manager của thành phần này cho người dùng này. Hãy cấp quyền root hoặc Shizuku, rồi kéo xuống để làm mới.</string>
-    <string name="core_ui_unknown_no_firewall_access">Không thể đọc quy tắc Intent Firewall ở chế độ hiện tại. Hãy cấp quyền root hoặc khởi động Shizuku bằng root, rồi kéo xuống để làm mới.</string>
-    <string name="core_ui_unknown_rules_unreadable">Không đọc được tệp quy tắc Intent Firewall của ứng dụng này và tệp có thể đã bị hỏng, nên Blocker không động đến nó. Đặt lại IFW ở thẻ thông tin ứng dụng sẽ xóa tệp này.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Bạn có muốn xóa dữ liệu của ứng dụng này không?</string>
 </resources>

@@ -61,9 +61,6 @@
     <string name="feature_appdetail_api_disabled_first">Сначала отключенные</string>
     <string name="feature_appdetail_api_enabled_first">Сначала включенные</string>
     <string name="feature_appdetail_api_none">Нет</string>
-    <string name="feature_appdetail_api_block">Заблокировать</string>
-    <string name="feature_appdetail_api_enable">Включить</string>
-    <string name="feature_appdetail_api_changing">Изменение…</string>
     <string name="feature_appdetail_api_refresh_failed">Не удалось обновить компоненты. Показано последнее сохранённое состояние.</string>
     <string name="feature_appdetail_api_not_installed">Это приложение не установлено для этого пользователя.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Сейчас нельзя прочитать приложения этого пользователя. Предоставьте доступ root или Shizuku.</string>
@@ -71,8 +68,6 @@
     <string name="feature_appdetail_api_read_no_answer">Системная служба не ответила. Повторите попытку.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">Не удаётся прочитать файл правил Intent Firewall приложения. Возможно, он повреждён.</string>
     <string name="feature_appdetail_api_launch_failed">Не удалось запустить %1$s</string>
-    <string name="feature_appdetail_api_launch_blocked">%1$s заблокирован правилом Intent Firewall, поэтому не открылся.</string>
-    <string name="feature_appdetail_api_launch_conditional">Условное правило Intent Firewall могло помешать открыть %1$s.</string>
     <string name="feature_appdetail_api_stop_failed">Не удалось остановить %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker не смог проверить доступ root или Shizuku, поэтому не может прочитать это приложение. Предоставьте доступ, чтобы повторить попытку.</string>
     <string name="feature_appdetail_api_profile_personal">Личный профиль</string>

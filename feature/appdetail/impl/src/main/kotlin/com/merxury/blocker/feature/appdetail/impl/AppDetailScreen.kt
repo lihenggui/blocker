@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.appdetail.impl
 import android.content.ClipData
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -56,9 +57,11 @@ import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortBotto
 import com.merxury.blocker.feature.appdetail.impl.componentdetail.ComponentDetailDialog
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.TopBarActions
+import com.merxury.blocker.feature.appdetail.impl.ui.needsAccess
 import com.merxury.blocker.feature.appdetail.impl.ui.text
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as ruleString
+import com.merxury.blocker.core.ui.R.string as uiString
 
 /**
  * The detail screen of one app for one user. Rows show what the repositories hold; the switches
@@ -96,6 +99,7 @@ fun AppDetailScreen(
         snackbarHostState = snackbarHostState,
         onListMessageConsume = listViewModel::onMessageShown,
         onControlMessageConsume = controlViewModel::onMessageShown,
+        onGrantAccess = listViewModel::grantAccess,
         onRuleWorkConsume = headerViewModel::onRuleWorkShown,
         onShareConsume = headerViewModel::onShareHandled,
     )
@@ -203,7 +207,6 @@ internal fun rememberRowActions(
     return remember(listViewModel, controlViewModel) {
         ComponentRowActions(
             onSwitch = { row, enabled -> controlViewModel.setEnabled(row.id, enabled) },
-            onControl = { row, goal -> controlViewModel.control(row.id, goal) },
             onClick = { currentShowDetail(it) },
             onToggleSelected = { listViewModel.toggleSelected(it.id) },
             onStopService = { listViewModel.stopService(it.id) },
@@ -256,15 +259,19 @@ internal fun ScreenMessages(
     snackbarHostState: SnackbarHostState,
     onListMessageConsume: () -> Unit,
     onControlMessageConsume: (Long) -> Unit,
+    onGrantAccess: () -> Unit,
     onRuleWorkConsume: () -> Unit,
     onShareConsume: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val grantLabel = stringResource(uiString.core_ui_grant_access)
+    val currentGrant by rememberUpdatedState(onGrantAccess)
     val listMessage = list.message?.text()
+    val listNeedsAccess = list.message?.needsAccess == true
     LaunchedEffect(list.message) {
         if (listMessage != null) {
-            snackbarHostState.showSnackbar(listMessage, duration = SnackbarDuration.Long, withDismissAction = true)
+            snackbarHostState.showMessage(listMessage, grantLabel.takeIf { listNeedsAccess }) { currentGrant() }
             onListMessageConsume()
         }
     }
@@ -272,7 +279,7 @@ internal fun ScreenMessages(
     val controlText = queued?.message?.text()
     LaunchedEffect(queued?.id) {
         if (queued != null && controlText != null) {
-            snackbarHostState.showSnackbar(controlText, duration = SnackbarDuration.Long, withDismissAction = true)
+            snackbarHostState.showMessage(controlText, grantLabel.takeIf { queued.message.needsAccess }) { currentGrant() }
             onControlMessageConsume(queued.id)
         }
     }
@@ -312,4 +319,13 @@ private fun SeedColor(icon: ApkIcon?, updateIconThemingState: (IconThemingState)
     DisposableEffect(Unit) {
         onDispose { updateIconThemingState(IconThemingState()) }
     }
+}
+
+/**
+ * Shows [message] for its whole duration, with [actionLabel] as its action when set, and calls
+ * [onAction] when the user takes it.
+ */
+internal suspend fun SnackbarHostState.showMessage(message: String, actionLabel: String?, onAction: () -> Unit) {
+    val result = showSnackbar(message, actionLabel = actionLabel, duration = SnackbarDuration.Long, withDismissAction = true)
+    if (result == SnackbarResult.ActionPerformed) onAction()
 }

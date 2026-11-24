@@ -72,8 +72,6 @@ fun AppRowList(
                     isAppRunning = app.isRunning == true,
                     icon = app.icon,
                     serviceCounts = app.services,
-                    // Offered whenever the app may run, including when that cannot be read.
-                    showForceStop = app.isRunning != false,
                     onClick = { onAppClick(app) },
                     onClearCacheClick = { onAction(app, AppAction.CLEAR_CACHE) },
                     onClearDataClick = { onAction(app, AppAction.CLEAR_DATA) },

@@ -19,15 +19,23 @@ package com.merxury.blocker.feature.search.impl
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.component.BlockReason
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ControlLayer
+import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
+import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.core.ui.control.ModeBanner
-import com.merxury.blocker.core.ui.control.UnknownCause
+import com.merxury.blocker.core.ui.control.ControlMessage
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -162,7 +170,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun givenComponentsOfTwoApps_whenSearched_thenGroupedByAppWithTheirState() = runTest {
+    fun givenComponentsOfTwoApps_whenSearched_thenGroupedByAppWithTheirSwitches() = runTest {
         fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A"), installedApp("com.b", label = "B")))
         fixture.components.sendComponents(
             OWNER,
@@ -182,16 +190,13 @@ class SearchViewModelTest {
         assertThat(groups.map { it.label }).containsExactly("A", "B").inOrder()
         val a = groups.first().components.associateBy { it.id.simpleName }
         assertThat(a.keys).containsExactly("PushActivity", "PushProvider", "PushReceiver")
-        assertThat(a.getValue("PushReceiver").state).isEqualTo(FoundState.BLOCKED)
-        assertThat(a.getValue("PushReceiver").blockedBy).containsExactly(BlockReason.PM_SETTING)
-        assertThat(a.getValue("PushActivity").state).isEqualTo(FoundState.RUNNABLE)
-        assertThat(a.getValue("PushProvider").state).isEqualTo(FoundState.UNKNOWN)
+        assertThat(a.mapValues { it.value.enabled }).containsExactly("PushActivity", true, "PushProvider", true, "PushReceiver", false)
         assertThat(groups.first().firstType).isEqualTo(ComponentType.RECEIVER)
-        assertThat(groups.last().components.single().blockedBy).containsExactly(BlockReason.IFW_RULE)
+        assertThat(groups.last().components.single().enabled).isFalse()
     }
 
     @Test
-    fun givenRules_whenSearched_thenSplitByMatchedAppsAndCountedInTheTabs() = runTest {
+    fun givenRulesAndComponents_whenSearched_thenRulesSplitByMatchedAppsAndTheTabsCounted() = runTest {
         fixture.rules.sendRuleList(listOf(rule(1, "Push SDK", matchedAppCount = 2), rule(2, "Push kit", matchedAppCount = 0), rule(3, "Other", matchedAppCount = 1)))
         fixture.installedApps.sendApps(listOf(installedApp("com.push")))
         fixture.components.sendComponents(OWNER, listOf(component("com.push", "PushA"), component("com.push", "PushB")))
@@ -202,7 +207,8 @@ class SearchViewModelTest {
         val loaded = fixture.loaded()
         assertThat(loaded.matchedRules.map { it.id }).containsExactly(1)
         assertThat(loaded.unmatchedRules.map { it.id }).containsExactly(2)
-        assertThat(viewModel.uiState.value.tabs.itemCount).containsExactly(SearchTab.APPS, 1, SearchTab.RULES, 2)
+        // The components tab counts the apps they were found in, as the old search did.
+        assertThat(viewModel.uiState.value.tabs.itemCount).containsExactly(SearchTab.APPS, 1, SearchTab.COMPONENTS, 1, SearchTab.RULES, 2)
     }
 
     @Test
@@ -277,16 +283,14 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun givenNoAccess_whenShown_thenTheNoAccessBannerAndGrantingConnects() = runTest {
+    fun givenNoAccess_whenGranted_thenConnects() = runTest {
         fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
         collectState()
 
-        assertThat(viewModel.uiState.value.banners).containsExactly(ModeBanner.NO_ACCESS)
         viewModel.grantAccess()
         runCurrent()
 
         assertThat(fixture.channel.connectCount).isEqualTo(1)
-        assertThat(viewModel.uiState.value.banners).isEmpty()
     }
 
     @Test
@@ -304,7 +308,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun givenShellWithoutFirewallAccess_whenAComponentStateIsUnknown_thenItsCauseIsKnown() = runTest {
+    fun givenShellWithoutFirewallAccess_whenAStateIsUnknown_thenTheSwitchShowsWhatIsKnown() = runTest {
         fixture.components.setFirewallReadable(false)
         fixture.installedApps.sendApps(listOf(installedApp("com.a")))
         fixture.components.sendComponents(
@@ -312,29 +316,97 @@ class SearchViewModelTest {
             listOf(
                 component("com.a", "PushReceiver", ifw = IfwBlock.UNKNOWN),
                 component("com.a", "PushService", type = ComponentType.SERVICE, pm = PmSetting.UNKNOWN),
+                component("com.a", "PushActivity", type = ComponentType.ACTIVITY, pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN),
             ),
         )
         collectState()
 
         searchNow("push")
 
-        val causes = fixture.loaded().components.single().components.associate { it.id.simpleName to it.unknownCause }
-        assertThat(causes).containsExactly("PushReceiver", UnknownCause.NO_FIREWALL_ACCESS, "PushService", UnknownCause.PM_UNREADABLE)
+        val enabled = fixture.loaded().components.single().components.associate { it.id.simpleName to it.enabled }
+        assertThat(enabled).containsExactly("PushActivity", false, "PushReceiver", true, "PushService", true)
     }
 
     @Test
-    fun givenUserNotIndexed_whenSearched_thenTheComponentsTabShowsNoCountUntilIndexed() = runTest {
-        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
-        fixture.components.sendComponents(OWNER, listOf(component("com.a", "PushReceiver")))
-        collectState()
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
+    fun givenRunnableComponent_whenSwitchedOff_thenBlockedThroughTheControllerLayersWithoutAMessage() = runTest {
+        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW_PLUS_PM))
+        showPushReceiver()
 
-        searchNow("push")
-        assertThat(viewModel.uiState.value.tabs.itemCount).doesNotContainKey(SearchTab.COMPONENTS)
-        viewModel.selectTab(SearchTab.COMPONENTS)
+        viewModel.setEnabled(pushReceiver, enabled = false)
         runCurrent()
 
-        assertThat(viewModel.uiState.value.tabs.itemCount[SearchTab.COMPONENTS]).isEqualTo(1)
+        val request = fixture.components.requests.single()
+        assertThat(request.goal).isEqualTo(ControlGoal.BLOCK)
+        assertThat(request.layers).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
+        assertThat(fixture.loaded().components.single().components.single().enabled).isFalse()
+        assertThat(viewModel.uiState.value.messages).isEmpty()
+    }
+
+    @Test
+    fun givenBlockedComponent_whenSwitchedOn_thenEnabledThroughEveryLayer() = runTest {
+        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+        showPushReceiver(pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED)
+
+        viewModel.setEnabled(pushReceiver, enabled = true)
+        runCurrent()
+
+        val request = fixture.components.requests.single()
+        assertThat(request.goal).isEqualTo(ControlGoal.ENABLE)
+        assertThat(request.layers).containsExactlyElementsIn(ControlLayer.entries)
+        assertThat(fixture.loaded().components.single().components.single().enabled).isTrue()
+    }
+
+    @Test
+    fun givenSwitchChanging_whenTurnedAgain_thenIgnoredAndShownInFlightUntilDone() = runTest {
+        fixture.control.gate = CompletableDeferred()
+        showPushReceiver()
+
+        viewModel.setEnabled(pushReceiver, enabled = false)
+        viewModel.setEnabled(pushReceiver, enabled = true)
+        runCurrent()
+        val found = fixture.loaded().components.single().components.single()
+        assertThat(found.inFlight).isTrue()
+        // No optimistic flip: the switch shows the state read until the change is read back.
+        assertThat(found.enabled).isTrue()
+
+        fixture.control.gate.complete(Unit)
+        runCurrent()
+
+        assertThat(fixture.components.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK)
+        assertThat(fixture.loaded().components.single().components.single().let { it.inFlight to it.enabled }).isEqualTo(false to false)
+    }
+
+    @Test
+    fun givenNoAccess_whenASwitchFails_thenToldWithTheAccessHint() = runTest {
+        fixture.components.controlEvents = { request ->
+            val outcomes = request.components.map { declaration ->
+                ComponentOutcome(
+                    key = ComponentKey(declaration.id, request.user),
+                    state = ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
+                    result = ControlResult.FAILED,
+                    failures = mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable),
+                )
+            }
+            listOf(ControlEvent.PackageDone("com.a", outcomes), ControlEvent.Finished(achieved = 0, partial = 0, failed = outcomes.size))
+        }
+        showPushReceiver()
+
+        viewModel.setEnabled(pushReceiver, enabled = false)
+        runCurrent()
+
+        assertThat(viewModel.uiState.value.messages.map { it.message })
+            .containsExactly(SearchMessage.Control(ControlMessage.ComponentNotChanged("PushReceiver", ControlGoal.BLOCK, needsAccess = true)))
+    }
+
+    private val pushReceiver = id("com.a", "PushReceiver")
+
+    private fun TestScope.showPushReceiver(pm: PmSetting = PmSetting.DEFAULT, ifw: IfwBlock = IfwBlock.NOT_BLOCKED) {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        fixture.components.sendComponents(OWNER, listOf(component("com.a", "PushReceiver", pm = pm, ifw = ifw)))
+        collectState()
+        searchNow("push")
+        viewModel.selectTab(SearchTab.COMPONENTS)
+        runCurrent()
     }
 
     private companion object {

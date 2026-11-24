@@ -60,6 +60,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -120,7 +121,6 @@ class AppListViewModel @Inject internal constructor(
                 else -> AppsUiState.Loading
             },
             isRefreshing = cached && selected.refresh == RefreshStatus.Running,
-            refreshFailure = (selected.refresh as? RefreshStatus.Failed)?.failure?.takeIf { cached },
             showServiceInfo = preferences.showServiceInfo,
             message = message,
         )
@@ -181,6 +181,11 @@ class AppListViewModel @Inject internal constructor(
     fun clearData(app: AppKey) = perform(AppAction.CLEAR_DATA, app)
 
     fun uninstall(app: AppKey) = perform(AppAction.UNINSTALL, app)
+
+    /** Asks for root or Shizuku access, which may show a prompt, as a failure for its lack offers. */
+    fun grantAccess() = viewModelScope.launch {
+        if (channel.connect() !is ChannelState.Ready) Timber.i("Access was not granted from the app list")
+    }
 
     fun onMessageShown() {
         message.value = null

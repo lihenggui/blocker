@@ -186,7 +186,7 @@ class SearchIndexingTest {
     }
 
     @Test
-    fun givenNoAccess_whenIndexed_thenWhatCanBeReadIsIndexedAndUnknownStatesAreToldOnce() = runTest {
+    fun givenNoAccess_whenIndexed_thenWhatCanBeReadIsIndexedWithoutAMessage() = runTest {
         fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
         show()
         searchNow("push")
@@ -196,11 +196,8 @@ class SearchIndexingTest {
         finish()
 
         assertThat(fixture.components.refreshedUsers).containsExactly(OWNER)
-        val told = viewModel.uiState.value.messages.single()
-        assertThat(told.message).isEqualTo(SearchMessage.IndexIncomplete)
-        viewModel.onMessageShown(told.id)
-        searchNow("sync")
         assertThat(viewModel.uiState.value.messages).isEmpty()
+        assertThat(viewModel.uiState.value.indexing).isNull()
     }
 
     @Test
@@ -219,7 +216,7 @@ class SearchIndexingTest {
     }
 
     @Test
-    fun givenSomeAppsFail_whenIndexed_thenUnknownStatesAreTold() = runTest {
+    fun givenSomeAppsFail_whenIndexed_thenTheBarEndsWithoutAMessage() = runTest {
         show()
         searchNow("push")
         viewModel.selectTab(SearchTab.COMPONENTS)
@@ -227,11 +224,12 @@ class SearchIndexingTest {
 
         finish(failed = 1)
 
-        assertThat(viewModel.uiState.value.messages.map { it.message }).containsExactly(SearchMessage.IndexIncomplete)
+        assertThat(viewModel.uiState.value.messages).isEmpty()
+        assertThat(viewModel.uiState.value.indexing).isNull()
     }
 
     @Test
-    fun givenAppsCannotBeListed_whenIndexed_thenThatIsTold() = runTest {
+    fun givenAppsCannotBeListed_whenIndexed_thenTheBarEndsWithoutAMessage() = runTest {
         show()
         searchNow("push")
         viewModel.selectTab(SearchTab.COMPONENTS)
@@ -239,7 +237,8 @@ class SearchIndexingTest {
 
         finish(total = 0, appListFailure = ReadFailure.UserNotReachable(OWNER))
 
-        assertThat(viewModel.uiState.value.messages.map { it.message }).containsExactly(SearchMessage.IndexFailed)
+        assertThat(viewModel.uiState.value.messages).isEmpty()
+        assertThat(viewModel.uiState.value.indexing).isNull()
     }
 
     @Test

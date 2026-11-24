@@ -16,11 +16,14 @@
 
 package com.merxury.blocker.feature.search.impl.component
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,29 +35,28 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
+import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.system.AppAction
 import com.merxury.blocker.core.ui.applist.AppRow
 import com.merxury.blocker.core.ui.applist.AppRowList
-import com.merxury.blocker.core.ui.control.ModeBanners
+import com.merxury.blocker.core.ui.component.ComponentListItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.feature.search.api.R.string
@@ -81,11 +83,11 @@ class SearchActions(
     val onOpenGroup: (ComponentGroup) -> Unit = {},
     /** A component was tapped outside selection mode. */
     val onOpenComponent: (FoundComponent) -> Unit = {},
+    /** A component's switch was turned; true means on. */
+    val onSwitch: (FoundComponent, Boolean) -> Unit = { _, _ -> },
     val onSelectionModeChange: (Boolean) -> Unit = {},
-    val onToggleSelected: (ComponentId) -> Unit = {},
     val onToggleSelectedApp: (AppKey) -> Unit = {},
     val onRefreshComponents: () -> Unit = {},
-    val onGrantAccess: () -> Unit = {},
     val onOpenRule: (String) -> Unit = {},
 )
 
@@ -106,11 +108,10 @@ internal fun SearchActions.leavingWith(leave: () -> Unit) = SearchActions(
         leave()
         onOpenComponent(it)
     },
+    onSwitch = onSwitch,
     onSelectionModeChange = onSelectionModeChange,
-    onToggleSelected = onToggleSelected,
     onToggleSelectedApp = onToggleSelectedApp,
     onRefreshComponents = onRefreshComponents,
-    onGrantAccess = onGrantAccess,
     onOpenRule = {
         leave()
         onOpenRule(it)
@@ -143,7 +144,7 @@ internal fun SearchResultTabs(
                 BlockerTab(
                     selected = index == pagerState.currentPage,
                     onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    text = { Text(text = tab.title(tabs.itemCount[tab])) },
+                    text = { Text(text = tab.title(tabs.itemCount[tab] ?: 0)) },
                 )
             }
         }
@@ -177,18 +178,16 @@ private fun AppResults(results: SearchResults.Loaded, actions: SearchActions, on
 }
 
 /**
- * The components found, by app, below the limits of the current mode and the progress of the
- * indexing, which never keeps the rows from showing. Pulling down reads every app again.
+ * The components found, by app, each with its switch. A thin bar shows while the components of
+ * every app are still being read; the rows found so far show meanwhile. Pulling down reads every
+ * app again.
  */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun ComponentResults(uiState: SearchUiState, groups: List<ComponentGroup>, actions: SearchActions) {
-    // Collapsed apps by package name; each app found shows its components unless collapsed.
-    var collapsed by rememberSaveable { mutableStateOf(emptySet<String>()) }
     val refreshState = rememberPullRefreshState(refreshing = false, onRefresh = actions.onRefreshComponents)
     Column(modifier = Modifier.fillMaxSize()) {
-        ModeBanners(banners = uiState.banners, onGrantAccess = actions.onGrantAccess)
-        uiState.indexing?.let { IndexingLine(it) }
+        uiState.indexing?.let { IndexingBar(it) }
         Box(modifier = Modifier.fillMaxSize().pullRefresh(refreshState)) {
             if (groups.isEmpty()) {
                 // Scrollable, so the empty page takes the pull too.
@@ -196,74 +195,81 @@ private fun ComponentResults(uiState: SearchUiState, groups: List<ComponentGroup
                     item { EmptyScreen(textRes = string.feature_search_api_no_search_result, modifier = Modifier.fillParentMaxSize()) }
                 }
             } else {
-                ComponentGroupList(groups, collapsed, uiState, actions) { app ->
-                    collapsed = if (app in collapsed) collapsed - app else collapsed + app
-                }
+                ComponentGroupList(groups, uiState, actions)
             }
             PullRefreshIndicator(refreshing = false, state = refreshState, modifier = Modifier.align(Alignment.TopCenter), scale = true)
         }
     }
 }
 
+/**
+ * Each app found with its components below it. Selection mode selects whole apps, as a long press
+ * on the app or one of its components starts it.
+ */
 @Composable
-private fun ComponentGroupList(
-    groups: List<ComponentGroup>,
-    collapsed: Set<String>,
-    uiState: SearchUiState,
-    actions: SearchActions,
-    onExpandClick: (String) -> Unit,
-) {
+private fun ComponentGroupList(groups: List<ComponentGroup>, uiState: SearchUiState, actions: SearchActions) {
     val analyticsHelper = LocalAnalyticsHelper.current
     val selecting = uiState.isSelectionMode
-    LazyColumn(modifier = Modifier.fillMaxSize().testTag("search:componentList"), state = rememberLazyListState()) {
-        groups.forEach { group ->
-            val packageName = group.app.packageName
-            val expanded = packageName !in collapsed
-            item(key = packageName) {
-                ComponentGroupHeader(
-                    group = group,
-                    expanded = expanded,
-                    allSelected = group.components.all { it.id in uiState.selected },
-                    isSelectionMode = selecting,
-                    onClick = {
-                        if (selecting) {
-                            actions.onToggleSelectedApp(group.app)
-                        } else {
-                            analyticsHelper.logComponentSearchResultClicked()
-                            actions.onOpenGroup(group)
-                        }
-                    },
-                    onLongClick = {
-                        actions.onSelectionModeChange(true)
-                        actions.onToggleSelectedApp(group.app)
-                    },
-                    onExpandClick = { onExpandClick(packageName) },
-                )
-            }
-            if (expanded) {
-                items(group.components, key = { "$packageName/${it.id.className}" }) { component ->
-                    FoundComponentItem(
-                        component = component,
-                        selected = component.id in uiState.selected,
+    val listState = rememberLazyListState()
+    val itemCount = groups.sumOf { it.components.size + 1 }
+    val scrollbarState = listState.scrollbarState(itemsAvailable = itemCount)
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.testTag("search:componentList"), state = listState) {
+            groups.forEach { group ->
+                val packageName = group.app.packageName
+                val selected = group.components.isNotEmpty() && group.components.all { it.id in uiState.selected }
+                val startSelection = {
+                    actions.onSelectionModeChange(true)
+                    actions.onToggleSelectedApp(group.app)
+                }
+                item(key = packageName) {
+                    ComponentGroupHeader(
+                        group = group,
+                        selected = selected,
                         isSelectionMode = selecting,
                         onClick = {
                             if (selecting) {
-                                actions.onToggleSelected(component.id)
+                                actions.onToggleSelectedApp(group.app)
                             } else {
                                 analyticsHelper.logComponentSearchResultClicked()
-                                actions.onOpenComponent(component)
+                                actions.onOpenGroup(group)
                             }
                         },
-                        onLongClick = {
-                            actions.onSelectionModeChange(true)
-                            actions.onToggleSelected(component.id)
+                        onLongClick = startSelection,
+                    )
+                }
+                items(group.components, key = { "$packageName/${it.id.className}" }) { component ->
+                    ComponentListItem(
+                        simpleName = component.id.simpleName,
+                        name = component.id.className,
+                        enabled = component.enabled,
+                        type = component.type,
+                        isServiceRunning = false,
+                        modifier = Modifier.testTag("search:component:${component.id.className}"),
+                        inFlight = component.inFlight,
+                        onClick = {
+                            analyticsHelper.logComponentSearchResultClicked()
+                            actions.onOpenComponent(component)
                         },
+                        onLongClick = { if (!selecting) startSelection() },
+                        onSwitchClick = { actions.onSwitch(component, it) },
+                        isSelected = selected,
+                        isSelectedMode = selecting,
+                        onSelectionToggle = { actions.onToggleSelectedApp(group.app) },
                     )
                 }
             }
-            item(key = "$packageName/divider") { HorizontalDivider() }
+            item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing)) }
         }
-        item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing)) }
+        listState.DraggableScrollbar(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 2.dp)
+                .align(Alignment.CenterEnd),
+            state = scrollbarState,
+            orientation = Orientation.Vertical,
+            onThumbMove = listState.rememberDraggableScroller(itemsAvailable = itemCount),
+        )
     }
 }
 

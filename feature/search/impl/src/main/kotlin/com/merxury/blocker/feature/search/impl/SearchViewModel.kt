@@ -33,17 +33,17 @@ import com.merxury.blocker.core.domain.applist.ReadRunningPackagesUseCase
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
+import com.merxury.blocker.core.domain.control.ControlComponentUseCase
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
-import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ServiceCounts
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
-import com.merxury.blocker.core.model.control.blockLayers
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
@@ -53,9 +53,8 @@ import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.applist.AppActionFailed
 import com.merxury.blocker.core.ui.applist.appRows
-import com.merxury.blocker.core.ui.control.ModeBanner
-import com.merxury.blocker.core.ui.control.bannersOf
 import com.merxury.blocker.core.ui.control.batchSummary
+import com.merxury.blocker.core.ui.control.toMessage
 import com.merxury.blocker.core.ui.profile.toProfileTab
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -99,6 +98,8 @@ class SearchViewModel @Inject internal constructor(
     private val componentStatuses: ComponentStatusRepository,
     private val componentIndex: ComponentIndex,
     private val batches: ComponentBatchRunner,
+    private val controlComponent: ControlComponentUseCase,
+    private val layersFor: GetControlLayersUseCase,
     private val searchRules: SearchGeneralRuleUseCase,
     private val performAppAction: PerformAppActionUseCase,
     private val readRunningPackages: ReadRunningPackagesUseCase,
@@ -118,8 +119,10 @@ class SearchViewModel @Inject internal constructor(
     private val running = MutableStateFlow<Map<UserId, Set<String>>>(emptyMap())
     private val serviceCounts = MutableStateFlow<Map<AppKey, ServiceCounts>>(emptyMap())
     private val queued = MutableStateFlow<List<QueuedSearchMessage>>(emptyList())
-    private val toldIndexRuns = MutableStateFlow<Set<Long>>(emptySet())
     private var nextMessageId = 0L
+
+    // Components whose switch was turned here and whose change has not ended.
+    private val singles = MutableStateFlow<Set<ComponentKey>>(emptySet())
 
     // Users whose apps this screen has read from the system.
     private val refreshedUsers = mutableSetOf<UserId>()
@@ -131,9 +134,9 @@ class SearchViewModel @Inject internal constructor(
         .debounce { if (it.isEmpty()) 0L else TYPING_PAUSE_MILLIS }
         .distinctUntilChanged()
 
-    // The selected user's components a batch of any screen is changing, such as one of app detail.
-    private val inFlight: Flow<Set<ComponentId>> = combine(selectedUsers.selectedUser, batches.inFlight) { user, keys ->
-        keys.filter { it.userId == user }.mapTo(mutableSetOf()) { it.id }
+    // The selected user's components changing now: by a switch here, or a batch of any screen.
+    private val inFlight: Flow<Set<ComponentId>> = combine(selectedUsers.selectedUser, batches.inFlight, singles) { user, keys, singles ->
+        (keys + singles).filter { it.userId == user }.mapTo(mutableSetOf()) { it.id }
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -168,17 +171,9 @@ class SearchViewModel @Inject internal constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val indexState: Flow<IndexState> = selectedUsers.selectedUser.flatMapLatest { componentIndex.state(it) }
 
-    private val banners = combine(channel.state, componentStatuses.firewallReadable, userDataRepository.userData) { state, readable, preferences ->
-        bannersOf(state, readable, preferences.controllerType)
-    }
-
-    private val messages: Flow<List<QueuedSearchMessage>> = combine(queued, indexState, toldIndexRuns) { queued, index, told ->
-        queued + listOfNotNull(index.note()?.takeIf { (index as IndexState.Indexed).run !in told })
-    }
-
     private val activity = combine(batch, inFlight, indexState, ::Activity)
 
-    private val controls = combine(selection, activity, banners, messages, ::Controls)
+    private val controls = combine(selection, activity, queued, ::Controls)
 
     val uiState: StateFlow<SearchUiState> = combine(selectedUsers.users, selectedUsers.selectedUser, results, tab, controls) { users, user, (keyword, results), tab, controls ->
         // A selection made for another user has ended: the user changed elsewhere or fell back.
@@ -189,14 +184,13 @@ class SearchViewModel @Inject internal constructor(
             selectedUser = user,
             profiles = users.map { it.toProfileTab() },
             keyword = keyword,
-            tabs = tabsOf(results, tab, componentsCounted = activity.index is IndexState.Indexed),
+            tabs = tabsOf(results, tab),
             results = results,
             isSelectionMode = selection.active,
             selected = selection.ids,
             selectionActionsEnabled = activity.batch == null && selection.ids.isNotEmpty() && selection.ids.none { it in activity.inFlight },
             batch = activity.batch,
             indexing = (activity.index as? IndexState.Indexing)?.let { IndexingProgress(it.done, it.total) },
-            banners = controls.banners,
             messages = controls.messages,
         )
     }
@@ -281,13 +275,28 @@ class SearchViewModel @Inject internal constructor(
         readRunning(app.userId)
     }
 
-    fun setSelectionMode(enabled: Boolean) {
-        selection.value = if (enabled) currentSelection().copy(active = true) else Selection()
+    /**
+     * Turns one component's switch: on enables it through every layer, off blocks it through the
+     * layers of the controller type, as in its app's detail screen. Ignored while a change of it
+     * runs; the switch moves once the system shows the change.
+     */
+    fun setEnabled(component: ComponentId, enabled: Boolean) {
+        val key = ComponentKey(component, selectedUsers.selectedUser.value)
+        if (key in singles.value || batches.isInFlight(key)) return
+        singles.update { it + key }
+        val goal = if (enabled) ControlGoal.ENABLE else ControlGoal.BLOCK
+        viewModelScope.launch {
+            try {
+                analyticsHelper.logSwitchComponentClicked(enabled)
+                controlComponent(key, goal)?.toMessage(goal)?.let { tell(SearchMessage.Control(it)) }
+            } finally {
+                singles.update { it - key }
+            }
+        }
     }
 
-    fun toggleSelected(id: ComponentId) {
-        val current = currentSelection()
-        selection.value = current.copy(ids = if (id in current.ids) current.ids - id else current.ids + id)
+    fun setSelectionMode(enabled: Boolean) {
+        selection.value = if (enabled) currentSelection().copy(active = true) else Selection()
     }
 
     /** Selects every component found in [app], or deselects them when all are selected. */
@@ -296,22 +305,18 @@ class SearchViewModel @Inject internal constructor(
     /** Selects every component found, or deselects them when all are selected. */
     fun toggleSelectAll() = toggleAll(foundComponents())
 
-    /** Blocks the selected components through the layers of the controller type; one summary tells how it ended. */
+    /** Blocks the selected components through the layers of the controller type; one message tells how it ended. */
     fun blockSelected() = startBatch(ControlGoal.BLOCK)
 
     /**
-     * Removes every block of the selected components, through every layer; one summary tells how
+     * Removes every block of the selected components, through every layer; one message tells how
      * it ended. Components the app ships disabled stay as they are, as with a batch in the app's
      * detail screen.
      */
     fun enableSelected() = startBatch(ControlGoal.UNBLOCK)
 
     fun onMessageShown(id: Long) {
-        if (id < 0) {
-            toldIndexRuns.update { it + indexRunOf(id) }
-        } else {
-            queued.update { messages -> messages.filterNot { it.id == id } }
-        }
+        queued.update { messages -> messages.filterNot { it.id == id } }
     }
 
     private fun toggleAll(ids: List<ComponentId>) {
@@ -349,14 +354,11 @@ class SearchViewModel @Inject internal constructor(
         viewModelScope.launch {
             var started = false
             try {
-                // The states the results showed when the batch was sent, to tell what it changed.
                 val statuses = cachedStatuses(user, ids)
                 val vanished = (ids - statuses.mapTo(mutableSetOf()) { it.declaration.id }).map { ComponentKey(it, user) }
-                val layers = layersFor(goal)
-                batches.start(run, statuses.map { it.declaration }, layers)
+                batches.start(run, statuses.map { it.declaration }, layersFor(goal))
                 started = true
-                val summary = batchSummary(goal, run.outcomes.await(), statuses.associateBy { it.declaration.id }, layers, identity(), vanished)
-                tell(SearchMessage.Control(summary))
+                tell(SearchMessage.Control(batchSummary(run.outcomes.await(), vanished)))
             } finally {
                 if (!started) batches.release(run)
             }
@@ -375,18 +377,10 @@ class SearchViewModel @Inject internal constructor(
         }
     }
 
-    private suspend fun layersFor(goal: ControlGoal): Set<ControlLayer> = if (goal == ControlGoal.BLOCK) {
-        userDataRepository.userData.first().controllerType.blockLayers
-    } else {
-        ControlLayer.entries.toSet()
-    }
-
     private suspend fun readRunning(user: UserId) {
         val packages = readRunningPackages(user)
         running.update { if (packages != null) it + (user to packages) else it - user }
     }
-
-    private fun identity(): PrivilegedIdentity? = (channel.state.value as? ChannelState.Ready)?.identity
 
     private fun tell(message: SearchMessage) {
         queued.update { it + QueuedSearchMessage(nextMessageId++, message) }
@@ -404,8 +398,7 @@ class SearchViewModel @Inject internal constructor(
         installedApps.apps(user),
         userDataRepository.userData.map { it.showSystemApps }.distinctUntilChanged(),
         inFlight,
-        componentStatuses.firewallReadable,
-    ) { found, apps, showSystemApps, inFlight, firewallReadable -> componentGroups(found, apps, showSystemApps, self, inFlight, firewallReadable) }
+    ) { found, apps, showSystemApps, inFlight -> componentGroups(found, apps, showSystemApps, self, inFlight) }
 
     /** Components chosen in selection mode, of the [user] selected when the selection began. */
     private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet(), val user: UserId? = null)
@@ -419,7 +412,6 @@ class SearchViewModel @Inject internal constructor(
     private data class Controls(
         val selection: Selection,
         val activity: Activity,
-        val banners: List<ModeBanner>,
         val messages: List<QueuedSearchMessage>,
     )
 
@@ -438,14 +430,5 @@ class SearchViewModel @Inject internal constructor(
     private companion object {
         const val TYPING_PAUSE_MILLIS = 300L
         const val SHOWN_BEFORE_COUNTING_MILLIS = 300L
-
-        /** What to tell once about an indexing that ended, queued with a negative id of its run. */
-        fun IndexState.note(): QueuedSearchMessage? {
-            if (this !is IndexState.Indexed || !incomplete) return null
-            val message = if (appListFailure != null) SearchMessage.IndexFailed else SearchMessage.IndexIncomplete
-            return QueuedSearchMessage(-(run + 1), message)
-        }
-
-        fun indexRunOf(id: Long): Long = -id - 1
     }
 }

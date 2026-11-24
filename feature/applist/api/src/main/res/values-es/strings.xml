@@ -31,7 +31,5 @@
     <string name="feature_applist_api_none">Ninguno</string>
     <string name="feature_applist_api_running_apps">Aplicaciones en ejecución</string>
     <string name="feature_applist_api_disabled_apps">Aplicaciones deshabilitadas</string>
-    <string name="feature_applist_api_refresh_failed">No se pudo actualizar la lista de aplicaciones. Se muestra la última lista guardada.</string>
-    <string name="feature_applist_api_retry">Reintentar</string>
     <string name="feature_applist_api_load_failed">No se pudo cargar la lista de aplicaciones. Desliza hacia abajo para intentarlo de nuevo.</string>
 </resources>

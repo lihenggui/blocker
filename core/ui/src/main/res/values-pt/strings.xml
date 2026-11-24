@@ -144,7 +144,6 @@
     <string name="core_ui_profile_work">Trabalho</string>
     <string name="core_ui_profile_user">Usuário %1$d</string>
     <string name="core_ui_profile_not_running">Parado</string>
-    <string name="core_ui_clear_data_confirm">Deseja limpar os dados deste app? Durante a limpeza, o Android também interrompe o app em todos os usuários e perfis deste dispositivo.</string>
     <string name="core_ui_uninstall_for_profile_confirm">Deseja desinstalar este app de %1$s? Outros usuários e perfis que têm o app o mantêm. O app sai do dispositivo quando nenhum usuário o tem.</string>
     <string name="core_ui_enable_app_failed">Não foi possível ativar %1$s</string>
     <string name="core_ui_disable_app_failed">Não foi possível desativar %1$s</string>
@@ -153,53 +152,10 @@
     <string name="core_ui_clear_data_failed">Não foi possível limpar os dados de %1$s</string>
     <string name="core_ui_uninstall_app_failed">Não foi possível desinstalar %1$s</string>
     <string name="core_ui_reason_no_access">Conceda ao Blocker acesso root ou Shizuku e tente novamente.</string>
-    <string name="core_ui_reason_app_needs_root">Requer root. O Shizuku iniciado via adb não pode fazer isso.</string>
-    <string name="core_ui_reason_not_permitted">O sistema não permite isso no modo de acesso atual.</string>
-    <string name="core_ui_reason_app_not_found">O app não está mais instalado para este usuário.</string>
-    <string name="core_ui_reason_system_error">O sistema informou um erro: %1$s</string>
-    <string name="core_ui_reason_system_error_unknown">O sistema informou um erro.</string>
     <string name="core_ui_unknown">Desconhecido</string>
-    <string name="core_ui_blocked_by_package_manager">Package Manager</string>
-    <string name="core_ui_blocked_by_intent_firewall">Intent Firewall</string>
-    <string name="core_ui_disabled_by_app">Desativado pelo app</string>
-    <string name="core_ui_conditional_rule">Regra condicional</string>
-    <string name="core_ui_banner_no_access">O Blocker não tem acesso root nem Shizuku, então não pode alterar componentes nem ler todos os estados.</string>
     <string name="core_ui_grant_access">Conceder acesso</string>
-    <string name="core_ui_banner_needs_root">O Shizuku está sendo executado via adb. Alterar componentes requer root; o Android só permite isso em apps de teste.</string>
-    <string name="core_ui_banner_firewall_unavailable">As regras do Intent Firewall não podem ser lidas nem alteradas no modo atual.</string>
     <string name="core_ui_block_component_failed">Não foi possível bloquear %1$s</string>
     <string name="core_ui_enable_component_failed">Não foi possível ativar %1$s</string>
-    <string name="core_ui_block_component_partial">%1$s está bloqueado apenas em parte</string>
-    <string name="core_ui_enable_component_partial">%1$s está ativado apenas em parte</string>
-    <string name="core_ui_layer_reason">%1$s: %2$s</string>
-    <string name="core_ui_batch_summary">%1$s, %2$s</string>
-    <string name="core_ui_batch_most_common">Mais frequente: %1$s</string>
-    <string name="core_ui_batch_nothing_needed">Nada precisava ser alterado</string>
-    <string name="core_ui_reason_component_needs_root">O modo atual não pode alterar componentes. Isso requer root.</string>
-    <string name="core_ui_reason_component_not_found">O app ou o componente não foi encontrado para este usuário.</string>
-    <string name="core_ui_reason_rules_unreadable">O arquivo de regras do Intent Firewall do app não pode ser lido.</string>
-    <string name="core_ui_reason_write_failed">Não foi possível gravar as regras do Intent Firewall: %1$s</string>
-    <string name="core_ui_reason_write_failed_unknown">Não foi possível gravar as regras do Intent Firewall.</string>
-    <string name="core_ui_reason_not_confirmed">A alteração foi enviada, mas o sistema não a mostra.</string>
-    <string name="core_ui_reason_not_permitted_detail">O sistema não permite isso: %1$s</string>
-    <plurals name="core_ui_batch_changed">
-        <item quantity="one">%1$d componente alterado</item>
-        <item quantity="many">%1$d componentes alterados</item>
-        <item quantity="other">%1$d componentes alterados</item>
-    </plurals>
-    <plurals name="core_ui_batch_not_changed">
-        <item quantity="one">%1$d não pôde ser alterado</item>
-        <item quantity="many">%1$d não puderam ser alterados</item>
-        <item quantity="other">%1$d não puderam ser alterados</item>
-    </plurals>
-    <plurals name="core_ui_batch_stays_off_as_shipped">
-        <item quantity="one">%1$d continua desativado porque o app o traz desativado; ative-o com o seu interruptor para forçá-lo</item>
-        <item quantity="many">%1$d continuam desativados porque o app os traz desativados; ative um com o seu interruptor para forçá-lo</item>
-        <item quantity="other">%1$d continuam desativados porque o app os traz desativados; ative um com o seu interruptor para forçá-lo</item>
-    </plurals>
     <string name="core_ui_grant_failed">O Blocker ainda não tem acesso root nem Shizuku.</string>
-    <string name="core_ui_unknown_state_title">Por que o estado é desconhecido</string>
-    <string name="core_ui_unknown_pm">O Blocker não conseguiu ler a configuração do Package Manager deste componente para este usuário. Conceda acesso root ou Shizuku e puxe para baixo para atualizar.</string>
-    <string name="core_ui_unknown_no_firewall_access">As regras do Intent Firewall não podem ser lidas no modo atual. Conceda acesso root ou inicie o Shizuku com root e puxe para baixo para atualizar.</string>
-    <string name="core_ui_unknown_rules_unreadable">O arquivo de regras do Intent Firewall deste app não pode ser lido e pode estar danificado, então o Blocker não o altera. Redefinir IFW na guia de informações do app o exclui.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Deseja limpar os dados deste app?</string>
 </resources>

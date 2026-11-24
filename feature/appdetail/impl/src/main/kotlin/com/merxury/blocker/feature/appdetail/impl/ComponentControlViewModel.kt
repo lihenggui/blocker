@@ -21,24 +21,17 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.domain.control.BatchRun
 import com.merxury.blocker.core.domain.control.BatchStep
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
+import com.merxury.blocker.core.domain.control.ControlComponentUseCase
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
-import com.merxury.blocker.core.model.component.ControlLayer
-import com.merxury.blocker.core.model.control.ComponentOutcome
-import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
-import com.merxury.blocker.core.model.control.ControlRequest
-import com.merxury.blocker.core.model.control.blockLayers
-import com.merxury.blocker.core.model.privileged.ChannelState
-import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
-import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.batchSummary
 import com.merxury.blocker.core.ui.control.toMessage
@@ -80,8 +73,8 @@ class ComponentControlViewModel @AssistedInject constructor(
     selectedUsers: SelectedUserRepository,
     private val componentStatuses: ComponentStatusRepository,
     private val batches: ComponentBatchRunner,
-    private val channel: PrivilegedChannel,
-    private val userDataRepository: UserDataRepository,
+    private val controlComponent: ControlComponentUseCase,
+    private val layersFor: GetControlLayersUseCase,
     private val analyticsHelper: AnalyticsHelper,
     @Assisted packageName: String,
     @Assisted userId: Int?,
@@ -123,18 +116,13 @@ class ComponentControlViewModel @AssistedInject constructor(
     }
 
     /** Changes one component towards [goal]; ignored while a change of it is in flight. */
-    fun control(component: ComponentId, goal: ControlGoal) {
+    private fun control(component: ComponentId, goal: ControlGoal) {
         if (isInFlight(component)) return
         singles.update { it + component }
         viewModelScope.launch {
             try {
                 analyticsHelper.logSwitchComponentClicked(newState = goal != ControlGoal.BLOCK)
-                val status = cachedStatuses(listOf(component)).singleOrNull() ?: return@launch
-                val outcomes = mutableListOf<ComponentOutcome>()
-                componentStatuses.control(ControlRequest(app.userId, listOf(status.declaration), goal, layersFor(goal))).collect { event ->
-                    if (event is ControlEvent.PackageDone) outcomes += event.outcomes
-                }
-                outcomes.firstNotNullOfOrNull { it.toMessage(goal, identity()) }?.let { tell(it, component) }
+                controlComponent(ComponentKey(component, app.userId), goal)?.toMessage(goal)?.let { tell(it, component) }
             } finally {
                 singles.update { it - component }
             }
@@ -170,13 +158,11 @@ class ComponentControlViewModel @AssistedInject constructor(
         viewModelScope.launch {
             var started = false
             try {
-                // The states the rows showed when the batch was sent, to tell what it changed.
                 val statuses = cachedStatuses(ids)
                 val vanished = (ids - statuses.mapTo(mutableSetOf()) { it.declaration.id }).map { ComponentKey(it, app.userId) }
-                val layers = layersFor(goal)
-                batches.start(run, statuses.map { it.declaration }, layers)
+                batches.start(run, statuses.map { it.declaration }, layersFor(goal))
                 started = true
-                tell(batchSummary(goal, run.outcomes.await(), statuses.associateBy { it.declaration.id }, layers, identity(), vanished))
+                tell(batchSummary(run.outcomes.await(), vanished))
             } finally {
                 if (!started) batches.release(run)
             }
@@ -184,12 +170,6 @@ class ComponentControlViewModel @AssistedInject constructor(
     }
 
     private fun isInFlight(component: ComponentId): Boolean = component in singles.value || batches.isInFlight(ComponentKey(component, app.userId))
-
-    private suspend fun layersFor(goal: ControlGoal): Set<ControlLayer> = if (goal == ControlGoal.BLOCK) {
-        userDataRepository.userData.first().controllerType.blockLayers
-    } else {
-        ControlLayer.entries.toSet()
-    }
 
     private suspend fun cachedStatuses(ids: List<ComponentId>): List<ComponentStatus> {
         val cached = componentStatuses.components(app).first().associateBy { it.declaration.id }
@@ -200,8 +180,6 @@ class ComponentControlViewModel @AssistedInject constructor(
             }
         }
     }
-
-    private fun identity(): PrivilegedIdentity? = (channel.state.value as? ChannelState.Ready)?.identity
 
     /**
      * Queues [message]. A message about [component] replaces one about it that waits, so repeated

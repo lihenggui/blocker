@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.search.impl
 
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -28,8 +27,6 @@ import com.merxury.blocker.core.ui.applist.AppActionFailed
 import com.merxury.blocker.core.ui.applist.AppRow
 import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.ui.control.ControlMessage
-import com.merxury.blocker.core.ui.control.ModeBanner
-import com.merxury.blocker.core.ui.control.UnknownCause
 import com.merxury.blocker.core.ui.profile.ProfileTab
 
 /**
@@ -45,7 +42,6 @@ import com.merxury.blocker.core.ui.profile.ProfileTab
  * actions are disabled meanwhile
  * @property indexing how far the reading of every app's components got, or null when it does not
  * run for [selectedUser]
- * @property banners limits of the current mode, shown once above the components
  * @property messages what to tell, oldest first; see [SearchViewModel.onMessageShown]
  */
 data class SearchUiState(
@@ -60,14 +56,13 @@ data class SearchUiState(
     val selectionActionsEnabled: Boolean = false,
     val batch: ProcessingProgress? = null,
     val indexing: IndexingProgress? = null,
-    val banners: List<ModeBanner> = emptyList(),
     val messages: List<QueuedSearchMessage> = emptyList(),
 ) {
     val showProfileSwitcher: Boolean get() = profiles.size > 1
 
     val selectedProfile: ProfileTab? get() = profiles.find { it.user == selectedUser }
 
-    /** The apps that have a selected component, for the title of selection mode. */
+    /** The apps selected, for the title of selection mode. */
     val selectedAppCount: Int get() = selected.mapTo(mutableSetOf()) { it.packageName }.size
 }
 
@@ -118,33 +113,17 @@ data class ComponentGroup(
 }
 
 /**
- * One component found, with the state the cache holds for its user.
+ * One component found, with whether its switch shows on.
  *
- * @property blockedBy every known reason it cannot start; empty unless [state] is BLOCKED
- * @property conditional whether a conditional Intent Firewall rule names it
- * @property inFlight whether a batch is changing it now
- * @property unknownCause why [state] is UNKNOWN; null otherwise
+ * @property enabled whether it can run, see [com.merxury.blocker.core.ui.component.isSwitchOn]
+ * @property inFlight whether a change of it runs now, from any screen; its switch ignores taps
  */
 data class FoundComponent(
     val id: ComponentId,
     val type: ComponentType,
-    val state: FoundState,
-    val blockedBy: Set<BlockReason> = emptySet(),
-    val conditional: Boolean = false,
+    val enabled: Boolean,
     val inFlight: Boolean = false,
-    val unknownCause: UnknownCause? = null,
 )
-
-enum class FoundState {
-    /** The component can run, perhaps limited by a conditional rule. */
-    RUNNABLE,
-
-    /** Something blocks the component. */
-    BLOCKED,
-
-    /** Nothing known blocks it, but part of its state could not be read. */
-    UNKNOWN,
-}
 
 /**
  * [done] of [total] apps of the user have their components read.
@@ -166,12 +145,6 @@ sealed interface SearchMessage {
     /** An action on an app of the results failed. */
     data class AppFailed(val failure: AppActionFailed) : SearchMessage
 
-    /** A batch on the selected components ended. */
+    /** A switch or a batch did not change every component it was asked to. */
     data class Control(val message: ControlMessage) : SearchMessage
-
-    /** Indexing ended without reading everything, so some states show as unknown. */
-    data object IndexIncomplete : SearchMessage
-
-    /** The apps of the user could not be listed, so nothing was indexed. */
-    data object IndexFailed : SearchMessage
 }

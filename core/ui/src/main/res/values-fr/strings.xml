@@ -158,7 +158,6 @@
     <string name="core_ui_profile_work">Professionnel</string>
     <string name="core_ui_profile_user">Utilisateur %1$d</string>
     <string name="core_ui_profile_not_running">Arrêté</string>
-    <string name="core_ui_clear_data_confirm">Voulez-vous effacer les données de cette application ? Pendant l\'effacement, Android arrête aussi l\'application pour tous les utilisateurs et profils de cet appareil.</string>
     <string name="core_ui_uninstall_for_profile_confirm">Voulez-vous désinstaller cette application de %1$s ? Les autres utilisateurs et profils qui l\'ont la conservent. L\'application quitte l\'appareil lorsque plus aucun utilisateur ne l\'a.</string>
     <string name="core_ui_enable_app_failed">Impossible d\'activer %1$s</string>
     <string name="core_ui_disable_app_failed">Impossible de désactiver %1$s</string>
@@ -167,53 +166,10 @@
     <string name="core_ui_clear_data_failed">Impossible d\'effacer les données de %1$s</string>
     <string name="core_ui_uninstall_app_failed">Impossible de désinstaller %1$s</string>
     <string name="core_ui_reason_no_access">Accordez à Blocker l\'accès root ou Shizuku, puis réessayez.</string>
-    <string name="core_ui_reason_app_needs_root">Nécessite root. Shizuku démarré via adb ne peut pas faire cela.</string>
-    <string name="core_ui_reason_not_permitted">Le système ne l\'autorise pas avec le mode d\'accès actuel.</string>
-    <string name="core_ui_reason_app_not_found">L\'application n\'est plus installée pour cet utilisateur.</string>
-    <string name="core_ui_reason_system_error">Le système a signalé une erreur : %1$s</string>
-    <string name="core_ui_reason_system_error_unknown">Le système a signalé une erreur.</string>
     <string name="core_ui_unknown">Inconnu</string>
-    <string name="core_ui_blocked_by_package_manager">Package Manager</string>
-    <string name="core_ui_blocked_by_intent_firewall">Intent Firewall</string>
-    <string name="core_ui_disabled_by_app">Désactivé par l\'application</string>
-    <string name="core_ui_conditional_rule">Règle conditionnelle</string>
-    <string name="core_ui_banner_no_access">Blocker n\'a pas d\'accès root ni Shizuku : il ne peut pas modifier les composants ni lire tous les états.</string>
     <string name="core_ui_grant_access">Accorder l\'accès</string>
-    <string name="core_ui_banner_needs_root">Shizuku fonctionne via adb. Modifier des composants nécessite root ; Android ne le permet que pour les applications de test.</string>
-    <string name="core_ui_banner_firewall_unavailable">Les règles Intent Firewall ne peuvent pas être lues ni modifiées dans le mode actuel.</string>
     <string name="core_ui_block_component_failed">Impossible de bloquer %1$s</string>
     <string name="core_ui_enable_component_failed">Impossible d\'activer %1$s</string>
-    <string name="core_ui_block_component_partial">%1$s n\'est que partiellement bloqué</string>
-    <string name="core_ui_enable_component_partial">%1$s n\'est que partiellement activé</string>
-    <string name="core_ui_layer_reason">%1$s : %2$s</string>
-    <string name="core_ui_batch_summary">%1$s, %2$s</string>
-    <string name="core_ui_batch_most_common">Le plus souvent : %1$s</string>
-    <string name="core_ui_batch_nothing_needed">Rien n\'avait besoin d\'être modifié</string>
-    <string name="core_ui_reason_component_needs_root">Le mode actuel ne peut pas modifier les composants. Cela nécessite root.</string>
-    <string name="core_ui_reason_component_not_found">L\'application ou le composant est introuvable pour cet utilisateur.</string>
-    <string name="core_ui_reason_rules_unreadable">Le fichier de règles Intent Firewall de l\'application est illisible.</string>
-    <string name="core_ui_reason_write_failed">Impossible d\'écrire les règles Intent Firewall : %1$s</string>
-    <string name="core_ui_reason_write_failed_unknown">Impossible d\'écrire les règles Intent Firewall.</string>
-    <string name="core_ui_reason_not_confirmed">La modification a été envoyée, mais le système ne la montre pas.</string>
-    <string name="core_ui_reason_not_permitted_detail">Le système ne l\'autorise pas : %1$s</string>
-    <plurals name="core_ui_batch_changed">
-        <item quantity="one">%1$d composant modifié</item>
-        <item quantity="many">%1$d composants modifiés</item>
-        <item quantity="other">%1$d composants modifiés</item>
-    </plurals>
-    <plurals name="core_ui_batch_not_changed">
-        <item quantity="one">%1$d n\'a pas pu être modifié</item>
-        <item quantity="many">%1$d n\'ont pas pu être modifiés</item>
-        <item quantity="other">%1$d n\'ont pas pu être modifiés</item>
-    </plurals>
-    <plurals name="core_ui_batch_stays_off_as_shipped">
-        <item quantity="one">%1$d reste désactivé, car l\'application le livre désactivé ; activez-le avec son interrupteur pour le forcer</item>
-        <item quantity="many">%1$d restent désactivés, car l\'application les livre désactivés ; activez-en un avec son interrupteur pour le forcer</item>
-        <item quantity="other">%1$d restent désactivés, car l\'application les livre désactivés ; activez-en un avec son interrupteur pour le forcer</item>
-    </plurals>
     <string name="core_ui_grant_failed">Blocker n\'a toujours pas d\'accès root ni Shizuku.</string>
-    <string name="core_ui_unknown_state_title">Pourquoi l\'état est inconnu</string>
-    <string name="core_ui_unknown_pm">Blocker n\'a pas pu lire le réglage Package Manager de ce composant pour cet utilisateur. Accordez l\'accès root ou Shizuku, puis tirez vers le bas pour actualiser.</string>
-    <string name="core_ui_unknown_no_firewall_access">Les règles Intent Firewall ne peuvent pas être lues dans le mode actuel. Accordez l\'accès root ou démarrez Shizuku avec root, puis tirez vers le bas pour actualiser.</string>
-    <string name="core_ui_unknown_rules_unreadable">Le fichier de règles Intent Firewall de cette application est illisible et peut-être endommagé : Blocker n\'y touche donc pas. Réinitialiser l\'IFW dans l\'onglet Infos de l\'application le supprime.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
 </resources>

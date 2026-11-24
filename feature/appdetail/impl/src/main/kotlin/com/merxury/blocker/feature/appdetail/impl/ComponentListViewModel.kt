@@ -31,8 +31,6 @@ import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.component.Availability
-import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
@@ -45,8 +43,6 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.control.ModeBanner
-import com.merxury.blocker.core.ui.control.bannersOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -135,8 +131,8 @@ class ComponentListViewModel @AssistedInject constructor(
 
     // In the repository's order, by class name, as soon as the cache has them: descriptions and
     // running services fill in later. Shared, so every list below is made from one copy.
-    private val rows: Flow<List<ComponentRow>> = combine(statuses, descriptions, running, componentStatuses.firewallReadable) { statuses, descriptions, running, readable ->
-        statuses.map { it.toRow(descriptions[it.declaration.id.className], running, readable) }
+    private val rows: Flow<List<ComponentRow>> = combine(statuses, descriptions, running) { statuses, descriptions, running ->
+        statuses.map { it.toRow(descriptions[it.declaration.id.className], running) }
     }
         .distinctUntilChanged()
         .flowOn(cpuDispatcher)
@@ -178,17 +174,12 @@ class ComponentListViewModel @AssistedInject constructor(
         )
     }
 
-    private val banners: Flow<List<ModeBanner>> = combine(channel.state, componentStatuses.firewallReadable, userDataRepository.userData) { state, readable, preferences ->
-        bannersOf(state, readable, preferences.controllerType)
-    }
-
     val uiState: StateFlow<ComponentListUiState> = combine(
         lists,
-        banners,
         requestedTab,
         selection,
         message,
-    ) { lists, banners, requestedTab, selection, message ->
+    ) { lists, requestedTab, selection, message ->
         ComponentListUiState(
             tabs = tabsOf(lists.components, lists.matchedRules, requestedTab),
             components = lists.components,
@@ -200,7 +191,6 @@ class ComponentListViewModel @AssistedInject constructor(
             isRefreshing = lists.isRefreshing,
             refreshFailure = lists.refreshFailure,
             accessCheckFailed = lists.accessCheckFailed,
-            banners = banners,
             message = message,
         )
     }
@@ -302,25 +292,13 @@ class ComponentListViewModel @AssistedInject constructor(
         if (channel.connect() !is ChannelState.Ready) message.value = ListMessage.GrantFailed
     }
 
-    /**
-     * Starts [activity]. The system accepts a start that the Intent Firewall then blocks, so a
-     * firewall block known from the repository is reported instead of a launch.
-     */
+    /** Starts [activity]; a blocked one stays blocked, as its switch shows. */
     fun launchActivity(activity: ComponentId) = viewModelScope.launch {
         analyticsHelper.logStartActivityClicked()
-        val key = ComponentKey(activity, app.userId)
-        val result = appControl.startActivity(key)
+        val result = appControl.startActivity(ComponentKey(activity, app.userId))
         if (result is CallResult.Failure) {
             Timber.w("Cannot launch $activity: ${result.reason}")
             message.value = ListMessage.LaunchFailed(activity.simpleName, result.reason.toActionFailure())
-            return@launch
-        }
-        val availability = componentStatuses.component(key).first()?.availability
-        when {
-            availability is Availability.Blocked && BlockReason.IFW_RULE in availability.reasons ->
-                message.value = ListMessage.LaunchBlockedByRule(activity.simpleName)
-
-            availability == Availability.Conditional -> message.value = ListMessage.LaunchMayBeBlocked(activity.simpleName)
         }
     }
 

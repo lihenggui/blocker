@@ -17,7 +17,5 @@
     <string name="feature_applist_api_running_apps">Aplicativos em execução</string>
     <string name="feature_applist_api_disabled_apps">Aplicativos desativados</string>
     <string name="feature_applist_api_ascending">Crescente</string>
-    <string name="feature_applist_api_refresh_failed">Não foi possível atualizar a lista de apps. Mostrando a última lista salva.</string>
-    <string name="feature_applist_api_retry">Tentar novamente</string>
     <string name="feature_applist_api_load_failed">Não foi possível carregar a lista de apps. Puxe para baixo para tentar novamente.</string>
 </resources>

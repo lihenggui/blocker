@@ -63,3 +63,12 @@ internal fun AnalyticsHelper.logBatchOperationPerformed(enable: Boolean) = logEv
         ),
     ),
 )
+
+internal fun AnalyticsHelper.logSwitchComponentClicked(newState: Boolean) = logEvent(
+    AnalyticsEvent(
+        type = "search_screen_switch_component_clicked",
+        extras = listOf(
+            Param(key = "new_state", value = newState.toString()),
+        ),
+    ),
+)

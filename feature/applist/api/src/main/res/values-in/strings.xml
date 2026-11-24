@@ -17,7 +17,5 @@
     <string name="feature_applist_api_descending">Turun</string>
     <string name="feature_applist_api_name">Nama</string>
     <string name="feature_applist_api_install_date">Waktu Instal</string>
-    <string name="feature_applist_api_refresh_failed">Tidak dapat memuat ulang daftar aplikasi. Menampilkan daftar terakhir yang disimpan.</string>
-    <string name="feature_applist_api_retry">Coba lagi</string>
     <string name="feature_applist_api_load_failed">Tidak dapat memuat daftar aplikasi. Tarik ke bawah untuk mencoba lagi.</string>
 </resources>

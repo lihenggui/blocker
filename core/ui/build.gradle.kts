@@ -43,6 +43,7 @@ dependencies {
     testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)
+    testImplementation(libs.truth)
     testImplementation(projects.core.testing)
     testImplementation(projects.core.screenshotTesting)
 

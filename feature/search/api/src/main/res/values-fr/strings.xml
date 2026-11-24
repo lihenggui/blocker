@@ -29,9 +29,4 @@
     </plurals>
     <string name="feature_search_api_check_icon">Vérifier</string>
     <string name="feature_search_api_no_search_result">Aucun résultat de recherche pour le moment</string>
-    <string name="feature_search_api_indexing">Indexation des applications…</string>
-    <string name="feature_search_api_indexing_progress">Indexation des applications %1$d/%2$d</string>
-    <string name="feature_search_api_index_incomplete">Certains états de composants n\'ont pas pu être lus et sont affichés comme inconnus.</string>
-    <string name="feature_search_api_index_failed">Impossible de lister les applications de cet utilisateur : seuls les composants lus auparavant peuvent être trouvés.</string>
-    <string name="feature_search_api_component_not_counted">Composant</string>
 </resources>

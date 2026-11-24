@@ -33,9 +33,4 @@
     <string name="feature_search_api_search_hint">應用程式、元件和規則</string>
     <string name="feature_search_api_no_search_result">尚未有搜尋結果</string>
     <string name="feature_search_api_check_icon">選中</string>
-    <string name="feature_search_api_indexing">正在索引應用程式…</string>
-    <string name="feature_search_api_indexing_progress">正在索引應用程式 %1$d/%2$d</string>
-    <string name="feature_search_api_index_incomplete">部分元件狀態無法讀取，顯示為未知。</string>
-    <string name="feature_search_api_index_failed">無法列出此使用者的應用程式，只能找到先前已讀取的元件。</string>
-    <string name="feature_search_api_component_not_counted">元件</string>
 </resources>

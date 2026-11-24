@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.ui.applist.needsAccess
 import com.merxury.blocker.core.ui.applist.text
 import com.merxury.blocker.core.ui.control.text
 import com.merxury.blocker.feature.search.api.R.plurals
@@ -34,19 +35,21 @@ import com.merxury.blocker.core.ui.R.string as uiString
 internal fun SearchMessage.text(): String = when (this) {
     is SearchMessage.AppFailed -> failure.text()
     is SearchMessage.Control -> message.text()
-    SearchMessage.IndexIncomplete -> stringResource(string.feature_search_api_index_incomplete)
-    SearchMessage.IndexFailed -> stringResource(string.feature_search_api_index_failed)
 }
 
-/** The title of [this] tab with its number of results, or without one while that is not known. */
+/** Whether granting root or Shizuku access would help, which the message then offers. */
+internal val SearchMessage.needsAccess: Boolean
+    get() = when (this) {
+        is SearchMessage.AppFailed -> failure.needsAccess
+        is SearchMessage.Control -> message.needsAccess
+    }
+
+/** The title of [this] tab with its number of results. */
 @Composable
-internal fun SearchTab.title(count: Int?): String = when (this) {
-    SearchTab.APPS -> stringResource(uiString.core_ui_application_with_count, count ?: 0)
-
-    SearchTab.COMPONENTS -> count?.let { stringResource(uiString.core_ui_component_with_count, it) }
-        ?: stringResource(string.feature_search_api_component_not_counted)
-
-    SearchTab.RULES -> stringResource(uiString.core_ui_online_rule_with_count, count ?: 0)
+internal fun SearchTab.title(count: Int): String = when (this) {
+    SearchTab.APPS -> stringResource(uiString.core_ui_application_with_count, count)
+    SearchTab.COMPONENTS -> stringResource(uiString.core_ui_component_with_count, count)
+    SearchTab.RULES -> stringResource(uiString.core_ui_online_rule_with_count, count)
 }
 
 /** How many components of each type were found in [group], such as "2 Receivers / 1 Service". */

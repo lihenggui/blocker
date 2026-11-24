@@ -26,8 +26,6 @@ import com.merxury.blocker.core.ui.profile.ProfileTab
  * What the app list shows: the apps of [selectedUser], and a switcher between [profiles] when
  * there is more than one.
  *
- * @property refreshFailure why the last refresh of [selectedUser] failed while [apps] shows the
- * cached list; null when it did not fail
  * @property message a failed action to report once; see [AppListViewModel.onMessageShown]
  */
 data class AppListUiState(
@@ -36,7 +34,6 @@ data class AppListUiState(
     val profiles: List<ProfileTab> = emptyList(),
     val apps: AppsUiState = AppsUiState.Loading,
     val isRefreshing: Boolean = false,
-    val refreshFailure: ReadFailure? = null,
     val showServiceInfo: Boolean = false,
     val message: AppActionFailed? = null,
 ) {

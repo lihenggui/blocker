@@ -84,12 +84,6 @@ class AppListScreenScreenshotTests {
     )
 
     @Test
-    fun appListScreen_refreshFailed() = captureWithDark(
-        "AppListScreenRefreshFailed",
-        ownApps.copy(refreshFailure = ReadFailure.ChannelUnavailable),
-    )
-
-    @Test
     fun appListScreen_empty() = captureWithDark("AppListScreenEmpty", ownApps.copy(apps = AppsUiState.Loaded(emptyList())))
 
     private fun captureWithDark(name: String, uiState: AppListUiState) {

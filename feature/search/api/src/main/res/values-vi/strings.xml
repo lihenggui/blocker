@@ -33,9 +33,4 @@
 <string name="feature_search_api_search_hint">Bạn có thể tìm ứng dụng, tiến trình và luật</string>
     <string name="feature_search_api_no_search_result">Không có kết quả</string>
     <string name="feature_search_api_check_icon">Kiểm tra</string>
-    <string name="feature_search_api_indexing">Đang lập chỉ mục ứng dụng…</string>
-    <string name="feature_search_api_indexing_progress">Đang lập chỉ mục ứng dụng %1$d/%2$d</string>
-    <string name="feature_search_api_index_incomplete">Không thể đọc trạng thái của một số thành phần, chúng được hiển thị là không xác định.</string>
-    <string name="feature_search_api_index_failed">Không thể liệt kê ứng dụng của người dùng này, nên chỉ tìm được các thành phần đã đọc trước đó.</string>
-    <string name="feature_search_api_component_not_counted">Thành phần</string>
 </resources>

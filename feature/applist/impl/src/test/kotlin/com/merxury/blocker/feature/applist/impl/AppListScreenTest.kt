@@ -150,12 +150,12 @@ class AppListScreenTest {
     }
 
     @Test
-    fun givenApp_whenClearDataChosen_thenWarnsThatEveryUserStops() {
+    fun givenApp_whenClearDataChosen_thenAsked() {
         show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
         composeTestRule.onNodeWithText("Blocker Test").performTouchInput { longClick() }
 
         composeTestRule.onNodeWithText(text(uiString.core_ui_clear_data)).performClick()
 
-        composeTestRule.onNodeWithText(text(uiString.core_ui_clear_data_confirm)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_do_you_want_to_clear_data_of_this_app)).assertIsDisplayed()
     }
 }

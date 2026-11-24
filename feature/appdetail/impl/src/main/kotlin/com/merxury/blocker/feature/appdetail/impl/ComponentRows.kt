@@ -33,7 +33,7 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.control.unknownCause
+import com.merxury.blocker.core.ui.component.isSwitchOn
 import java.io.File
 
 /** The app a detail screen shows: [packageName] for [userId], or for the user Blocker runs in when null. */
@@ -43,21 +43,14 @@ internal fun SelectedUserRepository.appKeyOf(packageName: String, userId: Int?):
  * The row for [this] component, from what the repository holds and nothing else.
  *
  * @param running the running services of the app, or null when they cannot be read
- * @param firewallReadable whether the current mode can read Intent Firewall rules at all
  */
-internal fun ComponentStatus.toRow(description: String?, running: Set<ComponentId>?, firewallReadable: Boolean): ComponentRow {
-    val id = declaration.id
-    val filtered = declaration.type.isFilteredByIntentFirewall
-    return when (val availability = availability) {
-        Availability.Runnable, Availability.Conditional -> ComponentRow(id, declaration.type, SwitchState.ON)
-        is Availability.Blocked -> ComponentRow(id, declaration.type, SwitchState.OFF, blockedBy = availability.reasons)
-        Availability.Unknown -> ComponentRow(id, declaration.type, SwitchState.UNKNOWN, unknownCause = unknownCause(firewallReadable))
-    }.copy(
-        conditional = filtered && state.ifw == IfwBlock.CONDITIONAL,
-        isRunning = running?.contains(id) == true,
-        description = description,
-    )
-}
+internal fun ComponentStatus.toRow(description: String?, running: Set<ComponentId>?): ComponentRow = ComponentRow(
+    id = declaration.id,
+    type = declaration.type,
+    enabled = isSwitchOn,
+    isRunning = running?.contains(declaration.id) == true,
+    description = description,
+)
 
 /** [rows] by type, each sorted as the user chose, running services first. */
 internal fun appComponents(rows: List<ComponentRow>, preferences: UserPreferenceData): AppComponents {
@@ -79,8 +72,8 @@ private fun List<ComponentRow>.sortedFor(preferences: UserPreferenceData): List<
     val ordered = sortedWith(if (preferences.componentSortingOrder == SortingOrder.ASCENDING) byName else byName.reversed())
     return when (preferences.componentShowPriority) {
         ComponentShowPriority.NONE -> ordered
-        ComponentShowPriority.DISABLED_COMPONENTS_FIRST -> ordered.sortedBy { it.switch == SwitchState.ON }
-        ComponentShowPriority.ENABLED_COMPONENTS_FIRST -> ordered.sortedByDescending { it.switch == SwitchState.ON }
+        ComponentShowPriority.DISABLED_COMPONENTS_FIRST -> ordered.sortedBy { it.enabled }
+        ComponentShowPriority.ENABLED_COMPONENTS_FIRST -> ordered.sortedByDescending { it.enabled }
     }
 }
 

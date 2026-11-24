@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasClickAction
@@ -41,8 +42,6 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.control.ControlMessage
-import com.merxury.blocker.core.ui.control.LayerFailure
-import com.merxury.blocker.core.ui.control.ModeBanner
 import com.merxury.blocker.core.ui.control.text
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
@@ -67,13 +66,11 @@ class AppDetailScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private val switched = mutableListOf<Pair<String, Boolean>>()
-    private val controlled = mutableListOf<Pair<String, ControlGoal>>()
     private val edited = mutableListOf<String>()
     private val opened = mutableListOf<String>()
     private val toggled = mutableListOf<String>()
     private val actions = ComponentRowActions(
         onSwitch = { row, enabled -> switched += row.id.simpleName to enabled },
-        onControl = { row, goal -> controlled += row.id.simpleName to goal },
         onClick = { opened += it.id.simpleName },
         onToggleSelected = { toggled += it.id.simpleName },
         onEditIfwRule = { edited += it.id.simpleName },
@@ -101,54 +98,30 @@ class AppDetailScreenTest {
     }
 
     @Test
-    fun givenBlockedComponent_whenShown_thenItsSwitchIsOffAndTheReasonsAreNamed() {
-        show("SurveyActivity")
+    fun givenBlockedComponent_whenShown_thenItsSwitchIsOffWithoutReasons() {
+        show("TrackerActivity")
 
         composeTestRule.onNode(isToggleable()).assertIsOff().performClick()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_blocked_by_package_manager)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_blocked_by_intent_firewall)).assertIsDisplayed()
 
-        assertThat(switched).containsExactly("SurveyActivity" to true)
-    }
-
-    @Test
-    fun givenComponentTheAppShipsDisabled_whenShown_thenSaysTheAppDisabledIt() {
-        show("DebugActivity")
-
-        composeTestRule.onNodeWithText(text(uiString.core_ui_disabled_by_app)).assertIsDisplayed()
+        assertThat(switched).containsExactly("TrackerActivity" to true)
     }
 
     @Test
     fun givenChangeInFlight_whenSwitchTapped_thenTheTapIsIgnored() {
         show("MainActivity", inFlight = true)
 
-        composeTestRule.onNode(isToggleable()).assertDoesNotExist()
-        composeTestRule.onNodeWithContentDescription(text(string.feature_appdetail_api_changing), useUnmergedTree = true).performClick()
+        composeTestRule.onNode(isToggleable()).assertIsOn().assertIsNotEnabled().performClick()
 
         assertThat(switched).isEmpty()
     }
 
     @Test
-    fun givenConditionalRule_whenItsTagTapped_thenTheRuleEditorOpens() {
-        show("ShareActivity")
+    fun givenComponent_whenTapped_thenItsDetailOpens() {
+        show("MainActivity")
 
-        composeTestRule.onNode(isToggleable()).assertIsOn()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_conditional_rule)).performClick()
+        composeTestRule.onNodeWithText("MainActivity").performClick()
 
-        assertThat(edited).containsExactly("ShareActivity")
-    }
-
-    @Test
-    fun givenUnknownState_whenExplained_thenTheCauseIsShownAndTheUserCanBlock() {
-        show("SettingsActivity")
-
-        composeTestRule.onNode(isToggleable()).assertDoesNotExist()
-        composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_unknown_state_title)).performClick()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown_rules_unreadable)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_block)).performClick()
-
-        assertThat(controlled).containsExactly("SettingsActivity" to ControlGoal.BLOCK)
-        composeTestRule.onNodeWithTag("component:unknownDialog").assertDoesNotExist()
+        assertThat(opened).containsExactly("MainActivity")
     }
 
     @Test
@@ -159,26 +132,6 @@ class AppDetailScreenTest {
 
         assertThat(toggled).containsExactly("MainActivity")
         assertThat(opened).isEmpty()
-    }
-
-    @Test
-    fun givenNoAccess_whenGrantTapped_thenAccessIsAskedFor() {
-        var granted = 0
-        composeTestRule.setContent {
-            BlockerTheme {
-                AppDetailContent(
-                    header = AppHeaderUiState(app = previewHeaderApp),
-                    list = componentTab(banners = listOf(ModeBanner.NO_ACCESS)),
-                    control = ControlUiState(),
-                    actions = AppDetailActions(onGrantAccess = { granted++ }),
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText(text(uiString.core_ui_banner_no_access)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).performClick()
-
-        assertThat(granted).isEqualTo(1)
     }
 
     @Test
@@ -273,96 +226,36 @@ class AppDetailScreenTest {
     }
 
     @Test
-    fun givenPartialBlockRefusedToTheShell_whenTold_thenNamesTheLayerAndThatRootIsNeeded() {
-        showText { refused(PrivilegedIdentity.SHELL, "shell").text() }
+    fun givenPartialBlock_whenTold_thenOnlySaysItCouldNotBeBlocked() {
+        showText { ControlMessage.ComponentNotChanged("AdActivity", ControlGoal.BLOCK).text() }
+
+        composeTestRule.onNodeWithText(text(uiString.core_ui_block_component_failed, "AdActivity")).assertIsDisplayed()
+    }
+
+    @Test
+    fun givenEnableWithoutAccess_whenTold_thenSaysHowToGetAccess() {
+        showText { ControlMessage.ComponentNotChanged("AdActivity", ControlGoal.ENABLE, needsAccess = true).text() }
 
         composeTestRule.onNodeWithText(
-            text(uiString.core_ui_block_component_partial, "AdActivity") + "\n" +
-                text(uiString.core_ui_layer_reason, "Intent Firewall", text(uiString.core_ui_reason_component_needs_root)),
+            text(uiString.core_ui_enable_component_failed, "AdActivity") + "\n" + text(uiString.core_ui_reason_no_access),
         ).assertIsDisplayed()
     }
 
     @Test
-    fun givenBlockRefusedToRoot_whenTold_thenSaysTheSystemDoesNotAllowItWithItsMessage() {
-        showText { refused(PrivilegedIdentity.ROOT, "Cannot disable a protected package").text() }
+    fun givenBatchWithoutFailures_whenTold_thenSaysTheOperationCompleted() {
+        showText { ControlMessage.BatchDone(notChanged = 0).text() }
 
-        composeTestRule.onNodeWithText(
-            text(uiString.core_ui_block_component_partial, "AdActivity") + "\n" +
-                text(
-                    uiString.core_ui_layer_reason,
-                    "Intent Firewall",
-                    text(uiString.core_ui_reason_not_permitted_detail, "Cannot disable a protected package"),
-                ),
-        ).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_reason_component_needs_root), substring = true).assertDoesNotExist()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_operation_completed)).assertIsDisplayed()
     }
 
     @Test
-    fun givenBlockRefusedToRootWithoutAMessage_whenTold_thenSaysTheSystemDoesNotAllowIt() {
-        showText { refused(PrivilegedIdentity.SYSTEM, null).text() }
+    fun givenBatchWithFailures_whenTold_thenCountsTheComponentsNotChanged() {
+        showText { ControlMessage.BatchDone(notChanged = 2).text() }
 
-        composeTestRule.onNodeWithText(
-            text(uiString.core_ui_block_component_partial, "AdActivity") + "\n" +
-                text(uiString.core_ui_layer_reason, "Intent Firewall", text(uiString.core_ui_reason_not_permitted)),
-        ).assertIsDisplayed()
-    }
-
-    private fun refused(identity: PrivilegedIdentity, message: String?) = ControlMessage.ComponentNotChanged(
-        name = "AdActivity",
-        goal = ControlGoal.BLOCK,
-        partial = true,
-        failures = listOf(LayerFailure(ControlLayer.INTENT_FIREWALL, ControlFailure.NotPermitted(message))),
-        identity = identity,
-    )
-
-    @Test
-    fun givenBatchThatLeftOnlyShippedDisabledComponentsOff_whenTold_thenSaysWhyTheyStayOffInsteadOfNothingNeeded() {
-        showText { ControlMessage.BatchDone(ControlGoal.UNBLOCK, changed = 0, notChanged = 0, mostCommon = null, staysOffAsShipped = 3).text() }
-
-        composeTestRule.onNodeWithText(plural(uiPlurals.core_ui_batch_stays_off_as_shipped, 3)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(uiString.core_ui_batch_nothing_needed), substring = true).assertDoesNotExist()
-    }
-
-    @Test
-    fun givenBatchThatChangedSomeAndLeftShippedDisabledOff_whenTold_thenSaysBoth() {
-        showText { ControlMessage.BatchDone(ControlGoal.UNBLOCK, changed = 2, notChanged = 0, mostCommon = null, staysOffAsShipped = 1).text() }
-
-        composeTestRule.onNodeWithText(
-            plural(uiPlurals.core_ui_batch_changed, 2) + "\n" + plural(uiPlurals.core_ui_batch_stays_off_as_shipped, 1),
-        ).assertIsDisplayed()
+        composeTestRule.onNodeWithText(plural(uiPlurals.core_ui_operation_completed_with_failures, 2)).assertIsDisplayed()
     }
 
     private fun plural(id: Int, count: Int) = composeTestRule.activity.resources.getQuantityString(id, count, count)
-
-    @Test
-    fun givenBatchWithNothingToChange_whenTold_thenSaysNothingNeededChanging() {
-        showText { ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 0, notChanged = 0, mostCommon = null).text() }
-
-        composeTestRule.onNodeWithText(text(uiString.core_ui_batch_nothing_needed)).assertIsDisplayed()
-    }
-
-    @Test
-    fun givenBatchWithFailures_whenTold_thenCountsAndTheMostCommonReason() {
-        showText {
-            ControlMessage.BatchDone(
-                goal = ControlGoal.ENABLE,
-                changed = 23,
-                notChanged = 2,
-                mostCommon = LayerFailure(ControlLayer.PACKAGE_MANAGER, ControlFailure.ChannelUnavailable),
-            ).text()
-        }
-
-        composeTestRule.onNodeWithText(
-            "23 components changed, 2 could not be changed\nMost often: Package Manager: " + text(uiString.core_ui_reason_no_access),
-        ).assertIsDisplayed()
-    }
-
-    @Test
-    fun givenLaunchBlockedByRule_whenTold_thenSaysItDidNotOpen() {
-        showText { ListMessage.LaunchBlockedByRule("AdActivity").text() }
-
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_launch_blocked, "AdActivity")).assertIsDisplayed()
-    }
 
     private fun showText(message: @Composable () -> String) {
         composeTestRule.setContent {
@@ -370,9 +263,8 @@ class AppDetailScreenTest {
         }
     }
 
-    private fun componentTab(banners: List<ModeBanner> = emptyList()) = ComponentListUiState(
+    private fun componentTab() = ComponentListUiState(
         tabs = TabState(listOf(AppDetailTabs.Info, AppDetailTabs.Activity), AppDetailTabs.Activity, mapOf(AppDetailTabs.Activity to previewActivityRows.size)),
         components = ComponentsUiState.Loaded(previewComponents),
-        banners = banners,
     )
 }

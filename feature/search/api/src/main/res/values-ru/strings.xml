@@ -48,9 +48,4 @@
     <string name="feature_search_api_search_hint">Приложения, компоненты и правила</string>
     <string name="feature_search_api_no_search_result">Ничего не найдено</string>
     <string name="feature_search_api_check_icon">Проверка</string>
-    <string name="feature_search_api_indexing">Индексация приложений…</string>
-    <string name="feature_search_api_indexing_progress">Индексация приложений %1$d/%2$d</string>
-    <string name="feature_search_api_index_incomplete">Состояние некоторых компонентов не удалось прочитать, оно показано как неизвестное.</string>
-    <string name="feature_search_api_index_failed">Не удалось получить список приложений этого пользователя, поэтому найдутся только компоненты, прочитанные ранее.</string>
-    <string name="feature_search_api_component_not_counted">Компоненты</string>
 </resources>

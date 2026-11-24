@@ -126,12 +126,6 @@ class SearchScreenScreenshotTests {
     fun searchScreenIndexing() = capture("SearchScreenIndexing", SearchStates.indexing())
 
     @Test
-    fun searchScreenBanners() = capture("SearchScreenBanners", SearchStates.banners())
-
-    @Test
-    fun searchScreenNoAccess() = capture("SearchScreenNoAccess", SearchStates.noAccess())
-
-    @Test
     fun searchScreenProfiles() = capture("SearchScreenProfiles", SearchStates.workProfile())
 
     private fun capture(name: String, state: SearchUiState) {

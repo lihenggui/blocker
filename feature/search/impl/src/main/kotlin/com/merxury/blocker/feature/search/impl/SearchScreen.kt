@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -64,8 +66,10 @@ import com.merxury.blocker.feature.search.impl.component.SearchActions
 import com.merxury.blocker.feature.search.impl.component.SearchResultTabs
 import com.merxury.blocker.feature.search.impl.component.SearchTopBar
 import com.merxury.blocker.feature.search.impl.component.leavingWith
+import com.merxury.blocker.feature.search.impl.component.needsAccess
 import com.merxury.blocker.feature.search.impl.component.text
 import com.merxury.blocker.feature.search.impl.screen.SearchingScreen
+import com.merxury.blocker.core.ui.R.string as uiString
 
 /**
  * Opens the detail screen of an app.
@@ -88,7 +92,7 @@ fun SearchScreen(
     // The text is kept here, so typing never waits for the results.
     var query by rememberSaveable { mutableStateOf("") }
     LaunchedEffect(query) { viewModel.search(query) }
-    SearchMessages(uiState, snackbarHostState, viewModel::onMessageShown)
+    SearchMessages(uiState, snackbarHostState, viewModel::onMessageShown, onGrantAccess = { viewModel.grantAccess() })
     val actions = rememberSearchActions(viewModel, uiState, navigateToAppDetail, navigateToRuleDetail)
     SearchScreen(
         uiState = uiState,
@@ -112,14 +116,21 @@ private fun KeepFreshWhileStarted(keepFresh: suspend () -> Unit) {
     }
 }
 
-/** Shows each message for its whole duration, then reports it shown, so each is told once. */
+/**
+ * Shows each message for its whole duration, then reports it shown, so each is told once. A message
+ * caused by missing access offers to grant it.
+ */
 @Composable
-private fun SearchMessages(uiState: SearchUiState, snackbarHostState: SnackbarHostState, onConsume: (Long) -> Unit) {
+private fun SearchMessages(uiState: SearchUiState, snackbarHostState: SnackbarHostState, onConsume: (Long) -> Unit, onGrantAccess: () -> Unit) {
     val queued = uiState.messages.firstOrNull()
     val text = queued?.message?.text()
+    val grantLabel = stringResource(uiString.core_ui_grant_access)
+    val currentGrant by rememberUpdatedState(onGrantAccess)
     LaunchedEffect(queued?.id) {
         if (queued != null && text != null) {
-            snackbarHostState.showSnackbar(text, duration = SnackbarDuration.Long, withDismissAction = true)
+            val actionLabel = grantLabel.takeIf { queued.message.needsAccess }
+            val result = snackbarHostState.showSnackbar(text, actionLabel = actionLabel, duration = SnackbarDuration.Long, withDismissAction = true)
+            if (result == SnackbarResult.ActionPerformed) currentGrant()
             onConsume(queued.id)
         }
     }
@@ -152,10 +163,9 @@ private fun rememberSearchActions(
                 openApp(component.id.packageName, userIdOf(currentState.selectedUser), component.type.tab, keyword())
             },
             onSelectionModeChange = viewModel::setSelectionMode,
-            onToggleSelected = viewModel::toggleSelected,
+            onSwitch = { component, enabled -> viewModel.setEnabled(component.id, enabled) },
             onToggleSelectedApp = viewModel::toggleSelectedApp,
             onRefreshComponents = viewModel::refreshComponents,
-            onGrantAccess = { viewModel.grantAccess() },
             onOpenRule = { id -> openRule(id) },
         )
     }
