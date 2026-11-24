@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.ruledetail.impl
 
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
@@ -87,6 +88,25 @@ class RuleDetailViewModelTest {
         // Off when PackageManager, the firewall or the manifest blocks it; unreadable firewall rules count as none.
         assertThat(alpha.rows.associate { it.id.simpleName to it.enabled })
             .containsExactly("Ifw", false, "Pm", false, "Shipped", false, "Unreadable", true)
+    }
+
+    @Test
+    fun givenSeveralKeywords_whenAnAppIsShown_thenItsRowsKeepTheOldOrder() = runTest {
+        fixture.rules.sendRuleList(listOf(TRACKER.copy(searchKeyword = listOf("com.tracker.Z", "com.tracker."))))
+        fixture.components.sendComponents(
+            OWNER,
+            listOf(
+                component("com.a", "Activity", type = ComponentType.ACTIVITY),
+                component("com.a", "Receiver"),
+                component("com.a", "ZReceiver"),
+                component("com.a", "ZService", type = ComponentType.SERVICE),
+            ),
+        )
+        show()
+
+        // The first keyword's components first, then by type, as the screen listed them before.
+        assertThat(fixture.apps().single().rows.map { it.id.simpleName })
+            .containsExactly("ZService", "ZReceiver", "Activity", "Receiver").inOrder()
     }
 
     @Test

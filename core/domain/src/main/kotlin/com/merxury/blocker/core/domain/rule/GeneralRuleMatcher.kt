@@ -27,6 +27,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.SqlLikePattern
 import com.merxury.blocker.core.domain.foldSqlLikeCase
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.UserId
@@ -113,7 +114,9 @@ class GeneralRuleMatcher @Inject constructor(
     /** The matches of each package by its class names, valid while the rules' keywords stay the same. */
     private class MatchMemo {
         private var keywords: List<Pair<Int, List<String>>>? = null
-        private var patterns: List<Pair<SqlLikePattern, List<Int>>> = emptyList()
+
+        // Each distinct keyword with the rules that list it and where each lists it.
+        private var patterns: List<Pair<SqlLikePattern, List<KeywordOf>>> = emptyList()
         private val packages = HashMap<String, PackageMatch>()
 
         suspend fun match(input: MatchInput): GeneralRuleMatches {
@@ -125,7 +128,7 @@ class GeneralRuleMatcher @Inject constructor(
                 packages.clear()
             }
             val shown = input.shownApps.mapTo(HashSet()) { it.key.packageName }
-            val byRule = HashMap<Int, MutableList<ComponentStatus>>()
+            val byRule = HashMap<Int, MutableList<Pair<ComponentStatus, Int>>>()
             var reused = 0
             val byPackage = input.components.groupBy { it.declaration.id.packageName }
             byPackage.forEach { (packageName, statuses) ->
@@ -136,34 +139,58 @@ class GeneralRuleMatcher @Inject constructor(
                 val match = known ?: PackageMatch(names, names.map(::rulesOf)).also { packages[packageName] = it }
                 if (known != null) reused++
                 statuses.forEachIndexed { index, status ->
-                    match.rules[index].forEach { byRule.getOrPut(it) { mutableListOf() } += status }
+                    match.rules[index].forEach { (ruleId, keyword) -> byRule.getOrPut(ruleId) { mutableListOf() } += status to keyword }
                 }
             }
             packages.keys.retainAll(byPackage.keys)
             Timber.v("Matched ${input.rules.size} rules against ${input.components.size} components in ${started.elapsedNow()}, ${byPackage.size} packages, $reused unchanged")
-            return GeneralRuleMatches(byRule)
+            return GeneralRuleMatches(byRule.mapValues { (_, matched) -> matched.sortedWith(OLD_SCREEN_ORDER).map { it.first } })
         }
 
-        private fun rulesOf(className: String): List<Int> {
+        /** The rules that match [className], each with the position of its first keyword that matches. */
+        private fun rulesOf(className: String): Map<Int, Int> {
             val folded = className.substringBefore('\u0000').foldSqlLikeCase()
-            val matched = LinkedHashSet<Int>()
-            patterns.forEach { (pattern, ids) -> if (pattern.matchesFolded(folded)) matched += ids }
-            return matched.toList()
+            val matched = LinkedHashMap<Int, Int>()
+            patterns.forEach { (pattern, rules) ->
+                if (pattern.matchesFolded(folded)) rules.forEach { matched.merge(it.ruleId, it.position, ::minOf) }
+            }
+            return matched
         }
 
-        private fun patternsOf(rules: List<GeneralRule>): List<Pair<SqlLikePattern, List<Int>>> {
-            val rulesByKeyword = LinkedHashMap<String, MutableSet<Int>>()
-            rules.forEach { rule -> rule.searchKeyword.forEach { rulesByKeyword.getOrPut(it) { LinkedHashSet() } += rule.id } }
-            return rulesByKeyword.map { (keyword, ids) -> SqlLikePattern(keyword) to ids.toList() }
+        private fun patternsOf(rules: List<GeneralRule>): List<Pair<SqlLikePattern, List<KeywordOf>>> {
+            val rulesByKeyword = LinkedHashMap<String, MutableList<KeywordOf>>()
+            rules.forEach { rule ->
+                rule.searchKeyword.forEachIndexed { position, keyword -> rulesByKeyword.getOrPut(keyword) { mutableListOf() } += KeywordOf(rule.id, position) }
+            }
+            return rulesByKeyword.map { (keyword, keywordOf) -> SqlLikePattern(keyword) to keywordOf }
         }
     }
 
-    /** The rules that match each of [classNames], in the same order. */
-    private class PackageMatch(val classNames: List<String>, val rules: List<List<Int>>)
+    /** The rules that match each of [classNames], in the same order, see [MatchMemo.rulesOf]. */
+    private class PackageMatch(val classNames: List<String>, val rules: List<Map<Int, Int>>)
+
+    /** A rule that lists a keyword, at [position] among its keywords. */
+    private data class KeywordOf(val ruleId: Int, val position: Int)
 
     private companion object {
         /** How long a matching keeps running without collectors, as while a screen is recreated. */
         const val KEEP_MATCHING_MILLIS = 5_000L
+
+        /** The order the old component table filled its rows in: one app's activities, services, receivers, then providers. */
+        val TYPE_ORDER = listOf(ComponentType.ACTIVITY, ComponentType.SERVICE, ComponentType.RECEIVER, ComponentType.PROVIDER)
+
+        /**
+         * The order the rule detail listed an app's matched components in before it read the cache:
+         * it searched one keyword after another, so the components of the rule's first keyword came
+         * first, each search in the order the old table held the rows, by type. The table held each
+         * type in manifest order, which the cache does not keep; the class name stands in for it.
+         */
+        val OLD_SCREEN_ORDER: Comparator<Pair<ComponentStatus, Int>> = compareBy<Pair<ComponentStatus, Int>>(
+            { it.first.declaration.id.packageName },
+            { it.second },
+            { TYPE_ORDER.indexOf(it.first.declaration.type) },
+            { it.first.declaration.id.className },
+        )
     }
 }
 
@@ -171,10 +198,11 @@ class GeneralRuleMatcher @Inject constructor(
  * What the general rules match among the cached components of one user's apps.
  *
  * @property byRule the matched components of each rule that matches any, by rule id, each list by
- * package and class name
+ * package and then in the order the rule detail lists an app's components: those the rule's first
+ * keyword matches first, then each type in turn, then by class name
  */
 data class GeneralRuleMatches(private val byRule: Map<Int, List<ComponentStatus>>) {
-    /** The components the rule with [ruleId] matches, by package and class name. */
+    /** The components the rule with [ruleId] matches, by package, each package's in the order of [byRule]. */
     fun componentsOf(ruleId: Int): List<ComponentStatus> = byRule[ruleId].orEmpty()
 
     /** How many apps have components the rule with [ruleId] matches. */

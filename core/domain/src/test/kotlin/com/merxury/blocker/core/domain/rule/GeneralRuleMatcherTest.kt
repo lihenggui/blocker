@@ -18,6 +18,7 @@ package com.merxury.blocker.core.domain.rule
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
@@ -130,6 +131,37 @@ class GeneralRuleMatcherTest {
             userData.sendUserData(defaultUserData.copy(showSystemApps = true))
             assertThat(awaitItem().appCountOf(TRACKER.id)).isEqualTo(1)
         }
+    }
+
+    @Test
+    fun givenSeveralKeywords_whenMatching_thenEachAppListsItsComponentsAsTheOldRuleDetailDid() = runTest {
+        rules.sendRuleList(listOf(TRACKER.copy(searchKeyword = listOf("com.second.", "com.first.", "Both"))))
+        apps.sendApps(listOf(installedApp("com.alpha")))
+        components.sendComponents(
+            OWNER,
+            listOf(
+                status("com.alpha", "com.first.Activity", ComponentType.ACTIVITY),
+                status("com.alpha", "com.first.Both", ComponentType.RECEIVER),
+                status("com.alpha", "com.second.Provider", ComponentType.PROVIDER),
+                status("com.alpha", "com.second.Receiver", ComponentType.RECEIVER),
+                status("com.alpha", "com.second.Service", ComponentType.SERVICE),
+                status("com.alpha", "com.second.ZActivity", ComponentType.ACTIVITY),
+                status("com.alpha", "com.third.Both", ComponentType.ACTIVITY),
+            ),
+        )
+
+        val names = matcher().matches(OWNER).first().componentsOf(TRACKER.id).map { it.declaration.id.className }
+
+        // By the first keyword that matches, then activities, services, receivers and providers.
+        assertThat(names).containsExactly(
+            "com.second.ZActivity",
+            "com.second.Service",
+            "com.second.Receiver",
+            "com.second.Provider",
+            "com.first.Activity",
+            "com.first.Both",
+            "com.third.Both",
+        ).inOrder()
     }
 
     private companion object {

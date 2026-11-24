@@ -97,8 +97,9 @@ internal fun component(
     pm: PmSetting = PmSetting.DEFAULT,
     ifw: IfwBlock = IfwBlock.NOT_BLOCKED,
     enabledInManifest: Boolean = true,
+    type: ComponentType = ComponentType.RECEIVER,
 ) = ComponentStatus(
-    declaration = ComponentDeclaration(id(packageName, name), ComponentType.RECEIVER, exported = false, enabledInManifest = enabledInManifest),
+    declaration = ComponentDeclaration(id(packageName, name), type, exported = false, enabledInManifest = enabledInManifest),
     state = ControlState(pm, ifw),
 )
 
