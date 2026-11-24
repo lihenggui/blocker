@@ -73,8 +73,9 @@ private const val IFW = "/data/system/ifw"
  *
  * Argument `wakeWrites=<case>`: `root` (su allows this package, as with the PackageManager
  * controller type), `shizuku-root` (Shizuku runs as root and allows this package) or
- * `shizuku-shell` (Shizuku started through adb; su must also allow this package, through which
- * the test checks that nothing was written). Without it every test is skipped. Shizuku reads an
+ * `shizuku-shell` (Shizuku started through adb). As the shell the test checks that nothing was
+ * written through su when su allows this package; on a device without su, check
+ * `/data/system` from outside after the run. Without it every test is skipped. Shizuku reads an
  * app's grant only when its server starts: install this APK, `pm grant <package>
  * moe.shizuku.manager.permission.API_V23`, then start the server.
  */
@@ -106,9 +107,17 @@ class WakeWriteDeviceTest {
             "shizuku-root" -> connectedShizukuTransport(context, PrivilegedIdentity.ROOT)
             else -> connectedShizukuTransport(context, PrivilegedIdentity.SHELL)
         }
-        verifier = if (case == "shizuku-shell") rootTransport() else connected
+        verifier = if (case == "shizuku-shell") rootTransportIfAllowed() else connected
         Log.i(TAG, "$case: channel ${connected.state.value}")
         return connected
+    }
+
+    /** A root channel when su allows this package, for checking the files as the shell; else null. */
+    private fun rootTransportIfAllowed(): PrivilegedTransport? {
+        val root = RootTransport(BlockerRootSession(context), InMemoryRootGrantMemory(remembered = false), Dispatchers.IO)
+        val state = runBlocking { root.connect() }
+        Log.i(TAG, "$case: su for checking the files: $state")
+        return root.takeIf { state == ChannelState.Ready(PrivilegedIdentity.ROOT) }
     }
 
     private fun rootTransport() = RootTransport(BlockerRootSession(context), InMemoryRootGrantMemory(remembered = false), Dispatchers.IO).also {
@@ -258,7 +267,7 @@ class WakeWriteDeviceTest {
             assertIs<IOException>(it)
             assertTrue(it.message.orEmpty().contains("NotPermitted"), "Not refused as the shell: ${it.message}")
         }
-        listOf(managedFile, probeFile, journalFile).forEach { assertNull(inSystem(StatFile(it)), it) }
+        if (verifier != null) listOf(managedFile, probeFile, journalFile).forEach { assertNull(inSystem(StatFile(it)), it) }
     }
 
     /** Runs [call] through [verifier], failing the test when it cannot. */
