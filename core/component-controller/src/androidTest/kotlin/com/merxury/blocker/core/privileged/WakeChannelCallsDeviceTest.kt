@@ -30,6 +30,7 @@ import com.merxury.blocker.core.appcontrol.AppControlFixtureService
 import com.merxury.blocker.core.appcontrol.PrivilegedAppControl
 import com.merxury.blocker.core.control.ControlFixtureActivity
 import com.merxury.blocker.core.controllers.wake.WakeCommand
+import com.merxury.blocker.core.controllers.wake.WakeJournalRead
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
@@ -64,7 +65,6 @@ import org.junit.Test
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 private const val TAG = "WakeChannelCallsDeviceTest"
@@ -252,10 +252,10 @@ class WakeChannelCallsDeviceTest {
         val second = """{"components":["${"x".repeat(200 * 1024)}"]}"""
 
         transport.execute(ReplaceWakeJournal(self, first)).value()
-        assertEquals(first, transport.execute(ReadWakeJournal(self)).value())
+        assertEquals(WakeJournalRead.Found(first), transport.execute(ReadWakeJournal(self)).value())
         transport.execute(ReplaceWakeJournal(self, second)).value()
-        assertEquals(second, transport.execute(ReadWakeJournal(self)).value())
-        assertNull(transport.execute(ReadWakeJournal("$self.absent")).value())
+        assertEquals(WakeJournalRead.Found(second), transport.execute(ReadWakeJournal(self)).value())
+        assertEquals(WakeJournalRead.Missing, transport.execute(ReadWakeJournal("$self.absent")).value())
     }
 
     @Test

@@ -17,9 +17,11 @@
 package com.merxury.blocker.core.data.device
 
 import com.merxury.blocker.core.database.app.AppComponentDao
+import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.UserId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -57,12 +59,17 @@ interface PmBlockRecordSeeder {
  * was never initialised), this is a new install with no earlier blocks: nothing is seeded, and
  * the seed is marked done all the same, so the list the first scan fills later, which holds only
  * what the system and the apps disabled, is never taken for Blocker's blocks.
+ *
+ * Components the wake feature disabled and still claims are left out: they are not the user's
+ * blocks, and the wake feature restores them itself when it lets go of them. It changes components
+ * of the owner user only.
  */
 @Singleton
 internal class LegacyListPmBlockRecordSeeder @Inject constructor(
     private val legacyComponents: AppComponentDao,
     private val properties: BlockerAppPropertiesDataStore,
     private val records: PmBlockRecords,
+    private val wakeHistory: WakeHistoryDao,
 ) : PmBlockRecordSeeder {
     private val mutex = Mutex()
 
@@ -71,9 +78,11 @@ internal class LegacyListPmBlockRecordSeeder @Inject constructor(
             if (properties.pmBlockRecordsSeeded.first()) return@withLock
             if (properties.appPropertiesData.first().componentDatabaseInitialized) {
                 val user = ownUser()
+                val wakeClaims = if (user == UserId.SYSTEM) wakeClaims() else emptySet()
                 val keys = legacyComponents.getPmBlockedComponents().map { ComponentKey(ComponentId(it.packageName, it.componentName), user) }
+                    .filterNot { it.id in wakeClaims }
                 records.record(keys)
-                Timber.i("Seeded ${keys.size} PM blocks of user ${user.value} from the old component list")
+                Timber.i("Seeded ${keys.size} PM blocks of user ${user.value} from the old component list, leaving out ${wakeClaims.size} the wake feature claims")
             } else {
                 Timber.i("The old component list was never filled, there are no PM blocks to seed")
             }
@@ -84,4 +93,10 @@ internal class LegacyListPmBlockRecordSeeder @Inject constructor(
             Timber.e(e, "Cannot seed the PM blocks from the old component list, try again next time")
         }
     }
+
+    /** The components the wake feature disabled through PackageManager, or is disabling, and claims. */
+    private suspend fun wakeClaims(): Set<ComponentId> = wakeHistory.readProtections()
+        .filter { it.method == "PM" && (it.configured || it.pendingChange) }
+        .map { ComponentId(it.target, it.component) }
+        .toSet()
 }

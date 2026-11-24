@@ -157,6 +157,9 @@ internal fun InputStream.copyBounded(output: OutputStream) {
     }
 }
 
+// Shizuku replaces a running user service only when this changes: raise it with each change of IWakeReader.
+private const val WAKE_USER_SERVICE_VERSION = 6
+
 /** Loaded by Shizuku in its authorized shell/root user service process. */
 class WakeUserService @JvmOverloads constructor(private val context: Context? = null) : IWakeReader.Stub() {
     private val worker = Executors.newSingleThreadExecutor()
@@ -178,55 +181,11 @@ class WakeUserService @JvmOverloads constructor(private val context: Context? = 
         return reader
     }
 
-    private fun firewallOwner(): String {
-        val owner = checkNotNull(context) { "Shizuku 13 or later required" }
-        check(android.os.Process.myUid() == 0 && android.os.Binder.getCallingUid() == owner.applicationInfo.uid)
-        return owner.packageName
-    }
-
-    override fun writeManagedFirewall(xml: String?, probe: Boolean) = com.merxury.core.ifw.writeManagedWakeFile(firewallOwner(), xml, probe)
-
-    override fun resetManagedFirewall(packageName: String?): Boolean = com.merxury.core.ifw.resetManagedWakeFiles(firewallOwner(), packageName)
-
-    override fun componentJournal(replacement: String?): String {
-        check(android.os.Process.myUid() == 0)
-        val caller = android.os.Binder.getCallingUid()
-        val owner = if (context != null) {
-            check(caller == context.applicationInfo.uid)
-            context.packageName
-        } else {
-            // Older Shizuku supplies no Context. The caller can only address its own journal.
-            check(android.os.UserHandle.getUserHandleForUid(caller) == android.os.UserHandle.getUserHandleForUid(0) && caller >= 10000)
-            val identity = android.os.Binder.clearCallingIdentity()
-            try {
-                checkNotNull(be.mygod.librootkotlinx.systemContext.packageManager.getPackagesForUid(caller)?.singleOrNull())
-            } finally {
-                android.os.Binder.restoreCallingIdentity(identity)
-            }
-        }
-        return componentJournalFile(owner, replacement)
-    }
-
     override fun destroy() = kotlin.system.exitProcess(0)
 }
 
 internal class WakeSession(val uid: Int, private val remote: IWakeReader?, val generation: Int, private val binderOnly: Boolean = false) {
     val supportsRecorder get() = !binderOnly
-
-    fun componentJournal(replacement: String?): String {
-        check(uid == 0)
-        return checkNotNull(remote) { "Root user service unavailable" }.componentJournal(replacement)
-    }
-
-    fun resetFirewall(packageName: String?): Boolean {
-        check(uid == 0)
-        return checkNotNull(remote) { "Root user service unavailable" }.resetManagedFirewall(packageName)
-    }
-
-    fun writeFirewall(xml: String?, probe: Boolean) {
-        check(uid == 0)
-        checkNotNull(remote) { "Root user service unavailable" }.writeManagedFirewall(xml, probe)
-    }
 
     fun read(command: WakeCommand, profile: Int = 0, boot: Int = generation, argument: Long = 0): ByteArray {
         if (binderOnly) return WakeBinderReader.read(command, profile, android.os.Process.myUid(), boot, argument)
@@ -250,8 +209,6 @@ fun authorizedShizukuUid(): Int? = try {
     Timber.w(e, "Cannot read Shizuku authorization")
     null
 }
-
-fun hasAuthorizedWakeFirewallService(): Boolean = authorizedShizukuUid() == 0 && Shizuku.getVersion() >= 13
 
 fun observeWakeShizukuAuthorization(onChanged: (Int?) -> Unit) {
     Shizuku.addBinderReceivedListenerSticky { onChanged(authorizedShizukuUid()) }
@@ -281,7 +238,7 @@ class WakeSystemReader @Inject constructor(
         val uid = checkNotNull(authorizedShizukuUid()) { "Shizuku authorization unavailable" }
         check(access == WakeAccess.SHIZUKU_SHELL || uid == 0)
         val args = Shizuku.UserServiceArgs(ComponentName(context, WakeUserService::class.java))
-            .daemon(false).processNameSuffix("wake_reader").tag("wake-reader-${UUID.randomUUID()}").version(5)
+            .daemon(false).processNameSuffix("wake_reader").tag("wake-reader-${UUID.randomUUID()}").version(WAKE_USER_SERVICE_VERSION)
         var connection: ServiceConnection? = null
         try {
             val remote = withContext(Dispatchers.Main.immediate) {

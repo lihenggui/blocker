@@ -4,7 +4,9 @@
 package com.merxury.blocker.core.data.wake
 
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
 import com.merxury.blocker.core.controllers.wake.WakeComponentJournal
+import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeProtection
 import kotlinx.coroutines.test.runTest
@@ -34,6 +36,35 @@ class WakeComponentOwnershipTest {
         whenever(journal.read()).thenReturn(encoded.firstValue)
         ownership.recover()
         verify(dao, times(2)).putProtections(listOf(owned))
+    }
+
+    @Test fun givenReadableJournal_whenProbing_thenNothingIsThrownOrWritten() = runTest {
+        whenever(journal.read()).thenReturn("[]")
+        ownership.probeJournal()
+        verify(journal, never()).write(any())
+        verify(dao, never()).putProtections(any())
+    }
+
+    @Test fun givenChannelRefusesTheJournal_whenProbing_thenTheRefusalIsThrown() = runTest {
+        whenever(journal.read()).thenAnswer { throw WakeCallRefusedException("Shizuku 12 cannot run ReadWakeJournal") }
+        assertThat(runCatching { ownership.probeJournal() }.exceptionOrNull()).isInstanceOf(WakeCallRefusedException::class.java)
+    }
+
+    @Test fun givenJournalThisIdentityCannotRead_whenProbing_thenItIsReportedAndNothingIsDropped() = runTest {
+        whenever(journal.read()).thenAnswer { throw WakeJournalUnreadableException("owned by 0:0 with mode 600, read as uid 1000") }
+        assertThat(runCatching { ownership.probeJournal() }.exceptionOrNull()).isInstanceOf(WakeJournalUnreadableException::class.java)
+        verify(journal, never()).write(any())
+        verify(dao, never()).putProtections(any())
+    }
+
+    @Test fun givenNoJournalYet_whenRecoveringOwnership_thenLocalEntriesAreWrittenToIt() = runTest {
+        whenever(dao.readProtections()).thenReturn(listOf(owned))
+        whenever(journal.read()).thenReturn(null)
+        ownership.recover()
+        val encoded = argumentCaptor<String>()
+        verify(journal).write(encoded.capture())
+        assertThat(encoded.firstValue).contains("\"pathId\":\"path\"")
+        verify(dao, never()).putProtections(any())
     }
 
     @Test fun givenInterruptedRelease_whenRecoveringOwnership_thenLocalEntryCannotReclaimComponent() = runTest {

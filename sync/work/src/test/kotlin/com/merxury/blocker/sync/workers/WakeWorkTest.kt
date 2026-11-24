@@ -38,6 +38,7 @@ import org.robolectric.annotation.Config
 class WakeWorkTest {
     private val context get() = RuntimeEnvironment.getApplication() as Application
     private val granted = MutableStateFlow(false)
+    private val writable = MutableStateFlow(false)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.initializeWork(): WorkManager {
@@ -52,6 +53,7 @@ class WakeWorkTest {
         )
         val authorization = mock<WakeAuthorizationRepository>()
         whenever(authorization.rootGranted).thenReturn(granted)
+        whenever(authorization.channelWritable).thenReturn(writable)
         WakeWork(context, authorization, backgroundScope, StandardTestDispatcher(testScheduler)).initialize()
         runCurrent()
         return WorkManager.getInstance(context)
@@ -70,6 +72,19 @@ class WakeWorkTest {
         runCurrent()
         assertThat(pending("wake-history-update")).isNotEqualTo(startup)
         assertThat(pending("wake-history-periodic")).isEqualTo(periodic)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenChannelBecomesWritable_whenGrantedAtFirstLaunch_thenImmediateWorkIsRescheduled() = runTest {
+        val work = initializeWork()
+        fun pending(name: String) = work.getWorkInfosForUniqueWork(name).get().filter { !it.state.isFinished }.single().id
+        val startup = pending("wake-history-update")
+
+        writable.value = true
+        runCurrent()
+
+        assertThat(pending("wake-history-update")).isNotEqualTo(startup)
     }
 
     @Test fun givenRetryingCollector_whenEitherPeerUpdates_thenASeparateRefreshIsScheduled() = runTest {

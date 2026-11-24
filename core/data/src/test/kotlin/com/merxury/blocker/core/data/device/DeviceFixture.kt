@@ -23,6 +23,7 @@ import com.merxury.blocker.core.appcontrol.AppControl
 import com.merxury.blocker.core.control.ComponentControl
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
 import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
+import com.merxury.blocker.core.database.wake.WakeHistoryDatabase
 import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
 import com.merxury.blocker.core.datastore.test.InMemoryDataStore
@@ -105,7 +106,10 @@ abstract class DeviceRepositoryTestBase {
     internal val pmBlocks = PmBlockRecords(recordDao)
     internal val legacyComponents = FakeAppComponentDao()
     internal val appProperties = InMemoryDataStore(AppProperties.getDefaultInstance())
-    internal val seeder = LegacyListPmBlockRecordSeeder(legacyComponents, BlockerAppPropertiesDataStore(appProperties), pmBlocks)
+    internal val wakeDb: WakeHistoryDatabase = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
+        .allowMainThreadQueries()
+        .build()
+    internal val seeder = LegacyListPmBlockRecordSeeder(legacyComponents, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
     internal val system = FakeSystem()
     internal val files = FakeIfwFileSystem()
     internal val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())

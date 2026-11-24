@@ -10,7 +10,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.core.ifw.ManagedWakeReset
-import com.merxury.core.ifw.WakeResetTransport
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,9 +31,10 @@ class WakeProtectionManager @Inject constructor(
 ) {
     private val lock = Mutex()
 
-    suspend fun resetFirewall(packageName: String?, transport: WakeResetTransport) = withContext(ioDispatcher) {
+    /** Resets the wake rules of [packageName], or all; false when the channel cannot write them. */
+    suspend fun resetFirewall(packageName: String?): Boolean = withContext(ioDispatcher) {
         lock.withLock {
-            protection.resetFirewall(packageName, transport)
+            protection.resetFirewall(packageName)
         }
     }
 
@@ -51,7 +51,8 @@ class WakeProtectionManager @Inject constructor(
                     repository.reportStatus(WakeSourceStatus("authorization", now, "WAITING_FOR_PERMISSION"))
                     return@withLock true
                 }
-                protection.revokeStaleFirewallRules(access)
+                val writes = protection.writeAccess()
+                protection.revokeStaleFirewallRules(writes)
                 val capture = repository.collect(now - repository.lastDiagnostic >= 86_400_000, access)
                 val records = repository.attributionRecords(capture.boot)
                 val relations = WakeAttribution.relationships(records)
@@ -61,7 +62,7 @@ class WakeProtectionManager @Inject constructor(
                     repository.reportStatus(WakeSourceStatus("protection", now, "PROFILE_SCOPE_UNAVAILABLE"))
                     return@withLock false
                 }
-                val status = protection.applyReviewedPaths(capture, access, now)
+                val status = protection.applyReviewedPaths(capture, writes, now)
                 repository.reportStatus(WakeSourceStatus("protection", now, status))
                 !capture.binderFallback
             } catch (e: Exception) {
