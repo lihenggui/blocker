@@ -31,6 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 private val CALL = EchoInPrivilegedProcess("hello")
@@ -142,5 +143,45 @@ class ShizukuUserServiceTest {
         val thrown = runCatching { userService.run(CALL) }.exceptionOrNull()
 
         assertThat(thrown).isInstanceOf(SecurityException::class.java)
+    }
+
+    @Test
+    fun givenNoVisibleScreen_whenIdleForTheStopTime_thenServiceStoppedAndTheNextCallStartsIt() = runTest {
+        val idle = ShizukuUserService(connector, 15.seconds, IdleStop(backgroundScope, 60.seconds) { false })
+        idle.run(CALL)
+
+        advanceTimeBy(59.seconds)
+        assertThat(connector.unbinds).isEmpty()
+        advanceTimeBy(2.seconds)
+        assertThat(connector.unbinds).containsExactly(true)
+
+        assertThat(idle.run(CALL)).isInstanceOf(CallResult.Success::class.java)
+        assertThat(connector.binds).isEqualTo(2)
+    }
+
+    @Test
+    fun givenCallsKeepComing_whenEachIsWithinTheStopTime_thenServiceKept() = runTest {
+        val idle = ShizukuUserService(connector, 15.seconds, IdleStop(backgroundScope, 60.seconds) { false })
+        repeat(4) {
+            idle.run(CALL)
+            advanceTimeBy(40.seconds)
+        }
+
+        assertThat(connector.unbinds).isEmpty()
+        assertThat(connector.binds).isEqualTo(1)
+    }
+
+    @Test
+    fun givenVisibleScreen_whenIdle_thenServiceKeptUntilTheScreenGoes() = runTest {
+        var visible = true
+        val idle = ShizukuUserService(connector, 15.seconds, IdleStop(backgroundScope, 60.seconds) { visible })
+        idle.run(CALL)
+
+        advanceTimeBy(10.minutes)
+        assertThat(connector.unbinds).isEmpty()
+        visible = false
+        advanceTimeBy(61.seconds)
+
+        assertThat(connector.unbinds).containsExactly(true)
     }
 }
