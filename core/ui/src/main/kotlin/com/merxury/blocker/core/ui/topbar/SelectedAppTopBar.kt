@@ -35,6 +35,12 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.string
 
+/**
+ * The top bar of selection mode: the count selected and the actions on the selection.
+ *
+ * @param actionsEnabled whether the selection can be blocked or enabled now, for example false
+ * while another batch runs
+ */
 @Composable
 fun SelectedAppTopBar(
     title: Int,
@@ -45,6 +51,7 @@ fun SelectedAppTopBar(
     onSelectAll: () -> Unit = {},
     onBlockAllSelectedComponents: () -> Unit = {},
     onEnableAllSelectedComponents: () -> Unit = {},
+    actionsEnabled: Boolean = true,
 ) {
     var showBlockAllDialog by remember {
         mutableStateOf(false)
@@ -74,13 +81,13 @@ fun SelectedAppTopBar(
                     contentDescription = stringResource(id = string.core_ui_select_all),
                 )
             }
-            IconButton(onClick = { showBlockAllDialog = true }) {
+            IconButton(onClick = { showBlockAllDialog = true }, enabled = actionsEnabled) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.Block,
                     contentDescription = stringResource(id = string.core_ui_block_selected),
                 )
             }
-            IconButton(onClick = { showEnableAllDialog = true }) {
+            IconButton(onClick = { showEnableAllDialog = true }, enabled = actionsEnabled) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.CheckCircle,
                     contentDescription = stringResource(id = string.core_ui_enable_selected),

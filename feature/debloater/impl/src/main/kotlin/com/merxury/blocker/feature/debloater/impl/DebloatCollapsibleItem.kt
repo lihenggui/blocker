@@ -62,16 +62,8 @@ fun DebloatCollapsibleItem(
         BlockerIcons.ExpandMore
     }
     val items = listOf(
-        DropDownMenuItem(
-            string.core_ui_block_all_components,
-        ) {
-            onBlockAllInItemClick(matchedTarget.targets)
-        },
-        DropDownMenuItem(
-            string.core_ui_enable_all_components,
-        ) {
-            onEnableAllInItemClick(matchedTarget.targets)
-        },
+        DropDownMenuItem(string.core_ui_block_all_components, { onBlockAllInItemClick(matchedTarget.targets) }),
+        DropDownMenuItem(string.core_ui_enable_all_components, { onEnableAllInItemClick(matchedTarget.targets) }),
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,

@@ -85,6 +85,8 @@ fun CollapsibleItem(
  * @param icon Coil data for the icon; the Android icon when null or when it cannot be loaded
  * @param matchedCount every component of the group, which may be more than the blocked and the
  * enabled ones together when the state of some is not known
+ * @param batchActionsEnabled whether block all and enable all can be chosen, for example false
+ * while another batch runs
  */
 @Composable
 fun CollapsibleHeader(
@@ -100,6 +102,7 @@ fun CollapsibleHeader(
     onEnableAllClick: () -> Unit = {},
     expanded: Boolean = false,
     onCardArrowClick: () -> Unit = {},
+    batchActionsEnabled: Boolean = true,
 ) {
     val expandIcon = if (expanded) {
         BlockerIcons.ExpandLess
@@ -108,8 +111,8 @@ fun CollapsibleHeader(
     }
     val items = listOf(
         DropDownMenuItem(navigationMenuItemDesc, navigation),
-        DropDownMenuItem(string.core_ui_block_all_components, onBlockAllClick),
-        DropDownMenuItem(string.core_ui_enable_all_components, onEnableAllClick),
+        DropDownMenuItem(string.core_ui_block_all_components, onBlockAllClick, enabled = batchActionsEnabled),
+        DropDownMenuItem(string.core_ui_enable_all_components, onEnableAllClick, enabled = batchActionsEnabled),
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,

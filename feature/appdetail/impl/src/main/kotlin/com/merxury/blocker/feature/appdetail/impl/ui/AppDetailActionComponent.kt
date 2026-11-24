@@ -54,7 +54,8 @@ fun MoreActionMenu(
     val items = listOf(
         DropDownMenuItem(
             string.feature_appdetail_api_select_mutiple,
-        ) { switchSelectedMode(true) },
+            { switchSelectedMode(true) },
+        ),
         DropDownMenuItem(
             string.feature_appdetail_api_block_all_of_this_page,
             blockAllComponents,
