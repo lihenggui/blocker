@@ -21,6 +21,7 @@ option java_multiple_files = true;
 message AppProperties {
   bool component_database_initialized = 1;
   bool general_rule_database_initialized = 2;
+  // No longer read or written: the general rules are matched against the component cache.
   string last_opened_app_list_hash = 3;
   string last_opened_rule_hash = 4;
   // Whether su last started a root process for Blocker. Set when a root connection succeeds and

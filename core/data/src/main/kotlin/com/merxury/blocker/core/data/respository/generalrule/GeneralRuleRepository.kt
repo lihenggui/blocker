@@ -38,7 +38,5 @@ interface GeneralRuleRepository {
 
     suspend fun saveGeneralRule(rule: GeneralRule)
 
-    suspend fun updateMatchedAppCounts(counts: Map<Int, Int>)
-
     fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>>
 }

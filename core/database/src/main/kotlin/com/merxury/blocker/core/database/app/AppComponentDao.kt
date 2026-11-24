@@ -29,9 +29,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppComponentDao {
-    @Query("SELECT * FROM app_component")
-    fun getAll(): Flow<List<AppComponentEntity>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg appComponentEntities: AppComponentEntity)
 
@@ -82,8 +79,4 @@ interface AppComponentDao {
 
     @Upsert
     suspend fun upsertComponentList(componentList: List<AppComponentEntity>)
-
-    @Transaction
-    @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeyword || '%'")
-    fun searchByKeyword(searchKeyword: String): Flow<List<AppComponentEntity>>
 }

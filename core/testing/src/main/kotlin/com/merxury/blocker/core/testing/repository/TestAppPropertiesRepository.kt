@@ -34,7 +34,6 @@ class TestAppPropertiesRepository : AppPropertiesRepository {
             AppPropertiesData(
                 componentDatabaseInitialized = true,
                 generalRuleDatabaseInitialized = false,
-                lastOpenedAppListHash = "",
                 lastOpenedRuleHash = "",
             ),
         )
@@ -45,18 +44,6 @@ class TestAppPropertiesRepository : AppPropertiesRepository {
             AppPropertiesData(
                 componentDatabaseInitialized = false,
                 generalRuleDatabaseInitialized = true,
-                lastOpenedAppListHash = "",
-                lastOpenedRuleHash = "",
-            ),
-        )
-    }
-
-    override suspend fun updateLastOpenedAppListHash(hash: String) {
-        appPropertiesFlow.tryEmit(
-            AppPropertiesData(
-                componentDatabaseInitialized = false,
-                generalRuleDatabaseInitialized = false,
-                lastOpenedAppListHash = hash,
                 lastOpenedRuleHash = "",
             ),
         )
@@ -67,7 +54,6 @@ class TestAppPropertiesRepository : AppPropertiesRepository {
             AppPropertiesData(
                 componentDatabaseInitialized = false,
                 generalRuleDatabaseInitialized = false,
-                lastOpenedAppListHash = "",
                 lastOpenedRuleHash = hash,
             ),
         )

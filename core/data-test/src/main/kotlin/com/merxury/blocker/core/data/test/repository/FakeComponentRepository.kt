@@ -29,8 +29,6 @@ import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 class FakeComponentRepository @Inject constructor() : ComponentRepository {
-    override fun getAllComponents(): Flow<List<ComponentInfo>> = flowOf(emptyList())
-
     override fun getComponent(name: String): Flow<ComponentInfo?> = flowOf()
 
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = flowOf(emptyList())
@@ -68,8 +66,6 @@ class FakeComponentRepository @Inject constructor() : ComponentRepository {
             succeeded = true,
         ),
     )
-
-    override fun searchComponent(keyword: String): Flow<List<ComponentInfo>> = flowOf(emptyList())
 
     override suspend fun saveComponents(components: List<ComponentInfo>) {
         /* no-op */

@@ -66,10 +66,6 @@ internal class LocalComponentRepository @Inject constructor(
     private val legacyPmBlocks: LegacyPmBlockHook,
 ) : ComponentRepository {
 
-    override fun getAllComponents(): Flow<List<ComponentInfo>> = appComponentDao.getAll()
-        .map { list -> list.map { it.toComponentInfo() } }
-        .flowOn(ioDispatcher)
-
     override fun getComponent(name: String): Flow<ComponentInfo?> = appComponentDao.getByName(name)
         .map { it?.toComponentInfo() }
         .flowOn(ioDispatcher)
@@ -304,12 +300,6 @@ internal class LocalComponentRepository @Inject constructor(
 
         IFW_PLUS_PM -> pmBlocked != enabled && (type == ComponentType.PROVIDER || ifwBlocked != enabled)
     }
-
-    override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
-        .map { list ->
-            list.map { it.toComponentInfo() }
-        }
-        .flowOn(ioDispatcher)
 
     override suspend fun saveComponents(components: List<ComponentInfo>) {
         val entities = components.map { it.toAppComponentEntity() }

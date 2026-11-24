@@ -24,8 +24,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface ComponentRepository {
 
-    fun getAllComponents(): Flow<List<ComponentInfo>>
-
     fun getComponent(name: String): Flow<ComponentInfo?>
 
     fun getComponentList(packageName: String): Flow<List<ComponentInfo>>
@@ -54,8 +52,6 @@ interface ComponentRepository {
         newState: Boolean,
         controllerType: ControllerType? = null,
     ): Flow<ComponentControlResult>
-
-    fun searchComponent(keyword: String): Flow<List<ComponentInfo>>
 
     suspend fun saveComponents(components: List<ComponentInfo>)
 

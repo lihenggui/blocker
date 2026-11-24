@@ -26,7 +26,5 @@ interface AppPropertiesRepository {
 
     suspend fun markGeneralRuleDatabaseInitialized()
 
-    suspend fun updateLastOpenedAppListHash(hash: String)
-
     suspend fun updateLastOpenedRuleHash(hash: String)
 }
