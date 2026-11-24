@@ -31,6 +31,7 @@ import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -62,8 +63,9 @@ internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = components.components(AppKey(packageName, ownUser))
-        .map { statuses ->
-            val names = statuses.map { it.declaration.id.className }.toHashSet()
+        .map { statuses -> statuses.map { it.declaration.id.className }.toSet() }
+        .distinctUntilChanged()
+        .map { names ->
             if (names.isEmpty()) return@map emptyList()
             val workingDir = getWorkingDirWithLang()
             workingDir.listFilesRecursively()

@@ -99,6 +99,42 @@ class AppPermissionMonitorTest {
     }
 
     @Test
+    fun givenShizukuStartsButPermissionIsDenied_whenRetrying_thenDoesNotAskAgain() = runTest {
+        preferences.setControllerType(SHIZUKU)
+        channel.connectResult = ChannelState.Unavailable(UnavailableReason.NOT_RUNNING)
+        monitor().permissionStatus.test {
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+
+            channel.connectResult = DENIED
+            shizuku.startShizuku()
+
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+            runCurrent()
+            assertEquals(2, channel.connectCount)
+            assertEquals(0, shizuku.binderWaiterCount)
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun givenShizukuWasDenied_whenSwitchingBackAfterAGrant_thenReportsTheNewPermission() = runTest {
+        preferences.setControllerType(SHIZUKU)
+        channel.connectResult = DENIED
+        monitor().permissionStatus.test {
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+
+            channel.connectResult = ROOT
+            preferences.setControllerType(PM)
+            assertEquals(PermissionStatus.ROOT_USER, awaitItem())
+
+            channel.connectResult = SYSTEM
+            preferences.setControllerType(SHIZUKU)
+            assertEquals(PermissionStatus.SYSTEM_USER, awaitItem())
+        }
+        assertEquals(3, channel.connectCount)
+    }
+
+    @Test
     fun givenShizukuNotRunning_whenRootIsSelected_thenCancelsBinderWait() = runTest {
         preferences.setControllerType(SHIZUKU)
         channel.connectResult = ChannelState.Unavailable(UnavailableReason.NOT_RUNNING)

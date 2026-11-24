@@ -34,14 +34,19 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.backup.IfwRuleImporter
+import com.merxury.blocker.core.rule.backup.MatRuleImporter
+import com.merxury.blocker.core.rule.backup.PackageManagerReset
 import com.merxury.blocker.core.rule.backup.RuleRunResult
+import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.storage.FakeBackupStorage
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.withIfwEditorAccess
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -62,6 +67,7 @@ private fun outcome(component: ComponentDeclaration, pm: PmSetting, ifw: IfwBloc
 private fun blockRequest(vararg components: ComponentDeclaration) = ControlRequest(OWNER, components.toList(), ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER))
 
 /** The writers of component state besides a refresh: control, firewall changes, and their ordering. */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
 class ComponentWritersTest : DeviceRepositoryTestBase() {
@@ -151,6 +157,30 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
             withIfwEditorAccess { store.update(PKG) { IfwRules.empty() } }
             assertThat(awaitItem().map { it.state.ifw }).containsExactly(IfwBlock.NOT_BLOCKED, IfwBlock.NOT_BLOCKED)
         }
+    }
+
+    @Test
+    fun givenCachedComponent_whenMatImportAndPmResetFinish_thenTheirReadBackIsAlreadyStored() = runTest {
+        val repository = components(backgroundScope)
+        system.install(installedApp(PKG), MAIN)
+        repository.refresh(OWNER_APP)
+        val preferences = TestUserDataRepository().apply { setControllerType(ControllerType.PM) }
+        val importer = MatRuleImporter(apps, repository, channel, preferences)
+        val reset = PackageManagerReset(repository, channel)
+        componentControl.apply = { request ->
+            flow {
+                val setting = if (request.goal == ControlGoal.BLOCK) PmSetting.DISABLED else PmSetting.DEFAULT
+                system.put(OWNER, MAIN, setting)
+                emit(ControlEvent.PackageDone(PKG, listOf(outcome(MAIN, setting, IfwBlock.NOT_BLOCKED))))
+                emit(ControlEvent.Finished(achieved = 1, partial = 0, failed = 0))
+            }
+        }
+
+        assertThat((importer.import(listOf(MAIN.id.flatten()), OWNER) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+        assertThat(repository.components(OWNER_APP).first().single().state.pm).isEqualTo(PmSetting.DISABLED)
+        assertThat((reset.reset(OWNER) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+        assertThat(repository.components(OWNER_APP).first().single().state.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(pmBlocks.of(OWNER)).isEmpty()
     }
 
     @Test

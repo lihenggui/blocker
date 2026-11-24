@@ -34,6 +34,7 @@ class LegacyDebloaterDatabaseTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val legacy = "share_target"
         val current = "blocker"
+        context.openOrCreateDatabase(legacy, Context.MODE_PRIVATE, null).close()
         val oldFile = context.getDatabasePath(legacy)
         val journal = File(oldFile.path + "-journal").apply { createNewFile() }
         context.openOrCreateDatabase(current, Context.MODE_PRIVATE, null).close()
