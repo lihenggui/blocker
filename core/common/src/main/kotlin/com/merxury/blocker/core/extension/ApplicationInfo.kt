@@ -24,6 +24,9 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
 import timber.log.Timber
 
+/** Include both kinds of declared component regardless of whether the queried user is unlocked. */
+const val MATCH_ALL_DIRECT_BOOT_COMPONENTS = PackageManager.MATCH_DIRECT_BOOT_AWARE or PackageManager.MATCH_DIRECT_BOOT_UNAWARE
+
 // The lint tool cannot recognize value 0 as a flag, so we need to suppress the warning
 
 /** Version-compatible wrapper for [PackageManager.getPackageInfo]. Returns null if the package is not found. */

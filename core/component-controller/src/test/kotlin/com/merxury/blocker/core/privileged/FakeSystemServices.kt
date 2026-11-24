@@ -175,6 +175,7 @@ internal class FakePackageManager : IPackageManager {
 
 internal class FakeActivityManager : IActivityManager {
     val runningUsers = mutableSetOf(0)
+    val unlockedUsers = mutableSetOf(0)
     val forceStopped = mutableListOf<Pair<String, Int>>()
     var failure: Exception? = null
 
@@ -183,7 +184,7 @@ internal class FakeActivityManager : IActivityManager {
         forceStopped += packageName to userId
     }
 
-    override fun isUserRunning(userId: Int, flags: Int): Boolean = userId in runningUsers
+    override fun isUserRunning(userId: Int, flags: Int): Boolean = userId in runningUsers && (flags == 0 || userId in unlockedUsers)
 
     val processes = mutableListOf<ActivityManager.RunningAppProcessInfo>()
     val services = mutableListOf<ActivityManager.RunningServiceInfo>()

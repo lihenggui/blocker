@@ -31,6 +31,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.os.Parcel
+import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.privileged.PrivilegedAction
 import com.merxury.blocker.core.privileged.PrivilegedCall
@@ -364,7 +365,7 @@ private fun requireInstalled(system: SystemServices, packageName: String, user: 
     ?: throw NameNotFoundException("$packageName is not installed for user ${user.value}")
 
 private fun requireService(system: SystemServices, component: ComponentName, user: UserId) {
-    val flags = PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS
+    val flags = PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
     val info = packageInfo(system, component.packageName, flags, user)
         ?: throw NameNotFoundException("${component.packageName} is not installed for user ${user.value}")
     if (info.services.orEmpty().none { it.name == component.className }) {

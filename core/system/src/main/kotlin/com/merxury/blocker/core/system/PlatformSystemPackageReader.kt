@@ -23,6 +23,7 @@ import android.content.pm.PackageManager
 import android.content.pm.PackageManager.NameNotFoundException
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -136,7 +137,7 @@ class PlatformSystemPackageReader @Inject constructor(
      * apps with thousands of components.
      */
     private suspend fun componentsInOneCall(app: AppKey): PackageInfo? = try {
-        platform.packageInfo(app.packageName, ALL_COMPONENTS or MATCH_DISABLED, app.userId)
+        platform.packageInfo(app.packageName, ALL_COMPONENTS, app.userId)
     } catch (e: CancellationException) {
         throw e
     } catch (e: RuntimeException) {
@@ -170,7 +171,7 @@ class PlatformSystemPackageReader @Inject constructor(
             Timber.e("No APK path for $app")
             return null
         }
-        val parsed = platform.archiveInfo(apkPath, ALL_COMPONENTS or MATCH_DISABLED)
+        val parsed = platform.archiveInfo(apkPath, ALL_COMPONENTS)
         if (parsed == null) Timber.e("Cannot parse $apkPath")
         return parsed
     }
@@ -229,12 +230,12 @@ class PlatformSystemPackageReader @Inject constructor(
     }
 
     private companion object {
-        const val GET_ACTIVITIES = PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS
-        const val GET_SERVICES = PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS
-        const val GET_RECEIVERS = PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS
-        const val GET_PROVIDERS = PackageManager.GET_PROVIDERS or PackageManager.MATCH_DISABLED_COMPONENTS
-        const val MATCH_DISABLED = PackageManager.MATCH_DISABLED_COMPONENTS
+        const val DECLARATION_MATCH_FLAGS = PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
+        const val GET_ACTIVITIES = PackageManager.GET_ACTIVITIES or DECLARATION_MATCH_FLAGS
+        const val GET_SERVICES = PackageManager.GET_SERVICES or DECLARATION_MATCH_FLAGS
+        const val GET_RECEIVERS = PackageManager.GET_RECEIVERS or DECLARATION_MATCH_FLAGS
+        const val GET_PROVIDERS = PackageManager.GET_PROVIDERS or DECLARATION_MATCH_FLAGS
         const val ALL_COMPONENTS = PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or
-            PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
+            PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS or DECLARATION_MATCH_FLAGS
     }
 }

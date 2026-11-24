@@ -53,6 +53,7 @@ class LocalPlatformPackages @Inject constructor(
             kind = ownUserKind(),
             parent = null,
             running = true,
+            unlocked = context.getSystemService(UserManager::class.java)?.isUserUnlocked,
         ),
     )
 

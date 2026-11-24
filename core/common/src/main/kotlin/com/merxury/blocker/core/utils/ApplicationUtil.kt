@@ -26,6 +26,7 @@ import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
 import android.os.Build
 import com.merxury.blocker.core.Application
+import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.extension.getApplicationInfoCompat
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
@@ -106,7 +107,7 @@ object ApplicationUtil {
         return withContext(dispatcher) {
             val activities = mutableListOf<ActivityInfo>()
             try {
-                val flags = PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS
+                val flags = PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
                 val components = pm.getPackageInfoCompat(packageName, flags)?.activities
                 if (!components.isNullOrEmpty()) {
                     Collections.addAll(activities, *components)
@@ -135,7 +136,7 @@ object ApplicationUtil {
     ): List<ActivityInfo> = withContext(dispatcher) {
         val receivers = mutableListOf<ActivityInfo>()
         try {
-            val flags = PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS
+            val flags = PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
             val components = pm.getPackageInfoCompat(packageName, flags)?.receivers
             if (!components.isNullOrEmpty()) {
                 Collections.addAll(receivers, *components)
@@ -162,7 +163,7 @@ object ApplicationUtil {
         return withContext(dispatcher) {
             val services = mutableListOf<ServiceInfo>()
             try {
-                val flags = PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS
+                val flags = PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
                 val components = pm.getPackageInfoCompat(packageName, flags)?.services
                 if (!components.isNullOrEmpty()) {
                     Collections.addAll(services, *components)
@@ -191,7 +192,7 @@ object ApplicationUtil {
     ): List<ProviderInfo> = withContext(dispatcher) {
         val providers = mutableListOf<ProviderInfo>()
         try {
-            val flags = PackageManager.GET_PROVIDERS or PackageManager.MATCH_DISABLED_COMPONENTS
+            val flags = PackageManager.GET_PROVIDERS or PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
             val components = pm.getPackageInfoCompat(packageName, flags)?.providers
             if (!components.isNullOrEmpty()) {
                 Collections.addAll(providers, *components)
@@ -222,7 +223,7 @@ object ApplicationUtil {
     ): PackageInfo? = withContext(dispatcher) {
         var info: PackageInfo? = null
         try {
-            info = pm.getPackageInfoCompat(packageName, flags)
+            info = pm.getPackageInfoCompat(packageName, flags or MATCH_ALL_DIRECT_BOOT_COMPONENTS)
         } catch (e: PackageManager.NameNotFoundException) {
             Timber.e("Cannot find specified package $packageName.")
         }
@@ -245,7 +246,7 @@ object ApplicationUtil {
         @Suppress("DEPRECATION")
         val flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
             PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
-            PackageManager.GET_INTENT_FILTERS or PackageManager.MATCH_DISABLED_COMPONENTS
+            PackageManager.GET_INTENT_FILTERS or PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
         var info = PackageInfo()
         try {
             info = pm.getPackageInfoCompat(packageName, flags) ?: PackageInfo()

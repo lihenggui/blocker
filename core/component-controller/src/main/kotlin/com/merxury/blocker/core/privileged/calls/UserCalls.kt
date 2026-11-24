@@ -49,6 +49,7 @@ internal data object ListUsers : PrivilegedCall<List<DeviceUser>> {
                 kind = kindOf(info, parent),
                 parent = parent?.let(::UserId),
                 running = system.activityManager.isUserRunning(info.id, 0),
+                unlocked = system.activityManager.isUserRunning(info.id, FLAG_AND_UNLOCKED),
             )
         }
     }
@@ -77,6 +78,7 @@ internal data object ListUsers : PrivilegedCall<List<DeviceUser>> {
             parcel.writeInt(user.kind.ordinal)
             parcel.writeInt(user.parent?.value ?: NO_USER)
             parcel.writeInt(if (user.running) 1 else 0)
+            parcel.writeInt(user.unlocked?.let { if (it) 1 else 0 } ?: UNKNOWN_UNLOCK_STATE)
         }
     }
 
@@ -87,14 +89,18 @@ internal data object ListUsers : PrivilegedCall<List<DeviceUser>> {
             kind = UserKind.entries[parcel.readInt()],
             parent = parcel.readInt().takeIf { it != NO_USER }?.let(::UserId),
             running = parcel.readInt() != 0,
+            unlocked = parcel.readInt().takeUnless { it == UNKNOWN_UNLOCK_STATE }?.let { it != 0 },
         )
     }
-
-    private const val NO_USER = -1
-
-    // UserInfo.NO_PROFILE_GROUP_ID
-    private const val NO_PROFILE_GROUP = -10000
 }
+
+// ActivityManager.FLAG_AND_UNLOCKED is hidden from the public SDK.
+private const val FLAG_AND_UNLOCKED = 1 shl 2
+private const val NO_USER = -1
+private const val UNKNOWN_UNLOCK_STATE = -1
+
+// UserInfo.NO_PROFILE_GROUP_ID
+private const val NO_PROFILE_GROUP = -10000
 
 /**
  * The uid of the process [run] runs in. Through the root transport that is the root process;

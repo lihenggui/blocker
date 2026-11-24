@@ -12,6 +12,7 @@ import android.content.pm.ServiceInfo
 import com.merxury.blocker.core.controllers.wake.WakePackageUid
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeIdentity
+import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.extension.getVersionCode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -45,7 +46,7 @@ class WakeIdentityIndex @Inject constructor(
         val known = dao.identities(now - WAKE_HISTORY_RETENTION_MILLIS).associateBy { Triple(it.uid, it.packageName, it.revision) }
         val signaturesFlag = wakeSigningFlags
         val flags = signaturesFlag or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or
-            PackageManager.GET_PROVIDERS or PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS
+            PackageManager.GET_PROVIDERS or PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
         val result = mutableListOf<WakeIdentity>()
         val pending = ArrayList<WakeIdentity>(20)
         suspend fun record(identity: WakeIdentity) {
