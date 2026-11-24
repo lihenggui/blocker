@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.api.R.plurals
@@ -52,24 +53,28 @@ internal fun ControlMessage.text(): String = when (this) {
             partial -> string.feature_appdetail_api_enable_partial
             else -> string.feature_appdetail_api_enable_failed
         }
-        lines(stringResource(title, name), *failures.map { it.text() }.toTypedArray())
+        lines(stringResource(title, name), *failures.map { it.text(identity) }.toTypedArray())
     }
 
     is ControlMessage.BatchDone -> {
         val changedText = pluralStringResource(plurals.feature_appdetail_api_batch_changed, changed, changed)
-        val summary = if (notChanged == 0) {
-            changedText
-        } else {
-            val notChangedText = pluralStringResource(plurals.feature_appdetail_api_batch_not_changed, notChanged, notChanged)
-            stringResource(string.feature_appdetail_api_batch_summary, changedText, notChangedText)
+        val summary = when {
+            notChanged != 0 -> {
+                val notChangedText = pluralStringResource(plurals.feature_appdetail_api_batch_not_changed, notChanged, notChanged)
+                stringResource(string.feature_appdetail_api_batch_summary, changedText, notChangedText)
+            }
+
+            changed == 0 -> stringResource(string.feature_appdetail_api_batch_nothing_needed)
+
+            else -> changedText
         }
-        val reason = mostCommon?.let { stringResource(string.feature_appdetail_api_batch_most_common, it.text()) }
+        val reason = mostCommon?.let { stringResource(string.feature_appdetail_api_batch_most_common, it.text(identity)) }
         lines(summary, reason)
     }
 }
 
 @Composable
-private fun LayerFailure.text(): String = stringResource(string.feature_appdetail_api_layer_reason, stringResource(layer.label()), failure.text())
+private fun LayerFailure.text(identity: PrivilegedIdentity?): String = stringResource(string.feature_appdetail_api_layer_reason, stringResource(layer.label()), failure.text(identity))
 
 /** The name of a control layer, as the reason tags of a row name it. */
 internal fun ControlLayer.label(): Int = when (this) {
@@ -77,11 +82,20 @@ internal fun ControlLayer.label(): Int = when (this) {
     ControlLayer.INTENT_FIREWALL -> string.feature_appdetail_api_blocked_by_intent_firewall
 }
 
+/**
+ * Why a layer failed. A refusal needs root only when the channel runs as the shell; as root or
+ * the system user it is the system protecting the app, so its message is told.
+ */
 @Composable
-private fun ControlFailure.text(): String = when (this) {
+private fun ControlFailure.text(identity: PrivilegedIdentity?): String = when (this) {
     ControlFailure.ChannelUnavailable -> stringResource(string.feature_appdetail_api_reason_no_access)
 
-    is ControlFailure.NotPermitted -> stringResource(string.feature_appdetail_api_reason_needs_root)
+    is ControlFailure.NotPermitted -> if (identity == PrivilegedIdentity.SHELL) {
+        stringResource(string.feature_appdetail_api_reason_needs_root)
+    } else {
+        message?.takeIf { it.isNotBlank() }?.let { stringResource(string.feature_appdetail_api_reason_not_allowed_detail, it) }
+            ?: stringResource(string.feature_appdetail_api_reason_not_allowed)
+    }
 
     is ControlFailure.TargetNotFound -> stringResource(string.feature_appdetail_api_reason_not_found)
 

@@ -22,7 +22,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
@@ -158,7 +161,7 @@ class AppDetailScreenScreenshotTests {
     fun notInstalled() = capture(
         "AppDetailScreenNotInstalled",
         AppHeaderUiState(),
-        list(AppDetailTabs.Info, components = ComponentsUiState.Loaded(AppComponents())),
+        list(AppDetailTabs.Info, components = ComponentsUiState.Loaded(AppComponents())).copy(refreshFailure = ReadFailure.PackageNotFound(AppKey(previewHeaderApp.packageName, UserId(0)))),
     )
 
     @Test

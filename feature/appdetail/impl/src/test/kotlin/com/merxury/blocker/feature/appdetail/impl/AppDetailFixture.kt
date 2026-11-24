@@ -48,6 +48,8 @@ import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppReposi
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import org.mockito.kotlin.mock
 import java.io.File
 import kotlin.time.Instant
@@ -115,8 +117,13 @@ internal class AppDetailFixture(
     /** Replaces [serviceControl] for the list when set before the list is first used. */
     var services: ServiceControl? = null
 
-    /** Replaces [components] for the control view model when set before it is first used. */
+    /** Replaces [components] for the control view model and its batches when set before it is first used. */
     var controlStatuses: ComponentStatusRepository? = null
+
+    /** The application's scope, which batches run in; it outlives every view model. */
+    val applicationScope = CoroutineScope(SupervisorJob() + dispatcher)
+
+    val batches by lazy { ComponentBatchRunner(controlStatuses ?: components, applicationScope) }
 
     val list by lazy {
         ComponentListViewModel(
@@ -144,6 +151,8 @@ internal class AppDetailFixture(
         ComponentControlViewModel(
             selectedUsers = selectedUsers,
             componentStatuses = controlStatuses ?: components,
+            batches = batches,
+            channel = channel,
             userDataRepository = userData,
             analyticsHelper = analytics,
             packageName = PACKAGE,

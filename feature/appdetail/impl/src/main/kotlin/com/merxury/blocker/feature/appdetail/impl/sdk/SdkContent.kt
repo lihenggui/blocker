@@ -49,6 +49,8 @@ import com.merxury.blocker.core.ui.R.string as uiString
 /**
  * The general rules that match components of the app, each expandable to its components. The
  * block and enable actions of a rule go through the same control path as the switches.
+ *
+ * @param batchRunning whether a batch runs for the app, which disables the actions of every rule
  */
 @Composable
 internal fun SdkContent(
@@ -57,6 +59,7 @@ internal fun SdkContent(
     banners: List<ModeBanner>,
     actions: ComponentRowActions,
     modifier: Modifier = Modifier,
+    batchRunning: Boolean = false,
     navigateToRuleDetail: (Int) -> Unit = {},
     onBlockAll: (MatchedRule) -> Unit = {},
     onEnableAll: (MatchedRule) -> Unit = {},
@@ -71,6 +74,7 @@ internal fun SdkContent(
             MatchedRuleList(
                 rules = data.rules,
                 inFlight = inFlight,
+                batchRunning = batchRunning,
                 banners = banners,
                 actions = actions,
                 navigateToRuleDetail = navigateToRuleDetail,
@@ -87,6 +91,7 @@ internal fun SdkContent(
 private fun MatchedRuleList(
     rules: List<MatchedRule>,
     inFlight: Set<ComponentId>,
+    batchRunning: Boolean,
     banners: List<ModeBanner>,
     actions: ComponentRowActions,
     navigateToRuleDetail: (Int) -> Unit,
@@ -115,6 +120,7 @@ private fun MatchedRuleList(
                         navigation = { navigateToRuleDetail(rule.id) },
                         onBlockAllClick = { onBlockAll(rule) },
                         onEnableAllClick = { onEnableAll(rule) },
+                        batchActionsEnabled = !batchRunning,
                         expanded = isExpanded,
                         onCardArrowClick = { expanded = if (isExpanded) expanded - rule.id else expanded + rule.id },
                     )

@@ -41,6 +41,7 @@ import com.merxury.blocker.feature.appdetail.api.R.string
 import com.merxury.blocker.feature.appdetail.impl.AppHeaderUiState
 import com.merxury.blocker.feature.appdetail.impl.ComponentListUiState
 import com.merxury.blocker.feature.appdetail.impl.LaunchMode
+import com.merxury.blocker.feature.appdetail.impl.listsComponents
 
 /** What the top bar can ask for. */
 class TopBarActions(
@@ -63,6 +64,8 @@ class TopBarActions(
  * The collapsing header with the app's icon, name, package and version, and the profile when the
  * app is not of the user Blocker runs in; in selection mode, the count of the selected components
  * and the actions on them.
+ *
+ * @param batchRunning whether a batch runs for the app, which disables the batch actions
  */
 @Composable
 internal fun AppDetailTopBar(
@@ -72,6 +75,7 @@ internal fun AppDetailTopBar(
     actions: TopBarActions,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = true,
+    batchRunning: Boolean = false,
 ) {
     if (list.isSelectionMode) {
         SelectedAppTopBar(
@@ -82,6 +86,7 @@ internal fun AppDetailTopBar(
             onSelectAll = actions.onSelectAll,
             onBlockAllSelectedComponents = actions.onBlockSelected,
             onEnableAllSelectedComponents = actions.onEnableSelected,
+            actionsEnabled = !batchRunning,
             modifier = modifier,
         )
         return
@@ -101,6 +106,7 @@ internal fun AppDetailTopBar(
                 list = list,
                 hasCustomizedRules = header.hasCustomizedRules,
                 actions = actions,
+                batchRunning = batchRunning,
             )
         },
         subtitle = app?.packageName.orEmpty(),
@@ -114,13 +120,18 @@ internal fun AppDetailTopBar(
     )
 }
 
+/**
+ * Search and the menu on a tab of rows; on the matched rules tab only the menu, whose block all
+ * and enable all act on every component the rules match. Nothing of either on the app info tab.
+ */
 @Composable
 private fun TopBarActionRow(
     list: ComponentListUiState,
     hasCustomizedRules: Boolean,
     actions: TopBarActions,
+    batchRunning: Boolean,
 ) {
-    val listsComponents = list.tabs.selectedItem != AppDetailTabs.Info
+    val tab = list.tabs.selectedItem
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -128,7 +139,7 @@ private fun TopBarActionRow(
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (listsComponents) {
+        if (tab.listsComponents) {
             if (list.isSearchMode) {
                 BlockerSearchTextField(
                     modifier = Modifier.weight(1f),
@@ -151,12 +162,14 @@ private fun TopBarActionRow(
         if (hasCustomizedRules) {
             ShareAction(shareAppRule = actions.onShareAppRules, shareAllRules = actions.onShareAllRules)
         }
-        if (listsComponents) {
+        if (tab != AppDetailTabs.Info) {
             MoreActionMenu(
                 blockAllComponents = actions.onBlockAllInTab,
                 enableAllComponents = actions.onEnableAllInTab,
                 onAdvanceSortClick = actions.onSortClick,
                 switchSelectedMode = actions.onSelectionModeChange,
+                listActions = tab.listsComponents,
+                batchActionsEnabled = !batchRunning,
             )
         }
     }

@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.coil.kt)
     implementation(libs.material.kolor)
 
+    testImplementation(libs.androidx.lifecycle.runtimeTesting)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.turbine)
     testImplementation(libs.mockito.kotlin)

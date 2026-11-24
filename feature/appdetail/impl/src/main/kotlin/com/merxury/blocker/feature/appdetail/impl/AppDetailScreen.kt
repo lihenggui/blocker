@@ -24,7 +24,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -34,7 +36,10 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
@@ -42,7 +47,6 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import com.materialkolor.ktx.themeColorOrNull
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
-import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.coil.ApkIcon
@@ -77,7 +81,7 @@ fun AppDetailScreen(
     val header by headerViewModel.uiState.collectAsStateWithLifecycle()
     val list by listViewModel.uiState.collectAsStateWithLifecycle()
     val control by controlViewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(listViewModel) { listViewModel.keepFresh() }
+    KeepFreshWhileStarted(keepFresh = listViewModel::keepFresh, refresh = listViewModel::refresh)
     var detailOf by rememberSaveable { mutableStateOf<String?>(null) }
     var showSortSheet by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
@@ -95,16 +99,16 @@ fun AppDetailScreen(
         onShareConsume = headerViewModel::onShareHandled,
     )
     SeedColor(icon = header.app?.icon.takeIf { header.useDynamicColor }, updateIconThemingState = updateIconThemingState)
-    val topBarActions = topBarActions(header, list, onBackClick, { showSortSheet = true }, headerViewModel, listViewModel, controlViewModel) {
+    val topBarActions = rememberTopBarActions(headerViewModel, listViewModel, controlViewModel, onBackClick, { showSortSheet = true }) {
         val app = header.app
         if (app == null || !context.launchApp(app, header.launch)) {
             scope.launch { snackbarHostState.showSnackbar(cannotLaunch, duration = SnackbarDuration.Short, withDismissAction = true) }
         }
     }
-    val rowActions = rowActions({ detailOf = it.id.className }, navigateToIfwRuleEditor, listViewModel, controlViewModel) { text ->
+    val rowActions = rememberRowActions(listViewModel, controlViewModel, { detailOf = it.id.className }, navigateToIfwRuleEditor) { text ->
         scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(text, text))) }
     }
-    val actions = appDetailActions(navigateToRuleDetail, headerViewModel, listViewModel, controlViewModel) {
+    val actions = rememberAppDetailActions(headerViewModel, listViewModel, controlViewModel, navigateToRuleDetail) {
         header.app?.let { context.showInLibChecker(it.packageName) }
     }
     AppDetailContent(
@@ -124,90 +128,138 @@ fun AppDetailScreen(
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
 
-private fun topBarActions(
-    header: AppHeaderUiState,
-    list: ComponentListUiState,
-    onBackClick: () -> Unit,
-    onSortClick: () -> Unit,
-    headerViewModel: AppHeaderViewModel,
-    listViewModel: ComponentListViewModel,
-    controlViewModel: ComponentControlViewModel,
-    onLaunchApp: () -> Unit,
-): TopBarActions {
-    val tabRows = (list.components as? ComponentsUiState.Loaded)?.components?.of(list.tabs.selectedItem).orEmpty()
-    fun controlSelected(goal: ControlGoal) {
-        controlViewModel.controlAll(list.selected.toList(), goal)
-        listViewModel.setSelectionMode(false)
+/**
+ * Runs [keepFresh] while the screen is at least started, so nothing is read while the app is in
+ * the background, and calls [refresh] each time the screen comes back from there, as the system
+ * may have changed the app meanwhile. A screen composed again, such as after a rotation, does not
+ * refresh.
+ */
+@Composable
+internal fun KeepFreshWhileStarted(keepFresh: suspend () -> Unit, refresh: () -> Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val currentKeepFresh by rememberUpdatedState(keepFresh)
+    val currentRefresh by rememberUpdatedState(refresh)
+    LaunchedEffect(lifecycleOwner) {
+        var returning = false
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            if (returning) currentRefresh()
+            returning = true
+            currentKeepFresh()
+        }
     }
-    return TopBarActions(
-        onBack = onBackClick,
-        onLaunchApp = onLaunchApp,
-        onSearchModeChange = listViewModel::setSearchMode,
-        onSearch = listViewModel::search,
-        onBlockAllInTab = { controlViewModel.controlAll(tabRows.map { it.id }, ControlGoal.BLOCK) },
-        onEnableAllInTab = { controlViewModel.controlAll(tabRows.map { it.id }, ControlGoal.ENABLE) },
-        onSortClick = onSortClick,
-        onSelectionModeChange = listViewModel::setSelectionMode,
-        onSelectAll = listViewModel::toggleSelectAllInTab,
-        onBlockSelected = { controlSelected(ControlGoal.BLOCK) },
-        onEnableSelected = { controlSelected(ControlGoal.ENABLE) },
-        onShareAppRules = headerViewModel::shareAppRules,
-        onShareAllRules = headerViewModel::shareAllRules,
-    )
 }
 
-private fun rowActions(
-    showDetail: (ComponentRow) -> Unit,
-    navigateToIfwRuleEditor: (ComponentRow) -> Unit,
-    listViewModel: ComponentListViewModel,
-    controlViewModel: ComponentControlViewModel,
-    copy: (String) -> Unit,
-) = ComponentRowActions(
-    onSwitch = { row, enabled -> controlViewModel.setEnabled(row.id, enabled) },
-    onControl = { row, goal -> controlViewModel.control(row.id, goal) },
-    onClick = showDetail,
-    onToggleSelected = { listViewModel.toggleSelected(it.id) },
-    onStopService = { listViewModel.stopService(it.id) },
-    onLaunchActivity = { listViewModel.launchActivity(it.id) },
-    onCopyName = { copy(it.id.simpleName) },
-    onCopyFullName = { copy(it.id.className) },
-    onEditIfwRule = navigateToIfwRuleEditor,
-)
-
-private fun appDetailActions(
-    navigateToRuleDetail: (Int) -> Unit,
+/**
+ * The top bar's actions, one object for the life of the screen. The batch actions act on what the
+ * list shows when chosen; enabling in bulk only removes blocks, see
+ * [ComponentControlViewModel.unblockAll].
+ */
+@Composable
+private fun rememberTopBarActions(
     headerViewModel: AppHeaderViewModel,
     listViewModel: ComponentListViewModel,
     controlViewModel: ComponentControlViewModel,
-    onShowInLibChecker: () -> Unit,
-) = AppDetailActions(
-    onSelectTab = listViewModel::selectTab,
-    onRefresh = listViewModel::refresh,
-    onGrantAccess = listViewModel::grantAccess,
-    onShowInLibChecker = onShowInLibChecker,
-    onExportRules = headerViewModel::exportBlockerRules,
-    onImportRules = headerViewModel::importBlockerRules,
-    onExportIfw = headerViewModel::exportIfwRules,
-    onImportIfw = headerViewModel::importIfwRules,
-    onResetIfw = headerViewModel::resetIfw,
-    navigateToRuleDetail = navigateToRuleDetail,
-    onBlockAllInRule = { rule -> controlViewModel.controlAll(rule.rows.map { it.id }, ControlGoal.BLOCK, fromMatchedRule = true) },
-    onEnableAllInRule = { rule -> controlViewModel.controlAll(rule.rows.map { it.id }, ControlGoal.ENABLE, fromMatchedRule = true) },
-)
+    onBackClick: () -> Unit,
+    onSortClick: () -> Unit,
+    onLaunchApp: () -> Unit,
+): TopBarActions {
+    val currentBack by rememberUpdatedState(onBackClick)
+    val currentSort by rememberUpdatedState(onSortClick)
+    val currentLaunch by rememberUpdatedState(onLaunchApp)
+    return remember(headerViewModel, listViewModel, controlViewModel) {
+        fun page() = listViewModel.uiState.value.componentsOfSelectedPage()
+        fun takeSelected() = listViewModel.uiState.value.selected.toList().also { listViewModel.setSelectionMode(false) }
+        TopBarActions(
+            onBack = { currentBack() },
+            onLaunchApp = { currentLaunch() },
+            onSearchModeChange = listViewModel::setSearchMode,
+            onSearch = listViewModel::search,
+            onBlockAllInTab = { controlViewModel.blockAll(page()) },
+            onEnableAllInTab = { controlViewModel.unblockAll(page()) },
+            onSortClick = { currentSort() },
+            onSelectionModeChange = listViewModel::setSelectionMode,
+            onSelectAll = listViewModel::toggleSelectAllInTab,
+            onBlockSelected = { controlViewModel.blockAll(takeSelected()) },
+            onEnableSelected = { controlViewModel.unblockAll(takeSelected()) },
+            onShareAppRules = headerViewModel::shareAppRules,
+            onShareAllRules = headerViewModel::shareAllRules,
+        )
+    }
+}
 
-/** Shows each message of the three states once, then reports that it was shown. */
+/** The actions of every row, one object for the life of the screen so unchanged rows are skipped. */
 @Composable
-private fun ScreenMessages(
+internal fun rememberRowActions(
+    listViewModel: ComponentListViewModel,
+    controlViewModel: ComponentControlViewModel,
+    showDetail: (ComponentRow) -> Unit,
+    navigateToIfwRuleEditor: (ComponentRow) -> Unit,
+    copy: (String) -> Unit,
+): ComponentRowActions {
+    val currentShowDetail by rememberUpdatedState(showDetail)
+    val currentEditor by rememberUpdatedState(navigateToIfwRuleEditor)
+    val currentCopy by rememberUpdatedState(copy)
+    return remember(listViewModel, controlViewModel) {
+        ComponentRowActions(
+            onSwitch = { row, enabled -> controlViewModel.setEnabled(row.id, enabled) },
+            onControl = { row, goal -> controlViewModel.control(row.id, goal) },
+            onClick = { currentShowDetail(it) },
+            onToggleSelected = { listViewModel.toggleSelected(it.id) },
+            onStopService = { listViewModel.stopService(it.id) },
+            onLaunchActivity = { listViewModel.launchActivity(it.id) },
+            onCopyName = { currentCopy(it.id.simpleName) },
+            onCopyFullName = { currentCopy(it.id.className) },
+            onEditIfwRule = { currentEditor(it) },
+        )
+    }
+}
+
+@Composable
+private fun rememberAppDetailActions(
+    headerViewModel: AppHeaderViewModel,
+    listViewModel: ComponentListViewModel,
+    controlViewModel: ComponentControlViewModel,
+    navigateToRuleDetail: (Int) -> Unit,
+    onShowInLibChecker: () -> Unit,
+): AppDetailActions {
+    val currentRuleDetail by rememberUpdatedState(navigateToRuleDetail)
+    val currentLibChecker by rememberUpdatedState(onShowInLibChecker)
+    return remember(headerViewModel, listViewModel, controlViewModel) {
+        AppDetailActions(
+            onSelectTab = listViewModel::selectTab,
+            onRefresh = listViewModel::refresh,
+            onGrantAccess = listViewModel::grantAccess,
+            onShowInLibChecker = { currentLibChecker() },
+            onExportRules = headerViewModel::exportBlockerRules,
+            onImportRules = headerViewModel::importBlockerRules,
+            onExportIfw = headerViewModel::exportIfwRules,
+            onImportIfw = headerViewModel::importIfwRules,
+            onResetIfw = headerViewModel::resetIfw,
+            navigateToRuleDetail = { currentRuleDetail(it) },
+            onBlockAllInRule = { rule -> controlViewModel.blockAll(rule.rows.map { it.id }, fromMatchedRule = true) },
+            onEnableAllInRule = { rule -> controlViewModel.unblockAll(rule.rows.map { it.id }, fromMatchedRule = true) },
+        )
+    }
+}
+
+/**
+ * Shows each message of the three states for its whole duration, then reports that it was
+ * shown, so each is told once. Queued control messages are told apart by their ids, so a message
+ * equal to the one shown before is shown too.
+ */
+@Composable
+internal fun ScreenMessages(
     header: AppHeaderUiState,
     list: ComponentListUiState,
     control: ControlUiState,
     snackbarHostState: SnackbarHostState,
     onListMessageConsume: () -> Unit,
-    onControlMessageConsume: (ControlMessage) -> Unit,
+    onControlMessageConsume: (Long) -> Unit,
     onRuleWorkConsume: () -> Unit,
     onShareConsume: () -> Unit,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val listMessage = list.message?.text()
     LaunchedEffect(list.message) {
         if (listMessage != null) {
@@ -215,27 +267,31 @@ private fun ScreenMessages(
             onListMessageConsume()
         }
     }
-    val controlMessage = control.messages.firstOrNull()
-    val controlText = controlMessage?.text()
-    LaunchedEffect(controlMessage) {
-        if (controlMessage != null && controlText != null) {
+    val queued = control.messages.firstOrNull()
+    val controlText = queued?.message?.text()
+    LaunchedEffect(queued?.id) {
+        if (queued != null && controlText != null) {
             snackbarHostState.showSnackbar(controlText, duration = SnackbarDuration.Long, withDismissAction = true)
-            onControlMessageConsume(controlMessage)
+            onControlMessageConsume(queued.id)
         }
     }
     val ruleWork = header.ruleWork
     val ruleWorkText = ruleWork?.let { it.resultMessage(LocalResources.current) ?: stringResource(ruleString.core_rule_processing_please_wait) }
     LaunchedEffect(ruleWork) {
         if (ruleWorkText != null) {
-            onRuleWorkConsume()
+            // The latest result replaces whatever is shown.
             snackbarHostState.currentSnackbarData?.dismiss()
             snackbarHostState.showSnackbar(ruleWorkText, duration = SnackbarDuration.Short, withDismissAction = true)
+            onRuleWorkConsume()
         }
     }
     LaunchedEffect(header.sharedRules) {
         val rules = header.sharedRules ?: return@LaunchedEffect
+        // Consumed at once so the chooser never opens twice; the error is told outside this effect,
+        // which consuming ends.
+        val error = context.shareRules(rules)
         onShareConsume()
-        context.shareRules(rules)?.let { snackbarHostState.showSnackbar(it) }
+        if (error != null) scope.launch { snackbarHostState.showSnackbar(error) }
     }
 }
 

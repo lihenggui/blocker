@@ -61,13 +61,13 @@ import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
-import com.merxury.blocker.feature.appdetail.api.R.string
 import com.merxury.blocker.feature.appdetail.impl.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.impl.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.impl.ui.AppDetailTopBar
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentTabContent
 import com.merxury.blocker.feature.appdetail.impl.ui.TopBarActions
+import com.merxury.blocker.feature.appdetail.impl.ui.text
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
@@ -119,6 +119,7 @@ internal fun AppDetailContent(
                     toolbarState = toolbarState,
                     actions = topBarActions,
                     showBackButton = showBackButton,
+                    batchRunning = control.batch != null,
                 )
             },
             modifier = Modifier.nestedScroll(nestedScrollConnection),
@@ -129,11 +130,11 @@ internal fun AppDetailContent(
                 .pointerInput(Unit) { detectTapGestures(onPress = { scope.coroutineContext.cancelChildren() }) }
             val app = header.app
             if (app == null) {
-                // Not cached for the user: still loading, or the refresh found it is not installed.
-                if (list.components is ComponentsUiState.Loading) {
-                    LoadingScreen(modifier = contentModifier)
-                } else {
-                    ErrorScreen(error = UiMessage(stringResource(string.feature_appdetail_api_not_installed)), modifier = contentModifier)
+                // Not cached for the user: the header or the first refresh is still loading, or the
+                // refresh failed, perhaps because the app is not installed for the user.
+                when (val failure = list.refreshFailure) {
+                    null -> LoadingScreen(modifier = contentModifier)
+                    else -> ErrorScreen(error = UiMessage(failure.text()), modifier = contentModifier)
                 }
             } else {
                 AppDetailTabs(
@@ -141,6 +142,7 @@ internal fun AppDetailContent(
                     header = header,
                     list = list,
                     inFlight = control.inFlight,
+                    batchRunning = control.batch != null,
                     rowActions = rowActions,
                     actions = actions,
                     modifier = contentModifier,
@@ -166,6 +168,7 @@ private fun AppDetailTabs(
     header: AppHeaderUiState,
     list: ComponentListUiState,
     inFlight: Set<ComponentId>,
+    batchRunning: Boolean,
     rowActions: ComponentRowActions,
     actions: AppDetailActions,
     modifier: Modifier = Modifier,
@@ -209,6 +212,7 @@ private fun AppDetailTabs(
                 AppDetailTabs.Sdk -> SdkContent(
                     data = list.matchedRules,
                     inFlight = inFlight,
+                    batchRunning = batchRunning,
                     banners = list.banners,
                     actions = rowActions,
                     navigateToRuleDetail = actions.navigateToRuleDetail,

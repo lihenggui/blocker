@@ -43,6 +43,12 @@ fun SearchActionMenu(
     }
 }
 
+/**
+ * The menu of a tab that shows components.
+ *
+ * @param listActions whether to offer selection mode and sorting, which only a tab of rows has
+ * @param batchActionsEnabled whether block all and enable all can be chosen, false while a batch runs
+ */
 @Composable
 fun MoreActionMenu(
     modifier: Modifier = Modifier,
@@ -50,25 +56,15 @@ fun MoreActionMenu(
     enableAllComponents: () -> Unit = {},
     onAdvanceSortClick: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
+    listActions: Boolean = true,
+    batchActionsEnabled: Boolean = true,
 ) {
-    val items = listOf(
-        DropDownMenuItem(
-            string.feature_appdetail_api_select_mutiple,
-            { switchSelectedMode(true) },
-        ),
-        DropDownMenuItem(
-            string.feature_appdetail_api_block_all_of_this_page,
-            blockAllComponents,
-        ),
-        DropDownMenuItem(
-            string.feature_appdetail_api_enable_all_of_this_page,
-            enableAllComponents,
-        ),
-        DropDownMenuItem(
-            UiR.string.core_ui_sort_options,
-            onAdvanceSortClick,
-        ),
-    )
+    val items = buildList {
+        if (listActions) add(DropDownMenuItem(string.feature_appdetail_api_select_mutiple, { switchSelectedMode(true) }))
+        add(DropDownMenuItem(string.feature_appdetail_api_block_all_of_this_page, blockAllComponents, enabled = batchActionsEnabled))
+        add(DropDownMenuItem(string.feature_appdetail_api_enable_all_of_this_page, enableAllComponents, enabled = batchActionsEnabled))
+        if (listActions) add(DropDownMenuItem(UiR.string.core_ui_sort_options, onAdvanceSortClick))
+    }
     BlockerAppTopBarMenu(
         modifier = modifier,
         menuIcon = BlockerIcons.MoreVert,

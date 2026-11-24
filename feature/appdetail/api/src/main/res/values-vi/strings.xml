@@ -82,6 +82,7 @@
     <string name="feature_appdetail_api_layer_reason">%1$s: %2$s</string>
     <string name="feature_appdetail_api_batch_summary">%1$s, %2$s</string>
     <string name="feature_appdetail_api_batch_most_common">Thường gặp nhất: %1$s</string>
+    <string name="feature_appdetail_api_batch_nothing_needed">Không có gì cần thay đổi</string>
     <string name="feature_appdetail_api_reason_no_access">Hãy cấp cho Blocker quyền root hoặc Shizuku rồi thử lại.</string>
     <string name="feature_appdetail_api_reason_needs_root">Chế độ hiện tại không thể thay đổi thành phần. Cần có root.</string>
     <string name="feature_appdetail_api_reason_not_found">Không tìm thấy ứng dụng hoặc thành phần cho người dùng này.</string>
@@ -92,6 +93,7 @@
     <string name="feature_appdetail_api_reason_system_error">Hệ thống báo lỗi: %1$s</string>
     <string name="feature_appdetail_api_reason_system_error_unknown">Hệ thống báo lỗi.</string>
     <string name="feature_appdetail_api_reason_not_allowed">Hệ thống không cho phép việc này với chế độ truy cập hiện tại.</string>
+    <string name="feature_appdetail_api_reason_not_allowed_detail">Hệ thống không cho phép việc này: %1$s</string>
     <string name="feature_appdetail_api_refresh_failed">Không thể làm mới thành phần. Đang hiển thị trạng thái đã lưu gần nhất.</string>
     <string name="feature_appdetail_api_not_installed">Ứng dụng này chưa được cài cho người dùng này.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Hiện không đọc được ứng dụng của người dùng này. Hãy cấp quyền root hoặc Shizuku.</string>

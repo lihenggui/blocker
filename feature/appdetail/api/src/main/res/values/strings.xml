@@ -84,6 +84,7 @@
     <string name="feature_appdetail_api_layer_reason">%1$s: %2$s</string>
     <string name="feature_appdetail_api_batch_summary">%1$s, %2$s</string>
     <string name="feature_appdetail_api_batch_most_common">Most often: %1$s</string>
+    <string name="feature_appdetail_api_batch_nothing_needed">Nothing needed changing</string>
     <string name="feature_appdetail_api_reason_no_access">Grant Blocker root or Shizuku access, then try again.</string>
     <string name="feature_appdetail_api_reason_needs_root">The current mode can\'t change components. This needs root.</string>
     <string name="feature_appdetail_api_reason_not_found">The app or component wasn\'t found for this user.</string>
@@ -94,6 +95,7 @@
     <string name="feature_appdetail_api_reason_system_error">The system reported an error: %1$s</string>
     <string name="feature_appdetail_api_reason_system_error_unknown">The system reported an error.</string>
     <string name="feature_appdetail_api_reason_not_allowed">The system doesn\'t allow this with the current access mode.</string>
+    <string name="feature_appdetail_api_reason_not_allowed_detail">The system doesn\'t allow this: %1$s</string>
     <string name="feature_appdetail_api_refresh_failed">Couldn\'t refresh the components. Showing the last saved state.</string>
     <string name="feature_appdetail_api_not_installed">This app isn\'t installed for this user.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">This user\'s apps can\'t be read now. Grant root or Shizuku access.</string>

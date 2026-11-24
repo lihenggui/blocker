@@ -84,6 +84,7 @@
     <string name="feature_appdetail_api_layer_reason">%1$s: %2$s</string>
     <string name="feature_appdetail_api_batch_summary">%1$s, %2$s</string>
     <string name="feature_appdetail_api_batch_most_common">Lo más frecuente: %1$s</string>
+    <string name="feature_appdetail_api_batch_nothing_needed">No hacía falta cambiar nada</string>
     <string name="feature_appdetail_api_reason_no_access">Concede a Blocker acceso root o Shizuku e inténtalo de nuevo.</string>
     <string name="feature_appdetail_api_reason_needs_root">El modo actual no puede cambiar componentes. Se necesita root.</string>
     <string name="feature_appdetail_api_reason_not_found">No se encontró la aplicación o el componente para este usuario.</string>
@@ -94,6 +95,7 @@
     <string name="feature_appdetail_api_reason_system_error">El sistema informó de un error: %1$s</string>
     <string name="feature_appdetail_api_reason_system_error_unknown">El sistema informó de un error.</string>
     <string name="feature_appdetail_api_reason_not_allowed">El sistema no lo permite con el modo de acceso actual.</string>
+    <string name="feature_appdetail_api_reason_not_allowed_detail">El sistema no lo permite: %1$s</string>
     <string name="feature_appdetail_api_refresh_failed">No se pudieron actualizar los componentes. Se muestra el último estado guardado.</string>
     <string name="feature_appdetail_api_not_installed">Esta aplicación no está instalada para este usuario.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Ahora no se pueden leer las aplicaciones de este usuario. Concede acceso root o Shizuku.</string>

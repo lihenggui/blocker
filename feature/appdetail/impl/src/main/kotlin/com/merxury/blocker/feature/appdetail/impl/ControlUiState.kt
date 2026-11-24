@@ -18,22 +18,25 @@ package com.merxury.blocker.feature.appdetail.impl
 
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ControlLayer
+import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 
 /**
  * The changes of components in flight and what they ended in.
  *
  * @property inFlight components whose change has not ended; their switches ignore taps
- * @property batch the progress of the batch running, or null
+ * @property batch the progress of the batch running for the app, or null; the batch actions are
+ * disabled meanwhile
  * @property messages outcomes to tell, oldest first; see [ComponentControlViewModel.onMessageShown]
  */
 data class ControlUiState(
     val inFlight: Set<ComponentId> = emptySet(),
     val batch: BatchProgress? = null,
-    val messages: List<ControlMessage> = emptyList(),
+    val messages: List<QueuedControlMessage> = emptyList(),
 )
 
 /**
@@ -53,49 +56,78 @@ data class LayerFailure(
     val failure: ControlFailure,
 )
 
+/**
+ * A message waiting to be told. Two equal messages, such as the same switch failing twice, are
+ * queued apart by their [id].
+ */
+data class QueuedControlMessage(
+    val id: Long,
+    val message: ControlMessage,
+)
+
 sealed interface ControlMessage {
-    /** One component did not reach [goal]; [partial] when some layers did. */
+    /**
+     * One component did not reach [goal]; [partial] when some layers did.
+     *
+     * @property identity what the privileged channel ran as when the change ended, or null when it
+     * was not ready
+     */
     data class ComponentNotChanged(
         val name: String,
         val goal: ControlGoal,
         val partial: Boolean,
         val failures: List<LayerFailure>,
+        val identity: PrivilegedIdentity? = null,
     ) : ControlMessage
 
     /**
-     * A batch ended: [changed] components reached [goal] and [notChanged] did not, most often
-     * because of [mostCommon].
+     * A batch ended: [changed] components reached [goal] from another state and [notChanged] did
+     * not, most often because of [mostCommon]. Components already at the goal count in neither, so
+     * both are 0 when nothing needed changing.
+     *
+     * @property identity what the privileged channel ran as when the batch ended, or null when it
+     * was not ready
      */
     data class BatchDone(
         val goal: ControlGoal,
         val changed: Int,
         val notChanged: Int,
         val mostCommon: LayerFailure?,
+        val identity: PrivilegedIdentity? = null,
     ) : ControlMessage
 }
 
 /** The message for one component's [outcome], or null when it reached its goal. */
-internal fun ComponentOutcome.toMessage(goal: ControlGoal): ControlMessage? {
+internal fun ComponentOutcome.toMessage(goal: ControlGoal, identity: PrivilegedIdentity?): ControlMessage? {
     if (result == ControlResult.ACHIEVED) return null
     return ControlMessage.ComponentNotChanged(
         name = key.id.simpleName,
         goal = goal,
         partial = result == ControlResult.PARTIAL,
         failures = failures.entries.sortedBy { it.key }.map { (layer, failure) -> LayerFailure(layer, failure) },
+        identity = identity,
     )
 }
 
 /**
- * The summary of a batch of [outcomes]. The most common reason counts each layer and kind of
+ * The summary of a batch of [outcomes]. A component counts as changed when it reached the goal
+ * and its state read back differs from [before], the state cached when the batch was sent; one
+ * without a cached state counts as changed. The most common reason counts each layer and kind of
  * failure once per component, whatever its message, and keeps the first message seen.
  */
-internal fun batchSummary(goal: ControlGoal, outcomes: List<ComponentOutcome>): ControlMessage.BatchDone {
+internal fun batchSummary(
+    goal: ControlGoal,
+    outcomes: List<ComponentOutcome>,
+    before: Map<ComponentId, ControlState>,
+    identity: PrivilegedIdentity?,
+): ControlMessage.BatchDone {
     val notChanged = outcomes.filter { it.result != ControlResult.ACHIEVED }
+    val changed = outcomes.count { it.result == ControlResult.ACHIEVED && before[it.key.id] != it.state }
     val mostCommon = notChanged
         .flatMap { outcome -> outcome.failures.map { (layer, failure) -> LayerFailure(layer, failure) } }
         .groupBy { it.layer to it.failure::class }
         .maxByOrNull { (_, failures) -> failures.size }
         ?.value
         ?.first()
-    return ControlMessage.BatchDone(goal, changed = outcomes.size - notChanged.size, notChanged = notChanged.size, mostCommon = mostCommon)
+    return ControlMessage.BatchDone(goal, changed = changed, notChanged = notChanged.size, mostCommon = mostCommon, identity = identity)
 }

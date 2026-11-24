@@ -68,6 +68,7 @@
     <string name="feature_appdetail_api_layer_reason">%1$s: %2$s</string>
     <string name="feature_appdetail_api_batch_summary">%1$s, %2$s</string>
     <string name="feature_appdetail_api_batch_most_common">Paling sering: %1$s</string>
+    <string name="feature_appdetail_api_batch_nothing_needed">Tidak ada yang perlu diubah</string>
     <string name="feature_appdetail_api_reason_no_access">Berikan Blocker akses root atau Shizuku, lalu coba lagi.</string>
     <string name="feature_appdetail_api_reason_needs_root">Mode saat ini tidak dapat mengubah komponen. Ini memerlukan root.</string>
     <string name="feature_appdetail_api_reason_not_found">Aplikasi atau komponen tidak ditemukan untuk pengguna ini.</string>
@@ -78,6 +79,7 @@
     <string name="feature_appdetail_api_reason_system_error">Sistem melaporkan kesalahan: %1$s</string>
     <string name="feature_appdetail_api_reason_system_error_unknown">Sistem melaporkan kesalahan.</string>
     <string name="feature_appdetail_api_reason_not_allowed">Sistem tidak mengizinkan ini dengan mode akses saat ini.</string>
+    <string name="feature_appdetail_api_reason_not_allowed_detail">Sistem tidak mengizinkan ini: %1$s</string>
     <string name="feature_appdetail_api_refresh_failed">Tidak dapat memuat ulang komponen. Menampilkan status terakhir yang tersimpan.</string>
     <string name="feature_appdetail_api_not_installed">Aplikasi ini tidak terpasang untuk pengguna ini.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Aplikasi pengguna ini tidak dapat dibaca sekarang. Berikan akses root atau Shizuku.</string>

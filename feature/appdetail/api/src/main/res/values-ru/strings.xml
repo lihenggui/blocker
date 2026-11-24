@@ -84,6 +84,7 @@
     <string name="feature_appdetail_api_layer_reason">%1$s: %2$s</string>
     <string name="feature_appdetail_api_batch_summary">%1$s, %2$s</string>
     <string name="feature_appdetail_api_batch_most_common">Чаще всего: %1$s</string>
+    <string name="feature_appdetail_api_batch_nothing_needed">Ничего не нужно было менять</string>
     <string name="feature_appdetail_api_reason_no_access">Предоставьте Blocker доступ root или Shizuku и повторите попытку.</string>
     <string name="feature_appdetail_api_reason_needs_root">Текущий режим не может изменять компоненты. Нужен root.</string>
     <string name="feature_appdetail_api_reason_not_found">Приложение или компонент не найдены для этого пользователя.</string>
@@ -94,6 +95,7 @@
     <string name="feature_appdetail_api_reason_system_error">Система сообщила об ошибке: %1$s</string>
     <string name="feature_appdetail_api_reason_system_error_unknown">Система сообщила об ошибке.</string>
     <string name="feature_appdetail_api_reason_not_allowed">Система не разрешает это в текущем режиме доступа.</string>
+    <string name="feature_appdetail_api_reason_not_allowed_detail">Система не разрешает это: %1$s</string>
     <string name="feature_appdetail_api_refresh_failed">Не удалось обновить компоненты. Показано последнее сохранённое состояние.</string>
     <string name="feature_appdetail_api_not_installed">Это приложение не установлено для этого пользователя.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Сейчас нельзя прочитать приложения этого пользователя. Предоставьте доступ root или Shizuku.</string>

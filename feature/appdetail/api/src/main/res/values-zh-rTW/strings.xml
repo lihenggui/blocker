@@ -81,6 +81,7 @@
     <string name="feature_appdetail_api_layer_reason">%1$s：%2$s</string>
     <string name="feature_appdetail_api_batch_summary">%1$s，%2$s</string>
     <string name="feature_appdetail_api_batch_most_common">最常見原因：%1$s</string>
+    <string name="feature_appdetail_api_batch_nothing_needed">無需變更任何元件</string>
     <string name="feature_appdetail_api_reason_no_access">請授予 Blocker Root 或 Shizuku 權限後重試。</string>
     <string name="feature_appdetail_api_reason_needs_root">目前模式無法變更元件，需要 Root。</string>
     <string name="feature_appdetail_api_reason_not_found">未在該使用者下找到此應用程式或元件。</string>
@@ -91,6 +92,7 @@
     <string name="feature_appdetail_api_reason_system_error">系統回報了錯誤：%1$s</string>
     <string name="feature_appdetail_api_reason_system_error_unknown">系統回報了錯誤。</string>
     <string name="feature_appdetail_api_reason_not_allowed">目前存取模式下系統不允許此操作。</string>
+    <string name="feature_appdetail_api_reason_not_allowed_detail">系統不允許此操作：%1$s</string>
     <string name="feature_appdetail_api_refresh_failed">無法重新整理元件，顯示的是上次儲存的狀態。</string>
     <string name="feature_appdetail_api_not_installed">該使用者未安裝此應用程式。</string>
     <string name="feature_appdetail_api_read_user_not_reachable">目前無法讀取該使用者的應用程式。請授予 Root 或 Shizuku 權限。</string>

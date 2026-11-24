@@ -36,6 +36,8 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.profile.ProfileLabel
@@ -254,7 +256,7 @@ class AppDetailScreenTest {
             BlockerTheme {
                 AppDetailContent(
                     header = AppHeaderUiState(),
-                    list = componentTab().copy(components = ComponentsUiState.Loaded(AppComponents())),
+                    list = componentTab().copy(components = ComponentsUiState.Loaded(AppComponents()), refreshFailure = ReadFailure.PackageNotFound(OWN_APP)),
                     control = ControlUiState(),
                 )
             }
@@ -264,20 +266,53 @@ class AppDetailScreenTest {
     }
 
     @Test
-    fun givenPartialBlock_whenTold_thenNamesTheLayerAndTheReason() {
-        showText {
-            ControlMessage.ComponentNotChanged(
-                name = "AdActivity",
-                goal = ControlGoal.BLOCK,
-                partial = true,
-                failures = listOf(LayerFailure(ControlLayer.INTENT_FIREWALL, ControlFailure.NotPermitted("shell"))),
-            ).text()
-        }
+    fun givenPartialBlockRefusedToTheShell_whenTold_thenNamesTheLayerAndThatRootIsNeeded() {
+        showText { refused(PrivilegedIdentity.SHELL, "shell").text() }
 
         composeTestRule.onNodeWithText(
             text(string.feature_appdetail_api_block_partial, "AdActivity") + "\n" +
                 text(string.feature_appdetail_api_layer_reason, "Intent Firewall", text(string.feature_appdetail_api_reason_needs_root)),
         ).assertIsDisplayed()
+    }
+
+    @Test
+    fun givenBlockRefusedToRoot_whenTold_thenSaysTheSystemDoesNotAllowItWithItsMessage() {
+        showText { refused(PrivilegedIdentity.ROOT, "Cannot disable a protected package").text() }
+
+        composeTestRule.onNodeWithText(
+            text(string.feature_appdetail_api_block_partial, "AdActivity") + "\n" +
+                text(
+                    string.feature_appdetail_api_layer_reason,
+                    "Intent Firewall",
+                    text(string.feature_appdetail_api_reason_not_allowed_detail, "Cannot disable a protected package"),
+                ),
+        ).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_reason_needs_root), substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun givenBlockRefusedToRootWithoutAMessage_whenTold_thenSaysTheSystemDoesNotAllowIt() {
+        showText { refused(PrivilegedIdentity.SYSTEM, null).text() }
+
+        composeTestRule.onNodeWithText(
+            text(string.feature_appdetail_api_block_partial, "AdActivity") + "\n" +
+                text(string.feature_appdetail_api_layer_reason, "Intent Firewall", text(string.feature_appdetail_api_reason_not_allowed)),
+        ).assertIsDisplayed()
+    }
+
+    private fun refused(identity: PrivilegedIdentity, message: String?) = ControlMessage.ComponentNotChanged(
+        name = "AdActivity",
+        goal = ControlGoal.BLOCK,
+        partial = true,
+        failures = listOf(LayerFailure(ControlLayer.INTENT_FIREWALL, ControlFailure.NotPermitted(message))),
+        identity = identity,
+    )
+
+    @Test
+    fun givenBatchWithNothingToChange_whenTold_thenSaysNothingNeededChanging() {
+        showText { ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 0, notChanged = 0, mostCommon = null).text() }
+
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_batch_nothing_needed)).assertIsDisplayed()
     }
 
     @Test
