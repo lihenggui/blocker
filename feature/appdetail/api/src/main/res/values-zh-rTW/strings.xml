@@ -104,6 +104,7 @@
     <string name="feature_appdetail_api_launch_conditional">一條 Intent Firewall 條件規則可能阻止了 %1$s 開啟。</string>
     <string name="feature_appdetail_api_stop_failed">無法停止 %1$s</string>
     <string name="feature_appdetail_api_grant_failed">Blocker 仍沒有 Root 或 Shizuku 權限。</string>
+    <string name="feature_appdetail_api_access_not_checked">Blocker 無法檢查自己的 root 或 Shizuku 權限，因此無法讀取此應用程式。請授予權限後再試一次。</string>
     <string name="feature_appdetail_api_profile_personal">個人設定檔</string>
     <string name="feature_appdetail_api_profile_work">工作設定檔</string>
     <string name="feature_appdetail_api_profile_user">使用者 %1$d</string>
@@ -113,7 +114,7 @@
     <plurals name="feature_appdetail_api_batch_not_changed">
         <item quantity="other">%1$d 個無法變更</item>
     </plurals>
-</resources>
     <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
         <item quantity="other">%1$d 個元件仍保持關閉，因為應用程式預設將其停用；可用其開關單獨強制開啟</item>
     </plurals>
+</resources>

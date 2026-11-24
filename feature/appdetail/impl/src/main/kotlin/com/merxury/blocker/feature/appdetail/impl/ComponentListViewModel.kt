@@ -72,6 +72,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
 
@@ -111,6 +112,7 @@ class ComponentListViewModel @AssistedInject constructor(
     private val running = MutableStateFlow<Set<ComponentId>?>(null)
     private val message = MutableStateFlow<ListMessage?>(null)
     private var refreshJob: Job? = null
+    private var accessCheckJob: Job? = null
 
     // The access keepFresh last saw, and whether it refreshed since the screen was opened.
     private var lastAccess: Access? = null
@@ -170,6 +172,7 @@ class ComponentListViewModel @AssistedInject constructor(
             search = search,
             isRefreshing = !loading && refresh == RefreshStatus.Running,
             refreshFailure = (refresh as? RefreshStatus.Failed)?.reason,
+            accessCheckFailed = refresh == RefreshStatus.AccessUnchecked,
         )
     }
 
@@ -194,6 +197,7 @@ class ComponentListViewModel @AssistedInject constructor(
             selected = selection.ids,
             isRefreshing = lists.isRefreshing,
             refreshFailure = lists.refreshFailure,
+            accessCheckFailed = lists.accessCheckFailed,
             banners = banners,
             message = message,
         )
@@ -219,6 +223,7 @@ class ComponentListViewModel @AssistedInject constructor(
      */
     @OptIn(FlowPreview::class)
     suspend fun keepFresh(): Unit = coroutineScope {
+        if (accessOf(channel.state.value) == Access.Unchecked) awaitAccessCheck()
         launch {
             channel.state.map(::accessOf).distinctUntilChanged().collect { access ->
                 val previous = lastAccess
@@ -242,18 +247,26 @@ class ComponentListViewModel @AssistedInject constructor(
     }
 
     /**
-     * Reads the app again from the system; the cached rows stay shown meanwhile. Ignored until
-     * the channel's first access check has settled, after which [keepFresh] refreshes anyway.
+     * Reads the app again from the system; the cached rows stay shown meanwhile. Before the
+     * channel's first access check has settled nothing can be read yet: this asks for that check,
+     * after which [keepFresh] refreshes, see [awaitAccessCheck].
      */
     fun refresh() {
-        if (accessOf(channel.state.value) == Access.Unchecked) return
+        if (accessOf(channel.state.value) == Access.Unchecked) {
+            awaitAccessCheck()
+            return
+        }
         startRefresh(restart = false)
     }
 
-    /** Shows [tab]. Selection mode ends on a tab without selectable rows. */
+    /**
+     * Shows [tab]. Selection mode ends on a tab without selectable rows, and search mode on the
+     * matched rules tab, which shows no search; Back then leaves the screen at once.
+     */
     fun selectTab(tab: AppDetailTabs) {
         requestedTab.value = tab
         if (!tab.listsComponents) selection.value = Selection()
+        if (tab == AppDetailTabs.Sdk && search.value.isSearchMode) search.value = Search()
     }
 
     fun setSearchMode(enabled: Boolean) {
@@ -323,6 +336,23 @@ class ComponentListViewModel @AssistedInject constructor(
         message.value = null
     }
 
+    /**
+     * Waits for the channel's check that cannot show a prompt; once it settles the access changes,
+     * so [keepFresh] refreshes. A check that does not settle in time, such as while the controller
+     * type cannot be read, is told instead of leaving the screen loading.
+     */
+    private fun awaitAccessCheck() {
+        if (accessCheckJob?.isActive == true) return
+        accessCheckJob = viewModelScope.launch {
+            val settled = withTimeoutOrNull(ACCESS_CHECK_TIMEOUT_MILLIS) { channel.connectIfGranted() }
+            if (settled == null || accessOf(settled) == Access.Unchecked) {
+                Timber.w("The access check of the privileged channel did not settle for $app")
+                if (refresh.value == null || refresh.value == RefreshStatus.Running) refresh.value = RefreshStatus.AccessUnchecked
+                message.value = ListMessage.AccessCheckFailed
+            }
+        }
+    }
+
     private fun startRefresh(restart: Boolean) {
         if (!restart && refreshJob?.isActive == true) return
         refreshJob?.cancel()
@@ -374,12 +404,16 @@ class ComponentListViewModel @AssistedInject constructor(
         val search: Search,
         val isRefreshing: Boolean,
         val refreshFailure: ReadFailure?,
+        val accessCheckFailed: Boolean,
     )
 
     private sealed interface RefreshStatus {
         data object Running : RefreshStatus
         data object Done : RefreshStatus
         data class Failed(val reason: ReadFailure) : RefreshStatus
+
+        /** Nothing was read: the channel's first access check did not settle. */
+        data object AccessUnchecked : RefreshStatus
     }
 
     /** What the privileged channel allows, as far as it changes what a refresh reads. */
@@ -406,6 +440,9 @@ class ComponentListViewModel @AssistedInject constructor(
 
     private companion object {
         const val RUNNING_REREAD_DELAY_MILLIS = 300L
+
+        /** How long the first access check may take before the screen says it could not be done. */
+        const val ACCESS_CHECK_TIMEOUT_MILLIS = 10_000L
 
         fun tabOf(name: String): AppDetailTabs = try {
             AppDetailTabs.fromName(name)

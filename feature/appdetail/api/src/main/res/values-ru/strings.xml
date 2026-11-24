@@ -107,6 +107,7 @@
     <string name="feature_appdetail_api_launch_conditional">Условное правило Intent Firewall могло помешать открыть %1$s.</string>
     <string name="feature_appdetail_api_stop_failed">Не удалось остановить %1$s</string>
     <string name="feature_appdetail_api_grant_failed">У Blocker по-прежнему нет доступа root или Shizuku.</string>
+    <string name="feature_appdetail_api_access_not_checked">Blocker не смог проверить доступ root или Shizuku, поэтому не может прочитать это приложение. Предоставьте доступ, чтобы повторить попытку.</string>
     <string name="feature_appdetail_api_profile_personal">Личный профиль</string>
     <string name="feature_appdetail_api_profile_work">Рабочий профиль</string>
     <string name="feature_appdetail_api_profile_user">Пользователь %1$d</string>
@@ -122,10 +123,10 @@
         <item quantity="many">%1$d не удалось изменить</item>
         <item quantity="other">%1$d не удалось изменить</item>
     </plurals>
-</resources>
     <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
         <item quantity="one">%1$d компонент остаётся выключенным, потому что приложение поставляет его отключённым; включите его переключателем, чтобы включить принудительно</item>
         <item quantity="few">%1$d компонента остаются выключенными, потому что приложение поставляет их отключёнными; включите один переключателем, чтобы включить принудительно</item>
         <item quantity="many">%1$d компонентов остаются выключенными, потому что приложение поставляет их отключёнными; включите один переключателем, чтобы включить принудительно</item>
         <item quantity="other">%1$d компонента остаются выключенными, потому что приложение поставляет их отключёнными; включите один переключателем, чтобы включить принудительно</item>
     </plurals>
+</resources>

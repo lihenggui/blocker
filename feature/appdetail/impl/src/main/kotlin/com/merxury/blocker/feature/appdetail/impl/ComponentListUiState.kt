@@ -29,6 +29,8 @@ import java.io.File
  *
  * @property refreshFailure why the last refresh failed; null while one runs, after one succeeded and
  * before the first. [ReadFailure.PackageNotFound] means the app is not installed for the user.
+ * @property accessCheckFailed whether nothing could be read because the privileged channel's first
+ * access check did not settle
  * @property banners limits of the current mode, shown once above the lists
  * @property message something to tell once; see [ComponentListViewModel.onMessageShown]
  */
@@ -42,6 +44,7 @@ data class ComponentListUiState(
     val selected: Set<ComponentId> = emptySet(),
     val isRefreshing: Boolean = false,
     val refreshFailure: ReadFailure? = null,
+    val accessCheckFailed: Boolean = false,
     val banners: List<ModeBanner> = emptyList(),
     val message: ListMessage? = null,
 )
@@ -165,6 +168,9 @@ sealed interface ListMessage {
 
     /** Asked for root or Shizuku, but the channel is still not ready. */
     data object GrantFailed : ListMessage
+
+    /** The privileged channel's first access check did not settle, so nothing could be read. */
+    data object AccessCheckFailed : ListMessage
 }
 
 /** Why launching an activity, stopping a service or granting access failed, as the user is told. */

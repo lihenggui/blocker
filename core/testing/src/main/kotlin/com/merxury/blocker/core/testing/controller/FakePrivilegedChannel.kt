@@ -18,9 +18,11 @@ package com.merxury.blocker.core.testing.controller
 
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 
 /** A [PrivilegedChannel] whose state tests set; [connect] moves it to [connectResult]. */
 class FakePrivilegedChannel(
@@ -41,8 +43,21 @@ class FakePrivilegedChannel(
         return connectResult
     }
 
-    /** Never prompts and never changes the state: it answers with what the channel already has. */
-    override suspend fun connectIfGranted(): ChannelState = mutableState.value
+    /**
+     * While true, [connectIfGranted] waits for an unchecked channel to be checked, as the real one
+     * waits for the first check, which needs the controller type; tests end the wait with [setState].
+     */
+    var firstCheckPending = false
+
+    /**
+     * Never prompts and never changes the state: it answers with what the channel has, after the
+     * first check when [firstCheckPending] is set.
+     */
+    override suspend fun connectIfGranted(): ChannelState = if (firstCheckPending) {
+        mutableState.first { it != ChannelState.Unavailable(UnavailableReason.NOT_CHECKED) }
+    } else {
+        mutableState.value
+    }
 
     /** Sets the state as a connect, a lost channel or a change of controller type would. */
     fun setState(state: ChannelState) {

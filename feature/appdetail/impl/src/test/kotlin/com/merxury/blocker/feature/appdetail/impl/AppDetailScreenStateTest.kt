@@ -235,6 +235,40 @@ class AppDetailScreenStateTest {
     }
 
     @Test
+    fun givenAppNotCachedAndItsUserNotReachable_whenShown_thenAccessCanBeGrantedFromTheErrorScreen() {
+        var granted = 0
+        composeTestRule.setContent {
+            BlockerTheme {
+                AppDetailContent(
+                    header = AppHeaderUiState(),
+                    list = componentTab().copy(refreshFailure = ReadFailure.UserNotReachable(WORK)),
+                    control = ControlUiState(),
+                    actions = AppDetailActions(onGrantAccess = { granted++ }),
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).performClick()
+
+        assertThat(granted).isEqualTo(1)
+    }
+
+    @Test
+    fun givenAccessCheckThatFailed_whenAppNotCached_thenSaysSoAndOffersAccess() {
+        showContent(header = AppHeaderUiState(), list = componentTab().copy(accessCheckFailed = true))
+
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_access_not_checked)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).assertIsDisplayed()
+    }
+
+    @Test
+    fun givenAppNotInstalled_whenShown_thenNoAccessIsOffered() {
+        showContent(header = AppHeaderUiState(), list = componentTab().copy(refreshFailure = ReadFailure.PackageNotFound(WORK_APP)))
+
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).assertDoesNotExist()
+    }
+
+    @Test
     fun givenScreenStarted_whenTheAppGoesToTheBackgroundAndBack_thenStoppedAndRefreshedOnReturn() {
         val owner = TestLifecycleOwner(Lifecycle.State.RESUMED)
         var started = 0

@@ -41,6 +41,7 @@ internal fun ListMessage.text(): String = when (this) {
     is ListMessage.LaunchMayBeBlocked -> stringResource(string.feature_appdetail_api_launch_conditional, name)
     is ListMessage.StopFailed -> lines(stringResource(string.feature_appdetail_api_stop_failed, name), reason.text())
     ListMessage.GrantFailed -> stringResource(string.feature_appdetail_api_grant_failed)
+    ListMessage.AccessCheckFailed -> stringResource(string.feature_appdetail_api_access_not_checked)
 }
 
 /** What a snackbar says about [this] outcome: the layers that failed and why, or a batch summary. */
@@ -58,9 +59,9 @@ internal fun ControlMessage.text(): String = when (this) {
 
     is ControlMessage.BatchDone -> {
         val changedText = pluralStringResource(plurals.feature_appdetail_api_batch_changed, changed, changed)
-        val summary = when {
         // Unblocked but still off: the app ships them disabled, which only a switch overrides.
         val staysOff = staysOffAsShipped.takeIf { it > 0 }?.let { pluralStringResource(plurals.feature_appdetail_api_batch_stays_off_as_shipped, it, it) }
+        val summary = when {
             notChanged != 0 -> {
                 val notChangedText = pluralStringResource(plurals.feature_appdetail_api_batch_not_changed, notChanged, notChanged)
                 stringResource(string.feature_appdetail_api_batch_summary, changedText, notChangedText)

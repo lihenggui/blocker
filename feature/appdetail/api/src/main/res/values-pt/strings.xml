@@ -93,6 +93,7 @@
     <string name="feature_appdetail_api_launch_conditional">Uma regra condicional do Intent Firewall pode ter impedido %1$s de abrir.</string>
     <string name="feature_appdetail_api_stop_failed">Não foi possível parar %1$s</string>
     <string name="feature_appdetail_api_grant_failed">O Blocker ainda não tem acesso root nem Shizuku.</string>
+    <string name="feature_appdetail_api_access_not_checked">O Blocker não conseguiu verificar o acesso root ou Shizuku, então não pode ler este app. Conceda acesso para tentar novamente.</string>
     <string name="feature_appdetail_api_profile_personal">Perfil pessoal</string>
     <string name="feature_appdetail_api_profile_work">Perfil de trabalho</string>
     <string name="feature_appdetail_api_profile_user">Usuário %1$d</string>
@@ -104,9 +105,9 @@
         <item quantity="one">%1$d não pôde ser alterado</item>
         <item quantity="other">%1$d não puderam ser alterados</item>
     </plurals>
-</resources>
     <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
         <item quantity="one">%1$d continua desativado porque o app o traz desativado; ative-o com o seu interruptor para forçá-lo</item>
         <item quantity="many">%1$d continuam desativados porque o app os traz desativados; ative um com o seu interruptor para forçá-lo</item>
         <item quantity="other">%1$d continuam desativados porque o app os traz desativados; ative um com o seu interruptor para forçá-lo</item>
     </plurals>
+</resources>

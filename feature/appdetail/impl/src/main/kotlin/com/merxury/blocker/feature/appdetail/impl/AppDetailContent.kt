@@ -47,12 +47,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerButton
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
@@ -61,6 +63,7 @@ import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
+import com.merxury.blocker.feature.appdetail.api.R.string
 import com.merxury.blocker.feature.appdetail.impl.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.impl.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.impl.ui.AppDetailTopBar
@@ -130,12 +133,9 @@ internal fun AppDetailContent(
                 .pointerInput(Unit) { detectTapGestures(onPress = { scope.coroutineContext.cancelChildren() }) }
             val app = header.app
             if (app == null) {
-                // Not cached for the user: the header or the first refresh is still loading, or the
-                // refresh failed, perhaps because the app is not installed for the user.
-                when (val failure = list.refreshFailure) {
-                    null -> LoadingScreen(modifier = contentModifier)
-                    else -> ErrorScreen(error = UiMessage(failure.text()), modifier = contentModifier)
-                }
+                // Not cached for the user: the header or the first refresh is still loading, or
+                // nothing could be read, perhaps because the app is not installed for the user.
+                AppNotShown(list = list, onGrantAccess = actions.onGrantAccess, modifier = contentModifier)
             } else {
                 AppDetailTabs(
                     app = app,
@@ -159,6 +159,34 @@ internal fun AppDetailContent(
                 .align(Alignment.BottomCenter)
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp + bottomInset),
         )
+    }
+}
+
+/**
+ * What shows while the app is not cached: loading, or why it could not be read. Where access to
+ * root or Shizuku would let it be read, access can be granted from here, as the tabs' banner
+ * offers, since without the app there are no tabs.
+ */
+@Composable
+private fun AppNotShown(list: ComponentListUiState, onGrantAccess: () -> Unit, modifier: Modifier = Modifier) {
+    val failure = list.refreshFailure
+    val text = when {
+        failure != null -> failure.text()
+        list.accessCheckFailed -> stringResource(string.feature_appdetail_api_access_not_checked)
+        else -> null
+    }
+    if (text == null) {
+        LoadingScreen(modifier = modifier)
+        return
+    }
+    val accessWouldHelp = list.accessCheckFailed || failure is ReadFailure.UserNotReachable || failure == ReadFailure.ChannelUnavailable
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        ErrorScreen(error = UiMessage(text), modifier = Modifier.weight(1f))
+        if (accessWouldHelp) {
+            BlockerButton(onClick = onGrantAccess, modifier = Modifier.padding(bottom = 32.dp)) {
+                Text(text = stringResource(string.feature_appdetail_api_grant_access))
+            }
+        }
     }
 }
 

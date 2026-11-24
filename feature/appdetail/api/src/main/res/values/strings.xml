@@ -107,6 +107,7 @@
     <string name="feature_appdetail_api_launch_conditional">A conditional Intent Firewall rule may have kept %1$s from opening.</string>
     <string name="feature_appdetail_api_stop_failed">Couldn\'t stop %1$s</string>
     <string name="feature_appdetail_api_grant_failed">Blocker still has no root or Shizuku access.</string>
+    <string name="feature_appdetail_api_access_not_checked">Blocker couldn\'t check its root or Shizuku access, so it can\'t read this app. Grant access to try again.</string>
     <string name="feature_appdetail_api_profile_personal">Personal profile</string>
     <string name="feature_appdetail_api_profile_work">Work profile</string>
     <string name="feature_appdetail_api_profile_user">User %1$d</string>
@@ -119,8 +120,8 @@
         <item quantity="other">%1$d could not be changed</item>
     </plurals>
     <string name="feature_appdetail_api_summary_with_profile" translatable="false">%1$s · %2$s</string>
-</resources>
     <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
         <item quantity="one">%1$d stays off because the app ships it disabled; turn it on with its switch to force it</item>
         <item quantity="other">%1$d stay off because the app ships them disabled; turn one on with its switch to force it</item>
     </plurals>
+</resources>

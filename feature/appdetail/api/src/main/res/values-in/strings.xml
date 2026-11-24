@@ -91,6 +91,7 @@
     <string name="feature_appdetail_api_launch_conditional">Aturan bersyarat Intent Firewall mungkin mencegah %1$s terbuka.</string>
     <string name="feature_appdetail_api_stop_failed">Tidak dapat menghentikan %1$s</string>
     <string name="feature_appdetail_api_grant_failed">Blocker masih belum memiliki akses root atau Shizuku.</string>
+    <string name="feature_appdetail_api_access_not_checked">Blocker tidak dapat memeriksa akses root atau Shizuku-nya, jadi tidak dapat membaca aplikasi ini. Berikan akses untuk mencoba lagi.</string>
     <string name="feature_appdetail_api_profile_personal">Profil pribadi</string>
     <string name="feature_appdetail_api_profile_work">Profil kerja</string>
     <string name="feature_appdetail_api_profile_user">Pengguna %1$d</string>
@@ -100,7 +101,7 @@
     <plurals name="feature_appdetail_api_batch_not_changed">
         <item quantity="other">%1$d tidak dapat diubah</item>
     </plurals>
-</resources>
     <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
         <item quantity="other">%1$d komponen tetap nonaktif karena aplikasi menonaktifkannya secara bawaan; aktifkan satu dengan sakelarnya untuk memaksanya</item>
     </plurals>
+</resources>

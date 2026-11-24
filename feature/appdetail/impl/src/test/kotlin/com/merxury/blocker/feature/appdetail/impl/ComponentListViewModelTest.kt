@@ -236,6 +236,7 @@ class ComponentListViewModelTest {
     fun givenAccessUnchecked_whenShownOrPulled_thenNothingIsReadAndNoFailureIsTold() = runTest {
         fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, userId = WORK.value)
         fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        fixture.channel.firstCheckPending = true
         fixture.components.refreshFailure = ReadFailure.UserNotReachable(WORK)
         fixture.sendComponents(component("Main"))
         show()
@@ -251,6 +252,7 @@ class ComponentListViewModelTest {
     fun givenAccessUnchecked_whenTheCheckSettlesReady_thenRefreshedOnceWithoutAFailure() = runTest {
         fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, userId = WORK.value)
         fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        fixture.channel.firstCheckPending = true
         show()
 
         fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
@@ -262,11 +264,71 @@ class ComponentListViewModelTest {
     @Test
     fun givenAccessUnchecked_whenTheCheckSettlesWithoutAccess_thenRefreshedOnce() = runTest {
         fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        fixture.channel.firstCheckPending = true
         show()
 
         fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
 
         assertThat(fixture.components.refreshedApps).containsExactly(OWN_APP)
+    }
+
+    @Test
+    fun givenAccessCheckPending_whenPulled_thenRefreshedOnceTheCheckSettles() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        fixture.channel.firstCheckPending = true
+        fixture.sendComponents(component("Main"))
+        show()
+
+        viewModel.refresh()
+        assertThat(fixture.components.refreshedApps).isEmpty()
+
+        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+
+        assertThat(fixture.components.refreshedApps).containsExactly(OWN_APP)
+        assertThat(viewModel.uiState.value.message).isNull()
+    }
+
+    @Test
+    fun givenAccessCheckThatNeverSettles_whenShown_thenToldInsteadOfLoadingForever() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        fixture.channel.firstCheckPending = true
+        show()
+        assertThat(viewModel.uiState.value.components).isEqualTo(ComponentsUiState.Loading)
+
+        advanceTimeBy(10_001)
+
+        val state = viewModel.uiState.value
+        assertThat(state.message).isEqualTo(ListMessage.AccessCheckFailed)
+        assertThat(state.accessCheckFailed).isTrue()
+        assertThat(state.components).isEqualTo(ComponentsUiState.Loaded(AppComponents()))
+        assertThat(fixture.components.refreshedApps).isEmpty()
+    }
+
+    @Test
+    fun givenAccessCheckThatFailed_whenAccessIsGrantedLater_thenRefreshed() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        fixture.channel.firstCheckPending = true
+        show()
+        advanceTimeBy(10_001)
+
+        viewModel.grantAccess()
+
+        assertThat(fixture.components.refreshedApps).containsExactly(OWN_APP)
+        assertThat(viewModel.uiState.value.accessCheckFailed).isFalse()
+    }
+
+    @Test
+    fun givenSearchOnAComponentTab_whenTheMatchedRulesTabIsSelected_thenSearchModeEnds() = runTest {
+        fixture.rules.sendRuleList(listOf(GeneralRule(id = 7, name = "Firebase", searchKeyword = listOf("firebase"))))
+        fixture.sendComponents(component("firebase.Receiver", type = ComponentType.RECEIVER), component("Main"))
+        show()
+        viewModel.setSearchMode(true)
+        viewModel.search("main")
+
+        viewModel.selectTab(AppDetailTabs.Sdk)
+
+        assertThat(viewModel.uiState.value.let { it.isSearchMode to it.keyword }).isEqualTo(false to "")
+        assertThat(fixture.loaded().receivers).hasSize(1)
     }
 
     @Test

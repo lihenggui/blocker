@@ -105,6 +105,7 @@
     <string name="feature_appdetail_api_launch_conditional">Một quy tắc Intent Firewall có điều kiện có thể đã ngăn %1$s mở ra.</string>
     <string name="feature_appdetail_api_stop_failed">Không thể dừng %1$s</string>
     <string name="feature_appdetail_api_grant_failed">Blocker vẫn chưa có quyền root hoặc Shizuku.</string>
+    <string name="feature_appdetail_api_access_not_checked">Blocker không kiểm tra được quyền root hoặc Shizuku nên không thể đọc ứng dụng này. Hãy cấp quyền để thử lại.</string>
     <string name="feature_appdetail_api_profile_personal">Hồ sơ cá nhân</string>
     <string name="feature_appdetail_api_profile_work">Hồ sơ công việc</string>
     <string name="feature_appdetail_api_profile_user">Người dùng %1$d</string>
@@ -114,7 +115,7 @@
     <plurals name="feature_appdetail_api_batch_not_changed">
         <item quantity="other">%1$d không thể thay đổi</item>
     </plurals>
-</resources>
     <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
         <item quantity="other">%1$d thành phần vẫn tắt vì ứng dụng tắt sẵn chúng; bật một thành phần bằng công tắc của nó để buộc bật</item>
     </plurals>
+</resources>
