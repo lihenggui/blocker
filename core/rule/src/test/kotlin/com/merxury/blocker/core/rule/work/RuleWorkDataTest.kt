@@ -46,9 +46,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkEvent
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.resultMessage
-import com.merxury.blocker.core.testing.controller.FakeIntentFirewall
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
-import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
@@ -178,7 +176,6 @@ class RuleWorkDataTest {
                         appContext,
                         workerParameters,
                         PackageManagerReset(FakeComponentStatusRepository(), FakePrivilegedChannel()),
-                        LegacyComponentCache(TestComponentRepository(), FakeIntentFirewall()),
                     )
                 },
             )
@@ -227,7 +224,6 @@ class RuleWorkDataTest {
                         appContext,
                         workerParameters,
                         PackageManagerReset(components, FakePrivilegedChannel()),
-                        LegacyComponentCache(TestComponentRepository(), FakeIntentFirewall()),
                     )
                 },
             )

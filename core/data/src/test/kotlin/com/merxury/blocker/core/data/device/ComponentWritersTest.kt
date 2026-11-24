@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.device
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.wake.FirewallResetRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -33,7 +34,13 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.rule.backup.IfwRuleImporter
+import com.merxury.blocker.core.rule.backup.RuleRunResult
+import com.merxury.blocker.core.testing.storage.FakeBackupStorage
 import com.merxury.core.ifw.model.IfwRules
+import com.merxury.core.ifw.withIfwEditorAccess
+import com.merxury.core.ifw.xml.IfwXmlDeserializer
+import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -141,8 +148,33 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
             assertThat(awaitItem().map { it.state.ifw }).containsExactly(IfwBlock.NOT_BLOCKED, IfwBlock.BLOCKED).inOrder()
 
             // As the rule editor saves.
-            store.update(PKG) { IfwRules.empty() }
+            withIfwEditorAccess { store.update(PKG) { IfwRules.empty() } }
             assertThat(awaitItem().map { it.state.ifw }).containsExactly(IfwBlock.NOT_BLOCKED, IfwBlock.NOT_BLOCKED)
+        }
+    }
+
+    @Test
+    fun givenCachedComponent_whenFirewallRulesAreImportedAndReset_thenCacheReflectsBothWrites() = runTest {
+        val repository = components(backgroundScope)
+        system.install(installedApp(PKG), MAIN)
+        repository.refresh(OWNER_APP)
+        val backup = FakeBackupStorage().apply {
+            putFile(
+                "ifw/$PKG.xml",
+                """<rules><activity block="true" log="false"><component-filter name="$PKG/${MAIN.id.className}" /></activity></rules>""",
+            )
+        }
+        val importer = IfwRuleImporter(store, users, apps, channel, IfwXmlDeserializer(), IfwXmlSerializer())
+        val reset = FirewallResetRepository({ true }, store)
+
+        repository.components(OWNER_APP).test {
+            assertThat(awaitItem().single().state.ifw).isEqualTo(IfwBlock.NOT_BLOCKED)
+
+            assertThat((importer.import(backup) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+            assertThat(awaitItem().single().state.ifw).isEqualTo(IfwBlock.BLOCKED)
+
+            assertThat(reset.reset(PKG) { _, _, _ -> }).isEqualTo(1)
+            assertThat(awaitItem().single().state.ifw).isEqualTo(IfwBlock.NOT_BLOCKED)
         }
     }
 

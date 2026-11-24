@@ -5,7 +5,6 @@ package com.merxury.blocker.core.data.wake
 
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
-import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.ManagedWakeReset
 import kotlinx.coroutines.CancellationException
@@ -28,7 +27,6 @@ import javax.inject.Inject
 class FirewallResetRepository @Inject constructor(
     private val managed: ManagedWakeReset,
     private val rules: IfwStore,
-    private val firewall: IIntentFirewall,
 ) {
     /**
      * Resets the rules of the package [target], or every rule file when null, reporting each
@@ -40,28 +38,22 @@ class FirewallResetRepository @Inject constructor(
      * may write them.
      */
     suspend fun reset(target: String?, onDelete: suspend (String, Int, Int) -> Unit): Int? {
-        try {
-            val removed = try {
-                resetRuleFiles(target, onDelete)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                try {
-                    resetWakeFiles(target)
-                } catch (wake: CancellationException) {
-                    throw wake
-                } catch (wake: Exception) {
-                    e.addSuppressed(wake)
-                }
-                throw e
+        val removed = try {
+            resetRuleFiles(target, onDelete)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            try {
+                resetWakeFiles(target)
+            } catch (wake: CancellationException) {
+                throw wake
+            } catch (wake: Exception) {
+                e.addSuppressed(wake)
             }
-            resetWakeFiles(target)
-            return removed
-        } finally {
-            // Screens not yet cut over to IfwStore still read through IIntentFirewall and its
-            // cache; drop this once that cutover is done.
-            firewall.resetCache()
+            throw e
         }
+        resetWakeFiles(target)
+        return removed
     }
 
     private suspend fun resetRuleFiles(target: String?, onDelete: suspend (String, Int, Int) -> Unit): Int? {

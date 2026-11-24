@@ -49,6 +49,7 @@ import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.core.ifw.IfwStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -130,7 +131,7 @@ internal class LocalComponentStatusRepository(
 
     init {
         // Rule editor saves and imports change the rules without going through control().
-        appScope.launch {
+        appScope.launch(start = CoroutineStart.UNDISPATCHED) {
             ifwStore.changes.collect { packageName ->
                 try {
                     lockOf(packageName).withLock { packages.refreshIfw(packageName) }

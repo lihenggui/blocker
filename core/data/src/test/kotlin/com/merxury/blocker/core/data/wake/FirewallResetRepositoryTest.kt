@@ -6,16 +6,12 @@ package com.merxury.blocker.core.data.wake
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
-import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.ManagedWakeReset
 import com.merxury.core.ifw.di.IfwModule
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
 import java.io.IOException
 
 private const val VALID_XML = """<rules><activity block="true" log="false"><component-filter name="a.pkg/a.pkg.Main" /></activity></rules>"""
@@ -36,11 +32,9 @@ class FirewallResetRepositoryTest {
         operationsBeforeWakeReset = files.operations.toList()
         wakeCanWrite
     }
-    private val firewall = mock<IIntentFirewall>()
     private val repository = FirewallResetRepository(
         managed,
         IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer()),
-        firewall,
     )
 
     @Test
@@ -49,7 +43,6 @@ class FirewallResetRepositoryTest {
 
         assertThat(wakeResets).containsExactly(null)
         assertThat(files.operations).containsExactly("list")
-        verify(firewall).resetCache()
     }
 
     @Test
@@ -97,7 +90,6 @@ class FirewallResetRepositoryTest {
         assertThat(files.operations).containsExactly("list", "delete a.pkg", "delete b.pkg").inOrder()
         assertThat(wakeResets).containsExactly(null)
         assertThat(operationsBeforeWakeReset).containsExactly("list", "delete a.pkg", "delete b.pkg").inOrder()
-        verify(firewall).resetCache()
     }
 
     @Test
@@ -127,7 +119,6 @@ class FirewallResetRepositoryTest {
 
         assertThat(wakeResets).containsExactly(null)
         assertThat(files.fileContent("a.pkg")).isNull()
-        verify(firewall).resetCache()
     }
 
     @Test
@@ -144,7 +135,7 @@ class FirewallResetRepositoryTest {
     }
 
     @Test
-    fun givenSecondDeletionFails_whenReset_thenFailurePropagatesAndCacheCleared() = runTest {
+    fun givenSecondDeletionFails_whenReset_thenFailurePropagatesAndWakeFilesAreReset() = runTest {
         files.putFile("a.pkg", VALID_XML)
         files.putFile("b.pkg", VALID_XML)
 
@@ -156,7 +147,6 @@ class FirewallResetRepositoryTest {
         assertThat(files.fileContent("a.pkg")).isNull()
         assertThat(files.fileContent("b.pkg")).isEqualTo(VALID_XML)
         assertThat(wakeResets).containsExactly(null)
-        verify(firewall).resetCache()
     }
 
     @Test
@@ -168,6 +158,5 @@ class FirewallResetRepositoryTest {
         assertThat(repository.reset(null) { _, _, _ -> }).isNull()
 
         assertThat(wakeResets).containsExactly("a.pkg", null).inOrder()
-        verify(firewall, times(2)).resetCache()
     }
 }

@@ -35,7 +35,6 @@ class ResetPmWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val reset: PackageManagerReset,
-    private val legacyCache: LegacyComponentCache,
 ) : RuleNotificationWorker(context, params) {
 
     override fun getNotificationTitle(): Int = R.string.core_rule_reset_pm_please_wait
@@ -45,7 +44,6 @@ class ResetPmWorker @AssistedInject constructor(
         Timber.i("Reset the PM settings of user ${user.value}")
         val result = reset.reset(user) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Reset PM settings: $result")
-        legacyCache.refreshAfter(result, user)
         return result.toWorkResult(PARAM_RESTORED_COUNT) { it.changedCount(RuleWorkType.RESET_PM) }
     }
 
