@@ -199,7 +199,7 @@ class RootTransportTest {
         transport.connect()
         runner.failures += RootServer.UnexpectedExitException()
 
-        val drain = ReadWakeSource(WakeCommand.DRAIN, UserId.SYSTEM, 10_123, 7)
+        val drain = ReadWakeSource(WakeCommand.DRAIN, UserId.SYSTEM, 10_123, 7, owner = 0)
 
         assertThat(transport.execute(drain)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
         assertThat(runner.sent).isEqualTo(2)

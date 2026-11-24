@@ -9,7 +9,6 @@ import android.os.SystemClock
 import android.provider.Settings
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
@@ -184,10 +183,12 @@ class WakeCollectorTest {
 
         assertThat(capture.channelUnavailable).isTrue()
         assertThat(capture.profiles).isEmpty()
-        val unreadable = capture.unreadable() - "START_INFO"
+        val unreadable = capture.unreadable() - "START_INFO" - "authorization"
         assertThat(unreadable.keys).containsAtLeast("statsd", "EVENTS", "PROCSTATS", "USERS", "SERVICES", "JOBS", "IDLE_WHITELIST")
         assertThat(unreadable.values.toSet()).containsExactly(listOf("privileged channel unavailable"))
-        assertThat(capture.batch("authorization").gaps).isEmpty()
+        assertThat(capture.batch("authorization").gaps).containsExactly("nothing read: privileged channel unavailable")
+        // The first read found the channel gone; no other read was sent.
+        assertThat(executor.runs).hasSize(1)
     }
 
     @Test
@@ -209,6 +210,58 @@ class WakeCollectorTest {
         assertThat(capture.batch("PROCSTATS").gaps).isEmpty()
         assertThat(capture.batch("SERVICES").gaps).containsExactly("privileged channel unavailable")
         assertThat(capture.batch("VPN/10").gaps).containsExactly("privileged channel unavailable")
+        assertThat(reads.last().command).isEqualTo(WakeCommand.SERVICES)
+        assertThat(capture.batch("authorization").gaps).containsExactly("privileged channel lost after ${reads.size - 1} reads")
+    }
+
+    @Test
+    fun givenPrivilegedProcessUnreachable_whenCapturing_thenNoReadIsSentAfterTheFirstThatFails() = runTest {
+        // The Shizuku user service does not attach: the channel stays ready, each call would wait for it.
+        var callsAfterFailure = 0
+        var failed = false
+        executor.answer = { call ->
+            if (failed) callsAfterFailure++
+            if ((call as ReadWakeSource).command == WakeCommand.EVENTS) {
+                failed = true
+                CallResult.Failure(CallFailure.ChannelUnavailable)
+            } else {
+                answer(call)
+            }
+        }
+
+        val capture = collector.capture(diagnostic = true, PrivilegedIdentity.ROOT)
+
+        assertThat(callsAfterFailure).isEqualTo(0)
+        assertThat(capture.channelUnavailable).isTrue()
+        assertThat(capture.batch("statsd").gaps).isEmpty()
+        assertThat(capture.batch("JOBS").gaps).containsExactly("privileged channel unavailable")
+    }
+
+    @Test
+    fun givenCommandThatFailsInThePrivilegedProcess_whenCapturing_thenItsStatusIsInPlainWords() = runTest {
+        executor.answer = { call ->
+            if ((call as ReadWakeSource).command == WakeCommand.PROCSTATS) {
+                CallResult.Failure(CallFailure.SystemError("java.io.IOException: PROCSTATS exited with status 1"))
+            } else {
+                answer(call)
+            }
+        }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+        assertThat(capture.batch("PROCSTATS").gaps).containsExactly("PROCSTATS exited with status 1")
+        assertThat(capture.batch("authorization").gaps).isEmpty()
+        assertThat(capture.channelUnavailable).isFalse()
+    }
+
+    @Test
+    fun givenErrorTextForAReport_whenCapturing_thenItIsTheStatusAndTheConfigIsInstalledAgain() = runTest {
+        outputs[WakeCommand.REPORT] = { "Error: config not found\n".toByteArray() }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+        assertThat(capture.batch("statsd").gaps).containsExactly("statsd answered with no report: Error: config not found")
+        assertThat(reads.count { it.command == WakeCommand.INSTALL }).isEqualTo(2)
     }
 
     @Test
@@ -218,7 +271,21 @@ class WakeCollectorTest {
         val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
 
         assertThat(capture.channelUnavailable).isFalse()
+        assertThat(capture.everyReadRefused).isTrue()
         assertThat(capture.batch("USERS").gaps).containsExactly("not permitted: Shizuku 12 cannot run it")
+        assertThat(capture.batch("authorization").gaps).containsExactly("nothing read: not permitted: Shizuku 12 cannot run it")
+    }
+
+    @Test
+    fun givenSomeReadsRefused_whenCapturing_thenNotEveryReadCountsAsRefused() = runTest {
+        executor.answer = { call ->
+            if ((call as ReadWakeSource).command == WakeCommand.NOTIFICATIONS) CallResult.Failure(CallFailure.NotPermitted("no")) else answer(call)
+        }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.SHELL)
+
+        assertThat(capture.everyReadRefused).isFalse()
+        assertThat(capture.batch("authorization").gaps).isEmpty()
     }
 
     @Test
@@ -231,19 +298,6 @@ class WakeCollectorTest {
         assertThat(capture.batch("NOTIFICATIONS").gaps).containsExactly("Service unavailable")
         assertThat(capture.batch("JOBS").gaps).containsExactly("Service unavailable")
         assertThat(capture.batch("SERVICES").gaps).isEmpty()
-    }
-
-    @Test
-    fun givenDrainFails_whenDraining_thenItIsSentOnceAndNotRetried() = runTest {
-        executor.answer = { CallResult.Failure(CallFailure.ChannelUnavailable) }
-
-        val failure = runCatching { collector.drain(BOOT.toString(), PrivilegedIdentity.ROOT) }.exceptionOrNull()
-
-        assertThat(failure).isInstanceOf(WakeSourceUnavailableException::class.java)
-        assertThat(failure).hasMessageThat().isEqualTo("privileged channel unavailable")
-        assertThat(reads.map { it.command }).containsExactly(WakeCommand.DRAIN)
-        assertThat(reads.single().retryable).isFalse()
-        assertThat(reads.single().user).isEqualTo(UserId.SYSTEM)
     }
 
     @Test

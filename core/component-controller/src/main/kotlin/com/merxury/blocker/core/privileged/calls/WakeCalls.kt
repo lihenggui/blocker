@@ -40,6 +40,9 @@ import java.io.ByteArrayOutputStream
 // The uid range of one Android user: a uid is the user id times this plus the app id.
 private const val UIDS_PER_USER = 100_000
 
+// Root, the system uid and the shell: the uids a privileged process runs as.
+private val PRIVILEGED_UIDS = setOf(0, 1000, 2000)
+
 /*
  * The calls the wake feature makes. Each takes typed values only, never shell text or a path:
  * the command line comes from WakeCommand and the file names from the owner package, which each
@@ -60,8 +63,11 @@ private const val UIDS_PER_USER = 100_000
  * @param boot the boot count, the other part of the config id
  * @param argument the resume point of [WakeCommand.EVENTS] in epoch milliseconds, or the index of
  * [WakeCommand.PROCSTATS_LAST]; ignored by the other commands
- * @throws IllegalArgumentException when [appUid] is not an app's uid, or [user] or [argument] is
- * out of range for [command]
+ * @param owner the uid the privileged process must run as: the statsd config owner the caller
+ * expects. A process that runs as another uid, because the channel changed while a collection ran,
+ * refuses the command, so a drain never deletes another owner's report.
+ * @throws IllegalArgumentException when [appUid] is not an app's uid, [owner] is not root, the
+ * system uid or the shell, or [user] or [argument] is out of range for [command]
  */
 @Parcelize
 @TypeParceler<UserId, UserIdParceler>
@@ -71,9 +77,11 @@ internal data class ReadWakeSource(
     val appUid: Int,
     val boot: Int,
     val argument: Long = 0,
+    val owner: Int,
 ) : PrivilegedCall<ByteArray> {
     init {
         require(appUid >= 0 && appUid % UIDS_PER_USER in Process.FIRST_APPLICATION_UID..Process.LAST_APPLICATION_UID) { "Not an app uid: $appUid" }
+        require(owner in PRIVILEGED_UIDS) { "Not a privileged uid: $owner" }
         processCommand()
     }
 
@@ -87,6 +95,8 @@ internal data class ReadWakeSource(
     fun processCommand(): List<String> = command.processCommand(user.value, appUid, boot, argument)
 
     override fun run(system: SystemServices): ByteArray {
+        val uid = Process.myUid()
+        check(uid == owner) { "The privileged process runs as uid $uid, not $owner" }
         val output = ByteArrayOutputStream()
         command.execute(user.value, appUid, boot, argument, output)
         return output.toByteArray()

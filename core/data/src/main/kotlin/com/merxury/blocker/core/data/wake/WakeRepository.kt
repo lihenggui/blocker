@@ -52,8 +52,15 @@ private const val LEGACY_ROOT_GRANT = "previous_root_grant"
  *
  * @param channelUnavailable whether the privileged channel could not run some read; the sources
  * it missed recorded why
+ * @param everyReadRefused whether the channel refused every read, so nothing was read
  */
-data class WakeImport(val boot: String, val identities: List<WakeIdentity>, val profiles: List<Int>, val channelUnavailable: Boolean = false)
+data class WakeImport(
+    val boot: String,
+    val identities: List<WakeIdentity>,
+    val profiles: List<Int>,
+    val channelUnavailable: Boolean = false,
+    val everyReadRefused: Boolean = false,
+)
 
 /** Stored evidence for detection. [packages] maps each uid to the packages installed under it. */
 data class WakeDetectionEvidence(
@@ -175,7 +182,7 @@ class WakeRepository @Inject constructor(
         if (diagnostic && capture.profiles.isNotEmpty()) preferences.edit { putLong("last_diagnostic", capture.wallMillis) }
         val identities = index.refresh(local, capture.packages, capture.wallMillis)
         history.status(WakeSourceStatus("package index", System.currentTimeMillis(), "${identities.size} packages"))
-        return WakeImport(capture.boot, identities, capture.profiles, capture.channelUnavailable)
+        return WakeImport(capture.boot, identities, capture.profiles, capture.channelUnavailable, capture.everyReadRefused)
     }
 
     /** Runs a detection-only write. A failure is reported as a detection status and never propagates. */

@@ -116,6 +116,9 @@ class WakeChannelCallsDeviceTest {
 
     private lateinit var transport: PrivilegedTransport
 
+    // The uid the privileged process runs as, which each read names.
+    private var owner = 0
+
     @Before
     fun allowHiddenApis() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) HiddenApiBypass.addHiddenApiExemptions("")
@@ -127,7 +130,7 @@ class WakeChannelCallsDeviceTest {
         // Each step on its own: one that fails must not keep the others from running.
         WakeRuleFileKind.entries.forEach { quietly { transport.execute(DeleteWakeRuleFile(self, it)) } }
         quietly { transport.execute(DeleteIfwRuleFile(self)) }
-        quietly { transport.execute(ReadWakeSource(WakeCommand.REMOVE, UserId.SYSTEM, appUid, boot)) }
+        quietly { transport.execute(read(WakeCommand.REMOVE)) }
         val activity = ComponentName(self, ControlFixtureActivity::class.java.name)
         listOf(UserId.SYSTEM, otherUser).forEach { user ->
             quietly { transport.execute(SetComponentEnabledIfCurrent(activity, user, COMPONENT_ENABLED_STATE_DISABLED, COMPONENT_ENABLED_STATE_DEFAULT)) }
@@ -146,6 +149,7 @@ class WakeChannelCallsDeviceTest {
 
     private fun connect(identity: PrivilegedIdentity) {
         assumeTrue(arguments.getString("wakeChannelTest") == identity.name.lowercase())
+        owner = identity.uid
         transport = if (identity == PrivilegedIdentity.ROOT && arguments.getString("rootVia") == "su") {
             RootTransport(BlockerRootSession(context), InMemoryRootGrantMemory(remembered = false), Dispatchers.IO).also {
                 assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), runBlocking { it.connect() })
@@ -155,7 +159,7 @@ class WakeChannelCallsDeviceTest {
         }
     }
 
-    private fun read(command: WakeCommand, user: UserId = UserId.SYSTEM, argument: Long = 0) = ReadWakeSource(command, user, appUid, boot, argument)
+    private fun read(command: WakeCommand, user: UserId = UserId.SYSTEM, argument: Long = 0) = ReadWakeSource(command, user, appUid, boot, argument, owner)
 
     @Test
     fun givenShizukuRoot_whenReadWakeSources_thenEachAnswersFromThePrivilegedProcess() = runBlocking<Unit> {

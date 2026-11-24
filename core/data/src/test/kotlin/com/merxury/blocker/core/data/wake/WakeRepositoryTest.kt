@@ -135,6 +135,20 @@ class WakeRepositoryTest {
         verify(detection, never()).replacePeriod(any(), any(), any())
     }
 
+    @Test fun givenDrainFails_whenCollecting_thenTheFailureIsItsStatusAndTheNextRunDrainsAgain() = runTest {
+        val report = WakeBatch("statsd", emptyList(), subscriptions = setOf("ServiceRequestEventReported"))
+        captureWith(report)
+        whenever(collector.drain(any(), any())).thenAnswer { throw java.io.IOException("privileged channel unavailable") }
+        val preferences = ApplicationProvider.getApplicationContext<Context>().getSharedPreferences("wake_protection", Context.MODE_PRIVATE)
+
+        repository.collect(false, PrivilegedIdentity.ROOT)
+
+        verify(collector, times(1)).drain("7", PrivilegedIdentity.ROOT)
+        verify(history).status(WakeSourceStatus("statsd buffer", now, "privileged channel unavailable"))
+        // The tail stays in statsd; the next run, not this one, asks for it again.
+        assertThat(preferences.contains("last_drain")).isFalse()
+    }
+
     @Test fun givenUpgradeWithOldRootGrantFlag_whenRepositoryOpens_thenOnlyThatFlagIsRemoved() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val preferences = context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE)

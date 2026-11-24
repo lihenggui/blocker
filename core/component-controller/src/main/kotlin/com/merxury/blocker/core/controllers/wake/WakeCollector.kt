@@ -42,6 +42,8 @@ private val PROFILE_SETTINGS = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILI
  *
  * @param channelUnavailable whether the privileged channel could not run some read, because it
  * went away or its privileged process could not be reached; those sources record why
+ * @param everyReadRefused whether the channel refused every read as not permitted, as Shizuku
+ * before 13 does
  */
 data class WakeCapture(
     val boot: String,
@@ -53,6 +55,7 @@ data class WakeCapture(
     val channelUnavailable: Boolean,
     val procstats: List<WakeProcStatsPeriod> = emptyList(),
     val exemptions: WakeExemptionSnapshot? = null,
+    val everyReadRefused: Boolean = false,
 )
 
 /** Where the previous successful import of this boot ended. */
@@ -86,7 +89,6 @@ class WakeCollector @Inject internal constructor(
         val started = SystemClock.elapsedRealtime()
         val boot = Settings.Global.getString(context.contentResolver, Settings.Global.BOOT_COUNT) ?: "unavailable"
         val run = CaptureRun(WakeReads(executor, identity.uid, generation()))
-        run.batches += WakeBatch("authorization", emptyList())
         val cursor = if (boot != "unavailable") resume(boot) else WakeResume(null, null)
         if (boot != "unavailable") {
             run.readRecorder(boot)
@@ -109,10 +111,12 @@ class WakeCollector @Inject internal constructor(
         for (profile in run.profiles) {
             for (command in PROFILE_SETTINGS) run.snapshot(command, now, profile)
         }
+        // What the channel let this collection read, in words.
+        run.batches += WakeBatch("authorization", emptyList(), listOfNotNull(run.reads.accessGap()))
         Timber.i("Wake capture as $identity: ${run.batches.size} sources in ${SystemClock.elapsedRealtime() - started} ms, channel unavailable: ${run.reads.channelUnavailable}")
         return WakeCapture(
             boot, SystemClock.elapsedRealtimeNanos(), System.currentTimeMillis(), run.packages, run.profiles, run.batches,
-            run.reads.channelUnavailable, run.periods, run.exemptions,
+            run.reads.channelUnavailable, run.periods, run.exemptions, run.reads.everyReadRefused,
         )
     }
 

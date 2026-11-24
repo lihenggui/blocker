@@ -99,7 +99,7 @@ class WakeDeviceTest {
         }
     }
 
-    private fun read(command: WakeCommand, argument: Long = 0) = ReadWakeSource(command, UserId.SYSTEM, Process.myUid(), boot, argument)
+    private fun read(command: WakeCommand, argument: Long = 0) = ReadWakeSource(command, UserId.SYSTEM, Process.myUid(), boot, argument, identity.uid)
 
     private suspend fun bytes(command: WakeCommand, argument: Long = 0): ByteArray = when (val result = transport.execute(read(command, argument))) {
         is CallResult.Success -> result.value

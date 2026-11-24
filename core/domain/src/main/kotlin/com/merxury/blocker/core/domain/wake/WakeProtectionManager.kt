@@ -58,6 +58,11 @@ class WakeProtectionManager @Inject constructor(
                 val relations = WakeAttribution.relationships(records)
                 repository.saveAttribution(records, relations, WakeAttribution.continuations(records, relations))
                 detect(now)
+                if (capture.everyReadRefused) {
+                    // Shizuku before 13 refuses the calls reads need; retrying cannot change that.
+                    repository.reportStatus(WakeSourceStatus("protection", now, "OBSERVING_NOTHING_READS_REFUSED"))
+                    return@withLock true
+                }
                 if (capture.profiles.isEmpty()) {
                     repository.reportStatus(WakeSourceStatus("protection", now, "PROFILE_SCOPE_UNAVAILABLE"))
                     return@withLock false

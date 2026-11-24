@@ -130,17 +130,33 @@ class WakeProtectionManagerTest {
         verify(repository, times(2)).reportStatus(argThat { source == "protection" && status == "OK" })
     }
 
-    @Test fun givenRootChannelThatRefusesFileCalls_whenReconciling_thenObservesOnlyWithoutRetrying() = runTest {
-        // Shizuku before 13 runs as root but cannot run the calls that reach files.
-        authorizedWith(path.copy(method = "IFW", configured = true))
+    @Test fun givenRootChannelThatRefusesProcessCalls_whenReconciling_thenObservesNothingWithoutRetrying() = runTest {
+        // Shizuku before 13 runs as root but refuses every call that needs its own process: the
+        // journal probe, and each read, so nothing is read, not even the users.
+        authorizedWith(path.copy(method = "IFW", configured = true), profiles = emptyList())
         whenever(ownership.probeJournal()).thenAnswer { throw WakeCallRefusedException("Shizuku 12 cannot run ReadWakeJournal") }
+        whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), emptyList(), everyReadRefused = true))
 
         assertThat(manager.reconcile()).isTrue()
         assertThat(manager.resetFirewall(null)).isFalse()
 
-        verify(repository).reportStatus(argThat { source == "protection" && status == "OBSERVING_WITHOUT_FILE_CALLS" })
+        verify(repository).reportStatus(argThat { source == "protection" && status == "OBSERVING_NOTHING_READS_REFUSED" })
+        verify(repository, never()).reportStatus(argThat { status == "PROFILE_SCOPE_UNAVAILABLE" })
         verify(ownership, never()).recover()
         verify(repository, never()).markRulesPending(any())
+        verify(repository, never()).saveProtections(any())
+        verifyNoInteractions(rules, components)
+    }
+
+    @Test fun givenRootChannelThatRefusesOnlyFileCalls_whenReconciling_thenObservesOnlyWithoutRetrying() = runTest {
+        // A channel that reads but cannot reach the journal.
+        authorizedWith(path.copy(method = "IFW", configured = true))
+        whenever(ownership.probeJournal()).thenAnswer { throw WakeCallRefusedException("cannot run ReadWakeJournal") }
+
+        assertThat(manager.reconcile()).isTrue()
+
+        verify(repository).reportStatus(argThat { source == "protection" && status == "OBSERVING_WITHOUT_FILE_CALLS" })
+        verify(ownership, never()).recover()
         verifyNoInteractions(rules, components)
     }
 

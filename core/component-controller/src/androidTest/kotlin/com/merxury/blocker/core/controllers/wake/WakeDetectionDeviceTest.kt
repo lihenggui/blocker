@@ -13,7 +13,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.time.ZoneId
 
-/** Runs the read-only detection commands as the shell user, like SHIZUKU_SHELL, and parses the real output. */
+/** Runs the read-only detection commands as the shell, as Shizuku started through adb does, and parses the real output. */
 class WakeDetectionDeviceTest {
     private fun shell(command: WakeCommand, profile: Int = 0, argument: Long = 0): String {
         // UiAutomation splits on spaces without a shell, so every argument arrives unchanged.

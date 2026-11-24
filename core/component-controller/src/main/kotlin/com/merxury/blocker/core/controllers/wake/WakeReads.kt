@@ -23,6 +23,10 @@ internal class WakeSourceUnavailableException(message: String, cause: Throwable?
  * process, the root process or the Shizuku user service, so a collection starts no process of its
  * own beyond the tools it runs.
  *
+ * Once a read finds the channel or its process unavailable, every later read of the same
+ * collection fails at once without a call: a Shizuku user service that does not attach would
+ * otherwise be waited for, and stopped, once per source.
+ *
  * @param owner the uid the privileged process runs as, which owns the statsd config it installs
  * @param generation the boot count, which names this boot's statsd config
  */
@@ -38,6 +42,30 @@ internal class WakeReads(
     var channelUnavailable = false
         private set
 
+    /** How many reads returned output. */
+    var read = 0
+        private set
+
+    // How many reads the channel refused as not permitted, and why the first read failed.
+    private var refused = 0
+    private var firstFailure: String? = null
+
+    /**
+     * Whether the channel refused every read it was asked for, as Shizuku before 13 does, which
+     * cannot run calls in its own process: the collection read nothing and never will this way.
+     */
+    val everyReadRefused: Boolean get() = read == 0 && refused > 0 && !channelUnavailable
+
+    /**
+     * What the collection as a whole could read, in words for the authorization status, or null
+     * when every read reached the channel.
+     */
+    fun accessGap(): String? = when {
+        read == 0 && firstFailure != null -> "nothing read: $firstFailure"
+        channelUnavailable -> "privileged channel lost after $read reads"
+        else -> null
+    }
+
     /**
      * The stdout of [command] for [profile].
      *
@@ -45,17 +73,27 @@ internal class WakeReads(
      * @throws WakeSourceUnavailableException when it cannot be read, with the status to record
      */
     suspend fun bytes(command: WakeCommand, profile: Int = 0, boot: Int = generation, argument: Long = 0): ByteArray {
+        if (channelUnavailable) throw WakeSourceUnavailableException(CHANNEL_UNAVAILABLE)
         val call = try {
-            ReadWakeSource(command, UserId(profile), Process.myUid(), boot, argument)
+            ReadWakeSource(command, UserId(profile), Process.myUid(), boot, argument, owner)
         } catch (e: IllegalArgumentException) {
             throw WakeSourceUnavailableException(e.message ?: "${command.name} arguments rejected", e)
         }
         return when (val result = executor.executeIfReady(call)) {
-            is CallResult.Success -> result.value
+            is CallResult.Success -> {
+                read++
+                result.value
+            }
 
             is CallResult.Failure -> {
-                if (result.reason == CallFailure.ChannelUnavailable) channelUnavailable = true
-                throw WakeSourceUnavailableException(result.reason.status())
+                when (result.reason) {
+                    CallFailure.ChannelUnavailable -> channelUnavailable = true
+                    is CallFailure.NotPermitted -> refused++
+                    else -> Unit
+                }
+                val status = result.reason.status()
+                if (firstFailure == null) firstFailure = status
+                throw WakeSourceUnavailableException(status)
             }
         }
     }
@@ -73,10 +111,15 @@ internal class WakeReads(
     }
 }
 
-/** The status a source records when a read failed this way. */
+internal const val CHANNEL_UNAVAILABLE = "privileged channel unavailable"
+
+// What CallFailure carries for an exception without its own mapping: its class, then its message.
+private val exceptionPrefix = Regex("""^[\w$.]+(Exception|Error): """)
+
+/** The status a source records when a read failed this way, in words. */
 private fun CallFailure.status(): String = when (this) {
-    CallFailure.ChannelUnavailable -> "privileged channel unavailable"
+    CallFailure.ChannelUnavailable -> CHANNEL_UNAVAILABLE
     is CallFailure.NotPermitted -> "not permitted: ${message ?: "refused"}"
     is CallFailure.TargetNotFound -> "not found: ${message ?: "unknown target"}"
-    is CallFailure.SystemError -> message ?: "unavailable"
+    is CallFailure.SystemError -> message?.replace(exceptionPrefix, "")?.ifBlank { null } ?: "failed"
 }
