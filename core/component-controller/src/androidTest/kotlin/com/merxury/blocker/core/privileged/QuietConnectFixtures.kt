@@ -19,10 +19,10 @@ package com.merxury.blocker.core.privileged
 import androidx.test.platform.app.InstrumentationRegistry
 import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
 import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
+import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootCallCommand
 import com.merxury.blocker.core.privileged.root.RootCommandRunner
 import com.merxury.blocker.core.privileged.root.RootGrantMemory
-import com.merxury.blocker.core.privileged.root.BlockerRootSession
 
 /** Remembers a root grant for one test only. */
 internal class InMemoryRootGrantMemory(remembered: Boolean) : RootGrantMemory {

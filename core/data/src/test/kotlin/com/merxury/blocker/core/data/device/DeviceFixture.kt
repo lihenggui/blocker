@@ -18,7 +18,6 @@ package com.merxury.blocker.core.data.device
 
 import android.content.Context
 import androidx.room.Room
-import kotlinx.coroutines.Dispatchers
 import androidx.test.core.app.ApplicationProvider
 import com.merxury.blocker.core.appcontrol.AppControl
 import com.merxury.blocker.core.control.ComponentControl
@@ -54,6 +53,7 @@ import com.merxury.core.ifw.di.IfwModule
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import org.junit.After
 import java.util.Collections

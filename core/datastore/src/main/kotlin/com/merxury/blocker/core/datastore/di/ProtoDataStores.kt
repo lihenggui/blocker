@@ -80,9 +80,8 @@ internal fun createAppPropertiesDataStore(
 
 /** Keep the live preferences and unknown fields while removing the old cache flags. */
 private object RemoveObsoleteAppProperties : DataMigration<AppProperties> {
-    override suspend fun shouldMigrate(currentData: AppProperties): Boolean =
-        currentData.componentDatabaseInitialized || currentData.generalRuleDatabaseInitialized ||
-            currentData.lastOpenedAppListHash.isNotEmpty()
+    override suspend fun shouldMigrate(currentData: AppProperties): Boolean = currentData.componentDatabaseInitialized || currentData.generalRuleDatabaseInitialized ||
+        currentData.lastOpenedAppListHash.isNotEmpty()
 
     override suspend fun migrate(currentData: AppProperties): AppProperties = currentData.copy {
         clearComponentDatabaseInitialized()
