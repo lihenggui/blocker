@@ -4,11 +4,13 @@
 package com.merxury.blocker.core.controllers.wake
 
 import com.google.protobuf.CodedInputStream
+import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.WireFormat
 import com.merxury.blocker.core.model.wake.WakeBatch
 import com.merxury.blocker.core.model.wake.WakeObservation
 import com.merxury.blocker.core.model.wake.normalizeWakeTag
 import com.merxury.blocker.core.wake.proto.WakeStats
+import java.io.IOException
 import kotlin.math.abs
 
 private val identifier = Regex("""[A-Za-z0-9_.$:/{}-]{1,420}""")
@@ -21,6 +23,13 @@ internal fun wakeAction(value: String?): String? = when {
 
 /** The status of the statsd source on a release whose statsd cannot record for the wake feature. */
 internal const val STATSD_UNAVAILABLE_ON_RELEASE = "statsd metrics unavailable on this Android release"
+
+/**
+ * statsd answered a report request with something that is no report, such as the usage text
+ * Android 9 prints, with exit code 0, for options it does not know. Installing the config again
+ * cannot help, unlike a report that lacks the config.
+ */
+internal class WakeReportUnsupportedException(cause: Throwable? = null) : IOException(STATSD_UNAVAILABLE_ON_RELEASE, cause)
 
 internal object WakeStatsCodec {
     // This key is private to Blocker; never remove all shell configurations.
@@ -67,8 +76,19 @@ internal object WakeStatsCodec {
         return config.build().toByteArray()
     }
 
+    /**
+     * The observations of report [bytes] of config [id] owned by [owner].
+     *
+     * @throws WakeReportUnsupportedException when the bytes are text or no protobuf at all
+     * @throws IllegalArgumentException when they are a report without this config's data
+     */
     fun decode(bytes: ByteArray, bootWallNs: Long, nowElapsedNs: Long, owner: Int, id: Long): WakeBatch {
-        val list = WakeStats.ReportList.parseFrom(bytes)
+        if (isUsageText(bytes)) throw WakeReportUnsupportedException()
+        val list = try {
+            WakeStats.ReportList.parseFrom(bytes)
+        } catch (e: InvalidProtocolBufferException) {
+            throw WakeReportUnsupportedException(e)
+        }
         require(list.hasConfigKey() && list.configKey.id == id && list.configKey.uid == owner) {
             "No report for this configuration owner"
         }
@@ -105,6 +125,9 @@ internal object WakeStatsCodec {
         }
         return WakeBatch("statsd", events, gaps.toList(), subscriptions)
     }
+
+    // statsd's help starts "usage: adb shell cmd stats ..." on every release that prints it.
+    private fun isUsageText(bytes: ByteArray): Boolean = bytes.copyOf(minOf(bytes.size, 64)).decodeToString().trimStart().startsWith("usage:", ignoreCase = true)
 
     private fun decodeFields(payload: ByteArray, schema: AtomSchema): Map<String, String> {
         val input = CodedInputStream.newInstance(payload)

@@ -27,6 +27,9 @@ import org.robolectric.annotation.Config
 
 private const val BOOT = 7
 
+// statsd's help on Android 9, printed with exit code 0 for options that release does not know.
+private const val USAGE = "usage: adb shell cmd stats print-stats-log [tag_required] [timestamp_nsec_optional]\n"
+
 private val PROFILE_SOURCES = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILITY, WakeCommand.LISTENERS, WakeCommand.VPN)
 private val EVERY_RUN = listOf(
     WakeCommand.INSTALL, WakeCommand.RENEW, WakeCommand.REPORT, WakeCommand.EVENTS, WakeCommand.EVENTS_HEAD,
@@ -160,6 +163,17 @@ class WakeCollectorTest {
 
         assertThat(statsd.gaps).containsExactly("No report for this configuration owner")
         assertThat(reads.count { it.command == WakeCommand.INSTALL }).isEqualTo(2)
+    }
+
+    @Test
+    fun givenUsageTextForAReport_whenCapturing_thenRecorderUnavailableOnThisReleaseWithoutReinstalling() = runTest {
+        outputs[WakeCommand.REPORT] = { USAGE.toByteArray() }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+        assertThat(capture.batch("statsd").gaps).containsExactly(STATSD_UNAVAILABLE_ON_RELEASE)
+        assertThat(reads.count { it.command == WakeCommand.INSTALL }).isEqualTo(1)
+        assertThat(capture.batch("USERS").gaps).isEmpty()
     }
 
     @Test
