@@ -5,7 +5,6 @@
 # rule for the whole namespace keeps stubs added later too.
 -keep class android.** { *; }
 
--keep class com.merxury.blocker.core.controllers.wake.WakeUserService { public <init>(); *; }
 # Shizuku loads its user service by name and looks up both constructors by reflection.
 -keep class com.merxury.blocker.core.privileged.shizuku.ShizukuPrivilegedService { public <init>(...); }
 # The service finds each call's CREATOR by reflection.

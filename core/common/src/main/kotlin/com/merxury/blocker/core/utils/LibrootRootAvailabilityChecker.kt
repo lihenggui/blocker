@@ -16,14 +16,9 @@
 
 package com.merxury.blocker.core.utils
 
-import android.content.Context
-import androidx.core.content.edit
 import be.mygod.librootkotlinx.NoShellException
 import com.merxury.blocker.core.root.BlockerRootSession
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -33,21 +28,14 @@ import javax.inject.Singleton
 @Singleton
 class LibrootRootAvailabilityChecker @Inject constructor(
     private val rootSession: BlockerRootSession,
-    @ApplicationContext private val context: Context,
 ) : RootAvailabilityChecker {
 
-    private val preferences by lazy { context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE) }
-    private val granted = MutableStateFlow(false)
-    val rootGranted = granted.asStateFlow()
+    @Volatile
+    private var granted = false
     private val lock = Mutex()
 
     override suspend fun isRootAvailable(): Boolean = lock.withLock {
-        granted.value || probe()
-    }
-
-    // Only a successful normal root authorization permits a background reconnection.
-    suspend fun hasBackgroundRoot(): Boolean = lock.withLock {
-        (granted.value || preferences.getBoolean("previous_root_grant", false)) && probe()
+        granted || probe()
     }
 
     private suspend fun probe(): Boolean {
@@ -62,10 +50,7 @@ class LibrootRootAvailabilityChecker @Inject constructor(
             Timber.e(e, "Root unavailable")
             false
         }
-        if (preferences.getBoolean("previous_root_grant", false) != available) {
-            preferences.edit { putBoolean("previous_root_grant", available) }
-        }
-        granted.value = available
+        granted = available
         return available
     }
 }

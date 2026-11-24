@@ -29,8 +29,10 @@ import com.merxury.blocker.core.database.wake.WakeRelation
 import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.database.wake.WakeStartInfoSeen
 import com.merxury.blocker.core.database.wake.WakeVerdictDay
-import com.merxury.blocker.core.model.wake.WakeAccess
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.wake.WakeBatch
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
@@ -42,7 +44,13 @@ internal const val WAKE_HISTORY_RETENTION_MILLIS = 14L * 24 * 60 * 60 * 1_000
 // Detection-only evidence writes report here instead of failing collection.
 internal const val EVIDENCE_STATUS = "detection evidence"
 
-data class WakeImport(val boot: String, val identities: List<WakeIdentity>, val profiles: List<Int>, val binderFallback: Boolean = false)
+/**
+ * One imported collection.
+ *
+ * @param channelUnavailable whether the privileged channel could not run some read; the sources
+ * it missed recorded why
+ */
+data class WakeImport(val boot: String, val identities: List<WakeIdentity>, val profiles: List<Int>, val channelUnavailable: Boolean = false)
 
 /** Stored evidence for detection. [packages] maps each uid to the packages installed under it. */
 data class WakeDetectionEvidence(
@@ -62,6 +70,7 @@ class WakeRepository @Inject constructor(
     private val index: WakeIdentityIndex,
     private val collector: WakeCollector,
     private val detection: WakeDetectionDao,
+    private val channel: PrivilegedChannel,
 ) {
     private val preferences = context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE)
     val isOwnerProfile get() = Process.myUserHandle() == UserHandle.getUserHandleForUid(0)
@@ -76,7 +85,12 @@ class WakeRepository @Inject constructor(
     }
     val lastDiagnostic get() = preferences.getLong("last_diagnostic", 0)
 
-    suspend fun access() = collector.access()
+    /**
+     * The identity evidence is read as: the one the privileged channel the user chose is ready
+     * as, acquired without a prompt, since background work must never show one. Any identity
+     * reads; null when the channel is unavailable.
+     */
+    suspend fun readAccess(): PrivilegedIdentity? = (channel.connectIfGranted() as? ChannelState.Ready)?.identity
 
     suspend fun attributionRecords(boot: String) = history.attributionWindow(boot, 0) + history.scheduledWork(boot, 0)
 
@@ -114,13 +128,12 @@ class WakeRepository @Inject constructor(
     /** Daily findings of one package, newest day first. */
     fun findings(target: String): Flow<List<WakeFindingDay>> = detection.findings(target)
 
-    suspend fun collect(diagnostic: Boolean, access: WakeAccess): WakeImport {
+    /** Collects and stores evidence read as [identity]; sources that cannot be read record why and the rest is stored. */
+    suspend fun collect(diagnostic: Boolean, identity: PrivilegedIdentity): WakeImport {
         // Detection evidence never decides whether collection or enforcement runs.
-        val capture = collector.capture(diagnostic, access) { boot ->
+        val capture = collector.capture(diagnostic, identity) { boot ->
             evidence(System.currentTimeMillis()) { WakeResume(detection.latestEvent(boot), detection.latestPeriod()) } ?: WakeResume(null, null)
         }
-        val authorization = capture.batches.last { it.source == "authorization" }
-        check(authorization.gaps.isEmpty()) { authorization.gaps.joinToString() }
         val local = index.installedPackages()
         val labels = index.labels(local, capture.packages, capture.wallMillis)
         val profileScope = when {
@@ -143,7 +156,7 @@ class WakeRepository @Inject constructor(
         val lastDrain = preferences.getLong("last_drain", 0)
         if (report != null && (report.observations.size >= 300 || capture.wallMillis - lastDrain > 6L * 60 * 60 * 1000)) {
             try {
-                val tail = collector.drain(capture.boot, access)
+                val tail = collector.drain(capture.boot, identity)
                 val finish = capture.copy(nowElapsed = android.os.SystemClock.elapsedRealtimeNanos(), wallMillis = System.currentTimeMillis())
                 importBatches(listOf(tail), finish, labels)
                 history.status(WakeSourceStatus("statsd buffer", finish.wallMillis, "OK"))
@@ -156,7 +169,7 @@ class WakeRepository @Inject constructor(
         if (diagnostic && capture.profiles.isNotEmpty()) preferences.edit { putLong("last_diagnostic", capture.wallMillis) }
         val identities = index.refresh(local, capture.packages, capture.wallMillis)
         history.status(WakeSourceStatus("package index", System.currentTimeMillis(), "${identities.size} packages"))
-        return WakeImport(capture.boot, identities, capture.profiles, capture.binderFallback)
+        return WakeImport(capture.boot, identities, capture.profiles, capture.channelUnavailable)
     }
 
     /** Runs a detection-only write. A failure is reported as a detection status and never propagates. */

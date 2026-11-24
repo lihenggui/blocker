@@ -3,8 +3,6 @@
 
 package com.merxury.blocker.core.model.wake
 
-enum class WakeAccess { NONE, SHIZUKU_SHELL, SHIZUKU_LEGACY_ROOT, SHIZUKU_ROOT, DIRECT_ROOT }
-
 const val SYSTEM_WAKE_EVENTS = "EVENTS/system/epoch"
 
 /** A timestamped system observation. Missing identities and cold-start indicators stay absent. */

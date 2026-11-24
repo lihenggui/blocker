@@ -24,9 +24,12 @@ import com.merxury.blocker.core.database.wake.WakeHoldProcess
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.database.wake.WakeStartInfoSeen
-import com.merxury.blocker.core.model.wake.WakeAccess
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.wake.WakeBatch
 import com.merxury.blocker.core.model.wake.WakeObservation
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -50,7 +53,8 @@ class WakeRepositoryTest {
     private val index = mock<WakeIdentityIndex>()
     private val collector = mock<WakeCollector>()
     private val detection = mock<WakeDetectionDao>()
-    private val repository = WakeRepository(ApplicationProvider.getApplicationContext<Context>(), history, index, collector, detection)
+    private val channel = FakePrivilegedChannel(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+    private val repository = WakeRepository(ApplicationProvider.getApplicationContext<Context>(), history, index, collector, detection, channel)
     private val now = 1_795_335_233_000L
 
     private fun start(signature: String) = WakeObservation(
@@ -92,7 +96,7 @@ class WakeRepositoryTest {
         whenever(detection.latestPeriod()).thenReturn("2026-11-22-05-13-53")
         whenever(detection.unseen(any())).thenReturn(setOf("fresh"))
 
-        repository.collect(false, WakeAccess.SHIZUKU_SHELL)
+        repository.collect(false, PrivilegedIdentity.SHELL)
 
         assertThat(resumes).containsExactly(WakeResume(now - 60_000, "2026-11-22-05-13-53"))
         verify(detection).unseen(listOf("seen", "fresh"))
@@ -121,7 +125,7 @@ class WakeRepositoryTest {
         whenever(detection.latestEvent(any())).thenThrow(IllegalStateException("no such table"))
         whenever(detection.unseen(any())).thenThrow(IllegalStateException("no such table"))
 
-        val result = repository.collect(false, WakeAccess.SHIZUKU_SHELL)
+        val result = repository.collect(false, PrivilegedIdentity.SHELL)
 
         // The resume point falls back to the boot start, and only a detection status records the failure.
         assertThat(resumes).containsExactly(WakeResume(null, null))
@@ -129,5 +133,46 @@ class WakeRepositoryTest {
         verify(history, times(2)).status(argThat { source == EVIDENCE_STATUS && status == "no such table" })
         verify(history, never()).importStartInfo(any(), any(), any())
         verify(detection, never()).replacePeriod(any(), any(), any())
+    }
+
+    @Test fun givenChannelReadyAsAnyIdentity_whenAskingReadAccess_thenThatIdentityWithoutAPrompt() = runTest {
+        for (identity in PrivilegedIdentity.entries) {
+            channel.setState(ChannelState.Ready(identity))
+            assertThat(repository.readAccess()).isEqualTo(identity)
+        }
+        assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    @Test fun givenChannelUnavailable_whenAskingReadAccess_thenNoneWithoutAPrompt() = runTest {
+        for (reason in UnavailableReason.entries) {
+            channel.setState(ChannelState.Unavailable(reason))
+            assertThat(repository.readAccess()).isNull()
+        }
+        assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    @Test fun givenCaptureTheChannelCouldNotFinish_whenCollecting_thenWhatWasReadIsStoredAndTheImportSaysSo() = runTest {
+        whenever(collector.capture(any(), any(), any())).thenReturn(
+            WakeCapture(
+                "7",
+                2_000_000_000,
+                now,
+                emptyList(),
+                listOf(0),
+                listOf(WakeBatch("authorization", emptyList()), WakeBatch("USERS", emptyList()), WakeBatch("SERVICES", emptyList(), listOf("privileged channel unavailable"))),
+                channelUnavailable = true,
+            ),
+        )
+        whenever(index.installedPackages()).thenReturn(emptyList())
+        whenever(index.labels(any(), any(), any())).thenReturn(emptyMap())
+        whenever(index.refresh(any(), any(), any())).thenReturn(emptyList())
+
+        val result = repository.collect(false, PrivilegedIdentity.ROOT)
+
+        assertThat(result.channelUnavailable).isTrue()
+        verify(collector).capture(eq(false), eq(PrivilegedIdentity.ROOT), any())
+        verify(history).status(WakeSourceStatus("USERS", now, "OK"))
+        verify(history).status(WakeSourceStatus("SERVICES", now, "privileged channel unavailable"))
+        verify(history).status(WakeSourceStatus("profile scope", now, "OK"))
     }
 }

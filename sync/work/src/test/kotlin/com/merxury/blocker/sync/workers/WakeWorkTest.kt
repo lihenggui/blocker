@@ -18,16 +18,16 @@ import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.wake.WakeAuthorizationRepository
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
@@ -37,8 +37,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35], manifest = Config.NONE)
 class WakeWorkTest {
     private val context get() = RuntimeEnvironment.getApplication() as Application
-    private val granted = MutableStateFlow(false)
-    private val writable = MutableStateFlow(false)
+    private val channel = FakePrivilegedChannel(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.initializeWork(): WorkManager {
@@ -51,24 +50,21 @@ class WakeWorkTest {
             context,
             Configuration.Builder().setExecutor(SynchronousExecutor()).setWorkerFactory(factory).build(),
         )
-        val authorization = mock<WakeAuthorizationRepository>()
-        whenever(authorization.rootGranted).thenReturn(granted)
-        whenever(authorization.channelWritable).thenReturn(writable)
-        WakeWork(context, authorization, backgroundScope, StandardTestDispatcher(testScheduler)).initialize()
+        WakeWork(context, WakeAuthorizationRepository(channel), backgroundScope).initialize()
         runCurrent()
         return WorkManager.getInstance(context)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun givenDisabledLegacySwitch_whenUpgradingAndGrantingRoot_thenImmediateWorkIsRescheduled() = runTest {
+    fun givenDisabledLegacySwitch_whenUpgradingAndChannelBecomesReady_thenImmediateWorkIsRescheduled() = runTest {
         context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE).edit().putBoolean("enabled", false).commit()
         val work = initializeWork()
         fun pending(name: String) = work.getWorkInfosForUniqueWork(name).get().filter { !it.state.isFinished }.single().id
         val startup = pending("wake-history-update")
         val periodic = pending("wake-history-periodic")
 
-        granted.value = true
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
         runCurrent()
         assertThat(pending("wake-history-update")).isNotEqualTo(startup)
         assertThat(pending("wake-history-periodic")).isEqualTo(periodic)
@@ -76,15 +72,36 @@ class WakeWorkTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun givenChannelBecomesWritable_whenGrantedAtFirstLaunch_thenImmediateWorkIsRescheduled() = runTest {
+    fun givenChannelReadyAsTheShell_whenGrantedAtFirstLaunch_thenImmediateWorkIsRescheduledToRead() = runTest {
         val work = initializeWork()
         fun pending(name: String) = work.getWorkInfosForUniqueWork(name).get().filter { !it.state.isFinished }.single().id
         val startup = pending("wake-history-update")
 
-        writable.value = true
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
         runCurrent()
+        val reading = pending("wake-history-update")
+        assertThat(reading).isNotEqualTo(startup)
 
-        assertThat(pending("wake-history-update")).isNotEqualTo(startup)
+        // Shizuku restarted as root: the same work may now write too.
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        runCurrent()
+        assertThat(pending("wake-history-update")).isNotEqualTo(reading)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenChannelStaysUnavailable_whenItsReasonChanges_thenNothingIsRescheduledAndNothingConnects() = runTest {
+        val work = initializeWork()
+        fun pending(name: String) = work.getWorkInfosForUniqueWork(name).get().filter { !it.state.isFinished }.single().id
+        val startup = pending("wake-history-update")
+
+        for (reason in UnavailableReason.entries) {
+            channel.setState(ChannelState.Unavailable(reason))
+            runCurrent()
+        }
+
+        assertThat(pending("wake-history-update")).isEqualTo(startup)
+        assertThat(channel.connectCount).isEqualTo(0)
     }
 
     @Test fun givenRetryingCollector_whenEitherPeerUpdates_thenASeparateRefreshIsScheduled() = runTest {

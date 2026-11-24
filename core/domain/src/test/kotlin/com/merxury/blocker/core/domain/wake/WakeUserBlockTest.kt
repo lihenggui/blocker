@@ -27,7 +27,7 @@ import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.wake.WakeAccess
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.core.ifw.ManagedWakeRules
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -66,7 +66,7 @@ class WakeUserBlockTest {
 
     private suspend fun reconcileWith(previous: List<WakeProtection>, qualifying: List<WakeProtection>) {
         whenever(repository.isOwnerProfile).thenReturn(true)
-        whenever(repository.access()).thenReturn(WakeAccess.DIRECT_ROOT)
+        whenever(repository.readAccess()).thenReturn(PrivilegedIdentity.ROOT)
         whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), listOf(0)))
         whenever(repository.firewallResets()).thenReturn(emptyMap())
         whenever(repository.protections()).thenReturn(previous)

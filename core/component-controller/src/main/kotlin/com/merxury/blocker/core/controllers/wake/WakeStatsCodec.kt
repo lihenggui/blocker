@@ -19,6 +19,9 @@ internal fun wakeAction(value: String?): String? = when {
     else -> "<redacted>"
 }
 
+/** The status of the statsd source on a release whose statsd cannot record for the wake feature. */
+internal const val STATSD_UNAVAILABLE_ON_RELEASE = "statsd metrics unavailable on this Android release"
+
 internal object WakeStatsCodec {
     // This key is private to Blocker; never remove all shell configurations.
     fun configId(appUid: Int, boot: Int) = 0x424c000000000000L or (appUid.toLong() shl 16) or (boot.toLong() and 0xffff)

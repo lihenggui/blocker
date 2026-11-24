@@ -19,7 +19,6 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
-import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.core.ifw.ManagedWakeRules
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -57,17 +56,17 @@ class WakeProtectionManagerTest {
         method = "PM", previousState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, pendingChange = true,
     )
 
-    /** [access] is how evidence is read; [writes] the state of the privileged channel for changes. */
+    /** [state] is the privileged channel's, which both reads evidence and makes the changes. */
     private suspend fun authorizedWith(
         vararg previous: WakeProtection,
-        access: WakeAccess = WakeAccess.DIRECT_ROOT,
-        writes: ChannelState = ChannelState.Ready(PrivilegedIdentity.ROOT),
+        state: ChannelState = ChannelState.Ready(PrivilegedIdentity.ROOT),
         profiles: List<Int> = listOf(0),
     ) {
-        channel.setState(writes)
+        channel.setState(state)
         whenever(repository.isOwnerProfile).thenReturn(true)
         whenever(catalogue.isCurrent(any())).thenReturn(true)
-        whenever(repository.access()).thenReturn(access)
+        // As WakeRepository answers: the identity the channel is ready as, without a prompt.
+        whenever(repository.readAccess()).thenAnswer { (channel.state.value as? ChannelState.Ready)?.identity }
         whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), profiles))
         whenever(repository.firewallResets()).thenReturn(emptyMap())
         whenever(repository.protections()).thenReturn(previous.toList())
@@ -77,34 +76,40 @@ class WakeProtectionManagerTest {
         whenever(repository.detectionEvidence(any(), any())).thenReturn(WakeDetectionEvidence(emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyMap()))
     }
 
-    @Test fun givenNoPermission_whenReconciling_thenScanningAndProtectionWaitForAuthorization() = runTest {
-        authorizedWith(path, access = WakeAccess.NONE)
-        assertThat(manager.reconcile()).isTrue()
+    @Test fun givenChannelUnavailable_whenReconciling_thenScanningAndProtectionWaitForAuthorization() = runTest {
+        for (reason in UnavailableReason.entries) {
+            authorizedWith(path, state = ChannelState.Unavailable(reason))
+            assertThat(manager.reconcile()).isTrue()
+        }
         verify(repository, never()).collect(any(), any())
         verify(repository, never()).protections()
-        verify(repository).reportStatus(argThat { source == "authorization" && status == "WAITING_FOR_PERMISSION" })
-        verifyNoInteractions(rules, components)
+        verify(repository, times(UnavailableReason.entries.size)).reportStatus(argThat { source == "authorization" && status == "WAITING_FOR_PERMISSION" })
+        verifyNoInteractions(rules, components, ownership)
 
         val candidate = path.copy(caller = "target", configured = false, method = "IFW", pendingChange = false)
-        whenever(repository.access()).thenReturn(WakeAccess.SHIZUKU_ROOT)
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(candidate))
         assertThat(manager.reconcile()).isTrue()
+        verify(repository).collect(any(), eq(PrivilegedIdentity.ROOT))
         verify(rules).replace(argThat { single().service == "target.Wake" })
     }
 
-    @Test fun givenShellAccess_whenReconciling_thenCandidatesAreRecordedAndProtectionsArePreserved() = runTest {
-        authorizedWith(path.copy(configured = true), access = WakeAccess.SHIZUKU_SHELL, writes = ChannelState.Ready(PrivilegedIdentity.SHELL))
+    @Test fun givenShellChannel_whenReconciling_thenEvidenceIsReadAsTheShellAndProtectionsArePreserved() = runTest {
+        authorizedWith(path.copy(configured = true), state = ChannelState.Ready(PrivilegedIdentity.SHELL))
         val candidate = path.copy(pathId = "new", configured = false, pendingChange = false)
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(candidate))
         assertThat(manager.reconcile()).isTrue()
+        verify(repository).collect(any(), eq(PrivilegedIdentity.SHELL))
         verify(repository).saveProtections(listOf(candidate))
         verify(repository).reportStatus(argThat { status == "OBSERVING_WITH_SHELL" })
         verifyNoInteractions(rules, components)
     }
 
-    @Test fun givenChannelUnavailable_whenReconciling_thenObservesOnlyAndSaysWhy() = runTest {
+    @Test fun givenChannelLostAfterReadAccess_whenReconciling_thenObservesOnlyAndSaysWhy() = runTest {
         for (reason in UnavailableReason.entries) {
-            authorizedWith(path.copy(method = "IFW", configured = true), writes = ChannelState.Unavailable(reason))
+            authorizedWith(path.copy(method = "IFW", configured = true), state = ChannelState.Unavailable(reason))
+            // The channel answered for reads, then went away before the write access was decided.
+            whenever(repository.readAccess()).thenReturn(PrivilegedIdentity.ROOT)
             assertThat(manager.reconcile()).isTrue()
             verify(repository).reportStatus(argThat { source == "protection" && status == "OBSERVING_WITHOUT_CHANNEL_${reason.name}" })
         }
@@ -113,18 +118,10 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(rules, components, ownership)
     }
 
-    @Test fun givenRootReadsButShellChannel_whenReconciling_thenTheChosenChannelDecides() = runTest {
-        // su is granted, but the user chose Shizuku, which runs as the shell.
-        authorizedWith(path.copy(method = "IFW", configured = true), access = WakeAccess.DIRECT_ROOT, writes = ChannelState.Ready(PrivilegedIdentity.SHELL))
-        assertThat(manager.reconcile()).isTrue()
-        verify(repository).reportStatus(argThat { status == "OBSERVING_WITH_SHELL" })
-        verifyNoInteractions(rules, components, ownership)
-    }
-
     @Test fun givenRootOrSystemChannel_whenReconciling_thenProtectionIsApplied() = runTest {
         for (identity in listOf(PrivilegedIdentity.ROOT, PrivilegedIdentity.SYSTEM)) {
             val candidate = path.copy(pathId = "ifw-$identity", caller = "target", method = "IFW", pendingChange = false, previousState = null)
-            authorizedWith(access = WakeAccess.SHIZUKU_SHELL, writes = ChannelState.Ready(identity))
+            authorizedWith(state = ChannelState.Ready(identity))
             whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(candidate))
             assertThat(manager.reconcile()).isTrue()
         }
@@ -135,7 +132,7 @@ class WakeProtectionManagerTest {
 
     @Test fun givenRootChannelThatRefusesFileCalls_whenReconciling_thenObservesOnlyWithoutRetrying() = runTest {
         // Shizuku before 13 runs as root but cannot run the calls that reach files.
-        authorizedWith(path.copy(method = "IFW", configured = true), access = WakeAccess.SHIZUKU_LEGACY_ROOT)
+        authorizedWith(path.copy(method = "IFW", configured = true))
         whenever(ownership.probeJournal()).thenAnswer { throw WakeCallRefusedException("Shizuku 12 cannot run ReadWakeJournal") }
 
         assertThat(manager.reconcile()).isTrue()
@@ -149,7 +146,7 @@ class WakeProtectionManagerTest {
 
     @Test fun givenJournalThisIdentityCannotRead_whenReconciling_thenEvidenceIsCollectedAndProtectionObservesOnly() = runTest {
         // Root wrote the journal with mode 0600; the user then chose Shizuku running as the system uid.
-        authorizedWith(path.copy(configured = true, pendingChange = false), writes = ChannelState.Ready(PrivilegedIdentity.SYSTEM))
+        authorizedWith(path.copy(configured = true, pendingChange = false), state = ChannelState.Ready(PrivilegedIdentity.SYSTEM))
         whenever(ownership.probeJournal()).thenAnswer { throw WakeJournalUnreadableException("owned by 0:0 with mode 600, read as uid 1000") }
 
         assertThat(manager.reconcile()).isTrue()
@@ -163,7 +160,7 @@ class WakeProtectionManagerTest {
     }
 
     @Test fun givenJournalThisIdentityCannotRead_whenResettingFirewall_thenManagedRulesAreRemovedAndTheJournalIsLeft() = runTest {
-        authorizedWith(path.copy(configured = true, pendingChange = false), writes = ChannelState.Ready(PrivilegedIdentity.SYSTEM))
+        authorizedWith(path.copy(configured = true, pendingChange = false), state = ChannelState.Ready(PrivilegedIdentity.SYSTEM))
         whenever(ownership.probeJournal()).thenAnswer { throw WakeJournalUnreadableException("owned by 0:0 with mode 600, read as uid 1000") }
 
         assertThat(manager.resetFirewall(null)).isTrue()
@@ -178,23 +175,37 @@ class WakeProtectionManagerTest {
     @Test fun givenAnyChannelState_whenReconciling_thenNoPromptIsRequested() = runTest {
         val states = PrivilegedIdentity.entries.map { ChannelState.Ready(it) } + UnavailableReason.entries.map { ChannelState.Unavailable(it) }
         for (state in states) {
-            authorizedWith(path.copy(method = "IFW", configured = true, pendingChange = false), writes = state)
+            authorizedWith(path.copy(method = "IFW", configured = true, pendingChange = false), state = state)
             manager.reconcile()
             manager.resetFirewall(null)
         }
         assertThat(channel.connectCount).isEqualTo(0)
     }
 
-    @Test fun givenUserServiceTimeout_whenOnlyBinderDiagnosticsRemain_thenReconciliationRetriesWithoutChangingRules() = runTest {
+    @Test fun givenPrivilegedProcessUnreachableDuringCapture_whenReconciling_thenRetriesWithoutChangingAnything() = runTest {
+        // The user service did not attach: the channel stays ready, its reads failed.
         val configured = path.copy(method = "IFW", configured = true)
-        val shell = ChannelState.Ready(PrivilegedIdentity.SHELL)
-        for ((access, writes) in listOf(WakeAccess.SHIZUKU_SHELL to shell, WakeAccess.SHIZUKU_ROOT to ChannelState.Ready(PrivilegedIdentity.ROOT))) {
-            authorizedWith(configured, access = access, writes = writes)
-            whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), listOf(0), binderFallback = true))
+        for (identity in PrivilegedIdentity.entries) {
+            authorizedWith(configured, state = ChannelState.Ready(identity))
+            whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), listOf(0), channelUnavailable = true))
             assertThat(manager.reconcile()).isFalse()
         }
-        verify(repository, times(2)).reportStatus(argThat { status == "SHIZUKU_USER_SERVICE_UNAVAILABLE" })
+        verify(repository, times(PrivilegedIdentity.entries.size)).reportStatus(argThat { source == "protection" && status == "OBSERVING_WITHOUT_CHANNEL_FAILED" })
         verify(repository, never()).saveProtections(any())
+        verify(ownership, never()).recover()
+        verifyNoInteractions(rules, components)
+    }
+
+    @Test fun givenChannelGoneDuringCapture_whenReconciling_thenRetriesAndSaysWhy() = runTest {
+        authorizedWith(path.copy(method = "IFW", configured = true))
+        whenever(repository.collect(any(), any())).thenAnswer {
+            channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
+            WakeImport("boot", emptyList(), listOf(0), channelUnavailable = true)
+        }
+
+        assertThat(manager.reconcile()).isFalse()
+
+        verify(repository).reportStatus(argThat { source == "protection" && status == "OBSERVING_WITHOUT_CHANNEL_NOT_RUNNING" })
         verifyNoInteractions(rules, components)
     }
 
@@ -309,7 +320,7 @@ class WakeProtectionManagerTest {
 
     @Test fun givenChannelThatCannotWrite_whenResettingFirewall_thenNothingChanges() = runTest {
         for (state in listOf(ChannelState.Ready(PrivilegedIdentity.SHELL), ChannelState.Unavailable(UnavailableReason.DENIED))) {
-            authorizedWith(path.copy(method = "IFW", configured = true, pendingChange = false), writes = state)
+            authorizedWith(path.copy(method = "IFW", configured = true, pendingChange = false), state = state)
             assertThat(manager.resetFirewall(null)).isFalse()
         }
         verify(repository, never()).resetFirewall(anyOrNull())

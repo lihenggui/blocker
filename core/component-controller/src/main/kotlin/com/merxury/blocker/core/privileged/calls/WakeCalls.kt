@@ -84,11 +84,11 @@ internal data class ReadWakeSource(
     override val retryable: Boolean get() = command != WakeCommand.DRAIN
 
     /** What the privileged process starts; it never goes through `su`. */
-    fun processCommand(): List<String> = command.processCommand(user.value, root = false, appUid, boot, argument)
+    fun processCommand(): List<String> = command.processCommand(user.value, appUid, boot, argument)
 
     override fun run(system: SystemServices): ByteArray {
         val output = ByteArrayOutputStream()
-        command.execute(user.value, root = false, appUid, boot, argument, output)
+        command.execute(user.value, appUid, boot, argument, output)
         return output.toByteArray()
     }
 
