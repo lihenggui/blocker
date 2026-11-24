@@ -90,7 +90,7 @@ class ComponentControlViewModel @AssistedInject constructor(
     val uiState: StateFlow<ControlUiState> = combine(singles, batch, messages) { singles, batch, messages ->
         ControlUiState(
             inFlight = singles + batch?.second?.pending.orEmpty(),
-            batch = batch?.let { (run, step) -> BatchProgress(run.goal, done = step.done.takeIf { run.total > BATCH_LIMIT }, total = run.total) },
+            batch = batch?.let { (run, step) -> BatchProgress(run.goal, done = step.done.takeIf { step.total > BATCH_LIMIT }, total = step.total) },
             messages = messages,
         )
     }
@@ -117,7 +117,7 @@ class ComponentControlViewModel @AssistedInject constructor(
                 componentStatuses.control(ControlRequest(app.userId, listOf(status.declaration), goal, layersFor(goal))).collect { event ->
                     if (event is ControlEvent.PackageDone) outcomes += event.outcomes
                 }
-                outcomes.firstNotNullOfOrNull { it.toMessage(goal, identity()) }?.let(::tell)
+                outcomes.firstNotNullOfOrNull { it.toMessage(goal, identity()) }?.let { tell(it, component) }
             } finally {
                 singles.update { it - component }
             }
@@ -139,26 +139,29 @@ class ComponentControlViewModel @AssistedInject constructor(
     }
 
     /**
-     * Sends [components] as one batch, see [ComponentBatchRunner.start]. Components in flight are
-     * left out, and nothing starts while another batch of the app runs.
+     * Sends [components] as one batch, see [ComponentBatchRunner]. The batch counts as running,
+     * with its components in flight, from the moment it is chosen, before the cache and the
+     * settings are read. Components in flight are left out, and nothing starts while another
+     * batch of the app runs.
      */
     private fun startBatch(components: List<ComponentId>, goal: ControlGoal, fromMatchedRule: Boolean) {
-        if (batches.current(app) != null) return
         val ids = components.distinct().filterNot(::isInFlight)
         if (ids.isEmpty()) return
+        val run = batches.reserve(app, goal, ids) ?: return
+        val enable = goal != ControlGoal.BLOCK
+        if (fromMatchedRule) analyticsHelper.logControlAllComponentsInSdkClicked(enable) else analyticsHelper.logBatchOperationPerformed(enable)
         viewModelScope.launch {
-            val enable = goal != ControlGoal.BLOCK
-            if (fromMatchedRule) analyticsHelper.logControlAllComponentsInSdkClicked(enable) else analyticsHelper.logBatchOperationPerformed(enable)
-            val statuses = cachedStatuses(ids)
-            if (statuses.isEmpty()) return@launch
-            val run = batches.start(app, statuses.map { it.declaration }, goal, layersFor(goal))
-            if (run == null) {
-                Timber.d("A batch of $app is running, leave this one out")
-                return@launch
+            var started = false
+            try {
+                // The states the rows showed when the batch was sent, to tell what it changed.
+                val statuses = cachedStatuses(ids)
+                val layers = layersFor(goal)
+                batches.start(run, statuses.map { it.declaration }, layers)
+                started = true
+                tell(batchSummary(goal, run.outcomes.await(), statuses.associateBy { it.declaration.id }, layers, identity()))
+            } finally {
+                if (!started) batches.release(run)
             }
-            // The states the rows showed when the batch was sent, to tell what it changed.
-            val before = statuses.associate { it.declaration.id to it.state }
-            tell(batchSummary(goal, run.outcomes.await(), before, identity()))
         }
     }
 
@@ -182,9 +185,16 @@ class ComponentControlViewModel @AssistedInject constructor(
 
     private fun identity(): PrivilegedIdentity? = (channel.state.value as? ChannelState.Ready)?.identity
 
-    private fun tell(message: ControlMessage) {
-        val id = nextMessageId++
-        messages.update { it + QueuedControlMessage(id, message) }
+    /**
+     * Queues [message]. A message about [component] replaces one about it that waits, so repeated
+     * taps queue one message each; the message shown, the first, stays, and so do batch summaries.
+     */
+    private fun tell(message: ControlMessage, component: ComponentId? = null) {
+        val queued = QueuedControlMessage(nextMessageId++, message, component)
+        messages.update { current ->
+            val waiting = current.drop(1).filterNot { component != null && it.component == component }
+            current.take(1) + waiting + queued
+        }
     }
 
     @AssistedFactory

@@ -101,3 +101,6 @@
         <item quantity="other">%1$d tidak dapat diubah</item>
     </plurals>
 </resources>
+    <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
+        <item quantity="other">%1$d komponen tetap nonaktif karena aplikasi menonaktifkannya secara bawaan; aktifkan satu dengan sakelarnya untuk memaksanya</item>
+    </plurals>

@@ -20,7 +20,9 @@ import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
@@ -36,6 +38,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -51,6 +54,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ComponentControlViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -201,17 +205,18 @@ class ComponentControlViewModelTest {
         fixture.sendComponents(component("Main"))
         collectState()
 
-        failures.forEach { failure ->
+        // Each told before the next tap, as the screen shows them.
+        val told = failures.map { failure ->
             answerWith(outcome("Main", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to failure))
             viewModel.setEnabled(id("Main"), enabled = true)
+            val queued = viewModel.uiState.value.messages.single()
+            viewModel.onMessageShown(queued.id)
+            queued.message as ControlMessage.ComponentNotChanged
         }
 
-        assertThat(messages().map { (it as ControlMessage.ComponentNotChanged).failures.single().failure })
-            .containsExactlyElementsIn(failures).inOrder()
-        assertThat(messages().map { (it as ControlMessage.ComponentNotChanged).partial }.toSet()).containsExactly(false)
-
-        viewModel.onMessageShown(viewModel.uiState.value.messages.first().id)
-        assertThat(viewModel.uiState.value.messages).hasSize(failures.size - 1)
+        assertThat(told.map { it.failures.single().failure }).containsExactlyElementsIn(failures).inOrder()
+        assertThat(told.map { it.partial }.toSet()).containsExactly(false)
+        assertThat(viewModel.uiState.value.messages).isEmpty()
     }
 
     @Test
@@ -389,6 +394,10 @@ class ComponentControlViewModelTest {
         viewModel.blockAll(names.map(::id))
         gated.permits.send(Unit)
         runCurrent()
+        // Watched from outside the view model, which stops observing once cleared.
+        val run = fixture.batches.current(OWN_APP)!!
+        val seen = mutableListOf<BatchRun?>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { fixture.batches.running(OWN_APP).collect { seen += it } }
         // As when the view model is cleared.
         viewModel.viewModelScope.cancel()
         gated.releaseAll()
@@ -396,8 +405,119 @@ class ComponentControlViewModelTest {
 
         assertThat(fixture.components.requests.map { it.components.size }).containsExactly(200, 200, 50).inOrder()
         assertThat(fixture.components.components(OWN_APP).first().map { it.state.pm }.toSet()).containsExactly(PmSetting.DISABLED)
+        assertThat(seen).containsExactly(run, null).inOrder()
+        assertThat(run.step.value.done).isEqualTo(450)
+        assertThat(run.outcomes.getCompleted().map { it.result }.toSet()).containsExactly(ControlResult.ACHIEVED)
+        assertThat(run.outcomes.getCompleted()).hasSize(450)
+    }
+
+    @Test
+    fun givenRequestThatThrows_whenBatchRuns_thenOutcomesSoFarKeptTheRestFailedAndNothingCrashes() = runTest {
+        val throwing = ThrowingOnRequest(fixture.components, failingRequest = 2)
+        fixture.controlStatuses = throwing
+        val names = (1..450).map { "Receiver$it" }
+        fixture.sendComponents(*names.map { component(it, type = ComponentType.RECEIVER, pm = PmSetting.DISABLED) }.toTypedArray())
+        collectState()
+
+        viewModel.unblockAll(names.map(::id))
+
+        assertThat(throwing.requests).isEqualTo(2)
         assertThat(fixture.batches.current(OWN_APP)).isNull()
-        assertThat(viewModel.uiState.value.messages).isEmpty()
+        val summary = messages().single() as ControlMessage.BatchDone
+        assertThat(summary.changed to summary.notChanged).isEqualTo(200 to 250)
+        assertThat(summary.mostCommon?.failure).isEqualTo(ControlFailure.SystemError("java.lang.IllegalStateException: Request 2 broke"))
+    }
+
+    @Test
+    fun givenRequestThatThrows_whenTheScreenIsGone_thenTheBatchEndsQuietly() = runTest {
+        val throwing = ThrowingOnRequest(GatedComponents(fixture.components).also { it.releaseAll() }, failingRequest = 1)
+        fixture.controlStatuses = throwing
+        fixture.sendComponents(component("A"))
+        collectState()
+
+        viewModel.blockAll(listOf(id("A")))
+        viewModel.viewModelScope.cancel()
+        runCurrent()
+
+        assertThat(fixture.batches.current(OWN_APP)).isNull()
+    }
+
+    @Test
+    fun givenBatchChosen_whenTheCacheIsStillBeingRead_thenItAlreadyRunsAndHoldsItsComponents() = runTest {
+        val slowCache = SlowCache(fixture.components)
+        fixture.controlStatuses = slowCache
+        fixture.sendComponents(component("A"), component("B"))
+        collectState()
+
+        viewModel.blockAll(listOf(id("A"), id("B")))
+        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.BLOCK, done = null, total = 2))
+        assertThat(viewModel.uiState.value.inFlight).containsExactly(id("A"), id("B"))
+        viewModel.setEnabled(id("A"), enabled = false)
+        viewModel.unblockAll(listOf(id("A"), id("B")))
+
+        slowCache.reads.send(Unit)
+        runCurrent()
+
+        assertThat(fixture.components.requests.map { request -> request.goal to request.components.map { it.id } })
+            .containsExactly(ControlGoal.BLOCK to listOf(id("A"), id("B")))
+        assertThat(viewModel.uiState.value.batch).isNull()
+    }
+
+    @Test
+    fun givenComponentsTheAppShipsDisabled_whenAllUnblocked_thenTheyAreToldToStayOff() = runTest {
+        fixture.sendComponents(component("A", enabledInManifest = false), component("B", enabledInManifest = false))
+        collectState()
+
+        viewModel.unblockAll(listOf(id("A"), id("B")))
+
+        val summary = messages().single() as ControlMessage.BatchDone
+        assertThat(Triple(summary.changed, summary.notChanged, summary.staysOffAsShipped)).isEqualTo(Triple(0, 0, 2))
+    }
+
+    @Test
+    fun givenBlockedAndShippedDisabledComponents_whenAllUnblocked_thenChangedAndStayingOffAreCounted() = runTest {
+        fixture.sendComponents(
+            component("Blocked", pm = PmSetting.DISABLED),
+            component("Shipped", enabledInManifest = false),
+            component("BlockedShipped", pm = PmSetting.DISABLED, enabledInManifest = false),
+            component("Runs"),
+        )
+        collectState()
+
+        viewModel.unblockAll(listOf(id("Blocked"), id("Shipped"), id("BlockedShipped"), id("Runs")))
+
+        val summary = messages().single() as ControlMessage.BatchDone
+        assertThat(Triple(summary.changed, summary.notChanged, summary.staysOffAsShipped)).isEqualTo(Triple(2, 0, 2))
+    }
+
+    @Test
+    fun givenUnknownStateBefore_whenUnblockedAndReadBackClear_thenNotCountedAsChanged() = runTest {
+        fixture.sendComponents(component("Unread", ifw = IfwBlock.UNKNOWN), component("Ruled", ifw = IfwBlock.BLOCKED))
+        collectState()
+
+        viewModel.unblockAll(listOf(id("Unread"), id("Ruled")))
+
+        val summary = messages().single() as ControlMessage.BatchDone
+        assertThat(summary.changed to summary.notChanged).isEqualTo(1 to 0)
+    }
+
+    @Test
+    fun givenSwitchFailingAgainAndAgain_whenQueued_thenOneMessageWaitsPerComponentAndSummariesStay() = runTest {
+        fixture.sendComponents(component("Main"), component("Other"))
+        answerWith(
+            outcome("Main", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable),
+            outcome("Other", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable),
+        )
+        collectState()
+
+        repeat(20) { viewModel.setEnabled(id("Main"), enabled = false) }
+        viewModel.blockAll(listOf(id("Other")))
+        repeat(3) { viewModel.setEnabled(id("Main"), enabled = true) }
+        viewModel.setEnabled(id("Other"), enabled = false)
+
+        val queued = viewModel.uiState.value.messages
+        assertThat(queued.map { it.component }).containsExactly(id("Main"), null, id("Main"), id("Other")).inOrder()
+        assertThat((queued[2].message as ControlMessage.ComponentNotChanged).goal).isEqualTo(ControlGoal.ENABLE)
     }
 
     @Test
@@ -441,6 +561,27 @@ class ComponentControlViewModelTest {
         viewModel.control(id("Main"), ControlGoal.BLOCK)
 
         assertThat(fixture.components.requests.single().let { it.goal to it.layers }).isEqualTo(ControlGoal.BLOCK to setOf(ControlLayer.INTENT_FIREWALL))
+    }
+
+    /** Fails request number [failingRequest] with an exception the repository does not report. */
+    private class ThrowingOnRequest(private val delegate: ComponentStatusRepository, private val failingRequest: Int) : ComponentStatusRepository by delegate {
+        var requests = 0
+
+        override fun control(request: ControlRequest): Flow<ControlEvent> = flow {
+            requests++
+            if (requests == failingRequest) throw IllegalStateException("Request $requests broke")
+            emitAll(delegate.control(request))
+        }
+    }
+
+    /** Holds each read of the cached components until a permit is sent. */
+    private class SlowCache(private val delegate: ComponentStatusRepository) : ComponentStatusRepository by delegate {
+        val reads = Channel<Unit>(Channel.UNLIMITED)
+
+        override fun components(app: AppKey): Flow<List<ComponentStatus>> = flow {
+            reads.receive()
+            emitAll(delegate.components(app))
+        }
     }
 
     /** Holds each request until a permit is sent, so a change stays in flight until then. */

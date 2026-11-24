@@ -16,13 +16,18 @@
 
 package com.merxury.blocker.feature.appdetail.impl
 
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
-import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.control.isKnown
+import com.merxury.blocker.core.model.control.layersFor
+import com.merxury.blocker.core.model.control.meets
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 
 /**
@@ -59,10 +64,13 @@ data class LayerFailure(
 /**
  * A message waiting to be told. Two equal messages, such as the same switch failing twice, are
  * queued apart by their [id].
+ *
+ * @property component the component the message is about, or null for a batch summary
  */
 data class QueuedControlMessage(
     val id: Long,
     val message: ControlMessage,
+    val component: ComponentId? = null,
 )
 
 sealed interface ControlMessage {
@@ -87,6 +95,8 @@ sealed interface ControlMessage {
      *
      * @property identity what the privileged channel ran as when the batch ended, or null when it
      * was not ready
+     * @property staysOffAsShipped components an unblock left unblocked that still do not run,
+     * because the app ships them disabled
      */
     data class BatchDone(
         val goal: ControlGoal,
@@ -94,6 +104,7 @@ sealed interface ControlMessage {
         val notChanged: Int,
         val mostCommon: LayerFailure?,
         val identity: PrivilegedIdentity? = null,
+        val staysOffAsShipped: Int = 0,
     ) : ControlMessage
 }
 
@@ -110,24 +121,36 @@ internal fun ComponentOutcome.toMessage(goal: ControlGoal, identity: PrivilegedI
 }
 
 /**
- * The summary of a batch of [outcomes]. A component counts as changed when it reached the goal
- * and its state read back differs from [before], the state cached when the batch was sent; one
- * without a cached state counts as changed. The most common reason counts each layer and kind of
- * failure once per component, whatever its message, and keeps the first message seen.
+ * The summary of a batch of [outcomes] through [layers]. A component counts as changed when it
+ * reached the goal and one of its layers was read in [before], the cache when the batch was sent,
+ * and did not meet the goal there: a layer that was unknown may have met it already. The most
+ * common reason counts each layer and kind of failure once per component, whatever its message,
+ * and keeps the first message seen.
  */
 internal fun batchSummary(
     goal: ControlGoal,
     outcomes: List<ComponentOutcome>,
-    before: Map<ComponentId, ControlState>,
+    before: Map<ComponentId, ComponentStatus>,
+    layers: Set<ControlLayer>,
     identity: PrivilegedIdentity?,
 ): ControlMessage.BatchDone {
+    val achieved = outcomes.filter { it.result == ControlResult.ACHIEVED }
     val notChanged = outcomes.filter { it.result != ControlResult.ACHIEVED }
-    val changed = outcomes.count { it.result == ControlResult.ACHIEVED && before[it.key.id] != it.state }
+    val changed = achieved.count { outcome -> before[outcome.key.id]?.wasShortOf(goal, layers) ?: false }
+    val staysOff = if (goal == ControlGoal.UNBLOCK) achieved.count { before[it.key.id]?.declaration?.isShippedDisabledAt(it.state.pm) == true } else 0
     val mostCommon = notChanged
         .flatMap { outcome -> outcome.failures.map { (layer, failure) -> LayerFailure(layer, failure) } }
         .groupBy { it.layer to it.failure::class }
         .maxByOrNull { (_, failures) -> failures.size }
         ?.value
         ?.first()
-    return ControlMessage.BatchDone(goal, changed = changed, notChanged = notChanged.size, mostCommon = mostCommon, identity = identity)
+    return ControlMessage.BatchDone(goal, changed = changed, notChanged = notChanged.size, mostCommon = mostCommon, identity = identity, staysOffAsShipped = staysOff)
 }
+
+/** Whether a layer of [this] component was read and did not meet [goal]. */
+private fun ComponentStatus.wasShortOf(goal: ControlGoal, layers: Set<ControlLayer>): Boolean = declaration.layersFor(layers).any { layer ->
+    state.isKnown(layer) && !declaration.meets(goal, layer, state)
+}
+
+/** Whether the app ships [this] component disabled and [setting] leaves it so. */
+private fun ComponentDeclaration.isShippedDisabledAt(setting: PmSetting): Boolean = !enabledInManifest && setting == PmSetting.DEFAULT

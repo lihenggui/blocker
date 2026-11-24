@@ -21,15 +21,22 @@ import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
+import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.control.layersFor
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +44,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,8 +55,10 @@ import javax.inject.Singleton
  * and the cache shows the system's state whenever the screen is shown again. One batch runs per
  * app at a time.
  *
- * A [BatchRun] holds nothing of the screen that started it. That screen follows [running] and
- * awaits [BatchRun.outcomes] in its own scope, so once it is gone nothing is told to it.
+ * A batch is [reserve]d at once with the components it will change, so it counts as running
+ * before anything is read, then [start]ed. A [BatchRun] holds nothing of the screen that started
+ * it. That screen follows [running] and awaits [BatchRun.outcomes] in its own scope, so once it is
+ * gone nothing is told to it; [BatchRun.outcomes] always completes with an outcome per component.
  */
 @Singleton
 class ComponentBatchRunner @Inject constructor(
@@ -63,43 +74,71 @@ class ComponentBatchRunner @Inject constructor(
     fun current(app: AppKey): BatchRun? = runs.value[app]
 
     /**
-     * Starts changing [components] of [app] towards [goal] through [layers], in requests of at
-     * most [BATCH_LIMIT] components: up to that many go in one request, which is fastest, with one
-     * read, one PackageManager call and one firewall write for the app.
+     * Lists a batch of [components] of [app] towards [goal] as running, before anything is sent.
      *
-     * @return the batch, or null when a batch of [app] is running already, which is then left alone
+     * @return the batch to [start] or [release], or null when a batch of [app] is running
+     * already, which is then left alone
      */
-    fun start(app: AppKey, components: List<ComponentDeclaration>, goal: ControlGoal, layers: Set<ControlLayer>): BatchRun? {
-        val run = synchronized(runs) {
-            if (app in runs.value) return null
-            val progress = MutableStateFlow(BatchStep(done = 0, pending = components.mapTo(mutableSetOf()) { it.id }))
-            // Started once it is listed, so its end always removes it.
-            val outcomes = scope.async(start = CoroutineStart.LAZY) { send(app, components, goal, layers, progress) }
-            BatchRun(goal = goal, total = components.size, step = progress.asStateFlow(), outcomes = outcomes)
-                .also { run -> runs.update { it + (app to run) } }
-        }
-        run.outcomes.start()
-        return run
+    fun reserve(app: AppKey, goal: ControlGoal, components: Collection<ComponentId>): BatchRun? = synchronized(runs) {
+        if (app in runs.value) return null
+        val run = BatchRun(app, goal, MutableStateFlow(BatchStep(done = 0, total = components.size, pending = components.toSet())))
+        runs.update { it + (app to run) }
+        run
     }
 
-    private suspend fun send(
-        app: AppKey,
-        components: List<ComponentDeclaration>,
-        goal: ControlGoal,
-        layers: Set<ControlLayer>,
-        progress: MutableStateFlow<BatchStep>,
-    ): List<ComponentOutcome> = try {
-        val outcomes = mutableListOf<ComponentOutcome>()
-        components.chunked(BATCH_LIMIT).forEach { step ->
-            componentStatuses.control(ControlRequest(app.userId, step, goal, layers)).collect { event ->
-                if (event is ControlEvent.PackageDone) outcomes += event.outcomes
+    /** Ends [run] without sending anything, as when the screen went away before it started. */
+    fun release(run: BatchRun) {
+        if (run.result.complete(emptyList())) remove(run)
+    }
+
+    /**
+     * Sends [components] of [run] through [layers], in requests of at most [BATCH_LIMIT]
+     * components: up to that many go in one request, which is fastest, with one read, one
+     * PackageManager call and one firewall write for the app. A request that fails in a way the
+     * repository does not report keeps the outcomes gathered before it and fails the components
+     * not yet done with [ControlFailure.SystemError].
+     */
+    fun start(run: BatchRun, components: List<ComponentDeclaration>, layers: Set<ControlLayer>) {
+        run.progress.value = BatchStep(done = 0, total = components.size, pending = components.mapTo(mutableSetOf()) { it.id })
+        scope.launch {
+            val outcomes = mutableListOf<ComponentOutcome>()
+            try {
+                send(run, components, layers, outcomes)
+            } finally {
+                run.result.complete(outcomes)
+                remove(run)
+            }
+        }
+    }
+
+    private suspend fun send(run: BatchRun, components: List<ComponentDeclaration>, layers: Set<ControlLayer>, outcomes: MutableList<ComponentOutcome>) {
+        components.chunked(BATCH_LIMIT).forEachIndexed { index, step ->
+            try {
+                componentStatuses.control(ControlRequest(run.app.userId, step, run.goal, layers)).collect { event ->
+                    if (event is ControlEvent.PackageDone) outcomes += event.outcomes
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Batch ${run.goal} of ${run.app} failed in request ${index + 1} of ${step.size} components")
+                val done = outcomes.mapTo(mutableSetOf()) { it.key.id }
+                outcomes += components.filterNot { it.id in done }.map { it.failedWith(run, layers, e) }
+                return
             }
             val sent = step.mapTo(mutableSetOf()) { it.id }
-            progress.update { BatchStep(done = it.done + step.size, pending = it.pending - sent) }
+            run.progress.update { it.copy(done = it.done + step.size, pending = it.pending - sent) }
         }
-        outcomes
-    } finally {
-        synchronized(runs) { runs.update { it - app } }
+    }
+
+    private fun ComponentDeclaration.failedWith(run: BatchRun, layers: Set<ControlLayer>, e: Exception) = ComponentOutcome(
+        key = ComponentKey(id, run.app.userId),
+        state = ControlState(PmSetting.UNKNOWN, IfwBlock.UNKNOWN),
+        result = ControlResult.FAILED,
+        failures = layersFor(layers).associateWith { ControlFailure.SystemError(e.toString()) },
+    )
+
+    private fun remove(run: BatchRun) = synchronized(runs) {
+        runs.update { current -> if (current[run.app] === run) current - run.app else current }
     }
 
     internal companion object {
@@ -112,23 +151,28 @@ class ComponentBatchRunner @Inject constructor(
 }
 
 /**
- * A batch of [total] components changing towards [goal].
+ * A batch of [app]'s components changing towards [goal].
  *
  * @property step how far it got
- * @property outcomes every outcome, once the last request ended
+ * @property outcomes every outcome, once the last request ended; none when it was released
  */
-class BatchRun(
+class BatchRun internal constructor(
+    val app: AppKey,
     val goal: ControlGoal,
-    val total: Int,
-    val step: StateFlow<BatchStep>,
-    val outcomes: Deferred<List<ComponentOutcome>>,
-)
+    internal val progress: MutableStateFlow<BatchStep>,
+) {
+    internal val result = CompletableDeferred<List<ComponentOutcome>>()
+    val step: StateFlow<BatchStep> = progress.asStateFlow()
+    val outcomes: Deferred<List<ComponentOutcome>> get() = result
+}
 
 /**
  * @property done components whose request ended
+ * @property total components in the batch
  * @property pending components whose request has not ended
  */
 data class BatchStep(
     val done: Int,
+    val total: Int,
     val pending: Set<ComponentId>,
 )

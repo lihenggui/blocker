@@ -120,3 +120,7 @@
     </plurals>
     <string name="feature_appdetail_api_summary_with_profile" translatable="false">%1$s · %2$s</string>
 </resources>
+    <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
+        <item quantity="one">%1$d stays off because the app ships it disabled; turn it on with its switch to force it</item>
+        <item quantity="other">%1$d stay off because the app ships them disabled; turn one on with its switch to force it</item>
+    </plurals>

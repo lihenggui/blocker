@@ -27,6 +27,9 @@ import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.control.isKnown
+import com.merxury.blocker.core.model.control.isPmClear
+import com.merxury.blocker.core.model.control.meets
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 
 // What a goal asks of each layer and how the state read back is judged, as ComponentControl says.
@@ -99,11 +102,6 @@ private fun ComponentDeclaration.moved(
     after: ControlState,
 ): Boolean = before.isKnown(layer) && !meets(goal, layer, before) && meets(goal, layer, after)
 
-private fun ControlState.isKnown(layer: ControlLayer): Boolean = when (layer) {
-    ControlLayer.PACKAGE_MANAGER -> pm != PmSetting.UNKNOWN
-    ControlLayer.INTENT_FIREWALL -> ifw != IfwBlock.UNKNOWN
-}
-
 /**
  * The layers a request works on and judges for one component, from [this], the requested ones.
  * An identity that cannot write system files, such as the shell, can neither read nor change the
@@ -116,28 +114,3 @@ internal fun Set<ControlLayer>.reachableBy(goal: ControlGoal, identity: Privileg
     val dropFirewall = goal != ControlGoal.BLOCK && firewallUnreachable && ControlLayer.PACKAGE_MANAGER in this
     return if (dropFirewall) this - ControlLayer.INTENT_FIREWALL else this
 }
-
-/** Whether [layer] shows [goal] in [state]. */
-private fun ComponentDeclaration.meets(goal: ControlGoal, layer: ControlLayer, state: ControlState): Boolean = when (goal) {
-    ControlGoal.BLOCK -> when (layer) {
-        ControlLayer.PACKAGE_MANAGER -> state.pm == PmSetting.DISABLED
-        ControlLayer.INTENT_FIREWALL -> state.ifw == IfwBlock.BLOCKED
-    }
-
-    // No block by the layer; the manifest default may still keep the component from running.
-    ControlGoal.UNBLOCK -> when (layer) {
-        ControlLayer.PACKAGE_MANAGER -> state.pm != PmSetting.DISABLED && state.pm != PmSetting.UNKNOWN
-        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
-    }
-
-    ControlGoal.ENABLE -> when (layer) {
-        ControlLayer.PACKAGE_MANAGER -> isPmClear(state.pm)
-        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
-    }
-}
-
-/** Whether no unconditional rule blocks the component; a conditional rule is not Blocker's. */
-private val IfwBlock.isClear: Boolean get() = this == IfwBlock.NOT_BLOCKED || this == IfwBlock.CONDITIONAL
-
-/** Whether [setting] lets the component run. */
-private fun ComponentDeclaration.isPmClear(setting: PmSetting): Boolean = setting == PmSetting.ENABLED || (setting == PmSetting.DEFAULT && enabledInManifest)

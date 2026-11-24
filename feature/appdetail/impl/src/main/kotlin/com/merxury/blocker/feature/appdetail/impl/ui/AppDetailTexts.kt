@@ -59,17 +59,19 @@ internal fun ControlMessage.text(): String = when (this) {
     is ControlMessage.BatchDone -> {
         val changedText = pluralStringResource(plurals.feature_appdetail_api_batch_changed, changed, changed)
         val summary = when {
+        // Unblocked but still off: the app ships them disabled, which only a switch overrides.
+        val staysOff = staysOffAsShipped.takeIf { it > 0 }?.let { pluralStringResource(plurals.feature_appdetail_api_batch_stays_off_as_shipped, it, it) }
             notChanged != 0 -> {
                 val notChangedText = pluralStringResource(plurals.feature_appdetail_api_batch_not_changed, notChanged, notChanged)
                 stringResource(string.feature_appdetail_api_batch_summary, changedText, notChangedText)
             }
 
-            changed == 0 -> stringResource(string.feature_appdetail_api_batch_nothing_needed)
+            changed == 0 -> if (staysOff == null) stringResource(string.feature_appdetail_api_batch_nothing_needed) else null
 
             else -> changedText
         }
         val reason = mostCommon?.let { stringResource(string.feature_appdetail_api_batch_most_common, it.text(identity)) }
-        lines(summary, reason)
+        lines(summary, staysOff, reason)
     }
 }
 

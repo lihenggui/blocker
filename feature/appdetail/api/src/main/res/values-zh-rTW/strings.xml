@@ -114,3 +114,6 @@
         <item quantity="other">%1$d 個無法變更</item>
     </plurals>
 </resources>
+    <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
+        <item quantity="other">%1$d 個元件仍保持關閉，因為應用程式預設將其停用；可用其開關單獨強制開啟</item>
+    </plurals>

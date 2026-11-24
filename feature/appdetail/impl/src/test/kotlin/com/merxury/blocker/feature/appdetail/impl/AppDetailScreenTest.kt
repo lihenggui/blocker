@@ -51,6 +51,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.merxury.blocker.feature.appdetail.api.R.plurals as plurals
 import com.merxury.blocker.feature.appdetail.api.R.string as string
 
 @RunWith(RobolectricTestRunner::class)
@@ -307,6 +308,25 @@ class AppDetailScreenTest {
         failures = listOf(LayerFailure(ControlLayer.INTENT_FIREWALL, ControlFailure.NotPermitted(message))),
         identity = identity,
     )
+
+    @Test
+    fun givenBatchThatLeftOnlyShippedDisabledComponentsOff_whenTold_thenSaysWhyTheyStayOffInsteadOfNothingNeeded() {
+        showText { ControlMessage.BatchDone(ControlGoal.UNBLOCK, changed = 0, notChanged = 0, mostCommon = null, staysOffAsShipped = 3).text() }
+
+        composeTestRule.onNodeWithText(plural(plurals.feature_appdetail_api_batch_stays_off_as_shipped, 3)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_batch_nothing_needed), substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun givenBatchThatChangedSomeAndLeftShippedDisabledOff_whenTold_thenSaysBoth() {
+        showText { ControlMessage.BatchDone(ControlGoal.UNBLOCK, changed = 2, notChanged = 0, mostCommon = null, staysOffAsShipped = 1).text() }
+
+        composeTestRule.onNodeWithText(
+            plural(plurals.feature_appdetail_api_batch_changed, 2) + "\n" + plural(plurals.feature_appdetail_api_batch_stays_off_as_shipped, 1),
+        ).assertIsDisplayed()
+    }
+
+    private fun plural(id: Int, count: Int) = composeTestRule.activity.resources.getQuantityString(id, count, count)
 
     @Test
     fun givenBatchWithNothingToChange_whenTold_thenSaysNothingNeededChanging() {
