@@ -31,8 +31,8 @@ import javax.inject.Inject
  * user Blocker runs in. Each request first waits for [PrivilegedExecutor.checkedState], so a read
  * right after a cold start waits for the first attempt to acquire the channel without a prompt
  * instead of reading only Blocker's own user; once that attempt ends unavailable, reads go local
- * at once. Reading never connects the channel, so it never shows a permission prompt. Each
- * request is routed on its own, so a channel that becomes ready is used from the next one.
+ * at once. Privileged reads follow the quiet policy, including when reopening an idle root session.
+ * Each request is routed on its own, so a channel that becomes ready is used from the next one.
  */
 internal class ChannelPlatformPackages(
     private val channel: PrivilegedExecutor,

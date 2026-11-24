@@ -45,24 +45,25 @@ interface PrivilegedChannel {
     suspend fun connect(): ChannelState
 
     /**
-     * Acquires the channel only where that cannot show a prompt: Shizuku when its permission is
-     * already granted, root when su has given Blocker a root process before. Otherwise leaves it
-     * unavailable, with [UnavailableReason.DENIED] when nothing has been granted. Updates [state]
-     * as [connect] does and returns the new state, or the current one at once when it is already
-     * [ChannelState.Ready]. Waits for a [connect] already running, whose result it may return
-     * instead, and never replaces a result a [connect] published while it ran. Safe to call often.
-     * Never throws except for cancellation.
+     * Acquires the channel quietly. Blocker requests no permission dialog. Shizuku must already
+     * be granted, and Blocker starts su only under a remembered root grant. Without a grant the
+     * result is [UnavailableReason.DENIED]. A remembered grant also allows replacing a root server
+     * that closed while idle.
      *
-     * Root counts as granted while su gave Blocker a root process last time it was asked. A root
-     * manager whose grant has since been withdrawn or has run out, such as a Magisk grant for a
-     * limited time, answers that one su start as its settings say: by refusing, or with its prompt.
+     * Updates [state] and returns the result. Reuses a current connection or waits for an attempt
+     * already in progress. Never throws except for cancellation.
+     *
+     * The remembered grant records whether su started a root process the last time it was asked.
+     * A root manager can refuse or show its own prompt if that grant has since expired or been
+     * revoked.
      */
     suspend fun connectIfGranted(): ChannelState
 }
 
 /**
- * Runs work for a caller that cannot request permission. Nested reads, writes and retries
- * inherit the restriction. Root calls in this scope can only reuse an active root process.
+ * Applies the quiet permission policy from [PrivilegedChannel.connectIfGranted] to nested reads,
+ * writes and retries. Blocker requests no permission dialog and starts su only under a remembered
+ * grant.
  */
 suspend fun <T> withoutPermissionPrompts(block: suspend () -> T): T = withContext(NoPermissionPrompts) { block() }
 
