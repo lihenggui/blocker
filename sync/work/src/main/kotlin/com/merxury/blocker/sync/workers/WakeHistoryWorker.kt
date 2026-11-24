@@ -76,6 +76,10 @@ class WakeWork @Inject constructor(
         scope.launch {
             authorization.rootGranted.collect { if (it) enqueue(context, ExistingWorkPolicy.REPLACE) }
         }
+        scope.launch {
+            // Enforce as soon as the channel can write, such as after the grant at first launch.
+            authorization.channelWritable.collect { if (it) enqueue(context, ExistingWorkPolicy.REPLACE) }
+        }
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
@@ -83,7 +87,7 @@ class WakeWork @Inject constructor(
         onShizukuChanged(authorization.shizukuUid)
         if (shizukuUid != 0) {
             scope.launch(ioDispatcher) {
-                // Ask the existing controller about direct root only while Blocker is in the foreground.
+                // Ask su about root for reading evidence only while Blocker is in the foreground.
                 authorization.checkForegroundRoot()
             }
         }

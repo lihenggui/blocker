@@ -4,42 +4,41 @@
 package com.merxury.blocker.core.data.wake
 
 import com.merxury.blocker.core.controllers.wake.authorizedShizukuUid
-import com.merxury.blocker.core.controllers.wake.hasAuthorizedWakeFirewallService
 import com.merxury.blocker.core.controllers.wake.observeWakeShizukuAuthorization
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.utils.LibrootRootAvailabilityChecker
-import com.merxury.core.ifw.WakeResetTransport
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class WakeAuthorizationRepository @Inject constructor(
     private val root: LibrootRootAvailabilityChecker,
     private val userData: UserDataRepository,
+    channel: PrivilegedChannel,
 ) {
     val rootGranted get() = root.rootGranted
+
+    /**
+     * Whether the privileged channel may write what the wake feature changes. Observing it never
+     * connects the channel.
+     */
+    val channelWritable: Flow<Boolean> = channel.state
+        .map { it is ChannelState.Ready && it.identity.canWriteSystemFiles }
+        .distinctUntilChanged()
     val shizukuUid get() = authorizedShizukuUid()
 
     fun observeShizukuAuthorization(onChanged: (Int?) -> Unit) = observeWakeShizukuAuthorization(onChanged)
 
+    /**
+     * Lets the root checker ask su while Blocker is in the foreground, for reading evidence with
+     * root; the wake feature's changes go through the privileged channel instead.
+     */
     suspend fun checkForegroundRoot() {
         if (userData.userData.first().controllerType != ControllerType.SHIZUKU) root.isRootAvailable()
-    }
-
-    /**
-     * How the wake feature reaches its own rule files for a reset, or null when it cannot. With
-     * the Shizuku controller type, su is tried only after an earlier grant, as in the background,
-     * so a reset there never shows a su prompt.
-     */
-    internal suspend fun resetTransport(): WakeResetTransport? = when {
-        hasAuthorizedWakeFirewallService() && !root.hasBackgroundRoot() -> WakeResetTransport.SHIZUKU_ROOT
-        hasRootForReset() -> WakeResetTransport.DIRECT_ROOT
-        else -> null
-    }
-
-    private suspend fun hasRootForReset(): Boolean = if (userData.userData.first().controllerType == ControllerType.SHIZUKU) {
-        root.hasBackgroundRoot()
-    } else {
-        root.isRootAvailable()
     }
 }
