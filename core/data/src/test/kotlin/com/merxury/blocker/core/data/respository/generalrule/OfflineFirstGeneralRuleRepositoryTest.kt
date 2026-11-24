@@ -65,7 +65,6 @@ class OfflineFirstGeneralRuleRepositoryTest {
         name = rule.name,
         networkSignature = rule.networkSignature,
         website = rule.website,
-        matchedAppCount = 7,
     )
 
     @Before

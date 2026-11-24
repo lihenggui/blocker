@@ -49,7 +49,7 @@ class GeneralRuleFallbackTest {
         val database = Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), GeneralRuleDatabase::class.java).build()
         try {
             val dao = database.generalRuleDao()
-            val currentRule = GeneralRuleEntity(1, "Current rule", searchKeyword = listOf("current.sdk"), matchedAppCount = 5)
+            val currentRule = GeneralRuleEntity(1, "Current rule", searchKeyword = listOf("current.sdk"))
             val deletedRule = GeneralRuleEntity(2, "Deleted rule")
             dao.upsertGeneralRules(listOf(currentRule, deletedRule))
             dao.delete(deletedRule)
