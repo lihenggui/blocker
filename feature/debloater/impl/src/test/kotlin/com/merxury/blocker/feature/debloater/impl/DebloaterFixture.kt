@@ -58,6 +58,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlin.time.Instant
 
@@ -74,7 +75,7 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
     val components = FakeComponentStatusRepository()
     val channel = FakePrivilegedChannel()
     val preferences = TestUserDataRepository().apply { sendUserData(defaultUserData.copy(controllerType = ControllerType.PM)) }
-    val permission = MutableStateFlow(PermissionStatus.ROOT_USER)
+    val permission = MutableStateFlow<PermissionStatus?>(PermissionStatus.ROOT_USER)
     val metadata = FakeMetadata()
     var controlGate = CompletableDeferred(Unit)
     var preparationGate = CompletableDeferred(Unit)
@@ -106,7 +107,7 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
         layersFor = layers,
         channel = channel,
         permissionMonitor = object : PermissionMonitor {
-            override val permissionStatus = permission
+            override val permissionStatus = permission.filterNotNull()
         },
         analyticsHelper = TestAnalyticsHelper(),
         cpuDispatcher = dispatcher,

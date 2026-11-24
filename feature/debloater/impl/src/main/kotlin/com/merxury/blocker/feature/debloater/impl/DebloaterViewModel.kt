@@ -76,7 +76,7 @@ data class DebloaterUiState(
     val content: Result<List<MatchedTarget>> = Result.Loading,
     val searchQuery: String = "",
     val componentTypeFilter: Set<ComponentClassification> = emptySet(),
-    val hasRootPermission: Boolean = false,
+    val hasRootPermission: Boolean? = null,
     val inFlight: Set<ComponentKey> = emptySet(),
     val messages: List<QueuedControlMessage> = emptyList(),
     val alert: UiMessage? = null,
@@ -112,12 +112,12 @@ class DebloaterViewModel @Inject constructor(
     private val inFlight = combine(singles, batches.inFlight) { singles, pending -> singles + pending }
 
     private val permission = permissionMonitor.permissionStatus
-        .map { it != PermissionStatus.NO_PERMISSION }
+        .map<PermissionStatus, Boolean?> { it != PermissionStatus.NO_PERMISSION }
         .catch {
             Timber.e(it, "Cannot read debloater permissions")
-            emit(false)
+            emit(null)
         }
-        .onStart { emit(false) }
+        .onStart { emit(null) }
 
     private val initialState = DebloaterUiState()
     private val userUiState = combine(

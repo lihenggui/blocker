@@ -397,14 +397,24 @@ class DebloaterViewModelTest {
     }
 
     @Test
-    fun givenPermissionChanges_whenObserved_thenKeepExistingPermissionWarningState() = runTest {
+    fun givenPendingPermissionCheck_whenItAnswersAndThenGrants_thenStateReflectsEachResult() = runTest {
         val f = fixture()
+        f.permission.value = null
+        f.install(installed())
         f.viewModel.uiState.test {
+            assertThat(awaitItem().hasRootPermission).isNull()
             settle()
-            assertThat(expectMostRecentItem().hasRootPermission).isTrue()
+            val pending = expectMostRecentItem()
+            assertThat(pending.hasRootPermission).isNull()
+            assertThat(pending.apps()).hasSize(1)
+
             f.permission.value = PermissionStatus.NO_PERMISSION
             settle()
             assertThat(expectMostRecentItem().hasRootPermission).isFalse()
+
+            f.permission.value = PermissionStatus.ROOT_USER
+            settle()
+            assertThat(expectMostRecentItem().hasRootPermission).isTrue()
         }
     }
 

@@ -69,7 +69,7 @@ fun DebloaterScreen(
     val noRootPermissionWarning = stringResource(R.string.feature_debloater_api_no_root_permission)
 
     LaunchedEffect(uiState.hasRootPermission) {
-        if (!uiState.hasRootPermission) {
+        if (uiState.hasRootPermission == false) {
             snackbarHostState.showSnackbar(
                 message = noRootPermissionWarning,
                 duration = SnackbarDuration.Long,
