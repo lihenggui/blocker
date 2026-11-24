@@ -72,7 +72,8 @@ internal object WakeProcStats {
         else -> throw IllegalArgumentException("procstats: state tags unverified for API $sdk")
     }
 
-    private const val MAX_COMMITTED_READS = 3
+    // Read by the inline [committed]; not part of what callers use.
+    const val MAX_COMMITTED_READS = 3
 
     /**
      * From Android 15 a process takes a screen change only when its own state changes next.
@@ -91,7 +92,7 @@ internal object WakeProcStats {
      * until the period last seen as current, so its final numbers replace the partial ones. Newer
      * committed periods found on the way are returned too.
      */
-    fun committed(previous: String, count: Int, read: (Int) -> WakeProcStatsPeriod?): List<WakeProcStatsPeriod> {
+    inline fun committed(previous: String, count: Int, read: (Int) -> WakeProcStatsPeriod?): List<WakeProcStatsPeriod> {
         val found = mutableListOf<WakeProcStatsPeriod>()
         for (index in (count - 1) downTo maxOf(1, count - MAX_COMMITTED_READS)) {
             val period = read(index) ?: break

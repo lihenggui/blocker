@@ -21,7 +21,10 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.controllers.wake.PROCSTATS_COUNT_PROBE
 import com.merxury.blocker.core.controllers.wake.WakeCommand
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.CallFailure
+import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.marshallCall
+import com.merxury.blocker.core.privileged.toCallFailure
 import com.merxury.blocker.core.privileged.unmarshallCall
 import com.merxury.core.ifw.WakeRuleFileKind
 import org.junit.Assert.assertThrows
@@ -29,11 +32,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowProcess
 
 private const val OWNER = "com.merxury.blocker"
 private const val APP_UID = 10_111
 private const val WORK_APP_UID = 1_010_111
 private const val BOOT = 7
+private const val SHELL_UID = 2000
 private val SHELL_PREFIX = listOf("/system/bin/sh", "-c", """exec "$@" 2>/dev/null""", "blocker")
 
 @RunWith(RobolectricTestRunner::class)
@@ -44,7 +49,7 @@ class WakeCallsTest {
     fun givenEveryCommand_whenReadInPrivilegedProcess_thenSameArgvWithoutSu() {
         WakeCommand.entries.forEach { command ->
             val argument = if (command == WakeCommand.PROCSTATS_LAST) 4L else 1_795_366_000_045L
-            val call = ReadWakeSource(command, UserId(10), WORK_APP_UID, BOOT, argument)
+            val call = ReadWakeSource(command, UserId(10), WORK_APP_UID, BOOT, argument, owner = SHELL_UID)
 
             assertThat(call.processCommand()).isEqualTo(SHELL_PREFIX + command.arguments(10, WORK_APP_UID, BOOT, argument))
             assertThat(call.processCommand()).doesNotContain("su")
@@ -53,7 +58,7 @@ class WakeCallsTest {
 
     @Test
     fun givenCommandsWithArguments_whenRead_thenArgvMatchesTheWakeFeature() {
-        fun argv(command: WakeCommand, user: Int = 0, argument: Long = 0) = ReadWakeSource(command, UserId(user), APP_UID, BOOT, argument).processCommand().drop(SHELL_PREFIX.size)
+        fun argv(command: WakeCommand, user: Int = 0, argument: Long = 0) = ReadWakeSource(command, UserId(user), APP_UID, BOOT, argument, owner = SHELL_UID).processCommand().drop(SHELL_PREFIX.size)
 
         assertThat(argv(WakeCommand.EVENTS, argument = 1_795_366_000_045L)).containsAtLeast("-T", "1795366000.045").inOrder()
         assertThat(argv(WakeCommand.PROCSTATS_LAST, argument = 4)).containsExactly("dumpsys", "-t", "10", "procstats", "-c", "--last", "4").inOrder()
@@ -66,24 +71,43 @@ class WakeCallsTest {
 
     @Test
     fun givenOutOfRangeValues_whenReadCreated_thenRejected() {
-        assertThrows(IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.PROCSTATS, UserId(0), 2000, BOOT) }
-        assertThrows(IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.PROCSTATS, UserId(0), 0, BOOT) }
-        assertThrows(IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.EVENTS, UserId(0), APP_UID, BOOT, -1) }
-        assertThrows(IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.PROCSTATS_LAST, UserId(0), APP_UID, BOOT, 0) }
+        assertThrows(IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.PROCSTATS, UserId(0), 2000, BOOT, owner = SHELL_UID) }
+        assertThrows(IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.PROCSTATS, UserId(0), 0, BOOT, owner = SHELL_UID) }
+        assertThrows(IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.EVENTS, UserId(0), APP_UID, BOOT, -1, owner = SHELL_UID) }
+        assertThrows(IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.PROCSTATS_LAST, UserId(0), APP_UID, BOOT, 0, owner = SHELL_UID) }
         assertThrows(IllegalArgumentException::class.java) {
-            ReadWakeSource(WakeCommand.PROCSTATS_LAST, UserId(0), APP_UID, BOOT, PROCSTATS_COUNT_PROBE.toLong())
+            ReadWakeSource(WakeCommand.PROCSTATS_LAST, UserId(0), APP_UID, BOOT, PROCSTATS_COUNT_PROBE.toLong(), owner = SHELL_UID)
         }
     }
 
     @Test
+    fun givenOwnerThatIsNoPrivilegedUid_whenReadCreated_thenRejected() {
+        listOf(-1, 1, APP_UID, 1_002_000).forEach { owner ->
+            assertThrows("$owner", IllegalArgumentException::class.java) { ReadWakeSource(WakeCommand.DRAIN, UserId(0), APP_UID, BOOT, owner = owner) }
+        }
+    }
+
+    @Test
+    fun givenPrivilegedProcessRunsAsAnotherUid_whenDrainRuns_thenRefusedBeforeTheCommand() {
+        // The channel changed from Shizuku as the shell to root while the collection ran.
+        ShadowProcess.setUid(0)
+        val drain = ReadWakeSource(WakeCommand.DRAIN, UserId(0), APP_UID, BOOT, owner = SHELL_UID)
+
+        val failure = assertThrows(IllegalStateException::class.java) { drain.run(FakeSystemServices()) }
+
+        assertThat(failure).hasMessageThat().isEqualTo("The privileged process runs as uid 0, not 2000")
+        assertThat(failure.toCallFailure()).isInstanceOf(CallFailure.SystemError::class.java)
+    }
+
+    @Test
     fun givenForgedIndexInParcel_whenUnmarshalledInPrivilegedProcess_thenRejected() {
-        val forged = ReadWakeSource(WakeCommand.PROCSTATS_LAST, UserId(0), APP_UID, BOOT, 4)
+        val forged = ReadWakeSource(WakeCommand.PROCSTATS_LAST, UserId(0), APP_UID, BOOT, 4, owner = SHELL_UID)
         val bytes = marshallCall(forged)
         val parcel = Parcel.obtain()
         val tampered = try {
             parcel.unmarshall(bytes, 0, bytes.size)
-            // The argument is the last field written.
-            parcel.setDataPosition(parcel.dataSize() - Long.SIZE_BYTES)
+            // The argument is written last but for the owner's uid.
+            parcel.setDataPosition(parcel.dataSize() - Long.SIZE_BYTES - Int.SIZE_BYTES)
             parcel.writeLong(-5)
             parcel.marshall()
         } finally {
@@ -95,7 +119,7 @@ class WakeCallsTest {
 
     @Test
     fun whenRead_thenRunsInPrivilegedProcessAsShellToo() {
-        val call = ReadWakeSource(WakeCommand.SERVICES, UserId(0), APP_UID, BOOT)
+        val call = ReadWakeSource(WakeCommand.SERVICES, UserId(0), APP_UID, BOOT, owner = SHELL_UID)
 
         assertThat(call.needsPrivilegedProcess).isTrue()
         assertThat(call.needsSystemFiles).isFalse()
@@ -103,14 +127,14 @@ class WakeCallsTest {
 
     @Test
     fun givenEachCommand_whenRead_thenOnlyDrainIsNotRetryable() {
-        val notRetryable = WakeCommand.entries.filterNot { ReadWakeSource(it, UserId(0), APP_UID, BOOT, 1).retryable }
+        val notRetryable = WakeCommand.entries.filterNot { ReadWakeSource(it, UserId(0), APP_UID, BOOT, 1, owner = SHELL_UID).retryable }
 
         assertThat(notRetryable).containsExactly(WakeCommand.DRAIN)
     }
 
     @Test
     fun givenLargeOutput_whenResultParceled_thenSameBytesArrive() {
-        val call = ReadWakeSource(WakeCommand.PROCSTATS, UserId(0), APP_UID, BOOT)
+        val call = ReadWakeSource(WakeCommand.PROCSTATS, UserId(0), APP_UID, BOOT, owner = SHELL_UID)
         // Robolectric keeps a parcel byte by byte; the device test sends megabytes.
         val output = ByteArray(256 * 1024) { it.toByte() }
         val parcel = Parcel.obtain()
@@ -144,7 +168,7 @@ class WakeCallsTest {
             RemoveWakeRuleTarget(OWNER, WakeRuleFileKind.MANAGED, "com.example"),
             ReadWakeJournal(OWNER),
             ReplaceWakeJournal(OWNER, "{}"),
-            ReadWakeSource(WakeCommand.EVENTS, UserId(10), WORK_APP_UID, BOOT, 5),
+            ReadWakeSource(WakeCommand.EVENTS, UserId(10), WORK_APP_UID, BOOT, 5, owner = SHELL_UID),
         )
 
         calls.forEach { assertThat(unmarshallCall(marshallCall(it))).isEqualTo(it) }

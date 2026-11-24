@@ -29,7 +29,6 @@ android {
 dependencies {
     ksp(libs.hilt.ext.compiler)
 
-    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.tracing.ktx)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.ext.work)
@@ -44,6 +43,8 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.truth)
+    testImplementation(projects.core.componentController)
     testImplementation(projects.core.datastoreTest)
+    testImplementation(projects.core.testing)
 
 }

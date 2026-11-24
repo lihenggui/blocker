@@ -8,7 +8,6 @@ import com.merxury.blocker.core.data.wake.WakeRepository
 import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.wake.WakeAccess
 import com.merxury.core.ifw.ManagedWakeReset
 import dagger.Module
 import dagger.Provides
@@ -46,25 +45,32 @@ class WakeProtectionManager @Inject constructor(
                     repository.reportStatus(WakeSourceStatus("protection", now, "OWNER_PROFILE_REQUIRED"))
                     return@withLock true
                 }
-                val access = repository.access()
-                if (access == WakeAccess.NONE) {
+                // The channel the user chose reads as any identity; it is the only way in.
+                val identity = repository.readAccess()
+                if (identity == null) {
                     repository.reportStatus(WakeSourceStatus("authorization", now, "WAITING_FOR_PERMISSION"))
                     return@withLock true
                 }
                 val writes = protection.writeAccess()
                 protection.revokeStaleFirewallRules(writes)
-                val capture = repository.collect(now - repository.lastDiagnostic >= 86_400_000, access)
+                val capture = repository.collect(now - repository.lastDiagnostic >= 86_400_000, identity)
                 val records = repository.attributionRecords(capture.boot)
                 val relations = WakeAttribution.relationships(records)
                 repository.saveAttribution(records, relations, WakeAttribution.continuations(records, relations))
                 detect(now)
+                if (capture.everyReadRefused) {
+                    // Shizuku before 13 refuses the calls reads need; retrying cannot change that.
+                    repository.reportStatus(WakeSourceStatus("protection", now, "OBSERVING_NOTHING_READS_REFUSED"))
+                    return@withLock true
+                }
                 if (capture.profiles.isEmpty()) {
                     repository.reportStatus(WakeSourceStatus("protection", now, "PROFILE_SCOPE_UNAVAILABLE"))
                     return@withLock false
                 }
                 val status = protection.applyReviewedPaths(capture, writes, now)
                 repository.reportStatus(WakeSourceStatus("protection", now, status))
-                !capture.binderFallback
+                // A capture the channel could not finish runs again soon instead of in half an hour.
+                !capture.channelUnavailable
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 repository.reportStatus(WakeSourceStatus("protection", now, e.message ?: e.javaClass.simpleName))

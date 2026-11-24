@@ -74,3 +74,11 @@ internal fun identityOfUid(uid: Int): PrivilegedIdentity? = when (uid) {
     SHELL_UID -> PrivilegedIdentity.SHELL
     else -> null
 }
+
+/** The uid a privileged process with this identity runs as; [identityOfUid] maps it back. */
+internal val PrivilegedIdentity.uid: Int
+    get() = when (this) {
+        PrivilegedIdentity.ROOT -> ROOT_UID
+        PrivilegedIdentity.SYSTEM -> SYSTEM_UID
+        PrivilegedIdentity.SHELL -> SHELL_UID
+    }

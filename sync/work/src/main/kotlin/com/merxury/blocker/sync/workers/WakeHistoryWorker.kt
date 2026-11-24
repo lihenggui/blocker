@@ -10,9 +10,6 @@ import android.content.IntentFilter
 import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.hilt.work.HiltWorker
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -22,13 +19,10 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.data.wake.WakeAuthorizationRepository
 import com.merxury.blocker.core.di.ApplicationScope
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.wake.WakeProtectionManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -44,15 +38,18 @@ class WakeHistoryWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = if (protection.reconcile()) Result.success() else Result.retry()
 }
 
+/**
+ * Schedules the wake feature's collection: every 30 minutes, after other packages change, and as
+ * soon as the privileged channel becomes ready or changes identity while no collection is waiting
+ * or running, such as after the grant at first launch. It only observes the channel; acquiring it
+ * is up to the channel and the screens.
+ */
 @Singleton
 class WakeWork @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val authorization: WakeAuthorizationRepository,
     @param:ApplicationScope private val scope: CoroutineScope,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) : DefaultLifecycleObserver {
-    private var shizukuUid: Int? = null
-
+) {
     fun initialize() {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             "wake-history-periodic",
@@ -71,33 +68,12 @@ class WakeWork @Inject constructor(
             )
         }
         enqueue(context)
-        // Binder and permission callbacks arrive on the main thread. They only inspect existing grants.
-        authorization.observeShizukuAuthorization(::onShizukuChanged)
         scope.launch {
-            authorization.rootGranted.collect { if (it) enqueue(context, ExistingWorkPolicy.REPLACE) }
+            // Any identity reads, root and system also write. A run already waiting or running
+            // stays: the run itself connects the channel quietly, so replacing it here would
+            // cancel it, and a run backing off after the channel was lost would restart at once.
+            authorization.readyIdentity.collect { if (it != null) enqueue(context) }
         }
-        scope.launch {
-            // Enforce as soon as the channel can write, such as after the grant at first launch.
-            authorization.channelWritable.collect { if (it) enqueue(context, ExistingWorkPolicy.REPLACE) }
-        }
-        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-    }
-
-    override fun onStart(owner: LifecycleOwner) {
-        onShizukuChanged(authorization.shizukuUid)
-        if (shizukuUid != 0) {
-            scope.launch(ioDispatcher) {
-                // Ask su about root for reading evidence only while Blocker is in the foreground.
-                authorization.checkForegroundRoot()
-            }
-        }
-    }
-
-    private fun onShizukuChanged(uid: Int?) {
-        if (shizukuUid == uid) return
-        shizukuUid = uid
-        // A job backing off after a disconnected service must not delay a new grant.
-        enqueue(context, ExistingWorkPolicy.REPLACE)
     }
 
     companion object {

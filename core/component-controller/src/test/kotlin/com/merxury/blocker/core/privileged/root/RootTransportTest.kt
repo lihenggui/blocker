@@ -20,6 +20,7 @@ import android.os.RemoteException
 import be.mygod.librootkotlinx.NoShellException
 import be.mygod.librootkotlinx.RootServer
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.controllers.wake.WakeCommand
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -32,6 +33,7 @@ import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.MeasureInPrivilegedProcess
 import com.merxury.blocker.core.privileged.awaitPipeWriters
 import com.merxury.blocker.core.privileged.calls.ForceStop
+import com.merxury.blocker.core.privileged.calls.ReadWakeSource
 import com.merxury.blocker.core.privileged.encodeOutcome
 import com.merxury.blocker.core.privileged.unmarshallCall
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -188,6 +190,18 @@ class RootTransportTest {
         runner.failures += RootServer.UnexpectedExitException()
 
         assertThat(transport.execute(ConsumeOnce("report"))).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        assertThat(runner.sent).isEqualTo(2)
+        assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+    }
+
+    @Test
+    fun givenWakeDrainAndRootProcessDies_whenExecute_thenNotSentAgain() = scope.runTest {
+        transport.connect()
+        runner.failures += RootServer.UnexpectedExitException()
+
+        val drain = ReadWakeSource(WakeCommand.DRAIN, UserId.SYSTEM, 10_123, 7, owner = 0)
+
+        assertThat(transport.execute(drain)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
         assertThat(runner.sent).isEqualTo(2)
         assertThat(transport.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
     }

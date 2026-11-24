@@ -34,6 +34,7 @@ import kotlinx.coroutines.withTimeout
 import kotlin.test.assertEquals
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 private const val SHIZUKU_PERMISSION = "moe.shizuku.manager.permission.API_V23"
 
@@ -77,6 +78,6 @@ internal fun shizukuTransport(context: Context, api: ShizukuApi = DefaultShizuku
     ShizukuInitializer(api),
     api,
     ShizukuSystemServices(context),
-    ShizukuUserService(ShizukuUserServiceConnector(context)),
+    ShizukuUserService(ShizukuUserServiceConnector(context), attachTimeout = 15.seconds),
     Dispatchers.IO,
 )

@@ -12,6 +12,7 @@ import com.merxury.blocker.core.database.record.PmBlockRecordEntity
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.core.ifw.ManagedWakeRules
 import com.merxury.core.ifw.WakeServiceFilter
@@ -79,8 +80,13 @@ class WakeProtectionRepository @Inject constructor(
         return true
     }
 
+    /**
+     * Records the reviewed paths [capture] qualifies and, when [writes] allows, applies them.
+     * A capture the channel could not finish only records them: evidence is missing, and the
+     * channel that missed it would make the changes.
+     */
     suspend fun applyReviewedPaths(capture: WakeImport, writes: WakeWrites, now: Long): String {
-        val canManageComponents = writes == WakeWrites.Enforce && !capture.binderFallback
+        val canManageComponents = writes == WakeWrites.Enforce && !capture.channelUnavailable
         if (canManageComponents) ownership.recover()
         val previous = repository.protections()
         val candidates = catalog.evaluate(repository.observedComponents(now - WAKE_HISTORY_RETENTION_MILLIS), capture.identities, capture.profiles, previous, repository.firewallResets())
@@ -90,7 +96,7 @@ class WakeProtectionRepository @Inject constructor(
         if (canManageComponents) {
             reconcileComponents(previous, candidates.filter { it.method == "PM" })
         }
-        if (capture.binderFallback) return "SHIZUKU_USER_SERVICE_UNAVAILABLE"
+        if (capture.channelUnavailable) return channel.state.value.lostStatus()
         if (writes is WakeWrites.ObserveOnly) return writes.status
         return reconcileFirewall(previous.filter { it.method == "IFW" }, candidates.filter { it.method == "IFW" })
     }
@@ -203,6 +209,13 @@ class WakeProtectionRepository @Inject constructor(
 
 /** Whether the wake feature may change the system through a channel in this state. */
 private val ChannelState.mayEnforce: Boolean get() = this is ChannelState.Ready && identity.canWriteSystemFiles
+
+/**
+ * The status of a run whose reads the channel could not all make, given the channel's state after
+ * them: why it is unavailable, or [UnavailableReason.FAILED] when it still counts as ready because
+ * only its privileged process could not be reached.
+ */
+private fun ChannelState.lostStatus(): String = (this as? ChannelState.Unavailable ?: ChannelState.Unavailable(UnavailableReason.FAILED)).observingStatus()
 
 /** The status of a run that observes only because of this state. */
 private fun ChannelState.observingStatus(): String = when (this) {

@@ -16,12 +16,14 @@
 
 package com.merxury.blocker.core.privileged.shizuku
 
+import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.ServiceConnection
 import android.os.DeadObjectException
 import android.os.IBinder
 import android.os.Process
+import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.privileged.CallBytes
@@ -31,8 +33,14 @@ import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.marshallCall
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
 import timber.log.Timber
@@ -50,6 +58,29 @@ private val ATTACH_TIMEOUT = 15.seconds
 
 // Raise when the AIDL interface changes, so Shizuku replaces a service an older app started.
 private const val SERVICE_VERSION = 1
+
+// A service is a full app_process: after a background collection it held about 160 MB of PSS.
+// Short, because a process left in the background is cached and soon frozen, and a frozen
+// process runs no timer: a longer wait would keep the service until Blocker runs again.
+private val IDLE_STOP = 5.seconds
+
+/**
+ * When to stop the service between uses: once it has run no call for [after] while
+ * [screenVisible] says no screen of Blocker is visible. A screen in front keeps it, so the calls of
+ * a screen the user works in never wait for a new process.
+ */
+internal class IdleStop(
+    val scope: CoroutineScope,
+    val after: Duration,
+    val screenVisible: () -> Boolean,
+)
+
+/** Whether a screen of this process is visible, as the activity manager ranks the process. */
+private fun hasVisibleScreen(): Boolean {
+    val state = ActivityManager.RunningAppProcessInfo()
+    ActivityManager.getMyMemoryState(state)
+    return state.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE
+}
 
 /** The [Shizuku] calls that start and stop [ShizukuPrivilegedService], behind an interface for tests. */
 internal interface UserServiceConnector {
@@ -94,19 +125,29 @@ internal class ShizukuUserServiceConnector @Inject constructor(
 /**
  * Runs calls in [ShizukuPrivilegedService]. Binds it on first use, keeps it for later calls and
  * binds again on the next call after it died or Shizuku stopped. Never binds more than once at a
- * time.
+ * time. With [idleStop], stops it when it is idle and no screen needs it, as after a collection in
+ * the background; the next call starts it again.
  */
 @Singleton
 internal class ShizukuUserService(
     private val connector: UserServiceConnector,
     private val attachTimeout: Duration,
+    private val idleStop: IdleStop? = null,
 ) {
-    @Inject constructor(connector: ShizukuUserServiceConnector) : this(connector, ATTACH_TIMEOUT)
+    @Inject constructor(
+        connector: ShizukuUserServiceConnector,
+        @ApplicationScope scope: CoroutineScope,
+    ) : this(connector, ATTACH_TIMEOUT, IdleStop(scope, IDLE_STOP, ::hasVisibleScreen))
 
     private class Attached(val service: IPrivilegedService, val connection: ServiceConnection)
 
     private val attached = AtomicReference<Attached?>()
     private val bindLock = Mutex()
+
+    // Guards inFlight and idleJob, so a stop never lands between a call's start and its use.
+    private val useLock = Mutex()
+    private var inFlight = 0
+    private var idleJob: Job? = null
 
     /**
      * Runs [call] in the service and returns its outcome. Blocks while the call runs, so call it
@@ -123,18 +164,46 @@ internal class ShizukuUserService(
                 CallFailure.NotPermitted("Shizuku $version cannot run $call; $MIN_SHIZUKU_VERSION or later can"),
             )
         }
-        val current = attach()
-        // Closing this side's copy of a piped request when the call ends stops its writer even
-        // when the service never read it.
-        val reply = CallBytes.request(marshallCall(call)).use { request ->
-            try {
-                current.service.run(request)
-            } catch (e: DeadObjectException) {
-                forget(current)
-                throw PrivilegedProcessUnavailableException("The Shizuku user service died while running $call", e)
+        useLock.withLock {
+            inFlight++
+            idleJob?.cancel()
+        }
+        try {
+            val current = attach()
+            // Closing this side's copy of a piped request when the call ends stops its writer even
+            // when the service never read it.
+            val reply = CallBytes.request(marshallCall(call)).use { request ->
+                try {
+                    current.service.run(request)
+                } catch (e: DeadObjectException) {
+                    forget(current)
+                    throw PrivilegedProcessUnavailableException("The Shizuku user service died while running $call", e)
+                }
+            }
+            return decodeOutcome(call, reply.read())
+        } finally {
+            withContext(NonCancellable) {
+                useLock.withLock {
+                    inFlight--
+                    if (inFlight == 0) idleJob = scheduleIdleStop()
+                }
             }
         }
-        return decodeOutcome(call, reply.read())
+    }
+
+    // Call holding useLock.
+    private fun scheduleIdleStop(): Job? {
+        val policy = idleStop ?: return null
+        return policy.scope.launch {
+            do delay(policy.after) while (policy.screenVisible())
+            useLock.withLock {
+                if (inFlight > 0) return@withLock
+                attached.getAndSet(null)?.let {
+                    Timber.i("Stopping the idle Shizuku user service")
+                    detach(it.connection, stop = true)
+                }
+            }
+        }
     }
 
     /** Drops the bound service, for example because Shizuku stopped. The next call binds again. */

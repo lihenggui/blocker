@@ -3,42 +3,22 @@
 
 package com.merxury.blocker.core.data.wake
 
-import com.merxury.blocker.core.controllers.wake.authorizedShizukuUid
-import com.merxury.blocker.core.controllers.wake.observeWakeShizukuAuthorization
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.privileged.PrivilegedChannel
-import com.merxury.blocker.core.utils.LibrootRootAvailabilityChecker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class WakeAuthorizationRepository @Inject constructor(
-    private val root: LibrootRootAvailabilityChecker,
-    private val userData: UserDataRepository,
-    channel: PrivilegedChannel,
-) {
-    val rootGranted get() = root.rootGranted
-
+/** When the wake feature can work: it reads and writes only through the privileged channel. */
+class WakeAuthorizationRepository @Inject constructor(channel: PrivilegedChannel) {
     /**
-     * Whether the privileged channel may write what the wake feature changes. Observing it never
-     * connects the channel.
+     * The identity the privileged channel is ready as, or null while it is unavailable. Any
+     * identity reads evidence; root and the system uid also write. Observing it never connects
+     * the channel, so it never shows a prompt.
      */
-    val channelWritable: Flow<Boolean> = channel.state
-        .map { it is ChannelState.Ready && it.identity.canWriteSystemFiles }
+    val readyIdentity: Flow<PrivilegedIdentity?> = channel.state
+        .map { (it as? ChannelState.Ready)?.identity }
         .distinctUntilChanged()
-    val shizukuUid get() = authorizedShizukuUid()
-
-    fun observeShizukuAuthorization(onChanged: (Int?) -> Unit) = observeWakeShizukuAuthorization(onChanged)
-
-    /**
-     * Lets the root checker ask su while Blocker is in the foreground, for reading evidence with
-     * root; the wake feature's changes go through the privileged channel instead.
-     */
-    suspend fun checkForegroundRoot() {
-        if (userData.userData.first().controllerType != ControllerType.SHIZUKU) root.isRootAvailable()
-    }
 }
