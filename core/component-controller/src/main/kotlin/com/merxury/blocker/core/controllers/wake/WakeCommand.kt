@@ -3,11 +3,14 @@
 
 package com.merxury.blocker.core.controllers.wake
 
+import android.os.Build
+import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** The fixed command lines the wake feature reads evidence with, run by `ReadWakeSource`. */
 internal enum class WakeCommand(val args: List<String>) {
@@ -97,27 +100,77 @@ internal enum class WakeCommand(val args: List<String>) {
     }
 
     /**
-     * Runs [processCommand], writes at most 12 MiB of its stdout to [output] and kills it after
-     * 12 seconds. [INSTALL] feeds the statsd config on stdin, owned by this process's uid.
+     * Runs [processCommand] and writes at most 12 MiB of its stdout to [output], as
+     * [runBounded] does. [INSTALL] feeds the statsd config on stdin, owned by this process's uid.
      *
-     * @throws IOException when the command fails, is killed or prints more
+     * @throws IOException when the command fails, is stopped or prints more
      */
     fun execute(profile: Int, appUid: Int, boot: Int, argument: Long, output: OutputStream) {
-        val id = WakeStatsCodec.configId(appUid, boot)
-        val process = ProcessBuilder(processCommand(profile, appUid, boot, argument)).start()
-        val timeout = timer.schedule({ process.destroy() }, 12, TimeUnit.SECONDS)
-        try {
-            process.outputStream.use { if (this == INSTALL) it.write(WakeStatsCodec.config(id, android.os.Process.myUid())) }
-            process.inputStream.use { it.copyBounded(output) }
-            if (process.waitFor() != 0) throw IOException("$name unavailable")
-        } finally {
-            timeout.cancel(false)
-            process.destroy()
-        }
+        val input = if (this == INSTALL) WakeStatsCodec.config(WakeStatsCodec.configId(appUid, boot), android.os.Process.myUid()) else null
+        runBounded(ProcessBuilder(processCommand(profile, appUid, boot, argument)).start(), name, input, output)
     }
+}
 
-    companion object {
-        private val timer = Executors.newSingleThreadScheduledExecutor()
+private val timer = Executors.newSingleThreadScheduledExecutor()
+
+/** Sends SIGKILL: `destroy` does so before Android 8, which has no `destroyForcibly`. */
+private fun Process.killNow() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) destroyForcibly() else destroy()
+}
+
+/**
+ * Feeds [input] to [process], copies at most 12 MiB of its stdout to [output] and waits for it to
+ * exit. After [limitMillis] it is asked to stop, and [graceMillis] later killed with [kill], so a
+ * command that ignores the request, or keeps stdout open, cannot hold the call. Should even the
+ * kill not end it, its stdout is closed and the wait abandoned another two [graceMillis] later.
+ *
+ * The wait itself blocks instead of polling: `Process.waitFor` with a timeout sleeps up to 100 ms
+ * between checks on Android, which a collection of 30 commands would pay 30 times.
+ *
+ * @throws IOException naming [name] when the command fails, runs out of time or prints more
+ */
+internal fun runBounded(
+    process: Process,
+    name: String,
+    input: ByteArray?,
+    output: OutputStream,
+    limitMillis: Long = 12_000,
+    graceMillis: Long = 1_000,
+    kill: (Process) -> Unit = Process::killNow,
+) {
+    val timedOut = AtomicBoolean()
+    val caller = Thread.currentThread()
+    val stop = timer.schedule({
+        timedOut.set(true)
+        process.destroy()
+    }, limitMillis, TimeUnit.MILLISECONDS)
+    val killer = timer.schedule({ kill(process) }, limitMillis + graceMillis, TimeUnit.MILLISECONDS)
+    val abandon = timer.schedule({
+        // A descendant that survived the kill may still hold stdout open; closing it ends the read.
+        try {
+            process.inputStream.close()
+        } catch (e: IOException) {
+            Timber.w(e, "Cannot close the output of $name")
+        }
+        caller.interrupt()
+    }, limitMillis + 3 * graceMillis, TimeUnit.MILLISECONDS)
+    try {
+        process.outputStream.use { if (input != null) it.write(input) }
+        process.inputStream.use { it.copyBounded(output) }
+        val status = try {
+            process.waitFor()
+        } catch (e: InterruptedException) {
+            throw IOException("$name did not exit after it was killed", e)
+        }
+        if (timedOut.get()) throw IOException("$name did not finish within ${limitMillis / 1000.0} s")
+        if (status != 0) throw IOException("$name exited with status $status")
+    } finally {
+        abandon.cancel(false)
+        stop.cancel(false)
+        killer.cancel(false)
+        // An interrupt that fired just before the cancel must not reach the caller's next wait.
+        Thread.interrupted()
+        kill(process)
     }
 }
 
