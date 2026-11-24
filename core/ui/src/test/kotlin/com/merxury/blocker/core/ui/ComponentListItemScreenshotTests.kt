@@ -69,7 +69,9 @@ class ComponentListItemScreenshotTests {
             BlockerTheme {
                 Surface {
                     ComponentListItem(
-                        item = components[1],
+                        simpleName = components[1].simpleName,
+                        name = components[1].name,
+                        description = components[1].description,
                         enabled = false,
                         type = RECEIVER,
                         isServiceRunning = true,
@@ -107,7 +109,9 @@ class ComponentListItemScreenshotTests {
         BlockerTheme {
             Surface {
                 ComponentListItem(
-                    item = components[0],
+                    simpleName = components[0].simpleName,
+                    name = components[0].name,
+                    description = components[0].description,
                     enabled = true,
                     type = ACTIVITY,
                     isServiceRunning = true,

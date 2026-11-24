@@ -47,7 +47,6 @@
     <string name="core_ui_service_with_count">Службы (%1$d)</string>
     <string name="core_ui_receiver_with_count">Приемники (%1$d)</string>
     <string name="core_ui_provider_with_count">Поставщики (%1$d)</string>
-    <string name="core_ui_initializing_database">Инициализация базы данных</string>
     <string name="core_ui_more_menu">Дополнительно</string>
     <string name="core_ui_search_icon">Поиск</string>
     <string name="core_ui_block_all_components">Отключить все компоненты</string>
@@ -87,7 +86,6 @@
         <item quantity="many">Операция завершена. Не удалось изменить %1$d компонентов</item>
         <item quantity="other">Операция завершена. Не удалось изменить %1$d компонентов</item>
     </plurals>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
     <string name="core_ui_found">Совпадение</string>
     <string name="core_ui_not_found">Не найдено</string>
@@ -160,4 +158,22 @@
     <string name="core_ui_ifw_sender_signature">Подпись</string>
     <string name="core_ui_ifw_sender_system_or_signature">Система или подпись</string>
     <string name="core_ui_ifw_sender_user_id">Тот же ID пользователя</string>
+    <string name="core_ui_profile_personal">Личный</string>
+    <string name="core_ui_profile_work">Рабочий</string>
+    <string name="core_ui_profile_user">Пользователь %1$d</string>
+    <string name="core_ui_profile_not_running">Не запущен</string>
+    <string name="core_ui_uninstall_for_profile_confirm">Удалить это приложение из профиля «%1$s»? У других пользователей и профилей, где оно установлено, приложение останется. Приложение удаляется с устройства, когда оно не установлено ни у одного пользователя.</string>
+    <string name="core_ui_enable_app_failed">Не удалось включить %1$s</string>
+    <string name="core_ui_disable_app_failed">Не удалось отключить %1$s</string>
+    <string name="core_ui_force_stop_app_failed">Не удалось принудительно остановить %1$s</string>
+    <string name="core_ui_clear_cache_failed">Не удалось очистить кеш %1$s</string>
+    <string name="core_ui_clear_data_failed">Не удалось очистить данные %1$s</string>
+    <string name="core_ui_uninstall_app_failed">Не удалось удалить %1$s</string>
+    <string name="core_ui_reason_no_access">Предоставьте Blocker доступ root или Shizuku и повторите попытку.</string>
+    <string name="core_ui_unknown">Неизвестно</string>
+    <string name="core_ui_grant_access">Предоставить доступ</string>
+    <string name="core_ui_block_component_failed">Не удалось заблокировать %1$s</string>
+    <string name="core_ui_enable_component_failed">Не удалось включить %1$s</string>
+    <string name="core_ui_grant_failed">У Blocker по-прежнему нет доступа root или Shizuku.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
 </resources>

@@ -16,681 +16,238 @@
 
 package com.merxury.blocker.feature.search.impl
 
-import android.content.Context
-import androidx.activity.compose.PredictiveBackHandler
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.SeekableTransitionState
-import androidx.compose.animation.core.rememberTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsTopHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.SnackbarDuration.Short
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
-import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
-import com.merxury.blocker.core.designsystem.component.PreviewThemes
-import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScrollbar
-import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
-import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.FilteredComponent
-import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.ui.PreviewDevices
-import com.merxury.blocker.core.ui.SearchScreenTabs
-import com.merxury.blocker.core.ui.TabState
+import androidx.lifecycle.repeatOnLifecycle
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.system.AppAction
+import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
-import com.merxury.blocker.core.ui.applist.AppList
-import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.SearchTabStatePreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.GeneralRulesList
+import com.merxury.blocker.core.ui.applist.AppActionConfirmDialog
+import com.merxury.blocker.core.ui.applist.AppRow
+import com.merxury.blocker.core.ui.applist.PendingConfirmation
+import com.merxury.blocker.core.ui.applist.PendingConfirmationSaver
+import com.merxury.blocker.core.ui.applist.needsConfirmation
+import com.merxury.blocker.core.ui.profile.ProfileSwitcher
 import com.merxury.blocker.core.ui.screen.EmptyScreen
-import com.merxury.blocker.core.ui.screen.ErrorScreen
-import com.merxury.blocker.core.ui.screen.InitializingScreen
-import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
-import com.merxury.blocker.feature.search.api.R
 import com.merxury.blocker.feature.search.api.R.string
-import com.merxury.blocker.feature.search.impl.component.FilteredComponentItem
-import com.merxury.blocker.feature.search.impl.component.SearchBar
-import com.merxury.blocker.feature.search.impl.screen.SearchResultScreen
+import com.merxury.blocker.feature.search.impl.component.SearchActions
+import com.merxury.blocker.feature.search.impl.component.SearchResultTabs
+import com.merxury.blocker.feature.search.impl.component.SearchTopBar
+import com.merxury.blocker.feature.search.impl.component.leavingWith
+import com.merxury.blocker.feature.search.impl.component.needsAccess
+import com.merxury.blocker.feature.search.impl.component.text
 import com.merxury.blocker.feature.search.impl.screen.SearchingScreen
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import com.merxury.blocker.core.ui.R.plurals as uiplurals
-import com.merxury.blocker.core.ui.R.string as uistring
+import com.merxury.blocker.core.ui.R.string as uiString
 
+/**
+ * Opens the detail screen of an app.
+ *
+ * @param userId the user whose copy to open; null for the user Blocker runs in
+ * @param keyword what the detail screen's component lists are filtered by; empty for none
+ */
+typealias OpenAppDetail = (packageName: String, userId: Int?, tab: AppDetailTabs, keyword: List<String>) -> Unit
+
+/** The search of the selected user's apps, components and the general rules. */
 @Composable
 fun SearchScreen(
     snackbarHostState: SnackbarHostState,
-    highlightSelectedItem: Boolean = false,
-    navigateToAppDetail: (String, String, List<String>) -> Unit = { _, _, _ -> },
-    navigateToRuleDetail: (String) -> Unit = { _ -> },
+    navigateToAppDetail: OpenAppDetail,
+    navigateToRuleDetail: (String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
-    val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
-    val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val selectUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-    val warningState by viewModel.warningState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    KeepFreshWhileStarted(viewModel::keepFresh)
+    // The text is kept here, so typing never waits for the results.
+    var query by rememberSaveable { mutableStateOf("") }
+    LaunchedEffect(query) { viewModel.search(query) }
+    SearchMessages(uiState, snackbarHostState, viewModel::onMessageShown, onGrantAccess = { viewModel.grantAccess() })
+    val actions = rememberSearchActions(viewModel, uiState, navigateToAppDetail, navigateToRuleDetail)
     SearchScreen(
-        tabState = tabState,
-        localSearchUiState = localSearchUiState,
-        switchTab = viewModel::switchTab,
-        onSearchTrigger = { keyword ->
-            viewModel.search(keyword)
-        },
-        onSearchQueryChange = { keyword ->
-            viewModel.search(keyword)
-        },
-        onSelectAll = viewModel::selectAll,
-        onDeselect = viewModel::deselectItem,
-        onBlockAll = {
-            handleBlockAllClick(context, viewModel, scope, snackbarHostState)
-        },
-        onEnableAll = {
-            handleEnableAppClick(context, viewModel, scope, snackbarHostState)
-        },
-        searchUiState = selectUiState,
-        highlightSelectedItem = highlightSelectedItem,
-        switchSelectedMode = viewModel::switchSelectedMode,
-        onSelect = viewModel::selectItem,
-        navigateToAppDetail = navigateToAppDetail,
-        onAppClick = viewModel::onAppClick,
-        onComponentClick = viewModel::onComponentClick,
-        navigateToRuleDetail = {
-            viewModel.onRuleClick(it)
-            navigateToRuleDetail(it)
-        },
-        onClearCacheClick = viewModel::clearCache,
-        onClearDataClick = viewModel::clearData,
-        onForceStopClick = viewModel::forceStop,
-        onUninstallClick = viewModel::uninstall,
-        onEnableClick = viewModel::enable,
-        onDisableClick = viewModel::disable,
+        uiState = uiState,
+        query = query,
+        onQueryChange = { query = it },
+        actions = actions,
+        onSelectUser = viewModel::selectUser,
+        onSelectAll = viewModel::toggleSelectAll,
+        onBlockSelection = viewModel::blockSelected,
+        onEnableSelection = viewModel::enableSelected,
     )
-    if (errorState != null) {
-        BlockerErrorAlertDialog(
-            title = errorState?.title.orEmpty(),
-            text = errorState?.content.orEmpty(),
-            onDismissRequest = viewModel::dismissAlert,
-        )
-    }
-    warningState?.let {
-        BlockerWarningAlertDialog(
-            title = it.title,
-            text = stringResource(id = it.message),
-            onDismissRequest = viewModel::dismissWarningDialog,
-            onConfirmRequest = it.onPositiveButtonClicked,
-        )
+}
+
+/** Runs [keepFresh] while the screen is at least started, so nothing is read in the background. */
+@Composable
+private fun KeepFreshWhileStarted(keepFresh: suspend () -> Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val current by rememberUpdatedState(keepFresh)
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { current() }
     }
 }
 
-private fun completedMessage(context: Context, failed: Int): String = if (failed > 0) {
-    context.resources.getQuantityString(uiplurals.core_ui_operation_completed_with_failures, failed, failed)
-} else {
-    context.getString(uistring.core_ui_operation_completed)
-}
-
-private fun handleEnableAppClick(
-    context: Context,
-    viewModel: SearchViewModel,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-) {
-    viewModel.controlAllSelectedComponents(true) { current, total, failed ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbar(
-                    message = completedMessage(context, failed),
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(
-                        uistring.core_ui_enabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
+/**
+ * Shows each message for its whole duration, then reports it shown, so each is told once. A message
+ * caused by missing access offers to grant it.
+ */
+@Composable
+private fun SearchMessages(uiState: SearchUiState, snackbarHostState: SnackbarHostState, onConsume: (Long) -> Unit, onGrantAccess: () -> Unit) {
+    val queued = uiState.messages.firstOrNull()
+    val text = queued?.message?.text()
+    val grantLabel = stringResource(uiString.core_ui_grant_access)
+    val currentGrant by rememberUpdatedState(onGrantAccess)
+    LaunchedEffect(queued?.id) {
+        if (queued != null && text != null) {
+            val actionLabel = grantLabel.takeIf { queued.message.needsAccess }
+            val result = snackbarHostState.showSnackbar(text, actionLabel = actionLabel, duration = SnackbarDuration.Long, withDismissAction = true)
+            if (result == SnackbarResult.ActionPerformed) currentGrant()
+            onConsume(queued.id)
         }
     }
 }
 
-private fun handleBlockAllClick(
-    context: Context,
+@Composable
+private fun rememberSearchActions(
     viewModel: SearchViewModel,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-) {
-    viewModel.controlAllSelectedComponents(false) { current, total, failed ->
-        scope.launch {
-            if (current == total) {
-                snackbarHostState.showSnackbar(
-                    message = completedMessage(context, failed),
-                    duration = Short,
-                    withDismissAction = true,
-                )
-            } else {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(
-                        uistring.core_ui_disabling_component_hint,
-                        current,
-                        total,
-                    ),
-                    duration = Short,
-                    withDismissAction = false,
-                )
-            }
-        }
+    uiState: SearchUiState,
+    navigateToAppDetail: OpenAppDetail,
+    navigateToRuleDetail: (String) -> Unit,
+): SearchActions {
+    val currentState by rememberUpdatedState(uiState)
+    val openApp by rememberUpdatedState(navigateToAppDetail)
+    val openRule by rememberUpdatedState(navigateToRuleDetail)
+    return remember(viewModel) {
+        // The user is left out of the navigation for the user Blocker runs in.
+        fun userIdOf(user: UserId): Int? = user.value.takeIf { user != currentState.ownUser }
+        fun keyword() = listOf(currentState.keyword)
+        SearchActions(
+            onSelectTab = viewModel::selectTab,
+            onOpenApp = { app -> openApp(app.key.packageName, userIdOf(app.key.userId), AppDetailTabs.Info, emptyList()) },
+            onAppAction = { app, action -> viewModel.perform(action, app) },
+            countServices = viewModel::countServices,
+            onOpenGroup = { group ->
+                val tab = group.firstType?.tab ?: AppDetailTabs.Info
+                openApp(group.app.packageName, userIdOf(group.app.userId), tab, keyword())
+            },
+            onSelectionModeChange = viewModel::setSelectionMode,
+            onToggleSelectedApp = viewModel::toggleSelectedApp,
+            onRefreshComponents = viewModel::refreshComponents,
+            onOpenRule = { id -> openRule(id) },
+        )
     }
 }
 
+private val ComponentType.tab: AppDetailTabs
+    get() = when (this) {
+        ComponentType.RECEIVER -> AppDetailTabs.Receiver
+        ComponentType.SERVICE -> AppDetailTabs.Service
+        ComponentType.ACTIVITY -> AppDetailTabs.Activity
+        ComponentType.PROVIDER -> AppDetailTabs.Provider
+    }
+
+/**
+ * The search for [uiState]: the search field, or the selection's actions in selection mode, the
+ * profile switcher when there is more than one user, and the results by tab. Actions on an app
+ * that need it are confirmed first, for exactly the app they were asked for. Opening a result
+ * hides the keyboard, which would otherwise stay open over the detail shown next to the search.
+ */
 @Composable
 fun SearchScreen(
-    tabState: TabState<SearchScreenTabs>,
-    localSearchUiState: LocalSearchUiState,
-    searchUiState: SearchUiState,
+    uiState: SearchUiState,
     modifier: Modifier = Modifier,
-    highlightSelectedItem: Boolean = false,
-    onAppClick: (String) -> Unit = { },
-    onComponentClick: (String) -> Unit = { },
-    switchTab: (SearchScreenTabs) -> Unit = {},
-    onSearchQueryChange: (String) -> Unit = {},
-    onSearchTrigger: (String) -> Unit = {},
+    query: String = uiState.keyword,
+    onQueryChange: (String) -> Unit = {},
+    actions: SearchActions = SearchActions(),
+    onSelectUser: (UserId) -> Unit = {},
     onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
-    switchSelectedMode: (Boolean) -> Unit = {},
-    onSelect: (FilteredComponent) -> Unit = {},
-    onDeselect: (FilteredComponent) -> Unit = {},
-    navigateToAppDetail: (String, String, List<String>) -> Unit = { _, _, _ -> },
-    navigateToRuleDetail: (String) -> Unit = { },
-    onClearCacheClick: (String) -> Unit = { },
-    onClearDataClick: (String) -> Unit = { },
-    onForceStopClick: (String) -> Unit = { },
-    onUninstallClick: (String) -> Unit = { },
-    onEnableClick: (String) -> Unit = { },
-    onDisableClick: (String) -> Unit = { },
+    onBlockSelection: () -> Unit = {},
+    onEnableSelection: () -> Unit = {},
 ) {
-    Column(modifier = modifier) {
-        Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
-        TopBar(
-            searchUiState = searchUiState,
-            onSearchQueryChange = onSearchQueryChange,
-            onSearchTrigger = onSearchTrigger,
-            onNavigationClick = { switchSelectedMode(false) },
-            onSelectAll = onSelectAll,
-            onBlockAll = onBlockAll,
-            onEnableAll = onEnableAll,
-            modifier = Modifier.testTag("blockerTopAppBar"),
-        )
-        when (localSearchUiState) {
-            is LocalSearchUiState.Idle -> EmptyScreen(textRes = string.feature_search_api_no_search_result)
-
-            is LocalSearchUiState.Loading -> SearchingScreen()
-
-            is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.uiMessage)
-
-            is LocalSearchUiState.Initializing ->
-                InitializingScreen(localSearchUiState.processingName)
-
-            is LocalSearchUiState.Success -> SearchResultScreen(
-                tabState = tabState,
-                highlightSelectedItem = highlightSelectedItem,
-                switchTab = switchTab,
-                localSearchUiState = localSearchUiState,
-                searchUiState = searchUiState,
-                switchSelectedMode = switchSelectedMode,
-                onSelect = onSelect,
-                onDeselect = onDeselect,
-                onAppClick = onAppClick,
-                onComponentClick = onComponentClick,
-                navigateToAppDetail = navigateToAppDetail,
-                navigateToRuleDetail = navigateToRuleDetail,
-                appList = localSearchUiState.appTabUiState.list,
-                onClearCacheClick = onClearCacheClick,
-                onClearDataClick = onClearDataClick,
-                onForceStopClick = onForceStopClick,
-                onUninstallClick = onUninstallClick,
-                onEnableClick = onEnableClick,
-                onDisableClick = onDisableClick,
-            )
-        }
-        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+    // Keeps the exact app, user included, across a configuration change or process death.
+    var confirming by rememberSaveable(stateSaver = PendingConfirmationSaver) { mutableStateOf<PendingConfirmation?>(null) }
+    LaunchedEffect(uiState.selectedUser) {
+        if (confirming?.app?.userId != uiState.selectedUser) confirming = null
     }
-
-    TrackScreenViewEvent(screenName = "SearchScreen")
-}
-
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun TopBar(
-    searchUiState: SearchUiState,
-    modifier: Modifier = Modifier,
-    onSearchQueryChange: (String) -> Unit = { _ -> },
-    onSearchTrigger: (String) -> Unit = { _ -> },
-    onNavigationClick: () -> Unit = {},
-    onSelectAll: () -> Unit = {},
-    onBlockAll: () -> Unit = {},
-    onEnableAll: () -> Unit = {},
-) {
-    val selected = searchUiState.isSelectedMode
-    val latestSelected by rememberUpdatedState(selected)
-    val state = remember { SeekableTransitionState(selected) }
-    val transition = rememberTransition(state, label = "topBar")
-    val scope = rememberCoroutineScope()
-    LaunchedEffect(selected) { state.animateTo(selected) }
-
-    PredictiveBackHandler(enabled = selected) { events ->
-        try {
-            events.collect { if (selected) state.seekTo(it.progress, false) }
-        } catch (cancelled: CancellationException) {
-            scope.launch { state.animateTo(latestSelected) }
-            throw cancelled
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    // Opening a result hides the keyboard, which would otherwise stay open over the detail.
+    val opening = remember(actions, keyboard, focusManager) {
+        actions.leavingWith {
+            keyboard?.hide()
+            focusManager.clearFocus()
         }
-        if (selected) onNavigationClick()
     }
-
-    transition.Crossfade(
-        animationSpec = tween(500),
-        modifier = modifier,
-    ) { targetState ->
-        if (targetState) {
-            SelectedAppTopBar(
-                title = R.plurals.feature_search_api_selected_app_count,
-                selectedItemCount = searchUiState.selectedAppList.size,
-                selectedComponentCount = searchUiState.selectedComponentList.size,
-                onNavigationClick = onNavigationClick,
+    val requestAction: (AppRow, AppAction) -> Unit = remember(actions) {
+        { app, action -> if (action.needsConfirmation) confirming = PendingConfirmation(action, app.key) else actions.onAppAction(app.key, action) }
+    }
+    Box(modifier = modifier.fillMaxSize()) {
+        Column {
+            Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
+            SearchTopBar(
+                uiState = uiState,
+                query = query,
+                onQueryChange = onQueryChange,
+                onExitSelection = { actions.onSelectionModeChange(false) },
                 onSelectAll = onSelectAll,
-                onBlockAllSelectedComponents = onBlockAll,
-                onEnableAllSelectedComponents = onEnableAll,
+                onBlockSelection = onBlockSelection,
+                onEnableSelection = onEnableSelection,
+                modifier = Modifier.testTag("blockerTopAppBar"),
             )
-        } else {
-            SearchBar(
-                searchQuery = searchUiState.keyword,
-                onSearchQueryChange = onSearchQueryChange,
-                onSearchTrigger = onSearchTrigger,
-            )
-        }
-    }
-}
-
-@Composable
-fun ComponentSearchResultContent(
-    searchUiState: SearchUiState,
-    componentTabUiState: ComponentTabUiState,
-    modifier: Modifier = Modifier,
-    highlightSelectedApp: Boolean = false,
-    switchSelectedMode: (Boolean) -> Unit = {},
-    onSelect: (FilteredComponent) -> Unit = {},
-    onDeselect: (FilteredComponent) -> Unit = {},
-    onComponentClick: (FilteredComponent) -> Unit = {},
-) {
-    if (componentTabUiState.list.isEmpty()) {
-        EmptyScreen(textRes = string.feature_search_api_no_search_result)
-        return
-    }
-    val listState = rememberLazyListState()
-    val scrollbarState = listState.scrollbarState(
-        itemsAvailable = componentTabUiState.list.size,
-    )
-    val analyticsHelper = LocalAnalyticsHelper.current
-    Box(modifier.fillMaxSize()) {
-        LazyColumn(
-            state = listState,
-        ) {
-            items(componentTabUiState.list, key = { it.app.packageName }) {
-                val isSelected =
-                    highlightSelectedApp && it.app.packageName == componentTabUiState.selectedPackageName
-                FilteredComponentItem(
-                    items = it,
-                    isSelectedMode = searchUiState.isSelectedMode,
-                    isSelected = isSelected,
-                    switchSelectedMode = switchSelectedMode,
-                    onSelect = onSelect,
-                    onDeselect = onDeselect,
-                    onComponentClick = { component ->
-                        onComponentClick(component)
-                        analyticsHelper.logComponentSearchResultClicked()
-                    },
-                    isSelectedInSelectedMode = searchUiState.selectedAppList.contains(it),
-                )
+            if (uiState.showProfileSwitcher && !uiState.isSelectionMode) {
+                ProfileSwitcher(profiles = uiState.profiles, selectedUser = uiState.selectedUser, onSelect = onSelectUser, modifier = Modifier.align(Alignment.CenterHorizontally))
             }
-            item {
-                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+            when (val results = uiState.results) {
+                SearchResults.Idle -> EmptyScreen(textRes = string.feature_search_api_no_search_result)
+                SearchResults.Loading -> SearchingScreen()
+                is SearchResults.Loaded -> SearchResultTabs(uiState = uiState, results = results, actions = opening, onAppAction = requestAction)
             }
+            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
-        listState.DraggableScrollbar(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 2.dp)
-                .align(Alignment.CenterEnd),
-            state = scrollbarState,
-            orientation = Vertical,
-            onThumbMove = listState.rememberDraggableScroller(
-                itemsAvailable = componentTabUiState.list.size,
-            ),
+        ProcessingProgressSnackbar(
+            progress = uiState.batch,
+            onDismiss = {},
+            modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
         )
     }
-}
-
-@Composable
-fun AppSearchResultContent(
-    appList: List<AppItem>,
-    onClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    highlightSelectedApp: Boolean = false,
-    selectedPackageName: String? = null,
-    onClearCacheClick: (String) -> Unit = { },
-    onClearDataClick: (String) -> Unit = { },
-    onForceStopClick: (String) -> Unit = { },
-    onUninstallClick: (String) -> Unit = { },
-    onEnableClick: (String) -> Unit = { },
-    onDisableClick: (String) -> Unit = { },
-) {
-    if (appList.isEmpty()) {
-        EmptyScreen(textRes = string.feature_search_api_no_search_result)
-        return
+    confirming?.let { pending ->
+        val app = (uiState.results as? SearchResults.Loaded)?.apps?.find { it.key == pending.app } ?: return@let
+        AppActionConfirmDialog(
+            action = pending.action,
+            appLabel = app.label,
+            profile = uiState.selectedProfile.takeIf { uiState.showProfileSwitcher },
+            onConfirm = { actions.onAppAction(pending.app, pending.action) },
+            onDismissRequest = { confirming = null },
+        )
     }
-    val analyticsHelper = LocalAnalyticsHelper.current
-    AppList(
-        appList = appList,
-        highlightSelectedApp = highlightSelectedApp,
-        selectedPackageName = selectedPackageName,
-        onAppItemClick = { packageName ->
-            onClick(packageName)
-            analyticsHelper.logAppSearchResultClicked()
-        },
-        onClearCacheClick = onClearCacheClick,
-        onClearDataClick = onClearDataClick,
-        onForceStopClick = onForceStopClick,
-        onUninstallClick = onUninstallClick,
-        onEnableClick = onEnableClick,
-        onDisableClick = onDisableClick,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun RuleSearchResultContent(
-    matchedRules: List<GeneralRule>,
-    unmatchedRules: List<GeneralRule>,
-    modifier: Modifier = Modifier,
-    highlightSelectedRule: Boolean = false,
-    selectedRuleId: String? = null,
-    onClick: (String) -> Unit = { _ -> },
-) {
-    if (matchedRules.isEmpty()) {
-        EmptyScreen(textRes = string.feature_search_api_no_search_result)
-        return
-    }
-    val analyticsHelper = LocalAnalyticsHelper.current
-    GeneralRulesList(
-        modifier = modifier.fillMaxSize(),
-        highlightSelectedRule = highlightSelectedRule,
-        selectedRuleId = selectedRuleId,
-        matchedRules = matchedRules,
-        unmatchedRules = unmatchedRules,
-        onClick = { id ->
-            onClick(id)
-            analyticsHelper.logRuleSearchResultClicked(id)
-        },
-    )
-}
-
-@Composable
-@PreviewThemes
-private fun SearchScreenSelectedAppPreview() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-    val appList = AppListPreviewParameterProvider().values.first()
-    val keyword = "blocker"
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Success(
-                    searchKeyword = listOf(keyword),
-                    appTabUiState = AppTabUiState(
-                        list = appList,
-                    ),
-                ),
-                tabState = tabState[0],
-                searchUiState = SearchUiState(
-                    keyword = keyword,
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-@PreviewDevices
-private fun SearchScreenSelectedComponentPreview() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-    val appList = AppListPreviewParameterProvider().values.first()
-    val components = ComponentListPreviewParameterProvider().values.first()
-    val keyword = "blocker"
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Success(
-                    searchKeyword = listOf(keyword),
-                    componentTabUiState = ComponentTabUiState(
-                        list = listOf(
-                            FilteredComponent(
-                                app = appList[0],
-                                activity = components.filter { it.type == ACTIVITY },
-                                receiver = components.filter { it.type == RECEIVER },
-                            ),
-                        ),
-                    ),
-                ),
-                tabState = tabState[1],
-                searchUiState = SearchUiState(
-                    keyword = keyword,
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-@PreviewThemes
-private fun SearchScreenSelectedRule() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-    val ruleList = RuleListPreviewParameterProvider().values.first()
-    val keyword = "blocker"
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Success(
-                    searchKeyword = listOf(keyword),
-                    ruleTabUiState = RuleTabUiState(
-                        matchedRules = ruleList,
-                    ),
-                ),
-                tabState = tabState[2],
-                searchUiState = SearchUiState(
-                    keyword = keyword,
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-@PreviewThemes
-@PreviewDevices
-private fun SearchScreenSelectedModePreview() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-    val appList = AppListPreviewParameterProvider().values.first()
-    val components = ComponentListPreviewParameterProvider().values.first()
-    val keyword = "blocker"
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Success(
-                    searchKeyword = listOf(keyword),
-                    componentTabUiState = ComponentTabUiState(
-                        list = listOf(
-                            FilteredComponent(
-                                app = appList[0],
-                                activity = components.filter { it.type == ACTIVITY },
-                                receiver = components.filter { it.type == RECEIVER },
-                            ),
-                        ),
-                    ),
-                ),
-                tabState = tabState[1],
-                searchUiState = SearchUiState(
-                    keyword = keyword,
-                    isSelectedMode = true,
-                    selectedComponentList = listOf(
-                        components[0],
-                        components[1],
-                    ),
-                    selectedAppList = listOf(
-                        FilteredComponent(
-                            app = appList[0],
-                            activity = components.filter { it.type == ACTIVITY },
-                            receiver = components.filter { it.type == RECEIVER },
-                        ),
-                    ),
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun SearchScreenEmptyPreview() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Idle,
-                tabState = tabState[0],
-                searchUiState = SearchUiState(),
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun SearchScreenNoResultPreview() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-    val keyword = "blocker"
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Success(
-                    searchKeyword = listOf(keyword),
-                    appTabUiState = AppTabUiState(
-                        list = emptyList(),
-                    ),
-                ),
-                tabState = tabState[3],
-                searchUiState = SearchUiState(
-                    keyword = keyword,
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun SearchScreenInitializingPreview() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Initializing("Blocker"),
-                tabState = tabState[0],
-                searchUiState = SearchUiState(),
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun SearchScreenLoadingPreview() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Loading,
-                tabState = tabState[0],
-                searchUiState = SearchUiState(),
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun SearchScreenErrorPreview() {
-    val tabState = SearchTabStatePreviewParameterProvider().values.first()
-
-    BlockerTheme {
-        Surface {
-            SearchScreen(
-                localSearchUiState = LocalSearchUiState.Error(uiMessage = UiMessage("Error")),
-                tabState = tabState[0],
-                searchUiState = SearchUiState(),
-            )
-        }
-    }
+    TrackScreenViewEvent(screenName = "SearchScreen")
 }

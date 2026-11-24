@@ -60,6 +60,9 @@ import kotlin.time.Instant
 
 internal const val PKG = "com.example"
 internal const val OTHER_PKG = "com.example.other"
+
+/** The package the repositories are told Blocker has. */
+internal const val SELF_PKG = "com.merxury.blocker.test"
 internal val OWNER = UserId(0)
 internal val WORK = UserId(10)
 
@@ -122,7 +125,7 @@ abstract class DeviceRepositoryTestBase {
     internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks)
 
     /** Starts collecting the rule store's changes in [scope], as the app scope would. */
-    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel), componentControl, pmBlocks, seeder, channel, store, scope)
+    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel), componentControl, pmBlocks, seeder, channel, store, scope, AppKey(SELF_PKG, OWNER))
 
     @After
     fun closeDatabase() {

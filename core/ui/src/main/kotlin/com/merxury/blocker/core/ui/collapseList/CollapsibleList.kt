@@ -108,7 +108,9 @@ fun CollapsibleList(
                     ) {
                         ComponentListItem(
                             modifier = Modifier.animateItem(),
-                            item = it,
+                            simpleName = it.simpleName,
+                            name = it.name,
+                            description = it.description,
                             enabled = it.enabled(),
                             type = it.type,
                             isServiceRunning = it.isRunning,
@@ -126,7 +128,7 @@ fun CollapsibleList(
                             },
                             onCopyNameClick = { onCopyNameClick(it.simpleName) },
                             onCopyFullNameClick = { onCopyFullNameClick(it.name) },
-                            onSwitchClick = onSwitch,
+                            onSwitchClick = { enabled -> onSwitch(it, enabled) },
                         )
                         // Add horizontal divider after last item
                         if (ruleMatchedApp.componentList.last() == it) {

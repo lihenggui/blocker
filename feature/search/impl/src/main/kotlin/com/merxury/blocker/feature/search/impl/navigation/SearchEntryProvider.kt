@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.search.impl.navigation
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
@@ -26,27 +25,24 @@ import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetail
 import com.merxury.blocker.feature.search.api.navigation.SearchNavKey
+import com.merxury.blocker.feature.search.impl.OpenAppDetail
 import com.merxury.blocker.feature.search.impl.SearchScreen
-import com.merxury.blocker.feature.search.impl.SearchViewModel
 
+/** The search, as the list pane; the app and rule details it opens show next to it where there is room. */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.searchEntry(navigator: Navigator) {
     entry<SearchNavKey>(
         metadata = ListDetailSceneStrategy.listPane(),
-    ) { key ->
-        val packageName = key.packageName
-        val ruleId = key.ruleId
-        val viewModelKey = "search_${ruleId ?: "none"}_${key.searchKeyword}"
-        val snackbarHostState = LocalSnackbarHostState.current
+    ) {
         SearchScreen(
-            snackbarHostState = snackbarHostState,
-            navigateToAppDetail = navigator::navigateToAppDetail,
+            snackbarHostState = LocalSnackbarHostState.current,
+            navigateToAppDetail = navigator.openAppDetail(),
             navigateToRuleDetail = navigator::navigateToRuleDetail,
-            viewModel = hiltViewModel<SearchViewModel, SearchViewModel.Factory>(
-                key = viewModelKey,
-            ) { factory ->
-                factory.create(packageName, ruleId)
-            },
         )
     }
+}
+
+/** Opens the detail screen of an app on a tab, with the components filtered by the keyword. */
+internal fun Navigator.openAppDetail(): OpenAppDetail = { packageName, userId, tab, keyword ->
+    navigateToAppDetail(packageName, tab = tab.name, searchKeyword = keyword, userId = userId)
 }

@@ -72,7 +72,7 @@ class BlockerAppStateTest {
         subStacks = mapOf(
             AppListNavKey to NavBackStack(AppListNavKey),
             GeneralRuleNavKey() to NavBackStack(GeneralRuleNavKey()),
-            SearchNavKey() to NavBackStack(SearchNavKey()),
+            SearchNavKey to NavBackStack(SearchNavKey),
         ),
     )
 
@@ -121,7 +121,7 @@ class BlockerAppStateTest {
             setOf(
                 AppListNavKey,
                 GeneralRuleNavKey(),
-                SearchNavKey(),
+                SearchNavKey,
             ),
             navigationState.topLevelKeys,
         )

@@ -47,6 +47,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.TopBarActions
@@ -95,6 +96,7 @@ class AppDetailScreenStateTest {
                 snackbarHostState = snackbar,
                 onListMessageConsume = {},
                 onControlMessageConsume = {},
+                onGrantAccess = {},
                 onRuleWorkConsume = {
                     consumed++
                     header = header.copy(ruleWork = null)
@@ -124,6 +126,7 @@ class AppDetailScreenStateTest {
                 snackbarHostState = snackbar,
                 onListMessageConsume = {},
                 onControlMessageConsume = {},
+                onGrantAccess = {},
                 onRuleWorkConsume = {},
                 onShareConsume = {
                     consumed++
@@ -138,14 +141,10 @@ class AppDetailScreenStateTest {
 
     @Test
     fun givenTwoEqualControlMessages_whenTold_thenBothAreShownAndLaterOnesToo() {
-        val failure = ControlMessage.ComponentNotChanged(
-            name = "AdActivity",
-            goal = ControlGoal.BLOCK,
-            partial = false,
-            failures = listOf(LayerFailure(ControlLayer.PACKAGE_MANAGER, ControlFailure.ChannelUnavailable)),
-        )
+        val failure = ControlMessage.ComponentNotChanged(name = "AdActivity", goal = ControlGoal.BLOCK, needsAccess = true)
         var control by mutableStateOf(ControlUiState(messages = listOf(QueuedControlMessage(0, failure), QueuedControlMessage(1, failure))))
         val consumed = mutableListOf<Long>()
+        var granted = 0
         composeTestRule.setContent {
             ScreenMessages(
                 header = AppHeaderUiState(),
@@ -157,23 +156,27 @@ class AppDetailScreenStateTest {
                     consumed += id
                     control = control.copy(messages = control.messages.filterNot { it.id == id })
                 },
+                onGrantAccess = { granted++ },
                 onRuleWorkConsume = {},
                 onShareConsume = {},
             )
         }
-        val failureText = text(string.feature_appdetail_api_block_failed, "AdActivity") + "\n" +
-            text(string.feature_appdetail_api_layer_reason, "Package Manager", text(string.feature_appdetail_api_reason_no_access))
+        val failureText = text(uiString.core_ui_block_component_failed, "AdActivity") + "\n" + text(uiString.core_ui_reason_no_access)
 
         assertThat(shownMessage()).isEqualTo(failureText)
-        dismiss()
+        assertThat(snackbar.currentSnackbarData?.visuals?.actionLabel).isEqualTo(text(uiString.core_ui_grant_access))
+        composeTestRule.runOnIdle { snackbar.currentSnackbarData?.performAction() }
+        composeTestRule.waitForIdle()
+        assertThat(granted).isEqualTo(1)
         assertThat(consumed).containsExactly(0L)
         assertThat(shownMessage()).isEqualTo(failureText)
         dismiss()
         assertThat(consumed).containsExactly(0L, 1L).inOrder()
 
-        val summary = ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 0, notChanged = 0, mostCommon = null)
+        val summary = ControlMessage.BatchDone(notChanged = 0)
         composeTestRule.runOnIdle { control = control.copy(messages = listOf(QueuedControlMessage(2, summary))) }
-        assertThat(shownMessage()).isEqualTo(text(string.feature_appdetail_api_batch_nothing_needed))
+        assertThat(shownMessage()).isEqualTo(text(uiString.core_ui_operation_completed))
+        assertThat(snackbar.currentSnackbarData?.visuals?.actionLabel).isNull()
     }
 
     @Test
@@ -249,7 +252,7 @@ class AppDetailScreenStateTest {
             }
         }
 
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).performClick()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).performClick()
 
         assertThat(granted).isEqualTo(1)
     }
@@ -259,7 +262,7 @@ class AppDetailScreenStateTest {
         showContent(header = AppHeaderUiState(), list = componentTab().copy(accessCheckFailed = true))
 
         composeTestRule.onNodeWithText(text(string.feature_appdetail_api_access_not_checked)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).assertIsDisplayed()
     }
 
     @Test
@@ -276,7 +279,7 @@ class AppDetailScreenStateTest {
     fun givenAppNotInstalled_whenShown_thenNoAccessIsOffered() {
         showContent(header = AppHeaderUiState(), list = componentTab().copy(refreshFailure = ReadFailure.PackageNotFound(WORK_APP)))
 
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).assertDoesNotExist()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).assertDoesNotExist()
     }
 
     @Test

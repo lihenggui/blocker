@@ -31,8 +31,10 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.system.AppAction
+import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.profile.ProfileLabel
-import com.merxury.blocker.feature.applist.impl.component.previewAppRows
+import com.merxury.blocker.core.ui.profile.ProfileTab
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.Test
@@ -103,8 +105,8 @@ class AppListScreenTest {
     fun givenTwoProfiles_whenWorkTapped_thenWorkSelectedAndStoppedMarked() {
         show(AppListUiState(OWNER, OWNER, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(OWNER))))
 
-        composeTestRule.onNodeWithText(text(string.feature_applist_api_profile_not_running)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(string.feature_applist_api_profile_work)).performClick()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_profile_not_running)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_profile_work)).performClick()
 
         assertThat(selected).containsExactly(WORK)
     }
@@ -131,7 +133,7 @@ class AppListScreenTest {
     fun givenSingleUser_whenShown_thenNoSwitcher() {
         show(AppListUiState(OWNER, OWNER, profiles = profiles.take(1), apps = AppsUiState.Loaded(previewAppRows(OWNER))))
 
-        composeTestRule.onNodeWithTag("appList:profileSwitcher").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("profileSwitcher").assertDoesNotExist()
     }
 
     @Test
@@ -142,18 +144,18 @@ class AppListScreenTest {
         composeTestRule.onNodeWithText(text(uiString.core_ui_uninstall)).performClick()
 
         assertThat(actions).isEmpty()
-        composeTestRule.onNodeWithText(text(string.feature_applist_api_uninstall_for_profile_confirm, "Work")).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_uninstall_for_profile_confirm, "Work")).assertIsDisplayed()
         composeTestRule.onNodeWithText(text(android.R.string.ok)).performClick()
         assertThat(actions).containsExactly(AppKey("com.test.blocker", WORK) to AppAction.UNINSTALL)
     }
 
     @Test
-    fun givenApp_whenClearDataChosen_thenWarnsThatEveryUserStops() {
+    fun givenApp_whenClearDataChosen_thenAsked() {
         show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
         composeTestRule.onNodeWithText("Blocker Test").performTouchInput { longClick() }
 
         composeTestRule.onNodeWithText(text(uiString.core_ui_clear_data)).performClick()
 
-        composeTestRule.onNodeWithText(text(string.feature_applist_api_clear_data_confirm)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_do_you_want_to_clear_data_of_this_app)).assertIsDisplayed()
     }
 }

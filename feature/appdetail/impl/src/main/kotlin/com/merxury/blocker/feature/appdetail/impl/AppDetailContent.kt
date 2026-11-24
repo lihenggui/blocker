@@ -74,6 +74,7 @@ import com.merxury.blocker.feature.appdetail.impl.ui.text
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
+import com.merxury.blocker.core.ui.R.string as uiString
 
 /** What the app info tab and the matched rules can ask for, apart from the rows. */
 class AppDetailActions(
@@ -122,7 +123,7 @@ internal fun AppDetailContent(
                     toolbarState = toolbarState,
                     actions = topBarActions,
                     showBackButton = showBackButton,
-                    batchRunning = control.batch != null,
+                    batchRunning = !control.batchActionsEnabled,
                 )
             },
             modifier = Modifier.nestedScroll(nestedScrollConnection),
@@ -142,7 +143,7 @@ internal fun AppDetailContent(
                     header = header,
                     list = list,
                     inFlight = control.inFlight,
-                    batchRunning = control.batch != null,
+                    batchRunning = !control.batchActionsEnabled,
                     rowActions = rowActions,
                     actions = actions,
                     modifier = contentModifier,
@@ -164,8 +165,8 @@ internal fun AppDetailContent(
 
 /**
  * What shows while the app is not cached: loading, or why it could not be read. Where access to
- * root or Shizuku would let it be read, access can be granted from here, as the tabs' banner
- * offers, since without the app there are no tabs.
+ * root or Shizuku would let it be read, access can be granted from here, since without the app
+ * there is nothing to act on.
  */
 @Composable
 private fun AppNotShown(list: ComponentListUiState, onGrantAccess: () -> Unit, modifier: Modifier = Modifier) {
@@ -184,7 +185,7 @@ private fun AppNotShown(list: ComponentListUiState, onGrantAccess: () -> Unit, m
         ErrorScreen(error = UiMessage(text), modifier = Modifier.weight(1f))
         if (accessWouldHelp) {
             BlockerButton(onClick = onGrantAccess, modifier = Modifier.padding(bottom = 32.dp)) {
-                Text(text = stringResource(string.feature_appdetail_api_grant_access))
+                Text(text = stringResource(uiString.core_ui_grant_access))
             }
         }
     }
@@ -241,12 +242,10 @@ private fun AppDetailTabs(
                     data = list.matchedRules,
                     inFlight = inFlight,
                     batchRunning = batchRunning,
-                    banners = list.banners,
                     actions = rowActions,
                     navigateToRuleDetail = actions.navigateToRuleDetail,
                     onBlockAll = actions.onBlockAllInRule,
                     onEnableAll = actions.onEnableAllInRule,
-                    onGrantAccess = actions.onGrantAccess,
                 )
 
                 else -> when (val components = list.components) {
@@ -255,13 +254,11 @@ private fun AppDetailTabs(
                     is ComponentsUiState.Loaded -> ComponentTabContent(
                         rows = components.components.of(tab),
                         inFlight = inFlight,
-                        banners = list.banners,
                         isRefreshing = list.isRefreshing,
                         actions = rowActions,
                         isSelectionMode = list.isSelectionMode,
                         selected = list.selected,
                         onRefresh = actions.onRefresh,
-                        onGrantAccess = actions.onGrantAccess,
                     )
                 }
             }

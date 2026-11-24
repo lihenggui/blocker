@@ -48,5 +48,4 @@
     <string name="feature_search_api_search_hint">Приложения, компоненты и правила</string>
     <string name="feature_search_api_no_search_result">Ничего не найдено</string>
     <string name="feature_search_api_check_icon">Проверка</string>
-    <string name="feature_search_api_select_an_app_or_a_rule">Выберите приложение или правило</string>
 </resources>

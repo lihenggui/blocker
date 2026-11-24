@@ -22,7 +22,10 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.system.AppAction
+import com.merxury.blocker.core.model.system.AppActionFailure
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.core.ui.applist.AppActionFailed
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -53,7 +56,7 @@ class AppListActionsTest {
         viewModel.selectUser(WORK)
     }
 
-    private fun failure(): AppListMessage.ActionFailed? = viewModel.uiState.value.message as AppListMessage.ActionFailed?
+    private fun failure(): AppActionFailed? = viewModel.uiState.value.message as AppActionFailed?
 
     @Test
     fun givenEnabledApp_whenDisabled_thenCachedAppShowsDisabledForItsUser() = runTest {
@@ -127,7 +130,7 @@ class AppListActionsTest {
 
         viewModel.forceStop(workApp)
 
-        assertThat(failure()).isEqualTo(AppListMessage.ActionFailed(AppAction.FORCE_STOP, "A", FailureReason.NoAccess))
+        assertThat(failure()).isEqualTo(AppActionFailed(AppAction.FORCE_STOP, "A", AppActionFailure.NoAccess))
     }
 
     @Test
@@ -138,7 +141,7 @@ class AppListActionsTest {
 
         viewModel.clearCache(workApp)
 
-        assertThat(failure()).isEqualTo(AppListMessage.ActionFailed(AppAction.CLEAR_CACHE, "A", FailureReason.NeedsRoot))
+        assertThat(failure()).isEqualTo(AppActionFailed(AppAction.CLEAR_CACHE, "A", AppActionFailure.NeedsRoot))
     }
 
     @Test
@@ -148,7 +151,7 @@ class AppListActionsTest {
 
         viewModel.clearData(workApp)
 
-        assertThat(failure()).isEqualTo(AppListMessage.ActionFailed(AppAction.CLEAR_DATA, "A", FailureReason.NotPermitted))
+        assertThat(failure()).isEqualTo(AppActionFailed(AppAction.CLEAR_DATA, "A", AppActionFailure.NotPermitted))
     }
 
     @Test
@@ -158,7 +161,7 @@ class AppListActionsTest {
 
         viewModel.uninstall(workApp)
 
-        assertThat(failure()).isEqualTo(AppListMessage.ActionFailed(AppAction.UNINSTALL, "A", FailureReason.NotFound))
+        assertThat(failure()).isEqualTo(AppActionFailed(AppAction.UNINSTALL, "A", AppActionFailure.NotFound))
     }
 
     @Test
@@ -168,7 +171,7 @@ class AppListActionsTest {
 
         viewModel.setEnabled(workApp, enabled = false)
 
-        assertThat(failure()).isEqualTo(AppListMessage.ActionFailed(AppAction.DISABLE, "A", FailureReason.SystemError("Binder died")))
+        assertThat(failure()).isEqualTo(AppActionFailed(AppAction.DISABLE, "A", AppActionFailure.SystemError("Binder died")))
     }
 
     @Test

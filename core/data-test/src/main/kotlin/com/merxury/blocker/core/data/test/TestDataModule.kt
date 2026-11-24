@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.data.test
 
-import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
@@ -97,11 +96,6 @@ internal interface TestDataModule {
     fun bindsAppRepository(
         appRepository: FakeAppRepository,
     ): AppRepository
-
-    @Binds
-    fun bindsAppStateCache(
-        appStateCache: TestAppStateCache,
-    ): IAppStateCache
 
     @Binds
     fun bindsTimeZoneMonitor(impl: DefaultZoneIdTimeZoneMonitor): TimeZoneMonitor

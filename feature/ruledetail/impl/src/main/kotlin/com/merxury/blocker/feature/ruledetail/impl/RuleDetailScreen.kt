@@ -88,8 +88,8 @@ import com.merxury.blocker.core.result.Result.Success
 import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
+import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
@@ -528,7 +528,7 @@ private fun RuleDetailScreenPreview(
     ruleList: List<GeneralRule>,
 ) {
     val components = ComponentListPreviewParameterProvider().values.first()
-    val appList = AppListPreviewParameterProvider().values.first()
+    val appList = previewAppRows()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
     BlockerTheme {
@@ -542,7 +542,7 @@ private fun RuleDetailScreenPreview(
                             MatchedItem(
                                 header = MatchedHeaderData(
                                     title = appList.first().label,
-                                    uniqueId = appList.first().packageName,
+                                    uniqueId = appList.first().key.packageName,
                                 ),
                                 componentList = components,
                             ),
@@ -568,7 +568,7 @@ private fun RuleDetailScreenSelectedDescriptionPreview(
     ruleList: List<GeneralRule>,
 ) {
     val components = ComponentListPreviewParameterProvider().values.first()
-    val appList = AppListPreviewParameterProvider().values.first()
+    val appList = previewAppRows()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
     BlockerTheme {
@@ -581,7 +581,7 @@ private fun RuleDetailScreenSelectedDescriptionPreview(
                             MatchedItem(
                                 header = MatchedHeaderData(
                                     title = appList.first().label,
-                                    uniqueId = appList.first().packageName,
+                                    uniqueId = appList.first().key.packageName,
                                 ),
                                 componentList = components,
                             ),

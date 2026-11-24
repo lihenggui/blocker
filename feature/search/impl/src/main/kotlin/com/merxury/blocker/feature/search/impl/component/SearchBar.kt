@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -35,6 +36,8 @@ fun SearchBar(
     onSearchQueryChange: (String) -> Unit = {},
     onSearchTrigger: (String) -> Unit = {},
 ) {
+    // Shown again with a keyword, as after selection mode or a detail screen, the keyboard stays closed.
+    val focusOnStart = remember { searchQuery.isEmpty() }
     BlockerTopAppBar(
         title = stringResource(id = R.string.feature_search_api_searching),
         actions = {
@@ -50,6 +53,7 @@ fun SearchBar(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 onSearchQueryChange = onSearchQueryChange,
                 onSearchTrigger = onSearchTrigger,
+                focusOnStart = focusOnStart,
                 modifier = modifier.fillMaxWidth(),
             )
         },

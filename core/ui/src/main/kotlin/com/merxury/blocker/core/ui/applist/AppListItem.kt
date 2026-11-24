@@ -52,7 +52,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -66,9 +65,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.component.ServiceCounts
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -83,7 +81,6 @@ fun AppListItem(
     iconModifier: Modifier = Modifier,
     icon: Any? = null,
     serviceCounts: ServiceCounts? = null,
-    showForceStop: Boolean = isAppRunning,
     onClick: (String) -> Unit = {},
     onClearCacheClick: (String) -> Unit = {},
     onClearDataClick: (String) -> Unit = {},
@@ -143,7 +140,7 @@ fun AppListItem(
         AppListItemMenuList(
             expanded = expanded,
             offset = offset,
-            isAppRunning = showForceStop,
+            isAppRunning = isAppRunning,
             isAppEnabled = isAppEnabled,
             onClearCacheClick = { onClearCacheClick(packageName) },
             onClearDataClick = { onClearDataClick(packageName) },
@@ -244,67 +241,44 @@ private fun AppContent(
 
 @Composable
 @PreviewThemes
-private fun AppListItemPreview(
-    @PreviewParameter(AppListPreviewParameterProvider::class)
-    appList: List<AppItem>,
-) {
+private fun AppListItemPreview() {
     BlockerTheme {
         Surface {
-            AppListItem(
-                label = appList[0].label,
-                packageName = appList[0].packageName,
-                versionName = appList[0].versionName,
-                versionCode = appList[0].versionCode,
-                isAppEnabled = appList[0].isEnabled,
-                isAppRunning = appList[0].isRunning,
-                icon = appList[0].packageInfo,
-                serviceCounts = appList[0].appServiceStatus?.toServiceCounts(),
-            )
+            PreviewAppListItem(previewAppRows()[0])
         }
     }
 }
 
 @Composable
 @Preview
-private fun AppListItemWithoutServiceInfoPreview(
-    @PreviewParameter(AppListPreviewParameterProvider::class)
-    appList: List<AppItem>,
-) {
+private fun AppListItemWithoutServiceInfoPreview() {
     BlockerTheme {
         Surface {
-            AppListItem(
-                label = appList[1].label,
-                packageName = appList[1].packageName,
-                versionName = appList[1].versionName,
-                versionCode = appList[1].versionCode,
-                isAppEnabled = appList[1].isEnabled,
-                isAppRunning = appList[1].isRunning,
-                icon = appList[1].packageInfo,
-                serviceCounts = appList[1].appServiceStatus?.toServiceCounts(),
-            )
+            PreviewAppListItem(previewAppRows()[1])
         }
     }
 }
 
 @Composable
 @Preview
-private fun AppListItemWithLongAppName(
-    @PreviewParameter(AppListPreviewParameterProvider::class)
-    appList: List<AppItem>,
-) {
+private fun AppListItemWithLongAppName() {
     BlockerTheme {
         Surface {
-            AppListItem(
-                label = appList[2].label,
-                packageName = appList[2].packageName,
-                versionName = appList[2].versionName,
-                versionCode = appList[2].versionCode,
-                isAppEnabled = appList[2].isEnabled,
-                isAppRunning = appList[2].isRunning,
-                icon = appList[2].packageInfo,
-                serviceCounts = appList[2].appServiceStatus?.toServiceCounts(),
-                isSelected = true,
-            )
+            PreviewAppListItem(previewAppRows()[2], isSelected = true)
         }
     }
+}
+
+@Composable
+private fun PreviewAppListItem(row: AppRow, isSelected: Boolean = false) {
+    AppListItem(
+        label = row.label,
+        packageName = row.key.packageName,
+        versionName = row.versionName,
+        versionCode = row.versionCode,
+        isAppEnabled = !row.isDisabled,
+        isAppRunning = row.isRunning == true,
+        serviceCounts = row.services,
+        isSelected = isSelected,
+    )
 }

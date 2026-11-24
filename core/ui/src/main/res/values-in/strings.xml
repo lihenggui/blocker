@@ -29,7 +29,6 @@
     <string name="core_ui_provider_with_count">Provider (%1$d)</string>
     <string name="core_ui_running">Beroperasi</string>
     <string name="core_ui_rule_icon_description">Ikon aturan</string>
-    <string name="core_ui_initializing_database">Inisialisasi basis data</string>
     <string name="core_ui_more_menu">Menu tambahan</string>
     <string name="core_ui_search_icon">Cari</string>
     <string name="core_ui_block_all_components">Blokir semua komponen</string>
@@ -61,7 +60,6 @@
     <plurals name="core_ui_operation_completed_with_failures">
         <item quantity="other">Operasi selesai. %1$d komponen tidak dapat diubah</item>
     </plurals>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Hapus data apl ini?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Hapus apl?</string>
     <string name="core_ui_not_found">Tidak ditemukan</string>
     <string name="core_ui_found">Ditemukan</string>
@@ -134,4 +132,22 @@
     <string name="core_ui_ifw_sender_signature">Tanda tangan</string>
     <string name="core_ui_ifw_sender_system_or_signature">Sistem atau tanda tangan</string>
     <string name="core_ui_ifw_sender_user_id">ID pengguna yang sama</string>
+    <string name="core_ui_profile_personal">Pribadi</string>
+    <string name="core_ui_profile_work">Kerja</string>
+    <string name="core_ui_profile_user">Pengguna %1$d</string>
+    <string name="core_ui_profile_not_running">Tidak berjalan</string>
+    <string name="core_ui_uninstall_for_profile_confirm">Copot pemasangan aplikasi ini dari %1$s? Pengguna dan profil lain yang memiliki aplikasi ini tetap menyimpannya. Aplikasi baru keluar dari perangkat saat tidak ada pengguna yang memilikinya.</string>
+    <string name="core_ui_enable_app_failed">Tidak dapat mengaktifkan %1$s</string>
+    <string name="core_ui_disable_app_failed">Tidak dapat menonaktifkan %1$s</string>
+    <string name="core_ui_force_stop_app_failed">Tidak dapat menghentikan paksa %1$s</string>
+    <string name="core_ui_clear_cache_failed">Tidak dapat menghapus cache %1$s</string>
+    <string name="core_ui_clear_data_failed">Tidak dapat menghapus data %1$s</string>
+    <string name="core_ui_uninstall_app_failed">Tidak dapat mencopot pemasangan %1$s</string>
+    <string name="core_ui_reason_no_access">Berikan akses root atau Shizuku ke Blocker, lalu coba lagi.</string>
+    <string name="core_ui_unknown">Tidakk tahu</string>
+    <string name="core_ui_grant_access">Berikan akses</string>
+    <string name="core_ui_block_component_failed">Tidak dapat memblokir %1$s</string>
+    <string name="core_ui_enable_component_failed">Tidak dapat mengaktifkan %1$s</string>
+    <string name="core_ui_grant_failed">Blocker masih belum memiliki akses root atau Shizuku.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Hapus data apl ini?</string>
 </resources>

@@ -33,5 +33,4 @@
 <string name="feature_search_api_search_hint">Bạn có thể tìm ứng dụng, tiến trình và luật</string>
     <string name="feature_search_api_no_search_result">Không có kết quả</string>
     <string name="feature_search_api_check_icon">Kiểm tra</string>
-    <string name="feature_search_api_select_an_app_or_a_rule">Chọn một ứng dụng hoặc luật</string>
 </resources>

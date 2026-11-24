@@ -42,7 +42,6 @@
     <string name="core_ui_service_with_count">Service (%1$d)</string>
     <string name="core_ui_receiver_with_count">Récepteur (%1$d)</string>
     <string name="core_ui_provider_with_count">Fournisseur (%1$d)</string>
-    <string name="core_ui_initializing_database">Initialisation de la base de données</string>
     <string name="core_ui_more_menu">Menu supplémentaire</string>
     <string name="core_ui_search_icon">Rechercher</string>
     <string name="core_ui_block_all_components">Bloquer tous les composants</string>
@@ -83,7 +82,6 @@
         <item quantity="other">Opération terminée. %1$d composants n\'ont pas pu être modifiés</item>
     </plurals>
     <string name="core_ui_application_with_count">Application (%1$d)</string>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Voulez-vous désinstaller cette application ?</string>
     <string name="core_ui_found">Correspondance</string>
     <string name="core_ui_not_found">Pas de correspondance</string>
@@ -156,4 +154,22 @@
     <string name="core_ui_ifw_sender_signature">Signature</string>
     <string name="core_ui_ifw_sender_system_or_signature">Système ou signature</string>
     <string name="core_ui_ifw_sender_user_id">Même ID utilisateur</string>
+    <string name="core_ui_profile_personal">Personnel</string>
+    <string name="core_ui_profile_work">Professionnel</string>
+    <string name="core_ui_profile_user">Utilisateur %1$d</string>
+    <string name="core_ui_profile_not_running">Arrêté</string>
+    <string name="core_ui_uninstall_for_profile_confirm">Voulez-vous désinstaller cette application de %1$s ? Les autres utilisateurs et profils qui l\'ont la conservent. L\'application quitte l\'appareil lorsque plus aucun utilisateur ne l\'a.</string>
+    <string name="core_ui_enable_app_failed">Impossible d\'activer %1$s</string>
+    <string name="core_ui_disable_app_failed">Impossible de désactiver %1$s</string>
+    <string name="core_ui_force_stop_app_failed">Impossible de forcer l\'arrêt de %1$s</string>
+    <string name="core_ui_clear_cache_failed">Impossible de vider le cache de %1$s</string>
+    <string name="core_ui_clear_data_failed">Impossible d\'effacer les données de %1$s</string>
+    <string name="core_ui_uninstall_app_failed">Impossible de désinstaller %1$s</string>
+    <string name="core_ui_reason_no_access">Accordez à Blocker l\'accès root ou Shizuku, puis réessayez.</string>
+    <string name="core_ui_unknown">Inconnu</string>
+    <string name="core_ui_grant_access">Accorder l\'accès</string>
+    <string name="core_ui_block_component_failed">Impossible de bloquer %1$s</string>
+    <string name="core_ui_enable_component_failed">Impossible d\'activer %1$s</string>
+    <string name="core_ui_grant_failed">Blocker n\'a toujours pas d\'accès root ni Shizuku.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
 </resources>

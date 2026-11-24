@@ -30,7 +30,6 @@
     <string name="core_ui_close">اغلاق</string>
     <string name="core_ui_select_all">تحديد الكل</string>
     <string name="core_ui_enable_selected">تمكين الكل</string>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">هل تريد مسح بيانات هذا التطبيق؟</string>
     <string name="core_ui_found">موجود</string>
     <string name="core_ui_not_found">ليس موجودا</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">هل تريد إلغاء تثبيت هذا التطبيق؟</string>
@@ -39,7 +38,6 @@
     <string name="core_ui_service_status_template">الخدمة: %1$d قيد التشغيل، %2$d محظور، %3$d إجمالي.</string>
     <string name="core_ui_rule_icon_description">أيقونة القاعدة</string>
     <string name="core_ui_receiver_with_count">مستقبل البث (%1$d)</string>
-    <string name="core_ui_initializing_database">جارٍ تهيئة قاعدة البيانات</string>
     <string name="core_ui_more_menu">المزيد</string>
     <string name="core_ui_open_rule_detail">فتح تفاصيل القاعدة</string>
     <string name="core_ui_collapse_list">طي القائمة</string>
@@ -154,4 +152,22 @@
     <string name="core_ui_ifw_sender_signature">التوقيع</string>
     <string name="core_ui_ifw_sender_system_or_signature">النظام أو التوقيع</string>
     <string name="core_ui_ifw_sender_user_id">نفس معرّف المستخدم</string>
+    <string name="core_ui_profile_personal">شخصي</string>
+    <string name="core_ui_profile_work">العمل</string>
+    <string name="core_ui_profile_user">المستخدم %1$d</string>
+    <string name="core_ui_profile_not_running">متوقف</string>
+    <string name="core_ui_uninstall_for_profile_confirm">هل تريد إلغاء تثبيت هذا التطبيق من %1$s؟ يحتفظ به المستخدمون والملفات الشخصية الأخرى التي لديها التطبيق. يُزال التطبيق من الجهاز عندما لا يبقى لدى أي مستخدم.</string>
+    <string name="core_ui_enable_app_failed">تعذّر تفعيل %1$s</string>
+    <string name="core_ui_disable_app_failed">تعذّر تعطيل %1$s</string>
+    <string name="core_ui_force_stop_app_failed">تعذّر فرض إيقاف %1$s</string>
+    <string name="core_ui_clear_cache_failed">تعذّر مسح ذاكرة التخزين المؤقت لـ %1$s</string>
+    <string name="core_ui_clear_data_failed">تعذّر مسح بيانات %1$s</string>
+    <string name="core_ui_uninstall_app_failed">تعذّر إلغاء تثبيت %1$s</string>
+    <string name="core_ui_reason_no_access">امنح Blocker صلاحية الروت أو Shizuku، ثم حاول مرة أخرى.</string>
+    <string name="core_ui_unknown">غير معروف</string>
+    <string name="core_ui_grant_access">منح الصلاحية</string>
+    <string name="core_ui_block_component_failed">تعذّر حظر %1$s</string>
+    <string name="core_ui_enable_component_failed">تعذّر تفعيل %1$s</string>
+    <string name="core_ui_grant_failed">لا يزال Blocker بلا صلاحية الروت أو Shizuku.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">هل تريد مسح بيانات هذا التطبيق؟</string>
 </resources>

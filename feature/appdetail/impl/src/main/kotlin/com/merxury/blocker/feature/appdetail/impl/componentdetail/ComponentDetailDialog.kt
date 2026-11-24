@@ -46,6 +46,7 @@ import com.merxury.blocker.feature.appdetail.impl.componentdetail.ComponentDetai
 import com.merxury.blocker.feature.appdetail.impl.componentdetail.ComponentDetailUiState.Loading
 import com.merxury.blocker.feature.appdetail.impl.componentdetail.ComponentDetailUiState.Success
 import com.merxury.blocker.core.ui.R.string as UiString
+import com.merxury.blocker.core.ui.R.string as uiString
 
 @Composable
 fun ComponentDetailDialog(
@@ -85,7 +86,7 @@ fun ComponentDetailDialog(
                 text = if (uiState is Success) {
                     uiState.detail.name.split(".").last()
                 } else {
-                    stringResource(id = string.feature_appdetail_api_unknown)
+                    stringResource(id = uiString.core_ui_unknown)
                 },
                 style = MaterialTheme.typography.headlineSmall,
             )
@@ -176,7 +177,7 @@ fun ComponentDetailPanel(
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = stringResource(id = string.feature_appdetail_api_recommended_blocking))
         }
-        val unknownSdkName = stringResource(id = string.feature_appdetail_api_unknown)
+        val unknownSdkName = stringResource(id = uiString.core_ui_unknown)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
                 checked = componentDetailInfo.sdkName.isNullOrEmpty().not(),

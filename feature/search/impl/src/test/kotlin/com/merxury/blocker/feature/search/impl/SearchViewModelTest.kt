@@ -16,493 +16,297 @@
 
 package com.merxury.blocker.feature.search.impl
 
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
-import android.content.pm.PackageManager.PackageInfoFlags
-import androidx.lifecycle.SavedStateHandle
-import app.cash.turbine.test
-import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
-import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
-import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
-import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
-import com.merxury.blocker.core.domain.controller.GetServiceControllerUseCase
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.FilteredComponent
-import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.model.data.toAppItem
-import com.merxury.blocker.core.testing.controller.FakeAppController
-import com.merxury.blocker.core.testing.controller.FakePackageInfoDataSource
-import com.merxury.blocker.core.testing.controller.FakeServiceController
-import com.merxury.blocker.core.testing.data.TestAppStateCache
-import com.merxury.blocker.core.testing.repository.TestAppPropertiesRepository
-import com.merxury.blocker.core.testing.repository.TestAppRepository
-import com.merxury.blocker.core.testing.repository.TestComponentRepository
-import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
-import com.merxury.blocker.core.testing.repository.TestUserDataRepository
+import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ControlLayer
+import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
+import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
-import com.merxury.blocker.core.ui.SearchScreenTabs
-import com.merxury.blocker.core.ui.TabState
-import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.merxury.blocker.core.ui.control.ControlMessage
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 
-@OptIn(ExperimentalCoroutinesApi::class)
+/** What the search finds for the selected user, as the repositories hold it. */
 class SearchViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    @get:Rule
-    val tempFolder: TemporaryFolder = TemporaryFolder.builder()
-        .assureDeletion()
-        .build()
-
-    private val analyticsHelper = TestAnalyticsHelper()
-    private val userDataRepository = TestUserDataRepository()
-    private val appRepository = TestAppRepository()
-    private val appPropertiesRepository = TestAppPropertiesRepository()
-    private val appStateCache = TestAppStateCache()
-    private val componentRepository = TestComponentRepository()
-    private val appController = FakeAppController()
-    private val generalRuleRepository = TestGeneralRuleRepository()
-    private val serviceController = FakeServiceController()
-    private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
-    private val packageInfo = mock<PackageInfo> {
-        on { toString() } doReturn "MockedPackageInfo"
-    }
-    private val pm = mock<PackageManager> {
-        on { getPackageInfo(any<String>(), any<Int>()) } doReturn packageInfo
-        on {
-            getPackageInfo(
-                any<String>(),
-                any<PackageInfoFlags>(),
-            )
-        } doReturn packageInfo
-    }
-    private val savedStateHandle = SavedStateHandle()
-    private lateinit var viewModel: SearchViewModel
+    // Created after the rule sets the main dispatcher, which the view model's scope keeps.
+    private lateinit var fixture: SearchFixture
+    private val viewModel get() = fixture.viewModel
 
     @Before
-    fun setup() {
-        val initializeDatabase = InitializeDatabaseUseCase(
-            appRepository = appRepository,
-            componentRepository = componentRepository,
-            appPropertiesRepository = appPropertiesRepository,
-        )
-        val getAppControllerUseCase = GetAppControllerUseCase(
-            userDataRepository = userDataRepository,
-            rootAppController = appController,
-            shizukuAppController = appController,
-        )
-        val getServiceController = GetServiceControllerUseCase(
-            userDataRepository = userDataRepository,
-            rootServiceController = serviceController,
-            shizukuServiceController = serviceController,
-        )
-        val searchAppList = SearchAppListUseCase(
-            pm = pm,
-            appRepository = appRepository,
-            userDataRepository = userDataRepository,
-            appStateCache = appStateCache,
-            getAppController = getAppControllerUseCase,
-            getServiceController = getServiceController,
-            cpuDispatcher = dispatcher,
-        )
-        val searchGeneralRuleUseCase = SearchGeneralRuleUseCase(
-            generalRuleRepository = generalRuleRepository,
-            userDataRepository = userDataRepository,
-            filesDir = tempFolder.newFolder(),
-            ruleBaseFolder = tempFolder.newFolder().absolutePath,
-        )
-        viewModel = SearchViewModel(
-            analyticsHelper = analyticsHelper,
-            userDataRepository = userDataRepository,
-            appRepository = appRepository,
-            componentRepository = componentRepository,
-            pm = pm,
-            packageInfoDataSource = FakePackageInfoDataSource(),
-            initializeDatabase = initializeDatabase,
-            searchAppList = searchAppList,
-            searchRule = searchGeneralRuleUseCase,
-            getAppController = getAppControllerUseCase,
-            savedStateHandle = savedStateHandle,
-            packageName = null,
-            ruleId = null,
-            ioDispatcher = dispatcher,
-        )
+    fun setUp() {
+        fixture = SearchFixture(mainDispatcherRule.testDispatcher)
+    }
+
+    private fun TestScope.collectState() {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
+    }
+
+    private fun TestScope.searchNow(keyword: String) {
+        viewModel.search(keyword)
+        advanceTimeBy(TYPING_PAUSE + 1)
+        runCurrent()
     }
 
     @Test
-    fun searchUiState_whenInitial_thenShowDefault() {
-        assertEquals(SearchUiState(), viewModel.searchUiState.value)
+    fun givenNewViewModel_whenNothingObserves_thenNothingIsRead() = runTest {
+        advanceUntilIdle()
+
+        assertThat(fixture.installedApps.calls).isEmpty()
+        assertThat(fixture.appControl.calls).isEmpty()
+        assertThat(fixture.components.refreshedUsers).isEmpty()
     }
 
     @Test
-    fun localSearchUiState_whenInitial_thenShowDefault() {
-        assertEquals(LocalSearchUiState.Idle, viewModel.localSearchUiState.value)
+    fun givenNoKeyword_whenShown_thenIdle() = runTest {
+        collectState()
+
+        assertThat(viewModel.uiState.value.results).isEqualTo(SearchResults.Idle)
+        assertThat(viewModel.uiState.value.keyword).isEmpty()
     }
 
     @Test
-    fun tabState_whenInitial_thenShowDefault() {
-        assertEquals(
-            TabState(
-                items = listOf(
-                    SearchScreenTabs.App(),
-                    SearchScreenTabs.Component(),
-                    SearchScreenTabs.Rule(),
-                ),
-                selectedItem = SearchScreenTabs.App(),
-            ),
-            viewModel.tabState.value,
-        )
+    fun givenApps_whenTypingPauses_thenAppsOfTheSelectedUserFound() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.example.chat", label = "Chat"), installedApp("com.example.mail", label = "Mail"), installedApp("com.example.chat", WORK)))
+        collectState()
+
+        viewModel.search("chat")
+        advanceTimeBy(TYPING_PAUSE - 50)
+        runCurrent()
+        assertThat(viewModel.uiState.value.results).isEqualTo(SearchResults.Idle)
+        advanceTimeBy(100)
+        runCurrent()
+
+        assertThat(fixture.loaded().apps.map { it.key }).containsExactly(AppKey("com.example.chat", OWNER))
+        assertThat(viewModel.uiState.value.keyword).isEqualTo("chat")
     }
 
     @Test
-    fun searchUiState_whenSearch_thenUpdateKeyword() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
-        viewModel.search("blocker")
-        viewModel.load()
-        assertEquals(
-            SearchUiState(keyword = "blocker"),
-            viewModel.searchUiState.value,
-        )
-        collectJob.cancel()
+    fun givenTypingGoesOn_whenItPauses_thenOnlyTheLastKeywordIsSearched() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "Alpha"), installedApp("com.b", label = "Beta")))
+        val states = mutableListOf<SearchUiState>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { states += it } }
+
+        viewModel.search("al")
+        advanceTimeBy(TYPING_PAUSE - 100)
+        viewModel.search("be")
+        advanceTimeBy(TYPING_PAUSE + 1)
+        runCurrent()
+
+        assertThat(states.map { it.keyword }).doesNotContain("al")
+        assertThat(states.last().keyword).isEqualTo("be")
+        assertThat(fixture.loaded().apps.map { it.label }).containsExactly("Beta")
     }
 
     @Test
-    fun localSearchUiState_whenSearch_thenShowResult() = runTest {
-        viewModel.localSearchUiState.test {
-            userDataRepository.sendUserData(defaultUserData)
-            appRepository.sendAppList(sampleAppList)
-            componentRepository.sendComponentList(sampleComponentList)
-            generalRuleRepository.sendRuleList(sampleRuleList)
-            viewModel.search("blocker")
-            viewModel.load()
-            val matchedAppList: List<AppItem> =
-                sampleAppList.filter { it.label.contains("blocker") }
-                    .map { it.toAppItem().copy(packageInfo = packageInfo) }
-            val matchedComponentList = listOf(
-                FilteredComponent(
-                    app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
-                    activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
-                    service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
-                    receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
-                    provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
-                ),
-            )
-            val searchedRuleList = sampleRuleList.filter { it.name.contains("blocker") }
-            assertEquals(LocalSearchUiState.Idle, awaitItem())
-            assertEquals(LocalSearchUiState.Loading, awaitItem())
-            assertEquals(
-                LocalSearchUiState.Success(
-                    searchKeyword = listOf("blocker"),
-                    appTabUiState = AppTabUiState(
-                        list = matchedAppList,
-                    ),
-                    componentTabUiState = ComponentTabUiState(
-                        list = matchedComponentList,
-                    ),
-                    ruleTabUiState = RuleTabUiState(
-                        matchedRules = searchedRuleList.filter { it.matchedAppCount > 0 },
-                        unmatchedRules = searchedRuleList.filter { it.matchedAppCount == 0 },
-                    ),
-                ),
-                awaitItem(),
-            )
-        }
+    fun givenResults_whenKeywordCleared_thenIdleAtOnce() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        collectState()
+        searchNow("com")
+
+        viewModel.search("")
+        runCurrent()
+
+        assertThat(viewModel.uiState.value.results).isEqualTo(SearchResults.Idle)
     }
 
     @Test
-    fun tabState_whenSearch_thenUpdateItems() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
-        userDataRepository.sendUserData(defaultUserData)
-        appRepository.sendAppList(sampleAppList)
-        componentRepository.sendComponentList(sampleComponentList)
-        generalRuleRepository.sendRuleList(sampleRuleList)
-        viewModel.search(SEARCH_KEYWORD)
-        viewModel.load()
-        val matchedAppList: List<AppItem> =
-            sampleAppList.filter { it.label.contains(SEARCH_KEYWORD) }
-                .map { it.toAppItem().copy(packageInfo = packageInfo) }
-        val matchedComponentList = listOf(
-            FilteredComponent(
-                app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
-                activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
-                service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
-                receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
-                provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
+    fun givenKeywordWithSpaces_whenSearched_thenTrimmed() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "Alpha")))
+        collectState()
+
+        searchNow("  alp ")
+
+        assertThat(fixture.loaded().apps.map { it.label }).containsExactly("Alpha")
+    }
+
+    @Test
+    fun givenSystemAppsHidden_whenSearched_thenSystemAppsAndBlockerLeftOutOfAppsAndComponents() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.app"), installedApp("com.system", isSystem = true), installedApp(SELF_PACKAGE)))
+        fixture.components.sendComponents(OWNER, listOf(component("com.app", "Push"), component("com.system", "Push"), component(SELF_PACKAGE, "Push")))
+        collectState()
+
+        searchNow("com")
+
+        assertThat(fixture.loaded().apps.map { it.key.packageName }).containsExactly("com.app")
+        searchNow("push")
+        assertThat(fixture.loaded().components.map { it.app.packageName }).containsExactly("com.app")
+    }
+
+    @Test
+    fun givenSystemAppsShown_whenSearched_thenSystemAppsFound() = runTest {
+        fixture.userData.sendUserData(defaultUserData.copy(showSystemApps = true))
+        fixture.installedApps.sendApps(listOf(installedApp("com.system", isSystem = true)))
+        fixture.components.sendComponents(OWNER, listOf(component("com.system", "Push")))
+        collectState()
+
+        searchNow("push")
+
+        assertThat(fixture.loaded().components.map { it.app.packageName }).containsExactly("com.system")
+    }
+
+    @Test
+    fun givenComponentsOfTwoApps_whenSearched_thenGroupedByApp() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A"), installedApp("com.b", label = "B")))
+        fixture.components.sendComponents(
+            OWNER,
+            listOf(
+                component("com.b", "PushService", type = ComponentType.SERVICE, ifw = IfwBlock.BLOCKED),
+                component("com.a", "PushReceiver", pm = PmSetting.DISABLED),
+                component("com.a", "PushActivity", type = ComponentType.ACTIVITY),
+                component("com.a", "PushProvider", type = ComponentType.PROVIDER, pm = PmSetting.UNKNOWN),
+                component("com.a", "Other"),
             ),
         )
-        val searchedRuleList = sampleRuleList.filter { it.name.contains("blocker") }
-        assertEquals(
-            TabState(
-                items = listOf(
-                    SearchScreenTabs.App(
-                        count = matchedAppList.size,
-                    ),
-                    SearchScreenTabs.Component(
-                        count = matchedComponentList.size,
-                    ),
-                    SearchScreenTabs.Rule(
-                        count = searchedRuleList.size,
-                    ),
-                ),
-                selectedItem = SearchScreenTabs.App(),
-            ),
-            viewModel.tabState.value,
-        )
-        collectJob.cancel()
+        collectState()
+
+        searchNow("push")
+
+        val groups = fixture.loaded().components
+        assertThat(groups.map { it.label }).containsExactly("A", "B").inOrder()
+        val a = groups.first().components.associateBy { it.id.simpleName }
+        assertThat(a.keys).containsExactly("PushActivity", "PushProvider", "PushReceiver")
+        assertThat(groups.first().firstType).isEqualTo(ComponentType.RECEIVER)
+        assertThat(groups.last().components.single().type).isEqualTo(ComponentType.SERVICE)
     }
 
     @Test
-    fun tabState_whenSwitchTab_thenUpdateSelectedItem() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
-        viewModel.switchTab(SearchScreenTabs.Component())
-        assertEquals(
-            TabState(
-                items = listOf(
-                    SearchScreenTabs.App(),
-                    SearchScreenTabs.Component(),
-                    SearchScreenTabs.Rule(),
-                ),
-                selectedItem = SearchScreenTabs.Component(),
-            ),
-            viewModel.tabState.value,
-        )
-        collectJob.cancel()
+    fun givenRulesAndComponents_whenSearched_thenRulesSplitByMatchedAppsAndTheTabsCounted() = runTest {
+        fixture.rules.sendRuleList(listOf(rule(1, "Push SDK", matchedAppCount = 2), rule(2, "Push kit", matchedAppCount = 0), rule(3, "Other", matchedAppCount = 1)))
+        fixture.installedApps.sendApps(listOf(installedApp("com.push")))
+        fixture.components.sendComponents(OWNER, listOf(component("com.push", "PushA"), component("com.push", "PushB")))
+        collectState()
+
+        searchNow("push")
+
+        val loaded = fixture.loaded()
+        assertThat(loaded.matchedRules.map { it.id }).containsExactly(1)
+        assertThat(loaded.unmatchedRules.map { it.id }).containsExactly(2)
+        // The components tab counts the apps they were found in, as the old search did.
+        assertThat(viewModel.uiState.value.tabs.itemCount).containsExactly(SearchTab.APPS, 1, SearchTab.COMPONENTS, 1, SearchTab.RULES, 2)
     }
 
     @Test
-    fun searchUiState_whenSwitchSelectedMode_thenUpdateSelectedMode() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
-        viewModel.switchSelectedMode(true)
-        assertEquals(
-            SearchUiState(isSelectedMode = true),
-            viewModel.searchUiState.value,
-        )
-        viewModel.switchSelectedMode(false)
-        assertEquals(
-            SearchUiState(isSelectedMode = false),
-            viewModel.searchUiState.value,
-        )
-        collectJob.cancel()
+    fun givenAppRemovedFromTheCache_whenShown_thenItLeavesTheResults() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a"), installedApp("com.b")))
+        collectState()
+        searchNow("com")
+
+        fixture.installedApps.sendApps(listOf(installedApp("com.b")))
+        runCurrent()
+
+        assertThat(fixture.loaded().apps.map { it.key.packageName }).containsExactly("com.b")
     }
 
     @Test
-    fun searchUiState_whenExitSelectedMode_thenClearSelectedList() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+    fun givenTwoUsers_whenWorkSelected_thenWorkResultsShownAndTheSwitcherOffered() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", OWNER), installedApp("com.work", WORK)))
+        fixture.components.sendComponents(WORK, listOf(component("com.work", "Push")))
+        collectState()
+        searchNow("com")
+        assertThat(viewModel.uiState.value.showProfileSwitcher).isTrue()
 
-        userDataRepository.sendUserData(defaultUserData)
-        appRepository.sendAppList(sampleAppList)
-        componentRepository.sendComponentList(sampleComponentList)
-        generalRuleRepository.sendRuleList(sampleRuleList)
+        viewModel.selectUser(WORK)
+        runCurrent()
 
-        val targetItem = FilteredComponent(
-            app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
-            activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
-            service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
-            receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
-            provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
-        )
-        viewModel.switchSelectedMode(true)
-        viewModel.selectItem(
-            item = targetItem,
-        )
-        viewModel.switchSelectedMode(false)
-        assertEquals(
-            SearchUiState(
-                isSelectedMode = false,
-                selectedAppList = emptyList(),
-                selectedComponentList = emptyList(),
-            ),
-            viewModel.searchUiState.value,
-        )
-
-        collectJob.cancel()
+        assertThat(viewModel.uiState.value.selectedUser).isEqualTo(WORK)
+        assertThat(fixture.loaded().apps.map { it.key }).containsExactly(AppKey("com.work", WORK))
+        searchNow("push")
+        assertThat(fixture.loaded().components.single().app).isEqualTo(AppKey("com.work", WORK))
     }
 
     @Test
-    fun searchUiState_whenSelectDeselectApps_thenUpdateSelectedList() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+    fun givenOneUser_whenShown_thenNoSwitcher() = runTest {
+        collectState()
 
-        userDataRepository.sendUserData(defaultUserData)
-        appRepository.sendAppList(sampleAppList)
-        componentRepository.sendComponentList(sampleComponentList)
-        generalRuleRepository.sendRuleList(sampleRuleList)
-
-        val targetItem = FilteredComponent(
-            app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
-            activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
-            service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
-            receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
-            provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
-        )
-        viewModel.switchSelectedMode(true)
-        viewModel.selectItem(
-            item = targetItem,
-        )
-        assertEquals(
-            SearchUiState(
-                isSelectedMode = true,
-                selectedAppList = listOf(targetItem),
-                selectedComponentList = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName },
-            ),
-            viewModel.searchUiState.value,
-        )
-
-        viewModel.deselectItem(
-            item = targetItem,
-        )
-        assertEquals(
-            SearchUiState(
-                isSelectedMode = true,
-                selectedAppList = emptyList(),
-                selectedComponentList = emptyList(),
-            ),
-            viewModel.searchUiState.value,
-        )
-
-        collectJob.cancel()
+        assertThat(viewModel.uiState.value.showProfileSwitcher).isFalse()
     }
 
     @Test
-    fun searchUiState_whenSelectAll_thenUpdateSelectedList() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchUiState.collect() }
+    fun givenShownForAUser_whenKeptFresh_thenItsAppsAreReadOnceAndWhatRunsEachTime() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.appControl.running[OWNER] = mutableSetOf("com.a")
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        collectState()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
+        searchNow("com")
+        assertThat(fixture.loaded().apps.single().isRunning).isTrue()
 
-        userDataRepository.sendUserData(defaultUserData)
-        appRepository.sendAppList(sampleAppList)
-        componentRepository.sendComponentList(sampleComponentList)
-        generalRuleRepository.sendRuleList(sampleRuleList)
+        viewModel.selectUser(WORK)
+        runCurrent()
+        viewModel.selectUser(OWNER)
+        runCurrent()
 
-        viewModel.search(SEARCH_KEYWORD)
-        viewModel.load()
-        val matchedAppList = listOf(
-            FilteredComponent(
-                app = sampleAppList[0].toAppItem().copy(packageInfo = packageInfo),
-                activity = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == ACTIVITY },
-                service = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == SERVICE },
-                receiver = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == RECEIVER },
-                provider = sampleComponentList.filter { it.packageName == sampleAppList[0].packageName && it.type == PROVIDER },
-            ),
-        )
-        val matchedComponentList =
-            sampleComponentList.filter { it.packageName == sampleAppList[0].packageName }
-        viewModel.switchSelectedMode(true)
-        viewModel.selectAll()
-        assertEquals(
-            SearchUiState(
-                keyword = SEARCH_KEYWORD,
-                isSelectedMode = true,
-                selectedAppList = matchedAppList,
-                selectedComponentList = matchedComponentList,
-            ),
-            viewModel.searchUiState.value,
-        )
+        assertThat(fixture.installedApps.calls.filter { it.startsWith("refresh ") }).containsExactly("refresh 0", "refresh 10").inOrder()
+        assertThat(fixture.appControl.calls.count { it == "runningPackages 0" }).isEqualTo(2)
+    }
 
-        viewModel.selectAll()
-        assertEquals(
-            SearchUiState(
-                keyword = SEARCH_KEYWORD,
-                isSelectedMode = true,
-                selectedAppList = emptyList(),
-                selectedComponentList = emptyList(),
-            ),
-            viewModel.searchUiState.value,
-        )
+    @Test
+    fun givenAccessNotChecked_whenKeptFresh_thenNothingIsReadUntilTheCheckEnds() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        collectState()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
+        runCurrent()
+        assertThat(fixture.installedApps.calls).isEmpty()
 
-        collectJob.cancel()
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        runCurrent()
+
+        assertThat(fixture.installedApps.calls).containsExactly("refresh 0")
+        assertThat(fixture.appControl.calls).isEmpty()
+    }
+
+    @Test
+    fun givenNoAccess_whenGranted_thenConnects() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        collectState()
+
+        viewModel.grantAccess()
+        runCurrent()
+
+        assertThat(fixture.channel.connectCount).isEqualTo(1)
+    }
+
+    @Test
+    fun givenServiceInfoShown_whenAppCounted_thenItsServicesShown() = runTest {
+        fixture.userData.sendUserData(defaultUserData.copy(showServiceInfo = true))
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        fixture.components.sendComponents(OWNER, listOf(component("com.a", "Sync", type = ComponentType.SERVICE)))
+        collectState()
+        searchNow("com")
+        assertThat(fixture.loaded().showServiceInfo).isTrue()
+
+        viewModel.countServices(AppKey("com.a", OWNER))
+
+        assertThat(fixture.loaded().apps.single().services?.total).isEqualTo(1)
+    }
+
+    private companion object {
+        const val TYPING_PAUSE = 300L
     }
 }
-
-private const val SEARCH_KEYWORD = "blocker"
-
-private val sampleAppList = listOf(
-    InstalledApp(
-        label = "blocker",
-        packageName = "com.merxury.blocker.test1",
-    ),
-    InstalledApp(
-        label = "blocker1",
-        packageName = "com.merxury.blocker1.test2",
-    ),
-    InstalledApp(
-        label = "App3",
-        packageName = "com.merxury.test3",
-    ),
-)
-
-private val sampleComponentList = listOf(
-    ComponentInfo(
-        simpleName = "Activity1",
-        name = "com.merxury.blocker.test1.activity1",
-        packageName = "com.merxury.blocker.test1",
-        type = ACTIVITY,
-        description = "An example activity",
-    ),
-    ComponentInfo(
-        simpleName = "Service1",
-        name = "com.merxury.blocker.test1.service1",
-        packageName = "com.merxury.blocker.test1",
-        type = SERVICE,
-        description = "An example service",
-        pmBlocked = true,
-    ),
-    ComponentInfo(
-        simpleName = "Service2",
-        name = "com.merxury.test.service2",
-        packageName = "com.merxury.test1",
-        type = SERVICE,
-        description = "An example service",
-    ),
-    ComponentInfo(
-        simpleName = "Receiver1",
-        name = "com.merxury.blocker.test.receiver1",
-        packageName = "com.merxury.test1",
-        type = RECEIVER,
-        description = "An example receiver",
-    ),
-    ComponentInfo(
-        simpleName = "Provider1",
-        name = "com.merxury.test.provider1",
-        packageName = "com.merxury.test1",
-        type = PROVIDER,
-        description = "An example provider",
-    ),
-)
-
-private val sampleRuleList = listOf(
-    GeneralRule(
-        id = 1,
-        name = "Test rule blocker",
-        searchKeyword = listOf("activity", "service", "receiver", "provider"),
-        matchedAppCount = 1,
-    ),
-    GeneralRule(
-        id = 2,
-        name = "Test rule 2 blocker",
-        searchKeyword = listOf("test2"),
-    ),
-    GeneralRule(
-        id = 3,
-        name = "Test rule 3",
-        searchKeyword = listOf("test3"),
-    ),
-)

@@ -28,8 +28,8 @@ import com.merxury.blocker.core.result.Result.Success
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
+import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
@@ -59,7 +59,7 @@ class RuleDetailScreenScreenshotTests {
     private val ruleList = RuleListPreviewParameterProvider().values.first()
     private val components = ComponentListPreviewParameterProvider().values
         .first()
-    private val appList = AppListPreviewParameterProvider().values.first()
+    private val appList = previewAppRows()
     private val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
     @Before
@@ -175,7 +175,7 @@ class RuleDetailScreenScreenshotTests {
                                 MatchedItem(
                                     header = MatchedHeaderData(
                                         title = appList.first().label,
-                                        uniqueId = appList.first().packageName,
+                                        uniqueId = appList.first().key.packageName,
                                     ),
                                     componentList = components,
                                 ),
@@ -206,7 +206,7 @@ class RuleDetailScreenScreenshotTests {
                                 MatchedItem(
                                     header = MatchedHeaderData(
                                         title = appList.first().label,
-                                        uniqueId = appList.first().packageName,
+                                        uniqueId = appList.first().key.packageName,
                                     ),
                                     componentList = components,
                                 ),

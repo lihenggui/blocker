@@ -16,6 +16,9 @@
 
 package com.merxury.blocker.feature.applist.impl
 
+import com.merxury.blocker.core.domain.applist.CountServicesUseCase
+import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
+import com.merxury.blocker.core.domain.applist.ReadRunningPackagesUseCase
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -41,6 +44,7 @@ import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserReposito
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
+import com.merxury.blocker.core.ui.applist.AppRow
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlin.time.Instant
 
@@ -110,8 +114,9 @@ internal class AppListFixture(dispatcher: CoroutineDispatcher) {
         selectedUsers = selectedUsers,
         deviceUsers = deviceUsers,
         installedApps = installedApps,
-        appControl = appControl,
-        serviceCounter = ServiceCounter(components, serviceControl, channel),
+        performAppAction = PerformAppActionUseCase(installedApps, appControl, channel),
+        readRunningPackages = ReadRunningPackagesUseCase(appControl, channel),
+        countAppServices = CountServicesUseCase(components, serviceControl, channel),
         channel = channel,
         userDataRepository = userData,
         analyticsHelper = analytics,

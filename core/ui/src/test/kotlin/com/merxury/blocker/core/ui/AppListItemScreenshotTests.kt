@@ -30,8 +30,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.applist.AppListItem
-import com.merxury.blocker.core.ui.applist.toServiceCounts
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.applist.previewAppRows
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -101,20 +100,15 @@ class AppListItemScreenshotTests {
 
     @Composable
     private fun AppListItemExample(order: Int) {
-        val appList = AppListPreviewParameterProvider().values.first()
-        val appItem = when (order) {
-            0 -> appList[0]
-            1 -> appList[1]
-            else -> appList[2]
-        }
+        val row = previewAppRows()[order]
         AppListItem(
-            label = appItem.label,
-            packageName = appItem.packageName,
-            versionName = appItem.versionName,
-            versionCode = appItem.versionCode,
-            isAppEnabled = appItem.isEnabled,
-            isAppRunning = appItem.isRunning,
-            serviceCounts = appItem.appServiceStatus?.toServiceCounts(),
+            label = row.label,
+            packageName = row.key.packageName,
+            versionName = row.versionName,
+            versionCode = row.versionCode,
+            isAppEnabled = !row.isDisabled,
+            isAppRunning = row.isRunning == true,
+            serviceCounts = row.services,
         )
     }
 }

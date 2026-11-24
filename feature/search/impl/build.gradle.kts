@@ -31,14 +31,15 @@ dependencies {
     implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
+    implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
-    implementation(libs.coil.kt.compose)
 
     testImplementation(libs.hilt.android.testing)
-    testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.turbine)
     testImplementation(libs.robolectric)
+    testImplementation(libs.truth)
+    testImplementation(libs.turbine)
     testImplementation(projects.core.testing)
+    testImplementation(projects.feature.applist.api)
     testImplementation(projects.core.screenshotTesting)
 
 }

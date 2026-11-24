@@ -50,6 +50,11 @@ import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
+/**
+ * A rounded search field with a clear button.
+ *
+ * @param focusOnStart whether the field takes the focus, which opens the keyboard, when first shown
+ */
 @Composable
 fun BlockerSearchTextField(
     onSearchQueryChange: (String) -> Unit,
@@ -58,6 +63,7 @@ fun BlockerSearchTextField(
     searchQuery: String = "",
     placeholder: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+    focusOnStart: Boolean = true,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -128,7 +134,7 @@ fun BlockerSearchTextField(
         shape = RoundedCornerShape(56.dp),
     )
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        if (focusOnStart) focusRequester.requestFocus()
     }
 }
 

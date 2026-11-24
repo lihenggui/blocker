@@ -43,7 +43,6 @@
     <string name="core_ui_service_with_count">Servicios(%1$d)</string>
     <string name="core_ui_receiver_with_count">Receptores(%1$d)</string>
     <string name="core_ui_provider_with_count">Proveedores(%1$d)</string>
-    <string name="core_ui_initializing_database">Inicialización de la base de datos</string>
     <string name="core_ui_more_menu">Más</string>
     <string name="core_ui_search_icon">Buscar</string>
     <string name="core_ui_block_all_components">Bloquear todos los componentes</string>
@@ -83,7 +82,6 @@
         <item quantity="many">Operación completada. No se pudieron cambiar %1$d componentes</item>
         <item quantity="other">Operación completada. No se pudieron cambiar %1$d componentes</item>
     </plurals>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">¿Quieres borrar los datos de esta app?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">¿Quieres desinstalar esta aplicación?</string>
     <string name="core_ui_found">Encontrado</string>
     <string name="core_ui_not_found">No encontrado</string>
@@ -156,4 +154,22 @@
     <string name="core_ui_ifw_sender_signature">Firma</string>
     <string name="core_ui_ifw_sender_system_or_signature">Sistema o firma</string>
     <string name="core_ui_ifw_sender_user_id">Mismo ID de usuario</string>
+    <string name="core_ui_profile_personal">Personal</string>
+    <string name="core_ui_profile_work">Trabajo</string>
+    <string name="core_ui_profile_user">Usuario %1$d</string>
+    <string name="core_ui_profile_not_running">Detenido</string>
+    <string name="core_ui_uninstall_for_profile_confirm">¿Quieres desinstalar esta aplicación de %1$s? Los demás usuarios y perfiles que la tienen la conservan. La aplicación sale del dispositivo cuando ningún usuario la tiene.</string>
+    <string name="core_ui_enable_app_failed">No se pudo habilitar %1$s</string>
+    <string name="core_ui_disable_app_failed">No se pudo deshabilitar %1$s</string>
+    <string name="core_ui_force_stop_app_failed">No se pudo forzar la detención de %1$s</string>
+    <string name="core_ui_clear_cache_failed">No se pudo borrar la caché de %1$s</string>
+    <string name="core_ui_clear_data_failed">No se pudieron borrar los datos de %1$s</string>
+    <string name="core_ui_uninstall_app_failed">No se pudo desinstalar %1$s</string>
+    <string name="core_ui_reason_no_access">Concede a Blocker acceso root o de Shizuku y vuelve a intentarlo.</string>
+    <string name="core_ui_unknown">Desconocido</string>
+    <string name="core_ui_grant_access">Conceder acceso</string>
+    <string name="core_ui_block_component_failed">No se pudo bloquear %1$s</string>
+    <string name="core_ui_enable_component_failed">No se pudo activar %1$s</string>
+    <string name="core_ui_grant_failed">Blocker sigue sin acceso root ni Shizuku.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">¿Quieres borrar los datos de esta app?</string>
 </resources>

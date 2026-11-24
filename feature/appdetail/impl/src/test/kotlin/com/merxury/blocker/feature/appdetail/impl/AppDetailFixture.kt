@@ -19,6 +19,9 @@ package com.merxury.blocker.feature.appdetail.impl
 import androidx.work.WorkManager
 import com.merxury.blocker.core.appcontrol.ServiceControl
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner
+import com.merxury.blocker.core.domain.control.ControlComponentUseCase
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -161,8 +164,8 @@ internal class AppDetailFixture(
             selectedUsers = selectedUsers,
             componentStatuses = controlStatuses ?: components,
             batches = batches,
-            channel = channel,
-            userDataRepository = userData,
+            controlComponent = ControlComponentUseCase(controlStatuses ?: components, GetControlLayersUseCase(userData)),
+            layersFor = GetControlLayersUseCase(userData),
             analyticsHelper = analytics,
             packageName = PACKAGE,
             userId = userId,

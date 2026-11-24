@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.applist.impl
 
 import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.model.system.AppAction
 
 internal fun AnalyticsHelper.logAction(action: AppAction) = logEvent(
     AnalyticsEvent(

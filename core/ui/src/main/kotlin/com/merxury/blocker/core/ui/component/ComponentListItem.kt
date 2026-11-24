@@ -48,7 +48,6 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
@@ -61,29 +60,36 @@ import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
+/**
+ * One component: its names and description, a running marker for a running service, and a switch
+ * that is on while the component can run. A long press opens the menu of the component.
+ *
+ * @param inFlight whether a change of the component runs; the switch then ignores taps
+ * @param onSwitchClick asked to turn the switch to the state given
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ComponentListItem(
-    item: ComponentInfo,
+    simpleName: String,
+    name: String,
     enabled: Boolean,
     type: ComponentType,
     isServiceRunning: Boolean,
     modifier: Modifier = Modifier,
-    showComponentDetailDialog: (Boolean, String) -> Unit = { _, _ -> },
+    description: String? = null,
+    inFlight: Boolean = false,
+    onClick: () -> Unit = { },
     onStopServiceClick: () -> Unit = { },
     onLaunchActivityClick: () -> Unit = { },
     onCopyNameClick: () -> Unit = { },
     onCopyFullNameClick: () -> Unit = { },
     onEditIfwRuleClick: () -> Unit = { },
-    onSwitchClick: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
+    onSwitchClick: (Boolean) -> Unit = { },
     isSelected: Boolean = false,
     isSelectedMode: Boolean = false,
-    onSelect: (ComponentInfo) -> Unit = {},
-    onDeselect: (ComponentInfo) -> Unit = {},
+    onSelectionToggle: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
@@ -98,17 +104,7 @@ fun ComponentListItem(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = {
-                    if (!isSelectedMode) {
-                        showComponentDetailDialog(true, item.name)
-                    } else {
-                        if (isSelected) {
-                            onDeselect(item)
-                        } else {
-                            onSelect(item)
-                        }
-                    }
-                },
+                onClick = { if (isSelectedMode) onSelectionToggle() else onClick() },
                 onLongClick = {
                     expanded = true
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -130,7 +126,7 @@ fun ComponentListItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 BlockerBodyLargeText(
                     modifier = Modifier.weight(1F),
-                    text = item.simpleName,
+                    text = simpleName,
                 )
                 if (isServiceRunning) {
                     Spacer(modifier = Modifier.width(8.dp))
@@ -150,10 +146,10 @@ fun ComponentListItem(
                 }
             }
             BlockerBodyMediumText(
-                text = item.name,
+                text = name,
                 style = MaterialTheme.typography.bodyMedium.condensedRegular(),
             )
-            item.description?.let {
+            description?.let {
                 Spacer(modifier = Modifier.height(4.dp))
                 BlockerBodyMediumText(
                     text = it,
@@ -164,9 +160,8 @@ fun ComponentListItem(
         Spacer(modifier = Modifier.weight(1f))
         BlockerSwitch(
             checked = enabled,
-            onCheckedChange = {
-                onSwitchClick(item, !enabled)
-            },
+            onCheckedChange = { onSwitchClick(!enabled) },
+            enabled = !inFlight,
         )
         val offset = with(density) {
             DpOffset(touchPoint.x.toDp(), -touchPoint.y.toDp())
@@ -188,15 +183,13 @@ fun ComponentListItem(
 
 @Composable
 @PreviewThemes
-private fun ComponentItemPreview(
-    @PreviewParameter(
-        ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentInfo>,
-) {
+private fun ComponentItemPreview() {
     BlockerTheme {
         Surface {
             ComponentListItem(
-                item = components[0],
+                simpleName = "ExampleActivity",
+                name = "com.merxury.blocker.test.activity1.ExampleActivity",
+                description = "An example activity",
                 enabled = true,
                 type = ACTIVITY,
                 isServiceRunning = true,
@@ -207,15 +200,12 @@ private fun ComponentItemPreview(
 
 @Composable
 @PreviewThemes
-private fun ComponentItemSelectedPreview(
-    @PreviewParameter(
-        ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentInfo>,
-) {
+private fun ComponentItemSelectedPreview() {
     BlockerTheme {
         Surface {
             ComponentListItem(
-                item = components[1],
+                simpleName = "ExampleReceiver",
+                name = "com.merxury.blocker.test.receiver1.ExampleReceiver",
                 enabled = false,
                 type = RECEIVER,
                 isServiceRunning = true,

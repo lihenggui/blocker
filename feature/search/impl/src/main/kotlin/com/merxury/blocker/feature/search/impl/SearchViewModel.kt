@@ -16,488 +16,392 @@
 
 package com.merxury.blocker.feature.search.impl
 
-import android.content.pm.PackageManager
-import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.respository.app.AppRepository
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.di.AppPackageName
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
-import com.merxury.blocker.core.domain.applist.SearchAppListUseCase
-import com.merxury.blocker.core.domain.controller.GetAppControllerUseCase
-import com.merxury.blocker.core.domain.model.InitializeState
-import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.extension.getVersionCode
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.FilteredComponent
-import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.toAppItem
-import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.ui.SearchScreenTabs
-import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.data.WarningDialogData
-import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.utils.PackageInfoDataSource
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import com.merxury.blocker.core.domain.applist.CountServicesUseCase
+import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
+import com.merxury.blocker.core.domain.applist.ReadRunningPackagesUseCase
+import com.merxury.blocker.core.domain.control.BatchKey
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
+import com.merxury.blocker.core.domain.search.ComponentIndex
+import com.merxury.blocker.core.domain.search.IndexState
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ComponentStatus
+import com.merxury.blocker.core.model.component.ServiceCounts
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.AppAction
+import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.ui.ProcessingProgress
+import com.merxury.blocker.core.ui.applist.AppActionFailed
+import com.merxury.blocker.core.ui.applist.appRows
+import com.merxury.blocker.core.ui.control.batchSummary
+import com.merxury.blocker.core.ui.profile.toProfileTab
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import com.merxury.blocker.core.ui.R.string as uiString
+import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = SearchViewModel.Factory::class)
-class SearchViewModel @AssistedInject constructor(
-    private val pm: PackageManager,
-    private val packageInfoDataSource: PackageInfoDataSource,
-    private val appRepository: AppRepository,
-    private val componentRepository: ComponentRepository,
-    private val initializeDatabase: InitializeDatabaseUseCase,
-    private val searchAppList: SearchAppListUseCase,
-    private val searchRule: SearchGeneralRuleUseCase,
-    private val getAppController: GetAppControllerUseCase,
+/**
+ * Searches the apps, the components and the general rules for the selected user, and acts on
+ * what it finds. Every result shows what the repositories hold: after an action or a batch the
+ * repositories' flows update the results, never a copy kept here.
+ *
+ * Components are found among the apps whose components are cached. The first time the
+ * components tab is shown with a keyword for a user, every app of that user is read into the
+ * cache, see [ComponentIndex], while the results already found stay shown.
+ */
+@HiltViewModel
+class SearchViewModel @Inject internal constructor(
+    private val selectedUsers: SelectedUserRepository,
+    private val installedApps: InstalledAppRepository,
+    private val componentStatuses: ComponentStatusRepository,
+    private val componentIndex: ComponentIndex,
+    private val batches: ComponentBatchRunner,
+    private val layersFor: GetControlLayersUseCase,
+    private val searchRules: SearchGeneralRuleUseCase,
+    private val performAppAction: PerformAppActionUseCase,
+    private val readRunningPackages: ReadRunningPackagesUseCase,
+    private val countAppServices: CountServicesUseCase,
+    private val channel: PrivilegedChannel,
     private val userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
-    private val savedStateHandle: SavedStateHandle,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-    @Assisted("packageName") val packageName: String?,
-    @Assisted("ruleId") val ruleId: String?,
+    @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
+    @AppPackageName appPackageName: String,
 ) : ViewModel() {
-    private val _searchUiState = MutableStateFlow(SearchUiState())
-    val searchUiState: StateFlow<SearchUiState> = _searchUiState.asStateFlow()
-    private val _localSearchUiState =
-        MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
-    val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
-    private var filterComponentList: MutableList<FilteredComponent> = mutableListOf()
-    private val _errorState = MutableStateFlow<UiMessage?>(null)
-    val errorState = _errorState.asStateFlow()
-    private val _warningState = MutableStateFlow<WarningDialogData?>(null)
-    val warningState = _warningState.asStateFlow()
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Timber.e(throwable)
-        _errorState.tryEmit(throwable.toErrorMessage())
-    }
-    private var searchJob: Job? = null
-    private var loadAppJob: Job? = null
-    private val selectedPackageNameKey = "selectedPackageNameKey"
-    private val selectedRuleIdKey = "selectedRuleIdKey"
-    private val selectedRuleId: StateFlow<String?> = savedStateHandle.getStateFlow(
-        key = selectedRuleIdKey,
-        initialValue = ruleId,
-    )
-    private val selectedPackageName: StateFlow<String?> = savedStateHandle.getStateFlow(
-        key = selectedPackageNameKey,
-        initialValue = packageName,
-    )
+    private val self = AppKey(appPackageName, selectedUsers.ownUser)
+    private val typed = MutableStateFlow("")
+    private val tab = MutableStateFlow(SearchTab.APPS)
+    private val selection = MutableStateFlow(Selection())
 
-    private val _tabState = MutableStateFlow(
-        TabState(
-            items = listOf(
-                SearchScreenTabs.App(),
-                SearchScreenTabs.Component(),
-                SearchScreenTabs.Rule(),
-            ),
-            selectedItem = SearchScreenTabs.App(),
-        ),
-    )
-    val tabState: StateFlow<TabState<SearchScreenTabs>> = _tabState.asStateFlow()
+    // What the system last answered for each user; absent when it could not be read.
+    private val running = MutableStateFlow<Map<UserId, Set<String>>>(emptyMap())
+    private val serviceCounts = MutableStateFlow<Map<AppKey, ServiceCounts>>(emptyMap())
+    private val queued = MutableStateFlow<List<QueuedSearchMessage>>(emptyList())
+    private var nextMessageId = 0L
 
-    init {
-        load()
-    }
+    // Users whose apps this screen has read from the system.
+    private val refreshedUsers = mutableSetOf<UserId>()
 
-    @VisibleForTesting
-    fun load() {
-        loadAppJob?.cancel()
-        loadAppJob = viewModelScope.launch {
-            initializeDatabase().collect {
-                if (it is InitializeState.Initializing) {
-                    _localSearchUiState.emit(LocalSearchUiState.Initializing(it.processingName))
-                } else {
-                    _localSearchUiState.emit(LocalSearchUiState.Idle)
-                }
-            }
+    /** The keyword searched for: the typed one once typing pauses, trimmed; at once when cleared. */
+    @OptIn(FlowPreview::class)
+    private val query: Flow<String> = typed
+        .map { it.trim() }
+        .debounce { if (it.isEmpty()) 0L else TYPING_PAUSE_MILLIS }
+        .distinctUntilChanged()
+
+    // The selected user's components that a batch of any screen changes now.
+    private val inFlight: Flow<Set<ComponentId>> = combine(selectedUsers.selectedUser, batches.inFlight) { user, keys ->
+        keys.filter { it.userId == user }.mapTo(mutableSetOf()) { it.id }
+    }.distinctUntilChanged()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val batch: Flow<ProcessingProgress?> = selectedUsers.selectedUser.flatMapLatest { user ->
+        batches.running(BatchKey.Search(user)).flatMapLatest { run ->
+            run?.step?.map { step ->
+                // A batch of one request reports only once it ends.
+                val done = step.done.takeIf { step.total > BATCH_LIMIT }
+                ProcessingProgress(current = done ?: 0, total = step.total, isEnabling = run.goal != ControlGoal.BLOCK, isIndeterminate = done == null)
+            } ?: flowOf(null)
         }
     }
 
-    fun onAppClick(packageName: String?) {
-        savedStateHandle[selectedPackageNameKey] = packageName
-        loadSelectedItem()
-    }
-
-    fun onComponentClick(packageName: String?) {
-        savedStateHandle[selectedPackageNameKey] = packageName
-        loadSelectedItem()
-    }
-
-    fun onRuleClick(ruleId: String?) {
-        savedStateHandle[selectedRuleIdKey] = ruleId
-        loadSelectedItem()
-    }
-
-    private fun loadSelectedItem() {
-        _localSearchUiState.update {
-            if (it is LocalSearchUiState.Success) {
-                it.copy(
-                    appTabUiState = it.appTabUiState.copy(selectedPackageName = selectedPackageName.value),
-                    componentTabUiState = it.componentTabUiState.copy(selectedPackageName = selectedPackageName.value),
-                    ruleTabUiState = it.ruleTabUiState.copy(selectedRuleId = selectedRuleId.value),
-                )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val results: Flow<Pair<String, SearchResults>> = combine(query, selectedUsers.selectedUser, ::Pair)
+        .flatMapLatest { (keyword, user) ->
+            if (keyword.isEmpty()) {
+                flowOf(keyword to SearchResults.Idle)
             } else {
-                it
+                combine(appResults(user, keyword), componentResults(user, keyword), searchRules(keyword)) { apps, components, rules ->
+                    keyword to SearchResults.Loaded(
+                        apps = apps.first,
+                        showServiceInfo = apps.second,
+                        components = components,
+                        matchedRules = rules.filter { it.matchedAppCount > 0 },
+                        unmatchedRules = rules.filter { it.matchedAppCount == 0 },
+                    )
+                }.onStart<Pair<String, SearchResults>> { emit(keyword to SearchResults.Loading) }
             }
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val indexState: Flow<IndexState> = selectedUsers.selectedUser.flatMapLatest { componentIndex.state(it) }
+
+    private val activity = combine(batch, inFlight, indexState, ::Activity)
+
+    private val controls = combine(selection, activity, queued, ::Controls)
+
+    val uiState: StateFlow<SearchUiState> = combine(selectedUsers.users, selectedUsers.selectedUser, results, tab, controls) { users, user, (keyword, results), tab, controls ->
+        // A selection made for another user has ended: the user changed elsewhere or fell back.
+        val selection = controls.selection.takeIf { it.user == user } ?: Selection()
+        val activity = controls.activity
+        SearchUiState(
+            ownUser = selectedUsers.ownUser,
+            selectedUser = user,
+            profiles = users.map { it.toProfileTab() },
+            keyword = keyword,
+            tabs = tabsOf(results, tab),
+            results = results,
+            isSelectionMode = selection.active,
+            selected = selection.ids,
+            selectionActionsEnabled = activity.batch == null && selection.ids.isNotEmpty() && selection.ids.none { it in activity.inFlight },
+            batch = activity.batch,
+            indexing = (activity.index as? IndexState.Indexing)?.let { IndexingProgress(it.done, it.total) },
+            messages = controls.messages,
+        )
+    }
+        .flowOn(cpuDispatcher)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = SearchUiState(ownUser = selectedUsers.ownUser, selectedUser = selectedUsers.selectedUser.value),
+        )
+
+    /**
+     * Keeps the results current while the screen is shown. Once the privileged channel's first
+     * access check has ended, reads the selected user's apps from the system the first time this
+     * screen shows that user, and which of them run each time the user or the access changes.
+     * Indexes the user's components the first time the components tab is shown with a keyword,
+     * and again when it ran with less access than the channel has now. Returns only when
+     * cancelled.
+     */
+    suspend fun keepFresh(): Unit = coroutineScope {
+        launch {
+            combine(selectedUsers.selectedUser, channel.state.map(::accessOf).distinctUntilChanged(), ::Pair).collect { (user, access) ->
+                if (access == Access.Unchecked) return@collect
+                if (user !in refreshedUsers && installedApps.refresh(user) is ReadResult.Success) refreshedUsers += user
+                readRunning(user)
+            }
+        }
+        launch {
+            combine(tab, query, selectedUsers.selectedUser, channel.state) { tab, keyword, user, _ ->
+                user.takeIf { tab == SearchTab.COMPONENTS && keyword.isNotEmpty() }
+            }
+                .filterNotNull()
+                .collect(componentIndex::ensureIndexed)
         }
     }
 
-    fun switchTab(newTab: SearchScreenTabs) {
-        if (newTab != tabState.value.selectedItem) {
-            _tabState.update {
-                it.copy(selectedItem = newTab)
-            }
-        }
-    }
-
+    /** Searches for [keyword] once typing pauses; the previous search is dropped. */
     fun search(keyword: String) {
-        Timber.d("Search components: $keyword")
-        if (keyword == _searchUiState.value.keyword) {
+        typed.value = keyword
+    }
+
+    /** Shows [tab]. Selection mode ends on a tab other than the components. */
+    fun selectTab(tab: SearchTab) {
+        this.tab.value = tab
+        if (tab != SearchTab.COMPONENTS) selection.value = Selection()
+    }
+
+    /** Searches the apps of [user]; a selection of another user's components ends. */
+    fun selectUser(user: UserId) {
+        selectedUsers.select(user)
+        if (selectedUsers.selectedUser.value == user) selection.value = Selection()
+    }
+
+    /** Reads every app of the selected user into the cache again, as a pull to refresh asks. */
+    fun refreshComponents() {
+        componentIndex.reindex(selectedUsers.selectedUser.value)
+    }
+
+    /** Asks for root or Shizuku access, which may show a prompt. */
+    fun grantAccess() = viewModelScope.launch {
+        if (channel.connect() !is ChannelState.Ready) Timber.i("Access was not granted from the search")
+    }
+
+    /**
+     * Reads the service counts of [app] for its row. The caller cancels this when the row leaves
+     * the screen; a short wait first keeps rows that only scroll past from reading anything.
+     */
+    suspend fun countServices(app: AppKey) {
+        if (app in serviceCounts.value) return
+        delay(SHOWN_BEFORE_COUNTING_MILLIS)
+        val counts = countAppServices(app) ?: return
+        serviceCounts.update { it + (app to counts) }
+    }
+
+    /** Runs [action] on [app], as the app list does, and tells a failure. */
+    fun perform(action: AppAction, app: AppKey) = viewModelScope.launch {
+        val label = installedApps.app(app).first()?.label ?: app.packageName
+        val failure = performAppAction(app, action)
+        analyticsHelper.logAppAction(action)
+        if (failure != null) tell(SearchMessage.AppFailed(AppActionFailed(action, label, failure)))
+        // Counted again when the row is next shown, as the action may have stopped services.
+        serviceCounts.update { it - app }
+        readRunning(app.userId)
+    }
+
+    fun setSelectionMode(enabled: Boolean) {
+        selection.value = if (enabled) currentSelection().copy(active = true) else Selection()
+    }
+
+    /** Selects every component found in [app], or deselects them when all are selected. */
+    fun toggleSelectedApp(app: AppKey) = toggleAll(foundComponents().filter { it.packageName == app.packageName })
+
+    /** Selects every component found, or deselects them when all are selected. */
+    fun toggleSelectAll() = toggleAll(foundComponents())
+
+    /** Blocks the selected components through the layers of the controller type; one message tells how it ended. */
+    fun blockSelected() = startBatch(ControlGoal.BLOCK)
+
+    /**
+     * Removes every block of the selected components, through every layer; one message tells how
+     * it ended. Components the app ships disabled stay as they are, as with a batch in the app's
+     * detail screen.
+     */
+    fun enableSelected() = startBatch(ControlGoal.UNBLOCK)
+
+    fun onMessageShown(id: Long) {
+        queued.update { messages -> messages.filterNot { it.id == id } }
+    }
+
+    private fun toggleAll(ids: List<ComponentId>) {
+        val current = currentSelection()
+        selection.value = current.copy(ids = if (current.ids.containsAll(ids)) current.ids - ids.toSet() else current.ids + ids)
+    }
+
+    /** The selection of the selected user; one made for another user has ended. */
+    private fun currentSelection(): Selection {
+        val user = selectedUsers.selectedUser.value
+        return selection.value.takeIf { it.user == user } ?: Selection(user = user)
+    }
+
+    private fun foundComponents(): List<ComponentId> = (uiState.value.results as? SearchResults.Loaded)?.components.orEmpty().flatMap { group -> group.components.map { it.id } }
+
+    /**
+     * Sends the selection as one batch through [batches], so it ends even when the screen goes
+     * away. Selection mode ends at once; the batch counts as running from the moment it is
+     * chosen, before the cache and the settings are read, and nothing starts while another batch
+     * of the search runs for the user. The batch acts on the user the selection was made for, and
+     * not at all once another user is selected, so it never reaches components not chosen there.
+     */
+    private fun startBatch(goal: ControlGoal) {
+        val chosen = selection.value
+        selection.value = Selection()
+        val user = chosen.user ?: return
+        if (user != selectedUsers.selectedUser.value) {
+            Timber.i("The selection was made for user ${user.value}, which is no longer selected; nothing is changed")
             return
         }
-        _searchUiState.update { it.copy(keyword = keyword) }
-        val searchAppFlow = searchAppList(keyword)
-        val searchComponentFlow: Flow<List<FilteredComponent>> =
-            componentRepository.searchComponent(keyword)
-                .map { list ->
-                    list.groupBy { it.packageName }
-                        .toSortedMap()
-                        .map MapToUiModel@{ (packageName, componentList) ->
-                            // Map to UI model
-                            val app = appRepository.getApplication(packageName).first()
-                                ?: return@MapToUiModel null
-                            if (!userDataRepository.userData.first().showSystemApps) {
-                                if (app.isSystem) {
-                                    // If user doesn't want to show system apps, skip it
-                                    return@MapToUiModel null
-                                }
-                            }
-                            Timber.v("Found ${componentList.size} components for $packageName")
-                            FilteredComponent(
-                                app = app.toAppItem(
-                                    packageInfo = pm.getPackageInfoCompat(packageName, 0),
-                                ),
-                                activity = componentList
-                                    .filter { it.type == ACTIVITY },
-                                service = componentList
-                                    .filter { it.type == SERVICE },
-                                receiver = componentList
-                                    .filter { it.type == RECEIVER },
-                                provider = componentList
-                                    .filter { it.type == PROVIDER },
-                            )
-                        }
-                        .filterNotNull()
-                }
-
-        val searchGeneralRuleFlow = searchRule(keyword)
-        val searchFlow = combine(
-            searchAppFlow,
-            searchComponentFlow,
-            searchGeneralRuleFlow,
-        ) { apps, components, rules ->
-            filterComponentList.clear()
-            filterComponentList.addAll(components)
-            Timber.v("Find ${apps.size} apps, ${components.size} components, ${rules.size} rules")
-            val matchedRules = rules.filter { it.matchedAppCount > 0 }
-            val unmatchedRules = rules.filter { it.matchedAppCount == 0 }
-            LocalSearchUiState.Success(
-                searchKeyword = keyword.split(","),
-                appTabUiState = AppTabUiState(
-                    list = apps,
-                    selectedPackageName = selectedPackageName.value,
-                ),
-                componentTabUiState = ComponentTabUiState(
-                    list = components,
-                    selectedPackageName = selectedPackageName.value,
-                ),
-                ruleTabUiState = RuleTabUiState(
-                    matchedRules = matchedRules,
-                    unmatchedRules = unmatchedRules,
-                    selectedRuleId = selectedRuleId.value,
-                ),
-            )
-        }
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            searchFlow.flowOn(ioDispatcher)
-                .onStart {
-                    _localSearchUiState.emit(LocalSearchUiState.Loading)
-                }
-                .collect { searchResult ->
-                    _localSearchUiState.emit(searchResult)
-                    val ruleCount = searchResult.ruleTabUiState.matchedRules.size +
-                        searchResult.ruleTabUiState.unmatchedRules.size
-                    _tabState.update {
-                        it.copy(
-                            items = listOf(
-                                SearchScreenTabs.App(
-                                    count = searchResult.appTabUiState.list.size,
-                                ),
-                                SearchScreenTabs.Component(
-                                    count = searchResult.componentTabUiState.list.size,
-                                ),
-                                SearchScreenTabs.Rule(
-                                    count = ruleCount,
-                                ),
-                            ),
-                        )
-                    }
-                }
-        }
-    }
-
-    /** Reports progress to [action] as processed and total component counts, and how many failed. */
-    fun controlAllSelectedComponents(enable: Boolean, action: (current: Int, total: Int, failed: Int) -> Unit) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            var current = 0
-            var failed = 0
-            val list = searchUiState.value.selectedComponentList
-            componentRepository.batchControlComponent(
-                components = list,
-                newState = enable,
-            )
-                .catch { exception ->
-                    _errorState.emit(exception.toErrorMessage())
-                }
-                .onCompletion {
-                    switchSelectedMode(false)
-                }
-                .collect { result ->
-                    if (!result.succeeded) failed++
-                    action(++current, list.size, failed)
-                }
-        }
-    }
-
-    fun dismissAlert() = viewModelScope.launch {
-        _errorState.emit(null)
-    }
-
-    fun switchSelectedMode(value: Boolean) {
-        // Clear list when exit from selectedMode
-        if (!value) {
-            _searchUiState.update {
-                it.copy(selectedAppList = listOf(), selectedComponentList = listOf())
+        val ids = chosen.ids.toList()
+        if (ids.isEmpty()) return
+        val run = batches.reserve(BatchKey.Search(user), goal, ids) ?: return
+        analyticsHelper.logBatchOperationPerformed(enable = goal != ControlGoal.BLOCK)
+        viewModelScope.launch {
+            var started = false
+            try {
+                val statuses = cachedStatuses(user, ids)
+                val vanished = (ids - statuses.mapTo(mutableSetOf()) { it.declaration.id }).map { ComponentKey(it, user) }
+                batches.start(run, statuses.map { it.declaration }, layersFor(goal))
+                started = true
+                tell(SearchMessage.Control(batchSummary(run.outcomes.await(), vanished)))
+            } finally {
+                if (!started) batches.release(run)
             }
         }
-        _searchUiState.update {
-            it.copy(isSelectedMode = value)
-        }
     }
 
-    fun selectItem(item: FilteredComponent) {
-        val selectedList: MutableList<FilteredComponent> =
-            _searchUiState.value.selectedAppList.toMutableList()
-        selectedList.add(item)
-        _searchUiState.update {
-            it.copy(selectedAppList = selectedList)
-        }
-        transferToComponentInfoList()
-    }
-
-    fun deselectItem(item: FilteredComponent) {
-        val selectedList: MutableList<FilteredComponent> =
-            _searchUiState.value.selectedAppList.toMutableList()
-        selectedList.remove(item)
-        _searchUiState.update {
-            it.copy(selectedAppList = selectedList)
-        }
-        transferToComponentInfoList()
-    }
-
-    fun selectAll() {
-        val selectedAll = _searchUiState.value.selectedAppList.size == filterComponentList.size
-        // if selectedAll == true, deselect all
-        if (selectedAll) {
-            _searchUiState.update {
-                it.copy(selectedAppList = listOf())
-            }
-        } else {
-            _searchUiState.update {
-                it.copy(selectedAppList = filterComponentList)
+    private suspend fun cachedStatuses(user: UserId, ids: List<ComponentId>): List<ComponentStatus> {
+        val cached = ids.map { it.packageName }.distinct()
+            .flatMap { packageName -> componentStatuses.components(AppKey(packageName, user)).first() }
+            .associateBy { it.declaration.id }
+        return ids.mapNotNull { id ->
+            cached[id] ?: run {
+                Timber.w("$id is no longer cached for user ${user.value}, tell it as not found")
+                null
             }
         }
-        transferToComponentInfoList()
     }
 
-    private fun transferToComponentInfoList(): List<ComponentInfo> {
-        val list = mutableListOf<ComponentInfo>()
-        if (_searchUiState.value.selectedAppList.isNotEmpty()) {
-            _searchUiState.value.selectedAppList.forEach { filteredComponent ->
-                list.addAll(filteredComponent.activity)
-                list.addAll(filteredComponent.service)
-                list.addAll(filteredComponent.receiver)
-                list.addAll(filteredComponent.provider)
-            }
-        }
-        _searchUiState.update {
-            it.copy(selectedComponentList = list)
-        }
-        return list
+    private suspend fun readRunning(user: UserId) {
+        val packages = readRunningPackages(user)
+        running.update { if (packages != null) it + (user to packages) else it - user }
     }
 
-    fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        getAppController().first()
-            .clearCache(packageName)
-        analyticsHelper.logClearCacheClicked()
+    private fun tell(message: SearchMessage) {
+        queued.update { it + QueuedSearchMessage(nextMessageId++, message) }
     }
 
-    fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        val action: () -> Unit = {
-            viewModelScope.launch(ioDispatcher + exceptionHandler) {
-                getAppController().first().clearData(packageName)
-                analyticsHelper.logClearDataClicked()
-            }
-        }
-        val label = appRepository.getApplication(packageName)
-            .flowOn(ioDispatcher)
-            .first()
-            ?.label
-            ?: packageName
-        val data = WarningDialogData(
-            title = label,
-            message = uiString.core_ui_do_you_want_to_clear_data_of_this_app,
-            onPositiveButtonClicked = action,
-        )
-        _warningState.emit(data)
+    private fun appResults(user: UserId, keyword: String) = combine(
+        installedApps.search(user, keyword),
+        running.map { it[user] }.distinctUntilChanged(),
+        serviceCounts,
+        userDataRepository.userData,
+    ) { apps, running, counts, preferences -> appRows(apps, running, counts, preferences, self) to preferences.showServiceInfo }
+
+    private fun componentResults(user: UserId, keyword: String) = combine(
+        componentStatuses.search(user, keyword),
+        installedApps.apps(user),
+        userDataRepository.userData.map { it.showSystemApps }.distinctUntilChanged(),
+    ) { found, apps, showSystemApps -> componentGroups(found, apps, showSystemApps, self) }
+
+    /** Components chosen in selection mode, of the [user] selected when the selection began. */
+    private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet(), val user: UserId? = null)
+
+    private data class Activity(
+        val batch: ProcessingProgress?,
+        val inFlight: Set<ComponentId>,
+        val index: IndexState,
+    )
+
+    private data class Controls(
+        val selection: Selection,
+        val activity: Activity,
+        val messages: List<QueuedSearchMessage>,
+    )
+
+    /** Whether the privileged channel's first access check has ended, and with what access. */
+    private sealed interface Access {
+        data object Unchecked : Access
+        data object None : Access
+        data class Ready(val identity: PrivilegedIdentity) : Access
     }
 
-    fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        getAppController().first()
-            .forceStop(packageName)
-        analyticsHelper.logForceStopClicked()
+    private fun accessOf(state: ChannelState): Access = when (state) {
+        is ChannelState.Ready -> Access.Ready(state.identity)
+        is ChannelState.Unavailable -> if (state.reason == UnavailableReason.NOT_CHECKED) Access.Unchecked else Access.None
     }
 
-    fun uninstall(packageName: String) = viewModelScope.launch {
-        val action: () -> Unit = {
-            viewModelScope.launch(ioDispatcher + exceptionHandler) {
-                val app = packageInfoDataSource.getApplicationComponents(packageName)
-                val versionCode = app.getVersionCode()
-                getAppController().first().uninstallApp(packageName, versionCode)
-                notifyAppUpdated(packageName)
-                analyticsHelper.logUninstallAppClicked()
-            }
-        }
-        val label = appRepository.getApplication(packageName)
-            .flowOn(ioDispatcher)
-            .first()
-            ?.label
-            ?: packageName
-        val data = WarningDialogData(
-            title = label,
-            message = uiString.core_ui_do_you_want_to_uninstall_this_app,
-            onPositiveButtonClicked = action,
-        )
-        _warningState.emit(data)
-    }
-
-    fun enable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        getAppController().first()
-            .enable(packageName)
-        notifyAppUpdated(packageName)
-        analyticsHelper.logEnableAppClicked()
-    }
-
-    fun disable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        getAppController().first()
-            .disable(packageName)
-        notifyAppUpdated(packageName)
-        analyticsHelper.logDisableAppClicked()
-    }
-
-    private suspend fun notifyAppUpdated(packageName: String) {
-        appRepository.updateApplication(packageName)
-            .takeWhile { it !is Result.Success }
-            .collect {
-                if (it is Result.Error) {
-                    _errorState.emit(it.exception.toErrorMessage())
-                }
-            }
-        Timber.v("App updated: $packageName")
-    }
-
-    fun dismissWarningDialog() = viewModelScope.launch {
-        _warningState.emit(null)
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(
-            @Assisted("packageName") packageName: String? = null,
-            @Assisted("ruleId") ruleId: String? = null,
-        ): SearchViewModel
+    private companion object {
+        const val TYPING_PAUSE_MILLIS = 300L
+        const val SHOWN_BEFORE_COUNTING_MILLIS = 300L
     }
 }
-
-sealed interface LocalSearchUiState {
-    class Initializing(val processingName: String) : LocalSearchUiState
-    data object Idle : LocalSearchUiState
-    data object Loading : LocalSearchUiState
-    data class Success(
-        val searchKeyword: List<String> = listOf(),
-        val appTabUiState: AppTabUiState = AppTabUiState(),
-        val componentTabUiState: ComponentTabUiState = ComponentTabUiState(),
-        val ruleTabUiState: RuleTabUiState = RuleTabUiState(),
-    ) : LocalSearchUiState
-
-    class Error(val uiMessage: UiMessage) : LocalSearchUiState
-}
-
-data class AppTabUiState(
-    val list: List<AppItem> = listOf(),
-    val selectedPackageName: String? = null,
-)
-
-data class ComponentTabUiState(
-    val list: List<FilteredComponent> = listOf(),
-    val selectedPackageName: String? = null,
-)
-
-data class RuleTabUiState(
-    val matchedRules: List<GeneralRule> = listOf(),
-    val unmatchedRules: List<GeneralRule> = listOf(),
-    val selectedRuleId: String? = null,
-)
-
-data class SearchUiState(
-    val keyword: String = "",
-    val isSelectedMode: Boolean = false,
-    val selectedAppList: List<FilteredComponent> = listOf(),
-    val selectedComponentList: List<ComponentInfo> = listOf(),
-)

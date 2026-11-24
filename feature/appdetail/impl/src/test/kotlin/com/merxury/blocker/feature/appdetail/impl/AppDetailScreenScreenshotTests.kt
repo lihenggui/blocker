@@ -103,20 +103,6 @@ class AppDetailScreenScreenshotTests {
     )
 
     @Test
-    fun banners() = capture(
-        "AppDetailScreenBanners",
-        header,
-        list(AppDetailTabs.Activity).copy(banners = listOf(ModeBanner.NEEDS_ROOT, ModeBanner.FIREWALL_UNAVAILABLE)),
-    )
-
-    @Test
-    fun noAccessBanner() = capture(
-        "AppDetailScreenNoAccess",
-        header,
-        list(AppDetailTabs.Service).copy(banners = listOf(ModeBanner.NO_ACCESS)),
-    )
-
-    @Test
     fun batchProgress() = capture(
         "AppDetailScreenBatchProgress",
         header,
@@ -166,7 +152,7 @@ class AppDetailScreenScreenshotTests {
 
     @Test
     fun rowStates() {
-        // Every state a row can show, the last one with its change in flight.
+        // Rows on and off, a running service, and the last one with its change in flight.
         val rows = previewActivityRows.drop(1) + previewServiceRows.first() + previewActivityRows.first()
         val content = @Composable {
             BlockerTheme {

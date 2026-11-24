@@ -33,25 +33,5 @@
     <string name="feature_applist_api_none">None</string>
     <string name="feature_applist_api_running_apps">Running apps</string>
     <string name="feature_applist_api_disabled_apps">Disabled apps</string>
-    <string name="feature_applist_api_profile_personal">Personal</string>
-    <string name="feature_applist_api_profile_work">Work</string>
-    <string name="feature_applist_api_profile_user">User %1$d</string>
-    <string name="feature_applist_api_profile_not_running">Not running</string>
-    <string name="feature_applist_api_refresh_failed">Couldn\'t refresh the app list. Showing the last saved list.</string>
-    <string name="feature_applist_api_retry">Retry</string>
     <string name="feature_applist_api_load_failed">Couldn\'t load the app list. Pull down to try again.</string>
-    <string name="feature_applist_api_clear_data_confirm">Do you want to clear the data of this app? While clearing, Android also stops the app in every user and profile on this device.</string>
-    <string name="feature_applist_api_uninstall_for_profile_confirm">Do you want to uninstall this app from %1$s? Other users and profiles that have the app keep it. The app leaves the device when no user has it.</string>
-    <string name="feature_applist_api_enable_failed">Couldn\'t enable %1$s</string>
-    <string name="feature_applist_api_disable_failed">Couldn\'t disable %1$s</string>
-    <string name="feature_applist_api_force_stop_failed">Couldn\'t force stop %1$s</string>
-    <string name="feature_applist_api_clear_cache_failed">Couldn\'t clear the cache of %1$s</string>
-    <string name="feature_applist_api_clear_data_failed">Couldn\'t clear the data of %1$s</string>
-    <string name="feature_applist_api_uninstall_failed">Couldn\'t uninstall %1$s</string>
-    <string name="feature_applist_api_reason_no_access">Grant Blocker root or Shizuku access, then try again.</string>
-    <string name="feature_applist_api_reason_needs_root">Needs root. Shizuku started through adb can\'t do this.</string>
-    <string name="feature_applist_api_reason_not_permitted">The system doesn\'t allow this with the current access mode.</string>
-    <string name="feature_applist_api_reason_not_found">The app is no longer installed for this user.</string>
-    <string name="feature_applist_api_reason_system_error">The system reported an error: %1$s</string>
-    <string name="feature_applist_api_reason_system_error_unknown">The system reported an error.</string>
 </resources>

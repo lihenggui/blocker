@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.profile.ProfileLabel
+import com.merxury.blocker.core.ui.profile.ProfileTab
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -221,7 +222,7 @@ class AppListViewModelTest {
     }
 
     @Test
-    fun givenCachedApps_whenRefreshFails_thenCachedListKeptWithFailure() = runTest {
+    fun givenCachedApps_whenRefreshFails_thenCachedListKept() = runTest {
         fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A")))
         fixture.installedApps.refreshFailure = ReadFailure.ChannelUnavailable
         collectState()
@@ -230,12 +231,11 @@ class AppListViewModelTest {
 
         val state = viewModel.uiState.value
         assertThat(fixture.rows().map { it.label }).containsExactly("A")
-        assertThat(state.refreshFailure).isEqualTo(ReadFailure.ChannelUnavailable)
         assertThat(state.isRefreshing).isFalse()
     }
 
     @Test
-    fun givenFailedRefresh_whenRefreshSucceeds_thenFailureCleared() = runTest {
+    fun givenFailedRefresh_whenRefreshedAgain_thenTheUsersAndAppsAreReadAgain() = runTest {
         fixture.installedApps.sendApps(listOf(installedApp("com.a")))
         fixture.installedApps.refreshFailure = ReadFailure.ChannelUnavailable
         collectState()
@@ -244,7 +244,6 @@ class AppListViewModelTest {
         fixture.installedApps.refreshFailure = null
         viewModel.refresh()
 
-        assertThat(viewModel.uiState.value.refreshFailure).isNull()
         assertThat(fixture.installedApps.calls).containsExactly("refresh 0", "refresh 0")
         assertThat(fixture.deviceUsers.refreshCount).isEqualTo(2)
     }

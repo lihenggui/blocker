@@ -22,23 +22,18 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.Availability
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentStatus
-import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
-import com.merxury.blocker.core.model.control.blockLayers
-import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import com.merxury.blocker.core.model.privileged.ChannelState
-import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
-import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.component.isSwitchOn
 import java.io.File
 
 /** The app a detail screen shows: [packageName] for [userId], or for the user Blocker runs in when null. */
@@ -48,27 +43,14 @@ internal fun SelectedUserRepository.appKeyOf(packageName: String, userId: Int?):
  * The row for [this] component, from what the repository holds and nothing else.
  *
  * @param running the running services of the app, or null when they cannot be read
- * @param firewallReadable whether the current mode can read Intent Firewall rules at all
  */
-internal fun ComponentStatus.toRow(description: String?, running: Set<ComponentId>?, firewallReadable: Boolean): ComponentRow {
-    val id = declaration.id
-    val filtered = declaration.type.isFilteredByIntentFirewall
-    return when (val availability = availability) {
-        Availability.Runnable, Availability.Conditional -> ComponentRow(id, declaration.type, SwitchState.ON)
-        is Availability.Blocked -> ComponentRow(id, declaration.type, SwitchState.OFF, blockedBy = availability.reasons)
-        Availability.Unknown -> ComponentRow(id, declaration.type, SwitchState.UNKNOWN, unknownCause = unknownCause(firewallReadable))
-    }.copy(
-        conditional = filtered && state.ifw == IfwBlock.CONDITIONAL,
-        isRunning = running?.contains(id) == true,
-        description = description,
-    )
-}
-
-private fun ComponentStatus.unknownCause(firewallReadable: Boolean): UnknownCause = when {
-    state.pm == PmSetting.UNKNOWN -> UnknownCause.PM_UNREADABLE
-    !firewallReadable -> UnknownCause.NO_FIREWALL_ACCESS
-    else -> UnknownCause.RULES_UNREADABLE
-}
+internal fun ComponentStatus.toRow(description: String?, running: Set<ComponentId>?): ComponentRow = ComponentRow(
+    id = declaration.id,
+    type = declaration.type,
+    enabled = isSwitchOn,
+    isRunning = running?.contains(declaration.id) == true,
+    description = description,
+)
 
 /** [rows] by type, each sorted as the user chose, running services first. */
 internal fun appComponents(rows: List<ComponentRow>, preferences: UserPreferenceData): AppComponents {
@@ -90,8 +72,8 @@ private fun List<ComponentRow>.sortedFor(preferences: UserPreferenceData): List<
     val ordered = sortedWith(if (preferences.componentSortingOrder == SortingOrder.ASCENDING) byName else byName.reversed())
     return when (preferences.componentShowPriority) {
         ComponentShowPriority.NONE -> ordered
-        ComponentShowPriority.DISABLED_COMPONENTS_FIRST -> ordered.sortedBy { it.switch == SwitchState.ON }
-        ComponentShowPriority.ENABLED_COMPONENTS_FIRST -> ordered.sortedByDescending { it.switch == SwitchState.ON }
+        ComponentShowPriority.DISABLED_COMPONENTS_FIRST -> ordered.sortedBy { it.enabled }
+        ComponentShowPriority.ENABLED_COMPONENTS_FIRST -> ordered.sortedByDescending { it.enabled }
     }
 }
 
@@ -151,14 +133,4 @@ internal fun tabsOf(components: ComponentsUiState, rules: MatchedRulesUiState, r
         }
     }
     return TabState(items = visible, selectedItem = requested.takeIf { it in visible } ?: AppDetailTabs.Info, itemCount = counts)
-}
-
-/** The limits of the current mode to show above the lists. Nothing until the channel has been checked. */
-internal fun bannersOf(channel: ChannelState, firewallReadable: Boolean, controllerType: ControllerType): List<ModeBanner> = when (channel) {
-    is ChannelState.Unavailable -> if (channel.reason == UnavailableReason.NOT_CHECKED) emptyList() else listOf(ModeBanner.NO_ACCESS)
-
-    is ChannelState.Ready -> buildList {
-        if (channel.identity == PrivilegedIdentity.SHELL) add(ModeBanner.NEEDS_ROOT)
-        if (!firewallReadable && ControlLayer.INTENT_FIREWALL in controllerType.blockLayers) add(ModeBanner.FIREWALL_UNAVAILABLE)
-    }
 }

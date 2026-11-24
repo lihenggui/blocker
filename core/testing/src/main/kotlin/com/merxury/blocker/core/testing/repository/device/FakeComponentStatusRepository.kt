@@ -38,6 +38,7 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -76,6 +77,15 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
     /** The apps [refresh] received, in order. */
     val refreshedApps = mutableListOf<AppKey>()
 
+    /** The users [refreshAll] was collected for, in order. */
+    val refreshedUsers = mutableListOf<UserId>()
+
+    /**
+     * When set, [refreshAll] emits what this gives for the user instead of failing or counting, so a test
+     * can hold an indexing open and change the cache while it runs.
+     */
+    var refreshAllProgress: ((UserId) -> Flow<RefreshProgress>)? = null
+
     /** The components recorded as disabled by Blocker through PackageManager. */
     val recorded = mutableSetOf<ComponentKey>()
 
@@ -101,6 +111,11 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
     }
 
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {
+        refreshedUsers += user
+        refreshAllProgress?.let { progress ->
+            emitAll(progress(user))
+            return@flow
+        }
         refreshFailure?.let {
             emit(RefreshProgress.Finished(total = 0, failed = 0, appListFailure = it))
             return@flow

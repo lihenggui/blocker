@@ -19,10 +19,6 @@ package com.merxury.blocker.feature.search.api.navigation
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
+/** The search of apps, components and general rules. */
 @Serializable
-data class SearchNavKey(
-    val packageName: String? = null,
-    val tab: String? = null,
-    val searchKeyword: List<String> = listOf(),
-    val ruleId: String? = null,
-) : NavKey
+data object SearchNavKey : NavKey

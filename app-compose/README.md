@@ -178,6 +178,7 @@ graph TB
   :feature:applist:impl -.-> :core:component-controller
   :feature:applist:impl -.-> :core:data
   :feature:applist:impl -.-> :core:designsystem
+  :feature:applist:impl -.-> :core:domain
   :feature:applist:impl -.-> :core:ui
   :feature:applist:impl -.-> :feature:appdetail:api
   :feature:applist:impl -.-> :feature:applist:api

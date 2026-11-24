@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.appdetail.impl
 
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.AppDetailTabs
@@ -31,7 +30,6 @@ import java.io.File
  * before the first. [ReadFailure.PackageNotFound] means the app is not installed for the user.
  * @property accessCheckFailed whether nothing could be read because the privileged channel's first
  * access check did not settle
- * @property banners limits of the current mode, shown once above the lists
  * @property message something to tell once; see [ComponentListViewModel.onMessageShown]
  */
 data class ComponentListUiState(
@@ -45,7 +43,6 @@ data class ComponentListUiState(
     val isRefreshing: Boolean = false,
     val refreshFailure: ReadFailure? = null,
     val accessCheckFailed: Boolean = false,
-    val banners: List<ModeBanner> = emptyList(),
     val message: ListMessage? = null,
 )
 
@@ -83,45 +80,16 @@ data class AppComponents(
     }
 }
 
-/** Where a component's switch stands. */
-enum class SwitchState {
-    /** The component can run, perhaps limited by a conditional rule. */
-    ON,
-
-    /** Something blocks the component. */
-    OFF,
-
-    /** Nothing known blocks it, but part of its state could not be read. */
-    UNKNOWN,
-}
-
-/** Why the state of a component cannot be told. */
-enum class UnknownCause {
-    /** Its PackageManager setting for the user could not be read. */
-    PM_UNREADABLE,
-
-    /** The current mode cannot read Intent Firewall rules. */
-    NO_FIREWALL_ACCESS,
-
-    /** The app's Intent Firewall rule file could not be read, for example because it is damaged. */
-    RULES_UNREADABLE,
-}
-
 /**
  * One component as the cache holds it.
  *
- * @property blockedBy every known reason it cannot start; empty unless [switch] is OFF
- * @property conditional whether a conditional Intent Firewall rule names it
- * @property unknownCause why [switch] is UNKNOWN; null otherwise
+ * @property enabled whether its switch shows on, see [com.merxury.blocker.core.ui.component.isSwitchOn]
  * @property isRunning whether the service runs; false when that cannot be read
  */
 data class ComponentRow(
     val id: ComponentId,
     val type: ComponentType,
-    val switch: SwitchState,
-    val blockedBy: Set<BlockReason> = emptySet(),
-    val conditional: Boolean = false,
-    val unknownCause: UnknownCause? = null,
+    val enabled: Boolean,
     val isRunning: Boolean = false,
     val description: String? = null,
 )
@@ -140,29 +108,11 @@ data class MatchedRule(
     val rows: List<ComponentRow>,
 )
 
-/** A limit of the current mode that applies to every component, shown once. */
-enum class ModeBanner {
-    /** Blocker has no root or Shizuku access; it can be granted from the banner. */
-    NO_ACCESS,
-
-    /** Shizuku runs as the shell, which may change components of test-only apps only. */
-    NEEDS_ROOT,
-
-    /** The controller type uses the Intent Firewall, which the current mode cannot read or change. */
-    FIREWALL_UNAVAILABLE,
-}
-
 sealed interface ListMessage {
     /** A refresh failed; the rows shown are the ones cached before. */
     data class RefreshFailed(val reason: ReadFailure) : ListMessage
 
     data class LaunchFailed(val name: String, val reason: ActionFailure) : ListMessage
-
-    /** The system accepted the start, but an Intent Firewall rule blocks the activity. */
-    data class LaunchBlockedByRule(val name: String) : ListMessage
-
-    /** The system accepted the start, but a conditional Intent Firewall rule may block it. */
-    data class LaunchMayBeBlocked(val name: String) : ListMessage
 
     data class StopFailed(val name: String, val reason: ActionFailure) : ListMessage
 

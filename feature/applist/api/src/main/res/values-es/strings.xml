@@ -31,25 +31,5 @@
     <string name="feature_applist_api_none">Ninguno</string>
     <string name="feature_applist_api_running_apps">Aplicaciones en ejecución</string>
     <string name="feature_applist_api_disabled_apps">Aplicaciones deshabilitadas</string>
-    <string name="feature_applist_api_profile_personal">Personal</string>
-    <string name="feature_applist_api_profile_work">Trabajo</string>
-    <string name="feature_applist_api_profile_user">Usuario %1$d</string>
-    <string name="feature_applist_api_profile_not_running">Detenido</string>
-    <string name="feature_applist_api_refresh_failed">No se pudo actualizar la lista de aplicaciones. Se muestra la última lista guardada.</string>
-    <string name="feature_applist_api_retry">Reintentar</string>
     <string name="feature_applist_api_load_failed">No se pudo cargar la lista de aplicaciones. Desliza hacia abajo para intentarlo de nuevo.</string>
-    <string name="feature_applist_api_clear_data_confirm">¿Quieres borrar los datos de esta aplicación? Mientras se borran, Android también detiene la aplicación en todos los usuarios y perfiles de este dispositivo.</string>
-    <string name="feature_applist_api_uninstall_for_profile_confirm">¿Quieres desinstalar esta aplicación de %1$s? Los demás usuarios y perfiles que la tienen la conservan. La aplicación sale del dispositivo cuando ningún usuario la tiene.</string>
-    <string name="feature_applist_api_enable_failed">No se pudo habilitar %1$s</string>
-    <string name="feature_applist_api_disable_failed">No se pudo deshabilitar %1$s</string>
-    <string name="feature_applist_api_force_stop_failed">No se pudo forzar la detención de %1$s</string>
-    <string name="feature_applist_api_clear_cache_failed">No se pudo borrar la caché de %1$s</string>
-    <string name="feature_applist_api_clear_data_failed">No se pudieron borrar los datos de %1$s</string>
-    <string name="feature_applist_api_uninstall_failed">No se pudo desinstalar %1$s</string>
-    <string name="feature_applist_api_reason_no_access">Concede a Blocker acceso root o de Shizuku y vuelve a intentarlo.</string>
-    <string name="feature_applist_api_reason_needs_root">Requiere root. Shizuku iniciado mediante adb no puede hacer esto.</string>
-    <string name="feature_applist_api_reason_not_permitted">El sistema no lo permite con el modo de acceso actual.</string>
-    <string name="feature_applist_api_reason_not_found">La aplicación ya no está instalada para este usuario.</string>
-    <string name="feature_applist_api_reason_system_error">El sistema informó de un error: %1$s</string>
-    <string name="feature_applist_api_reason_system_error_unknown">El sistema informó de un error.</string>
 </resources>

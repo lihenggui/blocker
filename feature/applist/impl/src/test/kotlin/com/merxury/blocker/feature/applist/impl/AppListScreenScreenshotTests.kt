@@ -25,8 +25,9 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
+import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.profile.ProfileLabel
-import com.merxury.blocker.feature.applist.impl.component.previewAppRows
+import com.merxury.blocker.core.ui.profile.ProfileTab
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -80,12 +81,6 @@ class AppListScreenScreenshotTests {
     fun appListScreen_error() = captureWithDark(
         "AppListScreenError",
         ownApps.copy(apps = AppsUiState.Error(ReadFailure.ChannelUnavailable)),
-    )
-
-    @Test
-    fun appListScreen_refreshFailed() = captureWithDark(
-        "AppListScreenRefreshFailed",
-        ownApps.copy(refreshFailure = ReadFailure.ChannelUnavailable),
     )
 
     @Test

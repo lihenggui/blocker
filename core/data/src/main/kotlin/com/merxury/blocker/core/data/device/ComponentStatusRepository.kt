@@ -126,6 +126,10 @@ interface ComponentStatusRepository {
      * [ControlLayer.PACKAGE_MANAGER] records the component when it reads back
      * [PmSetting.DISABLED], and any request drops the record of a component that reads back
      * DEFAULT or ENABLED. [PmSetting.UNKNOWN] changes no record.
+     *
+     * A [ControlGoal.BLOCK] never reaches Blocker's own components in the user Blocker runs in:
+     * they end [com.merxury.blocker.core.model.control.ControlResult.FAILED] as not permitted,
+     * without a change and with the cached state, and count as failed in the last event.
      */
     fun control(request: ControlRequest): Flow<ControlEvent>
 

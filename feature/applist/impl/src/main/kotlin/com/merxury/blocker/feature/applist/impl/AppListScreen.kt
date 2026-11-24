@@ -20,11 +20,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -36,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,30 +49,32 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.model.system.AppAction
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
+import com.merxury.blocker.core.ui.applist.AppActionConfirmDialog
+import com.merxury.blocker.core.ui.applist.AppRow
+import com.merxury.blocker.core.ui.applist.AppRowList
+import com.merxury.blocker.core.ui.applist.PendingConfirmation
+import com.merxury.blocker.core.ui.applist.PendingConfirmationSaver
+import com.merxury.blocker.core.ui.applist.needsAccess
+import com.merxury.blocker.core.ui.applist.needsConfirmation
+import com.merxury.blocker.core.ui.applist.previewAppRows
+import com.merxury.blocker.core.ui.applist.text
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.profile.ProfileSwitcher
 import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.applist.api.R.string
-import com.merxury.blocker.feature.applist.impl.component.AppActionConfirmDialog
 import com.merxury.blocker.feature.applist.impl.component.AppSortBottomSheetRoute
-import com.merxury.blocker.feature.applist.impl.component.PendingConfirmation
-import com.merxury.blocker.feature.applist.impl.component.PendingConfirmationSaver
-import com.merxury.blocker.feature.applist.impl.component.ProfileSwitcher
 import com.merxury.blocker.feature.applist.impl.component.TopAppBarMoreMenu
-import com.merxury.blocker.feature.applist.impl.component.UserAppList
-import com.merxury.blocker.feature.applist.impl.component.needsConfirmation
-import com.merxury.blocker.feature.applist.impl.component.previewAppRows
-import com.merxury.blocker.feature.applist.impl.component.text
+import com.merxury.blocker.core.ui.R.string as uiString
 
 @Composable
 fun AppListScreen(
@@ -89,9 +89,12 @@ fun AppListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) { viewModel.refreshOnAccessChanges() }
     val messageText = uiState.message?.text()
+    val needsAccess = uiState.message?.needsAccess == true
+    val grantLabel = stringResource(uiString.core_ui_grant_access)
     LaunchedEffect(messageText) {
         if (messageText != null) {
-            snackbarHostState.showSnackbar(messageText, duration = SnackbarDuration.Long)
+            val result = snackbarHostState.showSnackbar(messageText, actionLabel = grantLabel.takeIf { needsAccess }, duration = SnackbarDuration.Long)
+            if (result == SnackbarResult.ActionPerformed) viewModel.grantAccess()
             viewModel.onMessageShown()
         }
     }
@@ -245,13 +248,10 @@ private fun AppListContent(
             is AppsUiState.Error -> Pullable { ErrorScreen(UiMessage(stringResource(string.feature_applist_api_load_failed)), it) }
 
             is AppsUiState.Loaded -> Column {
-                if (uiState.refreshFailure != null) {
-                    RefreshFailedBanner(onRetry = onRefresh)
-                }
                 if (apps.apps.isEmpty()) {
                     Pullable { EmptyScreen(textRes = string.feature_applist_api_no_applications_to_display, modifier = it) }
                 } else {
-                    UserAppList(
+                    AppRowList(
                         apps = apps.apps,
                         onAppClick = onAppClick,
                         onAction = onAction,
@@ -284,30 +284,6 @@ private fun Pullable(content: @Composable (Modifier) -> Unit) {
     }
 }
 
-/** Says that the list shown is the cached one because the last refresh failed. */
-@Composable
-private fun RefreshFailedBanner(onRetry: () -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        modifier = Modifier.fillMaxWidth().testTag("appList:refreshFailed"),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-        ) {
-            Text(
-                text = stringResource(string.feature_applist_api_refresh_failed),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f),
-            )
-            BlockerTextButton(onClick = onRetry) {
-                Text(text = stringResource(string.feature_applist_api_retry))
-            }
-        }
-    }
-}
-
 @PreviewThemes
 @Composable
 private fun AppListScreenPreview() {
@@ -318,23 +294,6 @@ private fun AppListScreenPreview() {
                     ownUser = UserId.SYSTEM,
                     selectedUser = UserId.SYSTEM,
                     apps = AppsUiState.Loaded(previewAppRows()),
-                ),
-            )
-        }
-    }
-}
-
-@PreviewThemes
-@Composable
-private fun AppListScreenRefreshFailedPreview() {
-    BlockerTheme {
-        Surface {
-            AppListScreen(
-                uiState = AppListUiState(
-                    ownUser = UserId.SYSTEM,
-                    selectedUser = UserId.SYSTEM,
-                    apps = AppsUiState.Loaded(previewAppRows()),
-                    refreshFailure = ReadFailure.ChannelUnavailable,
                 ),
             )
         }

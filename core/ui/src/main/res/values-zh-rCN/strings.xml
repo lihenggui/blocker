@@ -44,7 +44,6 @@
     <string name="core_ui_service_with_count">服务（%1$d）</string>
     <string name="core_ui_receiver_with_count">广播接收器（%1$d）</string>
     <string name="core_ui_provider_with_count">内容提供者（%1$d）</string>
-    <string name="core_ui_initializing_database">初始化数据</string>
     <string name="core_ui_more_menu">更多</string>
     <string name="core_ui_search_icon">搜索</string>
     <string name="core_ui_block_all_components">禁用所有组件</string>
@@ -76,7 +75,6 @@
     <plurals name="core_ui_operation_completed_with_failures">
         <item quantity="other">操作完成，%1$d 个组件未能更改</item>
     </plurals>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">您想要清除此应用的数据吗？</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">您想要卸载此应用吗？</string>
     <string name="core_ui_found">已找到</string>
     <string name="core_ui_not_found">未找到</string>
@@ -148,4 +146,22 @@
     <string name="core_ui_ifw_sender_signature">Signature</string>
     <string name="core_ui_ifw_sender_system_or_signature">System 或 Signature</string>
     <string name="core_ui_ifw_sender_user_id">同一用户 ID</string>
+    <string name="core_ui_profile_personal">个人</string>
+    <string name="core_ui_profile_work">工作</string>
+    <string name="core_ui_profile_user">用户 %1$d</string>
+    <string name="core_ui_profile_not_running">未运行</string>
+    <string name="core_ui_uninstall_for_profile_confirm">要从“%1$s”中卸载此应用吗？拥有此应用的其他用户和资料会保留它。当没有任何用户拥有此应用时，它才会从设备中移除。</string>
+    <string name="core_ui_enable_app_failed">无法启用 %1$s</string>
+    <string name="core_ui_disable_app_failed">无法禁用 %1$s</string>
+    <string name="core_ui_force_stop_app_failed">无法强制停止 %1$s</string>
+    <string name="core_ui_clear_cache_failed">无法清除 %1$s 的缓存</string>
+    <string name="core_ui_clear_data_failed">无法清除 %1$s 的数据</string>
+    <string name="core_ui_uninstall_app_failed">无法卸载 %1$s</string>
+    <string name="core_ui_reason_no_access">请授予 Blocker Root 或 Shizuku 权限后重试。</string>
+    <string name="core_ui_unknown">未知</string>
+    <string name="core_ui_grant_access">授予权限</string>
+    <string name="core_ui_block_component_failed">无法阻止 %1$s</string>
+    <string name="core_ui_enable_component_failed">无法启用 %1$s</string>
+    <string name="core_ui_grant_failed">Blocker 仍没有 Root 或 Shizuku 权限。</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">您想要清除此应用的数据吗？</string>
 </resources>

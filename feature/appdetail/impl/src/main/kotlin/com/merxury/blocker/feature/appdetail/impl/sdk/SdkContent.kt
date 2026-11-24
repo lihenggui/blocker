@@ -39,11 +39,8 @@ import com.merxury.blocker.core.ui.component.NoComponentScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.appdetail.impl.MatchedRule
 import com.merxury.blocker.feature.appdetail.impl.MatchedRulesUiState
-import com.merxury.blocker.feature.appdetail.impl.ModeBanner
-import com.merxury.blocker.feature.appdetail.impl.SwitchState
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowItem
-import com.merxury.blocker.feature.appdetail.impl.ui.ModeBanners
 import com.merxury.blocker.core.ui.R.string as uiString
 
 /**
@@ -56,14 +53,12 @@ import com.merxury.blocker.core.ui.R.string as uiString
 internal fun SdkContent(
     data: MatchedRulesUiState,
     inFlight: Set<ComponentId>,
-    banners: List<ModeBanner>,
     actions: ComponentRowActions,
     modifier: Modifier = Modifier,
     batchRunning: Boolean = false,
     navigateToRuleDetail: (Int) -> Unit = {},
     onBlockAll: (MatchedRule) -> Unit = {},
     onEnableAll: (MatchedRule) -> Unit = {},
-    onGrantAccess: () -> Unit = {},
 ) {
     when (data) {
         MatchedRulesUiState.Loading -> LoadingScreen()
@@ -75,12 +70,10 @@ internal fun SdkContent(
                 rules = data.rules,
                 inFlight = inFlight,
                 batchRunning = batchRunning,
-                banners = banners,
                 actions = actions,
                 navigateToRuleDetail = navigateToRuleDetail,
                 onBlockAll = onBlockAll,
                 onEnableAll = onEnableAll,
-                onGrantAccess = onGrantAccess,
                 modifier = modifier,
             )
         }
@@ -92,20 +85,15 @@ private fun MatchedRuleList(
     rules: List<MatchedRule>,
     inFlight: Set<ComponentId>,
     batchRunning: Boolean,
-    banners: List<ModeBanner>,
     actions: ComponentRowActions,
     navigateToRuleDetail: (Int) -> Unit,
     onBlockAll: (MatchedRule) -> Unit,
     onEnableAll: (MatchedRule) -> Unit,
-    onGrantAccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var expanded by rememberSaveable { mutableStateOf(emptySet<Int>()) }
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.testTag("app:sdkList"), state = rememberLazyListState()) {
-            if (banners.isNotEmpty()) {
-                item(key = "banners") { ModeBanners(banners = banners, onGrantAccess = onGrantAccess) }
-            }
             rules.forEach { rule ->
                 val isExpanded = rule.id in expanded
                 item(key = rule.id) {
@@ -114,8 +102,8 @@ private fun MatchedRuleList(
                         title = rule.title,
                         icon = rule.icon,
                         matchedCount = rule.rows.size,
-                        blockedCount = rule.rows.count { it.switch == SwitchState.OFF },
-                        enabledCount = rule.rows.count { it.switch == SwitchState.ON },
+                        blockedCount = rule.rows.count { !it.enabled },
+                        enabledCount = rule.rows.count { it.enabled },
                         navigationMenuItemDesc = uiString.core_ui_open_rule_detail,
                         navigation = { navigateToRuleDetail(rule.id) },
                         onBlockAllClick = { onBlockAll(rule) },

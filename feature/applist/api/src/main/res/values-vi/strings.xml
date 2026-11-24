@@ -32,25 +32,5 @@
     <string name="feature_applist_api_none">Không</string>
     <string name="feature_applist_api_running_apps">Ứng dụng đang chạy</string>
     <string name="feature_applist_api_disabled_apps">Ứng dụng đã vô hiệu hóa</string>
-    <string name="feature_applist_api_profile_personal">Cá nhân</string>
-    <string name="feature_applist_api_profile_work">Công việc</string>
-    <string name="feature_applist_api_profile_user">Người dùng %1$d</string>
-    <string name="feature_applist_api_profile_not_running">Không chạy</string>
-    <string name="feature_applist_api_refresh_failed">Không thể làm mới danh sách ứng dụng. Đang hiển thị danh sách đã lưu gần nhất.</string>
-    <string name="feature_applist_api_retry">Thử lại</string>
     <string name="feature_applist_api_load_failed">Không thể tải danh sách ứng dụng. Kéo xuống để thử lại.</string>
-    <string name="feature_applist_api_clear_data_confirm">Bạn có muốn xóa dữ liệu của ứng dụng này không? Trong khi xóa, Android cũng dừng ứng dụng ở mọi người dùng và hồ sơ trên thiết bị này.</string>
-    <string name="feature_applist_api_uninstall_for_profile_confirm">Bạn có muốn gỡ cài đặt ứng dụng này khỏi %1$s không? Những người dùng và hồ sơ khác có ứng dụng này vẫn giữ nó. Ứng dụng chỉ bị xóa khỏi thiết bị khi không còn người dùng nào có nó.</string>
-    <string name="feature_applist_api_enable_failed">Không thể bật %1$s</string>
-    <string name="feature_applist_api_disable_failed">Không thể tắt %1$s</string>
-    <string name="feature_applist_api_force_stop_failed">Không thể buộc dừng %1$s</string>
-    <string name="feature_applist_api_clear_cache_failed">Không thể xóa bộ nhớ đệm của %1$s</string>
-    <string name="feature_applist_api_clear_data_failed">Không thể xóa dữ liệu của %1$s</string>
-    <string name="feature_applist_api_uninstall_failed">Không thể gỡ cài đặt %1$s</string>
-    <string name="feature_applist_api_reason_no_access">Hãy cấp cho Blocker quyền root hoặc Shizuku rồi thử lại.</string>
-    <string name="feature_applist_api_reason_needs_root">Cần root. Shizuku khởi động qua adb không thể làm việc này.</string>
-    <string name="feature_applist_api_reason_not_permitted">Hệ thống không cho phép việc này với chế độ truy cập hiện tại.</string>
-    <string name="feature_applist_api_reason_not_found">Ứng dụng không còn được cài đặt cho người dùng này.</string>
-    <string name="feature_applist_api_reason_system_error">Hệ thống báo lỗi: %1$s</string>
-    <string name="feature_applist_api_reason_system_error_unknown">Hệ thống báo lỗi.</string>
 </resources>

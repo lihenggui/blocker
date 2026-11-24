@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.appdetail.impl.ui
 
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -45,42 +44,34 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.core.ui.component.NoComponentScreen
 import com.merxury.blocker.feature.appdetail.impl.ComponentRow
-import com.merxury.blocker.feature.appdetail.impl.ModeBanner
 
 /**
- * The rows of one component tab below the limits of the current mode. Pulling down refreshes the
- * app; the rows shown meanwhile are the cached ones.
+ * The rows of one component tab. Pulling down refreshes the app; the rows shown meanwhile are the
+ * cached ones.
  */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 internal fun ComponentTabContent(
     rows: List<ComponentRow>,
     inFlight: Set<ComponentId>,
-    banners: List<ModeBanner>,
     isRefreshing: Boolean,
     actions: ComponentRowActions,
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean = false,
     selected: Set<ComponentId> = emptySet(),
     onRefresh: () -> Unit = {},
-    onGrantAccess: () -> Unit = {},
 ) {
     val refreshState = rememberPullRefreshState(refreshing = isRefreshing, onRefresh = onRefresh)
     Box(modifier = modifier.fillMaxSize().pullRefresh(refreshState)) {
         if (rows.isEmpty()) {
-            Column {
-                ModeBanners(banners = banners, onGrantAccess = onGrantAccess)
-                NoComponentScreen()
-            }
+            NoComponentScreen()
         } else {
             ComponentRows(
                 rows = rows,
                 inFlight = inFlight,
-                banners = banners,
                 actions = actions,
                 isSelectionMode = isSelectionMode,
                 selected = selected,
-                onGrantAccess = onGrantAccess,
             )
         }
         PullRefreshIndicator(
@@ -96,21 +87,16 @@ internal fun ComponentTabContent(
 private fun ComponentRows(
     rows: List<ComponentRow>,
     inFlight: Set<ComponentId>,
-    banners: List<ModeBanner>,
     actions: ComponentRowActions,
     isSelectionMode: Boolean,
     selected: Set<ComponentId>,
-    onGrantAccess: () -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val itemCount = rows.size + if (banners.isEmpty()) 0 else 1
+    val itemCount = rows.size
     val scrollbarState = listState.scrollbarState(itemsAvailable = itemCount)
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
     Box(Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.testTag("component:list"), state = listState) {
-            if (banners.isNotEmpty()) {
-                item(key = "banners") { ModeBanners(banners = banners, onGrantAccess = onGrantAccess) }
-            }
             items(items = rows, key = { it.id.className }) { row ->
                 ComponentRowItem(
                     row = row,

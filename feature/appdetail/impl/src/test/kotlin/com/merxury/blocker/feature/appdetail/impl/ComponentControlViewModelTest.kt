@@ -19,6 +19,10 @@ package com.merxury.blocker.feature.appdetail.impl
 import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.domain.control.BatchKey
+import com.merxury.blocker.core.domain.control.BatchRun
+import com.merxury.blocker.core.domain.control.ControlComponentUseCase
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentKey
@@ -38,6 +42,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.core.ui.control.ControlMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -161,38 +166,18 @@ class ComponentControlViewModelTest {
     }
 
     @Test
-    fun givenPartialOutcome_whenSwitched_thenTheFailedLayerReasonAndIdentityAreTold() = runTest {
+    fun givenPartialOutcome_whenSwitched_thenToldAsNotChanged() = runTest {
         fixture.sendComponents(component("Main"))
         answerWith(outcome("Main", ControlResult.PARTIAL, ControlLayer.INTENT_FIREWALL to ControlFailure.RulesUnreadable))
         collectState()
 
         viewModel.setEnabled(id("Main"), enabled = false)
 
-        assertThat(messages()).containsExactly(
-            ControlMessage.ComponentNotChanged(
-                "Main",
-                ControlGoal.BLOCK,
-                partial = true,
-                listOf(LayerFailure(ControlLayer.INTENT_FIREWALL, ControlFailure.RulesUnreadable)),
-                identity = PrivilegedIdentity.ROOT,
-            ),
-        )
+        assertThat(messages()).containsExactly(ControlMessage.ComponentNotChanged("Main", ControlGoal.BLOCK))
     }
 
     @Test
-    fun givenShellChannel_whenRefused_thenTheMessageNamesTheShell() = runTest {
-        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
-        fixture.sendComponents(component("Main"))
-        answerWith(outcome("Main", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("shell")))
-        collectState()
-
-        viewModel.setEnabled(id("Main"), enabled = false)
-
-        assertThat((messages().single() as ControlMessage.ComponentNotChanged).identity).isEqualTo(PrivilegedIdentity.SHELL)
-    }
-
-    @Test
-    fun givenEachFailure_whenSwitched_thenItIsTheReasonTold() = runTest {
+    fun givenEachFailure_whenSwitched_thenOnlyMissingAccessIsOffered() = runTest {
         val failures = listOf(
             ControlFailure.ChannelUnavailable,
             ControlFailure.NotPermitted("shell"),
@@ -214,8 +199,8 @@ class ComponentControlViewModelTest {
             queued.message as ControlMessage.ComponentNotChanged
         }
 
-        assertThat(told.map { it.failures.single().failure }).containsExactlyElementsIn(failures).inOrder()
-        assertThat(told.map { it.partial }.toSet()).containsExactly(false)
+        // Only missing access is something the user can act on, so only it is offered.
+        assertThat(told.map { it.needsAccess }).containsExactly(true, false, false, false, false, false, false).inOrder()
         assertThat(viewModel.uiState.value.messages).isEmpty()
     }
 
@@ -252,7 +237,7 @@ class ComponentControlViewModelTest {
         assertThat(fixture.components.requests.map { it.components.size }).containsExactly(200)
         assertThat(viewModel.uiState.value.batch).isNull()
         assertThat(viewModel.uiState.value.inFlight).isEmpty()
-        assertThat(messages()).containsExactly(ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 200, notChanged = 0, mostCommon = null, identity = PrivilegedIdentity.ROOT))
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 0))
     }
 
     @Test
@@ -279,7 +264,7 @@ class ComponentControlViewModelTest {
         runCurrent()
         assertThat(fixture.components.requests.map { it.components.size }).containsExactly(200, 200, 50).inOrder()
         assertThat(viewModel.uiState.value.batch).isNull()
-        assertThat(messages()).containsExactly(ControlMessage.BatchDone(ControlGoal.UNBLOCK, changed = 450, notChanged = 0, mostCommon = null, identity = PrivilegedIdentity.ROOT))
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 0))
     }
 
     @Test
@@ -293,26 +278,24 @@ class ComponentControlViewModelTest {
         viewModel.blockAll(names.map(::id))
 
         assertThat(fixture.components.requests.map { it.components.size }).containsExactly(200, 200, 50).inOrder()
-        assertThat(messages()).containsExactly(ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 50, notChanged = 0, mostCommon = null, identity = PrivilegedIdentity.ROOT))
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 0))
     }
 
     @Test
-    fun givenEveryComponentAlreadyBlocked_whenAllBlocked_thenNothingNeededChanging() = runTest {
+    fun givenEveryComponentAlreadyBlocked_whenAllBlocked_thenTheBatchEndsWithoutFailures() = runTest {
         fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
         fixture.sendComponents(component("A", pm = PmSetting.DISABLED), component("B", pm = PmSetting.DISABLED))
         collectState()
 
         viewModel.blockAll(listOf(id("A"), id("B")))
 
-        val summary = messages().single() as ControlMessage.BatchDone
-        assertThat(summary.changed to summary.notChanged).isEqualTo(0 to 0)
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 0))
     }
 
     @Test
-    fun givenBatchWithPartialAndFailedOutcomes_whenDone_thenOnlyChangedAchievedCountAndTheMostCommonReasonIsNamed() = runTest {
+    fun givenBatchWithPartialAndFailedOutcomes_whenDone_thenEveryOneNotAchievedCountsAsNotChanged() = runTest {
         fixture.sendComponents(component("A", pm = PmSetting.DISABLED), component("B"), component("C"), component("D"), component("E"))
         answerWith(
-            // A was unblocked; E was not blocked to begin with.
             outcome("A", ControlResult.ACHIEVED),
             outcome("B", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("shell")),
             outcome("C", ControlResult.PARTIAL, ControlLayer.INTENT_FIREWALL to ControlFailure.WriteFailed("first"), state = ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED)),
@@ -323,15 +306,7 @@ class ComponentControlViewModelTest {
 
         viewModel.unblockAll(listOf(id("A"), id("B"), id("C"), id("D"), id("E")))
 
-        assertThat(messages()).containsExactly(
-            ControlMessage.BatchDone(
-                ControlGoal.UNBLOCK,
-                changed = 1,
-                notChanged = 3,
-                mostCommon = LayerFailure(ControlLayer.INTENT_FIREWALL, ControlFailure.WriteFailed("first")),
-                identity = PrivilegedIdentity.ROOT,
-            ),
-        )
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 3))
         assertThat(fixture.components.requests.single().layers).containsExactlyElementsIn(ControlLayer.entries)
     }
 
@@ -395,9 +370,9 @@ class ComponentControlViewModelTest {
         gated.permits.send(Unit)
         runCurrent()
         // Watched from outside the view model, which stops observing once cleared.
-        val run = fixture.batches.current(OWN_APP)!!
+        val run = fixture.batches.current(BatchKey.App(OWN_APP))!!
         val seen = mutableListOf<BatchRun?>()
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { fixture.batches.running(OWN_APP).collect { seen += it } }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { fixture.batches.running(BatchKey.App(OWN_APP)).collect { seen += it } }
         // As when the view model is cleared.
         viewModel.viewModelScope.cancel()
         gated.releaseAll()
@@ -422,10 +397,8 @@ class ComponentControlViewModelTest {
         viewModel.unblockAll(names.map(::id))
 
         assertThat(throwing.requests).isEqualTo(2)
-        assertThat(fixture.batches.current(OWN_APP)).isNull()
-        val summary = messages().single() as ControlMessage.BatchDone
-        assertThat(summary.changed to summary.notChanged).isEqualTo(200 to 250)
-        assertThat(summary.mostCommon?.failure).isEqualTo(ControlFailure.SystemError("java.lang.IllegalStateException: Request 2 broke"))
+        assertThat(fixture.batches.current(BatchKey.App(OWN_APP))).isNull()
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 250))
     }
 
     @Test
@@ -439,7 +412,7 @@ class ComponentControlViewModelTest {
         viewModel.viewModelScope.cancel()
         runCurrent()
 
-        assertThat(fixture.batches.current(OWN_APP)).isNull()
+        assertThat(fixture.batches.current(BatchKey.App(OWN_APP))).isNull()
     }
 
     @Test
@@ -464,41 +437,17 @@ class ComponentControlViewModelTest {
     }
 
     @Test
-    fun givenComponentsTheAppShipsDisabled_whenAllUnblocked_thenTheyAreToldToStayOff() = runTest {
-        fixture.sendComponents(component("A", enabledInManifest = false), component("B", enabledInManifest = false))
-        collectState()
-
-        viewModel.unblockAll(listOf(id("A"), id("B")))
-
-        val summary = messages().single() as ControlMessage.BatchDone
-        assertThat(Triple(summary.changed, summary.notChanged, summary.staysOffAsShipped)).isEqualTo(Triple(0, 0, 2))
-    }
-
-    @Test
-    fun givenBlockedAndShippedDisabledComponents_whenAllUnblocked_thenChangedAndStayingOffAreCounted() = runTest {
-        fixture.sendComponents(
-            component("Blocked", pm = PmSetting.DISABLED),
-            component("Shipped", enabledInManifest = false),
-            component("BlockedShipped", pm = PmSetting.DISABLED, enabledInManifest = false),
-            component("Runs"),
+    fun givenNoAccess_whenABatchFails_thenGrantingAccessIsOffered() = runTest {
+        fixture.sendComponents(component("A"), component("B"))
+        answerWith(
+            outcome("A", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable),
+            outcome("B", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable),
         )
         collectState()
 
-        viewModel.unblockAll(listOf(id("Blocked"), id("Shipped"), id("BlockedShipped"), id("Runs")))
+        viewModel.blockAll(listOf(id("A"), id("B")))
 
-        val summary = messages().single() as ControlMessage.BatchDone
-        assertThat(Triple(summary.changed, summary.notChanged, summary.staysOffAsShipped)).isEqualTo(Triple(2, 0, 2))
-    }
-
-    @Test
-    fun givenUnknownStateBefore_whenUnblockedAndReadBackClear_thenNotCountedAsChanged() = runTest {
-        fixture.sendComponents(component("Unread", ifw = IfwBlock.UNKNOWN), component("Ruled", ifw = IfwBlock.BLOCKED))
-        collectState()
-
-        viewModel.unblockAll(listOf(id("Unread"), id("Ruled")))
-
-        val summary = messages().single() as ControlMessage.BatchDone
-        assertThat(summary.changed to summary.notChanged).isEqualTo(1 to 0)
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 2, needsAccess = true))
     }
 
     @Test
@@ -531,7 +480,16 @@ class ComponentControlViewModelTest {
         runCurrent()
         viewModel.viewModelScope.cancel()
 
-        val shownAgain = ComponentControlViewModel(fixture.selectedUsers, gated, fixture.batches, fixture.channel, fixture.userData, fixture.analytics, PACKAGE, null)
+        val shownAgain = ComponentControlViewModel(
+            fixture.selectedUsers,
+            gated,
+            fixture.batches,
+            ControlComponentUseCase(gated, GetControlLayersUseCase(fixture.userData)),
+            GetControlLayersUseCase(fixture.userData),
+            fixture.analytics,
+            PACKAGE,
+            null,
+        )
         collectState(shownAgain)
 
         assertThat(shownAgain.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.BLOCK, done = 200, total = 450))
@@ -554,11 +512,11 @@ class ComponentControlViewModelTest {
     }
 
     @Test
-    fun givenUnknownState_whenBlockChosen_thenBlockedThroughTheControllerLayers() = runTest {
+    fun givenUnknownFirewallState_whenSwitchedOff_thenBlockedThroughTheControllerLayers() = runTest {
         fixture.sendComponents(component("Main", ifw = IfwBlock.UNKNOWN))
         collectState()
 
-        viewModel.control(id("Main"), ControlGoal.BLOCK)
+        viewModel.setEnabled(id("Main"), enabled = false)
 
         assertThat(fixture.components.requests.single().let { it.goal to it.layers }).isEqualTo(ControlGoal.BLOCK to setOf(ControlLayer.INTENT_FIREWALL))
     }
@@ -596,5 +554,44 @@ class ComponentControlViewModelTest {
             permits.receive()
             emitAll(delegate.control(request))
         }
+    }
+
+    @Test
+    fun givenSearchBatchChangingAComponent_whenShown_thenItIsInFlightAndBatchesWait() = runTest {
+        fixture.sendComponents(component("A"), component("B"))
+        collectState()
+
+        val run = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.BLOCK, listOf(id("A")))!!
+        viewModel.setEnabled(id("A"), enabled = false)
+
+        assertThat(viewModel.uiState.value.inFlight).containsExactly(id("A"))
+        assertThat(viewModel.uiState.value.batchActionsEnabled).isFalse()
+        assertThat(fixture.components.requests).isEmpty()
+        fixture.batches.release(run)
+        assertThat(viewModel.uiState.value.inFlight).isEmpty()
+        assertThat(viewModel.uiState.value.batchActionsEnabled).isTrue()
+    }
+
+    @Test
+    fun givenSearchBatchOfAnotherUser_whenShown_thenNothingOfThisAppIsInFlight() = runTest {
+        fixture.sendComponents(component("A"))
+        collectState()
+
+        fixture.batches.reserve(BatchKey.Search(WORK), ControlGoal.BLOCK, listOf(id("A")))
+
+        assertThat(viewModel.uiState.value.inFlight).isEmpty()
+        assertThat(viewModel.uiState.value.batchActionsEnabled).isTrue()
+    }
+
+    @Test
+    fun givenComponentGoneBeforeTheBatch_whenBlocked_thenToldAsNotFound() = runTest {
+        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+        fixture.sendComponents(component("A"))
+        collectState()
+
+        viewModel.blockAll(listOf(id("A"), id("Gone")))
+
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 1))
+        assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(id("A"))
     }
 }

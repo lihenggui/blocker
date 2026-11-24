@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_ui_profile_personal">Cá nhân</string>
+    <string name="core_ui_profile_work">Công việc</string>
+    <string name="core_ui_profile_user">Người dùng %1$d</string>
+    <string name="core_ui_profile_not_running">Không chạy</string>
+    <string name="core_ui_uninstall_for_profile_confirm">Bạn có muốn gỡ cài đặt ứng dụng này khỏi %1$s không? Những người dùng và hồ sơ khác có ứng dụng này vẫn giữ nó. Ứng dụng chỉ bị xóa khỏi thiết bị khi không còn người dùng nào có nó.</string>
+    <string name="core_ui_enable_app_failed">Không thể bật %1$s</string>
+    <string name="core_ui_disable_app_failed">Không thể tắt %1$s</string>
+    <string name="core_ui_force_stop_app_failed">Không thể buộc dừng %1$s</string>
+    <string name="core_ui_clear_cache_failed">Không thể xóa bộ nhớ đệm của %1$s</string>
+    <string name="core_ui_clear_data_failed">Không thể xóa dữ liệu của %1$s</string>
+    <string name="core_ui_uninstall_app_failed">Không thể gỡ cài đặt %1$s</string>
+    <string name="core_ui_reason_no_access">Hãy cấp cho Blocker quyền root hoặc Shizuku rồi thử lại.</string>
+    <string name="core_ui_unknown">Không rõ</string>
+    <string name="core_ui_grant_access">Cấp quyền</string>
+    <string name="core_ui_block_component_failed">Không thể chặn %1$s</string>
+    <string name="core_ui_enable_component_failed">Không thể bật %1$s</string>
+    <string name="core_ui_grant_failed">Blocker vẫn chưa có quyền root hoặc Shizuku.</string>
+    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Bạn có muốn xóa dữ liệu của ứng dụng này không?</string>
+</resources>

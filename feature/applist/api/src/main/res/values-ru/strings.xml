@@ -31,25 +31,5 @@
     <string name="feature_applist_api_none">Нет</string>
     <string name="feature_applist_api_running_apps">Работающие приложения</string>
     <string name="feature_applist_api_disabled_apps">Отключенные приложения</string>
-    <string name="feature_applist_api_profile_personal">Личный</string>
-    <string name="feature_applist_api_profile_work">Рабочий</string>
-    <string name="feature_applist_api_profile_user">Пользователь %1$d</string>
-    <string name="feature_applist_api_profile_not_running">Не запущен</string>
-    <string name="feature_applist_api_refresh_failed">Не удалось обновить список приложений. Показан последний сохранённый список.</string>
-    <string name="feature_applist_api_retry">Повторить</string>
     <string name="feature_applist_api_load_failed">Не удалось загрузить список приложений. Потяните вниз, чтобы повторить.</string>
-    <string name="feature_applist_api_clear_data_confirm">Очистить данные этого приложения? Во время очистки Android также останавливает приложение для всех пользователей и профилей на этом устройстве.</string>
-    <string name="feature_applist_api_uninstall_for_profile_confirm">Удалить это приложение из профиля «%1$s»? У других пользователей и профилей, где оно установлено, приложение останется. Приложение удаляется с устройства, когда оно не установлено ни у одного пользователя.</string>
-    <string name="feature_applist_api_enable_failed">Не удалось включить %1$s</string>
-    <string name="feature_applist_api_disable_failed">Не удалось отключить %1$s</string>
-    <string name="feature_applist_api_force_stop_failed">Не удалось принудительно остановить %1$s</string>
-    <string name="feature_applist_api_clear_cache_failed">Не удалось очистить кеш %1$s</string>
-    <string name="feature_applist_api_clear_data_failed">Не удалось очистить данные %1$s</string>
-    <string name="feature_applist_api_uninstall_failed">Не удалось удалить %1$s</string>
-    <string name="feature_applist_api_reason_no_access">Предоставьте Blocker доступ root или Shizuku и повторите попытку.</string>
-    <string name="feature_applist_api_reason_needs_root">Требуется root. Shizuku, запущенный через adb, не может это сделать.</string>
-    <string name="feature_applist_api_reason_not_permitted">Система не разрешает это в текущем режиме доступа.</string>
-    <string name="feature_applist_api_reason_not_found">Приложение больше не установлено для этого пользователя.</string>
-    <string name="feature_applist_api_reason_system_error">Система сообщила об ошибке: %1$s</string>
-    <string name="feature_applist_api_reason_system_error_unknown">Система сообщила об ошибке.</string>
 </resources>
