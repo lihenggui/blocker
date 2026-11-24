@@ -47,6 +47,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.TopBarActions
 import dagger.hilt.android.testing.HiltTestApplication
@@ -259,6 +260,16 @@ class AppDetailScreenStateTest {
 
         composeTestRule.onNodeWithText(text(string.feature_appdetail_api_access_not_checked)).assertIsDisplayed()
         composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).assertIsDisplayed()
+    }
+
+    @Test
+    fun givenWorkProfileAppNotCached_whenShown_thenTheHeaderNamesTheProfileAlone() {
+        showContent(
+            header = AppHeaderUiState(profile = ProfileLabel.Work),
+            list = componentTab().copy(refreshFailure = ReadFailure.UserNotReachable(WORK)),
+        )
+
+        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_profile_work)).assertExists()
     }
 
     @Test

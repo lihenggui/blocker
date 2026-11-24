@@ -92,8 +92,13 @@ internal fun AppDetailTopBar(
         return
     }
     val app = header.app
-    val version = app?.let { stringResource(string.feature_appdetail_api_data_with_explanation, it.versionName, it.versionCode) }.orEmpty()
-    val summary = header.profile?.let { stringResource(string.feature_appdetail_api_summary_with_profile, version, it.headerText()) } ?: version
+    val version = app?.let { stringResource(string.feature_appdetail_api_data_with_explanation, it.versionName, it.versionCode) }
+    val profile = header.profile?.headerText()
+    // Without the app, as while it cannot be read, the profile stands alone.
+    val summary = when {
+        version != null && profile != null -> stringResource(string.feature_appdetail_api_summary_with_profile, version, profile)
+        else -> version ?: profile.orEmpty()
+    }
     BlockerCollapsingTopAppBar(
         showBackButton = showBackButton,
         progress = toolbarState.progress,
