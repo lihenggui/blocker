@@ -36,6 +36,7 @@ import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
+import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.privileged.calls.DeleteIfwRuleFile
@@ -50,11 +51,13 @@ import com.merxury.blocker.core.privileged.calls.ReplaceWakeJournal
 import com.merxury.blocker.core.privileged.calls.ReplaceWakeRuleFile
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledIfCurrent
 import com.merxury.blocker.core.privileged.calls.StartService
-import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
+import com.merxury.blocker.core.privileged.root.RootTransport
+import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.core.ifw.WakeRuleFileKind
 import com.merxury.core.ifw.WakeServiceFilter
 import com.merxury.core.ifw.renderWakeRules
 import com.merxury.core.ifw.wakeRuleFileName
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.parcelize.Parcelize
@@ -86,7 +89,8 @@ internal data class LargeReply(val size: Int) : PrivilegedCall<ByteArray> {
 }
 
 /**
- * Runs the calls the wake feature will use through the Shizuku user service and the binder.
+ * Runs the calls the wake feature and app control use through the Shizuku user service and the
+ * binder, or, for the root cases with `rootVia=su`, through a root process started with su.
  *
  * Arguments: `wakeChannelTest=root` needs Shizuku started as root, `wakeChannelTest=shell`
  * Shizuku started through adb. `otherUser=<id>` names a started work profile that has this
@@ -110,7 +114,7 @@ class WakeChannelCallsDeviceTest {
     private val otherUser: UserId
         get() = UserId(requireNotNull(arguments.getString("otherUser")) { "Pass -e otherUser <id>" }.toInt())
 
-    private lateinit var transport: ShizukuTransport
+    private lateinit var transport: PrivilegedTransport
 
     @Before
     fun allowHiddenApis() {
@@ -142,7 +146,13 @@ class WakeChannelCallsDeviceTest {
 
     private fun connect(identity: PrivilegedIdentity) {
         assumeTrue(arguments.getString("wakeChannelTest") == identity.name.lowercase())
-        transport = connectedShizukuTransport(context, identity)
+        transport = if (identity == PrivilegedIdentity.ROOT && arguments.getString("rootVia") == "su") {
+            RootTransport(BlockerRootSession(context), InMemoryRootGrantMemory(remembered = false), Dispatchers.IO).also {
+                assertEquals(ChannelState.Ready(PrivilegedIdentity.ROOT), runBlocking { it.connect() })
+            }
+        } else {
+            connectedShizukuTransport(context, identity)
+        }
     }
 
     private fun read(command: WakeCommand, user: UserId = UserId.SYSTEM, argument: Long = 0) = ReadWakeSource(command, user, appUid, boot, argument)
@@ -383,10 +393,11 @@ class WakeChannelCallsDeviceTest {
         assertEquals(listOf(COMPONENT_ENABLED_STATE_DEFAULT), transport.execute(ComponentEnabledSettings(self, listOf(activity.className), UserId.SYSTEM)).value())
     }
 
-    // am_create_activity: [user, token, task, component, action, type, uri, flags].
+    // [user, token, task, component, action, type, uri, flags]: am_create_activity up to Android 9,
+    // wm_create_activity from Android 10, when activities moved to the window manager.
     private fun creations(key: ComponentKey): Int {
         val component = ComponentName(key.id.packageName, key.id.className).flattenToShortString()
-        return shell("logcat -b events -d -s am_create_activity").lines().count { "[${key.userId.value}," in it && component in it }
+        return shell("logcat -b events -d -s am_create_activity wm_create_activity").lines().count { "[${key.userId.value}," in it && component in it }
     }
 
     private suspend fun awaitCreation(key: ComponentKey, before: Int) {
