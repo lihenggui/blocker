@@ -62,8 +62,6 @@ internal class ChannelIfwFileSystem(
     override suspend fun deleteRules(packageName: String): Boolean = editorOrSelectedExecutor().execute(DeleteIfwRuleFile(packageName)).getOrThrow("delete the rules of $packageName")
         .also { if (it) Timber.i("Deleted IFW rules of $packageName") }
 
-    override suspend fun fileExists(packageName: String): Boolean = readRules(packageName) != null
-
     /**
      * Every rule file name, named after a package or not, without hidden files and the files the
      * wake feature manages; see [isRuleFileName].

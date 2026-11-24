@@ -46,7 +46,7 @@ import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.previewComponentRows
 
 /**
  * The header of a group of components that can be expanded: its icon, title and counts, and a
@@ -153,15 +153,15 @@ private fun MatchedAppInfo(
 @Composable
 @PreviewThemes
 private fun CollapsibleHeaderPreview() {
-    val components = ComponentListPreviewParameterProvider().values.first()
+    val components = previewComponentRows()
     BlockerTheme {
         Surface {
             CollapsibleHeader(
                 title = "Blocker",
                 icon = null,
                 matchedCount = components.size,
-                blockedCount = components.count { !it.enabled() },
-                enabledCount = components.count { it.enabled() },
+                blockedCount = components.count { !it.enabled },
+                enabledCount = components.count { it.enabled },
             )
         }
     }
@@ -170,15 +170,15 @@ private fun CollapsibleHeaderPreview() {
 @Composable
 @PreviewThemes
 private fun CollapsibleHeaderLongNamePreview() {
-    val components = ComponentListPreviewParameterProvider().values.first()
+    val components = previewComponentRows()
     BlockerTheme {
         Surface {
             CollapsibleHeader(
                 title = "Blocker Test test long long long long name",
                 icon = null,
                 matchedCount = components.size,
-                blockedCount = components.count { !it.enabled() },
-                enabledCount = components.count { it.enabled() },
+                blockedCount = components.count { !it.enabled },
+                enabledCount = components.count { it.enabled },
                 expanded = true,
             )
         }

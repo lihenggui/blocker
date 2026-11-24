@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.root
+package com.merxury.blocker.core.privileged.root
 
 import android.content.Context
 import be.mygod.librootkotlinx.RootServer
@@ -24,7 +24,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BlockerRootSession @Inject constructor(
+internal class BlockerRootSession @Inject constructor(
     @ApplicationContext private val appContext: Context,
 ) : RootSession() {
     override val context: Context

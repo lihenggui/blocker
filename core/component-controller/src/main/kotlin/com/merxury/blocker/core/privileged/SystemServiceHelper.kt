@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.merxury.blocker.core.controllers.root.api
+package com.merxury.blocker.core.privileged
 
 import android.annotation.SuppressLint
 import android.os.IBinder
@@ -26,7 +26,7 @@ import java.lang.reflect.Method
  * Copied from [...](https://github.com/RikkaApps/Shizuku-API/blob/01e08879d58a5cb11a333535c6ddce9f7b7c88ff/api/src/main/java/rikka/shizuku/SystemServiceHelper.java)
  */
 @SuppressLint("PrivateApi")
-object SystemServiceHelper {
+internal object SystemServiceHelper {
     private val SYSTEM_SERVICE_CACHE: MutableMap<String, IBinder?> = HashMap()
     private var getService: Method? = null
 

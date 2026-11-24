@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.model.rule
 
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import kotlinx.serialization.Serializable
 
@@ -28,12 +27,4 @@ data class ComponentRule(
     var state: Boolean = true,
     var type: ComponentType = ComponentType.RECEIVER,
     var method: ControllerType = ControllerType.PM,
-) {
-    fun toComponentInfo() = ComponentInfo(
-        packageName = packageName,
-        name = name,
-        type = type,
-        pmBlocked = if (method == ControllerType.PM) !state else false,
-        ifwBlocked = if (method == ControllerType.IFW) !state else false,
-    )
-}
+)

@@ -16,26 +16,15 @@
 
 package com.merxury.core.ifw.di
 
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
-import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.utils.PackageInfoDataSource
-import com.merxury.blocker.core.utils.RootAvailabilityChecker
-import com.merxury.core.ifw.ComponentTypeResolver
-import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IfwFileSystem
 import com.merxury.core.ifw.IfwStore
-import com.merxury.core.ifw.IntentFirewall
 import com.merxury.core.ifw.IntentFirewallStore
-import com.merxury.core.ifw.LibrootIfwFileSystem
-import com.merxury.core.ifw.PmComponentTypeResolver
-import com.merxury.core.ifw.PrivilegedIfwFileSystem
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Singleton
 
 @Module
@@ -50,37 +39,8 @@ object IfwModule {
 
     @Singleton
     @Provides
-    fun providesComponentTypeResolver(
-        packageInfoDataSource: PackageInfoDataSource,
-        @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
-    ): ComponentTypeResolver = PmComponentTypeResolver(packageInfoDataSource, cpuDispatcher)
-
-    @Singleton
-    @Provides
-    internal fun providesIfwFileSystem(
-        impl: LibrootIfwFileSystem,
-    ): IfwFileSystem = impl
-
-    @Singleton
-    @Provides
-    fun providesIntentFirewall(
-        rootChecker: RootAvailabilityChecker,
-        componentTypeResolver: ComponentTypeResolver,
-        fileSystem: IfwFileSystem,
-        serializer: IfwXmlSerializer,
-        deserializer: IfwXmlDeserializer,
-    ): IIntentFirewall = IntentFirewall(
-        rootChecker,
-        componentTypeResolver,
-        fileSystem,
-        serializer,
-        deserializer,
-    )
-
-    @Singleton
-    @Provides
     fun providesIfwStore(
-        @PrivilegedIfwFileSystem fileSystem: IfwFileSystem,
+        fileSystem: IfwFileSystem,
         serializer: IfwXmlSerializer,
         deserializer: IfwXmlDeserializer,
     ): IfwStore = IntentFirewallStore(fileSystem, serializer, deserializer)

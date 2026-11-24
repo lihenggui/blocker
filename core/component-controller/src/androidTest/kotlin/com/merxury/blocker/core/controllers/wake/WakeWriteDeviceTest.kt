@@ -39,7 +39,7 @@ import com.merxury.blocker.core.privileged.PrivilegedTransport
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledIfCurrent
 import com.merxury.blocker.core.privileged.connectedShizukuTransport
 import com.merxury.blocker.core.privileged.root.RootTransport
-import com.merxury.blocker.core.root.BlockerRootSession
+import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.core.ifw.ManagedWakeRules
 import com.merxury.core.ifw.WakeRuleFileKind
 import com.merxury.core.ifw.WakeServiceFilter

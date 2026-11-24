@@ -16,6 +16,10 @@
 
 package com.merxury.blocker.core.privileged.di
 
+import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
+import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
+import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
+import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.privileged.ActivePrivilegedChannel
 import com.merxury.blocker.core.privileged.ChannelIfwFileSystem
 import com.merxury.blocker.core.privileged.ChannelPlatformPackages
@@ -25,7 +29,6 @@ import com.merxury.blocker.core.privileged.root.DataStoreRootGrantMemory
 import com.merxury.blocker.core.privileged.root.RootGrantMemory
 import com.merxury.blocker.core.system.PlatformPackages
 import com.merxury.core.ifw.IfwFileSystem
-import com.merxury.core.ifw.PrivilegedIfwFileSystem
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -34,6 +37,12 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 internal interface PrivilegedModule {
+    @Binds
+    fun bindsShizukuInitializer(initializer: ShizukuInitializer): IShizukuInitializer
+
+    @Binds
+    fun bindsShizukuApi(api: DefaultShizukuApi): ShizukuApi
+
     @Binds
     fun bindsPrivilegedChannel(channel: ActivePrivilegedChannel): PrivilegedChannel
 
@@ -47,6 +56,5 @@ internal interface PrivilegedModule {
     fun bindsPlatformPackages(packages: ChannelPlatformPackages): PlatformPackages
 
     @Binds
-    @PrivilegedIfwFileSystem
     fun bindsPrivilegedIfwFileSystem(fileSystem: ChannelIfwFileSystem): IfwFileSystem
 }

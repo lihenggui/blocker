@@ -18,15 +18,11 @@ plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.jacoco)
     alias(libs.plugins.blocker.android.hilt)
-    id("kotlin-parcelize")
 }
 
 android {
     namespace = "com.merxury.blocker.core.ifw"
     testOptions.unitTests.isIncludeAndroidResources = true
-    defaultConfig {
-        consumerProguardFiles("proguard-rules.pro")
-    }
 }
 
 dependencies {

@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.core.system)
 
     implementation(libs.hiddenapibypass)
+    implementation(libs.librootkotlinx)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
 

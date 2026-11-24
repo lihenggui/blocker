@@ -66,8 +66,4 @@ class FakeShizukuInitializer(
             binderWaiterCount--
         }
     }
-
-    override fun hasPermission(): Boolean = running.value && permissionGranted
-
-    override fun getUid(): Int = shizukuUid
 }

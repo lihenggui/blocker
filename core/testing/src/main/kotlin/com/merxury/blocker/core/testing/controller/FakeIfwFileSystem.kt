@@ -95,8 +95,6 @@ class FakeIfwFileSystem : IfwFileSystem {
         return files.remove(packageName) != null
     }
 
-    override suspend fun fileExists(packageName: String): Boolean = files.containsKey(packageName)
-
     override suspend fun listRuleFiles(): List<String> {
         operations += "list"
         checkAccess()

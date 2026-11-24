@@ -19,7 +19,6 @@ package com.merxury.blocker.core.privileged
 import android.content.pm.PackageManager.NameNotFoundException
 import android.os.DeadObjectException
 import be.mygod.librootkotlinx.NoShellException
-import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
@@ -55,7 +54,7 @@ private fun Throwable.causes() = generateSequence(this) { it.cause }.take(MAX_CA
 internal fun Throwable.lostReason(): UnavailableReason? = causes().firstNotNullOfOrNull {
     when (it) {
         is ChannelLostException -> it.reason
-        is NoShellException, is RootUnavailableException -> UnavailableReason.DENIED
+        is NoShellException -> UnavailableReason.DENIED
         is DeadObjectException -> UnavailableReason.FAILED
         else -> null
     }

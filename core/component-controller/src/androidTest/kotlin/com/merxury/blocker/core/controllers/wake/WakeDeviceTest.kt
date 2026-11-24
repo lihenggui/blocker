@@ -28,7 +28,7 @@ import com.merxury.blocker.core.privileged.calls.ReadWakeSource
 import com.merxury.blocker.core.privileged.connectedShizukuTransport
 import com.merxury.blocker.core.privileged.root.RootTransport
 import com.merxury.blocker.core.privileged.uid
-import com.merxury.blocker.core.root.BlockerRootSession
+import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.wake.proto.WakeStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

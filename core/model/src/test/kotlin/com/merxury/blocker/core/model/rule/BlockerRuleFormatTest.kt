@@ -196,25 +196,4 @@ class BlockerRuleFormatTest {
             json.decodeFromString<BlockerRule>(resource("lowercase_enum_name.json"))
         }
     }
-
-    @Test
-    fun givenEveryControllerType_whenToComponentInfo_thenOnlyMatchingFlagIsBlocked() {
-        fun rule(method: ControllerType) = ComponentRule(
-            packageName = "p",
-            name = "p.C",
-            state = false,
-            type = ComponentType.SERVICE,
-            method = method,
-        ).toComponentInfo()
-
-        assertThat(rule(ControllerType.PM).pmBlocked).isTrue()
-        assertThat(rule(ControllerType.PM).ifwBlocked).isFalse()
-        assertThat(rule(ControllerType.IFW).ifwBlocked).isTrue()
-        assertThat(rule(ControllerType.IFW).pmBlocked).isFalse()
-        // SHIZUKU and IFW_PLUS_PM entries read back as not blocked by either flag.
-        assertThat(rule(ControllerType.SHIZUKU).pmBlocked).isFalse()
-        assertThat(rule(ControllerType.SHIZUKU).ifwBlocked).isFalse()
-        assertThat(rule(ControllerType.IFW_PLUS_PM).pmBlocked).isFalse()
-        assertThat(rule(ControllerType.IFW_PLUS_PM).ifwBlocked).isFalse()
-    }
 }

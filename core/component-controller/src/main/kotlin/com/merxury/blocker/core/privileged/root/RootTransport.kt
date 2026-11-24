@@ -35,7 +35,6 @@ import com.merxury.blocker.core.privileged.identityOfUid
 import com.merxury.blocker.core.privileged.lostReason
 import com.merxury.blocker.core.privileged.marshallCall
 import com.merxury.blocker.core.privileged.permissionPromptsAllowed
-import com.merxury.blocker.core.root.BlockerRootSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext

@@ -17,7 +17,6 @@
 package com.merxury.core.ifw
 
 import java.io.IOException
-import javax.inject.Qualifier
 
 interface IfwFileSystem {
     /**
@@ -38,7 +37,6 @@ interface IfwFileSystem {
     /** Replaces the package's rule file atomically, so readers never see a partial file. */
     suspend fun writeRules(packageName: String, content: String)
     suspend fun deleteRules(packageName: String): Boolean
-    suspend fun fileExists(packageName: String): Boolean
 
     /** The name, without `.xml`, of every rule file in the directory, as [isRuleFileName] decides. */
     suspend fun listRuleFiles(): List<String>
@@ -50,11 +48,3 @@ interface IfwFileSystem {
  * Any other [IOException] means the directory was reached but this one operation failed.
  */
 class IfwAccessException(message: String) : IOException(message)
-
-/**
- * The [IfwFileSystem] that reaches the rule directory through the privileged channel the user
- * chose: the root process, or Shizuku running as root or the system uid. [IfwStore] uses it.
- */
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class PrivilegedIfwFileSystem

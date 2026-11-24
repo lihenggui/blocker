@@ -20,11 +20,7 @@ import android.app.Application
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import com.merxury.blocker.core.utils.AppDebugChecker
-import com.merxury.blocker.core.utils.LibrootRootAvailabilityChecker
-import com.merxury.blocker.core.utils.PackageInfoDataSource
 import com.merxury.blocker.core.utils.PmAppDebugChecker
-import com.merxury.blocker.core.utils.PmPackageInfoDataSource
-import com.merxury.blocker.core.utils.RootAvailabilityChecker
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,18 +35,6 @@ object SysModule {
     fun providePackageManager(
         app: Application,
     ): PackageManager = app.packageManager
-
-    @Singleton
-    @Provides
-    fun provideRootAvailabilityChecker(
-        impl: LibrootRootAvailabilityChecker,
-    ): RootAvailabilityChecker = impl
-
-    @Singleton
-    @Provides
-    fun providePackageInfoDataSource(
-        impl: PmPackageInfoDataSource,
-    ): PackageInfoDataSource = impl
 
     @Singleton
     @Provides
