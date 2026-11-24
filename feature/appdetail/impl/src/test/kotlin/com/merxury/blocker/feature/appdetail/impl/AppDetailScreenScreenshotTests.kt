@@ -133,7 +133,8 @@ class AppDetailScreenScreenshotTests {
     fun searchMode() = capture(
         "AppDetailScreenSearchMode",
         header,
-        list(AppDetailTabs.Activity).copy(isSearchMode = true, keyword = "Activity"),
+        list(AppDetailTabs.Activity),
+        searchQuery = "Activity",
     )
 
     @Test
@@ -174,21 +175,27 @@ class AppDetailScreenScreenshotTests {
         ) { content() }
     }
 
-    private fun capture(name: String, header: AppHeaderUiState, list: ComponentListUiState, control: ControlUiState = ControlUiState()) {
-        composeTestRule.captureMultiDevice(name) { Screen(header, list, control) }
+    private fun capture(
+        name: String,
+        header: AppHeaderUiState,
+        list: ComponentListUiState,
+        control: ControlUiState = ControlUiState(),
+        searchQuery: String? = null,
+    ) {
+        composeTestRule.captureMultiDevice(name) { Screen(header, list, control, searchQuery) }
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = name,
             darkMode = true,
-        ) { Screen(header, list, control) }
+        ) { Screen(header, list, control, searchQuery) }
     }
 
     @Composable
-    private fun Screen(header: AppHeaderUiState, list: ComponentListUiState, control: ControlUiState) {
+    private fun Screen(header: AppHeaderUiState, list: ComponentListUiState, control: ControlUiState, searchQuery: String?) {
         BlockerTheme {
             Surface {
-                AppDetailContent(header = header, list = list, control = control)
+                AppDetailContent(header = header, list = list, control = control, searchQuery = searchQuery)
             }
         }
     }

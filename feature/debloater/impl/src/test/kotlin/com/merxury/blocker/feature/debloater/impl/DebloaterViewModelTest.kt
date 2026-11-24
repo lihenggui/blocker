@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.debloater.impl
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
@@ -159,7 +160,7 @@ class DebloaterViewModelTest {
             assertThat(expectMostRecentItem().names()).containsExactly("Share", "Link", "PushService").inOrder()
             f.viewModel.updateSearchQuery("EXAMPLE")
             settle()
-            assertThat(expectMostRecentItem().names()).containsExactly("Share", "Link", "PushService").inOrder()
+            assertThat(f.viewModel.uiState.value.names()).containsExactly("Share", "Link", "PushService").inOrder()
             f.viewModel.updateComponentTypeFilter(setOf(ComponentClassification.SHAREABLE, ComponentClassification.PUSH_SERVICE))
             settle()
             assertThat(expectMostRecentItem().names()).containsExactly("Share", "PushService").inOrder()
@@ -172,6 +173,48 @@ class DebloaterViewModelTest {
             f.viewModel.updateComponentTypeFilter(emptySet())
             settle()
             assertThat(expectMostRecentItem().names()).containsExactly("Link")
+        }
+    }
+
+    @Test
+    fun givenLoadedRows_whenTyping_thenUpdateTheFieldImmediatelyAndFilterAfterThePause() = runTest {
+        val f = fixture()
+        f.install(installed())
+        f.viewModel.uiState.test {
+            runCurrent()
+            assertThat(expectMostRecentItem().names()).containsExactly("Share", "Link", "PushService")
+            f.viewModel.updateSearchQuery("Sha")
+            assertThat(f.viewModel.searchQuery.value).isEqualTo("Sha")
+            advanceTimeBy(200)
+            f.viewModel.updateSearchQuery("Share")
+            assertThat(f.viewModel.searchQuery.value).isEqualTo("Share")
+            advanceTimeBy(299)
+            runCurrent()
+            expectNoEvents()
+
+            advanceTimeBy(1)
+            runCurrent()
+            assertThat(expectMostRecentItem().names()).containsExactly("Share")
+
+            f.viewModel.updateSearchQuery("")
+            assertThat(f.viewModel.searchQuery.value).isEmpty()
+            runCurrent()
+            assertThat(expectMostRecentItem().names()).containsExactly("Share", "Link", "PushService")
+        }
+    }
+
+    @Test
+    fun givenSavedSearchQuery_whenRecreated_thenRestoreTheFieldAndFilterTheFirstRows() = runTest {
+        val saved = SavedStateHandle()
+        fixture(saved).viewModel.updateSearchQuery("push")
+        val restored = SavedStateHandle(saved.keys().associateWith { saved.get<Any?>(it) })
+        val f = fixture(restored)
+        f.install(installed())
+
+        assertThat(f.viewModel.searchQuery.value).isEqualTo("push")
+        f.viewModel.uiState.test {
+            runCurrent()
+            assertThat(expectMostRecentItem().names()).containsExactly("PushService")
         }
     }
 
@@ -398,14 +441,24 @@ class DebloaterViewModelTest {
     }
 
     @Test
-    fun givenPermissionChanges_whenObserved_thenKeepExistingPermissionWarningState() = runTest {
+    fun givenPendingPermissionCheck_whenItAnswersAndThenGrants_thenStateReflectsEachResult() = runTest {
         val f = fixture()
+        f.permission.value = null
+        f.install(installed())
         f.viewModel.uiState.test {
+            assertThat(awaitItem().hasRootPermission).isNull()
             settle()
-            assertThat(expectMostRecentItem().hasRootPermission).isTrue()
+            val pending = expectMostRecentItem()
+            assertThat(pending.hasRootPermission).isNull()
+            assertThat(pending.apps()).hasSize(1)
+
             f.permission.value = PermissionStatus.NO_PERMISSION
             settle()
             assertThat(expectMostRecentItem().hasRootPermission).isFalse()
+
+            f.permission.value = PermissionStatus.ROOT_USER
+            settle()
+            assertThat(expectMostRecentItem().hasRootPermission).isTrue()
         }
     }
 
@@ -677,7 +730,7 @@ class DebloaterViewModelTest {
         }
     }
 
-    private fun TestScope.fixture() = DebloaterFixture(backgroundScope, main.testDispatcher)
+    private fun TestScope.fixture(savedStateHandle: SavedStateHandle = SavedStateHandle()) = DebloaterFixture(backgroundScope, main.testDispatcher, savedStateHandle)
 
     private fun TestScope.settle() {
         advanceTimeBy(500)

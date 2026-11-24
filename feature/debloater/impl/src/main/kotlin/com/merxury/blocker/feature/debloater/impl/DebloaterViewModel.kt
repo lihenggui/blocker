@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.debloater.impl
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
@@ -31,6 +32,7 @@ import com.merxury.blocker.core.domain.control.ControlComponentUseCase
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
+import com.merxury.blocker.core.extension.debouncedSearchQuery
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
@@ -56,6 +58,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -74,9 +77,8 @@ import javax.inject.Inject
 
 data class DebloaterUiState(
     val content: Result<List<MatchedTarget>> = Result.Loading,
-    val searchQuery: String = "",
     val componentTypeFilter: Set<ComponentClassification> = emptySet(),
-    val hasRootPermission: Boolean = false,
+    val hasRootPermission: Boolean? = null,
     val inFlight: Set<ComponentKey> = emptySet(),
     val messages: List<QueuedControlMessage> = emptyList(),
     val alert: UiMessage? = null,
@@ -96,8 +98,12 @@ class DebloaterViewModel @Inject constructor(
     permissionMonitor: PermissionMonitor,
     private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val filters = MutableStateFlow(Filters())
+    private val typedQuery = savedStateHandle.getMutableStateFlow("debloaterSearchQuery", "")
+    val searchQuery: StateFlow<String> = typedQuery.asStateFlow()
+    private val kinds = MutableStateFlow<Set<ComponentClassification>>(emptySet())
+    private val filters = combine(searchQuery.debouncedSearchQuery(), kinds, ::Filters)
     private val singles = MutableStateFlow<Set<ComponentKey>>(emptySet())
     private val feedback = MutableStateFlow<Map<UserId, Feedback>>(emptyMap())
     private val loadedContent = mutableMapOf<UserId, Result.Success<List<MatchedTarget>>>()
@@ -106,18 +112,18 @@ class DebloaterViewModel @Inject constructor(
     private val content = selectedUsers.selectedUser.flatMapLatest { user ->
         content(user).map { user to it }
     }.combine(filters) { (user, content), filters ->
-        FilteredContent(user, content.filteredBy(filters), filters)
+        FilteredContent(user, content.filteredBy(filters), filters.kinds)
     }.flowOn(cpuDispatcher)
 
     private val inFlight = combine(singles, batches.inFlight) { singles, pending -> singles + pending }
 
     private val permission = permissionMonitor.permissionStatus
-        .map { it != PermissionStatus.NO_PERMISSION }
+        .map<PermissionStatus, Boolean?> { it != PermissionStatus.NO_PERMISSION }
         .catch {
             Timber.e(it, "Cannot read debloater permissions")
-            emit(false)
+            emit(null)
         }
-        .onStart { emit(false) }
+        .onStart { emit(null) }
 
     private val initialState = DebloaterUiState()
     private val userUiState = combine(
@@ -130,8 +136,7 @@ class DebloaterViewModel @Inject constructor(
         val feedbackForUser = feedback[user]
         val state = DebloaterUiState(
             content = filtered.content.takeIf { filtered.user == user } ?: Result.Loading,
-            searchQuery = filtered.filters.query,
-            componentTypeFilter = filtered.filters.kinds,
+            componentTypeFilter = filtered.kinds,
             hasRootPermission = hasRootPermission,
             inFlight = inFlight,
             messages = feedbackForUser?.messages.orEmpty(),
@@ -190,12 +195,12 @@ class DebloaterViewModel @Inject constructor(
     }
 
     fun updateSearchQuery(query: String) {
-        filters.update { it.copy(query = query) }
+        typedQuery.value = query
         if (query.isNotBlank()) analyticsHelper.logSearchQueryUpdated()
     }
 
     fun updateComponentTypeFilter(kinds: Set<ComponentClassification>) {
-        filters.update { it.copy(kinds = kinds) }
+        this.kinds.value = kinds
         analyticsHelper.logComponentTypeFilterChanged(kinds.size)
     }
 
@@ -311,8 +316,8 @@ class DebloaterViewModel @Inject constructor(
         )
     }
 
-    private data class Filters(val query: String = "", val kinds: Set<ComponentClassification> = emptySet())
+    private data class Filters(val query: String, val kinds: Set<ComponentClassification>)
     private data class UserUiState(val user: UserId, val state: DebloaterUiState)
-    private data class FilteredContent(val user: UserId, val content: Result<List<MatchedTarget>>, val filters: Filters)
+    private data class FilteredContent(val user: UserId, val content: Result<List<MatchedTarget>>, val kinds: Set<ComponentClassification>)
     private data class Feedback(val messages: List<QueuedControlMessage> = emptyList(), val alert: UiMessage? = null)
 }

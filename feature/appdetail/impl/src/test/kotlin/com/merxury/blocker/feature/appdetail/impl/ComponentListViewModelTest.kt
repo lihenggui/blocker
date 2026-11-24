@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail.impl
 
+import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.appcontrol.ServiceControl
 import com.merxury.blocker.core.model.ComponentType
@@ -37,17 +38,21 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.component.ComponentRow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ComponentListViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -222,6 +227,8 @@ class ComponentListViewModelTest {
 
         viewModel.setSearchMode(true)
         viewModel.search("main")
+        advanceTimeBy(300)
+        runCurrent()
         assertThat(viewModel.uiState.value.matchedRules).isSameInstanceAs(matched)
 
         fixture.userData.sendUserData(defaultUserData.copy(useDynamicColor = !defaultUserData.useDynamicColor))
@@ -321,10 +328,12 @@ class ComponentListViewModelTest {
         show()
         viewModel.setSearchMode(true)
         viewModel.search("main")
+        advanceTimeBy(300)
+        runCurrent()
 
         viewModel.selectTab(AppDetailTabs.Sdk)
 
-        assertThat(viewModel.uiState.value.let { it.isSearchMode to it.keyword }).isEqualTo(false to "")
+        assertThat(viewModel.searchQuery.value).isNull()
         assertThat(fixture.loaded().receivers).hasSize(1)
     }
 
@@ -466,6 +475,8 @@ class ComponentListViewModelTest {
 
         viewModel.setSearchMode(true)
         viewModel.search("sync, main")
+        advanceTimeBy(300)
+        runCurrent()
 
         assertThat(fixture.loaded().services.map { it.id.simpleName }).containsExactly("SyncService")
         assertThat(fixture.loaded().activities.map { it.id.simpleName }).containsExactly("Main")
@@ -473,7 +484,47 @@ class ComponentListViewModelTest {
 
         viewModel.setSearchMode(false)
         assertThat(fixture.loaded().services).hasSize(2)
-        assertThat(viewModel.uiState.value.keyword).isEmpty()
+        assertThat(viewModel.searchQuery.value).isNull()
+    }
+
+    @Test
+    fun givenLoadedRows_whenTyping_thenUpdateTheFieldImmediatelyAndFilterAfterThePause() = runTest {
+        fixture = AppDetailFixture(StandardTestDispatcher(testScheduler))
+        fixture.sendComponents(component("Main"), component("Other"))
+        collectState()
+        runCurrent()
+
+        viewModel.setSearchMode(true)
+        viewModel.search("Ma")
+        assertThat(viewModel.searchQuery.value).isEqualTo("Ma")
+        advanceTimeBy(200)
+        viewModel.search("Main")
+        assertThat(viewModel.searchQuery.value).isEqualTo("Main")
+        advanceTimeBy(299)
+        runCurrent()
+        assertThat(fixture.loaded().activities.map { it.id }).containsExactly(id("Main"), id("Other"))
+
+        advanceTimeBy(1)
+        runCurrent()
+        assertThat(fixture.loaded().activities.map { it.id }).containsExactly(id("Main"))
+
+        viewModel.search("")
+        assertThat(viewModel.searchQuery.value).isEmpty()
+        runCurrent()
+        assertThat(fixture.loaded().activities.map { it.id }).containsExactly(id("Main"), id("Other"))
+    }
+
+    @Test
+    fun givenSavedSearchQuery_whenRecreated_thenRestoreTheFieldAndFilterTheFirstRows() = runTest {
+        val saved = SavedStateHandle()
+        AppDetailFixture(mainDispatcherRule.testDispatcher, savedStateHandle = saved).list.search("Main")
+        val restored = SavedStateHandle(saved.keys().associateWith { saved.get<Any?>(it) })
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, savedStateHandle = restored, searchKeyword = listOf("Other"))
+        fixture.sendComponents(component("Main"), component("Other"))
+
+        assertThat(viewModel.searchQuery.value).isEqualTo("Main")
+        collectState()
+        assertThat(fixture.loaded().activities.map { it.id }).containsExactly(id("Main"))
     }
 
     @Test
@@ -483,8 +534,7 @@ class ComponentListViewModelTest {
 
         show()
 
-        assertThat(viewModel.uiState.value.isSearchMode).isTrue()
-        assertThat(viewModel.uiState.value.keyword).isEqualTo("push")
+        assertThat(viewModel.searchQuery.value).isEqualTo("push")
         assertThat(fixture.loaded().services.map { it.id.simpleName }).containsExactly("PushService")
     }
 

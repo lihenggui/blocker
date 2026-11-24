@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.debloater.impl
 
+import androidx.lifecycle.SavedStateHandle
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DebloaterApk
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
@@ -59,6 +60,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlin.time.Instant
 
@@ -69,13 +71,13 @@ internal val workUser = DeviceUser(work, null, UserKind.WORK_PROFILE, owner, tru
 internal const val SELF = "example.blocker"
 internal const val APP = "example.app"
 
-internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineDispatcher) {
+internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineDispatcher, savedStateHandle: SavedStateHandle = SavedStateHandle()) {
     val users = FakeSelectedUserRepository(owner).apply { sendUsers(listOf(ownerUser, workUser)) }
     val apps = FakeInstalledAppRepository()
     val components = FakeComponentStatusRepository()
     val channel = FakePrivilegedChannel()
     val preferences = TestUserDataRepository().apply { sendUserData(defaultUserData.copy(controllerType = ControllerType.PM)) }
-    val permission = MutableStateFlow(PermissionStatus.ROOT_USER)
+    val permission = MutableStateFlow<PermissionStatus?>(PermissionStatus.ROOT_USER)
     val metadata = FakeMetadata()
     var controlGate = CompletableDeferred(Unit)
     var preparationGate = CompletableDeferred(Unit)
@@ -107,10 +109,11 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
         layersFor = layers,
         channel = channel,
         permissionMonitor = object : PermissionMonitor {
-            override val permissionStatus = permission
+            override val permissionStatus = permission.filterNotNull()
         },
         analyticsHelper = TestAnalyticsHelper(),
         cpuDispatcher = dispatcher,
+        savedStateHandle = savedStateHandle,
     )
 
     fun install(vararg installed: InstalledApp) {

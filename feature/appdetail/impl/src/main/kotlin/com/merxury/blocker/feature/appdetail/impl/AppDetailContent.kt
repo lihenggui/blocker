@@ -103,6 +103,7 @@ internal fun AppDetailContent(
     control: ControlUiState,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = true,
+    searchQuery: String? = null,
     topBarActions: TopBarActions = TopBarActions(),
     rowActions: ComponentRowActions = ComponentRowActions(),
     actions: AppDetailActions = AppDetailActions(),
@@ -120,6 +121,7 @@ internal fun AppDetailContent(
                 AppDetailTopBar(
                     header = header,
                     list = list,
+                    searchQuery = searchQuery,
                     toolbarState = toolbarState,
                     actions = topBarActions,
                     showBackButton = showBackButton,

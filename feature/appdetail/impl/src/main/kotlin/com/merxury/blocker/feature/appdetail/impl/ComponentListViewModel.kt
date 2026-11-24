@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail.impl
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
@@ -31,6 +32,7 @@ import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.debouncedSearchQuery
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
@@ -58,6 +60,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -100,10 +103,14 @@ class ComponentListViewModel @AssistedInject constructor(
     @Assisted userId: Int?,
     @Assisted("tab") tab: String,
     @Assisted searchKeyword: List<String>,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val app = selectedUsers.appKeyOf(packageName, userId)
     private val initialKeyword = searchKeyword.map { it.trim() }.filter { it.isNotEmpty() }.joinToString(",")
-    private val search = MutableStateFlow(Search(isSearchMode = initialKeyword.isNotEmpty(), keyword = initialKeyword))
+    private val typedQuery = savedStateHandle.getMutableStateFlow("componentSearchQuery", initialKeyword.ifEmpty { null })
+
+    /** The current field text. Null when component search is closed. */
+    val searchQuery: StateFlow<String?> = typedQuery.asStateFlow()
     private val requestedTab = MutableStateFlow(tabOf(tab))
     private val selection = MutableStateFlow(Selection())
     private val refresh = MutableStateFlow<RefreshStatus?>(null)
@@ -152,7 +159,8 @@ class ComponentListViewModel @AssistedInject constructor(
         empty && (refresh == null || refresh == RefreshStatus.Running)
     }.distinctUntilChanged()
 
-    private val components: Flow<ComponentsUiState> = combine(sorted, search.map { keywordsOf(it.keyword) }.distinctUntilChanged(), loading) { sorted, keywords, loading ->
+    private val keywords = searchQuery.debouncedSearchQuery().map(::keywordsOf).distinctUntilChanged()
+    private val components: Flow<ComponentsUiState> = combine(sorted, keywords, loading) { sorted, keywords, loading ->
         if (loading) ComponentsUiState.Loading else ComponentsUiState.Loaded(sorted.matching(keywords))
     }
 
@@ -165,11 +173,10 @@ class ComponentListViewModel @AssistedInject constructor(
         .distinctUntilChanged()
         .flowOn(cpuDispatcher)
 
-    private val lists: Flow<Lists> = combine(components, matchedRules, search, refresh, loading) { components, matched, search, refresh, loading ->
+    private val lists: Flow<Lists> = combine(components, matchedRules, refresh, loading) { components, matched, refresh, loading ->
         Lists(
             components = components,
             matchedRules = matched,
-            search = search,
             isRefreshing = !loading && refresh == RefreshStatus.Running,
             refreshFailure = (refresh as? RefreshStatus.Failed)?.reason,
             accessCheckFailed = refresh == RefreshStatus.AccessUnchecked,
@@ -186,8 +193,6 @@ class ComponentListViewModel @AssistedInject constructor(
             tabs = tabsOf(lists.components, lists.matchedRules, requestedTab),
             components = lists.components,
             matchedRules = lists.matchedRules,
-            isSearchMode = lists.search.isSearchMode,
-            keyword = lists.search.keyword,
             isSelectionMode = selection.active,
             selected = selection.ids,
             isRefreshing = lists.isRefreshing,
@@ -202,8 +207,6 @@ class ComponentListViewModel @AssistedInject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = ComponentListUiState(
                 tabs = tabsOf(ComponentsUiState.Loading, MatchedRulesUiState.Loading, requestedTab.value),
-                isSearchMode = search.value.isSearchMode,
-                keyword = search.value.keyword,
             ),
         )
 
@@ -260,16 +263,16 @@ class ComponentListViewModel @AssistedInject constructor(
     fun selectTab(tab: AppDetailTabs) {
         requestedTab.value = tab
         if (!tab.listsComponents) selection.value = Selection()
-        if (tab == AppDetailTabs.Sdk && search.value.isSearchMode) search.value = Search()
+        if (tab == AppDetailTabs.Sdk) typedQuery.value = null
     }
 
     fun setSearchMode(enabled: Boolean) {
-        if (enabled && !search.value.isSearchMode) analyticsHelper.logSearchButtonClicked()
-        search.value = if (enabled) search.value.copy(isSearchMode = true) else Search()
+        if (enabled && typedQuery.value == null) analyticsHelper.logSearchButtonClicked()
+        typedQuery.value = if (enabled) typedQuery.value.orEmpty() else null
     }
 
     fun search(keyword: String) {
-        search.update { it.copy(keyword = keyword) }
+        typedQuery.value = keyword
     }
 
     fun setSelectionMode(enabled: Boolean) {
@@ -376,14 +379,11 @@ class ComponentListViewModel @AssistedInject constructor(
         }
     }
 
-    private data class Search(val isSearchMode: Boolean = false, val keyword: String = "")
-
     private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet())
 
     private data class Lists(
         val components: ComponentsUiState,
         val matchedRules: MatchedRulesUiState,
-        val search: Search,
         val isRefreshing: Boolean,
         val refreshFailure: ReadFailure?,
         val accessCheckFailed: Boolean,
