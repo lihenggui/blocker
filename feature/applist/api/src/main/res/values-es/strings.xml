@@ -31,5 +31,5 @@
     <string name="feature_applist_api_none">Ninguno</string>
     <string name="feature_applist_api_running_apps">Aplicaciones en ejecución</string>
     <string name="feature_applist_api_disabled_apps">Aplicaciones deshabilitadas</string>
-    <string name="feature_applist_api_load_failed">No se pudo cargar la lista de aplicaciones. Desliza hacia abajo para intentarlo de nuevo.</string>
+    <string name="feature_applist_api_load_failed">No se pudo cargar la lista de aplicaciones. Deslice hacia abajo para volver a intentarlo.</string>
 </resources>

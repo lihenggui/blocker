@@ -45,13 +45,13 @@
     <string name="feature_appdetail_api_disabled_first">Nonaktif dahulu</string>
     <string name="feature_appdetail_api_enabled_first">Aktif dahulu</string>
     <string name="feature_appdetail_api_none">Kosong</string>
-    <string name="feature_appdetail_api_refresh_failed">Tidak dapat memuat ulang komponen. Menampilkan status terakhir yang tersimpan.</string>
+    <string name="feature_appdetail_api_refresh_failed">Tidak dapat memuat ulang komponen. Status terakhir yang disimpan ditampilkan.</string>
     <string name="feature_appdetail_api_not_installed">Aplikasi ini tidak terpasang untuk pengguna ini.</string>
-    <string name="feature_appdetail_api_read_user_not_reachable">Aplikasi pengguna ini tidak dapat dibaca sekarang. Berikan akses root atau Shizuku.</string>
+    <string name="feature_appdetail_api_read_user_not_reachable">Aplikasi pengguna ini tidak dapat dibaca. Berikan akses root atau Shizuku.</string>
     <string name="feature_appdetail_api_read_manifest_unreadable">Daftar komponen aplikasi tidak dapat dibaca.</string>
-    <string name="feature_appdetail_api_read_no_answer">Layanan sistem tidak merespons. Coba lagi.</string>
+    <string name="feature_appdetail_api_read_no_answer">Layanan sistem tidak merespons. Silakan coba lagi.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">File aturan Intent Firewall aplikasi tidak dapat dibaca. File mungkin rusak.</string>
-    <string name="feature_appdetail_api_access_not_checked">Blocker tidak dapat memeriksa akses root atau Shizuku-nya, jadi tidak dapat membaca aplikasi ini. Berikan akses untuk mencoba lagi.</string>
+    <string name="feature_appdetail_api_access_not_checked">Blocker tidak dapat memverifikasi akses root atau Shizuku yang dimilikinya dan tidak dapat membaca aplikasi ini. Berikan akses untuk mencoba kembali.</string>
     <string name="feature_appdetail_api_profile_personal">Profil pribadi</string>
     <string name="feature_appdetail_api_profile_work">Profil kerja</string>
     <string name="feature_appdetail_api_profile_user">Pengguna %1$d</string>

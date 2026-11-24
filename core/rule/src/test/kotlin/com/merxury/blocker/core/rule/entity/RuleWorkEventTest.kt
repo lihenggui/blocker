@@ -31,7 +31,13 @@ import java.util.UUID
 class RuleWorkEventTest {
     private val resources: Resources = ApplicationProvider.getApplicationContext<Context>().resources
 
-    private fun finished(changed: Int, skipped: Int = 0, failed: Int = 0, firewallUnavailable: Boolean = false) = RuleWorkEvent(RuleWorkType.IMPORT_BLOCKER_RULES, RuleWorkResult.FINISHED, changed, skipped, failed, firewallUnavailable)
+    private fun finished(changed: Int, skipped: Int = 0, failed: Int = 0) = RuleWorkEvent(
+        type = RuleWorkType.IMPORT_BLOCKER_RULES,
+        result = RuleWorkResult.FINISHED,
+        changed = changed,
+        skipped = skipped,
+        failed = failed,
+    )
 
     @Test
     fun givenSucceededWork_whenMakingTheEvent_thenItCarriesTheCounts() {
@@ -60,9 +66,11 @@ class RuleWorkEventTest {
     }
 
     @Test
-    fun givenExportWithoutTheFirewall_whenMakingTheMessage_thenItSaysTheRulesWereLeftOut() {
-        assertThat(finished(changed = 3, firewallUnavailable = true).resultMessage(resources))
-            .isEqualTo("Done. 3 items changed. Intent Firewall rules could not be read, so they were left out.")
+    fun givenExportWithoutTheFirewall_whenMakingTheMessage_thenItSaysTheRulesWereNotIncluded() {
+        val event = RuleWorkEvent(RuleWorkType.EXPORT_BLOCKER_RULES, RuleWorkResult.FINISHED, changed = 3, firewallUnavailable = true)
+
+        assertThat(event.resultMessage(resources))
+            .isEqualTo("Done. 3 items changed. The Intent Firewall rules could not be read and were not included.")
     }
 
     @Test

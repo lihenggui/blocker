@@ -33,5 +33,5 @@
     <string name="feature_applist_api_none">None</string>
     <string name="feature_applist_api_running_apps">Running apps</string>
     <string name="feature_applist_api_disabled_apps">Disabled apps</string>
-    <string name="feature_applist_api_load_failed">Couldn\'t load the app list. Pull down to try again.</string>
+    <string name="feature_applist_api_load_failed">Could not load the app list. Pull down to try again.</string>
 </resources>

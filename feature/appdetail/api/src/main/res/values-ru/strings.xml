@@ -63,11 +63,11 @@
     <string name="feature_appdetail_api_none">Нет</string>
     <string name="feature_appdetail_api_refresh_failed">Не удалось обновить компоненты. Показано последнее сохранённое состояние.</string>
     <string name="feature_appdetail_api_not_installed">Это приложение не установлено для этого пользователя.</string>
-    <string name="feature_appdetail_api_read_user_not_reachable">Сейчас нельзя прочитать приложения этого пользователя. Предоставьте доступ root или Shizuku.</string>
+    <string name="feature_appdetail_api_read_user_not_reachable">Не удаётся прочитать приложения этого пользователя. Предоставьте доступ root или Shizuku.</string>
     <string name="feature_appdetail_api_read_manifest_unreadable">Не удалось прочитать список компонентов приложения.</string>
     <string name="feature_appdetail_api_read_no_answer">Системная служба не ответила. Повторите попытку.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">Не удаётся прочитать файл правил Intent Firewall приложения. Возможно, он повреждён.</string>
-    <string name="feature_appdetail_api_access_not_checked">Blocker не смог проверить доступ root или Shizuku, поэтому не может прочитать это приложение. Предоставьте доступ, чтобы повторить попытку.</string>
+    <string name="feature_appdetail_api_access_not_checked">Приложению Blocker не удалось проверить наличие доступа root или Shizuku, поэтому оно не может прочитать это приложение. Предоставьте доступ, чтобы повторить попытку.</string>
     <string name="feature_appdetail_api_profile_personal">Личный профиль</string>
     <string name="feature_appdetail_api_profile_work">Рабочий профиль</string>
     <string name="feature_appdetail_api_profile_user">Пользователь %1$d</string>

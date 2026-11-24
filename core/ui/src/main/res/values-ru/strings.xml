@@ -81,10 +81,10 @@
     <string name="core_ui_enabling_components">Включение компонентов, пожалуйста, подождите…</string>
     <string name="core_ui_operation_completed">Операция завершена</string>
     <plurals name="core_ui_operation_completed_with_failures">
-        <item quantity="one">Операция завершена. Не удалось изменить %1$d компонент</item>
-        <item quantity="few">Операция завершена. Не удалось изменить %1$d компонента</item>
-        <item quantity="many">Операция завершена. Не удалось изменить %1$d компонентов</item>
-        <item quantity="other">Операция завершена. Не удалось изменить %1$d компонентов</item>
+        <item quantity="one">Операция завершена. Не удалось изменить %1$d компонент.</item>
+        <item quantity="few">Операция завершена. Не удалось изменить %1$d компонента.</item>
+        <item quantity="many">Операция завершена. Не удалось изменить %1$d компонентов.</item>
+        <item quantity="other">Операция завершена. Не удалось изменить %1$d компонентов.</item>
     </plurals>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
     <string name="core_ui_found">Совпадение</string>

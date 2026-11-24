@@ -78,8 +78,8 @@
     <string name="core_ui_enabling_components">Enabling components, please wait…</string>
     <string name="core_ui_operation_completed">Operation completed</string>
     <plurals name="core_ui_operation_completed_with_failures">
-        <item quantity="one">Operation completed. %1$d component could not be changed</item>
-        <item quantity="other">Operation completed. %1$d components could not be changed</item>
+        <item quantity="one">Operation completed. %1$d component could not be changed.</item>
+        <item quantity="other">Operation completed. %1$d components could not be changed.</item>
     </plurals>
     <string name="core_ui_sdk" translatable="false">SDK</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Do you want to uninstall this app?</string>
@@ -170,20 +170,20 @@
     <string name="core_ui_profile_work">Work</string>
     <string name="core_ui_profile_user">User %1$d</string>
     <string name="core_ui_profile_not_running">Not running</string>
-    <string name="core_ui_uninstall_for_profile_confirm">Do you want to uninstall this app from %1$s? Other users and profiles that have the app keep it. The app leaves the device when no user has it.</string>
-    <string name="core_ui_enable_app_failed">Couldn\'t enable %1$s</string>
-    <string name="core_ui_disable_app_failed">Couldn\'t disable %1$s</string>
-    <string name="core_ui_force_stop_app_failed">Couldn\'t force stop %1$s</string>
-    <string name="core_ui_clear_cache_failed">Couldn\'t clear the cache of %1$s</string>
-    <string name="core_ui_clear_data_failed">Couldn\'t clear the data of %1$s</string>
-    <string name="core_ui_uninstall_app_failed">Couldn\'t uninstall %1$s</string>
-    <string name="core_ui_launch_failed">Couldn\'t launch %1$s</string>
-    <string name="core_ui_stop_failed">Couldn\'t stop %1$s</string>
-    <string name="core_ui_reason_no_access">Grant Blocker root or Shizuku access, then try again.</string>
+    <string name="core_ui_uninstall_for_profile_confirm">Do you want to uninstall this app from %1$s? It remains installed for other users and profiles that have it, and is removed from the device only when no user has it installed.</string>
+    <string name="core_ui_enable_app_failed">Could not enable %1$s</string>
+    <string name="core_ui_disable_app_failed">Could not disable %1$s</string>
+    <string name="core_ui_force_stop_app_failed">Could not force stop %1$s</string>
+    <string name="core_ui_clear_cache_failed">Could not clear the cache of %1$s</string>
+    <string name="core_ui_clear_data_failed">Could not clear the data of %1$s</string>
+    <string name="core_ui_uninstall_app_failed">Could not uninstall %1$s</string>
+    <string name="core_ui_launch_failed">Could not launch %1$s</string>
+    <string name="core_ui_stop_failed">Could not stop %1$s</string>
+    <string name="core_ui_reason_no_access">Grant Blocker root or Shizuku access and try again.</string>
     <string name="core_ui_unknown">Unknown</string>
     <string name="core_ui_grant_access">Grant access</string>
-    <string name="core_ui_block_component_failed">Couldn\'t block %1$s</string>
-    <string name="core_ui_enable_component_failed">Couldn\'t enable %1$s</string>
-    <string name="core_ui_grant_failed">Blocker still has no root or Shizuku access.</string>
+    <string name="core_ui_block_component_failed">Could not block %1$s</string>
+    <string name="core_ui_enable_component_failed">Could not enable %1$s</string>
+    <string name="core_ui_grant_failed">Blocker still does not have root or Shizuku access.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Do you want to clear data of this app?</string>
 </resources>

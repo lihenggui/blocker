@@ -73,7 +73,7 @@
     <string name="core_ui_enabling_components">正在启用组件，请稍候…</string>
     <string name="core_ui_operation_completed">操作已完成</string>
     <plurals name="core_ui_operation_completed_with_failures">
-        <item quantity="other">操作完成，%1$d 个组件未能更改</item>
+        <item quantity="other">操作已完成。无法更改 %1$d 个组件。</item>
     </plurals>
     <string name="core_ui_do_you_want_to_uninstall_this_app">您想要卸载此应用吗？</string>
     <string name="core_ui_found">已找到</string>
@@ -150,7 +150,7 @@
     <string name="core_ui_profile_work">工作</string>
     <string name="core_ui_profile_user">用户 %1$d</string>
     <string name="core_ui_profile_not_running">未运行</string>
-    <string name="core_ui_uninstall_for_profile_confirm">要从“%1$s”中卸载此应用吗？拥有此应用的其他用户和资料会保留它。当没有任何用户拥有此应用时，它才会从设备中移除。</string>
+    <string name="core_ui_uninstall_for_profile_confirm">您是否要从“%1$s”中卸载此应用？已安装此应用的其他用户和资料将保留此应用。仅当所有用户均未安装此应用时，才会从设备中移除此应用。</string>
     <string name="core_ui_enable_app_failed">无法启用 %1$s</string>
     <string name="core_ui_disable_app_failed">无法禁用 %1$s</string>
     <string name="core_ui_force_stop_app_failed">无法强制停止 %1$s</string>
@@ -164,6 +164,6 @@
     <string name="core_ui_grant_access">授予权限</string>
     <string name="core_ui_block_component_failed">无法阻止 %1$s</string>
     <string name="core_ui_enable_component_failed">无法启用 %1$s</string>
-    <string name="core_ui_grant_failed">Blocker 仍没有 Root 或 Shizuku 权限。</string>
+    <string name="core_ui_grant_failed">Blocker 尚未获得 Root 或 Shizuku 权限。</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">您想要清除此应用的数据吗？</string>
 </resources>

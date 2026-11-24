@@ -64,9 +64,9 @@
     <string name="core_ui_enabling_components">A ativar componentes, por favor aguarde…</string>
     <string name="core_ui_operation_completed">Operação concluída</string>
     <plurals name="core_ui_operation_completed_with_failures">
-        <item quantity="one">Operação concluída. Não foi possível alterar %1$d componente</item>
-        <item quantity="many">Operação concluída. Não foi possível alterar %1$d componentes</item>
-        <item quantity="other">Operação concluída. Não foi possível alterar %1$d componentes</item>
+        <item quantity="one">Operação concluída. Não foi possível alterar %1$d componente.</item>
+        <item quantity="many">Operação concluída. Não foi possível alterar %1$d componentes.</item>
+        <item quantity="other">Operação concluída. Não foi possível alterar %1$d componentes.</item>
     </plurals>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Deseja desinstalar este app?</string>
     <string name="core_ui_found">Encontrado</string>
@@ -144,7 +144,7 @@
     <string name="core_ui_profile_work">Trabalho</string>
     <string name="core_ui_profile_user">Usuário %1$d</string>
     <string name="core_ui_profile_not_running">Parado</string>
-    <string name="core_ui_uninstall_for_profile_confirm">Deseja desinstalar este app de %1$s? Outros usuários e perfis que têm o app o mantêm. O app sai do dispositivo quando nenhum usuário o tem.</string>
+    <string name="core_ui_uninstall_for_profile_confirm">Deseja desinstalar este app de %1$s? O app permanece instalado para os demais usuários e perfis em que está instalado e só é removido do dispositivo quando nenhum usuário o tem instalado.</string>
     <string name="core_ui_enable_app_failed">Não foi possível ativar %1$s</string>
     <string name="core_ui_disable_app_failed">Não foi possível desativar %1$s</string>
     <string name="core_ui_force_stop_app_failed">Não foi possível forçar a parada de %1$s</string>

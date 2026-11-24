@@ -78,9 +78,9 @@
     <string name="core_ui_enabling_components">Habilitando componentes, por favor espere…</string>
     <string name="core_ui_operation_completed">Operación completada</string>
     <plurals name="core_ui_operation_completed_with_failures">
-        <item quantity="one">Operación completada. No se pudo cambiar %1$d componente</item>
-        <item quantity="many">Operación completada. No se pudieron cambiar %1$d componentes</item>
-        <item quantity="other">Operación completada. No se pudieron cambiar %1$d componentes</item>
+        <item quantity="one">Operación completada. No se pudo cambiar %1$d componente.</item>
+        <item quantity="many">Operación completada. No se pudieron cambiar %1$d componentes.</item>
+        <item quantity="other">Operación completada. No se pudieron cambiar %1$d componentes.</item>
     </plurals>
     <string name="core_ui_do_you_want_to_uninstall_this_app">¿Quieres desinstalar esta aplicación?</string>
     <string name="core_ui_found">Encontrado</string>
@@ -158,7 +158,7 @@
     <string name="core_ui_profile_work">Trabajo</string>
     <string name="core_ui_profile_user">Usuario %1$d</string>
     <string name="core_ui_profile_not_running">Detenido</string>
-    <string name="core_ui_uninstall_for_profile_confirm">¿Quieres desinstalar esta aplicación de %1$s? Los demás usuarios y perfiles que la tienen la conservan. La aplicación sale del dispositivo cuando ningún usuario la tiene.</string>
+    <string name="core_ui_uninstall_for_profile_confirm">¿Desea desinstalar esta aplicación de %1$s? La aplicación seguirá instalada para los demás usuarios y perfiles que la tengan instalada y solo se eliminará del dispositivo cuando ningún usuario la tenga instalada.</string>
     <string name="core_ui_enable_app_failed">No se pudo habilitar %1$s</string>
     <string name="core_ui_disable_app_failed">No se pudo deshabilitar %1$s</string>
     <string name="core_ui_force_stop_app_failed">No se pudo forzar la detención de %1$s</string>
@@ -167,7 +167,7 @@
     <string name="core_ui_uninstall_app_failed">No se pudo desinstalar %1$s</string>
     <string name="core_ui_launch_failed">No se pudo abrir %1$s</string>
     <string name="core_ui_stop_failed">No se pudo detener %1$s</string>
-    <string name="core_ui_reason_no_access">Concede a Blocker acceso root o de Shizuku y vuelve a intentarlo.</string>
+    <string name="core_ui_reason_no_access">Conceda a Blocker acceso root o de Shizuku y vuelva a intentarlo.</string>
     <string name="core_ui_unknown">Desconocido</string>
     <string name="core_ui_grant_access">Conceder acceso</string>
     <string name="core_ui_block_component_failed">No se pudo bloquear %1$s</string>
