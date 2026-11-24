@@ -52,6 +52,8 @@ private const val COMPLETED_WITH_FAILURES_DISPLAY_MILLIS = 4000
 /**
  * Progress of a batch operation. [current] counts processed components, including the
  * [failed] ones that could not be changed.
+ *
+ * @property isIndeterminate whether the batch cannot report how far it got, so no counts are shown
  */
 data class ProcessingProgress(
     val current: Int,
@@ -59,6 +61,7 @@ data class ProcessingProgress(
     val isEnabling: Boolean,
     val isComplete: Boolean = current >= total,
     val failed: Int = 0,
+    val isIndeterminate: Boolean = false,
 )
 
 @Composable
@@ -99,6 +102,8 @@ fun ProcessingProgressSnackbar(
                 stringResource(uistring.core_ui_operation_completed)
             } else if (displayProgress.total == 0) {
                 stringResource(uistring.core_ui_loading)
+            } else if (displayProgress.isIndeterminate) {
+                stringResource(if (displayProgress.isEnabling) uistring.core_ui_enabling_components else uistring.core_ui_disabling_components)
             } else if (displayProgress.isEnabling) {
                 stringResource(
                     uistring.core_ui_enabling_component_hint,

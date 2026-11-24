@@ -75,6 +75,8 @@
     </plurals>
     <string name="core_ui_disabling_component_hint">Disabling components, please wait… (%1$d/%2$d)</string>
     <string name="core_ui_enabling_component_hint">Enabling components, please wait… (%1$d/%2$d)</string>
+    <string name="core_ui_disabling_components">Disabling components, please wait…</string>
+    <string name="core_ui_enabling_components">Enabling components, please wait…</string>
     <string name="core_ui_operation_completed">Operation completed</string>
     <plurals name="core_ui_operation_completed_with_failures">
         <item quantity="one">Operation completed. %1$d component could not be changed</item>

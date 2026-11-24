@@ -1,0 +1,185 @@
+/*
+ * Copyright 2026 Blocker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.merxury.blocker.feature.appdetail.impl
+
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.BlockReason
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.TabState
+import java.io.File
+
+/**
+ * The component lists of one app for one user, with the tabs, search and selection around them.
+ *
+ * @property refreshFailure why the last refresh failed; null while one runs, after one succeeded and
+ * before the first. [ReadFailure.PackageNotFound] means the app is not installed for the user.
+ * @property accessCheckFailed whether nothing could be read because the privileged channel's first
+ * access check did not settle
+ * @property banners limits of the current mode, shown once above the lists
+ * @property message something to tell once; see [ComponentListViewModel.onMessageShown]
+ */
+data class ComponentListUiState(
+    val tabs: TabState<AppDetailTabs>,
+    val components: ComponentsUiState = ComponentsUiState.Loading,
+    val matchedRules: MatchedRulesUiState = MatchedRulesUiState.Loading,
+    val isSearchMode: Boolean = false,
+    val keyword: String = "",
+    val isSelectionMode: Boolean = false,
+    val selected: Set<ComponentId> = emptySet(),
+    val isRefreshing: Boolean = false,
+    val refreshFailure: ReadFailure? = null,
+    val accessCheckFailed: Boolean = false,
+    val banners: List<ModeBanner> = emptyList(),
+    val message: ListMessage? = null,
+)
+
+/**
+ * The components the batch actions of the selected tab act on: the rows it shows, or on the
+ * matched rules tab every component the rules match, each once. None on the app info tab.
+ */
+internal fun ComponentListUiState.componentsOfSelectedPage(): List<ComponentId> = when (val tab = tabs.selectedItem) {
+    AppDetailTabs.Sdk -> (matchedRules as? MatchedRulesUiState.Loaded)?.rules.orEmpty().flatMap { rule -> rule.rows.map { it.id } }.distinct()
+    else -> (components as? ComponentsUiState.Loaded)?.components?.of(tab)?.map { it.id }.orEmpty()
+}
+
+sealed interface ComponentsUiState {
+    /** Nothing is cached for the app yet and the first refresh has not finished. */
+    data object Loading : ComponentsUiState
+
+    /** The cached components, filtered by the search and sorted as the user chose. */
+    data class Loaded(val components: AppComponents) : ComponentsUiState
+}
+
+/** The rows of one app by type, each list in the order shown. */
+data class AppComponents(
+    val receivers: List<ComponentRow> = emptyList(),
+    val services: List<ComponentRow> = emptyList(),
+    val activities: List<ComponentRow> = emptyList(),
+    val providers: List<ComponentRow> = emptyList(),
+) {
+    /** The rows of [tab], or none for a tab that does not list components. */
+    fun of(tab: AppDetailTabs): List<ComponentRow> = when (tab) {
+        AppDetailTabs.Receiver -> receivers
+        AppDetailTabs.Service -> services
+        AppDetailTabs.Activity -> activities
+        AppDetailTabs.Provider -> providers
+        else -> emptyList()
+    }
+}
+
+/** Where a component's switch stands. */
+enum class SwitchState {
+    /** The component can run, perhaps limited by a conditional rule. */
+    ON,
+
+    /** Something blocks the component. */
+    OFF,
+
+    /** Nothing known blocks it, but part of its state could not be read. */
+    UNKNOWN,
+}
+
+/** Why the state of a component cannot be told. */
+enum class UnknownCause {
+    /** Its PackageManager setting for the user could not be read. */
+    PM_UNREADABLE,
+
+    /** The current mode cannot read Intent Firewall rules. */
+    NO_FIREWALL_ACCESS,
+
+    /** The app's Intent Firewall rule file could not be read, for example because it is damaged. */
+    RULES_UNREADABLE,
+}
+
+/**
+ * One component as the cache holds it.
+ *
+ * @property blockedBy every known reason it cannot start; empty unless [switch] is OFF
+ * @property conditional whether a conditional Intent Firewall rule names it
+ * @property unknownCause why [switch] is UNKNOWN; null otherwise
+ * @property isRunning whether the service runs; false when that cannot be read
+ */
+data class ComponentRow(
+    val id: ComponentId,
+    val type: ComponentType,
+    val switch: SwitchState,
+    val blockedBy: Set<BlockReason> = emptySet(),
+    val conditional: Boolean = false,
+    val unknownCause: UnknownCause? = null,
+    val isRunning: Boolean = false,
+    val description: String? = null,
+)
+
+sealed interface MatchedRulesUiState {
+    data object Loading : MatchedRulesUiState
+
+    data class Loaded(val rules: List<MatchedRule>) : MatchedRulesUiState
+}
+
+/** A general rule with the components of this app it matches. */
+data class MatchedRule(
+    val id: Int,
+    val title: String,
+    val icon: File?,
+    val rows: List<ComponentRow>,
+)
+
+/** A limit of the current mode that applies to every component, shown once. */
+enum class ModeBanner {
+    /** Blocker has no root or Shizuku access; it can be granted from the banner. */
+    NO_ACCESS,
+
+    /** Shizuku runs as the shell, which may change components of test-only apps only. */
+    NEEDS_ROOT,
+
+    /** The controller type uses the Intent Firewall, which the current mode cannot read or change. */
+    FIREWALL_UNAVAILABLE,
+}
+
+sealed interface ListMessage {
+    /** A refresh failed; the rows shown are the ones cached before. */
+    data class RefreshFailed(val reason: ReadFailure) : ListMessage
+
+    data class LaunchFailed(val name: String, val reason: ActionFailure) : ListMessage
+
+    /** The system accepted the start, but an Intent Firewall rule blocks the activity. */
+    data class LaunchBlockedByRule(val name: String) : ListMessage
+
+    /** The system accepted the start, but a conditional Intent Firewall rule may block it. */
+    data class LaunchMayBeBlocked(val name: String) : ListMessage
+
+    data class StopFailed(val name: String, val reason: ActionFailure) : ListMessage
+
+    /** Asked for root or Shizuku, but the channel is still not ready. */
+    data object GrantFailed : ListMessage
+
+    /** The privileged channel's first access check did not settle, so nothing could be read. */
+    data object AccessCheckFailed : ListMessage
+}
+
+/** Why launching an activity, stopping a service or granting access failed, as the user is told. */
+sealed interface ActionFailure {
+    data object NoAccess : ActionFailure
+
+    data object NotPermitted : ActionFailure
+
+    data object NotFound : ActionFailure
+
+    data class SystemError(val message: String?) : ActionFailure
+}

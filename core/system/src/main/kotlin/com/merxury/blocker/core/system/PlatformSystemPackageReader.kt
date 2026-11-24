@@ -191,6 +191,8 @@ class PlatformSystemPackageReader @Inject constructor(
             enabled = application?.enabled ?: true,
             enabledSetting = appEnabledSettingOf(enabledSetting),
             apkPath = application?.sourceDir,
+            // PackageManager fills this for the user it answers for.
+            dataDir = application?.dataDir,
             firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
             lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
             minSdk = application?.minSdkVersion ?: 0,

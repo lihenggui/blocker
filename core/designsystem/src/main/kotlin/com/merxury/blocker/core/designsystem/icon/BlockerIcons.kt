@@ -50,6 +50,7 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FilePresent
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
@@ -102,6 +103,7 @@ object BlockerIcons {
     val Translate = Icons.Default.Translate
     val Analytics = Icons.Outlined.Analytics
     val Shield = Icons.Outlined.Shield
+    val Info = Icons.Outlined.Info
 
     val Rectangle = R.drawable.core_designsystem_ic_rectangle
     val Android = R.drawable.core_designsystem_ic_android

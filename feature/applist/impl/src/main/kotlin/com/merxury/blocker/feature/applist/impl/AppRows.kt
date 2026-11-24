@@ -24,9 +24,9 @@ import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.InstalledApp
-import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.ui.applist.ServiceCounts
 import com.merxury.blocker.core.ui.coil.ApkIcon
+import com.merxury.blocker.core.ui.profile.profileLabel
 
 /**
  * The rows for [apps] of one user: system apps only when the user shows them, sorted as the user
@@ -77,14 +77,7 @@ private fun appOrder(sorting: AppSorting, order: SortingOrder): Comparator<Insta
 
 internal fun DeviceUser.toProfileTab() = ProfileTab(
     user = id,
-    label = when (kind) {
-        UserKind.OWNER -> ProfileLabel.Personal
-
-        UserKind.WORK_PROFILE -> ProfileLabel.Work
-
-        UserKind.SECONDARY, UserKind.OTHER_PROFILE -> name?.takeIf { it.isNotBlank() }?.let(ProfileLabel::Named)
-            ?: ProfileLabel.Numbered(id.value)
-    },
+    label = profileLabel(),
     running = running,
 )
 

@@ -64,6 +64,7 @@ class UserAndAppCacheTest : ComponentCacheTestBase() {
             enabled = false,
             enabledSetting = AppEnabledSetting.DISABLED_USER,
             apkPath = null,
+            dataDir = "/data/user/10/com.example",
             firstInstallTime = Instant.fromEpochMilliseconds(123),
             lastUpdateTime = Instant.fromEpochMilliseconds(456),
             minSdk = 24,

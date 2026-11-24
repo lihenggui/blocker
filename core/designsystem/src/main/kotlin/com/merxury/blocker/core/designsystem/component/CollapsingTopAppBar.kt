@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,6 +70,9 @@ private val minNavWidth = 1.dp
 val MinToolbarHeight = 64.dp
 val MaxToolbarHeight = 188.dp
 
+/** The test tag of the app icon in [BlockerCollapsingTopAppBar]. */
+const val COLLAPSING_TOP_APP_BAR_ICON_TAG = "collapsingTopAppBar:icon"
+
 @Composable
 fun BlockerCollapsingTopAppBar(
     progress: Float,
@@ -80,7 +84,7 @@ fun BlockerCollapsingTopAppBar(
     onNavigationClick: () -> Unit = {},
     actions: (@Composable RowScope.() -> Unit)? = {},
     iconSource: Any? = null,
-    onIconClick: () -> Unit = {},
+    onIconClick: (() -> Unit)? = {},
 ) {
     val titleSize = with(LocalDensity.current) {
         lerp(collapsedTitleSize.toPx(), expandedTitleSize.toPx(), progress).toSp()
@@ -145,10 +149,18 @@ fun BlockerCollapsingTopAppBar(
                     AsyncImage(
                         modifier = Modifier
                             .size(appIconSize)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = ripple(bounded = false),
-                                onClick = { onIconClick() },
+                            .testTag(COLLAPSING_TOP_APP_BAR_ICON_TAG)
+                            .then(
+                                // Without an action the icon is not offered as something to tap.
+                                if (onIconClick == null) {
+                                    Modifier
+                                } else {
+                                    Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(bounded = false),
+                                        onClick = onIconClick,
+                                    )
+                                },
                             )
                             .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                         model = ImageRequest

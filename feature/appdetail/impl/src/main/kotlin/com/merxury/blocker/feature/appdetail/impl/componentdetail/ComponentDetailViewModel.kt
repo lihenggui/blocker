@@ -31,59 +31,45 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/**
+ * The description of one component, as the user wrote it or as it came with the rules, and the
+ * user's edits of it until they are saved.
+ */
 @HiltViewModel(assistedFactory = ComponentDetailViewModel.Factory::class)
 class ComponentDetailViewModel @AssistedInject constructor(
     private val componentDetailRepository: ComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Assisted val componentName: String,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<ComponentDetailUiState>(Loading)
-    val uiState = _uiState.asStateFlow()
+    private val edited = MutableStateFlow<ComponentDetail?>(null)
 
-    init {
-        load()
-    }
+    // What the user saved before wins over the description that came with the rules.
+    private val stored = flow {
+        val detail = componentDetailRepository.getUserGeneratedDetail(componentName).first()
+            ?: componentDetailRepository.getLocalComponentDetail(componentName).first()
+            ?: ComponentDetail(name = componentName)
+        emit(detail)
+    }.flowOn(ioDispatcher)
 
-    private fun load() = viewModelScope.launch(ioDispatcher) {
-        val userGeneratedDetail = componentDetailRepository
-            .getUserGeneratedDetail(componentName)
-            .first()
-        if (userGeneratedDetail != null) {
-            _uiState.value = Success(
-                detail = userGeneratedDetail,
-            )
-            // Do NOT update the dialog if user saved the data previously
-            return@launch
-        }
-        val localDetail = componentDetailRepository
-            .getLocalComponentDetail(componentName)
-            .first()
-        if (localDetail != null) {
-            _uiState.value = Success(
-                detail = localDetail,
-            )
-            return@launch
-        }
-        // No matching found in the network, emit the default value
-        // Dismiss the loading progress bar
-        _uiState.value = Success(
-            detail = ComponentDetail(name = componentName),
-        )
-    }
+    val uiState: StateFlow<ComponentDetailUiState> = combine(stored, edited) { stored, edited ->
+        Success(detail = edited ?: stored)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = Loading,
+    )
 
     fun onInfoChanged(detail: ComponentDetail) {
-        _uiState.update {
-            when (it) {
-                is Loading -> Success(detail = detail)
-                is Success -> it.copy(detail = detail)
-                else -> Success(detail = detail)
-            }
-        }
+        edited.value = detail
     }
 
     fun save(detail: ComponentDetail) = viewModelScope.launch {

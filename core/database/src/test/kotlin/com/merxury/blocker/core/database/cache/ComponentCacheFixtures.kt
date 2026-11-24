@@ -73,6 +73,7 @@ internal fun app(
     enabled = !enabledSetting.isDisabled,
     enabledSetting = enabledSetting,
     apkPath = "/data/app/$packageName/base.apk",
+    dataDir = null,
     firstInstallTime = Instant.fromEpochMilliseconds(1_000),
     lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
     minSdk = 26,

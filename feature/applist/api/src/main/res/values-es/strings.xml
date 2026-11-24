@@ -38,7 +38,6 @@
     <string name="feature_applist_api_refresh_failed">No se pudo actualizar la lista de aplicaciones. Se muestra la última lista guardada.</string>
     <string name="feature_applist_api_retry">Reintentar</string>
     <string name="feature_applist_api_load_failed">No se pudo cargar la lista de aplicaciones. Desliza hacia abajo para intentarlo de nuevo.</string>
-    <string name="feature_applist_api_other_profile_note">La edición de componentes de aplicaciones en otros perfiles llegará con la pantalla de detalles de la aplicación en una actualización posterior.</string>
     <string name="feature_applist_api_clear_data_confirm">¿Quieres borrar los datos de esta aplicación? Mientras se borran, Android también detiene la aplicación en todos los usuarios y perfiles de este dispositivo.</string>
     <string name="feature_applist_api_uninstall_for_profile_confirm">¿Quieres desinstalar esta aplicación de %1$s? Los demás usuarios y perfiles que la tienen la conservan. La aplicación sale del dispositivo cuando ningún usuario la tiene.</string>
     <string name="feature_applist_api_enable_failed">No se pudo habilitar %1$s</string>

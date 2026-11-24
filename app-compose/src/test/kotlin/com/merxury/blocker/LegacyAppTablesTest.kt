@@ -96,6 +96,7 @@ class LegacyAppTablesTest {
         enabled = true,
         enabledSetting = AppEnabledSetting.DEFAULT,
         apkPath = null,
+        dataDir = null,
         firstInstallTime = Instant.fromEpochMilliseconds(0),
         lastUpdateTime = Instant.fromEpochMilliseconds(0),
         minSdk = 24,

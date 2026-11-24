@@ -55,6 +55,8 @@
     </plurals>
     <string name="core_ui_disabling_component_hint">Menonaktifkan, harap tunggu… (%1$d/%2$d)</string>
     <string name="core_ui_enabling_component_hint">Mengaktifkan komponen, harap tunggu… (%1$d/%2$d)</string>
+    <string name="core_ui_disabling_components">Menonaktifkan, harap tunggu…</string>
+    <string name="core_ui_enabling_components">Mengaktifkan komponen, harap tunggu…</string>
     <string name="core_ui_operation_completed">Operasi selesai</string>
     <plurals name="core_ui_operation_completed_with_failures">
         <item quantity="other">Operasi selesai. %1$d komponen tidak dapat diubah</item>

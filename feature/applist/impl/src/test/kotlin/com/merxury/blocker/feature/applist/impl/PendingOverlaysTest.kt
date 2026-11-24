@@ -23,12 +23,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.applist.impl.component.previewAppRows
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
@@ -40,7 +42,7 @@ import com.merxury.blocker.core.ui.R.string as uiString
 import com.merxury.blocker.feature.applist.api.R.string as string
 
 /**
- * An open actions sheet or confirmation belongs to one app of one user. The same package is
+ * An open confirmation belongs to one app of one user. The same package is
  * installed for both users here, so acting on the wrong user would be possible.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -70,7 +72,7 @@ class PendingOverlaysTest {
     }
 
     private fun openWorkUninstallConfirmation() {
-        composeTestRule.onNodeWithText("Blocker Test").performClick()
+        composeTestRule.onNodeWithText("Blocker Test").performTouchInput { longClick() }
         composeTestRule.onNodeWithText(text(uiString.core_ui_uninstall)).performClick()
         composeTestRule.onNodeWithText(text(string.feature_applist_api_uninstall_for_profile_confirm, "Work")).assertIsDisplayed()
     }
@@ -110,17 +112,5 @@ class PendingOverlaysTest {
         composeTestRule.onNodeWithText(text(android.R.string.ok)).performClick()
 
         assertThat(actions).containsExactly(AppKey("com.test.blocker", WORK) to AppAction.UNINSTALL)
-    }
-
-    @Test
-    fun givenActionsSheetOpen_whenRestoredWithPersonalSelected_thenClosed() {
-        show()
-        composeTestRule.onNodeWithText("Blocker Test").performClick()
-        composeTestRule.onNodeWithTag("appList:actionsSheet").assertExists()
-
-        state = personalShown
-        restoration.emulateSavedInstanceStateRestore()
-
-        composeTestRule.onNodeWithTag("appList:actionsSheet").assertDoesNotExist()
     }
 }

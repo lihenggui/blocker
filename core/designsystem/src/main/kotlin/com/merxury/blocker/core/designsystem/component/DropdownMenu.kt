@@ -96,6 +96,7 @@ fun BlockerDropdownMenu(
                     item.onClick()
                     if (dismissOnItemClick) onDismissRequest()
                 },
+                enabled = item.enabled,
             )
         }
     }
@@ -267,9 +268,11 @@ fun <T> BlockerDropdownMenu(
     }
 }
 
+/** One item of a [BlockerDropdownMenu]; a disabled item is shown but cannot be clicked. */
 data class DropDownMenuItem(
     val textRes: Int,
     val onClick: () -> Unit,
+    val enabled: Boolean = true,
 )
 
 /**

@@ -19,6 +19,8 @@ package com.merxury.blocker.core.control
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentDeclaration
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
@@ -26,11 +28,13 @@ import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.core.ifw.IfwStore
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -162,6 +166,145 @@ class ComponentControlFailureTest {
                 ControlFailure.ChannelUnavailable,
             )
         }
+    }
+
+    @Test
+    fun givenRootDeniedAfterTheChannelDied_whenEnabledTwice_thenBothAttemptsFailAlike() = runTest {
+        // The channel still reads as ready after its process died: the first read through it fails
+        // and marks it lost, and a later connect is refused.
+        val fixture = ControlFixture()
+        fixture.blockInIfw(BOOT)
+        fixture.files.connected = false
+        fixture.channel.connectResult = ChannelState.Unavailable(UnavailableReason.DENIED)
+        var reads = 0
+        fixture.system.beforeRead = {
+            reads++
+            fixture.system.readFailure = if (reads == 1) ReadFailure.ChannelUnavailable else null
+            if (reads == 1) fixture.channel.mutableState.value = ChannelState.Unavailable(UnavailableReason.FAILED)
+        }
+
+        val first = fixture.run(enable(BOOT)).outcomeOf(BOOT)
+        val second = fixture.run(enable(BOOT)).outcomeOf(BOOT)
+
+        assertThat(fixture.executor.calls).isEmpty()
+        listOf(first, second).forEach { outcome ->
+            assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+            assertThat(outcome.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.BLOCKED))
+            assertThat(outcome.failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.ChannelUnavailable)
+        }
+    }
+
+    @Test
+    fun givenSettingUnreadableBefore_whenUnblockClearsItButTheRuleStays_thenFailedNotPartial() = runTest {
+        val fixture = ControlFixture()
+        fixture.blockInIfw(MAIN)
+        fixture.files.writeFailure = IOException("Disk full")
+        var reads = 0
+        fixture.system.beforeRead = {
+            reads++
+            fixture.system.readFailure = if (reads == 1) ReadFailure.ChannelUnavailable else null
+        }
+
+        val outcome = fixture.run(unblock(MAIN)).outcomeOf(MAIN)
+
+        // The setting was cleared as it might have been a block, but it may have been clear already.
+        assertThat(fixture.executor.calls).hasSize(1)
+        assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+        assertThat(outcome.failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.WriteFailed("Disk full"))
+    }
+
+    @Test
+    fun givenNoChannel_whenEnableNeedsBothLayers_thenEachListsChannelUnavailableAndFailed() = runTest {
+        val fixture = ControlFixture(NOT_CHECKED)
+        val shippedOff = declaration("Off", ComponentType.RECEIVER, enabledInManifest = false)
+        fixture.blockInIfw(shippedOff)
+        fixture.files.connected = false
+        fixture.channel.connectResult = ChannelState.Unavailable(UnavailableReason.DENIED)
+
+        repeat(2) {
+            val outcome = fixture.run(enable(shippedOff)).outcomeOf(shippedOff)
+
+            assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+            assertThat(outcome.failures).containsExactly(
+                ControlLayer.PACKAGE_MANAGER,
+                ControlFailure.ChannelUnavailable,
+                ControlLayer.INTENT_FIREWALL,
+                ControlFailure.ChannelUnavailable,
+            )
+        }
+    }
+
+    @Test
+    fun givenPmClearedThenTheRuleStoreThrows_whenUnblock_thenPartialWithOnlyTheFirewallFailed() = runTest {
+        val fixture = ControlFixture { store ->
+            object : IfwStore by store {
+                override suspend fun setBlocked(packageName: String, changes: Map<ComponentDeclaration, Boolean>): IfwResult<Map<ComponentId, IfwBlock>> = throw IllegalStateException("Store broke")
+            }
+        }
+        fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
+        fixture.blockInIfw(MAIN)
+
+        val outcome = fixture.run(unblock(MAIN)).outcomeOf(MAIN)
+
+        assertThat(fixture.pm(MAIN)).isEqualTo(PmSetting.DEFAULT)
+        assertThat(outcome.result).isEqualTo(ControlResult.PARTIAL)
+        assertThat(outcome.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.BLOCKED))
+        assertThat(outcome.failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.SystemError("java.lang.IllegalStateException: Store broke"))
+    }
+
+    @Test
+    fun givenPmCallThrows_whenBlockWithBoth_thenOnlyThePmLayerFailsAndTheRuleIsWritten() = runTest {
+        val fixture = ControlFixture()
+        fixture.system.beforeSet = { throw IllegalStateException("Binder broke") }
+
+        val outcome = fixture.run(block(BOTH, MAIN)).outcomeOf(MAIN)
+
+        assertThat(outcome.result).isEqualTo(ControlResult.PARTIAL)
+        assertThat(outcome.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.BLOCKED))
+        assertThat(outcome.failures).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlFailure.SystemError("java.lang.IllegalStateException: Binder broke"))
+    }
+
+    @Test
+    fun givenShellAndAnOrdinaryApp_whenEnabledThroughEveryLayer_thenOnlyThePmLayerIsJudged() = runTest {
+        val fixture = ControlFixture(SHELL)
+        fixture.files.noAccess = true
+        fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
+
+        val events = fixture.run(enable(MAIN, SYNC))
+
+        val blocked = events.outcomeOf(MAIN)
+        assertThat(blocked.result).isEqualTo(ControlResult.FAILED)
+        assertThat(blocked.failures.keys).containsExactly(ControlLayer.PACKAGE_MANAGER)
+        assertThat(blocked.failures.getValue(ControlLayer.PACKAGE_MANAGER)).isInstanceOf(ControlFailure.NotPermitted::class.java)
+        // Nothing to do for a component the PackageManager lets run; its firewall state stays unread.
+        val clear = events.outcomeOf(SYNC)
+        assertThat(clear.result).isEqualTo(ControlResult.ACHIEVED)
+        assertThat(clear.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.UNKNOWN))
+        assertThat(fixture.files.operations.filterNot { it.startsWith("peek") }).isEmpty()
+    }
+
+    @Test
+    fun givenShell_whenBlockWithBoth_thenTheFirewallLayerIsStillNotPermitted() = runTest {
+        val fixture = ControlFixture(SHELL)
+        fixture.files.noAccess = true
+        fixture.system.testOnly += PKG
+
+        val outcome = fixture.run(block(BOTH, MAIN)).outcomeOf(MAIN)
+
+        assertThat(outcome.result).isEqualTo(ControlResult.PARTIAL)
+        assertThat(outcome.failures.keys).containsExactly(ControlLayer.INTENT_FIREWALL)
+        assertThat(outcome.failures.getValue(ControlLayer.INTENT_FIREWALL)).isInstanceOf(ControlFailure.NotPermitted::class.java)
+    }
+
+    @Test
+    fun givenShell_whenUnblockOnlyTheFirewall_thenNotPermitted() = runTest {
+        val fixture = ControlFixture(SHELL)
+        fixture.files.noAccess = true
+
+        val outcome = fixture.run(unblock(MAIN, layers = IFW_ONLY)).outcomeOf(MAIN)
+
+        assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+        assertThat(outcome.failures.getValue(ControlLayer.INTENT_FIREWALL)).isInstanceOf(ControlFailure.NotPermitted::class.java)
     }
 
     @Test

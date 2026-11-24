@@ -33,6 +33,7 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.core.ui.profile.ProfileLabel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope

@@ -88,6 +88,7 @@ class PlatformSystemPackageReaderTest {
                     packageName = PKG
                     flags = ApplicationInfo.FLAG_SYSTEM
                     sourceDir = "/data/app/example/base.apk"
+                    dataDir = "/data/user/0/$PKG"
                     minSdkVersion = 24
                     targetSdkVersion = 34
                     uid = 10_123
@@ -109,6 +110,7 @@ class PlatformSystemPackageReaderTest {
         assertThat(app.enabled).isFalse()
         assertThat(app.enabledSetting).isEqualTo(AppEnabledSetting.DISABLED_USER)
         assertThat(app.apkPath).isEqualTo("/data/app/example/base.apk")
+        assertThat(app.dataDir).isEqualTo("/data/user/0/$PKG")
         assertThat(app.firstInstallTime).isEqualTo(Instant.fromEpochMilliseconds(1_000))
         assertThat(app.lastUpdateTime).isEqualTo(Instant.fromEpochMilliseconds(2_000))
         assertThat(app.minSdk).isEqualTo(24)
@@ -133,6 +135,7 @@ class PlatformSystemPackageReaderTest {
 
         assertThat(app.label).isEqualTo(PKG)
         assertThat(app.apkPath).isNull()
+        assertThat(app.dataDir).isNull()
         assertThat(app.uid).isNull()
         assertThat(app.isSystem).isFalse()
         assertThat(app.enabled).isTrue()

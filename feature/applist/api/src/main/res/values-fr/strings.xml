@@ -24,7 +24,6 @@
     <string name="feature_applist_api_refresh_failed">Impossible d\'actualiser la liste des applications. Affichage de la dernière liste enregistrée.</string>
     <string name="feature_applist_api_retry">Réessayer</string>
     <string name="feature_applist_api_load_failed">Impossible de charger la liste des applications. Tirez vers le bas pour réessayer.</string>
-    <string name="feature_applist_api_other_profile_note">La modification des composants des applications d\'autres profils arrivera avec l\'écran de détails de l\'application dans une prochaine mise à jour.</string>
     <string name="feature_applist_api_clear_data_confirm">Voulez-vous effacer les données de cette application ? Pendant l\'effacement, Android arrête aussi l\'application pour tous les utilisateurs et profils de cet appareil.</string>
     <string name="feature_applist_api_uninstall_for_profile_confirm">Voulez-vous désinstaller cette application de %1$s ? Les autres utilisateurs et profils qui l\'ont la conservent. L\'application quitte l\'appareil lorsque plus aucun utilisateur ne l\'a.</string>
     <string name="feature_applist_api_enable_failed">Impossible d\'activer %1$s</string>

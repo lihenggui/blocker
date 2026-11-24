@@ -22,13 +22,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.applist.impl.component.previewAppRows
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
@@ -49,7 +52,7 @@ class AppListScreenTest {
         ProfileTab(OWNER, ProfileLabel.Personal, running = true),
         ProfileTab(WORK, ProfileLabel.Work, running = false),
     )
-    private val opened = mutableListOf<String>()
+    private val opened = mutableListOf<Pair<String, Int?>>()
     private val actions = mutableListOf<Pair<AppKey, AppAction>>()
     private val selected = mutableListOf<UserId>()
 
@@ -58,7 +61,7 @@ class AppListScreenTest {
             BlockerTheme {
                 AppListScreen(
                     uiState = uiState,
-                    navigateToAppDetail = { opened += it },
+                    navigateToAppDetail = { packageName, userId -> opened += packageName to userId },
                     onSelectUser = { selected += it },
                     onAction = { app, action -> actions += app to action },
                 )
@@ -69,24 +72,28 @@ class AppListScreenTest {
     private fun text(id: Int, vararg args: Any) = composeTestRule.activity.getString(id, *args)
 
     @Test
-    fun givenOwnUserApp_whenTapped_thenDetailOpensWithThePackage() {
+    fun givenOwnUserApp_whenTapped_thenDetailOpensWithoutAUser() {
         show(AppListUiState(OWNER, OWNER, apps = AppsUiState.Loaded(previewAppRows(OWNER))))
 
         composeTestRule.onNodeWithText("Blocker Test").performClick()
 
-        assertThat(opened).containsExactly("com.test.blocker")
-        composeTestRule.onNodeWithTag("appList:actionsSheet").assertDoesNotExist()
+        assertThat(opened).containsExactly("com.test.blocker" to null)
     }
 
     @Test
-    fun givenOtherUserApp_whenTapped_thenActionsSheetOpensInsteadOfDetail() {
+    fun givenOtherUserApp_whenTapped_thenDetailOpensForThatUser() {
         show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
 
         composeTestRule.onNodeWithText("Blocker Test").performClick()
 
-        assertThat(opened).isEmpty()
-        composeTestRule.onNodeWithText(text(string.feature_applist_api_other_profile_note)).assertIsDisplayed()
+        assertThat(opened).containsExactly("com.test.blocker" to WORK.value)
+    }
 
+    @Test
+    fun givenOtherUserApp_whenEnableChosenFromItsMenu_thenEnabledForThatUser() {
+        show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
+
+        composeTestRule.onNodeWithText("Blocker Test").performTouchInput { longClick() }
         composeTestRule.onNodeWithText(text(uiString.core_ui_enable)).performClick()
 
         assertThat(actions).containsExactly(AppKey("com.test.blocker", WORK) to AppAction.ENABLE)
@@ -130,7 +137,7 @@ class AppListScreenTest {
     @Test
     fun givenOtherUserApp_whenUninstallConfirmed_thenUninstalledForThatProfile() {
         show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
-        composeTestRule.onNodeWithText("Blocker Test").performClick()
+        composeTestRule.onNodeWithText("Blocker Test").performTouchInput { longClick() }
 
         composeTestRule.onNodeWithText(text(uiString.core_ui_uninstall)).performClick()
 
@@ -143,7 +150,7 @@ class AppListScreenTest {
     @Test
     fun givenApp_whenClearDataChosen_thenWarnsThatEveryUserStops() {
         show(AppListUiState(OWNER, WORK, profiles = profiles, apps = AppsUiState.Loaded(previewAppRows(WORK))))
-        composeTestRule.onNodeWithText("Blocker Test").performClick()
+        composeTestRule.onNodeWithText("Blocker Test").performTouchInput { longClick() }
 
         composeTestRule.onNodeWithText(text(uiString.core_ui_clear_data)).performClick()
 

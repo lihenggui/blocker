@@ -21,17 +21,27 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
+/**
+ * In-memory [ComponentDetailRepository]. Tests set the details with [sendComponentDetail];
+ * [saveComponentDetail] stores one and reports it on [updatedComponent], as a save in the
+ * description dialog does. [hasUserGeneratedDetail] reads once, as the real repository does, and
+ * counts the details whose name starts with the package name.
+ */
 class TestComponentDetailRepository : ComponentDetailRepository {
-    override val updatedComponent: Flow<ComponentDetail>
-        get() = flowOf(ComponentDetail(""))
+    private val updates = MutableSharedFlow<ComponentDetail>(extraBufferCapacity = 16)
+
+    override val updatedComponent: Flow<ComponentDetail> = updates.asSharedFlow()
 
     private val componentDetail: MutableSharedFlow<List<ComponentDetail>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
-    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flowOf(false)
+    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flow {
+        emit(current().any { it.name.startsWith("$packageName.") })
+    }
 
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = componentDetail.map {
         it.find { componentDetail -> componentDetail.name == name }
@@ -41,9 +51,15 @@ class TestComponentDetailRepository : ComponentDetailRepository {
         it.find { componentDetail -> componentDetail.name == name }
     }
 
-    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
+    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flow {
+        sendComponentDetail(current().filterNot { it.name == componentDetail.name } + componentDetail)
+        updates.emit(componentDetail)
+        emit(true)
+    }
 
     fun sendComponentDetail(componentDetail: List<ComponentDetail>) {
         this.componentDetail.tryEmit(componentDetail)
     }
+
+    private fun current(): List<ComponentDetail> = componentDetail.replayCache.firstOrNull().orEmpty()
 }

@@ -18,6 +18,9 @@ package com.merxury.blocker.core.model.control
 
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ControlLayer
+import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.data.ControllerType
@@ -81,3 +84,34 @@ val ControllerType.blockLayers: Set<ControlLayer>
  * every goal, so an unblock with the layers a block used clears what that block set.
  */
 fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>): Set<ControlLayer> = if (type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)
+
+/** Whether [layer] shows [goal] in [state], as ComponentControl judges a request. */
+fun ComponentDeclaration.meets(goal: ControlGoal, layer: ControlLayer, state: ControlState): Boolean = when (goal) {
+    ControlGoal.BLOCK -> when (layer) {
+        ControlLayer.PACKAGE_MANAGER -> state.pm == PmSetting.DISABLED
+        ControlLayer.INTENT_FIREWALL -> state.ifw == IfwBlock.BLOCKED
+    }
+
+    // No block by the layer; the manifest default may still keep the component from running.
+    ControlGoal.UNBLOCK -> when (layer) {
+        ControlLayer.PACKAGE_MANAGER -> state.pm != PmSetting.DISABLED && state.pm != PmSetting.UNKNOWN
+        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
+    }
+
+    ControlGoal.ENABLE -> when (layer) {
+        ControlLayer.PACKAGE_MANAGER -> isPmClear(state.pm)
+        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
+    }
+}
+
+/** Whether [layer] of [this] state was read, rather than [PmSetting.UNKNOWN] or [IfwBlock.UNKNOWN]. */
+fun ControlState.isKnown(layer: ControlLayer): Boolean = when (layer) {
+    ControlLayer.PACKAGE_MANAGER -> pm != PmSetting.UNKNOWN
+    ControlLayer.INTENT_FIREWALL -> ifw != IfwBlock.UNKNOWN
+}
+
+/** Whether [setting] lets the component run. */
+fun ComponentDeclaration.isPmClear(setting: PmSetting): Boolean = setting == PmSetting.ENABLED || (setting == PmSetting.DEFAULT && enabledInManifest)
+
+/** Whether no unconditional rule blocks the component; a conditional rule is not Blocker's. */
+private val IfwBlock.isClear: Boolean get() = this == IfwBlock.NOT_BLOCKED || this == IfwBlock.CONDITIONAL

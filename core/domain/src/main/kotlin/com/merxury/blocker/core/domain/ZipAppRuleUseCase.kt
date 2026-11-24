@@ -16,14 +16,15 @@
 
 package com.merxury.blocker.core.domain
 
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.CacheDir
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.ZippedRule
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -37,15 +38,20 @@ import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import kotlin.time.Clock
 
+/**
+ * Zips the rules the user wrote for the components of one app, the ones its user has cached, so
+ * they can be shared.
+ */
 class ZipAppRuleUseCase @Inject constructor(
-    private val componentRepository: ComponentRepository,
+    private val componentStatusRepository: ComponentStatusRepository,
     private val userDataRepository: UserDataRepository,
     @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
     @GeneratedRuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(packageName: String): Flow<ZippedRule> = flow {
+    operator fun invoke(app: AppKey): Flow<ZippedRule> = flow {
+        val packageName = app.packageName
         val time = Clock.System.now().toString()
             .replace(":", "-")
             .replace(".", "-")
@@ -58,8 +64,9 @@ class ZipAppRuleUseCase @Inject constructor(
             emit(ZippedRule.EMPTY)
             return@flow
         }
-        val componentList = componentRepository.getComponentList(packageName)
+        val classNames = componentStatusRepository.components(app)
             .first()
+            .mapTo(mutableSetOf()) { it.declaration.id.className }
         val matchedFile = mutableListOf<File>()
         baseFolder.listFilesRecursively().forEach { file ->
             if (file.isDirectory) {
@@ -71,7 +78,7 @@ class ZipAppRuleUseCase @Inject constructor(
             val componentName = file.relativeTo(baseFolder).path
                 .replace(".json", "")
                 .replace("/", ".")
-            if (componentList.find { it.name == componentName } == null) {
+            if (componentName !in classNames) {
                 Timber.v("Component $componentName does not exist in component list")
                 return@forEach
             }

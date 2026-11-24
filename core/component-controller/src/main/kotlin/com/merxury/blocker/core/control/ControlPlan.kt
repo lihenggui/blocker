@@ -27,6 +27,10 @@ import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.control.isKnown
+import com.merxury.blocker.core.model.control.isPmClear
+import com.merxury.blocker.core.model.control.meets
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 
 // What a goal asks of each layer and how the state read back is judged, as ComponentControl says.
 
@@ -78,7 +82,7 @@ internal fun judge(
         goal == ControlGoal.BLOCK -> if (missed.size < layers.size) ControlResult.PARTIAL else ControlResult.FAILED
 
         // Unblocking or enabling moved a layer to the goal, but another requested one does not meet it or cannot be read.
-        layers.any { component.meets(goal, it, after) && !component.meets(goal, it, before) } -> ControlResult.PARTIAL
+        layers.any { component.moved(goal, it, before, after) } -> ControlResult.PARTIAL
 
         else -> ControlResult.FAILED
     }
@@ -86,27 +90,27 @@ internal fun judge(
     return ComponentOutcome(ComponentKey(component.id, user), after, result, reported)
 }
 
-/** Whether [layer] shows [goal] in [state]. */
-private fun ComponentDeclaration.meets(goal: ControlGoal, layer: ControlLayer, state: ControlState): Boolean = when (goal) {
-    ControlGoal.BLOCK -> when (layer) {
-        ControlLayer.PACKAGE_MANAGER -> state.pm == PmSetting.DISABLED
-        ControlLayer.INTENT_FIREWALL -> state.ifw == IfwBlock.BLOCKED
-    }
+/**
+ * Whether [layer] moved to [goal]: it was read before and did not show the goal, and shows it now.
+ * A layer that could not be read before may have shown the goal already, so reading it afterwards
+ * proves no change. What the calls answered does not count, only the states read.
+ */
+private fun ComponentDeclaration.moved(
+    goal: ControlGoal,
+    layer: ControlLayer,
+    before: ControlState,
+    after: ControlState,
+): Boolean = before.isKnown(layer) && !meets(goal, layer, before) && meets(goal, layer, after)
 
-    // No block by the layer; the manifest default may still keep the component from running.
-    ControlGoal.UNBLOCK -> when (layer) {
-        ControlLayer.PACKAGE_MANAGER -> state.pm != PmSetting.DISABLED && state.pm != PmSetting.UNKNOWN
-        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
-    }
-
-    ControlGoal.ENABLE -> when (layer) {
-        ControlLayer.PACKAGE_MANAGER -> isPmClear(state.pm)
-        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
-    }
+/**
+ * The layers a request works on and judges for one component, from [this], the requested ones.
+ * An identity that cannot write system files, such as the shell, can neither read nor change the
+ * Intent Firewall, so an unblock or enable leaves that layer out and is judged on the
+ * PackageManager layer alone. A block, or a request for the firewall layer alone, keeps it and
+ * reports that the identity is not permitted. Without a channel nothing changes here.
+ */
+internal fun Set<ControlLayer>.reachableBy(goal: ControlGoal, identity: PrivilegedIdentity?): Set<ControlLayer> {
+    val firewallUnreachable = identity != null && !identity.canWriteSystemFiles
+    val dropFirewall = goal != ControlGoal.BLOCK && firewallUnreachable && ControlLayer.PACKAGE_MANAGER in this
+    return if (dropFirewall) this - ControlLayer.INTENT_FIREWALL else this
 }
-
-/** Whether no unconditional rule blocks the component; a conditional rule is not Blocker's. */
-private val IfwBlock.isClear: Boolean get() = this == IfwBlock.NOT_BLOCKED || this == IfwBlock.CONDITIONAL
-
-/** Whether [setting] lets the component run. */
-private fun ComponentDeclaration.isPmClear(setting: PmSetting): Boolean = setting == PmSetting.ENABLED || (setting == PmSetting.DEFAULT && enabledInManifest)

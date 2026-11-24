@@ -33,6 +33,8 @@ import kotlin.time.Instant
  * @property enabledSetting the override set for the user in [key], which says why the app is
  * enabled or not
  * @property apkPath the base APK, or null when the system does not report one
+ * @property dataDir the app's data directory for the user in [key], which differs between users,
+ * or null when the system does not report it
  */
 data class InstalledApp(
     val key: AppKey,
@@ -44,6 +46,7 @@ data class InstalledApp(
     val enabled: Boolean,
     val enabledSetting: AppEnabledSetting,
     val apkPath: String?,
+    val dataDir: String?,
     val firstInstallTime: Instant,
     val lastUpdateTime: Instant,
     val minSdk: Int,

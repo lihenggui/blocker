@@ -37,7 +37,7 @@ fun EntryProviderScope<NavKey>.appListEntry(
         metadata = ListDetailSceneStrategy.listPane(),
     ) {
         AppListScreen(
-            navigateToAppDetail = { packageName -> navigator.navigateToAppDetail(packageName) },
+            navigateToAppDetail = { packageName, userId -> navigator.navigateToAppDetail(packageName, userId = userId) },
             navigateToAppSlimming = navigateToAppSlimming,
             navigateToSettings = navigator::navigateToSettings,
             navigateToSupportAndFeedback = navigator::navigateToSupportAndFeedback,

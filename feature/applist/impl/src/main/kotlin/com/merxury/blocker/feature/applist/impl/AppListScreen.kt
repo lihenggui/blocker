@@ -66,8 +66,6 @@ import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.applist.api.R.string
 import com.merxury.blocker.feature.applist.impl.component.AppActionConfirmDialog
-import com.merxury.blocker.feature.applist.impl.component.AppActionsSheet
-import com.merxury.blocker.feature.applist.impl.component.AppKeySaver
 import com.merxury.blocker.feature.applist.impl.component.AppSortBottomSheetRoute
 import com.merxury.blocker.feature.applist.impl.component.PendingConfirmation
 import com.merxury.blocker.feature.applist.impl.component.PendingConfirmationSaver
@@ -80,7 +78,7 @@ import com.merxury.blocker.feature.applist.impl.component.text
 
 @Composable
 fun AppListScreen(
-    navigateToAppDetail: (String) -> Unit,
+    navigateToAppDetail: (packageName: String, userId: Int?) -> Unit,
     navigateToAppSlimming: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
@@ -123,15 +121,14 @@ private fun AppListViewModel.perform(action: AppAction, app: AppKey) {
 }
 
 /**
- * The list of the selected user's apps. Tapping an app opens its detail screen for the user
- * Blocker runs in, and its actions for any other user, whose apps the detail screen cannot show
- * yet.
+ * The list of the selected user's apps. Tapping an app opens its detail screen for that user; the
+ * user is left out of the navigation for the user Blocker runs in.
  */
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
     modifier: Modifier = Modifier,
-    navigateToAppDetail: (String) -> Unit = {},
+    navigateToAppDetail: (packageName: String, userId: Int?) -> Unit = { _, _ -> },
     onSelectUser: (UserId) -> Unit = {},
     onRefresh: () -> Unit = {},
     onAction: (AppKey, AppAction) -> Unit = { _, _ -> },
@@ -141,13 +138,11 @@ fun AppListScreen(
     navigateToSupportAndFeedback: () -> Unit = {},
 ) {
     var showSortSheet by rememberSaveable { mutableStateOf(false) }
-    // Each keeps the exact app, user included, across a configuration change or process death.
-    var actionsFor by rememberSaveable(stateSaver = AppKeySaver) { mutableStateOf<AppKey?>(null) }
+    // Keeps the exact app, user included, across a configuration change or process death.
     var confirming by rememberSaveable(stateSaver = PendingConfirmationSaver) { mutableStateOf<PendingConfirmation?>(null) }
-    // An overlay opened for another user than the one shown, such as after the selection fell
+    // A confirmation opened for another user than the one shown, such as after the selection fell
     // back to Blocker's own user, is closed rather than moved to the same package there.
     LaunchedEffect(uiState.selectedUser) {
-        if (actionsFor?.userId != uiState.selectedUser) actionsFor = null
         if (confirming?.app?.userId != uiState.selectedUser) confirming = null
     }
     val shownApps = (uiState.apps as? AppsUiState.Loaded)?.apps.orEmpty().filter { it.key.userId == uiState.selectedUser }
@@ -181,7 +176,8 @@ fun AppListScreen(
             uiState = uiState,
             onRefresh = onRefresh,
             onAppClick = { app ->
-                if (app.key.userId == uiState.ownUser) navigateToAppDetail(app.key.packageName) else actionsFor = app.key
+                val userId = app.key.userId.takeIf { it != uiState.ownUser }?.value
+                navigateToAppDetail(app.key.packageName, userId)
             },
             onAction = requestAction,
             countServices = countServices,
@@ -189,13 +185,6 @@ fun AppListScreen(
     }
     if (showSortSheet) {
         AppSortBottomSheetRoute(dismissHandler = { showSortSheet = false })
-    }
-    shownApps.find { it.key == actionsFor }?.let { app ->
-        AppActionsSheet(
-            app = app,
-            onAction = { action -> requestAction(app, action) },
-            onDismissRequest = { actionsFor = null },
-        )
     }
     confirming?.let { pending ->
         val app = shownApps.find { it.key == pending.app } ?: return@let
