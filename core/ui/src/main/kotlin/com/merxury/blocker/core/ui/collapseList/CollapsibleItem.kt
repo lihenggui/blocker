@@ -62,36 +62,63 @@ fun CollapsibleItem(
     expanded: Boolean = false,
     onCardArrowClick: (String) -> Unit = {},
 ) {
+    CollapsibleHeader(
+        title = matchedItem.header.title,
+        icon = matchedItem.header.icon,
+        matchedCount = matchedItem.componentList.size,
+        blockedCount = matchedItem.componentList.count { !it.enabled() },
+        enabledCount = matchedItem.componentList.count { it.enabled() },
+        modifier = modifier,
+        navigationMenuItemDesc = navigationMenuItemDesc,
+        navigation = navigation,
+        onBlockAllClick = { onBlockAllInItemClick(matchedItem.componentList) },
+        onEnableAllClick = { onEnableAllInItemClick(matchedItem.componentList) },
+        expanded = expanded,
+        onCardArrowClick = { onCardArrowClick(matchedItem.header.uniqueId) },
+    )
+}
+
+/**
+ * The header of a group of components that can be expanded: its icon, title and counts, and a
+ * menu to open what the group stands for and to block or enable all of its components.
+ *
+ * @param icon Coil data for the icon; the Android icon when null or when it cannot be loaded
+ * @param matchedCount every component of the group, which may be more than the blocked and the
+ * enabled ones together when the state of some is not known
+ */
+@Composable
+fun CollapsibleHeader(
+    title: String,
+    icon: Any?,
+    matchedCount: Int,
+    blockedCount: Int,
+    enabledCount: Int,
+    modifier: Modifier = Modifier,
+    @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
+    navigation: () -> Unit = {},
+    onBlockAllClick: () -> Unit = {},
+    onEnableAllClick: () -> Unit = {},
+    expanded: Boolean = false,
+    onCardArrowClick: () -> Unit = {},
+) {
     val expandIcon = if (expanded) {
         BlockerIcons.ExpandLess
     } else {
         BlockerIcons.ExpandMore
     }
     val items = listOf(
-        DropDownMenuItem(
-            navigationMenuItemDesc,
-        ) {
-            navigation()
-        },
-        DropDownMenuItem(
-            string.core_ui_block_all_components,
-        ) {
-            onBlockAllInItemClick(matchedItem.componentList)
-        },
-        DropDownMenuItem(
-            string.core_ui_enable_all_components,
-        ) {
-            onEnableAllInItemClick(matchedItem.componentList)
-        },
+        DropDownMenuItem(navigationMenuItemDesc, navigation),
+        DropDownMenuItem(string.core_ui_block_all_components, onBlockAllClick),
+        DropDownMenuItem(string.core_ui_enable_all_components, onEnableAllClick),
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCardArrowClick(matchedItem.header.uniqueId) }
+            .clickable { onCardArrowClick() }
             .padding(vertical = 8.dp),
     ) {
-        IconButton(onClick = { onCardArrowClick(matchedItem.header.uniqueId) }) {
+        IconButton(onClick = onCardArrowClick) {
             Icon(
                 imageVector = expandIcon,
                 contentDescription = if (expanded) {
@@ -104,7 +131,7 @@ fun CollapsibleItem(
         AsyncImage(
             modifier = Modifier.size(48.dp),
             model = Builder(LocalContext.current)
-                .data(matchedItem.header.icon)
+                .data(icon)
                 .error(BlockerIcons.Android)
                 .placeholder(BlockerIcons.Android)
                 .build(),
@@ -112,13 +139,10 @@ fun CollapsibleItem(
         )
         Spacer(modifier = Modifier.width(16.dp))
         MatchedAppInfo(
-            label = matchedItem.header.title,
-            blockedCount = matchedItem.componentList
-                .filterNot { it.enabled() }
-                .size,
-            enabledCount = matchedItem.componentList
-                .filter { it.enabled() }
-                .size,
+            label = title,
+            matchedCount = matchedCount,
+            blockedCount = blockedCount,
+            enabledCount = enabledCount,
             modifier = Modifier.fillMaxWidth(0.8f),
         )
         Spacer(modifier = Modifier.weight(1f))
@@ -133,6 +157,7 @@ fun CollapsibleItem(
 @Composable
 private fun MatchedAppInfo(
     label: String,
+    matchedCount: Int,
     blockedCount: Int,
     enabledCount: Int,
     modifier: Modifier = Modifier,
@@ -144,7 +169,7 @@ private fun MatchedAppInfo(
         BlockerBodyMediumText(
             text = stringResource(
                 id = string.core_ui_matched,
-                blockedCount + enabledCount,
+                matchedCount,
                 blockedCount,
                 enabledCount,
             ),
