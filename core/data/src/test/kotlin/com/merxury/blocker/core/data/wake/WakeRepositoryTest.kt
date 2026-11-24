@@ -135,6 +135,18 @@ class WakeRepositoryTest {
         verify(detection, never()).replacePeriod(any(), any(), any())
     }
 
+    @Test fun givenUpgradeWithOldRootGrantFlag_whenRepositoryOpens_thenOnlyThatFlagIsRemoved() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val preferences = context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE)
+        check(preferences.edit().putBoolean("previous_root_grant", true).putLong("last_diagnostic", 42).putBoolean("rules_pending", false).commit())
+
+        val upgraded = WakeRepository(context, history, index, collector, detection, channel)
+
+        assertThat(preferences.contains("previous_root_grant")).isFalse()
+        assertThat(upgraded.lastDiagnostic).isEqualTo(42)
+        assertThat(upgraded.rulesPending).isFalse()
+    }
+
     @Test fun givenChannelReadyAsAnyIdentity_whenAskingReadAccess_thenThatIdentityWithoutAPrompt() = runTest {
         for (identity in PrivilegedIdentity.entries) {
             channel.setState(ChannelState.Ready(identity))

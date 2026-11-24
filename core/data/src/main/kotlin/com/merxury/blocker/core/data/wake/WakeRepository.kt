@@ -44,6 +44,9 @@ internal const val WAKE_HISTORY_RETENTION_MILLIS = 14L * 24 * 60 * 60 * 1_000
 // Detection-only evidence writes report here instead of failing collection.
 internal const val EVIDENCE_STATUS = "detection evidence"
 
+// Written by versions that read evidence through su of their own.
+private const val LEGACY_ROOT_GRANT = "previous_root_grant"
+
 /**
  * One imported collection.
  *
@@ -72,7 +75,10 @@ class WakeRepository @Inject constructor(
     private val detection: WakeDetectionDao,
     private val channel: PrivilegedChannel,
 ) {
-    private val preferences = context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE)
+    private val preferences = context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE).apply {
+        // Read access comes from the privileged channel now; drop the old root checker's flag once.
+        if (contains(LEGACY_ROOT_GRANT)) edit { remove(LEGACY_ROOT_GRANT) }
+    }
     val isOwnerProfile get() = Process.myUserHandle() == UserHandle.getUserHandleForUid(0)
 
     // A fresh local journal can coexist with a managed firewall file from a previous install.
