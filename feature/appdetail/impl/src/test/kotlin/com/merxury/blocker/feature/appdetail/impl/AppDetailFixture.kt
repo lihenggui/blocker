@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.appdetail.impl
 import androidx.work.WorkManager
 import com.merxury.blocker.core.appcontrol.ServiceControl
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ControlComponentUseCase
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
@@ -135,7 +136,7 @@ internal class AppDetailFixture(
     /** The application's scope, which batches run in; it outlives every view model. */
     val applicationScope = CoroutineScope(SupervisorJob() + dispatcher)
 
-    val batches by lazy { ComponentBatchRunner(controlStatuses ?: components, applicationScope) }
+    val batches by lazy { ComponentBatchRunner(controlStatuses ?: components, applicationScope, PackageControlActivity()) }
 
     val list by lazy {
         ComponentListViewModel(

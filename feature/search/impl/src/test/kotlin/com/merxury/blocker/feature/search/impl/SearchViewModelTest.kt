@@ -262,6 +262,19 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun givenActiveSearch_whenACachedPackageAddsAMatchingComponent_thenTheResultAppears() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        collectState()
+        searchNow("push")
+        assertThat(fixture.loaded().components).isEmpty()
+
+        fixture.components.sendComponents(OWNER, listOf(component("com.a", "Push")))
+        runCurrent()
+
+        assertThat(fixture.loaded().components.single().app).isEqualTo(AppKey("com.a", OWNER))
+    }
+
+    @Test
     fun givenTwoUsers_whenWorkSelected_thenWorkResultsShownAndTheSwitcherOffered() = runTest {
         fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
         fixture.installedApps.sendApps(listOf(installedApp("com.a", OWNER), installedApp("com.work", WORK)))

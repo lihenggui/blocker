@@ -39,6 +39,7 @@ import com.merxury.blocker.MainActivityUiState.Loading
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.device.DeviceUserMonitor
+import com.merxury.blocker.core.data.device.PackageChangeMonitor
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
@@ -80,6 +81,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var deviceUserMonitor: DeviceUserMonitor
+
+    @Inject
+    lateinit var packageChangeMonitor: PackageChangeMonitor
 
     val viewModel: MainActivityViewModel by viewModels()
 
@@ -180,6 +184,7 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         // A work profile may have been added or removed while Blocker was in the background.
         deviceUserMonitor.onForeground()
+        packageChangeMonitor.onForeground()
     }
 
     override fun onResume() {

@@ -35,10 +35,12 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.core.ui.profile.ProfileTab
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -86,6 +88,19 @@ class AppListViewModelTest {
         assertThat(state.showProfileSwitcher).isFalse()
         assertThat(state.selectedUser).isEqualTo(state.ownUser)
         assertThat(fixture.rows().map { it.label }).containsExactly("A")
+    }
+
+    @Test
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun givenAppListShown_whenCacheAddsAndRemovesApps_thenRowsFollowWithoutRefreshing() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A")))
+        collectState()
+
+        fixture.installedApps.sendApps(listOf(installedApp("com.b", label = "B")))
+        runCurrent()
+
+        assertThat(fixture.rows().map { it.label }).containsExactly("B")
+        assertThat(fixture.installedApps.calls).isEmpty()
     }
 
     @Test

@@ -28,6 +28,7 @@ import androidx.work.WorkManager
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import com.merxury.blocker.core.data.device.DeviceUserMonitor
+import com.merxury.blocker.core.data.device.PackageChangeMonitor
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
@@ -92,6 +93,9 @@ class BlockerApplication :
     @Inject
     lateinit var deviceUserMonitor: DeviceUserMonitor
 
+    @Inject
+    lateinit var packageChangeMonitor: PackageChangeMonitor
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -119,6 +123,7 @@ class BlockerApplication :
         Timber.plant(releaseTree)
         initAppSettings()
         addApiExemptions()
+        packageChangeMonitor.start()
         profileVerifierLogger()
         Sync.initialize(context = this, wakeWork = wakeWork)
     }

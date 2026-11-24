@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.ruledetail.impl
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ControlComponentUseCase
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
@@ -140,7 +141,7 @@ internal class RuleDetailFixture(dispatcher: CoroutineDispatcher) {
     /** The application's scope, which batches, indexing and matching run in. */
     val applicationScope = CoroutineScope(SupervisorJob() + dispatcher)
     val control = GatedControl(components)
-    val batches = ComponentBatchRunner(control, applicationScope)
+    val batches = ComponentBatchRunner(control, applicationScope, PackageControlActivity())
     val index = ComponentIndex(components, channel, applicationScope)
     private val matcher = GeneralRuleMatcher(components, installedApps, rules, userData, selectedUsers, SELF_PACKAGE, dispatcher, applicationScope)
     private val layers = GetControlLayersUseCase(userData)

@@ -105,6 +105,9 @@ abstract class ComponentCacheDao {
         upsertUsers(incoming.values.filter { existing[it.userId] != it })
     }
 
+    @Upsert
+    abstract suspend fun upsertUser(user: DeviceUserEntity)
+
     // Apps
 
     /** The apps installed for [userId], by package name. */
@@ -116,6 +119,18 @@ abstract class ComponentCacheDao {
     /** The apps installed for [userId], by package name. */
     @Query("SELECT * FROM app WHERE user_id = :userId ORDER BY package_name")
     abstract suspend fun getApps(userId: Int): List<AppEntity>
+
+    @Query("SELECT * FROM app WHERE user_id = :userId AND package_name = :packageName")
+    abstract suspend fun getApp(packageName: String, userId: Int): AppEntity?
+
+    @Query("SELECT DISTINCT user_id FROM app ORDER BY user_id")
+    abstract suspend fun appUsers(): List<Int>
+
+    @Query(
+        "SELECT app.package_name FROM app JOIN component_scan USING(package_name) " +
+            "WHERE app.user_id = :userId AND component_scan.app_last_update_time = app.last_update_time",
+    )
+    abstract suspend fun appsWithCurrentDeclarations(userId: Int): List<String>
 
     /**
      * The apps for [userId] whose label or package name contains [keyword], ignoring case as
@@ -140,13 +155,27 @@ abstract class ComponentCacheDao {
         val removed = existing.keys - incoming.keys
         removed.chunked(MAX_BOUND_NAMES).forEach { deleteApps(userId, it) }
         deleteUnusedPackages(removed)
-        upsertApps(incoming.values.filter { existing[it.packageName] != it })
+        val changed = incoming.values.filter { existing[it.packageName] != it }
+        changed.forEach { invalidateScanIfVersionChanged(it, existing[it.packageName]) }
+        upsertApps(changed)
         return removed
     }
 
     /** Stores [app], keeping its settings. Its user must be stored; otherwise this throws a constraint error. */
-    @Upsert
-    abstract suspend fun upsertApp(app: AppEntity)
+    @Transaction
+    open suspend fun upsertApp(app: AppEntity) {
+        val previous = getApp(app.packageName, app.userId)
+        if (app == previous) return
+        invalidateScanIfVersionChanged(app, previous)
+        upsertApps(listOf(app))
+    }
+
+    // A version can change without advancing the millisecond timestamp used by the scan marker.
+    private suspend fun invalidateScanIfVersionChanged(app: AppEntity, previous: AppEntity?) {
+        if (previous != null && previous.lastUpdateTime == app.lastUpdateTime && previous.versionCode != app.versionCode) {
+            deleteScan(app.packageName)
+        }
+    }
 
     /**
      * Removes the app for [userId] with that user's settings for it, and with the package's

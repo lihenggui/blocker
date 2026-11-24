@@ -49,6 +49,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DebloaterViewModelTest {
@@ -507,6 +508,25 @@ class DebloaterViewModelTest {
             settle()
 
             assertThat(f.metadata.readApks).containsExactly(first, replacement).inOrder()
+            assertThat(f.viewModel.uiState.value.apps()).hasSize(1)
+        }
+    }
+
+    @Test
+    fun givenLoadedRows_whenCachedUpdateTimeChanges_thenTheLiveManifestMemoIsInvalidated() = runTest {
+        val f = fixture()
+        val app = installed()
+        f.install(app)
+        f.viewModel.uiState.test {
+            settle()
+            assertThat(expectMostRecentItem().apps()).hasSize(1)
+            val apk = f.metadata.readApks.single()
+            val updated = apk.copy(lastUpdateTime = app.lastUpdateTime.toEpochMilliseconds() + 1)
+            f.metadata.apks[app.key] = updated
+            f.apps.sendApps(listOf(app.copy(lastUpdateTime = Instant.fromEpochMilliseconds(updated.lastUpdateTime))))
+            settle()
+
+            assertThat(f.metadata.readApks).containsExactly(apk, updated).inOrder()
             assertThat(f.viewModel.uiState.value.apps()).hasSize(1)
         }
     }

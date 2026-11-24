@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.domain.control
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -98,6 +99,7 @@ sealed interface BatchKey {
 class ComponentBatchRunner @Inject constructor(
     private val componentStatuses: ComponentStatusRepository,
     @ApplicationScope private val scope: CoroutineScope,
+    private val controlActivity: PackageControlActivity,
 ) {
     private val runs = MutableStateFlow<Map<BatchKey, BatchRun>>(emptyMap())
 
@@ -179,7 +181,8 @@ class ComponentBatchRunner @Inject constructor(
             val outcomes = mutableListOf<ComponentOutcome>()
             try {
                 val request = prepare()
-                send(run, request.components, request.layers, outcomes)
+                val packages = request.components.mapTo(mutableSetOf()) { it.id.packageName }
+                controlActivity.duringControl(packages) { send(run, request.components, request.layers, outcomes) }
                 run.result.complete(outcomes)
             } catch (e: CancellationException) {
                 run.result.cancel(e)

@@ -65,6 +65,15 @@ class PlatformSystemPackageReader @Inject constructor(
         )
     }
 
+    override suspend fun packageRevisions(user: UserId): ReadResult<Map<String, PackageRevision>> = read("package revisions of user ${user.value}") {
+        ReadResult.Success(
+            platform.installedPackages(user).associate { info ->
+                coroutineContext.ensureActive()
+                info.packageName to PackageRevision(info.getVersionCode(), Instant.fromEpochMilliseconds(info.lastUpdateTime))
+            },
+        )
+    }
+
     override suspend fun app(key: AppKey): ReadResult<InstalledApp> = read("app $key") {
         try {
             val info = platform.packageInfo(key.packageName, 0, key.userId)

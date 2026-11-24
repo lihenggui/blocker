@@ -118,6 +118,23 @@ class PlatformSystemPackageReaderTest {
     }
 
     @Test
+    fun givenWorkPackages_whenListingRevisions_thenReadVersionAndTimeWithoutPerAppSettings() = scope.runTest {
+        platform.install(OWNER, packageInfo(PKG) { longVersionCode = 1 })
+        platform.install(
+            WORK,
+            packageInfo(PKG) {
+                longVersionCode = 12
+                lastUpdateTime = 2_000
+            },
+        )
+
+        val revisions = reader.packageRevisions(WORK).getOrNull()
+
+        assertThat(revisions).containsExactly(PKG, PackageRevision(12, Instant.fromEpochMilliseconds(2_000)))
+        assertThat(platform.appSettingRequests).isEmpty()
+    }
+
+    @Test
     fun givenAppInTwoUsers_whenReadApps_thenEachUserHasItsOwnSetting() = scope.runTest {
         platform.install(OWNER, packageInfo(PKG))
         platform.install(WORK, packageInfo(PKG))

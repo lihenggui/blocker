@@ -45,6 +45,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.model.system.UserKind
+import com.merxury.blocker.core.system.PackageRevision
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
@@ -56,6 +57,7 @@ import kotlinx.coroutines.flow.Flow
 import org.junit.After
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 import kotlin.time.Instant
 
 internal const val PKG = "com.example"
@@ -99,13 +101,15 @@ internal fun installedApp(
 internal fun declaration(simpleName: String, type: ComponentType = ComponentType.ACTIVITY, packageName: String = PKG) = ComponentDeclaration(ComponentId(packageName, "$packageName.$simpleName"), type, exported = true, enabledInManifest = true)
 
 /** The repositories under test over a real in-memory cache, a fake system and a real rule store. */
-abstract class DeviceRepositoryTestBase {
+abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
     internal val db: ComponentCacheDatabase = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), ComponentCacheDatabase::class.java)
         .allowMainThreadQueries()
+        .apply { queryExecutor?.let { setQueryExecutor(it).setTransactionExecutor(it) } }
         .build()
     internal val dao = db.componentCacheDao()
     internal val recordsDb: BlockerRecordsDatabase = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), BlockerRecordsDatabase::class.java)
         .allowMainThreadQueries()
+        .apply { queryExecutor?.let { setQueryExecutor(it).setTransactionExecutor(it) } }
         .build()
     internal val recordDao = recordsDb.pmBlockRecordDao()
     internal val pmBlocks = PmBlockRecords(recordDao)
@@ -122,10 +126,11 @@ abstract class DeviceRepositoryTestBase {
     internal val componentControl = FakeComponentControl()
     internal val appControl = FakeAppControl(system)
     internal val users = LocalDeviceUserRepository(dao, system)
-    internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks)
+    internal val controlActivity = PackageControlActivity()
+    internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks, controlActivity)
 
     /** Starts collecting the rule store's changes in [scope], as the app scope would. */
-    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel), componentControl, pmBlocks, seeder, channel, store, scope, AppKey(SELF_PKG, OWNER))
+    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel), componentControl, pmBlocks, seeder, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity)
 
     @After
     fun closeDatabase() {
@@ -175,6 +180,17 @@ internal class FakeSystem : SystemPackageReader {
         log += "apps ${user.value}"
         appsFailures[user]?.let { return ReadResult.Failure(it) }
         return ReadResult.Success(apps.values.filter { it.key.userId == user }.sortedBy { it.key.packageName })
+    }
+
+    var beforeRevisionsRead: suspend (UserId) -> Unit = {}
+
+    override suspend fun packageRevisions(user: UserId): ReadResult<Map<String, PackageRevision>> {
+        log += "revisions ${user.value}"
+        beforeRevisionsRead(user)
+        appsFailures[user]?.let { return ReadResult.Failure(it) }
+        return ReadResult.Success(
+            apps.values.filter { it.key.userId == user }.associate { it.key.packageName to PackageRevision(it.versionCode, it.lastUpdateTime) },
+        )
     }
 
     override suspend fun app(key: AppKey): ReadResult<InstalledApp> {

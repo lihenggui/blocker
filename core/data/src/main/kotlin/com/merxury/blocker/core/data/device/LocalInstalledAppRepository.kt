@@ -33,17 +33,25 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 internal class LocalInstalledAppRepository @Inject constructor(
     private val dao: ComponentCacheDao,
     private val reader: SystemPackageReader,
-    private val users: DeviceUserRepository,
+    private val users: LocalDeviceUserRepository,
     private val appControl: AppControl,
     private val pmBlocks: PmBlockRecords,
+    private val controlActivity: PackageControlActivity,
 ) : InstalledAppRepository {
+    // Keep one-app writes from being overwritten by an older bulk list of the same user.
+    private val appListLocks = ConcurrentHashMap<UserId, Mutex>()
 
     override fun apps(user: UserId): Flow<List<InstalledApp>> = dao.observeApps(user.value).map(List<AppEntity>::asApps)
 
@@ -51,9 +59,9 @@ internal class LocalInstalledAppRepository @Inject constructor(
 
     override fun search(user: UserId, keyword: String): Flow<List<InstalledApp>> = dao.searchApps(user.value, keyword).map(List<AppEntity>::asApps)
 
-    override suspend fun refresh(user: UserId): ReadResult<Unit> {
-        ensureUserCached(user)?.let { return ReadResult.Failure(it) }
-        return when (val read = reader.apps(user)) {
+    override suspend fun refresh(user: UserId): ReadResult<Unit> = lockOf(user).withLock {
+        ensureUserCached(user)?.let { return@withLock ReadResult.Failure(it) }
+        when (val read = reader.apps(user)) {
             is ReadResult.Success -> {
                 val removed = dao.replaceApps(user.value, read.value.map { it.asEntity() })
                 // The system drops a user's settings of an app with the app, so Blocker's blocks go too.
@@ -68,9 +76,11 @@ internal class LocalInstalledAppRepository @Inject constructor(
         }
     }
 
-    override suspend fun refreshApp(key: AppKey): ReadResult<InstalledApp?> {
-        ensureUserCached(key.userId)?.let { return ReadResult.Failure(it) }
-        return when (val read = reader.app(key)) {
+    override suspend fun refreshApp(key: AppKey): ReadResult<InstalledApp?> = refreshApp(key, keepBlockRecordsOnRemoval = false)
+
+    suspend fun refreshApp(key: AppKey, keepBlockRecordsOnRemoval: Boolean): ReadResult<InstalledApp?> = lockOf(key.userId).withLock {
+        ensureUserCached(key.userId, keepOtherUsers = keepBlockRecordsOnRemoval)?.let { return@withLock ReadResult.Failure(it) }
+        when (val read = reader.app(key)) {
             is ReadResult.Success -> {
                 dao.upsertApp(read.value.asEntity())
                 read
@@ -79,7 +89,7 @@ internal class LocalInstalledAppRepository @Inject constructor(
             is ReadResult.Failure -> if (read.reason is ReadFailure.PackageNotFound) {
                 Timber.i("$key is not installed, remove it from the cache")
                 dao.deleteApp(key.packageName, key.userId.value)
-                pmBlocks.forgetApp(key)
+                if (!keepBlockRecordsOnRemoval) pmBlocks.forgetApp(key)
                 ReadResult.Success(null)
             } else {
                 Timber.w("Cannot read $key, keep the cached app: ${read.reason}")
@@ -88,19 +98,21 @@ internal class LocalInstalledAppRepository @Inject constructor(
         }
     }
 
-    override suspend fun setEnabled(key: AppKey, enabled: Boolean): CallResult<AppEnabledSetting> {
+    override suspend fun setEnabled(key: AppKey, enabled: Boolean): CallResult<AppEnabledSetting> = controlActivity.duringControl(setOf(key.packageName)) {
         val result = appControl.setEnabled(key, enabled)
         if (result is CallResult.Failure) Timber.w("Cannot set $key enabled=$enabled: ${result.reason}")
         rereadAfterChange(key)
-        return result
+        result
     }
 
-    override suspend fun uninstall(key: AppKey): CallResult<Unit> {
+    override suspend fun uninstall(key: AppKey): CallResult<Unit> = controlActivity.duringControl(setOf(key.packageName)) {
         val result = appControl.uninstall(key)
         if (result is CallResult.Failure) Timber.w("Cannot uninstall $key: ${result.reason}")
         rereadAfterChange(key)
-        return result
+        result
     }
+
+    private fun lockOf(user: UserId): Mutex = appListLocks.computeIfAbsent(user) { Mutex() }
 
     /** Mirrors what a change did, also when the caller is cancelled once the call has returned. */
     private suspend fun rereadAfterChange(key: AppKey) = withContext(NonCancellable) {
@@ -109,9 +121,10 @@ internal class LocalInstalledAppRepository @Inject constructor(
     }
 
     /** Null when [user] is cached, after refreshing the users if needed; otherwise why it is not. */
-    private suspend fun ensureUserCached(user: UserId): ReadFailure? {
+    private suspend fun ensureUserCached(user: UserId, keepOtherUsers: Boolean = false): ReadFailure? {
         if (users.users.first().any { it.id == user }) return null
-        return when (val read = users.refresh()) {
+        val read = if (keepOtherUsers) users.cacheUser(user) else users.refresh()
+        return when (read) {
             is ReadResult.Failure -> read.reason
 
             is ReadResult.Success -> if (read.value.any { it.id == user }) {

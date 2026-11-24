@@ -24,6 +24,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadResult
+import kotlin.time.Instant
 
 /**
  * Reads what the system knows about users, the apps installed for them, and the components of
@@ -37,6 +38,9 @@ interface SystemPackageReader {
 
     /** Every app installed for [user], including disabled apps and Blocker itself. */
     suspend fun apps(user: UserId): ReadResult<List<InstalledApp>>
+
+    /** Installed package revisions, without per-app settings or label lookups. */
+    suspend fun packageRevisions(user: UserId): ReadResult<Map<String, PackageRevision>>
 
     suspend fun app(key: AppKey): ReadResult<InstalledApp>
 
@@ -59,3 +63,5 @@ interface SystemPackageReader {
         components: Collection<ComponentId>,
     ): ReadResult<Map<ComponentId, PmSetting>>
 }
+
+data class PackageRevision(val versionCode: Long, val lastUpdateTime: Instant)

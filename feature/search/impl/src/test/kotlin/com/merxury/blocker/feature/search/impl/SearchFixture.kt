@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.search.impl
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.applist.CountServicesUseCase
 import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
@@ -135,7 +136,7 @@ internal class SearchFixture(dispatcher: CoroutineDispatcher) {
     /** The application's scope, which batches and indexing run in; it outlives every view model. */
     val applicationScope = CoroutineScope(SupervisorJob() + dispatcher)
     val control = GatedControl(components)
-    val batches = ComponentBatchRunner(control, applicationScope)
+    val batches = ComponentBatchRunner(control, applicationScope, PackageControlActivity())
     val index = ComponentIndex(components, channel, applicationScope)
     val ruleMatcher = GeneralRuleMatcher(components, installedApps, rules, userData, selectedUsers, SELF_PACKAGE, dispatcher, applicationScope)
 

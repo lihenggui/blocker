@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.device
 import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.asEntity
 import com.merxury.blocker.core.database.cache.asExternalModel
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.system.SystemPackageReader
@@ -51,6 +52,15 @@ internal class LocalDeviceUserRepository @Inject constructor(
 ) : DeviceUserRepository {
 
     override val users: Flow<List<DeviceUser>> = dao.observeUsers().map { users -> users.map { it.asExternalModel() } }
+
+    /** Caches a user for a package refresh without replacing the list of other users. */
+    suspend fun cacheUser(user: UserId): ReadResult<List<DeviceUser>> {
+        val read = reader.users()
+        if (read is ReadResult.Success) {
+            read.value.firstOrNull { it.id == user }?.let { dao.upsertUser(it.asEntity()) }
+        }
+        return read
+    }
 
     override suspend fun refresh(): ReadResult<List<DeviceUser>> {
         val read = reader.users()
