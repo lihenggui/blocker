@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 Blocker
+ * Copyright 2025 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,18 @@ import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
 import com.merxury.blocker.feature.appdetail.impl.AppDetailScreen
-import com.merxury.blocker.feature.appdetail.impl.AppDetailViewModel
+import com.merxury.blocker.feature.appdetail.impl.AppHeaderViewModel
+import com.merxury.blocker.feature.appdetail.impl.ComponentControlViewModel
+import com.merxury.blocker.feature.appdetail.impl.ComponentListViewModel
 import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetail
 
+/**
+ * The detail screen of [AppDetailNavKey.packageName] for [AppDetailNavKey.userId]. The view models
+ * are keyed by both, so the same app of two users keeps two screens.
+ *
+ * @param navigateToIfwRuleEditor opens the rule editor with the package, the component's class name
+ * and its tag in Intent Firewall rules
+ */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.appDetailEntry(
     navigator: Navigator,
@@ -39,27 +48,29 @@ fun EntryProviderScope<NavKey>.appDetailEntry(
     entry<AppDetailNavKey>(
         metadata = ListDetailSceneStrategy.detailPane(),
     ) { key ->
-        val packageName = key.packageName
-        val tab = key.tab
-        val searchKeyword = key.searchKeyword
+        val viewModelKey = "${key.packageName}:${key.userId}"
         AppDetailScreen(
+            headerViewModel = hiltViewModel<AppHeaderViewModel, AppHeaderViewModel.Factory>(key = "header:$viewModelKey") {
+                it.create(key.packageName, key.userId)
+            },
+            listViewModel = hiltViewModel<ComponentListViewModel, ComponentListViewModel.Factory>(key = "list:$viewModelKey") {
+                it.create(key.packageName, key.userId, key.tab, key.searchKeyword)
+            },
+            controlViewModel = hiltViewModel<ComponentControlViewModel, ComponentControlViewModel.Factory>(key = "control:$viewModelKey") {
+                it.create(key.packageName, key.userId)
+            },
             snackbarHostState = LocalSnackbarHostState.current,
             updateIconThemingState = updateIconThemingState,
             onBackClick = { navigator.goBack() },
-            navigateToRuleDetail = navigator::navigateToRuleDetail,
-            onEditIfwRuleClick = { packageName, componentName, componentTypeName ->
-                val ifwTag = when (ComponentType.valueOf(componentTypeName)) {
+            navigateToRuleDetail = { ruleId -> navigator.navigateToRuleDetail(ruleId.toString()) },
+            navigateToIfwRuleEditor = { row ->
+                val ifwTag = when (row.type) {
                     ComponentType.RECEIVER -> "broadcast"
                     ComponentType.SERVICE -> "service"
                     ComponentType.ACTIVITY -> "activity"
-                    else -> return@AppDetailScreen
+                    ComponentType.PROVIDER -> return@AppDetailScreen
                 }
-                navigateToIfwRuleEditor(packageName, componentName, ifwTag)
-            },
-            viewModel = hiltViewModel<AppDetailViewModel, AppDetailViewModel.Factory>(
-                key = packageName,
-            ) { factory ->
-                factory.create(packageName, tab, searchKeyword)
+                navigateToIfwRuleEditor(row.id.packageName, row.id.className, ifwTag)
             },
         )
     }

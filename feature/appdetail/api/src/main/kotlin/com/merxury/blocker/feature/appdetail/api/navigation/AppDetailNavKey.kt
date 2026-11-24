@@ -22,8 +22,10 @@ import com.merxury.blocker.core.ui.AppDetailTabs
 import kotlinx.serialization.Serializable
 
 /**
+ * The detail screen of one app for one user.
+ *
  * @property userId the id of the user whose copy of the app to show; null for the user Blocker
- * runs in, which is the only user the detail screen shows for now
+ * runs in
  */
 @Serializable
 data class AppDetailNavKey(
@@ -37,6 +39,7 @@ fun Navigator.navigateToAppDetail(
     packageName: String,
     tab: String = AppDetailTabs.Info.name,
     searchKeyword: List<String> = listOf(),
+    userId: Int? = null,
 ) {
-    navigate(AppDetailNavKey(packageName, tab, searchKeyword))
+    navigate(AppDetailNavKey(packageName, tab, searchKeyword, userId))
 }

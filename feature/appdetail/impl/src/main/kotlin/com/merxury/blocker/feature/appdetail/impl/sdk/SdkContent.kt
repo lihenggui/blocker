@@ -16,99 +16,120 @@
 
 package com.merxury.blocker.feature.appdetail.impl.sdk
 
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import com.merxury.blocker.core.designsystem.component.PreviewThemes
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.ui.collapseList.CollapsibleList
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.ui.collapseList.CollapsibleHeader
 import com.merxury.blocker.core.ui.component.NoComponentScreen
-import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
-import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.core.ui.R as uiR
+import com.merxury.blocker.feature.appdetail.impl.MatchedRule
+import com.merxury.blocker.feature.appdetail.impl.MatchedRulesUiState
+import com.merxury.blocker.feature.appdetail.impl.ModeBanner
+import com.merxury.blocker.feature.appdetail.impl.SwitchState
+import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
+import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowItem
+import com.merxury.blocker.feature.appdetail.impl.ui.ModeBanners
+import com.merxury.blocker.core.ui.R.string as uiString
 
+/**
+ * The general rules that match components of the app, each expandable to its components. The
+ * block and enable actions of a rule go through the same control path as the switches.
+ */
 @Composable
-fun SdkContent(
+internal fun SdkContent(
+    data: MatchedRulesUiState,
+    inFlight: Set<ComponentId>,
+    banners: List<ModeBanner>,
+    actions: ComponentRowActions,
     modifier: Modifier = Modifier,
-    data: Result<List<MatchedItem>> = Result.Loading,
-    navigateToRuleDetail: (String) -> Unit = {},
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
+    navigateToRuleDetail: (Int) -> Unit = {},
+    onBlockAll: (MatchedRule) -> Unit = {},
+    onEnableAll: (MatchedRule) -> Unit = {},
+    onGrantAccess: () -> Unit = {},
 ) {
     when (data) {
-        is Result.Success -> {
-            val sdks = data.data
-            if (sdks.isEmpty()) {
-                NoComponentScreen()
-                return
-            }
-            CollapsibleList(
-                modifier = modifier.testTag("app:sdkList"),
-                list = sdks,
-                navigateToDetail = navigateToRuleDetail,
-                navigationMenuItemDesc = uiR.string.core_ui_open_rule_detail,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-                onBlockAllInItemClick = onBlockAllInItemClick,
-                onEnableAllInItemClick = onEnableAllInItemClick,
-                onSwitch = onSwitch,
+        MatchedRulesUiState.Loading -> LoadingScreen()
+
+        is MatchedRulesUiState.Loaded -> if (data.rules.isEmpty()) {
+            NoComponentScreen()
+        } else {
+            MatchedRuleList(
+                rules = data.rules,
+                inFlight = inFlight,
+                banners = banners,
+                actions = actions,
+                navigateToRuleDetail = navigateToRuleDetail,
+                onBlockAll = onBlockAll,
+                onEnableAll = onEnableAll,
+                onGrantAccess = onGrantAccess,
+                modifier = modifier,
             )
         }
-
-        is Result.Error -> ErrorScreen(error = UiMessage(title = data.exception.message.orEmpty()))
-
-        is Result.Loading -> LoadingScreen()
     }
 }
 
 @Composable
-@PreviewThemes
-private fun SdkContentPreview(
-    @PreviewParameter(
-        ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentInfo>,
+private fun MatchedRuleList(
+    rules: List<MatchedRule>,
+    inFlight: Set<ComponentId>,
+    banners: List<ModeBanner>,
+    actions: ComponentRowActions,
+    navigateToRuleDetail: (Int) -> Unit,
+    onBlockAll: (MatchedRule) -> Unit,
+    onEnableAll: (MatchedRule) -> Unit,
+    onGrantAccess: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val rule = RuleListPreviewParameterProvider().values.first()[0]
-    val data: Result<List<MatchedItem>> = Result.Success(
-        data = listOf(
-            MatchedItem(
-                header = MatchedHeaderData(
-                    title = rule.name,
-                    uniqueId = rule.id.toString(),
-                ),
-                componentList = components,
-            ),
-        ),
-    )
-    BlockerTheme {
-        Surface {
-            SdkContent(data = data)
-        }
-    }
-}
-
-@Composable
-@PreviewThemes
-private fun SdkContentLoadingPreview() {
-    BlockerTheme {
-        Surface {
-            SdkContent()
+    var expanded by rememberSaveable { mutableStateOf(emptySet<Int>()) }
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.testTag("app:sdkList"), state = rememberLazyListState()) {
+            if (banners.isNotEmpty()) {
+                item(key = "banners") { ModeBanners(banners = banners, onGrantAccess = onGrantAccess) }
+            }
+            rules.forEach { rule ->
+                val isExpanded = rule.id in expanded
+                item(key = rule.id) {
+                    CollapsibleHeader(
+                        modifier = Modifier.animateItem(),
+                        title = rule.title,
+                        icon = rule.icon,
+                        matchedCount = rule.rows.size,
+                        blockedCount = rule.rows.count { it.switch == SwitchState.OFF },
+                        enabledCount = rule.rows.count { it.switch == SwitchState.ON },
+                        navigationMenuItemDesc = uiString.core_ui_open_rule_detail,
+                        navigation = { navigateToRuleDetail(rule.id) },
+                        onBlockAllClick = { onBlockAll(rule) },
+                        onEnableAllClick = { onEnableAll(rule) },
+                        expanded = isExpanded,
+                        onCardArrowClick = { expanded = if (isExpanded) expanded - rule.id else expanded + rule.id },
+                    )
+                    HorizontalDivider()
+                }
+                if (isExpanded) {
+                    items(items = rule.rows, key = { "${rule.id}/${it.id.className}" }) { row ->
+                        ComponentRowItem(row = row, inFlight = row.id in inFlight, actions = actions, modifier = Modifier.animateItem())
+                    }
+                    item(key = "${rule.id}/divider") { HorizontalDivider() }
+                }
+            }
+            item {
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+            }
         }
     }
 }

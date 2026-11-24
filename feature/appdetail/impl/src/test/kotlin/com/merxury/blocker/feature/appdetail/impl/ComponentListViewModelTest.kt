@@ -1,0 +1,444 @@
+/*
+ * Copyright 2026 Blocker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.merxury.blocker.feature.appdetail.impl
+
+import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.appcontrol.ServiceControl
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.BlockReason
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.preference.ComponentShowPriority
+import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.privileged.CallFailure
+import com.merxury.blocker.core.model.privileged.CallResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.testing.repository.defaultUserData
+import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.core.ui.AppDetailTabs
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runTest
+import org.junit.Rule
+import org.junit.Test
+import java.io.File
+
+class ComponentListViewModelTest {
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private var fixture = AppDetailFixture(mainDispatcherRule.testDispatcher)
+    private val viewModel get() = fixture.list
+
+    private fun TestScope.collectState() {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
+    }
+
+    private fun TestScope.keepFresh(): Job = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
+
+    private fun TestScope.show() {
+        collectState()
+        keepFresh()
+    }
+
+    private fun row(name: String) = fixture.loaded().run { receivers + services + activities + providers }.single { it.id == id(name) }
+
+    @Test
+    fun givenNewViewModel_whenNothingCollects_thenNoWorkStarts() = runTest {
+        fixture.sendComponents(component("Main"))
+
+        assertThat(viewModel.uiState.value.components).isEqualTo(ComponentsUiState.Loading)
+        assertThat(fixture.components.refreshedApps).isEmpty()
+        assertThat(fixture.serviceControl.runningRequests).isEmpty()
+        assertThat(fixture.channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenEveryAvailability_whenShown_thenEachRowShowsItsState() = runTest {
+        fixture.sendComponents(
+            component("Runnable"),
+            component("ByPm", pm = PmSetting.DISABLED),
+            component("ByIfw", ifw = IfwBlock.BLOCKED),
+            component("ByBoth", pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED),
+            component("ByManifest", enabledInManifest = false),
+            component("EnabledOverManifest", pm = PmSetting.ENABLED, enabledInManifest = false),
+            component("Conditional", ifw = IfwBlock.CONDITIONAL),
+            component("ByPmAndConditional", pm = PmSetting.DISABLED, ifw = IfwBlock.CONDITIONAL),
+            component("Unknown", ifw = IfwBlock.UNKNOWN),
+            component("PmUnknown", pm = PmSetting.UNKNOWN),
+        )
+
+        show()
+
+        assertThat(row("Runnable")).isEqualTo(ComponentRow(id("Runnable"), ComponentType.ACTIVITY, SwitchState.ON))
+        assertThat(row("ByPm").blockedBy).containsExactly(BlockReason.PM_SETTING)
+        assertThat(row("ByIfw").blockedBy).containsExactly(BlockReason.IFW_RULE)
+        assertThat(row("ByBoth").blockedBy).containsExactly(BlockReason.PM_SETTING, BlockReason.IFW_RULE)
+        assertThat(row("ByManifest").let { it.switch to it.blockedBy }).isEqualTo(SwitchState.OFF to setOf(BlockReason.MANIFEST_DEFAULT))
+        assertThat(row("EnabledOverManifest").switch).isEqualTo(SwitchState.ON)
+        assertThat(row("Conditional").let { it.switch to it.conditional }).isEqualTo(SwitchState.ON to true)
+        assertThat(row("ByPmAndConditional").let { Triple(it.switch, it.blockedBy, it.conditional) })
+            .isEqualTo(Triple(SwitchState.OFF, setOf(BlockReason.PM_SETTING), true))
+        assertThat(row("Unknown").let { it.switch to it.unknownCause }).isEqualTo(SwitchState.UNKNOWN to UnknownCause.RULES_UNREADABLE)
+        assertThat(row("PmUnknown").let { it.switch to it.unknownCause }).isEqualTo(SwitchState.UNKNOWN to UnknownCause.PM_UNREADABLE)
+    }
+
+    @Test
+    fun givenFirewallNotReadable_whenItsStateIsUnknown_thenTheCauseIsTheMode() = runTest {
+        fixture.components.setFirewallReadable(false)
+        fixture.sendComponents(component("Main", ifw = IfwBlock.UNKNOWN), component("Off", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN))
+
+        show()
+
+        assertThat(row("Main").unknownCause).isEqualTo(UnknownCause.NO_FIREWALL_ACCESS)
+        // A known block wins over the unread firewall.
+        assertThat(row("Off").blockedBy).containsExactly(BlockReason.PM_SETTING)
+    }
+
+    @Test
+    fun givenProviderWithUnreadableRules_whenShown_thenOnlyItsSettingCounts() = runTest {
+        fixture.sendComponents(component("Files", type = ComponentType.PROVIDER, ifw = IfwBlock.UNKNOWN))
+
+        show()
+
+        assertThat(fixture.loaded().providers.single().let { it.switch to it.conditional }).isEqualTo(SwitchState.ON to false)
+    }
+
+    @Test
+    fun givenScreenShown_whenShownAgainAfterRotation_thenRefreshedOnce() = runTest {
+        fixture.sendComponents(component("Main"))
+        collectState()
+
+        keepFresh().cancel()
+        keepFresh()
+
+        assertThat(fixture.components.refreshedApps).containsExactly(OWN_APP)
+        assertThat(viewModel.uiState.value.isRefreshing).isFalse()
+    }
+
+    @Test
+    fun givenCachedRows_whenRefreshFails_thenRowsStayAndTheReasonIsTold() = runTest {
+        fixture.components.refreshFailure = ReadFailure.RulesUnreadable(PACKAGE)
+        fixture.sendComponents(component("Main", pm = PmSetting.DISABLED))
+
+        show()
+
+        val state = viewModel.uiState.value
+        assertThat(row("Main").switch).isEqualTo(SwitchState.OFF)
+        assertThat(state.message).isEqualTo(ListMessage.RefreshFailed(ReadFailure.RulesUnreadable(PACKAGE)))
+        assertThat(state.isRefreshing).isFalse()
+
+        viewModel.onMessageShown()
+        assertThat(viewModel.uiState.value.message).isNull()
+    }
+
+    @Test
+    fun givenNothingCached_whenRefreshFails_thenEmptyListsInsteadOfLoading() = runTest {
+        fixture.components.refreshFailure = ReadFailure.PackageNotFound(OWN_APP)
+
+        show()
+
+        assertThat(fixture.loaded()).isEqualTo(AppComponents())
+        assertThat(viewModel.uiState.value.tabs.items).containsExactly(AppDetailTabs.Info)
+    }
+
+    @Test
+    fun givenChannelNotReady_whenItBecomesReady_thenRefreshedAgain() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        show()
+
+        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+
+        assertThat(fixture.components.refreshedApps).containsExactly(OWN_APP, OWN_APP)
+    }
+
+    @Test
+    fun givenRunningService_whenShown_thenMarkedAndListedFirst() = runTest {
+        fixture.serviceControl.running[OWN_APP] = mutableSetOf(id("Zed"))
+        fixture.sendComponents(component("Alpha", type = ComponentType.SERVICE), component("Zed", type = ComponentType.SERVICE))
+
+        show()
+
+        assertThat(fixture.loaded().services.map { it.id.simpleName to it.isRunning }).containsExactly("Zed" to true, "Alpha" to false).inOrder()
+    }
+
+    @Test
+    fun givenRunningServicesNotPermitted_whenShown_thenNoMarkers() = runTest {
+        fixture.serviceControl.running[OWN_APP] = mutableSetOf(id("Sync"))
+        fixture.serviceControl.runningFailure = CallFailure.NotPermitted("Root sees running processes of user 0 only")
+        fixture.sendComponents(component("Sync", type = ComponentType.SERVICE))
+
+        show()
+
+        assertThat(row("Sync").isRunning).isFalse()
+    }
+
+    @Test
+    fun givenNoChannel_whenShown_thenRunningServicesAreNotAskedFor() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        fixture.sendComponents(component("Sync", type = ComponentType.SERVICE))
+
+        show()
+
+        assertThat(fixture.serviceControl.runningRequests).isEmpty()
+    }
+
+    @Test
+    fun givenStateChanges_whenShown_thenRunningServicesReadAgain() = runTest {
+        fixture.sendComponents(component("Sync", type = ComponentType.SERVICE))
+        show()
+        val before = fixture.serviceControl.runningRequests.size
+
+        fixture.sendComponents(component("Sync", type = ComponentType.SERVICE, pm = PmSetting.DISABLED))
+        advanceTimeBy(500)
+
+        assertThat(fixture.serviceControl.runningRequests.size).isEqualTo(before + 1)
+    }
+
+    @Test
+    fun givenRunningService_whenStopped_thenStoppedAndRunningReadAgain() = runTest {
+        fixture.serviceControl.running[OWN_APP] = mutableSetOf(id("Sync"))
+        fixture.sendComponents(component("Sync", type = ComponentType.SERVICE))
+        show()
+
+        viewModel.stopService(id("Sync"))
+
+        assertThat(row("Sync").isRunning).isFalse()
+        assertThat(viewModel.uiState.value.message).isNull()
+    }
+
+    @Test
+    fun givenStopRefused_whenStopped_thenTheReasonIsTold() = runTest {
+        fixture.services = object : ServiceControl by fixture.serviceControl {
+            override suspend fun stop(service: ComponentKey): CallResult<Unit> = CallResult.Failure(CallFailure.NotPermitted("not exported"))
+        }
+        fixture.sendComponents(component("Sync", type = ComponentType.SERVICE))
+        show()
+
+        viewModel.stopService(id("Sync"))
+
+        assertThat(viewModel.uiState.value.message).isEqualTo(ListMessage.StopFailed("Sync", ActionFailure.NotPermitted))
+    }
+
+    @Test
+    fun givenRunnableActivity_whenLaunched_thenStartedWithoutAMessage() = runTest {
+        fixture.sendComponents(component("Main"))
+        show()
+
+        viewModel.launchActivity(id("Main"))
+
+        assertThat(fixture.appControl.calls).contains("startActivity ${ComponentKey(id("Main"), OWNER)}")
+        assertThat(viewModel.uiState.value.message).isNull()
+    }
+
+    @Test
+    fun givenActivityBlockedByIfw_whenLaunchAccepted_thenToldItIsBlockedByARule() = runTest {
+        fixture.sendComponents(component("Ad", ifw = IfwBlock.BLOCKED), component("Share", ifw = IfwBlock.CONDITIONAL))
+        show()
+
+        viewModel.launchActivity(id("Ad"))
+        assertThat(viewModel.uiState.value.message).isEqualTo(ListMessage.LaunchBlockedByRule("Ad"))
+
+        viewModel.launchActivity(id("Share"))
+        assertThat(viewModel.uiState.value.message).isEqualTo(ListMessage.LaunchMayBeBlocked("Share"))
+    }
+
+    @Test
+    fun givenLaunchRefused_whenLaunched_thenTheReasonIsTold() = runTest {
+        fixture.appControl.failures["startActivity"] = CallFailure.SystemError("code -92")
+        fixture.sendComponents(component("Main"))
+        show()
+
+        viewModel.launchActivity(id("Main"))
+
+        assertThat(viewModel.uiState.value.message).isEqualTo(ListMessage.LaunchFailed("Main", ActionFailure.SystemError("code -92")))
+    }
+
+    @Test
+    fun givenAnotherUsersApp_whenShown_thenEverythingIsForThatUser() = runTest {
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, userId = WORK.value)
+        fixture.components.sendComponents(OWNER, listOf(component("OwnerOnly")))
+        fixture.sendComponents(component("Main"), component("Sync", type = ComponentType.SERVICE))
+        show()
+
+        viewModel.launchActivity(id("Main"))
+
+        assertThat(fixture.loaded().activities.map { it.id }).containsExactly(id("Main"))
+        assertThat(fixture.components.refreshedApps).containsExactly(WORK_APP)
+        assertThat(fixture.serviceControl.runningRequests).contains(WORK_APP)
+        assertThat(fixture.appControl.calls).contains("startActivity ${ComponentKey(id("Main"), WORK)}")
+    }
+
+    @Test
+    fun givenKeywords_whenSearching_thenOnlyMatchingRowsAndCountsShown() = runTest {
+        fixture.sendComponents(component("SyncService", type = ComponentType.SERVICE), component("PushService", type = ComponentType.SERVICE), component("Main"))
+        show()
+
+        viewModel.setSearchMode(true)
+        viewModel.search("sync, main")
+
+        assertThat(fixture.loaded().services.map { it.id.simpleName }).containsExactly("SyncService")
+        assertThat(fixture.loaded().activities.map { it.id.simpleName }).containsExactly("Main")
+        assertThat(viewModel.uiState.value.tabs.itemCount[AppDetailTabs.Service]).isEqualTo(1)
+
+        viewModel.setSearchMode(false)
+        assertThat(fixture.loaded().services).hasSize(2)
+        assertThat(viewModel.uiState.value.keyword).isEmpty()
+    }
+
+    @Test
+    fun givenKeywordsFromNavigation_whenShown_thenSearchModeIsOn() = runTest {
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, searchKeyword = listOf(" push ", ""))
+        fixture.sendComponents(component("SyncService", type = ComponentType.SERVICE), component("PushService", type = ComponentType.SERVICE))
+
+        show()
+
+        assertThat(viewModel.uiState.value.isSearchMode).isTrue()
+        assertThat(viewModel.uiState.value.keyword).isEqualTo("push")
+        assertThat(fixture.loaded().services.map { it.id.simpleName }).containsExactly("PushService")
+    }
+
+    @Test
+    fun givenSortPreferences_whenShown_thenRowsFollowThem() = runTest {
+        fixture.sendComponents(component("a.Zed"), component("b.Alpha", pm = PmSetting.DISABLED), component("c.Mid"))
+        show()
+
+        fixture.userData.sendUserData(defaultUserData.copy(componentSorting = ComponentSorting.COMPONENT_NAME, componentSortingOrder = SortingOrder.DESCENDING))
+        assertThat(fixture.loaded().activities.map { it.id.simpleName }).containsExactly("Zed", "Mid", "Alpha").inOrder()
+
+        fixture.userData.sendUserData(defaultUserData.copy(componentSorting = ComponentSorting.PACKAGE_NAME))
+        assertThat(fixture.loaded().activities.map { it.id.simpleName }).containsExactly("Zed", "Alpha", "Mid").inOrder()
+
+        fixture.userData.sendUserData(defaultUserData.copy(componentShowPriority = ComponentShowPriority.DISABLED_COMPONENTS_FIRST))
+        assertThat(fixture.loaded().activities.map { it.id.simpleName }).containsExactly("Alpha", "Mid", "Zed").inOrder()
+    }
+
+    @Test
+    fun givenRequestedTab_whenItHasNoRows_thenTheAppInfoIsSelected() = runTest {
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, tab = "provider")
+        collectState()
+
+        // While loading every component tab is shown, so the requested one stays selected.
+        assertThat(viewModel.uiState.value.tabs.selectedItem).isEqualTo(AppDetailTabs.Provider)
+
+        fixture.sendComponents(component("Main"))
+
+        val tabs = viewModel.uiState.value.tabs
+        assertThat(tabs.items).containsExactly(AppDetailTabs.Info, AppDetailTabs.Activity).inOrder()
+        assertThat(tabs.selectedItem).isEqualTo(AppDetailTabs.Info)
+    }
+
+    @Test
+    fun givenMatchingGeneralRule_whenShown_thenItsComponentsAreGrouped() = runTest {
+        fixture.rules.sendRuleList(listOf(GeneralRule(id = 7, name = "Firebase", iconUrl = "icon/firebase.png", searchKeyword = listOf("firebase"))))
+        fixture.sendComponents(component("firebase.Messaging", type = ComponentType.SERVICE, ifw = IfwBlock.BLOCKED), component("Main"))
+
+        show()
+
+        val rule = (viewModel.uiState.value.matchedRules as MatchedRulesUiState.Loaded).rules.single()
+        assertThat(rule.title).isEqualTo("Firebase")
+        assertThat(rule.icon).isEqualTo(File("/files/rules/icon/firebase.png"))
+        assertThat(rule.rows.map { it.id to it.switch }).containsExactly(id("firebase.Messaging") to SwitchState.OFF)
+        assertThat(viewModel.uiState.value.tabs.items).contains(AppDetailTabs.Sdk)
+    }
+
+    @Test
+    fun givenDescriptions_whenShown_thenRowsCarryThem() = runTest {
+        fixture.sendDescriptions("Main" to "The first screen")
+        fixture.sendComponents(component("Main"))
+
+        show()
+
+        assertThat(row("Main").description).isEqualTo("The first screen")
+    }
+
+    @Test
+    fun givenEachChannelState_whenShown_thenTheMatchingBanners() = runTest {
+        fixture.sendComponents(component("Main"))
+        show()
+
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        assertThat(viewModel.uiState.value.banners).isEmpty()
+
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(viewModel.uiState.value.banners).containsExactly(ModeBanner.NO_ACCESS)
+
+        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        fixture.components.setFirewallReadable(false)
+        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.SHIZUKU))
+        assertThat(viewModel.uiState.value.banners).containsExactly(ModeBanner.NEEDS_ROOT)
+
+        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW_PLUS_PM))
+        assertThat(viewModel.uiState.value.banners).containsExactly(ModeBanner.NEEDS_ROOT, ModeBanner.FIREWALL_UNAVAILABLE).inOrder()
+
+        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        fixture.components.setFirewallReadable(true)
+        assertThat(viewModel.uiState.value.banners).isEmpty()
+    }
+
+    @Test
+    fun givenNoAccess_whenGrantIsRefused_thenToldAccessIsStillMissing() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        fixture.channel.connectResult = ChannelState.Unavailable(UnavailableReason.DENIED)
+        show()
+
+        viewModel.grantAccess()
+
+        assertThat(fixture.channel.connectCount).isEqualTo(1)
+        assertThat(viewModel.uiState.value.message).isEqualTo(ListMessage.GrantFailed)
+    }
+
+    @Test
+    fun givenNoAccess_whenGranted_thenRefreshedWithAccess() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        show()
+
+        viewModel.grantAccess()
+
+        assertThat(viewModel.uiState.value.banners).isEmpty()
+        assertThat(fixture.components.refreshedApps).hasSize(2)
+    }
+
+    @Test
+    fun givenSelectionMode_whenAllSelectedTwice_thenTheTabIsSelectedThenCleared() = runTest {
+        fixture.sendComponents(component("A", type = ComponentType.RECEIVER), component("B", type = ComponentType.RECEIVER), component("Main"))
+        show()
+
+        viewModel.setSelectionMode(true)
+        viewModel.toggleSelected(id("A"))
+        viewModel.toggleSelectAllInTab()
+        assertThat(viewModel.uiState.value.selected).containsExactly(id("A"), id("B"))
+
+        viewModel.toggleSelectAllInTab()
+        assertThat(viewModel.uiState.value.selected).isEmpty()
+
+        viewModel.toggleSelected(id("B"))
+        viewModel.setSelectionMode(false)
+        assertThat(viewModel.uiState.value.let { it.isSelectionMode to it.selected }).isEqualTo(false to emptySet<Any>())
+    }
+}

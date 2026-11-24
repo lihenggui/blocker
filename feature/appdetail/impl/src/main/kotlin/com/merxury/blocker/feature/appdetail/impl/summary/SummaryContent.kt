@@ -32,28 +32,32 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.feature.appdetail.api.R.string
+import com.merxury.blocker.feature.appdetail.impl.HeaderApp
+import com.merxury.blocker.feature.appdetail.impl.previewHeaderApp
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle.LONG
-import kotlin.time.Clock.System
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
+/**
+ * What the app info tab shows about [app], and the rule works for it: the Blocker rules of the
+ * screen's user and the Intent Firewall rules, which every user shares.
+ */
 @Composable
-fun SummaryContent(
-    app: AppItem,
+internal fun SummaryContent(
+    app: HeaderApp,
     modifier: Modifier = Modifier,
     isLibCheckerInstalled: Boolean = false,
     onShowAppInfoClick: () -> Unit = {},
-    onExportRules: (String) -> Unit = {},
-    onImportRules: (String) -> Unit = {},
-    onExportIfw: (String) -> Unit = {},
-    onImportIfw: (String) -> Unit = {},
-    onResetIfw: (String) -> Unit = {},
+    onExportRules: () -> Unit = {},
+    onImportRules: () -> Unit = {},
+    onExportIfw: () -> Unit = {},
+    onImportIfw: () -> Unit = {},
+    onResetIfw: () -> Unit = {},
 ) {
     val listState: LazyListState = rememberLazyListState()
     Box(modifier.fillMaxSize()) {
@@ -65,17 +69,16 @@ fun SummaryContent(
         ) {
             item {
                 AppSummary(
-                    targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
-                    minSdkVersion = app.minSdkVersion,
+                    targetSdkVersion = app.targetSdk,
+                    minSdkVersion = app.minSdk,
                     lastUpdateTime = app.lastUpdateTime,
-                    dataDir = app.packageInfo?.applicationInfo?.dataDir,
                     isLibCheckerInstalled = isLibCheckerInstalled,
                     onShowAppInfoClick = onShowAppInfoClick,
-                    onExportRules = { onExportRules(app.packageName) },
-                    onImportRules = { onImportRules(app.packageName) },
-                    onExportIfw = { onExportIfw(app.packageName) },
-                    onImportIfw = { onImportIfw(app.packageName) },
-                    onResetIfw = { onResetIfw(app.packageName) },
+                    onExportRules = onExportRules,
+                    onImportRules = onImportRules,
+                    onExportIfw = onExportIfw,
+                    onImportIfw = onImportIfw,
+                    onResetIfw = onResetIfw,
                 )
             }
         }
@@ -83,19 +86,18 @@ fun SummaryContent(
 }
 
 @Composable
-fun AppSummary(
+private fun AppSummary(
     targetSdkVersion: Int,
     minSdkVersion: Int,
-    lastUpdateTime: Instant?,
-    dataDir: String?,
+    lastUpdateTime: Instant,
+    isLibCheckerInstalled: Boolean,
+    onShowAppInfoClick: () -> Unit,
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit,
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit,
     modifier: Modifier = Modifier,
-    isLibCheckerInstalled: Boolean = false,
-    onShowAppInfoClick: () -> Unit = {},
-    onExportRules: () -> Unit = {},
-    onImportRules: () -> Unit = {},
-    onExportIfw: () -> Unit = {},
-    onImportIfw: () -> Unit = {},
-    onResetIfw: () -> Unit = {},
 ) {
     val locale = LocalLocale.current.platformLocale
     Column(modifier = modifier) {
@@ -120,14 +122,8 @@ fun AppSummary(
             summary = DateTimeFormatter.ofLocalizedDateTime(LONG)
                 .withLocale(locale)
                 .withZone(ZoneId.systemDefault())
-                .format((lastUpdateTime ?: Instant.DISTANT_PAST).toJavaInstant()),
+                .format(lastUpdateTime.toJavaInstant()),
         )
-        if (dataDir != null) {
-            BlockerSettingItem(
-                title = stringResource(id = string.feature_appdetail_api_data_dir),
-                summary = dataDir,
-            )
-        }
         if (isLibCheckerInstalled) {
             BlockerSettingItem(
                 title = stringResource(id = string.feature_appdetail_api_app_info),
@@ -147,12 +143,11 @@ fun AppSummary(
 }
 
 @Composable
-fun BlockerRuleSection(
-    modifier: Modifier = Modifier,
-    onExportRules: () -> Unit = {},
-    onImportRules: () -> Unit = {},
+private fun BlockerRuleSection(
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         ItemHeader(title = stringResource(id = string.feature_appdetail_api_blocker_rules))
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_api_export_rules),
@@ -166,13 +161,12 @@ fun BlockerRuleSection(
 }
 
 @Composable
-fun IfwRuleSection(
-    modifier: Modifier = Modifier,
-    onExportIfw: () -> Unit = {},
-    onImportIfw: () -> Unit = {},
-    onResetIfw: () -> Unit = {},
+private fun IfwRuleSection(
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         ItemHeader(title = stringResource(id = string.feature_appdetail_api_ifw_rules))
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_api_export_ifw_rules),
@@ -192,20 +186,9 @@ fun IfwRuleSection(
 @Composable
 @Preview
 private fun PreviewAppInfoTabContent() {
-    val app = AppItem(
-        label = "Blocker",
-        packageName = "com.mercury.blocker",
-        versionName = "1.2.69-alpha",
-        isEnabled = false,
-        firstInstallTime = System.now(),
-        lastUpdateTime = System.now(),
-        packageInfo = null,
-    )
     BlockerTheme {
         Surface {
-            SummaryContent(
-                app = app,
-            )
+            SummaryContent(app = previewHeaderApp)
         }
     }
 }

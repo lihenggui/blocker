@@ -51,29 +51,29 @@ class ComponentSortViewModelTest {
     }
 
     @Test
-    fun componentSortInfoUiState_whenInitial_thenShowDefault() = runTest {
-        assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
+    fun whenNothingCollected_thenLoading() = runTest {
+        assertEquals(ComponentSortInfoUiState.Loading, viewModel.uiState.value)
     }
 
     @Test
-    fun componentSortInfoUiState_whenLoaded_thenShowSuccess() = runTest {
+    fun givenPreferences_whenCollected_thenShowsThem() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentSortInfoUiState.collect()
+            viewModel.uiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
         assertEquals(
             Success(defaultUserData.toComponentSortInfo()),
-            viewModel.componentSortInfoUiState.value,
+            viewModel.uiState.value,
         )
 
         collectJob.cancel()
     }
 
     @Test
-    fun componentSortInfoUiState_whenUpdateComponentSorting_thenUpdateComponentSorting() = runTest {
+    fun whenSortingChanged_thenPreferenceSaved() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentSortInfoUiState.collect()
+            viewModel.uiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
@@ -81,16 +81,16 @@ class ComponentSortViewModelTest {
         val updatedUserData = defaultUserData.copy(componentSorting = ComponentSorting.PACKAGE_NAME)
         assertEquals(
             Success(updatedUserData.toComponentSortInfo()),
-            viewModel.componentSortInfoUiState.value,
+            viewModel.uiState.value,
         )
 
         collectJob.cancel()
     }
 
     @Test
-    fun componentSortInfoUiState_whenUpdateComponentSortingOrder_thenUpdateComponentSortingOrder() = runTest {
+    fun whenOrderChanged_thenPreferenceSaved() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentSortInfoUiState.collect()
+            viewModel.uiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
@@ -99,16 +99,16 @@ class ComponentSortViewModelTest {
             defaultUserData.copy(componentSortingOrder = SortingOrder.DESCENDING)
         assertEquals(
             Success(updatedUserData.toComponentSortInfo()),
-            viewModel.componentSortInfoUiState.value,
+            viewModel.uiState.value,
         )
 
         collectJob.cancel()
     }
 
     @Test
-    fun componentSortInfoUiState_whenUpdateComponentShowPriority_thenUpdateComponentShowPriority() = runTest {
+    fun whenPriorityChanged_thenPreferenceSaved() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentSortInfoUiState.collect()
+            viewModel.uiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
@@ -117,7 +117,7 @@ class ComponentSortViewModelTest {
             defaultUserData.copy(componentShowPriority = ComponentShowPriority.ENABLED_COMPONENTS_FIRST)
         assertEquals(
             Success(updatedUserData.toComponentSortInfo()),
-            viewModel.componentSortInfoUiState.value,
+            viewModel.uiState.value,
         )
 
         collectJob.cancel()

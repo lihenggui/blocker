@@ -26,9 +26,10 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortInfoUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,21 +38,15 @@ class ComponentSortViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
 ) : ViewModel() {
 
-    private val _componentSortInfoUiState: MutableStateFlow<ComponentSortInfoUiState> =
-        MutableStateFlow(Loading)
-    val componentSortInfoUiState = _componentSortInfoUiState.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            userDataRepository.userData
-                .map { userData ->
-                    Success(
-                        ComponentSortInfo(userData.componentSorting, userData.componentSortingOrder, userData.componentShowPriority),
-                    )
-                }
-                .collect { _componentSortInfoUiState.value = it }
+    val uiState: StateFlow<ComponentSortInfoUiState> = userDataRepository.userData
+        .map { userData ->
+            Success(ComponentSortInfo(userData.componentSorting, userData.componentSortingOrder, userData.componentShowPriority))
         }
-    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = Loading,
+        )
 
     fun updateComponentSorting(sorting: ComponentSorting) = viewModelScope.launch {
         userDataRepository.setComponentSorting(sorting)

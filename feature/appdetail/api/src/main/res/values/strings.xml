@@ -26,7 +26,6 @@
     <string name="feature_appdetail_api_target_sdk_version">Target SDK version</string>
     <string name="feature_appdetail_api_minimum_sdk_version">Minimum SDK version</string>
     <string name="feature_appdetail_api_last_update_time">Last update time</string>
-    <string name="feature_appdetail_api_data_dir">Data dir</string>
     <string name="feature_appdetail_api_block_all_of_this_page">Block all of this page</string>
     <string name="feature_appdetail_api_enable_all_of_this_page">Enable all of this page</string>
     <string name="feature_appdetail_api_blocking_effect">Blocking effect</string>
@@ -51,7 +50,6 @@
     <string name="feature_appdetail_api_all_rules">All rules</string>
     <string name="feature_appdetail_api_app_info">App info</string>
     <string name="feature_appdetail_api_app_info_with_libchecker_summary">Use LibChecker to view the app details</string>
-    <string name="feature_appdetail_api_select_an_app">Select an app</string>
     <string name="feature_appdetail_api_sort_options">Sort options</string>
     <string name="feature_appdetail_api_sort_by">Sort by</string>
     <string name="feature_appdetail_api_package_name">Package name</string>
@@ -63,4 +61,59 @@
     <string name="feature_appdetail_api_disabled_first">Disabled first</string>
     <string name="feature_appdetail_api_enabled_first">Enabled first</string>
     <string name="feature_appdetail_api_none">None</string>
+    <string name="feature_appdetail_api_blocked_by_package_manager">Package Manager</string>
+    <string name="feature_appdetail_api_blocked_by_intent_firewall">Intent Firewall</string>
+    <string name="feature_appdetail_api_disabled_by_app">Disabled by the app</string>
+    <string name="feature_appdetail_api_conditional_rule">Conditional rule</string>
+    <string name="feature_appdetail_api_unknown_state_title">Why the state is unknown</string>
+    <string name="feature_appdetail_api_unknown_pm">Blocker couldn\'t read this component\'s Package Manager setting for this user. Grant root or Shizuku access, then pull down to refresh.</string>
+    <string name="feature_appdetail_api_unknown_no_firewall_access">Intent Firewall rules can\'t be read in the current mode. Grant root access, or start Shizuku with root, then pull down to refresh.</string>
+    <string name="feature_appdetail_api_unknown_rules_unreadable">This app\'s Intent Firewall rule file can\'t be read and may be damaged, so Blocker leaves it alone. Reset IFW on the App info tab deletes it.</string>
+    <string name="feature_appdetail_api_block">Block</string>
+    <string name="feature_appdetail_api_enable">Enable</string>
+    <string name="feature_appdetail_api_changing">Changing…</string>
+    <string name="feature_appdetail_api_banner_no_access">Blocker has no root or Shizuku access, so it can\'t change components and can\'t read every state.</string>
+    <string name="feature_appdetail_api_grant_access">Grant access</string>
+    <string name="feature_appdetail_api_banner_needs_root">Shizuku runs through adb. Changing components needs root; Android allows it only for test-only apps.</string>
+    <string name="feature_appdetail_api_banner_firewall_unavailable">Intent Firewall rules can\'t be read or changed in the current mode.</string>
+    <string name="feature_appdetail_api_block_failed">Couldn\'t block %1$s</string>
+    <string name="feature_appdetail_api_enable_failed">Couldn\'t enable %1$s</string>
+    <string name="feature_appdetail_api_block_partial">%1$s is only partly blocked</string>
+    <string name="feature_appdetail_api_enable_partial">%1$s is only partly enabled</string>
+    <string name="feature_appdetail_api_layer_reason">%1$s: %2$s</string>
+    <string name="feature_appdetail_api_batch_summary">%1$s, %2$s</string>
+    <string name="feature_appdetail_api_batch_most_common">Most often: %1$s</string>
+    <string name="feature_appdetail_api_reason_no_access">Grant Blocker root or Shizuku access, then try again.</string>
+    <string name="feature_appdetail_api_reason_needs_root">The current mode can\'t change components. This needs root.</string>
+    <string name="feature_appdetail_api_reason_not_found">The app or component wasn\'t found for this user.</string>
+    <string name="feature_appdetail_api_reason_rules_unreadable">The app\'s Intent Firewall rule file can\'t be read.</string>
+    <string name="feature_appdetail_api_reason_write_failed">Couldn\'t write the Intent Firewall rules: %1$s</string>
+    <string name="feature_appdetail_api_reason_write_failed_unknown">Couldn\'t write the Intent Firewall rules.</string>
+    <string name="feature_appdetail_api_reason_not_confirmed">The change was sent, but the system doesn\'t show it.</string>
+    <string name="feature_appdetail_api_reason_system_error">The system reported an error: %1$s</string>
+    <string name="feature_appdetail_api_reason_system_error_unknown">The system reported an error.</string>
+    <string name="feature_appdetail_api_reason_not_allowed">The system doesn\'t allow this with the current access mode.</string>
+    <string name="feature_appdetail_api_refresh_failed">Couldn\'t refresh the components. Showing the last saved state.</string>
+    <string name="feature_appdetail_api_not_installed">This app isn\'t installed for this user.</string>
+    <string name="feature_appdetail_api_read_user_not_reachable">This user\'s apps can\'t be read now. Grant root or Shizuku access.</string>
+    <string name="feature_appdetail_api_read_manifest_unreadable">The app\'s component list couldn\'t be read.</string>
+    <string name="feature_appdetail_api_read_no_answer">The system service didn\'t answer. Try again.</string>
+    <string name="feature_appdetail_api_read_rules_unreadable">The app\'s Intent Firewall rule file can\'t be read. It may be damaged.</string>
+    <string name="feature_appdetail_api_launch_failed">Couldn\'t launch %1$s</string>
+    <string name="feature_appdetail_api_launch_blocked">%1$s is blocked by an Intent Firewall rule, so it didn\'t open.</string>
+    <string name="feature_appdetail_api_launch_conditional">A conditional Intent Firewall rule may have kept %1$s from opening.</string>
+    <string name="feature_appdetail_api_stop_failed">Couldn\'t stop %1$s</string>
+    <string name="feature_appdetail_api_grant_failed">Blocker still has no root or Shizuku access.</string>
+    <string name="feature_appdetail_api_profile_personal">Personal profile</string>
+    <string name="feature_appdetail_api_profile_work">Work profile</string>
+    <string name="feature_appdetail_api_profile_user">User %1$d</string>
+    <plurals name="feature_appdetail_api_batch_changed">
+        <item quantity="one">%1$d component changed</item>
+        <item quantity="other">%1$d components changed</item>
+    </plurals>
+    <plurals name="feature_appdetail_api_batch_not_changed">
+        <item quantity="one">%1$d could not be changed</item>
+        <item quantity="other">%1$d could not be changed</item>
+    </plurals>
+    <string name="feature_appdetail_api_summary_with_profile" translatable="false">%1$s · %2$s</string>
 </resources>

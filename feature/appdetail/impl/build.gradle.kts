@@ -36,13 +36,14 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
-    implementation(libs.kotlinx.datetime)
+    implementation(libs.coil.kt)
     implementation(libs.material.kolor)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.turbine)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
+    testImplementation(libs.truth)
     testImplementation(projects.core.testing)
     testImplementation(projects.core.screenshotTesting)
 
