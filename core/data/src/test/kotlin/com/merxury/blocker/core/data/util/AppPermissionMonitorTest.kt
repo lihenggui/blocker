@@ -75,6 +75,24 @@ class AppPermissionMonitorTest {
     }
 
     @Test
+    fun givenDeniedRoot_whenGrantActionConnects_thenObserversSeeRootWithoutResubscribing() = runTest {
+        preferences.setControllerType(PM)
+        channel.connectResult = DENIED
+        monitor().permissionStatus.test {
+            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
+
+            channel.connectResult = ROOT
+            channel.connect()
+
+            assertEquals(PermissionStatus.ROOT_USER, awaitItem())
+            runCurrent()
+            expectNoEvents()
+        }
+        assertEquals(2, channel.connectCount)
+        assertEquals(0, channel.quietConnectCount)
+    }
+
+    @Test
     fun givenShizukuRunsAsSystem_whenScreenObserves_thenReportsSystemAccess() = runTest {
         preferences.setControllerType(SHIZUKU)
         channel.connectResult = SYSTEM
@@ -108,7 +126,6 @@ class AppPermissionMonitorTest {
             channel.connectResult = DENIED
             shizuku.startShizuku()
 
-            assertEquals(PermissionStatus.NO_PERMISSION, awaitItem())
             runCurrent()
             assertEquals(2, channel.connectCount)
             assertEquals(0, shizuku.binderWaiterCount)
@@ -158,7 +175,7 @@ class AppPermissionMonitorTest {
         val pendingChannel = object : PrivilegedChannel by channel {
             override suspend fun connect(): ChannelState {
                 if (attempts++ == 0) awaitCancellation()
-                return ROOT
+                return channel.connect()
             }
         }
         monitor(pendingChannel).permissionStatus.test {

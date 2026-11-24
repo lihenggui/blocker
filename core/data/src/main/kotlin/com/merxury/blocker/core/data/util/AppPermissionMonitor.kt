@@ -29,6 +29,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
@@ -57,8 +58,9 @@ class AppPermissionMonitor @Inject constructor(
                 shizukuInitializer.awaitBinder()
                 state = channel.connect()
             }
-            emit(state.toPermissionStatus())
+            emitAll(channel.state.map { it.toPermissionStatus() })
         }
+        .distinctUntilChanged()
         .shareIn(appScope, SharingStarted.Lazily, replay = 1)
 
     private fun ChannelState.toPermissionStatus(): PermissionStatus = when (this) {
