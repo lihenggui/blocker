@@ -50,12 +50,16 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -92,13 +96,21 @@ class AppHeaderViewModel @AssistedInject constructor(
         installedApps.app(AppKey(packageName, ownUser)),
     ) { libChecker, ownCopy -> libChecker != null && ownCopy != null }
 
+    // Read again after each description the user saves, so sharing is offered after the first.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val hasCustomizedRules = componentDetails.updatedComponent
+        .map { }
+        .onStart { emit(Unit) }
+        .flatMapLatest { componentDetails.hasUserGeneratedDetail(packageName) }
+        .distinctUntilChanged()
+
     private val messages = combine(ruleWork, sharedRules, ::Pair)
 
     val uiState: StateFlow<AppHeaderUiState> = combine(
         installedApps.app(app),
         deviceUsers.users,
         libCheckerCanShow,
-        combine(componentDetails.hasUserGeneratedDetail(packageName), userDataRepository.userData.map { it.useDynamicColor }, ::Pair),
+        combine(hasCustomizedRules, userDataRepository.userData.map { it.useDynamicColor }, ::Pair),
         messages,
     ) { installed, users, libChecker, (customized, dynamicColor), (ruleWork, sharedRules) ->
         AppHeaderUiState(

@@ -26,6 +26,7 @@ import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.rule.entity.RuleWorkEvent
@@ -189,6 +190,17 @@ class AppHeaderViewModelTest {
 
         verify(fixture.workManager).enqueueUniqueWork(eq("ResetIfw:$PACKAGE:10"), any<ExistingWorkPolicy>(), any<OneTimeWorkRequest>())
         assertThat(capturedInput()).doesNotContainKey("param_target_user")
+    }
+
+    @Test
+    fun givenNoDescriptionsWritten_whenTheFirstIsSaved_thenSharingIsOffered() = runTest {
+        val viewModel = viewModel()
+        collect(viewModel)
+        assertThat(viewModel.uiState.value.hasCustomizedRules).isFalse()
+
+        fixture.details.saveComponentDetail(ComponentDetail(name = id("Main").className, description = "The first screen")).collect()
+
+        assertThat(viewModel.uiState.value.hasCustomizedRules).isTrue()
     }
 
     @Test
