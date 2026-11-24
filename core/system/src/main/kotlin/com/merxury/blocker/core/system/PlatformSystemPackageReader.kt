@@ -186,6 +186,9 @@ class PlatformSystemPackageReader @Inject constructor(
             versionName = versionName.orEmpty(),
             versionCode = getVersionCode(),
             isSystem = application != null && application.flags and ApplicationInfo.FLAG_SYSTEM != 0,
+            // PackageManager fills this for the user it answers for: the manifest's value while the
+            // user's setting is DEFAULT, otherwise what the setting says.
+            enabled = application?.enabled ?: true,
             enabledSetting = appEnabledSettingOf(enabledSetting),
             apkPath = application?.sourceDir,
             firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),

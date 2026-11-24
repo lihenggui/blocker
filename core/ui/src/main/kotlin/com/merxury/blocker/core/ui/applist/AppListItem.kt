@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.ui.applist
 
-import android.content.pm.PackageInfo
 import android.view.MotionEvent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -68,7 +67,6 @@ import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 
@@ -83,8 +81,9 @@ fun AppListItem(
     isAppRunning: Boolean,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
-    packageInfo: PackageInfo? = null,
-    appServiceStatus: AppServiceStatus? = null,
+    icon: Any? = null,
+    serviceCounts: ServiceCounts? = null,
+    showForceStop: Boolean = isAppRunning,
     onClick: (String) -> Unit = {},
     onClearCacheClick: (String) -> Unit = {},
     onClearDataClick: (String) -> Unit = {},
@@ -128,7 +127,7 @@ fun AppListItem(
             )
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
-        AppIcon(packageInfo, iconModifier.size(48.dp))
+        AppIcon(icon, iconModifier.size(48.dp))
         Spacer(modifier = Modifier.width(16.dp))
         AppContent(
             label = label,
@@ -136,7 +135,7 @@ fun AppListItem(
             versionCode = versionCode,
             isAppEnabled = isAppEnabled,
             isAppRunning = isAppRunning,
-            serviceStatus = appServiceStatus,
+            serviceCounts = serviceCounts,
         )
         val offset = with(density) {
             DpOffset(touchPoint.x.toDp(), -touchPoint.y.toDp())
@@ -144,7 +143,7 @@ fun AppListItem(
         AppListItemMenuList(
             expanded = expanded,
             offset = offset,
-            isAppRunning = isAppRunning,
+            isAppRunning = showForceStop,
             isAppEnabled = isAppEnabled,
             onClearCacheClick = { onClearCacheClick(packageName) },
             onClearDataClick = { onClearDataClick(packageName) },
@@ -157,12 +156,16 @@ fun AppListItem(
     }
 }
 
+/**
+ * The icon of an app, loaded by Coil from [icon]: a `PackageInfo` of an app installed for the user
+ * Blocker runs in, or an [com.merxury.blocker.core.ui.coil.ApkIcon] for an app of any user.
+ */
 @Composable
-fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
+fun AppIcon(icon: Any?, modifier: Modifier = Modifier) {
     AsyncImage(
         modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
-            .data(info)
+            .data(icon)
             .error(BlockerIcons.Android)
             .placeholder(BlockerIcons.Android)
             .crossfade(false)
@@ -178,7 +181,7 @@ private fun AppContent(
     versionCode: Long,
     isAppEnabled: Boolean,
     isAppRunning: Boolean,
-    serviceStatus: AppServiceStatus?,
+    serviceCounts: ServiceCounts?,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
@@ -226,13 +229,13 @@ private fun AppContent(
                 versionCode,
             ),
         )
-        if (serviceStatus != null) {
+        if (serviceCounts != null) {
             BlockerBodyMediumText(
                 text = stringResource(
                     id = string.core_ui_service_status_template,
-                    serviceStatus.running,
-                    serviceStatus.blocked,
-                    serviceStatus.total,
+                    serviceCounts.running,
+                    serviceCounts.blocked,
+                    serviceCounts.total,
                 ),
             )
         }
@@ -254,8 +257,8 @@ private fun AppListItemPreview(
                 versionCode = appList[0].versionCode,
                 isAppEnabled = appList[0].isEnabled,
                 isAppRunning = appList[0].isRunning,
-                packageInfo = appList[0].packageInfo,
-                appServiceStatus = appList[0].appServiceStatus,
+                icon = appList[0].packageInfo,
+                serviceCounts = appList[0].appServiceStatus?.toServiceCounts(),
             )
         }
     }
@@ -276,8 +279,8 @@ private fun AppListItemWithoutServiceInfoPreview(
                 versionCode = appList[1].versionCode,
                 isAppEnabled = appList[1].isEnabled,
                 isAppRunning = appList[1].isRunning,
-                packageInfo = appList[1].packageInfo,
-                appServiceStatus = appList[1].appServiceStatus,
+                icon = appList[1].packageInfo,
+                serviceCounts = appList[1].appServiceStatus?.toServiceCounts(),
             )
         }
     }
@@ -298,8 +301,8 @@ private fun AppListItemWithLongAppName(
                 versionCode = appList[2].versionCode,
                 isAppEnabled = appList[2].isEnabled,
                 isAppRunning = appList[2].isRunning,
-                packageInfo = appList[2].packageInfo,
-                appServiceStatus = appList[2].appServiceStatus,
+                icon = appList[2].packageInfo,
+                serviceCounts = appList[2].appServiceStatus?.toServiceCounts(),
                 isSelected = true,
             )
         }

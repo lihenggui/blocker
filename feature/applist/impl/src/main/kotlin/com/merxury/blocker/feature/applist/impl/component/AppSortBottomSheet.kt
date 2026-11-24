@@ -61,7 +61,7 @@ fun AppSortBottomSheetRoute(
     modifier: Modifier = Modifier,
     viewModel: AppSortViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.appSortInfoUiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val bottomSheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     ModalBottomSheet(
         onDismissRequest = { dismissHandler() },

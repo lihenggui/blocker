@@ -20,12 +20,14 @@ import com.merxury.blocker.core.data.appstate.AppStateCache
 import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
+import com.merxury.blocker.core.data.device.InMemorySelectedUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.LegacyListPmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.LocalComponentStatusRepository
 import com.merxury.blocker.core.data.device.LocalDeviceUserRepository
 import com.merxury.blocker.core.data.device.LocalInstalledAppRepository
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -136,6 +138,9 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindComponentStatusRepository(repository: LocalComponentStatusRepository): ComponentStatusRepository
+
+    @Binds
+    internal abstract fun bindSelectedUserRepository(repository: InMemorySelectedUserRepository): SelectedUserRepository
 
     @Binds
     internal abstract fun bindPmBlockRecordSeeder(seeder: LegacyListPmBlockRecordSeeder): PmBlockRecordSeeder

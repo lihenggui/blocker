@@ -50,19 +50,19 @@ class AppSortViewModelTest {
 
     @Test
     fun appSortInfoUiState_whenInitial_thenShowDefault() = runTest {
-        assertEquals(AppSortInfoUiState.Loading, viewModel.appSortInfoUiState.value)
+        assertEquals(AppSortInfoUiState.Loading, viewModel.uiState.value)
     }
 
     @Test
     fun appSortInfoUiState_whenLoaded_thenShowSuccess() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.appSortInfoUiState.collect()
+            viewModel.uiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
         assertEquals(
             Success(defaultUserData.toAppSortInfo()),
-            viewModel.appSortInfoUiState.value,
+            viewModel.uiState.value,
         )
 
         collectJob.cancel()
@@ -71,7 +71,7 @@ class AppSortViewModelTest {
     @Test
     fun appSortInfoUiState_whenUpdateAppSorting_thenUpdateAppSorting() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.appSortInfoUiState.collect()
+            viewModel.uiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
@@ -79,7 +79,7 @@ class AppSortViewModelTest {
         val updatedUserData = defaultUserData.copy(appSorting = AppSorting.LAST_UPDATE_TIME)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
-            viewModel.appSortInfoUiState.value,
+            viewModel.uiState.value,
         )
 
         collectJob.cancel()
@@ -88,7 +88,7 @@ class AppSortViewModelTest {
     @Test
     fun appSortInfoUiState_whenUpdateAppSortingOrder_thenUpdateAppSortingOrder() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.appSortInfoUiState.collect()
+            viewModel.uiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
@@ -96,7 +96,7 @@ class AppSortViewModelTest {
         val updatedUserData = defaultUserData.copy(appSortingOrder = SortingOrder.DESCENDING)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
-            viewModel.appSortInfoUiState.value,
+            viewModel.uiState.value,
         )
 
         collectJob.cancel()
@@ -105,7 +105,7 @@ class AppSortViewModelTest {
     @Test
     fun appSortInfoUiState_whenUpdateTopAppType_thenUpdateTopAppType() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.appSortInfoUiState.collect()
+            viewModel.uiState.collect()
         }
 
         userDataRepository.sendUserData(defaultUserData)
@@ -113,7 +113,7 @@ class AppSortViewModelTest {
         val updatedUserData = defaultUserData.copy(topAppType = TopAppType.RUNNING)
         assertEquals(
             Success(updatedUserData.toAppSortInfo()),
-            viewModel.appSortInfoUiState.value,
+            viewModel.uiState.value,
         )
 
         collectJob.cancel()

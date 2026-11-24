@@ -83,6 +83,7 @@ internal fun installedApp(
     versionName = "1.0",
     versionCode = 1,
     isSystem = false,
+    enabled = !enabledSetting.isDisabled,
     enabledSetting = enabledSetting,
     apkPath = "/data/app/$packageName/base.apk",
     firstInstallTime = Instant.fromEpochMilliseconds(1_000),
@@ -216,7 +217,7 @@ internal class FakeAppControl(private val system: FakeSystem) : AppControl {
         callFailure?.let { return CallResult.Failure(it) }
         val installed = system.apps[app] ?: return CallResult.Failure(CallFailure.TargetNotFound(app.toString()))
         val setting = if (enabled) AppEnabledSetting.ENABLED else AppEnabledSetting.DISABLED_USER
-        system.apps[app] = installed.copy(enabledSetting = setting)
+        system.apps[app] = installed.copy(enabled = !setting.isDisabled, enabledSetting = setting)
         return CallResult.Success(answer ?: setting)
     }
 

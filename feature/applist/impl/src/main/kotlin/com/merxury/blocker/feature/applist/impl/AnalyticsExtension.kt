@@ -19,38 +19,15 @@ package com.merxury.blocker.feature.applist.impl
 import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logUninstallAppClicked() = logEvent(
+internal fun AnalyticsHelper.logAction(action: AppAction) = logEvent(
     AnalyticsEvent(
-        type = "app_list_uninstall_app_clicked",
-    ),
-)
-
-internal fun AnalyticsHelper.logDisableAppClicked() = logEvent(
-    AnalyticsEvent(
-        type = "app_list_disable_app_clicked",
-    ),
-)
-
-internal fun AnalyticsHelper.logEnableAppClicked() = logEvent(
-    AnalyticsEvent(
-        type = "app_list_enable_app_clicked",
-    ),
-)
-
-internal fun AnalyticsHelper.logClearCacheClicked() = logEvent(
-    AnalyticsEvent(
-        type = "app_list_clear_cache_clicked",
-    ),
-)
-
-internal fun AnalyticsHelper.logClearDataClicked() = logEvent(
-    AnalyticsEvent(
-        type = "app_list_clear_data_clicked",
-    ),
-)
-
-internal fun AnalyticsHelper.logForceStopClicked() = logEvent(
-    AnalyticsEvent(
-        type = "app_list_force_stop_clicked",
+        type = when (action) {
+            AppAction.ENABLE -> "app_list_enable_app_clicked"
+            AppAction.DISABLE -> "app_list_disable_app_clicked"
+            AppAction.FORCE_STOP -> "app_list_force_stop_clicked"
+            AppAction.CLEAR_CACHE -> "app_list_clear_cache_clicked"
+            AppAction.CLEAR_DATA -> "app_list_clear_data_clicked"
+            AppAction.UNINSTALL -> "app_list_uninstall_app_clicked"
+        },
     ),
 )

@@ -70,6 +70,7 @@ internal fun app(
     versionName = "1.0",
     versionCode = 1,
     isSystem = false,
+    enabled = !enabledSetting.isDisabled,
     enabledSetting = enabledSetting,
     apkPath = "/data/app/$packageName/base.apk",
     firstInstallTime = Instant.fromEpochMilliseconds(1_000),

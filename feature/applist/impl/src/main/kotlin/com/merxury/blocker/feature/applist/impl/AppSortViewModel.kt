@@ -24,9 +24,10 @@ import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.TopAppType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,25 +36,21 @@ class AppSortViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
 ) : ViewModel() {
 
-    private val _appSortInfoUiState: MutableStateFlow<AppSortInfoUiState> =
-        MutableStateFlow(AppSortInfoUiState.Loading)
-    val appSortInfoUiState = _appSortInfoUiState.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            userDataRepository.userData
-                .map { userData ->
-                    AppSortInfoUiState.Success(
-                        AppSortInfo(
-                            userData.appSorting,
-                            userData.appSortingOrder,
-                            userData.topAppType,
-                        ),
-                    )
-                }
-                .collect { _appSortInfoUiState.value = it }
+    val uiState: StateFlow<AppSortInfoUiState> = userDataRepository.userData
+        .map { userData ->
+            AppSortInfoUiState.Success(
+                AppSortInfo(
+                    userData.appSorting,
+                    userData.appSortingOrder,
+                    userData.topAppType,
+                ),
+            )
         }
-    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = AppSortInfoUiState.Loading,
+        )
 
     fun updateAppSorting(sorting: AppSorting) = viewModelScope.launch {
         userDataRepository.setAppSorting(sorting)
