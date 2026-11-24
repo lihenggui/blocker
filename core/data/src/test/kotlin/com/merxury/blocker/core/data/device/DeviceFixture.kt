@@ -35,6 +35,7 @@ import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.privileged.CallFailure
@@ -226,7 +227,7 @@ internal class FakeComponentControl : ComponentControl {
 
     override suspend fun state(app: AppKey, components: Collection<ComponentDeclaration>): Map<ComponentId, ControlState> = error("Not used")
 
-    override fun apply(request: ControlRequest): Flow<ControlEvent> = apply.invoke(request)
+    override fun apply(request: ControlRequest, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = apply.invoke(request)
 }
 
 /**

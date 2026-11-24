@@ -29,6 +29,7 @@ import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
@@ -110,6 +111,8 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         return failure?.let { ReadResult.Failure(it) } ?: ReadResult.Success(Unit)
     }
 
+    override suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit> = refresh(app)
+
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {
         refreshedUsers += user
         refreshAllProgress?.let { progress ->
@@ -126,7 +129,7 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         emit(RefreshProgress.Finished(total = packages.size, failed = 0, appListFailure = null))
     }
 
-    override fun control(request: ControlRequest): Flow<ControlEvent> = flow {
+    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
         requests += request
         controlEvents?.let { events ->
             events(request).forEach {
@@ -145,6 +148,7 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
                 ifw = if (ControlLayer.INTENT_FIREWALL in layers) (if (block) IfwBlock.BLOCKED else IfwBlock.NOT_BLOCKED) else before.ifw,
             )
             cached.update { it + (key to ComponentStatus(declaration, state)) }
+            if (state != before) writeObserver?.onWrite(listOf(declaration.id))
             ComponentOutcome(key, state, ControlResult.ACHIEVED, emptyMap())
         }
         record(request, outcomes)

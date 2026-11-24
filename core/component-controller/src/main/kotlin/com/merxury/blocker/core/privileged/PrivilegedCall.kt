@@ -116,14 +116,15 @@ internal interface PrivilegedExecutor {
 
     /**
      * Runs [call] only when [checkedState] is [ChannelState.Ready]; otherwise fails with
-     * [CallFailure.ChannelUnavailable]. Never shows a prompt.
+     * [CallFailure.ChannelUnavailable]. Follows the quiet policy in
+     * [PrivilegedChannel.connectIfGranted], including when restarting an idle-closed root server.
      */
     suspend fun <R> executeIfReady(call: PrivilegedCall<R>): CallResult<R>
 
     /**
      * The channel's state once the first attempt to acquire it has ended. Returns the state at
-     * once unless it is still [UnavailableReason.NOT_CHECKED]; then makes the attempt that cannot
-     * prompt, as [PrivilegedChannel.connectIfGranted] does, or waits for the quiet attempt already
+     * once unless it is still [UnavailableReason.NOT_CHECKED]; then makes a quiet attempt or
+     * waits for the quiet attempt already
      * running, bounded by the transport's own timeouts. Never waits for a prompt to be answered and
      * never calls [PrivilegedChannel.connect]. When the attempt it waited for was cancelled, it
      * makes its own. Never throws except for cancellation.

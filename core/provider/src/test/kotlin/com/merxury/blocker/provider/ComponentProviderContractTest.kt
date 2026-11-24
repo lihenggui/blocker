@@ -31,6 +31,7 @@ import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
@@ -50,14 +51,20 @@ import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserReposi
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import dagger.hilt.internal.GeneratedComponent
 import dagger.hilt.internal.GeneratedComponentManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.After
@@ -65,12 +72,25 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.android.controller.ContentProviderController
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowBinder
+import timber.log.Timber
 
-/** Exercises LibChecker's calls through the provider and the Hilt entry point. */
+/**
+ * Exercises LibChecker's calls through the provider and the Hilt entry point.
+ *
+ * | Call and condition | Return value |
+ * | --- | --- |
+ * | getComponents, readable package | Bundle with cmp_list JSON listing PM and IFW blocks |
+ * | getComponents, unavailable access, failed read, cancellation, or deadline | Same bundle from cache |
+ * | getComponents, blank, confirmed absent, or no cached package during fallback | Same bundle with an empty array |
+ * | blocks, successful control, no matched requests, or controller refusal without an exception | The original extras |
+ * | blocks, malformed extras, unavailable access for a known component, control exception, cancellation, or deadline | null |
+ * | Either method missing an argument, unsupported method, or direct main-thread call | null |
+ * | Any method from an untrusted UID | Throws SecurityException |
+ */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = ComponentProviderContractTest.TestApp::class)
 class ComponentProviderContractTest {
@@ -103,14 +123,19 @@ class ComponentProviderContractTest {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var application: TestApp
     private lateinit var provider: ComponentProvider
-    private var refresh: suspend (AppKey) -> ReadResult<Unit> = repository::refresh
+    private var refresh: suspend (AppKey) -> ReadResult<Unit> = { repository.refreshIfReadable(it, requireFirewall = true) }
+    private var beforeControl: suspend (ControlRequest, ComponentWriteObserver?) -> Unit = { _, _ -> }
 
     @Before
     fun setUp() {
         application = ApplicationProvider.getApplicationContext<TestApp>()
         application.entryPoint = object : TestEntryPoint {
             override fun componentStatuses(): ComponentStatusRepository = object : ComponentStatusRepository by repository {
-                override suspend fun refresh(app: AppKey): ReadResult<Unit> = this@ComponentProviderContractTest.refresh(app)
+                override suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit> = this@ComponentProviderContractTest.refresh(app)
+                override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
+                    beforeControl(request, writeObserver)
+                    emitAll(repository.control(request, keepKnownState, writeObserver))
+                }
             }
 
             override fun selectedUsers(): SelectedUserRepository = selectedUsers
@@ -120,9 +145,7 @@ class ComponentProviderContractTest {
             override fun applicationScope(): CoroutineScope = scope
             override fun ioDispatcher(): CoroutineDispatcher = Dispatchers.IO
         }
-        provider = Robolectric.buildContentProvider(ComponentProvider::class.java)
-            .create("com.merxury.blocker.provider.test")
-            .get()
+        attachProvider(ComponentProvider())
     }
 
     @After
@@ -167,14 +190,10 @@ class ComponentProviderContractTest {
     @Test
     fun givenAccessMissingAndCachedBlocks_whenGetComponents_thenReturnsCachedJson() = runTest {
         channel.setState(DENIED)
-        seed(status("Tracker", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN))
-        refresh = { app ->
-            seed(status("Tracker", pm = PmSetting.UNKNOWN, ifw = IfwBlock.UNKNOWN))
-            repository.refresh(app)
-        }
+        seed(status("Tracker", ifw = IfwBlock.BLOCKED))
 
         assertComponents(TRACKER_JSON)
-        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertThat(repository.refreshedApps).isEmpty()
         assertQuietConnect()
     }
 
@@ -196,15 +215,43 @@ class ComponentProviderContractTest {
     }
 
     @Test
-    fun givenUnreadableRules_whenGetComponents_thenOnlyIncludesPmBlocks() = runTest {
-        seed(status("Tracker", pm = PmSetting.DISABLED), status("Filter", ifw = IfwBlock.BLOCKED))
+    fun givenUnreadableRules_whenGetComponents_thenIncludesCachedIfwBlocks() = runTest {
+        seed(status("Tracker", ifw = IfwBlock.BLOCKED))
         repository.refreshFailure = ReadFailure.RulesUnreadable(PACKAGE_NAME)
-        refresh = { app ->
-            seed(status("Tracker", pm = PmSetting.DISABLED), status("Filter", ifw = IfwBlock.UNKNOWN))
-            repository.refresh(app)
-        }
 
         assertComponents(TRACKER_JSON)
+    }
+
+    @Test
+    fun givenRefreshCancelled_whenGetComponents_thenReturnsCachedJson() = runTest {
+        seed(status("Tracker", ifw = IfwBlock.BLOCKED))
+        refresh = { throw CancellationException("Refresh cancelled") }
+
+        assertComponents(TRACKER_JSON)
+    }
+
+    @Test
+    fun givenNoCachedPackageAndRefreshThrows_whenGetComponents_thenReturnsEmptyJsonArray() = runTest {
+        refresh = { error("Component refresh failed") }
+
+        assertComponents(EMPTY_JSON)
+    }
+
+    @Test
+    fun givenRefreshExceedsReadDeadline_whenGetComponents_thenReturnsCachedJson() = runTest {
+        attachProvider(ComponentProvider(readTimeoutMillis = 500, writeTimeoutMillis = 5_000))
+        seed(status("Tracker", ifw = IfwBlock.BLOCKED))
+        val release = CompletableDeferred<Unit>()
+        refresh = {
+            withContext(NonCancellable) { release.await() }
+            ReadResult.Success(Unit)
+        }
+
+        try {
+            assertComponents(TRACKER_JSON)
+        } finally {
+            release.complete(Unit)
+        }
     }
 
     @Test
@@ -319,7 +366,7 @@ class ComponentProviderContractTest {
     }
 
     @Test
-    fun givenNoMatchingComponentsOrEmptyList_whenBlocks_thenReturnsInputWithoutConnecting() = runTest {
+    fun givenNoMatchingComponentsOrEmptyList_whenBlocks_thenReturnsInputWithoutRefreshing() = runTest {
         channel.setState(DENIED)
         val unknown = input("Unknown" to true)
         val empty = input()
@@ -327,7 +374,8 @@ class ComponentProviderContractTest {
         assertThat(call("blocks", PACKAGE_NAME, unknown)).isSameInstanceAs(unknown)
         assertThat(call("blocks", PACKAGE_NAME, empty)).isSameInstanceAs(empty)
         assertThat(repository.requests).isEmpty()
-        assertThat(channel.quietConnectCount).isEqualTo(0)
+        assertThat(repository.refreshedApps).isEmpty()
+        assertThat(channel.quietConnectCount).isEqualTo(1)
         assertThat(channel.connectCount).isEqualTo(0)
     }
 
@@ -391,6 +439,15 @@ class ComponentProviderContractTest {
     }
 
     @Test
+    fun givenControlCancelled_whenBlocks_thenReturnsNullAtTheProviderBoundary() = runTest {
+        seed(status("A"))
+        beforeControl = { _, _ -> throw CancellationException("Control cancelled") }
+
+        assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
+        assertThat(analytics.loggedEvents).isEmpty()
+    }
+
+    @Test
     fun givenAccessMissing_whenBlocks_thenReturnsNullWithoutPrompting() = runTest {
         seed(status("A"))
         channel.setState(DENIED)
@@ -398,11 +455,13 @@ class ComponentProviderContractTest {
         assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
 
         assertQuietConnect()
+        assertThat(repository.refreshedApps).isEmpty()
         assertThat(repository.requests).isEmpty()
     }
 
     @Test
     fun givenRefreshCannotFinishBeforeDeadline_whenBlocks_thenReturnsNullWhileRefreshIsPending() = runTest {
+        attachProvider(ComponentProvider(readTimeoutMillis = 500, writeTimeoutMillis = 5_000))
         seed(status("A"))
         val started = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
@@ -421,6 +480,58 @@ class ComponentProviderContractTest {
         } finally {
             release.complete(Unit)
         }
+    }
+
+    @Test
+    fun givenMixedBatchesTakeLongerThanReadDeadline_whenBlocks_thenWaitsForBoth() = runTest {
+        attachProvider(ComponentProvider(readTimeoutMillis = 500, writeTimeoutMillis = 5_000))
+        seed(status("A"), status("B"))
+        beforeControl = { request, _ -> if (request.goal == ControlGoal.BLOCK) delay(750) }
+        val input = input("A" to true, "B" to false)
+
+        assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
+        assertThat(repository.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK, ControlGoal.ENABLE).inOrder()
+    }
+
+    @Test
+    fun givenWriteDeadlineExpiresInTheFirstBatch_whenBlocks_thenReturnsNullAndReportsLateWrites() = runTest {
+        attachProvider(ComponentProvider(readTimeoutMillis = 500, writeTimeoutMillis = 500))
+        val early = status("Early")
+        val late = status("Late")
+        seed(early, late, status("B"))
+        repository.controlEvents = { emptyList() }
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        beforeControl = { request, observer ->
+            if (request.goal == ControlGoal.BLOCK) {
+                checkNotNull(observer).onWrite(listOf(early.declaration.id))
+                started.complete(Unit)
+                release.await()
+                observer.onWrite(listOf(late.declaration.id))
+            } else {
+                error("The second batch must not start")
+            }
+        }
+
+        val messages = mutableListOf<String>()
+        val tree = object : Timber.Tree() {
+            override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                synchronized(messages) { messages.add(message) }
+            }
+        }
+        Timber.plant(tree)
+        try {
+            assertThat(call("blocks", PACKAGE_NAME, input("Early" to true, "Late" to true, "B" to false))).isNull()
+            assertThat(started.isCompleted).isTrue()
+        } finally {
+            release.complete(Unit)
+            scope.coroutineContext[Job]?.children?.forEach { it.join() }
+            Timber.uproot(tree)
+        }
+        assertThat(repository.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK)
+        assertThat(analytics.loggedEvents).isEmpty()
+        assertThat(messages.any { "timed out" in it && early.declaration.id.className in it }).isTrue()
+        assertThat(messages.any { "writes after timeout" in it && late.declaration.id.className in it }).isTrue()
     }
 
     @Test
@@ -482,6 +593,10 @@ class ComponentProviderContractTest {
     }
 
     private suspend fun call(method: String, arg: String?, extras: Bundle? = null): Bundle? = withContext(Dispatchers.IO) { provider.call(method, arg, extras) }
+
+    private fun attachProvider(instance: ComponentProvider) {
+        provider = ContentProviderController.of(instance).create("com.merxury.blocker.provider.test").get()
+    }
 
     private suspend fun assertComponents(expected: String) {
         val result = checkNotNull(call("getComponents", PACKAGE_NAME))

@@ -32,8 +32,12 @@ import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.ToolInPrivilegedProcess
 import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
 import com.merxury.blocker.core.privileged.calls.ForceStop
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -100,6 +104,25 @@ class ShizukuTransportTest {
         }
         assertThat(initializer.asked).isEqualTo(0)
         assertThat(initializer.checkedQuietly).isEqualTo(cases.size)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenStartupInProgress_whenAnotherCallerConnectsQuietly_thenSharesTheResult() = scope.runTest {
+        val gate = CompletableDeferred<Unit>()
+        initializer.quietGate = gate
+        initializer.result = RegisterShizukuResult.Denied
+        val startup = async { transport.connectIfGranted() }
+        runCurrent()
+        val caller = async { transport.connectIfGranted() }
+        runCurrent()
+
+        assertThat(caller.isCompleted).isFalse()
+        gate.complete(Unit)
+        assertThat(startup.await()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+        assertThat(caller.await()).isEqualTo(startup.await())
+        assertThat(initializer.checkedQuietly).isEqualTo(1)
+        assertThat(initializer.asked).isEqualTo(0)
     }
 
     @Test
@@ -365,6 +388,7 @@ class ShizukuTransportTest {
 /** Answers both registrations with [result]; the one that may ask counts as asking. */
 private class FakeShizukuInitializer : IShizukuInitializer {
     var result: RegisterShizukuResult = RegisterShizukuResult.Granted(2000)
+    var quietGate: CompletableDeferred<Unit>? = null
     var asked = 0
         private set
     var checkedQuietly = 0
@@ -377,6 +401,7 @@ private class FakeShizukuInitializer : IShizukuInitializer {
 
     override suspend fun registerShizukuIfGranted(): RegisterShizukuResult {
         checkedQuietly++
+        quietGate?.await()
         return result
     }
     override suspend fun awaitBinder() = Unit

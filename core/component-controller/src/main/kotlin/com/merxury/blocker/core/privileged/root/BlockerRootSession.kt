@@ -33,9 +33,9 @@ internal class BlockerRootSession @Inject constructor(
     @Volatile
     private var initializedServer: RootServer? = null
 
-    /** The existing server, if it can be used without starting su. */
-    val activeServer: RootServer?
-        get() = initializedServer?.takeIf { it.active }
+    /** Whether the initialized server is still running. Calls hold a lease through [use]. */
+    val hasActiveServer: Boolean
+        get() = initializedServer?.active == true
 
     override suspend fun initServer(server: RootServer) {
         super.initServer(server)

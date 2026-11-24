@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
@@ -172,6 +173,10 @@ internal class LocalComponentStatusRepository(
         refreshPackageLocked(app, installed, appFailure, previous = previous, forceDeclarations = true).asResult()
     }
 
+    override suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit> = lockOf(app.packageName).withLock {
+        readAndStoreAutomatically(app, forceDeclarations = true, requireFirewall = requireFirewall)
+    }
+
     /**
      * A broadcast is an invalidation. Confirm live presence in case a reinstall followed removal,
      * and return false to retry if a write started or a newer broadcast arrived while queued.
@@ -246,7 +251,11 @@ internal class LocalComponentStatusRepository(
         }
     }
 
-    private suspend fun readAndStoreAutomatically(app: AppKey): ReadResult<Unit> {
+    private suspend fun readAndStoreAutomatically(
+        app: AppKey,
+        forceDeclarations: Boolean = false,
+        requireFirewall: Boolean = false,
+    ): ReadResult<Unit> {
         val previous = dao.getApp(app.packageName, app.userId.value)
         val installed = when (val read = installedApps.readForRefresh(app)) {
             is ReadResult.Success -> read.value
@@ -260,7 +269,7 @@ internal class LocalComponentStatusRepository(
             Timber.w("PackageManager did not return the app enabled setting for $app")
             return ReadResult.Failure(ReadFailure.ChannelUnavailable)
         }
-        return refreshPackageLocked(app, installed, appFailure = null, automatic = true, previous = previous).asResult()
+        return refreshPackageLocked(app, installed, appFailure = null, automatic = true, previous = previous, forceDeclarations, requireFirewall).asResult()
     }
 
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {
@@ -288,7 +297,7 @@ internal class LocalComponentStatusRepository(
         emit(RefreshProgress.Finished(total = apps.size, failed = failed, appListFailure = null))
     }
 
-    override fun control(request: ControlRequest): Flow<ControlEvent> = flow {
+    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
         val (own, others) = request.components.partition { request.goal == ControlGoal.BLOCK && AppKey(it.id.packageName, request.user) == self }
         val refused = refuseOwn(request, own)
         refused?.let { emit(it) }
@@ -299,10 +308,10 @@ internal class LocalComponentStatusRepository(
         }
         val packages = others.mapTo(mutableSetOf()) { it.id.packageName }
         controlActivity.duringControl(packages) {
-            componentControl.apply(request.copy(components = others)).collect { event ->
+            componentControl.apply(request.copy(components = others), writeObserver).collect { event ->
                 when (event) {
                     is ControlEvent.PackageDone -> {
-                        store(request, event)
+                        store(request, event, keepKnownState)
                         controlActivity.recordWrites(AppKey(event.packageName, request.user), event.pmWrites)
                         emit(event)
                     }
@@ -408,9 +417,12 @@ internal class LocalComponentStatusRepository(
         automatic: Boolean = false,
         previous: AppEntity? = null,
         forceDeclarations: Boolean = false,
+        requireFirewall: Boolean = false,
     ): PackageRefresh {
-        val refresh = packages.refresh(key, app, appFailure, automatic, previous, forceDeclarations)
-        if (!refresh.removed) withContext(NonCancellable) { pmBlocks.afterRefresh(key, refresh) }
+        val refresh = packages.refresh(key, app, appFailure, automatic, previous, forceDeclarations, requireFirewall)
+        if (!refresh.removed && (!automatic || refresh.failures.isEmpty())) {
+            withContext(NonCancellable) { pmBlocks.afterRefresh(key, refresh) }
+        }
         if (refresh.removed || refresh.failures.isEmpty()) retries -= key
         return refresh
     }
@@ -419,7 +431,7 @@ internal class LocalComponentStatusRepository(
      * Stores the read-back state of each outcome, both layers in one transaction, then updates the
      * record of Blocker's PackageManager blocks from it; runs to its end once the event has arrived.
      */
-    private suspend fun store(request: ControlRequest, event: ControlEvent.PackageDone) = withContext(NonCancellable) {
+    private suspend fun store(request: ControlRequest, event: ControlEvent.PackageDone, keepKnownState: Boolean) = withContext(NonCancellable) {
         lockOf(event.packageName).withLock {
             event.outcomes.groupBy { it.key.userId }.forEach { (user, outcomes) ->
                 dao.storePackageState(
@@ -427,8 +439,8 @@ internal class LocalComponentStatusRepository(
                     userId = user.value,
                     declarations = null,
                     appLastUpdateTime = null,
-                    pmSettings = outcomes.associate { it.key.id.className to it.state.pm },
-                    ifwBlocks = outcomes.associate { it.key.id.className to it.state.ifw },
+                    pmSettings = outcomes.associate { it.key.id.className to it.state.pm }.filterValues { !keepKnownState || it != PmSetting.UNKNOWN },
+                    ifwBlocks = outcomes.associate { it.key.id.className to it.state.ifw }.filterValues { !keepKnownState || it != IfwBlock.UNKNOWN },
                 )
             }
             pmBlocks.afterControl(request, event)

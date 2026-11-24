@@ -20,7 +20,9 @@ import android.content.pm.PackageManager
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -83,6 +85,56 @@ class ComponentControlOrderTest {
             awaitComplete()
         }
         assertThat(fixture.channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenBatchRefused_whenApplyingPmOneAtATime_thenReportsEachWriteAsItCompletes() = runTest {
+        val held = CompletableDeferred<Unit>()
+        val protected = declaration("Protected")
+        fixture.system.protected += protected.id
+        fixture.system.beforeSet = { call ->
+            if (call.components.singleOrNull()?.className == SYNC.id.className) held.await()
+        }
+        val observer = WriteObserver()
+
+        val applying = launch { fixture.control.apply(block(PM_ONLY, MAIN, SYNC, protected), observer).toList() }
+        runCurrent()
+
+        try {
+            assertThat(applying.isActive).isTrue()
+            assertThat(observer.writes).containsExactly(listOf(MAIN.id))
+        } finally {
+            held.complete(Unit)
+        }
+        applying.join()
+        assertThat(observer.writes).containsExactly(listOf(MAIN.id), listOf(SYNC.id)).inOrder()
+    }
+
+    @Test
+    fun givenAQueuedControlCannotStartWriting_whenItsReadFinishes_thenNothingIsWritten() = runTest {
+        val held = CompletableDeferred<Unit>()
+        fixture.system.beforeRead = { held.await() }
+        val observer = WriteObserver()
+        val applying = launch { fixture.control.apply(block(BOTH, MAIN), observer).toList() }
+        runCurrent()
+
+        observer.allowed = false
+        held.complete(Unit)
+        applying.join()
+
+        assertThat(observer.writes).isEmpty()
+        assertThat(fixture.executor.calls).isEmpty()
+        assertThat(fixture.ifwWrites).isEmpty()
+    }
+
+    @Test
+    fun givenOneExistingIfwBlock_whenApplyingAnother_thenReportsOnlyTheRuleThatChanged() = runTest {
+        fixture.blockInIfw(MAIN)
+        val observer = WriteObserver()
+
+        fixture.control.apply(block(IFW_ONLY, MAIN, SYNC), observer).toList()
+
+        assertThat(observer.writes).containsExactly(listOf(SYNC.id))
     }
 
     @Test
@@ -193,5 +245,16 @@ class ComponentControlOrderTest {
 
         assertThat(fixture.executor.calls.flatMap { call -> call.components.map { it.className } }).containsExactly(MAIN.id.className)
         assertThat(fixture.pm(SYNC)).isEqualTo(PmSetting.DEFAULT)
+    }
+}
+
+private class WriteObserver : ComponentWriteObserver {
+    var allowed = true
+    val writes = mutableListOf<List<ComponentId>>()
+
+    override fun canStart(): Boolean = allowed
+
+    override fun onWrite(components: Collection<ComponentId>) {
+        writes += components.toList()
     }
 }

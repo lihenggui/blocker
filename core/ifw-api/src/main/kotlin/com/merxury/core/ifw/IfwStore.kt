@@ -95,8 +95,13 @@ interface IfwStore {
      * provider is not an error, it stays [IfwBlock.NOT_BLOCKED] and nothing is written for it.
      *
      * @param changes components of [packageName], each with whether to block it
+     * @param onWrite receives the components whose rules changed after the file write succeeds
      */
-    suspend fun setBlocked(packageName: String, changes: Map<ComponentDeclaration, Boolean>): IfwResult<Map<ComponentId, IfwBlock>>
+    suspend fun setBlocked(
+        packageName: String,
+        changes: Map<ComponentDeclaration, Boolean>,
+        onWrite: ((Collection<ComponentId>) -> Unit)? = null,
+    ): IfwResult<Map<ComponentId, IfwBlock>>
 
     /**
      * Full rules of the rule file `<name>.xml` for the editor; empty when there is no such file.

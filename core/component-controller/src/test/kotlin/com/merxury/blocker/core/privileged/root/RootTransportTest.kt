@@ -37,8 +37,12 @@ import com.merxury.blocker.core.privileged.calls.ReadWakeSource
 import com.merxury.blocker.core.privileged.encodeOutcome
 import com.merxury.blocker.core.privileged.unmarshallCall
 import com.merxury.blocker.core.privileged.withoutPermissionPrompts
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,13 +54,13 @@ private val CALL = ForceStop("com.example", UserId(10))
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
+@OptIn(ExperimentalCoroutinesApi::class)
 class RootTransportTest {
 
     private val scope = TestScope()
     private val runner = FakeRootRunner()
     private val grants = FakeRootGrantMemory()
-    private var activeServer = true
-    private val transport = RootTransport(runner, grants, StandardTestDispatcher(scope.testScheduler)) { activeServer }
+    private val transport = RootTransport(runner, grants, StandardTestDispatcher(scope.testScheduler)) { runner.activeServer }
 
     @Test
     fun givenRootProcessRunsAsRoot_whenConnect_thenReadyRoot() = scope.runTest {
@@ -155,27 +159,71 @@ class RootTransportTest {
     }
 
     @Test
-    fun givenRememberedGrantWithoutAServer_whenPermissionPromptsAreForbidden_thenNeverStartsSu() = scope.runTest {
-        grants.remembered = true
-        activeServer = false
+    fun givenRememberedGrantAndIdleClose_whenConnectingQuietly_thenRestartsRoot() = scope.runTest {
+        transport.connect()
+        runner.activeServer = false
+
+        withoutPermissionPrompts {
+            assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        }
+
+        assertThat(runner.starts).isEqualTo(2)
+    }
+
+    @Test
+    fun givenNoRememberedGrantAndIdleClose_whenConnectingQuietly_thenDeniesWithoutStartingRoot() = scope.runTest {
+        transport.connect()
+        runner.activeServer = false
+        grants.remembered = false
 
         withoutPermissionPrompts {
             assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
             assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
         }
 
-        assertThat(runner.sent).isEqualTo(0)
-        assertThat(grants.remembered).isTrue()
+        assertThat(runner.starts).isEqualTo(1)
+        assertThat(runner.sent).isEqualTo(1)
     }
 
     @Test
-    fun givenServerLostAfterQuietConnect_whenWriting_thenDoesNotReconnect() = scope.runTest {
-        withoutPermissionPrompts {
-            assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
-            activeServer = false
-            assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
-        }
+    fun givenQuietStartupInProgress_whenAnotherCallerConnects_thenWaitsForStartup() = scope.runTest {
+        grants.remembered = true
+        val gate = CompletableDeferred<Unit>()
+        runner.startupGate = gate
+        val startup = async { transport.connectIfGranted() }
+        runCurrent()
+        val caller = async { withoutPermissionPrompts { transport.connectIfGranted() } }
+        runCurrent()
 
+        assertThat(caller.isCompleted).isFalse()
+        assertThat(runner.starts).isEqualTo(1)
+        gate.complete(Unit)
+        assertThat(caller.await()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        assertThat(startup.await()).isEqualTo(caller.await())
+        assertThat(runner.sent).isEqualTo(1)
+    }
+
+    @Test
+    fun givenIdleCloseAfterConnection_whenExecutingQuietly_thenRestartsAndMakesTheCall() = scope.runTest {
+        transport.connect()
+        runner.activeServer = false
+
+        assertThat(transport.executeIfReady(CALL)).isEqualTo(CallResult.Success(Unit))
+
+        assertThat(runner.starts).isEqualTo(2)
+        assertThat(runner.sent).isEqualTo(2)
+        assertThat(runner.system.activityManager.forceStopped).hasSize(1)
+    }
+
+    @Test
+    fun givenForgottenGrantAndIdleClose_whenExecutingQuietly_thenDoesNotStartRoot() = scope.runTest {
+        transport.connect()
+        grants.remembered = false
+        runner.activeServer = false
+
+        assertThat(transport.executeIfReady(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+
+        assertThat(runner.starts).isEqualTo(1)
         assertThat(runner.sent).isEqualTo(1)
     }
 
@@ -305,10 +353,18 @@ private class FakeRootRunner : RootCommandRunner {
     val failures = ArrayDeque<Exception>()
     var uid = 0
     var sent = 0
+    var activeServer = false
+    var starts = 0
+    var startupGate: CompletableDeferred<Unit>? = null
     val requestSizes = mutableListOf<Int>()
 
     override suspend fun run(command: RootCallCommand): CallBytes {
         sent++
+        if (!activeServer) {
+            starts++
+            startupGate?.await()
+            activeServer = true
+        }
         failures.removeFirstOrNull()?.let { throw it }
         ShadowProcess.setUid(uid)
         check(awaitPipeWriters())

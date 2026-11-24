@@ -58,8 +58,7 @@ internal fun interface RootCommandRunner {
  * process, which shows the su prompt when root has not been granted yet.
  *
  * [grants] remembers across process starts whether su gave a root process: a successful connect
- * sets it and a refused su clears it. Connecting without a prompt starts su only while it is set,
- * since su from an app the root manager has no answer for shows the root manager's prompt.
+ * sets it and a refused su clears it. Quiet connects and calls start su only while it is set.
  *
  * A call that finds the root process gone is sent once more on a fresh process, which librootkotlinx
  * starts without a prompt while root stays granted. Only when that fails too is the channel lost.
@@ -80,36 +79,24 @@ internal class RootTransport(
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
     ) : this(
         RootCommandRunner { command ->
-            if (permissionPromptsAllowed()) {
-                rootSession.use { server -> server.execute(command, RootCallCommand::class.java.classLoader) }
-            } else {
-                val server = rootSession.activeServer ?: throw PrivilegedProcessUnavailableException("No active root process")
-                server.execute(command, RootCallCommand::class.java.classLoader)
-            }
+            rootSession.use { server -> server.execute(command, RootCallCommand::class.java.classLoader) }
         },
         grants,
         ioDispatcher,
-        { rootSession.activeServer != null },
+        { rootSession.hasActiveServer },
     )
 
     override suspend fun acquire(): ChannelState = startRootProcess().also {
         if (it is ChannelState.Ready) grants.remember(true)
     }
 
-    override suspend fun acquireIfGranted(): ChannelState {
-        if (!permissionPromptsAllowed()) {
-            return if (hasActiveServer()) acquire() else ChannelState.Unavailable(UnavailableReason.DENIED)
-        }
-        if (!grants.isRemembered()) {
-            Timber.i("su has not given Blocker a root process before; not asking without a prompt")
-            return ChannelState.Unavailable(UnavailableReason.DENIED)
-        }
-        return acquire()
+    override suspend fun acquireIfGranted(): ChannelState = if (grants.isRemembered()) {
+        startRootProcess()
+    } else {
+        ChannelState.Unavailable(UnavailableReason.DENIED)
     }
 
-    override suspend fun connectIfGranted(): ChannelState = if (permissionPromptsAllowed() || hasActiveServer()) super.connectIfGranted() else ChannelState.Unavailable(UnavailableReason.DENIED)
-
-    override suspend fun checkedState(): ChannelState = if (permissionPromptsAllowed() || hasActiveServer()) super.checkedState() else ChannelState.Unavailable(UnavailableReason.DENIED)
+    override suspend fun isConnectionCurrent(): Boolean = hasActiveServer() && grants.isRemembered()
 
     private suspend fun startRootProcess(): ChannelState = try {
         when (val result = sendOnce(CallerUid)) {
@@ -134,7 +121,7 @@ internal class RootTransport(
         sendOnce(call)
     } catch (e: ChannelLostException) {
         // A refused su would refuse again.
-        if (e.reason == UnavailableReason.DENIED || !permissionPromptsAllowed()) throw e
+        if (e.reason == UnavailableReason.DENIED) throw e
         // It may already have reached the system; the caller decides what to do.
         if (!call.retryable) throw PrivilegedProcessUnavailableException("The root process went away while running $call", e)
         Timber.w(e, "The root process went away; sending $call again on a new one")
@@ -142,6 +129,11 @@ internal class RootTransport(
     }
 
     private suspend fun <R> sendOnce(call: PrivilegedCall<R>): CallResult<R> {
+        // Check before taking the session lease, since use can start su even if a server
+        // was active just before the call.
+        if (!permissionPromptsAllowed() && !grants.isRemembered()) {
+            throw ChannelLostException(UnavailableReason.DENIED, "No remembered root grant")
+        }
         // A call too large for one root call goes through a pipe. Closing this side's copy when
         // the call ends, however it ends, stops the pipe's writer if the request never arrived.
         val request = CallBytes.request(marshallCall(call))

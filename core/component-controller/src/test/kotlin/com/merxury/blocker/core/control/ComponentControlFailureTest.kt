@@ -238,7 +238,11 @@ class ComponentControlFailureTest {
     fun givenPmClearedThenTheRuleStoreThrows_whenUnblock_thenPartialWithOnlyTheFirewallFailed() = runTest {
         val fixture = ControlFixture { store ->
             object : IfwStore by store {
-                override suspend fun setBlocked(packageName: String, changes: Map<ComponentDeclaration, Boolean>): IfwResult<Map<ComponentId, IfwBlock>> = throw IllegalStateException("Store broke")
+                override suspend fun setBlocked(
+                    packageName: String,
+                    changes: Map<ComponentDeclaration, Boolean>,
+                    onWrite: ((Collection<ComponentId>) -> Unit)?,
+                ): IfwResult<Map<ComponentId, IfwBlock>> = throw IllegalStateException("Store broke")
             }
         }
         fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)

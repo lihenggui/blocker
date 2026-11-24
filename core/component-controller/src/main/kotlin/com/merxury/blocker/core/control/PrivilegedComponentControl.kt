@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlRequest
@@ -76,7 +77,7 @@ internal class PrivilegedComponentControl @Inject constructor(
 
     override suspend fun state(app: AppKey, components: Collection<ComponentDeclaration>): Map<ComponentId, ControlState> = readState(app, components.distinctBy { it.id })
 
-    override fun apply(request: ControlRequest): Flow<ControlEvent> = flow {
+    override fun apply(request: ControlRequest, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
         val packages = request.components.distinctBy { it.id }.groupBy { it.id.packageName }
         if (packages.isNotEmpty() && channel.state.value !is ChannelState.Ready && permissionPromptsAllowed()) {
             Timber.i("Connect the privileged channel to ${request.goal} components")
@@ -86,7 +87,7 @@ internal class PrivilegedComponentControl @Inject constructor(
         packages.forEach { (packageName, components) ->
             currentCoroutineContext().ensureActive()
             val app = AppKey(packageName, request.user)
-            val event = locks.withLock(packageName) { controlPackage(app, components, request) }
+            val event = locks.withLock(packageName) { controlPackage(app, components, request, writeObserver) }
             results += event.outcomes.map { it.result }
             emit(event)
         }
@@ -103,8 +104,13 @@ internal class PrivilegedComponentControl @Inject constructor(
      * Reads, changes what is needed and reads back the components of one package; call it under
      * the package's lock. Once a change is sent, the rest runs even if the caller is cancelled.
      */
-    private suspend fun controlPackage(app: AppKey, components: List<ComponentDeclaration>, request: ControlRequest): ControlEvent.PackageDone {
-        val identity = (channel.state.value as? ChannelState.Ready)?.identity
+    private suspend fun controlPackage(
+        app: AppKey,
+        components: List<ComponentDeclaration>,
+        request: ControlRequest,
+        writeObserver: ComponentWriteObserver?,
+    ): ControlEvent.PackageDone {
+        val identity = (executor.checkedState() as? ChannelState.Ready)?.identity
         val layers = components.associate { it.id to it.layersFor(request.layers).reachableBy(request.goal, identity) }
         val before = readState(app, components)
         val pmChanges = components.mapNotNull { component ->
@@ -114,12 +120,16 @@ internal class PrivilegedComponentControl @Inject constructor(
             ifwChange(request.goal, layers.getValue(component.id))?.let { component to it }
         }.toMap()
         val failures: Failures = mutableMapOf()
-        val after = if (pmChanges.isEmpty() && ifwChanges.isEmpty()) {
+        val hasChanges = pmChanges.isNotEmpty() || ifwChanges.isNotEmpty()
+        val identityAtWrite = if (hasChanges) (executor.checkedState() as? ChannelState.Ready)?.identity else null
+        val after = if (!hasChanges || writeObserver?.canStart() == false) {
             before
         } else {
             Timber.i("${request.goal} ${components.size} components of $app: ${pmChanges.size} PM and ${ifwChanges.size} IFW changes")
             withContext(NonCancellable) {
-                change(app, pmChanges, ifwChanges, failures)
+                val onWrite = writeObserver?.let { it::onWrite }
+                changePm(app, pmChanges, identityAtWrite, failures, onWrite)
+                changeIfw(app.packageName, ifwChanges, identityAtWrite, failures, onWrite)
                 readState(app, components)
             }
         }
@@ -137,20 +147,20 @@ internal class PrivilegedComponentControl @Inject constructor(
      * Sends the changes. A failure is recorded only for a layer of a component whose change was
      * attempted and did not complete: a call or a store that throws fails only what it was sent.
      */
-    private suspend fun change(app: AppKey, pmChanges: List<Pair<ComponentId, PmSetting>>, ifwChanges: Map<ComponentDeclaration, Boolean>, failures: Failures) {
-        val identity = (channel.state.value as? ChannelState.Ready)?.identity
-        changePm(app, pmChanges, identity, failures)
-        changeIfw(app.packageName, ifwChanges, identity, failures)
-    }
-
-    private suspend fun changePm(app: AppKey, changes: List<Pair<ComponentId, PmSetting>>, identity: PrivilegedIdentity?, failures: Failures) {
+    private suspend fun changePm(
+        app: AppKey,
+        changes: List<Pair<ComponentId, PmSetting>>,
+        identity: PrivilegedIdentity?,
+        failures: Failures,
+        onWrite: ((Collection<ComponentId>) -> Unit)?,
+    ) {
         if (changes.isEmpty()) return
         if (identity == null) {
             Timber.w("Cannot change ${changes.size} PM settings of $app: no channel")
             changes.forEach { (id, _) -> failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, ControlFailure.ChannelUnavailable) }
             return
         }
-        changes.groupBy({ it.second }, { it.first }).forEach { (setting, ids) -> setPm(app, setting, ids, identity, failures) }
+        changes.groupBy({ it.second }, { it.first }).forEach { (setting, ids) -> setPm(app, setting, ids, identity, failures, onWrite) }
     }
 
     /**
@@ -160,10 +170,17 @@ internal class PrivilegedComponentControl @Inject constructor(
      * the system decides; when it refuses the shell for one call, the package is not such an app,
      * so the refusal stands for all of [ids] without asking again for each.
      */
-    private suspend fun setPm(app: AppKey, setting: PmSetting, ids: List<ComponentId>, identity: PrivilegedIdentity, failures: Failures) {
+    private suspend fun setPm(
+        app: AppKey,
+        setting: PmSetting,
+        ids: List<ComponentId>,
+        identity: PrivilegedIdentity,
+        failures: Failures,
+        onWrite: ((Collection<ComponentId>) -> Unit)?,
+    ) {
         fun refuseAll(failure: ControlFailure) = ids.forEach { failures.addIfAbsent(it, ControlLayer.PACKAGE_MANAGER, failure) }
         if (ids.size > 1 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val batch = sendPm(app, setting, ids)
+            val batch = sendPm(app, setting, ids, onWrite)
             when {
                 batch is CallResult.Success -> return
 
@@ -183,7 +200,7 @@ internal class PrivilegedComponentControl @Inject constructor(
             }
         }
         for (id in ids) {
-            val result = sendPm(app, setting, listOf(id))
+            val result = sendPm(app, setting, listOf(id), onWrite)
             if (result is CallResult.Failure) {
                 Timber.w("Cannot set $id of user ${app.userId.value} to $setting: ${result.reason}")
                 val failure = result.reason.toControlFailure()
@@ -199,10 +216,15 @@ internal class PrivilegedComponentControl @Inject constructor(
     // The channel was connected when the request started; a channel lost since then is not
     // connected again, so a request shows at most one prompt. A call that throws, which the
     // executor is not expected to do, fails the components it was sent for.
-    private suspend fun sendPm(app: AppKey, setting: PmSetting, ids: List<ComponentId>): CallResult<Unit> = try {
+    private suspend fun sendPm(
+        app: AppKey,
+        setting: PmSetting,
+        ids: List<ComponentId>,
+        onWrite: ((Collection<ComponentId>) -> Unit)?,
+    ): CallResult<Unit> = try {
         executor.executeIfReady(
             SetComponentEnabledSettings(ids.map { ComponentName(it.packageName, it.className) }, setting.toComponentState(), app.userId),
-        )
+        ).also { if (it is CallResult.Success) onWrite?.invoke(ids) }
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
@@ -210,7 +232,13 @@ internal class PrivilegedComponentControl @Inject constructor(
         CallResult.Failure(CallFailure.SystemError(e.toString()))
     }
 
-    private suspend fun changeIfw(packageName: String, changes: Map<ComponentDeclaration, Boolean>, identity: PrivilegedIdentity?, failures: Failures) {
+    private suspend fun changeIfw(
+        packageName: String,
+        changes: Map<ComponentDeclaration, Boolean>,
+        identity: PrivilegedIdentity?,
+        failures: Failures,
+        onWrite: ((Collection<ComponentId>) -> Unit)?,
+    ) {
         if (changes.isEmpty()) return
         val failure = when {
             identity == null -> ControlFailure.ChannelUnavailable
@@ -218,7 +246,7 @@ internal class PrivilegedComponentControl @Inject constructor(
             !identity.canWriteSystemFiles -> ControlFailure.NotPermitted("$identity may not write the Intent Firewall rules")
 
             else -> try {
-                when (val result = ifwStore.setBlocked(packageName, changes)) {
+                when (val result = ifwStore.setBlocked(packageName, changes, onWrite)) {
                     is IfwResult.Success -> return
                     is IfwResult.Failure -> result.reason.toControlFailure()
                 }
