@@ -181,6 +181,37 @@ class ComponentListViewModelTest {
     }
 
     @Test
+    fun givenRulesNotReadYet_whenTheCacheEmits_thenRowsAreShownAndOnlyTheMatchedRulesLoad() = runTest {
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, rulesRead = false)
+        fixture.sendComponents(component("firebase.Messaging", type = ComponentType.SERVICE), component("Main"))
+
+        show()
+
+        assertThat(fixture.loaded().services.map { it.id }).containsExactly(id("firebase.Messaging"))
+        assertThat(viewModel.uiState.value.matchedRules).isEqualTo(MatchedRulesUiState.Loading)
+        assertThat(viewModel.uiState.value.tabs.items).contains(AppDetailTabs.Sdk)
+
+        fixture.rules.sendRuleList(listOf(GeneralRule(id = 7, name = "Firebase", searchKeyword = listOf("firebase"))))
+
+        val rule = (viewModel.uiState.value.matchedRules as MatchedRulesUiState.Loaded).rules.single()
+        assertThat(rule.rows.map { it.id }).containsExactly(id("firebase.Messaging"))
+    }
+
+    @Test
+    fun givenDescriptionsNotReadYet_whenTheCacheEmits_thenRowsAreShownWithoutThem() = runTest {
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, descriptionsRead = false)
+        fixture.sendComponents(component("Main"))
+
+        show()
+
+        assertThat(row("Main").description).isNull()
+
+        fixture.sendDescriptions("Main" to "The first screen")
+
+        assertThat(row("Main").description).isEqualTo("The first screen")
+    }
+
+    @Test
     fun givenShownRows_whenSearchingOrRefreshing_thenNeitherSortedNorMatchedAgain() = runTest {
         fixture.rules.sendRuleList(listOf(GeneralRule(id = 7, name = "Firebase", searchKeyword = listOf("firebase"))))
         fixture.sendComponents(component("firebase.Messaging", type = ComponentType.SERVICE), component("Main"))

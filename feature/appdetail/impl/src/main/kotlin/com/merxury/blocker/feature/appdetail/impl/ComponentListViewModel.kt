@@ -35,6 +35,7 @@ import com.merxury.blocker.core.model.component.Availability
 import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -67,6 +68,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -114,7 +116,10 @@ class ComponentListViewModel @AssistedInject constructor(
     private var lastAccess: Access? = null
     private var refreshedOnce = false
 
-    private val statuses = componentStatuses.components(app)
+    // Shared, as the rows, the descriptions and keepFresh all follow it: one query of the cache.
+    private val statuses: Flow<List<ComponentStatus>> = componentStatuses.components(app)
+        .flowOn(ioDispatcher)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), replay = 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val descriptions: Flow<Map<String, String>> = statuses
@@ -124,10 +129,14 @@ class ComponentListViewModel @AssistedInject constructor(
         .onStart { emit(emptyMap()) }
         .flowOn(ioDispatcher)
 
-    // In the repository's order, by class name.
+    // In the repository's order, by class name, as soon as the cache has them: descriptions and
+    // running services fill in later. Shared, so every list below is made from one copy.
     private val rows: Flow<List<ComponentRow>> = combine(statuses, descriptions, running, componentStatuses.firewallReadable) { statuses, descriptions, running, readable ->
         statuses.map { it.toRow(descriptions[it.declaration.id.className], running, readable) }
-    }.distinctUntilChanged()
+    }
+        .distinctUntilChanged()
+        .flowOn(cpuDispatcher)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), replay = 1)
 
     // Only the preferences that order the rows, so another change of the settings sorts nothing.
     private val sortPreferences: Flow<UserPreferenceData> = userDataRepository.userData.distinctUntilChanged { old, new ->
@@ -145,10 +154,14 @@ class ComponentListViewModel @AssistedInject constructor(
         if (loading) ComponentsUiState.Loading else ComponentsUiState.Loaded(sorted.matching(keywords))
     }
 
-    // From the rows alone, so a search or a refresh matches nothing again.
+    // From the rows alone, so a search or a refresh matches nothing again. Loading until the rules
+    // are read and matched, which never holds the rows back.
     private val matchedRules: Flow<MatchedRulesUiState> = combine(rows, generalRules.getGeneralRules(), loading) { rows, rules, loading ->
         if (loading) MatchedRulesUiState.Loading else MatchedRulesUiState.Loaded(matchedRules(rules, rows) { filesDir.resolve(ruleBaseFolder).resolve(it) })
-    }.distinctUntilChanged()
+    }
+        .onStart { emit(MatchedRulesUiState.Loading) }
+        .distinctUntilChanged()
+        .flowOn(cpuDispatcher)
 
     private val lists: Flow<Lists> = combine(components, matchedRules, search, refresh, loading) { components, matched, search, refresh, loading ->
         Lists(

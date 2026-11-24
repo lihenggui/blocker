@@ -93,12 +93,21 @@ internal fun component(
     state = ControlState(pm, ifw),
 )
 
-/** The fakes behind the three view models of the detail screen, with root ready unless set otherwise. */
+/**
+ * The fakes behind the three view models of the detail screen, with root ready unless set otherwise.
+ *
+ * @param rulesRead whether the general rules have been read; when false their flow emits nothing
+ * until a test sends them
+ * @param descriptionsRead whether the component descriptions can be read; when false each lookup
+ * waits until a test sends them
+ */
 internal class AppDetailFixture(
     private val dispatcher: CoroutineDispatcher,
     val userId: Int? = null,
     tab: String = "receiver",
     searchKeyword: List<String> = emptyList(),
+    rulesRead: Boolean = true,
+    descriptionsRead: Boolean = true,
 ) {
     val selectedUsers = FakeSelectedUserRepository(OWNER)
     val deviceUsers = FakeDeviceUserRepository()
@@ -107,8 +116,8 @@ internal class AppDetailFixture(
     val appControl = FakeAppControl()
     val serviceControl = FakeServiceControl()
     val channel = FakePrivilegedChannel(ChannelState.Ready(PrivilegedIdentity.ROOT))
-    val details = TestComponentDetailRepository().apply { sendComponentDetail(emptyList()) }
-    val rules = TestGeneralRuleRepository().apply { sendRuleList(emptyList()) }
+    val details = TestComponentDetailRepository().apply { if (descriptionsRead) sendComponentDetail(emptyList()) }
+    val rules = TestGeneralRuleRepository().apply { if (rulesRead) sendRuleList(emptyList()) }
     val userData = TestUserDataRepository().apply { sendUserData(defaultUserData) }
     val analytics = TestAnalyticsHelper()
     val workManager = mock<WorkManager>()
