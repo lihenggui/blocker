@@ -27,6 +27,7 @@ import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -154,6 +155,39 @@ class ComponentIndexTest {
         runCurrent()
 
         assertThat(components.refreshedUsers).containsExactly(owner)
+    }
+
+    @Test
+    fun givenAccessLostDuringTheRun_whenIndexed_thenIncompleteAndIndexedAgainOnceAccessReturns() = runTest {
+        val index = index()
+        index.ensureIndexed(owner)
+        runCurrent()
+
+        channel.setState(ChannelState.Unavailable(UnavailableReason.FAILED))
+        finish(owner)
+        val state = index.state(owner).first() as IndexState.Indexed
+        index.ensureIndexed(owner)
+        runCurrent()
+        assertThat(components.refreshedUsers).containsExactly(owner)
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        index.ensureIndexed(owner)
+        runCurrent()
+
+        assertThat(state.identity).isNull()
+        assertThat(state.incomplete).isTrue()
+        assertThat(components.refreshedUsers).containsExactly(owner, owner)
+    }
+
+    @Test
+    fun givenIdentityChangedDuringTheRun_whenIndexed_thenIncomplete() = runTest {
+        val index = index()
+        index.ensureIndexed(owner)
+        runCurrent()
+
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        finish(owner)
+
+        assertThat((index.state(owner).first() as IndexState.Indexed).incomplete).isTrue()
     }
 
     @Test

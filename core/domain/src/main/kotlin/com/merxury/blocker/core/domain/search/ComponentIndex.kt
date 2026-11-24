@@ -91,8 +91,11 @@ class ComponentIndex @Inject constructor(
                     is RefreshProgress.Refreshing -> IndexState.Indexing(run, progress.done, progress.total)
 
                     is RefreshProgress.Finished -> {
-                        Timber.i("Indexed ${progress.total} apps of user ${user.value}, ${progress.failed} failed, as $identity")
-                        IndexState.Indexed(run, progress.total, progress.failed, progress.appListFailure, identity)
+                        // Access lost or changed during the run left the apps read since with less.
+                        val atEnd = (channel.state.value as? ChannelState.Ready)?.identity
+                        val throughout = identity.takeIf { it == atEnd }
+                        Timber.i("Indexed ${progress.total} apps of user ${user.value}, ${progress.failed} failed, as $identity until $atEnd")
+                        IndexState.Indexed(run, progress.total, progress.failed, progress.appListFailure, throughout)
                     }
                 }
                 states.update { it + (user to state) }
@@ -129,8 +132,9 @@ sealed interface IndexState {
      *
      * @property failed apps that could not be read in full; their unread parts show as unknown
      * @property appListFailure why the user's apps could not be listed; then nothing was read
-     * @property identity what the privileged channel ran as, or null when it was not ready, so
-     * the parts that need it show as unknown
+     * @property identity what the privileged channel ran as throughout the run, or null when it
+     * was not ready or did not run as the same identity from the start to the end, so the parts
+     * that need it may show as unknown
      */
     data class Indexed(
         val run: Long,
