@@ -46,6 +46,8 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.control.ComponentAction
+import com.merxury.blocker.core.ui.control.ComponentActionFailed
 import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.QueuedControlMessage
 import com.merxury.blocker.core.ui.control.batchSummary
@@ -120,6 +122,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val sortType = MutableStateFlow(RuleDetailSortType.NAME)
     private val singles = MutableStateFlow<Set<ComponentId>>(emptySet())
     private val messages = MutableStateFlow<List<QueuedControlMessage>>(emptyList())
+    private val actionFailure = MutableStateFlow<ComponentActionFailed?>(null)
     private var nextMessageId = 0L
 
     private val rule: Flow<GeneralRule> = ruleRepository.getGeneralRule(id).map { rule ->
@@ -164,7 +167,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private val controls = combine(inFlight, batch, messages, ::Controls)
+    private val controls = combine(inFlight, batch, messages, actionFailure, ::Controls)
 
     val uiState: StateFlow<RuleDetailUiState> = combine(ruleInfo, tabState, sortType, controls) { ruleInfo, tabs, sort, controls ->
         RuleDetailUiState(
@@ -175,6 +178,7 @@ class RuleDetailViewModel @AssistedInject constructor(
             inFlight = controls.inFlight,
             batch = controls.batch,
             messages = controls.messages,
+            actionFailure = controls.actionFailure,
         )
     }
         .flowOn(cpuDispatcher)
@@ -235,16 +239,28 @@ class RuleDetailViewModel @AssistedInject constructor(
         startBatch(apps.first().app.userId, apps.flatMap { app -> app.rows.map { it.id } }, enable)
     }
 
+    /** Starts [activity] for the selected user; a blocked one stays blocked, as its switch shows. */
     fun launchActivity(activity: ComponentId) = viewModelScope.launch {
         analyticsHelper.logLaunchActivityClicked()
         val result = appControl.startActivity(ComponentKey(activity, selectedUsers.selectedUser.value))
-        if (result is CallResult.Failure) Timber.w("Cannot launch $activity: ${result.reason}")
+        if (result is CallResult.Failure) {
+            Timber.w("Cannot launch $activity: ${result.reason}")
+            actionFailure.value = ComponentActionFailed.of(ComponentAction.LAUNCH_ACTIVITY, activity.simpleName, result.reason)
+        }
     }
 
+    /** Stops [service] for the selected user. */
     fun stopService(service: ComponentId) = viewModelScope.launch {
         analyticsHelper.logStopServiceClicked()
         val result = serviceControl.stop(ComponentKey(service, selectedUsers.selectedUser.value))
-        if (result is CallResult.Failure) Timber.w("Cannot stop $service: ${result.reason}")
+        if (result is CallResult.Failure) {
+            Timber.w("Cannot stop $service: ${result.reason}")
+            actionFailure.value = ComponentActionFailed.of(ComponentAction.STOP_SERVICE, service.simpleName, result.reason)
+        }
+    }
+
+    fun onActionFailureShown() {
+        actionFailure.value = null
     }
 
     /** Asks for root or Shizuku access, which may show a prompt. */
@@ -299,6 +315,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         val inFlight: Set<ComponentId>,
         val batch: ProcessingProgress?,
         val messages: List<QueuedControlMessage>,
+        val actionFailure: ComponentActionFailed?,
     )
 
     @AssistedFactory

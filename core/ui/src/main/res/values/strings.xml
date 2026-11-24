@@ -177,6 +177,8 @@
     <string name="core_ui_clear_cache_failed">Couldn\'t clear the cache of %1$s</string>
     <string name="core_ui_clear_data_failed">Couldn\'t clear the data of %1$s</string>
     <string name="core_ui_uninstall_app_failed">Couldn\'t uninstall %1$s</string>
+    <string name="core_ui_launch_failed">Couldn\'t launch %1$s</string>
+    <string name="core_ui_stop_failed">Couldn\'t stop %1$s</string>
     <string name="core_ui_reason_no_access">Grant Blocker root or Shizuku access, then try again.</string>
     <string name="core_ui_unknown">Unknown</string>
     <string name="core_ui_grant_access">Grant access</string>

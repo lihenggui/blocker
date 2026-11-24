@@ -67,8 +67,6 @@
     <string name="feature_appdetail_api_read_manifest_unreadable">No se pudo leer la lista de componentes de la aplicación.</string>
     <string name="feature_appdetail_api_read_no_answer">El servicio del sistema no respondió. Inténtalo de nuevo.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">No se puede leer el archivo de reglas de Intent Firewall de la aplicación. Puede estar dañado.</string>
-    <string name="feature_appdetail_api_launch_failed">No se pudo abrir %1$s</string>
-    <string name="feature_appdetail_api_stop_failed">No se pudo detener %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker no pudo comprobar su acceso root o Shizuku, así que no puede leer esta app. Concede acceso para volver a intentarlo.</string>
     <string name="feature_appdetail_api_profile_personal">Perfil personal</string>
     <string name="feature_appdetail_api_profile_work">Perfil de trabajo</string>

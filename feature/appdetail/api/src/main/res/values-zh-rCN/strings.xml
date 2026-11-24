@@ -65,8 +65,6 @@
     <string name="feature_appdetail_api_read_manifest_unreadable">无法读取该应用的组件列表。</string>
     <string name="feature_appdetail_api_read_no_answer">系统服务没有响应，请重试。</string>
     <string name="feature_appdetail_api_read_rules_unreadable">无法读取该应用的 Intent Firewall 规则文件，文件可能已损坏。</string>
-    <string name="feature_appdetail_api_launch_failed">无法启动 %1$s</string>
-    <string name="feature_appdetail_api_stop_failed">无法停止 %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker 无法检查自己的 root 或 Shizuku 权限，因此无法读取此应用。请授予权限后重试。</string>
     <string name="feature_appdetail_api_profile_personal">个人资料</string>
     <string name="feature_appdetail_api_profile_work">工作资料</string>

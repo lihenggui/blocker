@@ -163,6 +163,8 @@
     <string name="core_ui_clear_cache_failed">تعذّر مسح ذاكرة التخزين المؤقت لـ %1$s</string>
     <string name="core_ui_clear_data_failed">تعذّر مسح بيانات %1$s</string>
     <string name="core_ui_uninstall_app_failed">تعذّر إلغاء تثبيت %1$s</string>
+    <string name="core_ui_launch_failed">تعذّر تشغيل %1$s</string>
+    <string name="core_ui_stop_failed">تعذّر إيقاف %1$s</string>
     <string name="core_ui_reason_no_access">امنح Blocker صلاحية الروت أو Shizuku، ثم حاول مرة أخرى.</string>
     <string name="core_ui_unknown">غير معروف</string>
     <string name="core_ui_grant_access">منح الصلاحية</string>

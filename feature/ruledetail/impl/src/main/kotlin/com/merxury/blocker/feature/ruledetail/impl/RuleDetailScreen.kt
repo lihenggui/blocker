@@ -73,6 +73,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
+import com.merxury.blocker.core.ui.control.ComponentActionFailedSnackbar
 import com.merxury.blocker.core.ui.control.ControlMessageSnackbar
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.screen.ErrorScreen
@@ -147,6 +148,12 @@ fun RuleDetailScreen(
         messages = uiState.messages,
         snackbarHostState = snackbarHostState,
         onShow = viewModel::onMessageShown,
+        onGrantAccess = viewModel::grantAccess,
+    )
+    ComponentActionFailedSnackbar(
+        failure = uiState.actionFailure,
+        snackbarHostState = snackbarHostState,
+        onShow = viewModel::onActionFailureShown,
         onGrantAccess = viewModel::grantAccess,
     )
     RuleSeedColor(

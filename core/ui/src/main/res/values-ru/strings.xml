@@ -169,6 +169,8 @@
     <string name="core_ui_clear_cache_failed">Не удалось очистить кеш %1$s</string>
     <string name="core_ui_clear_data_failed">Не удалось очистить данные %1$s</string>
     <string name="core_ui_uninstall_app_failed">Не удалось удалить %1$s</string>
+    <string name="core_ui_launch_failed">Не удалось запустить %1$s</string>
+    <string name="core_ui_stop_failed">Не удалось остановить %1$s</string>
     <string name="core_ui_reason_no_access">Предоставьте Blocker доступ root или Shizuku и повторите попытку.</string>
     <string name="core_ui_unknown">Неизвестно</string>
     <string name="core_ui_grant_access">Предоставить доступ</string>

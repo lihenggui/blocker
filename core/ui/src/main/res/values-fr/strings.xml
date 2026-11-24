@@ -165,6 +165,8 @@
     <string name="core_ui_clear_cache_failed">Impossible de vider le cache de %1$s</string>
     <string name="core_ui_clear_data_failed">Impossible d\'effacer les données de %1$s</string>
     <string name="core_ui_uninstall_app_failed">Impossible de désinstaller %1$s</string>
+    <string name="core_ui_launch_failed">Impossible de lancer %1$s</string>
+    <string name="core_ui_stop_failed">Impossible d\'arrêter %1$s</string>
     <string name="core_ui_reason_no_access">Accordez à Blocker l\'accès root ou Shizuku, puis réessayez.</string>
     <string name="core_ui_unknown">Inconnu</string>
     <string name="core_ui_grant_access">Accorder l\'accès</string>

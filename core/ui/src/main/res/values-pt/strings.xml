@@ -151,6 +151,8 @@
     <string name="core_ui_clear_cache_failed">Não foi possível limpar o cache de %1$s</string>
     <string name="core_ui_clear_data_failed">Não foi possível limpar os dados de %1$s</string>
     <string name="core_ui_uninstall_app_failed">Não foi possível desinstalar %1$s</string>
+    <string name="core_ui_launch_failed">Não foi possível abrir %1$s</string>
+    <string name="core_ui_stop_failed">Não foi possível parar %1$s</string>
     <string name="core_ui_reason_no_access">Conceda ao Blocker acesso root ou Shizuku e tente novamente.</string>
     <string name="core_ui_unknown">Desconhecido</string>
     <string name="core_ui_grant_access">Conceder acesso</string>

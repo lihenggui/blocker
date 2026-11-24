@@ -21,8 +21,11 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.core.ui.control.ComponentAction
+import com.merxury.blocker.core.ui.control.ComponentActionFailed
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
@@ -205,5 +208,32 @@ class RuleDetailViewModelTest {
         runCurrent()
 
         assertThat(fixture.appControl.calls.single()).contains("UserId(value=10)")
+        assertThat(fixture.serviceControl.stopped.single().userId).isEqualTo(WORK)
+        assertThat(viewModel.uiState.value.actionFailure).isNull()
+    }
+
+    @Test
+    fun givenNoAccess_whenAnActivityCannotBeLaunched_thenTellsItWithTheAccessHint() = runTest {
+        fixture.appControl.failures["startActivity"] = CallFailure.ChannelUnavailable
+        show()
+
+        viewModel.launchActivity(id("com.a", "Pm"))
+        runCurrent()
+
+        assertThat(viewModel.uiState.value.actionFailure).isEqualTo(ComponentActionFailed(ComponentAction.LAUNCH_ACTIVITY, "Pm", needsAccess = true))
+        viewModel.onActionFailureShown()
+        runCurrent()
+        assertThat(viewModel.uiState.value.actionFailure).isNull()
+    }
+
+    @Test
+    fun givenNotPermitted_whenAServiceCannotBeStopped_thenTellsItWithoutTheAccessHint() = runTest {
+        fixture.serviceControl.stopFailure = CallFailure.NotPermitted("shell")
+        show()
+
+        viewModel.stopService(id("com.b", "Open"))
+        runCurrent()
+
+        assertThat(viewModel.uiState.value.actionFailure).isEqualTo(ComponentActionFailed(ComponentAction.STOP_SERVICE, "Open", needsAccess = false))
     }
 }
