@@ -42,9 +42,6 @@ data class AppListUiState(
 ) {
     val showProfileSwitcher: Boolean get() = profiles.size > 1
 
-    /** The app detail screen can show only apps of the user Blocker runs in so far. */
-    val canOpenDetail: Boolean get() = selectedUser == ownUser
-
     val selectedProfile: ProfileTab? get() = profiles.find { it.user == selectedUser }
 }
 
@@ -62,6 +59,8 @@ sealed interface AppsUiState {
 /**
  * One app in the list.
  *
+ * @property isDisabled whether the app is disabled for its user, by its own manifest or by a
+ * setting
  * @property isRunning whether a process of the app runs in its user; null when that cannot be read
  * @property services the app's service counts; null while they are not read or cannot be
  */

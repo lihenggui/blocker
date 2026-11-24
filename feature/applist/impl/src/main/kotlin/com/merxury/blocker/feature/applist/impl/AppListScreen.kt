@@ -67,7 +67,10 @@ import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.applist.api.R.string
 import com.merxury.blocker.feature.applist.impl.component.AppActionConfirmDialog
 import com.merxury.blocker.feature.applist.impl.component.AppActionsSheet
+import com.merxury.blocker.feature.applist.impl.component.AppKeySaver
 import com.merxury.blocker.feature.applist.impl.component.AppSortBottomSheetRoute
+import com.merxury.blocker.feature.applist.impl.component.PendingConfirmation
+import com.merxury.blocker.feature.applist.impl.component.PendingConfirmationSaver
 import com.merxury.blocker.feature.applist.impl.component.ProfileSwitcher
 import com.merxury.blocker.feature.applist.impl.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.applist.impl.component.UserAppList
@@ -138,13 +141,19 @@ fun AppListScreen(
     navigateToSupportAndFeedback: () -> Unit = {},
 ) {
     var showSortSheet by rememberSaveable { mutableStateOf(false) }
-    // Package names of the selected user's apps, which keep across a configuration change.
-    var actionsFor by rememberSaveable { mutableStateOf<String?>(null) }
-    var confirming by rememberSaveable { mutableStateOf<Pair<AppAction, String>?>(null) }
-    val apps = (uiState.apps as? AppsUiState.Loaded)?.apps.orEmpty()
+    // Each keeps the exact app, user included, across a configuration change or process death.
+    var actionsFor by rememberSaveable(stateSaver = AppKeySaver) { mutableStateOf<AppKey?>(null) }
+    var confirming by rememberSaveable(stateSaver = PendingConfirmationSaver) { mutableStateOf<PendingConfirmation?>(null) }
+    // An overlay opened for another user than the one shown, such as after the selection fell
+    // back to Blocker's own user, is closed rather than moved to the same package there.
+    LaunchedEffect(uiState.selectedUser) {
+        if (actionsFor?.userId != uiState.selectedUser) actionsFor = null
+        if (confirming?.app?.userId != uiState.selectedUser) confirming = null
+    }
+    val shownApps = (uiState.apps as? AppsUiState.Loaded)?.apps.orEmpty().filter { it.key.userId == uiState.selectedUser }
     val requestAction: (AppRow, AppAction) -> Unit = { app, action ->
         if (action.needsConfirmation) {
-            confirming = action to app.key.packageName
+            confirming = PendingConfirmation(action, app.key)
         } else {
             onAction(app.key, action)
         }
@@ -172,7 +181,7 @@ fun AppListScreen(
             uiState = uiState,
             onRefresh = onRefresh,
             onAppClick = { app ->
-                if (uiState.canOpenDetail) navigateToAppDetail(app.key.packageName) else actionsFor = app.key.packageName
+                if (app.key.userId == uiState.ownUser) navigateToAppDetail(app.key.packageName) else actionsFor = app.key
             },
             onAction = requestAction,
             countServices = countServices,
@@ -181,20 +190,20 @@ fun AppListScreen(
     if (showSortSheet) {
         AppSortBottomSheetRoute(dismissHandler = { showSortSheet = false })
     }
-    apps.find { it.key.packageName == actionsFor }?.let { app ->
+    shownApps.find { it.key == actionsFor }?.let { app ->
         AppActionsSheet(
             app = app,
             onAction = { action -> requestAction(app, action) },
             onDismissRequest = { actionsFor = null },
         )
     }
-    confirming?.let { (action, packageName) ->
-        val app = apps.find { it.key.packageName == packageName } ?: return@let
+    confirming?.let { pending ->
+        val app = shownApps.find { it.key == pending.app } ?: return@let
         AppActionConfirmDialog(
-            action = action,
+            action = pending.action,
             appLabel = app.label,
             profile = uiState.selectedProfile.takeIf { uiState.showProfileSwitcher },
-            onConfirm = { onAction(app.key, action) },
+            onConfirm = { onAction(pending.app, pending.action) },
             onDismissRequest = { confirming = null },
         )
     }
