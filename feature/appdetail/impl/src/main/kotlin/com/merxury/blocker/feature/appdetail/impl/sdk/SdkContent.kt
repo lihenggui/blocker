@@ -36,14 +36,14 @@ import androidx.compose.ui.platform.testTag
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.ui.collapseList.CollapsibleHeader
 import com.merxury.blocker.core.ui.component.NoComponentScreen
+import com.merxury.blocker.core.ui.control.ModeBanner
+import com.merxury.blocker.core.ui.control.ModeBanners
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.appdetail.impl.MatchedRule
 import com.merxury.blocker.feature.appdetail.impl.MatchedRulesUiState
-import com.merxury.blocker.feature.appdetail.impl.ModeBanner
 import com.merxury.blocker.feature.appdetail.impl.SwitchState
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowItem
-import com.merxury.blocker.feature.appdetail.impl.ui.ModeBanners
 import com.merxury.blocker.core.ui.R.string as uiString
 
 /**

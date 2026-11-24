@@ -47,6 +47,8 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.control.LayerFailure
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.TopBarActions
@@ -161,8 +163,8 @@ class AppDetailScreenStateTest {
                 onShareConsume = {},
             )
         }
-        val failureText = text(string.feature_appdetail_api_block_failed, "AdActivity") + "\n" +
-            text(string.feature_appdetail_api_layer_reason, "Package Manager", text(string.feature_appdetail_api_reason_no_access))
+        val failureText = text(uiString.core_ui_block_component_failed, "AdActivity") + "\n" +
+            text(uiString.core_ui_layer_reason, "Package Manager", text(uiString.core_ui_reason_no_access))
 
         assertThat(shownMessage()).isEqualTo(failureText)
         dismiss()
@@ -173,7 +175,7 @@ class AppDetailScreenStateTest {
 
         val summary = ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 0, notChanged = 0, mostCommon = null)
         composeTestRule.runOnIdle { control = control.copy(messages = listOf(QueuedControlMessage(2, summary))) }
-        assertThat(shownMessage()).isEqualTo(text(string.feature_appdetail_api_batch_nothing_needed))
+        assertThat(shownMessage()).isEqualTo(text(uiString.core_ui_batch_nothing_needed))
     }
 
     @Test
@@ -249,7 +251,7 @@ class AppDetailScreenStateTest {
             }
         }
 
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).performClick()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).performClick()
 
         assertThat(granted).isEqualTo(1)
     }
@@ -259,7 +261,7 @@ class AppDetailScreenStateTest {
         showContent(header = AppHeaderUiState(), list = componentTab().copy(accessCheckFailed = true))
 
         composeTestRule.onNodeWithText(text(string.feature_appdetail_api_access_not_checked)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).assertIsDisplayed()
     }
 
     @Test
@@ -276,7 +278,7 @@ class AppDetailScreenStateTest {
     fun givenAppNotInstalled_whenShown_thenNoAccessIsOffered() {
         showContent(header = AppHeaderUiState(), list = componentTab().copy(refreshFailure = ReadFailure.PackageNotFound(WORK_APP)))
 
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).assertDoesNotExist()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).assertDoesNotExist()
     }
 
     @Test

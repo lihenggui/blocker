@@ -25,22 +25,11 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.SearchTabStatePreviewParameterProvider
 import com.merxury.blocker.feature.search.api.R
-import com.merxury.blocker.feature.search.impl.LocalSearchUiState.Error
-import com.merxury.blocker.feature.search.impl.LocalSearchUiState.Idle
-import com.merxury.blocker.feature.search.impl.LocalSearchUiState.Initializing
-import com.merxury.blocker.feature.search.impl.LocalSearchUiState.Success
+import com.merxury.blocker.feature.search.impl.component.SearchTopBar
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -52,6 +41,7 @@ import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.LooperMode
 import java.util.TimeZone
 
+/** The search on a phone, a foldable and a tablet, and in the dark on a phone. */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class)
@@ -59,12 +49,6 @@ import java.util.TimeZone
 class SearchScreenScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-
-    private val tabState = SearchTabStatePreviewParameterProvider().values.first()
-    private val appList = AppListPreviewParameterProvider().values.first()
-    private val components = ComponentListPreviewParameterProvider().values.first()
-    private val ruleList = RuleListPreviewParameterProvider().values.first()
-    private val keyword = "blocker"
 
     @Before
     fun setTimeZone() {
@@ -74,13 +58,18 @@ class SearchScreenScreenshotTests {
 
     @Test
     @Config(qualifiers = "en-rUS-w412dp-h880dp")
-    fun givenSelectedSearchResults_whenPredictiveBackCancelsThenCommits_thenOnlyCommitExitsSelection() {
-        val selected = mutableStateOf(true)
+    fun givenSelectionMode_whenPredictiveBackCancelsThenCommits_thenOnlyCommitExitsSelection() {
+        val state = mutableStateOf(SearchStates.selecting())
         composeTestRule.setContent {
             BlockerTheme {
-                TopBar(
-                    searchUiState = SearchUiState(isSelectedMode = selected.value),
-                    onNavigationClick = { selected.value = false },
+                SearchTopBar(
+                    uiState = state.value,
+                    query = "",
+                    onQueryChange = {},
+                    onExitSelection = { state.value = state.value.copy(isSelectionMode = false) },
+                    onSelectAll = {},
+                    onBlockSelection = {},
+                    onEnableSelection = {},
                 )
             }
         }
@@ -98,360 +87,68 @@ class SearchScreenScreenshotTests {
 
         swipeBack()
         search.assertExists()
-        composeTestRule.runOnIdle { check(selected.value) }
+        composeTestRule.runOnIdle { check(state.value.isSelectionMode) }
         composeTestRule.runOnUiThread { dispatcher.dispatchOnBackCancelled() }
         search.assertDoesNotExist()
-        composeTestRule.runOnIdle { check(selected.value) }
+        composeTestRule.runOnIdle { check(state.value.isSelectionMode) }
 
         swipeBack()
         composeTestRule.runOnUiThread { dispatcher.onBackPressed() }
         search.assertIsDisplayed()
-        composeTestRule.runOnIdle { check(!selected.value) }
+        composeTestRule.runOnIdle { check(!state.value.isSelectionMode) }
     }
 
     @Test
-    fun searchScreenSelectedApp() {
-        composeTestRule.captureMultiDevice("SearchScreenSelectedApp") {
-            SearchScreenSelectedApp()
-        }
-    }
+    fun searchScreenEmpty() = capture("SearchScreenEmpty", SearchStates.idle())
 
     @Test
-    fun searchScreenSelectedApp_dark() {
+    fun searchScreenLoading() = capture("SearchScreenLoading", SearchStates.loading())
+
+    @Test
+    fun searchScreenNoResult() = capture("SearchScreenNoResult", SearchStates.noResult())
+
+    @Test
+    fun searchScreenSelectedApp() = capture("SearchScreenSelectedApp", SearchStates.shown(SearchTab.APPS))
+
+    @Test
+    fun searchScreenSelectedComponent() = capture("SearchScreenSelectedComponent", SearchStates.shown(SearchTab.COMPONENTS))
+
+    @Test
+    fun searchScreenSelectedRule() = capture("SearchScreenSelectedRule", SearchStates.shown(SearchTab.RULES))
+
+    @Test
+    fun searchScreenSelectedMode() = capture("SearchScreenSelectedMode", SearchStates.selecting())
+
+    @Test
+    fun searchScreenBatchRunning() = capture("SearchScreenBatchRunning", SearchStates.batchRunning())
+
+    @Test
+    fun searchScreenIndexing() = capture("SearchScreenIndexing", SearchStates.indexing())
+
+    @Test
+    fun searchScreenBanners() = capture("SearchScreenBanners", SearchStates.banners())
+
+    @Test
+    fun searchScreenNoAccess() = capture("SearchScreenNoAccess", SearchStates.noAccess())
+
+    @Test
+    fun searchScreenProfiles() = capture("SearchScreenProfiles", SearchStates.workProfile())
+
+    private fun capture(name: String, state: SearchUiState) {
+        composeTestRule.captureMultiDevice(name) { Screen(state) }
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenSelectedApp",
+            screenshotName = name,
             darkMode = true,
-        ) {
-            SearchScreenSelectedApp()
-        }
-    }
-
-    @Test
-    fun searchScreenSelectedComponent() {
-        composeTestRule.captureMultiDevice("SearchScreenSelectedComponent") {
-            SearchScreenSelectedComponent()
-        }
-    }
-
-    @Test
-    fun searchScreenSelectedComponent_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenSelectedComponent",
-            darkMode = true,
-        ) {
-            SearchScreenSelectedComponent()
-        }
-    }
-
-    @Test
-    fun searchScreenSelectedRule() {
-        composeTestRule.captureMultiDevice("SearchScreenSelectedRule") {
-            SearchScreenSelectedRule()
-        }
-    }
-
-    @Test
-    fun searchScreenSelectedRule_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenSelectedRule",
-            darkMode = true,
-        ) {
-            SearchScreenSelectedRule()
-        }
-    }
-
-    @Test
-    fun searchScreenSelectedMode() {
-        composeTestRule.captureMultiDevice("SearchScreenSelectedMode") {
-            SearchScreenSelectedMode()
-        }
-    }
-
-    @Test
-    fun searchScreenSelectedMode_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenSelectedMode",
-            darkMode = true,
-        ) {
-            SearchScreenSelectedMode()
-        }
-    }
-
-    @Test
-    fun searchScreenEmpty() {
-        composeTestRule.captureMultiDevice("SearchScreenEmpty") {
-            SearchScreenEmpty()
-        }
-    }
-
-    @Test
-    fun searchScreenEmpty_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenEmpty",
-            darkMode = true,
-        ) {
-            SearchScreenEmpty()
-        }
-    }
-
-    @Test
-    fun searchScreenLoading() {
-        composeTestRule.captureMultiDevice("SearchScreenLoading") {
-            SearchScreenLoading()
-        }
-    }
-
-    @Test
-    fun searchScreenLoading_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenLoading",
-            darkMode = true,
-        ) {
-            SearchScreenLoading()
-        }
-    }
-
-    @Test
-    fun searchScreenNoResult() {
-        composeTestRule.captureMultiDevice("SearchScreenNoResult") {
-            SearchScreenNoResult()
-        }
-    }
-
-    @Test
-    fun searchScreenNoResult_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenNoResult",
-            darkMode = true,
-        ) {
-            SearchScreenNoResult()
-        }
-    }
-
-    @Test
-    fun searchScreenInitial() {
-        composeTestRule.captureMultiDevice("SearchScreenInitial") {
-            SearchScreenInitial()
-        }
-    }
-
-    @Test
-    fun searchScreenInitial_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenInitial",
-            darkMode = true,
-        ) {
-            SearchScreenInitial()
-        }
-    }
-
-    @Test
-    fun searchScreenError() {
-        composeTestRule.captureMultiDevice("SearchScreenError") {
-            SearchScreenError()
-        }
-    }
-
-    @Test
-    fun searchScreenError_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SearchScreenError",
-            darkMode = true,
-        ) {
-            SearchScreenError()
-        }
+        ) { Screen(state) }
     }
 
     @Composable
-    private fun SearchScreenSelectedApp() {
+    private fun Screen(state: SearchUiState) {
         BlockerTheme {
             Surface {
-                SearchScreen(
-                    localSearchUiState = Success(
-                        searchKeyword = listOf(keyword),
-                        appTabUiState = AppTabUiState(
-                            list = appList,
-                        ),
-                    ),
-                    tabState = tabState[0],
-                    searchUiState = SearchUiState(
-                        keyword = keyword,
-                    ),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchScreenSelectedComponent() {
-        BlockerTheme {
-            Surface {
-                SearchScreen(
-                    localSearchUiState = Success(
-                        searchKeyword = listOf(keyword),
-                        componentTabUiState = ComponentTabUiState(
-                            list = listOf(
-                                FilteredComponent(
-                                    app = appList[0],
-                                    activity = components.filter { it.type == ACTIVITY },
-                                    receiver = components.filter { it.type == RECEIVER },
-                                ),
-                            ),
-                        ),
-                    ),
-                    tabState = tabState[1],
-                    searchUiState = SearchUiState(
-                        keyword = keyword,
-                    ),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchScreenSelectedRule() {
-        BlockerTheme {
-            Surface {
-                SearchScreen(
-                    localSearchUiState = Success(
-                        searchKeyword = listOf(keyword),
-                        ruleTabUiState = RuleTabUiState(
-                            matchedRules = ruleList,
-                        ),
-                    ),
-                    tabState = tabState[2],
-                    searchUiState = SearchUiState(
-                        keyword = keyword,
-                    ),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchScreenSelectedMode() {
-        BlockerTheme {
-            Surface {
-                SearchScreen(
-                    localSearchUiState = Success(
-                        searchKeyword = listOf(keyword),
-                        componentTabUiState = ComponentTabUiState(
-                            list = listOf(
-                                FilteredComponent(
-                                    app = appList[0],
-                                    activity = components.filter { it.type == ACTIVITY },
-                                    receiver = components.filter { it.type == RECEIVER },
-                                ),
-                            ),
-                        ),
-                    ),
-                    tabState = tabState[1],
-                    searchUiState = SearchUiState(
-                        keyword = keyword,
-                        isSelectedMode = true,
-                        selectedComponentList = listOf(
-                            components[0],
-                            components[1],
-                        ),
-                        selectedAppList = listOf(
-                            FilteredComponent(
-                                app = appList[0],
-                                activity = components.filter { it.type == ACTIVITY },
-                                receiver = components.filter { it.type == RECEIVER },
-                            ),
-                        ),
-                    ),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchScreenEmpty() {
-        BlockerTheme {
-            Surface {
-                SearchScreen(
-                    localSearchUiState = Idle,
-                    tabState = tabState[0],
-                    searchUiState = SearchUiState(),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchScreenLoading() {
-        BlockerTheme {
-            Surface {
-                SearchScreen(
-                    localSearchUiState = Idle,
-                    tabState = tabState[0],
-                    searchUiState = SearchUiState(),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchScreenNoResult() {
-        BlockerTheme {
-            Surface {
-                SearchScreen(
-                    localSearchUiState = Success(
-                        searchKeyword = listOf(keyword),
-                        appTabUiState = AppTabUiState(
-                            list = emptyList(),
-                        ),
-                    ),
-                    tabState = tabState[3],
-                    searchUiState = SearchUiState(
-                        keyword = keyword,
-                    ),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchScreenInitial() {
-        BlockerTheme {
-            Surface {
-                SearchScreen(
-                    localSearchUiState = Initializing("Blocker"),
-                    tabState = tabState[0],
-                    searchUiState = SearchUiState(),
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SearchScreenError() {
-        BlockerTheme {
-            Surface {
-                SearchScreen(
-                    localSearchUiState = Error(uiMessage = UiMessage("Error")),
-                    tabState = tabState[0],
-                    searchUiState = SearchUiState(),
-                )
+                SearchScreen(uiState = state)
             }
         }
     }

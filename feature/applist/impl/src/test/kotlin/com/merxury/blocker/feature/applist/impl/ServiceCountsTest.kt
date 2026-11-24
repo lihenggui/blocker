@@ -21,6 +21,7 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.ServiceCounts
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
@@ -28,7 +29,6 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.core.ui.applist.ServiceCounts
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope

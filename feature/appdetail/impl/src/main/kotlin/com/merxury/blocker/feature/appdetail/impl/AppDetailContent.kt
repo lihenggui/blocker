@@ -74,6 +74,7 @@ import com.merxury.blocker.feature.appdetail.impl.ui.text
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
+import com.merxury.blocker.core.ui.R.string as uiString
 
 /** What the app info tab and the matched rules can ask for, apart from the rows. */
 class AppDetailActions(
@@ -184,7 +185,7 @@ private fun AppNotShown(list: ComponentListUiState, onGrantAccess: () -> Unit, m
         ErrorScreen(error = UiMessage(text), modifier = Modifier.weight(1f))
         if (accessWouldHelp) {
             BlockerButton(onClick = onGrantAccess, modifier = Modifier.padding(bottom = 32.dp)) {
-                Text(text = stringResource(string.feature_appdetail_api_grant_access))
+                Text(text = stringResource(uiString.core_ui_grant_access))
             }
         }
     }

@@ -34,7 +34,6 @@
     <string name="feature_appdetail_api_belonging_sdk">Thuộc về SDK</string>
     <string name="feature_appdetail_api_save">Lưu</string>
 <string name="feature_appdetail_api_search_components">Tìm kiếm thành phần</string>
-    <string name="feature_appdetail_api_unknown">Không rõ</string>
     <string name="feature_appdetail_api_select_mutiple">Chọn nhiều</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="other">%1$d đã chọn</item>
@@ -60,10 +59,6 @@
     <string name="feature_appdetail_api_disabled_first">Vô hiệu trước</string>
     <string name="feature_appdetail_api_enabled_first">Kích hoạt trước</string>
     <string name="feature_appdetail_api_none">Không</string>
-    <string name="feature_appdetail_api_blocked_by_package_manager">Package Manager</string>
-    <string name="feature_appdetail_api_blocked_by_intent_firewall">Intent Firewall</string>
-    <string name="feature_appdetail_api_disabled_by_app">Bị ứng dụng tắt sẵn</string>
-    <string name="feature_appdetail_api_conditional_rule">Quy tắc có điều kiện</string>
     <string name="feature_appdetail_api_unknown_state_title">Vì sao không rõ trạng thái</string>
     <string name="feature_appdetail_api_unknown_pm">Blocker không đọc được cài đặt Package Manager của thành phần này cho người dùng này. Hãy cấp quyền root hoặc Shizuku, rồi kéo xuống để làm mới.</string>
     <string name="feature_appdetail_api_unknown_no_firewall_access">Không thể đọc quy tắc Intent Firewall ở chế độ hiện tại. Hãy cấp quyền root hoặc khởi động Shizuku bằng root, rồi kéo xuống để làm mới.</string>
@@ -71,29 +66,6 @@
     <string name="feature_appdetail_api_block">Chặn</string>
     <string name="feature_appdetail_api_enable">Bật</string>
     <string name="feature_appdetail_api_changing">Đang thay đổi…</string>
-    <string name="feature_appdetail_api_banner_no_access">Blocker không có quyền root hoặc Shizuku, nên không thể thay đổi thành phần và không đọc được mọi trạng thái.</string>
-    <string name="feature_appdetail_api_grant_access">Cấp quyền</string>
-    <string name="feature_appdetail_api_banner_needs_root">Shizuku đang chạy qua adb. Thay đổi thành phần cần root; Android chỉ cho phép với ứng dụng chỉ dành để thử nghiệm.</string>
-    <string name="feature_appdetail_api_banner_firewall_unavailable">Không thể đọc hoặc thay đổi quy tắc Intent Firewall ở chế độ hiện tại.</string>
-    <string name="feature_appdetail_api_block_failed">Không thể chặn %1$s</string>
-    <string name="feature_appdetail_api_enable_failed">Không thể bật %1$s</string>
-    <string name="feature_appdetail_api_block_partial">%1$s chỉ bị chặn một phần</string>
-    <string name="feature_appdetail_api_enable_partial">%1$s chỉ được bật một phần</string>
-    <string name="feature_appdetail_api_layer_reason">%1$s: %2$s</string>
-    <string name="feature_appdetail_api_batch_summary">%1$s, %2$s</string>
-    <string name="feature_appdetail_api_batch_most_common">Thường gặp nhất: %1$s</string>
-    <string name="feature_appdetail_api_batch_nothing_needed">Không có gì cần thay đổi</string>
-    <string name="feature_appdetail_api_reason_no_access">Hãy cấp cho Blocker quyền root hoặc Shizuku rồi thử lại.</string>
-    <string name="feature_appdetail_api_reason_needs_root">Chế độ hiện tại không thể thay đổi thành phần. Cần có root.</string>
-    <string name="feature_appdetail_api_reason_not_found">Không tìm thấy ứng dụng hoặc thành phần cho người dùng này.</string>
-    <string name="feature_appdetail_api_reason_rules_unreadable">Không đọc được tệp quy tắc Intent Firewall của ứng dụng.</string>
-    <string name="feature_appdetail_api_reason_write_failed">Không thể ghi quy tắc Intent Firewall: %1$s</string>
-    <string name="feature_appdetail_api_reason_write_failed_unknown">Không thể ghi quy tắc Intent Firewall.</string>
-    <string name="feature_appdetail_api_reason_not_confirmed">Đã gửi thay đổi, nhưng hệ thống không ghi nhận.</string>
-    <string name="feature_appdetail_api_reason_system_error">Hệ thống báo lỗi: %1$s</string>
-    <string name="feature_appdetail_api_reason_system_error_unknown">Hệ thống báo lỗi.</string>
-    <string name="feature_appdetail_api_reason_not_allowed">Hệ thống không cho phép việc này với chế độ truy cập hiện tại.</string>
-    <string name="feature_appdetail_api_reason_not_allowed_detail">Hệ thống không cho phép việc này: %1$s</string>
     <string name="feature_appdetail_api_refresh_failed">Không thể làm mới thành phần. Đang hiển thị trạng thái đã lưu gần nhất.</string>
     <string name="feature_appdetail_api_not_installed">Ứng dụng này chưa được cài cho người dùng này.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Hiện không đọc được ứng dụng của người dùng này. Hãy cấp quyền root hoặc Shizuku.</string>
@@ -104,18 +76,8 @@
     <string name="feature_appdetail_api_launch_blocked">%1$s bị một quy tắc Intent Firewall chặn nên không mở được.</string>
     <string name="feature_appdetail_api_launch_conditional">Một quy tắc Intent Firewall có điều kiện có thể đã ngăn %1$s mở ra.</string>
     <string name="feature_appdetail_api_stop_failed">Không thể dừng %1$s</string>
-    <string name="feature_appdetail_api_grant_failed">Blocker vẫn chưa có quyền root hoặc Shizuku.</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker không kiểm tra được quyền root hoặc Shizuku nên không thể đọc ứng dụng này. Hãy cấp quyền để thử lại.</string>
     <string name="feature_appdetail_api_profile_personal">Hồ sơ cá nhân</string>
     <string name="feature_appdetail_api_profile_work">Hồ sơ công việc</string>
     <string name="feature_appdetail_api_profile_user">Người dùng %1$d</string>
-    <plurals name="feature_appdetail_api_batch_changed">
-        <item quantity="other">Đã thay đổi %1$d thành phần</item>
-    </plurals>
-    <plurals name="feature_appdetail_api_batch_not_changed">
-        <item quantity="other">%1$d không thể thay đổi</item>
-    </plurals>
-    <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
-        <item quantity="other">%1$d thành phần vẫn tắt vì ứng dụng tắt sẵn chúng; bật một thành phần bằng công tắc của nó để buộc bật</item>
-    </plurals>
 </resources>

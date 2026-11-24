@@ -45,6 +45,8 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.control.ModeBanner
+import com.merxury.blocker.core.ui.control.bannersOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

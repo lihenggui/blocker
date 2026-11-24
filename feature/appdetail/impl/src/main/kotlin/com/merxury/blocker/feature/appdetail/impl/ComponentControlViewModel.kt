@@ -22,6 +22,11 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.domain.control.BatchKey
+import com.merxury.blocker.core.domain.control.BatchRun
+import com.merxury.blocker.core.domain.control.BatchStep
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
@@ -33,7 +38,9 @@ import com.merxury.blocker.core.model.control.blockLayers
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.privileged.PrivilegedChannel
-import com.merxury.blocker.feature.appdetail.impl.ComponentBatchRunner.Companion.BATCH_LIMIT
+import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.control.batchSummary
+import com.merxury.blocker.core.ui.control.toMessage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -78,12 +85,13 @@ class ComponentControlViewModel @AssistedInject constructor(
     @Assisted userId: Int?,
 ) : ViewModel() {
     private val app = selectedUsers.appKeyOf(packageName, userId)
+    private val batchKey = BatchKey.App(app)
     private val singles = MutableStateFlow<Set<ComponentId>>(emptySet())
     private val messages = MutableStateFlow<List<QueuedControlMessage>>(emptyList())
     private var nextMessageId = 0L
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val batch: Flow<Pair<BatchRun, BatchStep>?> = batches.running(app).flatMapLatest { run ->
+    private val batch: Flow<Pair<BatchRun, BatchStep>?> = batches.running(batchKey).flatMapLatest { run ->
         run?.step?.map { run to it } ?: flowOf(null)
     }
 
@@ -147,7 +155,7 @@ class ComponentControlViewModel @AssistedInject constructor(
     private fun startBatch(components: List<ComponentId>, goal: ControlGoal, fromMatchedRule: Boolean) {
         val ids = components.distinct().filterNot(::isInFlight)
         if (ids.isEmpty()) return
-        val run = batches.reserve(app, goal, ids) ?: return
+        val run = batches.reserve(batchKey, goal, ids) ?: return
         val enable = goal != ControlGoal.BLOCK
         if (fromMatchedRule) analyticsHelper.logControlAllComponentsInSdkClicked(enable) else analyticsHelper.logBatchOperationPerformed(enable)
         viewModelScope.launch {
@@ -165,7 +173,7 @@ class ComponentControlViewModel @AssistedInject constructor(
         }
     }
 
-    private fun isInFlight(component: ComponentId): Boolean = component in singles.value || batches.current(app)?.step?.value?.pending?.contains(component) == true
+    private fun isInFlight(component: ComponentId): Boolean = component in singles.value || batches.current(batchKey)?.step?.value?.pending?.contains(component) == true
 
     private suspend fun layersFor(goal: ControlGoal): Set<ControlLayer> = if (goal == ControlGoal.BLOCK) {
         userDataRepository.userData.first().controllerType.blockLayers

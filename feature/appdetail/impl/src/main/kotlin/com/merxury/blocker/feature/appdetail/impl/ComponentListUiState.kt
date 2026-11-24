@@ -22,6 +22,7 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.control.ModeBanner
 import java.io.File
 
 /**
@@ -139,18 +140,6 @@ data class MatchedRule(
     val icon: File?,
     val rows: List<ComponentRow>,
 )
-
-/** A limit of the current mode that applies to every component, shown once. */
-enum class ModeBanner {
-    /** Blocker has no root or Shizuku access; it can be granted from the banner. */
-    NO_ACCESS,
-
-    /** Shizuku runs as the shell, which may change components of test-only apps only. */
-    NEEDS_ROOT,
-
-    /** The controller type uses the Intent Firewall, which the current mode cannot read or change. */
-    FIREWALL_UNAVAILABLE,
-}
 
 sealed interface ListMessage {
     /** A refresh failed; the rows shown are the ones cached before. */

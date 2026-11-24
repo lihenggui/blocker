@@ -44,8 +44,9 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.core.ui.component.NoComponentScreen
+import com.merxury.blocker.core.ui.control.ModeBanner
+import com.merxury.blocker.core.ui.control.ModeBanners
 import com.merxury.blocker.feature.appdetail.impl.ComponentRow
-import com.merxury.blocker.feature.appdetail.impl.ModeBanner
 
 /**
  * The rows of one component tab below the limits of the current mode. Pulling down refreshes the

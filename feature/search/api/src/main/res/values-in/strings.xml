@@ -19,5 +19,8 @@
         <item quantity="other">%1$d Layanan</item>
     </plurals>
     <string name="feature_search_api_searching">Pencarian</string>
-    <string name="feature_search_api_select_an_app_or_a_rule">Pilih apl atau aturan</string>
+    <string name="feature_search_api_indexing">Mengindeks apl…</string>
+    <string name="feature_search_api_indexing_progress">Mengindeks apl %1$d/%2$d</string>
+    <string name="feature_search_api_index_incomplete">Beberapa status komponen tidak dapat dibaca dan ditampilkan sebagai tidak diketahui.</string>
+    <string name="feature_search_api_index_failed">Tidak dapat mencantumkan apl pengguna ini, jadi hanya komponen yang dibaca sebelumnya yang dapat ditemukan.</string>
 </resources>

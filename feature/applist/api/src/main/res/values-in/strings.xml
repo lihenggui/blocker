@@ -17,25 +17,7 @@
     <string name="feature_applist_api_descending">Turun</string>
     <string name="feature_applist_api_name">Nama</string>
     <string name="feature_applist_api_install_date">Waktu Instal</string>
-    <string name="feature_applist_api_profile_personal">Pribadi</string>
-    <string name="feature_applist_api_profile_work">Kerja</string>
-    <string name="feature_applist_api_profile_user">Pengguna %1$d</string>
-    <string name="feature_applist_api_profile_not_running">Tidak berjalan</string>
     <string name="feature_applist_api_refresh_failed">Tidak dapat memuat ulang daftar aplikasi. Menampilkan daftar terakhir yang disimpan.</string>
     <string name="feature_applist_api_retry">Coba lagi</string>
     <string name="feature_applist_api_load_failed">Tidak dapat memuat daftar aplikasi. Tarik ke bawah untuk mencoba lagi.</string>
-    <string name="feature_applist_api_clear_data_confirm">Hapus data aplikasi ini? Saat menghapus, Android juga menghentikan aplikasi di semua pengguna dan profil di perangkat ini.</string>
-    <string name="feature_applist_api_uninstall_for_profile_confirm">Copot pemasangan aplikasi ini dari %1$s? Pengguna dan profil lain yang memiliki aplikasi ini tetap menyimpannya. Aplikasi baru keluar dari perangkat saat tidak ada pengguna yang memilikinya.</string>
-    <string name="feature_applist_api_enable_failed">Tidak dapat mengaktifkan %1$s</string>
-    <string name="feature_applist_api_disable_failed">Tidak dapat menonaktifkan %1$s</string>
-    <string name="feature_applist_api_force_stop_failed">Tidak dapat menghentikan paksa %1$s</string>
-    <string name="feature_applist_api_clear_cache_failed">Tidak dapat menghapus cache %1$s</string>
-    <string name="feature_applist_api_clear_data_failed">Tidak dapat menghapus data %1$s</string>
-    <string name="feature_applist_api_uninstall_failed">Tidak dapat mencopot pemasangan %1$s</string>
-    <string name="feature_applist_api_reason_no_access">Berikan akses root atau Shizuku ke Blocker, lalu coba lagi.</string>
-    <string name="feature_applist_api_reason_needs_root">Memerlukan root. Shizuku yang dijalankan melalui adb tidak dapat melakukan ini.</string>
-    <string name="feature_applist_api_reason_not_permitted">Sistem tidak mengizinkan ini dengan mode akses saat ini.</string>
-    <string name="feature_applist_api_reason_not_found">Aplikasi tidak lagi terpasang untuk pengguna ini.</string>
-    <string name="feature_applist_api_reason_system_error">Sistem melaporkan galat: %1$s</string>
-    <string name="feature_applist_api_reason_system_error_unknown">Sistem melaporkan galat.</string>
 </resources>

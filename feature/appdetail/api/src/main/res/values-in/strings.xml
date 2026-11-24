@@ -17,7 +17,6 @@
     <string name="feature_appdetail_api_belonging_sdk">Versi SDK</string>
     <string name="feature_appdetail_api_save">Simpan</string>
     <string name="feature_appdetail_api_search_components">Cari komponen</string>
-<string name="feature_appdetail_api_unknown">Tidakk tahu</string>
     <string name="feature_appdetail_api_select_mutiple">Pilih beberapa</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="other">%1$d komponen dipilih</item>
@@ -46,10 +45,6 @@
     <string name="feature_appdetail_api_disabled_first">Nonaktif dahulu</string>
     <string name="feature_appdetail_api_enabled_first">Aktif dahulu</string>
     <string name="feature_appdetail_api_none">Kosong</string>
-    <string name="feature_appdetail_api_blocked_by_package_manager">Package Manager</string>
-    <string name="feature_appdetail_api_blocked_by_intent_firewall">Intent Firewall</string>
-    <string name="feature_appdetail_api_disabled_by_app">Dinonaktifkan oleh aplikasi</string>
-    <string name="feature_appdetail_api_conditional_rule">Aturan bersyarat</string>
     <string name="feature_appdetail_api_unknown_state_title">Mengapa status tidak diketahui</string>
     <string name="feature_appdetail_api_unknown_pm">Blocker tidak dapat membaca setelan Package Manager komponen ini untuk pengguna ini. Berikan akses root atau Shizuku, lalu tarik ke bawah untuk memuat ulang.</string>
     <string name="feature_appdetail_api_unknown_no_firewall_access">Aturan Intent Firewall tidak dapat dibaca dalam mode saat ini. Berikan akses root, atau jalankan Shizuku dengan root, lalu tarik ke bawah untuk memuat ulang.</string>
@@ -57,29 +52,6 @@
     <string name="feature_appdetail_api_block">Blokir</string>
     <string name="feature_appdetail_api_enable">Aktifkan</string>
     <string name="feature_appdetail_api_changing">Mengubah…</string>
-    <string name="feature_appdetail_api_banner_no_access">Blocker tidak memiliki akses root atau Shizuku, jadi tidak dapat mengubah komponen dan tidak dapat membaca semua status.</string>
-    <string name="feature_appdetail_api_grant_access">Berikan akses</string>
-    <string name="feature_appdetail_api_banner_needs_root">Shizuku berjalan melalui adb. Mengubah komponen memerlukan root; Android hanya mengizinkannya untuk aplikasi khusus pengujian.</string>
-    <string name="feature_appdetail_api_banner_firewall_unavailable">Aturan Intent Firewall tidak dapat dibaca atau diubah dalam mode saat ini.</string>
-    <string name="feature_appdetail_api_block_failed">Tidak dapat memblokir %1$s</string>
-    <string name="feature_appdetail_api_enable_failed">Tidak dapat mengaktifkan %1$s</string>
-    <string name="feature_appdetail_api_block_partial">%1$s hanya terblokir sebagian</string>
-    <string name="feature_appdetail_api_enable_partial">%1$s hanya aktif sebagian</string>
-    <string name="feature_appdetail_api_layer_reason">%1$s: %2$s</string>
-    <string name="feature_appdetail_api_batch_summary">%1$s, %2$s</string>
-    <string name="feature_appdetail_api_batch_most_common">Paling sering: %1$s</string>
-    <string name="feature_appdetail_api_batch_nothing_needed">Tidak ada yang perlu diubah</string>
-    <string name="feature_appdetail_api_reason_no_access">Berikan Blocker akses root atau Shizuku, lalu coba lagi.</string>
-    <string name="feature_appdetail_api_reason_needs_root">Mode saat ini tidak dapat mengubah komponen. Ini memerlukan root.</string>
-    <string name="feature_appdetail_api_reason_not_found">Aplikasi atau komponen tidak ditemukan untuk pengguna ini.</string>
-    <string name="feature_appdetail_api_reason_rules_unreadable">File aturan Intent Firewall aplikasi tidak dapat dibaca.</string>
-    <string name="feature_appdetail_api_reason_write_failed">Tidak dapat menulis aturan Intent Firewall: %1$s</string>
-    <string name="feature_appdetail_api_reason_write_failed_unknown">Tidak dapat menulis aturan Intent Firewall.</string>
-    <string name="feature_appdetail_api_reason_not_confirmed">Perubahan sudah dikirim, tetapi sistem tidak menunjukkannya.</string>
-    <string name="feature_appdetail_api_reason_system_error">Sistem melaporkan kesalahan: %1$s</string>
-    <string name="feature_appdetail_api_reason_system_error_unknown">Sistem melaporkan kesalahan.</string>
-    <string name="feature_appdetail_api_reason_not_allowed">Sistem tidak mengizinkan ini dengan mode akses saat ini.</string>
-    <string name="feature_appdetail_api_reason_not_allowed_detail">Sistem tidak mengizinkan ini: %1$s</string>
     <string name="feature_appdetail_api_refresh_failed">Tidak dapat memuat ulang komponen. Menampilkan status terakhir yang tersimpan.</string>
     <string name="feature_appdetail_api_not_installed">Aplikasi ini tidak terpasang untuk pengguna ini.</string>
     <string name="feature_appdetail_api_read_user_not_reachable">Aplikasi pengguna ini tidak dapat dibaca sekarang. Berikan akses root atau Shizuku.</string>
@@ -90,18 +62,8 @@
     <string name="feature_appdetail_api_launch_blocked">%1$s diblokir oleh aturan Intent Firewall, jadi tidak terbuka.</string>
     <string name="feature_appdetail_api_launch_conditional">Aturan bersyarat Intent Firewall mungkin mencegah %1$s terbuka.</string>
     <string name="feature_appdetail_api_stop_failed">Tidak dapat menghentikan %1$s</string>
-    <string name="feature_appdetail_api_grant_failed">Blocker masih belum memiliki akses root atau Shizuku.</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker tidak dapat memeriksa akses root atau Shizuku-nya, jadi tidak dapat membaca aplikasi ini. Berikan akses untuk mencoba lagi.</string>
     <string name="feature_appdetail_api_profile_personal">Profil pribadi</string>
     <string name="feature_appdetail_api_profile_work">Profil kerja</string>
     <string name="feature_appdetail_api_profile_user">Pengguna %1$d</string>
-    <plurals name="feature_appdetail_api_batch_changed">
-        <item quantity="other">%1$d komponen diubah</item>
-    </plurals>
-    <plurals name="feature_appdetail_api_batch_not_changed">
-        <item quantity="other">%1$d tidak dapat diubah</item>
-    </plurals>
-    <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
-        <item quantity="other">%1$d komponen tetap nonaktif karena aplikasi menonaktifkannya secara bawaan; aktifkan satu dengan sakelarnya untuk memaksanya</item>
-    </plurals>
 </resources>

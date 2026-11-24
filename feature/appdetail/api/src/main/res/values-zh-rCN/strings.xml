@@ -33,7 +33,6 @@
     <string name="feature_appdetail_api_belonging_sdk">归属 SDK</string>
     <string name="feature_appdetail_api_save">保存</string>
     <string name="feature_appdetail_api_search_components">搜索组件</string>
-<string name="feature_appdetail_api_unknown">未知</string>
     <string name="feature_appdetail_api_select_mutiple">选择多项</string>
     <plurals name="feature_appdetail_api_selected_component_count">
         <item quantity="other">已选择 %1$d 个组件</item>
@@ -60,10 +59,6 @@
     <string name="feature_appdetail_api_disabled_first">禁用优先</string>
     <string name="feature_appdetail_api_enabled_first">启用优先</string>
     <string name="feature_appdetail_api_none">无</string>
-    <string name="feature_appdetail_api_blocked_by_package_manager">Package Manager</string>
-    <string name="feature_appdetail_api_blocked_by_intent_firewall">Intent Firewall</string>
-    <string name="feature_appdetail_api_disabled_by_app">应用默认禁用</string>
-    <string name="feature_appdetail_api_conditional_rule">条件规则</string>
     <string name="feature_appdetail_api_unknown_state_title">为什么状态未知</string>
     <string name="feature_appdetail_api_unknown_pm">Blocker 无法读取此组件在该用户下的 Package Manager 设置。请授予 Root 或 Shizuku 权限，然后下拉刷新。</string>
     <string name="feature_appdetail_api_unknown_no_firewall_access">当前模式无法读取 Intent Firewall 规则。请授予 Root 权限，或以 Root 方式启动 Shizuku，然后下拉刷新。</string>
@@ -71,29 +66,6 @@
     <string name="feature_appdetail_api_block">阻止</string>
     <string name="feature_appdetail_api_enable">启用</string>
     <string name="feature_appdetail_api_changing">正在更改…</string>
-    <string name="feature_appdetail_api_banner_no_access">Blocker 没有 Root 或 Shizuku 权限，因此无法更改组件，也无法读取所有状态。</string>
-    <string name="feature_appdetail_api_grant_access">授予权限</string>
-    <string name="feature_appdetail_api_banner_needs_root">Shizuku 通过 adb 运行。更改组件需要 Root；Android 仅允许对仅供测试的应用执行此操作。</string>
-    <string name="feature_appdetail_api_banner_firewall_unavailable">当前模式无法读取或更改 Intent Firewall 规则。</string>
-    <string name="feature_appdetail_api_block_failed">无法阻止 %1$s</string>
-    <string name="feature_appdetail_api_enable_failed">无法启用 %1$s</string>
-    <string name="feature_appdetail_api_block_partial">%1$s 仅被部分阻止</string>
-    <string name="feature_appdetail_api_enable_partial">%1$s 仅被部分启用</string>
-    <string name="feature_appdetail_api_layer_reason">%1$s：%2$s</string>
-    <string name="feature_appdetail_api_batch_summary">%1$s，%2$s</string>
-    <string name="feature_appdetail_api_batch_most_common">最常见原因：%1$s</string>
-    <string name="feature_appdetail_api_batch_nothing_needed">无需更改任何组件</string>
-    <string name="feature_appdetail_api_reason_no_access">请授予 Blocker Root 或 Shizuku 权限后重试。</string>
-    <string name="feature_appdetail_api_reason_needs_root">当前模式无法更改组件，需要 Root。</string>
-    <string name="feature_appdetail_api_reason_not_found">未在该用户下找到此应用或组件。</string>
-    <string name="feature_appdetail_api_reason_rules_unreadable">无法读取该应用的 Intent Firewall 规则文件。</string>
-    <string name="feature_appdetail_api_reason_write_failed">无法写入 Intent Firewall 规则：%1$s</string>
-    <string name="feature_appdetail_api_reason_write_failed_unknown">无法写入 Intent Firewall 规则。</string>
-    <string name="feature_appdetail_api_reason_not_confirmed">更改已发送，但系统中未体现。</string>
-    <string name="feature_appdetail_api_reason_system_error">系统报告了错误：%1$s</string>
-    <string name="feature_appdetail_api_reason_system_error_unknown">系统报告了错误。</string>
-    <string name="feature_appdetail_api_reason_not_allowed">当前访问模式下系统不允许此操作。</string>
-    <string name="feature_appdetail_api_reason_not_allowed_detail">系统不允许此操作：%1$s</string>
     <string name="feature_appdetail_api_refresh_failed">无法刷新组件，显示的是上次保存的状态。</string>
     <string name="feature_appdetail_api_not_installed">该用户未安装此应用。</string>
     <string name="feature_appdetail_api_read_user_not_reachable">当前无法读取该用户的应用。请授予 Root 或 Shizuku 权限。</string>
@@ -104,18 +76,8 @@
     <string name="feature_appdetail_api_launch_blocked">%1$s 被 Intent Firewall 规则阻止，因此没有打开。</string>
     <string name="feature_appdetail_api_launch_conditional">一条 Intent Firewall 条件规则可能阻止了 %1$s 打开。</string>
     <string name="feature_appdetail_api_stop_failed">无法停止 %1$s</string>
-    <string name="feature_appdetail_api_grant_failed">Blocker 仍没有 Root 或 Shizuku 权限。</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker 无法检查自己的 root 或 Shizuku 权限，因此无法读取此应用。请授予权限后重试。</string>
     <string name="feature_appdetail_api_profile_personal">个人资料</string>
     <string name="feature_appdetail_api_profile_work">工作资料</string>
     <string name="feature_appdetail_api_profile_user">用户 %1$d</string>
-    <plurals name="feature_appdetail_api_batch_changed">
-        <item quantity="other">已更改 %1$d 个组件</item>
-    </plurals>
-    <plurals name="feature_appdetail_api_batch_not_changed">
-        <item quantity="other">%1$d 个无法更改</item>
-    </plurals>
-    <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">
-        <item quantity="other">%1$d 个组件仍保持关闭，因为应用默认将其禁用；可用其开关单独强制开启</item>
-    </plurals>
 </resources>

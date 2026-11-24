@@ -22,21 +22,15 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.Availability
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentStatus
-import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
-import com.merxury.blocker.core.model.control.blockLayers
-import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import com.merxury.blocker.core.model.privileged.ChannelState
-import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
-import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import java.io.File
@@ -151,14 +145,4 @@ internal fun tabsOf(components: ComponentsUiState, rules: MatchedRulesUiState, r
         }
     }
     return TabState(items = visible, selectedItem = requested.takeIf { it in visible } ?: AppDetailTabs.Info, itemCount = counts)
-}
-
-/** The limits of the current mode to show above the lists. Nothing until the channel has been checked. */
-internal fun bannersOf(channel: ChannelState, firewallReadable: Boolean, controllerType: ControllerType): List<ModeBanner> = when (channel) {
-    is ChannelState.Unavailable -> if (channel.reason == UnavailableReason.NOT_CHECKED) emptyList() else listOf(ModeBanner.NO_ACCESS)
-
-    is ChannelState.Ready -> buildList {
-        if (channel.identity == PrivilegedIdentity.SHELL) add(ModeBanner.NEEDS_ROOT)
-        if (!firewallReadable && ControlLayer.INTENT_FIREWALL in controllerType.blockLayers) add(ModeBanner.FIREWALL_UNAVAILABLE)
-    }
 }

@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.applist.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.appcontrol.AppControl
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
@@ -27,17 +26,22 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.applist.CountServicesUseCase
+import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
+import com.merxury.blocker.core.domain.applist.ReadRunningPackagesUseCase
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ServiceCounts
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
-import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.AppAction
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
-import com.merxury.blocker.core.ui.applist.ServiceCounts
+import com.merxury.blocker.core.ui.applist.AppActionFailed
+import com.merxury.blocker.core.ui.applist.appRows
+import com.merxury.blocker.core.ui.profile.toProfileTab
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,7 +60,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -68,8 +71,9 @@ class AppListViewModel @Inject internal constructor(
     private val selectedUsers: SelectedUserRepository,
     private val deviceUsers: DeviceUserRepository,
     private val installedApps: InstalledAppRepository,
-    private val appControl: AppControl,
-    private val serviceCounter: ServiceCounter,
+    private val performAppAction: PerformAppActionUseCase,
+    private val readRunningPackages: ReadRunningPackagesUseCase,
+    private val countAppServices: CountServicesUseCase,
     private val channel: PrivilegedChannel,
     userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
@@ -82,7 +86,7 @@ class AppListViewModel @Inject internal constructor(
     // What the system last answered for each user; absent when it could not be read.
     private val running = MutableStateFlow<Map<UserId, Set<String>>>(emptyMap())
     private val serviceCounts = MutableStateFlow<Map<AppKey, ServiceCounts>>(emptyMap())
-    private val message = MutableStateFlow<AppListMessage?>(null)
+    private val message = MutableStateFlow<AppActionFailed?>(null)
     private var refreshJob: Job? = null
     private var refreshedWithAccess: Boolean? = null
 
@@ -164,21 +168,19 @@ class AppListViewModel @Inject internal constructor(
     suspend fun countServices(app: AppKey) {
         if (app in serviceCounts.value) return
         delay(SHOWN_BEFORE_COUNTING_MILLIS)
-        val counts = serviceCounter.count(app) ?: return
+        val counts = countAppServices(app) ?: return
         serviceCounts.update { it + (app to counts) }
     }
 
-    fun setEnabled(app: AppKey, enabled: Boolean) = act(if (enabled) AppAction.ENABLE else AppAction.DISABLE, app) {
-        installedApps.setEnabled(app, enabled)
-    }
+    fun setEnabled(app: AppKey, enabled: Boolean) = perform(if (enabled) AppAction.ENABLE else AppAction.DISABLE, app)
 
-    fun forceStop(app: AppKey) = act(AppAction.FORCE_STOP, app) { appControl.forceStop(app) }
+    fun forceStop(app: AppKey) = perform(AppAction.FORCE_STOP, app)
 
-    fun clearCache(app: AppKey) = act(AppAction.CLEAR_CACHE, app) { appControl.clearCache(app) }
+    fun clearCache(app: AppKey) = perform(AppAction.CLEAR_CACHE, app)
 
-    fun clearData(app: AppKey) = act(AppAction.CLEAR_DATA, app) { appControl.clearData(app) }
+    fun clearData(app: AppKey) = perform(AppAction.CLEAR_DATA, app)
 
-    fun uninstall(app: AppKey) = act(AppAction.UNINSTALL, app) { installedApps.uninstall(app) }
+    fun uninstall(app: AppKey) = perform(AppAction.UNINSTALL, app)
 
     fun onMessageShown() {
         message.value = null
@@ -210,21 +212,15 @@ class AppListViewModel @Inject internal constructor(
     }
 
     private suspend fun readRunning(user: UserId) {
-        // Reading running apps connects the channel, which may prompt; a list never asks.
-        val result = if (channel.state.value is ChannelState.Ready) appControl.runningPackages(user) else null
-        if (result is CallResult.Failure) Timber.d("No running apps of user ${user.value}: ${result.reason}")
-        running.update { if (result is CallResult.Success) it + (user to result.value) else it - user }
+        val packages = readRunningPackages(user)
+        running.update { if (packages != null) it + (user to packages) else it - user }
     }
 
-    private fun act(action: AppAction, app: AppKey, call: suspend () -> CallResult<*>) = viewModelScope.launch {
+    private fun perform(action: AppAction, app: AppKey) = viewModelScope.launch {
         val label = installedApps.app(app).first()?.label ?: app.packageName
-        val result = call()
+        val failure = performAppAction(app, action)
         analyticsHelper.logAction(action)
-        if (result is CallResult.Failure) {
-            Timber.w("$action of $app failed: ${result.reason}")
-            val asShell = (channel.state.value as? ChannelState.Ready)?.identity == PrivilegedIdentity.SHELL
-            message.value = AppListMessage.ActionFailed(action, label, result.reason.toReason(asShell))
-        }
+        if (failure != null) message.value = AppActionFailed(action, label, failure)
         // Counted again when the row is next shown, as the action may have stopped services.
         serviceCounts.update { it - app }
         readRunning(app.userId)

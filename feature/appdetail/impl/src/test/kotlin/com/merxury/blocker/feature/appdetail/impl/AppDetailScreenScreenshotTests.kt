@@ -31,6 +31,7 @@ import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.control.ModeBanner
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowItem

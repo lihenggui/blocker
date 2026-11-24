@@ -58,23 +58,25 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.system.AppAction
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
+import com.merxury.blocker.core.ui.applist.AppActionConfirmDialog
+import com.merxury.blocker.core.ui.applist.AppRow
+import com.merxury.blocker.core.ui.applist.AppRowList
+import com.merxury.blocker.core.ui.applist.PendingConfirmation
+import com.merxury.blocker.core.ui.applist.PendingConfirmationSaver
+import com.merxury.blocker.core.ui.applist.needsConfirmation
+import com.merxury.blocker.core.ui.applist.previewAppRows
+import com.merxury.blocker.core.ui.applist.text
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.profile.ProfileSwitcher
 import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.applist.api.R.string
-import com.merxury.blocker.feature.applist.impl.component.AppActionConfirmDialog
 import com.merxury.blocker.feature.applist.impl.component.AppSortBottomSheetRoute
-import com.merxury.blocker.feature.applist.impl.component.PendingConfirmation
-import com.merxury.blocker.feature.applist.impl.component.PendingConfirmationSaver
-import com.merxury.blocker.feature.applist.impl.component.ProfileSwitcher
 import com.merxury.blocker.feature.applist.impl.component.TopAppBarMoreMenu
-import com.merxury.blocker.feature.applist.impl.component.UserAppList
-import com.merxury.blocker.feature.applist.impl.component.needsConfirmation
-import com.merxury.blocker.feature.applist.impl.component.previewAppRows
-import com.merxury.blocker.feature.applist.impl.component.text
 
 @Composable
 fun AppListScreen(
@@ -251,7 +253,7 @@ private fun AppListContent(
                 if (apps.apps.isEmpty()) {
                     Pullable { EmptyScreen(textRes = string.feature_applist_api_no_applications_to_display, modifier = it) }
                 } else {
-                    UserAppList(
+                    AppRowList(
                         apps = apps.apps,
                         onAppClick = onAppClick,
                         onAction = onAction,

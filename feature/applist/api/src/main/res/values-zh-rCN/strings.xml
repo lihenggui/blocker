@@ -32,25 +32,7 @@
     <string name="feature_applist_api_none">无</string>
     <string name="feature_applist_api_running_apps">运行中的应用</string>
     <string name="feature_applist_api_disabled_apps">已禁用的应用</string>
-    <string name="feature_applist_api_profile_personal">个人</string>
-    <string name="feature_applist_api_profile_work">工作</string>
-    <string name="feature_applist_api_profile_user">用户 %1$d</string>
-    <string name="feature_applist_api_profile_not_running">未运行</string>
     <string name="feature_applist_api_refresh_failed">无法刷新应用列表，正在显示上次保存的列表。</string>
     <string name="feature_applist_api_retry">重试</string>
     <string name="feature_applist_api_load_failed">无法加载应用列表，请下拉重试。</string>
-    <string name="feature_applist_api_clear_data_confirm">要清除此应用的数据吗？清除时，Android 还会在此设备的所有用户和资料中停止该应用。</string>
-    <string name="feature_applist_api_uninstall_for_profile_confirm">要从“%1$s”中卸载此应用吗？拥有此应用的其他用户和资料会保留它。当没有任何用户拥有此应用时，它才会从设备中移除。</string>
-    <string name="feature_applist_api_enable_failed">无法启用 %1$s</string>
-    <string name="feature_applist_api_disable_failed">无法禁用 %1$s</string>
-    <string name="feature_applist_api_force_stop_failed">无法强制停止 %1$s</string>
-    <string name="feature_applist_api_clear_cache_failed">无法清除 %1$s 的缓存</string>
-    <string name="feature_applist_api_clear_data_failed">无法清除 %1$s 的数据</string>
-    <string name="feature_applist_api_uninstall_failed">无法卸载 %1$s</string>
-    <string name="feature_applist_api_reason_no_access">请授予 Blocker Root 或 Shizuku 权限后重试。</string>
-    <string name="feature_applist_api_reason_needs_root">需要 Root。通过 adb 启动的 Shizuku 无法执行此操作。</string>
-    <string name="feature_applist_api_reason_not_permitted">在当前的权限模式下系统不允许此操作。</string>
-    <string name="feature_applist_api_reason_not_found">该用户已不再安装此应用。</string>
-    <string name="feature_applist_api_reason_system_error">系统报告了错误：%1$s</string>
-    <string name="feature_applist_api_reason_system_error_unknown">系统报告了错误。</string>
 </resources>

@@ -64,6 +64,7 @@ import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.ui.component.ComponentItemMenu
+import com.merxury.blocker.core.ui.control.label
 import com.merxury.blocker.feature.appdetail.api.R.string
 import com.merxury.blocker.feature.appdetail.impl.ComponentRow
 import com.merxury.blocker.feature.appdetail.impl.SwitchState
@@ -183,7 +184,7 @@ private fun ComponentTexts(row: ComponentRow, onConditionalClick: () -> Unit, mo
                 }
                 if (row.conditional) {
                     Tag(
-                        text = stringResource(string.feature_appdetail_api_conditional_rule),
+                        text = stringResource(uiString.core_ui_conditional_rule),
                         container = MaterialTheme.colorScheme.secondaryContainer,
                         content = MaterialTheme.colorScheme.onSecondaryContainer,
                         onClick = onConditionalClick,
@@ -218,7 +219,7 @@ private fun ComponentSwitch(row: ComponentRow, inFlight: Boolean, onSwitch: (Boo
                     .semantics { contentDescription = why }
                     .padding(start = 8.dp),
             ) {
-                BlockerLabelSmallText(text = stringResource(string.feature_appdetail_api_unknown))
+                BlockerLabelSmallText(text = stringResource(uiString.core_ui_unknown))
                 IconButton(onClick = onExplainUnknown) {
                     Icon(imageVector = BlockerIcons.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -244,10 +245,3 @@ private fun Tag(text: String, container: Color, content: Color, onClick: (() -> 
 }
 
 private val REASON_ORDER = listOf(BlockReason.PM_SETTING, BlockReason.IFW_RULE, BlockReason.MANIFEST_DEFAULT)
-
-/** The name of the mechanism that blocks a component. */
-internal fun BlockReason.label(): Int = when (this) {
-    BlockReason.PM_SETTING -> string.feature_appdetail_api_blocked_by_package_manager
-    BlockReason.IFW_RULE -> string.feature_appdetail_api_blocked_by_intent_firewall
-    BlockReason.MANIFEST_DEFAULT -> string.feature_appdetail_api_disabled_by_app
-}

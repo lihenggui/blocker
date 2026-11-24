@@ -50,6 +50,7 @@ import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.coil.ApkIcon
+import com.merxury.blocker.core.ui.control.text
 import com.merxury.blocker.feature.appdetail.api.R.string
 import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortBottomSheetRoute
 import com.merxury.blocker.feature.appdetail.impl.componentdetail.ComponentDetailDialog

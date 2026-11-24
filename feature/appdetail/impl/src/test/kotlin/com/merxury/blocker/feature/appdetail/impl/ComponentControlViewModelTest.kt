@@ -19,6 +19,8 @@ package com.merxury.blocker.feature.appdetail.impl
 import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.domain.control.BatchKey
+import com.merxury.blocker.core.domain.control.BatchRun
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentKey
@@ -38,6 +40,8 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.control.LayerFailure
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -395,9 +399,9 @@ class ComponentControlViewModelTest {
         gated.permits.send(Unit)
         runCurrent()
         // Watched from outside the view model, which stops observing once cleared.
-        val run = fixture.batches.current(OWN_APP)!!
+        val run = fixture.batches.current(BatchKey.App(OWN_APP))!!
         val seen = mutableListOf<BatchRun?>()
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { fixture.batches.running(OWN_APP).collect { seen += it } }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { fixture.batches.running(BatchKey.App(OWN_APP)).collect { seen += it } }
         // As when the view model is cleared.
         viewModel.viewModelScope.cancel()
         gated.releaseAll()
@@ -422,7 +426,7 @@ class ComponentControlViewModelTest {
         viewModel.unblockAll(names.map(::id))
 
         assertThat(throwing.requests).isEqualTo(2)
-        assertThat(fixture.batches.current(OWN_APP)).isNull()
+        assertThat(fixture.batches.current(BatchKey.App(OWN_APP))).isNull()
         val summary = messages().single() as ControlMessage.BatchDone
         assertThat(summary.changed to summary.notChanged).isEqualTo(200 to 250)
         assertThat(summary.mostCommon?.failure).isEqualTo(ControlFailure.SystemError("java.lang.IllegalStateException: Request 2 broke"))
@@ -439,7 +443,7 @@ class ComponentControlViewModelTest {
         viewModel.viewModelScope.cancel()
         runCurrent()
 
-        assertThat(fixture.batches.current(OWN_APP)).isNull()
+        assertThat(fixture.batches.current(BatchKey.App(OWN_APP))).isNull()
     }
 
     @Test

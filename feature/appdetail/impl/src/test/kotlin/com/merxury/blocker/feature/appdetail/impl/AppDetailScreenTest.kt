@@ -40,6 +40,10 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.control.LayerFailure
+import com.merxury.blocker.core.ui.control.ModeBanner
+import com.merxury.blocker.core.ui.control.text
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowItem
@@ -51,6 +55,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.merxury.blocker.core.ui.R.plurals as uiPlurals
+import com.merxury.blocker.core.ui.R.string as uiString
 import com.merxury.blocker.feature.appdetail.api.R.plurals as plurals
 import com.merxury.blocker.feature.appdetail.api.R.string as string
 
@@ -99,8 +105,8 @@ class AppDetailScreenTest {
         show("SurveyActivity")
 
         composeTestRule.onNode(isToggleable()).assertIsOff().performClick()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_blocked_by_package_manager)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_blocked_by_intent_firewall)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_blocked_by_package_manager)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_blocked_by_intent_firewall)).assertIsDisplayed()
 
         assertThat(switched).containsExactly("SurveyActivity" to true)
     }
@@ -109,7 +115,7 @@ class AppDetailScreenTest {
     fun givenComponentTheAppShipsDisabled_whenShown_thenSaysTheAppDisabledIt() {
         show("DebugActivity")
 
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_disabled_by_app)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_disabled_by_app)).assertIsDisplayed()
     }
 
     @Test
@@ -127,7 +133,7 @@ class AppDetailScreenTest {
         show("ShareActivity")
 
         composeTestRule.onNode(isToggleable()).assertIsOn()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_conditional_rule)).performClick()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_conditional_rule)).performClick()
 
         assertThat(edited).containsExactly("ShareActivity")
     }
@@ -169,8 +175,8 @@ class AppDetailScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_banner_no_access)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_grant_access)).performClick()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_banner_no_access)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).performClick()
 
         assertThat(granted).isEqualTo(1)
     }
@@ -271,8 +277,8 @@ class AppDetailScreenTest {
         showText { refused(PrivilegedIdentity.SHELL, "shell").text() }
 
         composeTestRule.onNodeWithText(
-            text(string.feature_appdetail_api_block_partial, "AdActivity") + "\n" +
-                text(string.feature_appdetail_api_layer_reason, "Intent Firewall", text(string.feature_appdetail_api_reason_needs_root)),
+            text(uiString.core_ui_block_component_partial, "AdActivity") + "\n" +
+                text(uiString.core_ui_layer_reason, "Intent Firewall", text(uiString.core_ui_reason_component_needs_root)),
         ).assertIsDisplayed()
     }
 
@@ -281,14 +287,14 @@ class AppDetailScreenTest {
         showText { refused(PrivilegedIdentity.ROOT, "Cannot disable a protected package").text() }
 
         composeTestRule.onNodeWithText(
-            text(string.feature_appdetail_api_block_partial, "AdActivity") + "\n" +
+            text(uiString.core_ui_block_component_partial, "AdActivity") + "\n" +
                 text(
-                    string.feature_appdetail_api_layer_reason,
+                    uiString.core_ui_layer_reason,
                     "Intent Firewall",
-                    text(string.feature_appdetail_api_reason_not_allowed_detail, "Cannot disable a protected package"),
+                    text(uiString.core_ui_reason_not_permitted_detail, "Cannot disable a protected package"),
                 ),
         ).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_reason_needs_root), substring = true).assertDoesNotExist()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_reason_component_needs_root), substring = true).assertDoesNotExist()
     }
 
     @Test
@@ -296,8 +302,8 @@ class AppDetailScreenTest {
         showText { refused(PrivilegedIdentity.SYSTEM, null).text() }
 
         composeTestRule.onNodeWithText(
-            text(string.feature_appdetail_api_block_partial, "AdActivity") + "\n" +
-                text(string.feature_appdetail_api_layer_reason, "Intent Firewall", text(string.feature_appdetail_api_reason_not_allowed)),
+            text(uiString.core_ui_block_component_partial, "AdActivity") + "\n" +
+                text(uiString.core_ui_layer_reason, "Intent Firewall", text(uiString.core_ui_reason_not_permitted)),
         ).assertIsDisplayed()
     }
 
@@ -313,8 +319,8 @@ class AppDetailScreenTest {
     fun givenBatchThatLeftOnlyShippedDisabledComponentsOff_whenTold_thenSaysWhyTheyStayOffInsteadOfNothingNeeded() {
         showText { ControlMessage.BatchDone(ControlGoal.UNBLOCK, changed = 0, notChanged = 0, mostCommon = null, staysOffAsShipped = 3).text() }
 
-        composeTestRule.onNodeWithText(plural(plurals.feature_appdetail_api_batch_stays_off_as_shipped, 3)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_batch_nothing_needed), substring = true).assertDoesNotExist()
+        composeTestRule.onNodeWithText(plural(uiPlurals.core_ui_batch_stays_off_as_shipped, 3)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_batch_nothing_needed), substring = true).assertDoesNotExist()
     }
 
     @Test
@@ -322,7 +328,7 @@ class AppDetailScreenTest {
         showText { ControlMessage.BatchDone(ControlGoal.UNBLOCK, changed = 2, notChanged = 0, mostCommon = null, staysOffAsShipped = 1).text() }
 
         composeTestRule.onNodeWithText(
-            plural(plurals.feature_appdetail_api_batch_changed, 2) + "\n" + plural(plurals.feature_appdetail_api_batch_stays_off_as_shipped, 1),
+            plural(uiPlurals.core_ui_batch_changed, 2) + "\n" + plural(uiPlurals.core_ui_batch_stays_off_as_shipped, 1),
         ).assertIsDisplayed()
     }
 
@@ -332,7 +338,7 @@ class AppDetailScreenTest {
     fun givenBatchWithNothingToChange_whenTold_thenSaysNothingNeededChanging() {
         showText { ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 0, notChanged = 0, mostCommon = null).text() }
 
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_batch_nothing_needed)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_batch_nothing_needed)).assertIsDisplayed()
     }
 
     @Test
@@ -347,7 +353,7 @@ class AppDetailScreenTest {
         }
 
         composeTestRule.onNodeWithText(
-            "23 components changed, 2 could not be changed\nMost often: Package Manager: " + text(string.feature_appdetail_api_reason_no_access),
+            "23 components changed, 2 could not be changed\nMost often: Package Manager: " + text(uiString.core_ui_reason_no_access),
         ).assertIsDisplayed()
     }
 

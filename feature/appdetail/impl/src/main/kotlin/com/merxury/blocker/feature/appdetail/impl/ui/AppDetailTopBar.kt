@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -146,8 +147,11 @@ private fun TopBarActionRow(
     ) {
         if (tab.listsComponents) {
             if (list.isSearchMode) {
+                // Opened with a keyword, as from the search, the keyboard stays closed.
+                val focusOnStart = remember { list.keyword.isEmpty() }
                 BlockerSearchTextField(
                     modifier = Modifier.weight(1f),
+                    focusOnStart = focusOnStart,
                     searchQuery = list.keyword,
                     onSearchQueryChange = actions.onSearch,
                     onSearchTrigger = actions.onSearch,

@@ -29,6 +29,7 @@ android {
 dependencies {
     implementation(projects.core.componentController)
     implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.feature.applist.api)
     implementation(projects.feature.appdetail.api)
     implementation(projects.feature.settings.api)
