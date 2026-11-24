@@ -428,6 +428,26 @@ class DebloaterViewModelTest {
     }
 
     @Test
+    fun givenStoppedSubscription_whenTheUserChanges_thenReplayOnlyRowsForTheSelectedUser() = runTest {
+        val f = fixture()
+        f.install(installed(label = "Owner app"), installed(user = work, label = "Work app"))
+        f.viewModel.uiState.test {
+            settle()
+            assertThat(expectMostRecentItem().apps().single().title).isEqualTo("Owner app")
+        }
+        advanceTimeBy(5_001)
+        runCurrent()
+        f.users.select(work)
+
+        assertThat(f.viewModel.uiState.value.content).isEqualTo(Result.Loading)
+        f.viewModel.uiState.test {
+            assertThat(awaitItem().content).isEqualTo(Result.Loading)
+            settle()
+            assertThat(expectMostRecentItem().apps().single().title).isEqualTo("Work app")
+        }
+    }
+
+    @Test
     fun givenLoadedRows_whenTheChannelChanges_thenKeepRowsWithoutLoadingOrParsingAgain() = runTest {
         val f = fixture()
         f.install(installed())

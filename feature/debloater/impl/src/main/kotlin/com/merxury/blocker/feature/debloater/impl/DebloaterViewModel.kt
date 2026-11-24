@@ -50,7 +50,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -117,7 +119,8 @@ class DebloaterViewModel @Inject constructor(
         }
         .onStart { emit(false) }
 
-    val uiState: StateFlow<DebloaterUiState> = combine(
+    private val initialState = DebloaterUiState()
+    private val userUiState = combine(
         selectedUsers.selectedUser,
         content,
         inFlight,
@@ -125,7 +128,7 @@ class DebloaterViewModel @Inject constructor(
         permission,
     ) { user, filtered, inFlight, feedback, hasRootPermission ->
         val feedbackForUser = feedback[user]
-        DebloaterUiState(
+        val state = DebloaterUiState(
             content = filtered.content.takeIf { filtered.user == user } ?: Result.Loading,
             searchQuery = filtered.filters.query,
             componentTypeFilter = filtered.filters.kinds,
@@ -134,7 +137,30 @@ class DebloaterViewModel @Inject constructor(
             messages = feedbackForUser?.messages.orEmpty(),
             alert = feedbackForUser?.alert,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DebloaterUiState())
+        UserUiState(user, state)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserUiState(selectedUsers.selectedUser.value, initialState))
+
+    // The selected user can change while the upstream is stopped and its replay still holds the old rows.
+    @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
+    val uiState: StateFlow<DebloaterUiState> = object : StateFlow<DebloaterUiState> {
+        override val value get() = userUiState.value.forSelectedUser()
+        override val replayCache get() = listOf(value)
+
+        override suspend fun collect(collector: FlowCollector<DebloaterUiState>): Nothing {
+            var previous: DebloaterUiState? = null
+            return userUiState.collect(
+                FlowCollector { tagged ->
+                    val current = tagged.forSelectedUser()
+                    if (current != previous) {
+                        collector.emit(current)
+                        previous = current
+                    }
+                },
+            )
+        }
+    }
+
+    private fun UserUiState.forSelectedUser() = state.takeIf { user == selectedUsers.selectedUser.value } ?: initialState
 
     private fun content(user: UserId): Flow<Result<List<MatchedTarget>>> = combine(
         channel.state.onEach { componentIndex.ensureIndexed(user) },
@@ -150,8 +176,7 @@ class DebloaterViewModel @Inject constructor(
                 if (index.appListFailure == null) {
                     emitAll(matches.forUser(user))
                 } else {
-                    Timber.w("Cannot list the apps of user ${user.value}: ${index.appListFailure}")
-                    throw IllegalStateException()
+                    error("Cannot list the apps of user ${user.value}: ${index.appListFailure}")
                 }
             }
 
@@ -287,6 +312,7 @@ class DebloaterViewModel @Inject constructor(
     }
 
     private data class Filters(val query: String = "", val kinds: Set<ComponentClassification> = emptySet())
+    private data class UserUiState(val user: UserId, val state: DebloaterUiState)
     private data class FilteredContent(val user: UserId, val content: Result<List<MatchedTarget>>, val filters: Filters)
     private data class Feedback(val messages: List<QueuedControlMessage> = emptyList(), val alert: UiMessage? = null)
 }
