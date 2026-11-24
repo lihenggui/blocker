@@ -4,284 +4,524 @@
 package com.merxury.blocker.provider
 
 import android.app.Application
+import android.net.Uri
 import android.os.Bundle
+import android.os.Process
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
+import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
+import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
+import com.merxury.blocker.core.datastore.UserPreferencesSerializer
+import com.merxury.blocker.core.datastore.test.InMemoryDataStore
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.testing.repository.TestComponentRepository
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentDeclaration
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ComponentStatus
+import com.merxury.blocker.core.model.component.ControlLayer
+import com.merxury.blocker.core.model.component.ControlLayer.INTENT_FIREWALL
+import com.merxury.blocker.core.model.component.ControlLayer.PACKAGE_MANAGER
+import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
+import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.model.system.UserKind
+import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
+import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import dagger.hilt.internal.GeneratedComponent
 import dagger.hilt.internal.GeneratedComponentManager
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import org.junit.After
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowBinder
 
-/**
- * Pins the ContentProvider contract LibChecker uses: `call("getComponents", pkg)` and
- * `call("blocks", pkg, extras)`, with the component list as JSON under the "cmp_list" bundle key.
- *
- * The provider finds its repository through a Hilt entry point on the Application. The test
- * Application below supplies that entry point directly, so no Hilt component is generated.
- */
+/** Exercises LibChecker's calls through the provider and the Hilt entry point. */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = ComponentProviderContractTest.TestApp::class)
 class ComponentProviderContractTest {
 
-    class RecordingRepository(
-        private val delegate: TestComponentRepository = TestComponentRepository(),
-        private val controlResult: Boolean = true,
-    ) : ComponentRepository by delegate {
-        data class Control(val component: ComponentInfo, val newState: Boolean)
-
-        val controls = mutableListOf<Control>()
-
-        suspend fun seed(components: List<ComponentInfo>) = delegate.saveComponents(components)
-
-        override fun controlComponent(
-            component: ComponentInfo,
-            newState: Boolean,
-        ): Flow<Boolean> {
-            controls += Control(component, newState)
-            return flowOf(controlResult)
-        }
-    }
-
-    // Hilt only accepts a component that is marked as generated.
     interface TestEntryPoint :
-        ComponentProvider.ComponentRepositoryEntryPoint,
+        ComponentProvider.ProviderEntryPoint,
         GeneratedComponent
 
     class TestApp :
         Application(),
         GeneratedComponentManager<TestEntryPoint> {
-        override fun generatedComponent() = entryPoint
+        lateinit var entryPoint: TestEntryPoint
+
+        var entryPointReads = 0
+            private set
+
+        override fun generatedComponent(): TestEntryPoint {
+            entryPointReads++
+            return entryPoint
+        }
     }
 
-    private lateinit var repository: RecordingRepository
-    private lateinit var analytics: TestAnalyticsHelper
+    private val repository = FakeComponentStatusRepository()
+    private val analytics = TestAnalyticsHelper()
+    private val channel = FakePrivilegedChannel()
+    private val selectedUsers = FakeSelectedUserRepository(OWN_USER)
+    private val userData = FakeUserDataRepository(
+        BlockerPreferencesDataSource(InMemoryDataStore(UserPreferencesSerializer().defaultValue)),
+    )
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private lateinit var application: TestApp
     private lateinit var provider: ComponentProvider
+    private var refresh: suspend (AppKey) -> ReadResult<Unit> = repository::refresh
 
     @Before
     fun setUp() {
-        repository = RecordingRepository()
-        analytics = TestAnalyticsHelper()
-        entryPoint = object : TestEntryPoint {
-            override fun componentRepository(): ComponentRepository = repository
+        application = ApplicationProvider.getApplicationContext<TestApp>()
+        application.entryPoint = object : TestEntryPoint {
+            override fun componentStatuses(): ComponentStatusRepository = object : ComponentStatusRepository by repository {
+                override suspend fun refresh(app: AppKey): ReadResult<Unit> = this@ComponentProviderContractTest.refresh(app)
+            }
 
+            override fun selectedUsers(): SelectedUserRepository = selectedUsers
+            override fun controlLayers() = GetControlLayersUseCase(userData)
+            override fun privilegedChannel(): PrivilegedChannel = channel
             override fun analyticsHelper(): AnalyticsHelper = analytics
+            override fun applicationScope(): CoroutineScope = scope
+            override fun ioDispatcher(): CoroutineDispatcher = Dispatchers.IO
         }
         provider = Robolectric.buildContentProvider(ComponentProvider::class.java)
             .create("com.merxury.blocker.provider.test")
             .get()
-        // Make sure the provider reads the Application set up for this test.
-        assertThat(ApplicationProvider.getApplicationContext<Application>()).isInstanceOf(TestApp::class.java)
     }
 
-    private fun component(
-        name: String,
-        pmBlocked: Boolean = false,
-        ifwBlocked: Boolean = false,
-        packageName: String = "com.example.app",
-    ) = ComponentInfo(
-        packageName = packageName,
-        name = name,
-        type = ComponentType.SERVICE,
-        pmBlocked = pmBlocked,
-        ifwBlocked = ifwBlocked,
-    )
-
-    private fun getComponentsJson(packageName: String): String {
-        val result = checkNotNull(provider.call("getComponents", packageName, null))
-        return checkNotNull(result.getString("cmp_list"))
+    @After
+    fun tearDown() {
+        scope.cancel()
     }
 
     @Test
-    fun givenBlockedComponents_whenGetComponents_thenBundleHoldsJsonUnderCmpListKey() {
-        runBlocking {
-            repository.seed(listOf(component("com.example.app.Tracker", pmBlocked = true)))
+    fun givenBlockedComponents_whenGetComponents_thenReturnsExactJsonForBothReasons() = runTest {
+        seed(
+            status("PmOff", pm = PmSetting.DISABLED),
+            status("IfwOff", ifw = IfwBlock.BLOCKED),
+            status("BothOff", pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED),
+            status("Enabled"),
+        )
+
+        assertComponents(
+            """{"pkg":"com.example.app","components":[""" +
+                """{"type":"com.example.app","name":"com.example.app.BothOff","block":true},""" +
+                """{"type":"com.example.app","name":"com.example.app.IfwOff","block":true},""" +
+                """{"type":"com.example.app","name":"com.example.app.PmOff","block":true}]}""",
+        )
+        assertThat(repository.refreshedApps).containsExactly(APP)
+    }
+
+    @Test
+    fun givenShippedDisabledAndConditionalRule_whenGetComponents_thenReturnsEmptyJsonArray() = runTest {
+        seed(status("ManifestOff", enabledInManifest = false), status("Conditional", ifw = IfwBlock.CONDITIONAL))
+
+        assertComponents(EMPTY_JSON)
+    }
+
+    @Test
+    fun givenUninstalledPackageWithCachedRows_whenGetComponents_thenReturnsEmptyJsonArray() = runTest {
+        seed(status("Tracker", pm = PmSetting.DISABLED))
+        repository.refreshFailure = ReadFailure.PackageNotFound(APP)
+
+        assertComponents(EMPTY_JSON)
+        assertThat(repository.refreshedApps).containsExactly(APP)
+    }
+
+    @Test
+    fun givenAccessMissingAndCachedBlocks_whenGetComponents_thenReturnsCachedJson() = runTest {
+        channel.setState(DENIED)
+        seed(status("Tracker", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN))
+        refresh = { app ->
+            seed(status("Tracker", pm = PmSetting.UNKNOWN, ifw = IfwBlock.UNKNOWN))
+            repository.refresh(app)
         }
 
-        val result = checkNotNull(provider.call("getComponents", "com.example.app", null))
-
-        assertThat(result.keySet()).containsExactly("cmp_list")
-        assertThat(result.getString("cmp_list")).isNotEmpty()
+        assertComponents(TRACKER_JSON)
+        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertQuietConnect()
     }
 
     @Test
-    fun givenBlockedComponents_whenGetComponents_thenJsonShapeIsPkgAndComponents() {
-        runBlocking {
-            repository.seed(listOf(component("com.example.app.Tracker", pmBlocked = true)))
+    fun givenAccessMissingAndNoCachedComponents_whenGetComponents_thenReturnsEmptyJsonArray() = runTest {
+        channel.setState(DENIED)
+        repository.refreshFailure = ReadFailure.ChannelUnavailable
+
+        assertComponents(EMPTY_JSON)
+        assertQuietConnect()
+    }
+
+    @Test
+    fun givenRefreshFails_whenGetComponents_thenReturnsCachedJson() = runTest {
+        seed(status("Tracker", pm = PmSetting.DISABLED))
+        refresh = { error("Component refresh failed") }
+
+        assertComponents(TRACKER_JSON)
+    }
+
+    @Test
+    fun givenUnreadableRules_whenGetComponents_thenOnlyIncludesPmBlocks() = runTest {
+        seed(status("Tracker", pm = PmSetting.DISABLED), status("Filter", ifw = IfwBlock.BLOCKED))
+        repository.refreshFailure = ReadFailure.RulesUnreadable(PACKAGE_NAME)
+        refresh = { app ->
+            seed(status("Tracker", pm = PmSetting.DISABLED), status("Filter", ifw = IfwBlock.UNKNOWN))
+            repository.refresh(app)
         }
 
-        val root = Json.parseToJsonElement(getComponentsJson("com.example.app")).jsonObject
-
-        assertThat(root.keys).containsExactly("pkg", "components")
-        assertThat(root.getValue("pkg").jsonPrimitive.content).isEqualTo("com.example.app")
-        val entry = root.getValue("components").jsonArray.single().jsonObject
-        assertThat(entry.keys).containsExactly("type", "name", "block")
-        assertThat(entry.getValue("name").jsonPrimitive.content).isEqualTo("com.example.app.Tracker")
-        assertThat(entry.getValue("block").jsonPrimitive.boolean).isTrue()
+        assertComponents(TRACKER_JSON)
     }
 
     @Test
-    fun givenBlockedComponents_whenGetComponents_thenTypeCurrentlyCarriesPackageName() {
-        // Known quirk, not desired behaviour: the provider fills "type" with the component's
-        // package name instead of its component type. Expected to change; update this test then.
-        runBlocking {
-            repository.seed(listOf(component("com.example.app.Tracker", pmBlocked = true)))
+    fun givenAnotherUserSelected_whenGetComponents_thenRefreshesAndReportsBlockersOwnUser() = runTest {
+        selectedUsers.sendUsers(
+            listOf(
+                DeviceUser(OWN_USER, null, UserKind.SECONDARY, null, running = true),
+                DeviceUser(UserId.SYSTEM, null, UserKind.OWNER, null, running = true),
+            ),
+        )
+        selectedUsers.select(UserId.SYSTEM)
+        repository.sendComponents(UserId.SYSTEM, listOf(status("Different", pm = PmSetting.DISABLED)))
+        refresh = { app ->
+            seed(status("Tracker", ifw = IfwBlock.BLOCKED))
+            repository.refresh(app)
         }
 
-        val root = Json.parseToJsonElement(getComponentsJson("com.example.app")).jsonObject
-        val entry = root.getValue("components").jsonArray.single().jsonObject
-
-        assertThat(entry.getValue("type").jsonPrimitive.content).isEqualTo("com.example.app")
+        assertComponents(TRACKER_JSON)
+        assertThat(repository.refreshedApps).containsExactly(APP)
     }
 
     @Test
-    fun givenMixedComponents_whenGetComponents_thenOnlyBlockedOnesAreListedWithBlockTrue() {
-        runBlocking {
-            repository.seed(
-                listOf(
-                    component("com.example.app.Enabled"),
-                    component("com.example.app.PmOff", pmBlocked = true),
-                    component("com.example.app.IfwOff", ifwBlocked = true),
-                    component("com.example.app.BothOff", pmBlocked = true, ifwBlocked = true),
-                    component("com.other.Other", pmBlocked = true, packageName = "com.other"),
+    fun givenTwoOffs_whenBlocks_thenUsesOneRequestWithSettingsLayersForEachController() = runTest {
+        val settingsLayers = mapOf(
+            ControllerType.PM to setOf(PACKAGE_MANAGER),
+            ControllerType.IFW to setOf(INTENT_FIREWALL),
+            ControllerType.IFW_PLUS_PM to setOf(PACKAGE_MANAGER, INTENT_FIREWALL),
+            ControllerType.SHIZUKU to setOf(PACKAGE_MANAGER),
+        )
+        val service = status("A")
+        val contentProvider = status("B", type = ComponentType.PROVIDER)
+        val input = input("A" to true, "B" to true)
+
+        for ((type, layers) in settingsLayers) {
+            userData.setControllerType(type)
+            seed(service, contentProvider)
+            repository.requests.clear()
+
+            assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
+
+            assertThat(repository.requests).containsExactly(
+                ControlRequest(OWN_USER, listOf(service.declaration, contentProvider.declaration), ControlGoal.BLOCK, layers),
+            )
+            assertThat(repository.component(ComponentKey(contentProvider.declaration.id, OWN_USER)).first()?.state?.pm)
+                .isEqualTo(PmSetting.DISABLED)
+        }
+    }
+
+    @Test
+    fun givenTwoOns_whenBlocks_thenUsesOneEnableRequestWithEveryLayerForEachController() = runTest {
+        val service = status("A", pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED)
+        val receiver = status("B", type = ComponentType.RECEIVER, enabledInManifest = false)
+        val input = input("A" to false, "B" to false)
+
+        for (type in ControllerType.entries) {
+            userData.setControllerType(type)
+            seed(service, receiver)
+            repository.requests.clear()
+
+            assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
+
+            assertThat(repository.requests).containsExactly(
+                ControlRequest(OWN_USER, listOf(service.declaration, receiver.declaration), ControlGoal.ENABLE, ControlLayer.entries.toSet()),
+            )
+            assertThat(repository.component(ComponentKey(receiver.declaration.id, OWN_USER)).first()?.state?.pm)
+                .isEqualTo(PmSetting.ENABLED)
+        }
+    }
+
+    @Test
+    fun givenMixedEntriesAndDifferentJsonPackage_whenBlocks_thenUsesTheArgumentAndLogsEachEntry() = runTest {
+        val a = status("A")
+        val b = status("B", ifw = IfwBlock.BLOCKED)
+        val c = status("C")
+        seed(a, b, c)
+        userData.setControllerType(ControllerType.IFW)
+        val input = input("B" to false, "A" to true, "C" to true)
+
+        assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
+
+        assertThat(repository.requests).containsExactly(
+            ControlRequest(OWN_USER, listOf(a.declaration, c.declaration), ControlGoal.BLOCK, setOf(INTENT_FIREWALL)),
+            ControlRequest(OWN_USER, listOf(b.declaration), ControlGoal.ENABLE, ControlLayer.entries.toSet()),
+        ).inOrder()
+        assertThat(analytics.loggedEvents.map { it.type }.distinct()).containsExactly("control_component_via_provider_activated")
+        assertThat(analytics.loggedEvents.map { it.extras.single().value }).containsExactly("true", "false", "false").inOrder()
+    }
+
+    @Test
+    fun givenDuplicateClassWithDifferentFlags_whenBlocks_thenLastFlagDecidesItsRequest() = runTest {
+        val component = status("A")
+        seed(component)
+        val input = input("A" to false, "A" to true)
+
+        assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
+
+        assertThat(repository.requests.single().goal).isEqualTo(ControlGoal.BLOCK)
+        assertThat(analytics.loggedEvents).hasSize(2)
+    }
+
+    @Test
+    fun givenUnknownComponentNames_whenBlocks_thenIgnoresThemAndReturnsInput() = runTest {
+        val known = status("Known")
+        val notInPackage = status("Other", packageName = "com.example.other")
+        seed(known, notInPackage)
+        val input = input("Unknown" to true, "" to false, "Known" to true)
+
+        assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
+
+        assertThat(repository.requests.single().components).containsExactly(known.declaration)
+        assertThat(analytics.loggedEvents).hasSize(3)
+    }
+
+    @Test
+    fun givenNoMatchingComponentsOrEmptyList_whenBlocks_thenReturnsInputWithoutConnecting() = runTest {
+        channel.setState(DENIED)
+        val unknown = input("Unknown" to true)
+        val empty = input()
+
+        assertThat(call("blocks", PACKAGE_NAME, unknown)).isSameInstanceAs(unknown)
+        assertThat(call("blocks", PACKAGE_NAME, empty)).isSameInstanceAs(empty)
+        assertThat(repository.requests).isEmpty()
+        assertThat(channel.quietConnectCount).isEqualTo(0)
+        assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenBlockersOwnComponent_whenBlocks_thenReturnsInputForRepositoryRefusal() = runTest {
+        val ownPackage = application.packageName
+        val own = status("Own", packageName = ownPackage)
+        seed(own)
+        val key = ComponentKey(own.declaration.id, OWN_USER)
+        repository.controlEvents = {
+            listOf(
+                ControlEvent.PackageDone(
+                    ownPackage,
+                    listOf(ComponentOutcome(key, own.state, ControlResult.FAILED, mapOf(PACKAGE_MANAGER to ControlFailure.NotPermitted(null)))),
+                ),
+                ControlEvent.Finished(achieved = 0, partial = 0, failed = 1),
+            )
+        }
+        val input = Bundle().apply {
+            putString("cmp_list", """{"pkg":"ignored","components":[{"type":"ignored","name":"$ownPackage.Own","block":true}]}""")
+        }
+
+        assertThat(call("blocks", ownPackage, input)).isSameInstanceAs(input)
+
+        assertThat(repository.requests.single().components).containsExactly(own.declaration)
+        assertThat(repository.component(key).first()).isEqualTo(own)
+    }
+
+    @Test
+    fun givenControllerCompletesWithoutChangingState_whenBlocks_thenReturnsInput() = runTest {
+        val component = status("A")
+        seed(component)
+        repository.controlEvents = {
+            listOf(
+                ControlEvent.PackageDone(
+                    PACKAGE_NAME,
+                    listOf(
+                        ComponentOutcome(
+                            ComponentKey(component.declaration.id, OWN_USER),
+                            component.state,
+                            ControlResult.FAILED,
+                            mapOf(INTENT_FIREWALL to ControlFailure.RulesUnreadable),
+                        ),
+                    ),
                 ),
             )
         }
+        val input = input("A" to true)
 
-        val root = Json.parseToJsonElement(getComponentsJson("com.example.app")).jsonObject
-        val entries = root.getValue("components").jsonArray.map { it.jsonObject }
-
-        assertThat(entries.map { it.getValue("name").jsonPrimitive.content }).containsExactly(
-            "com.example.app.PmOff",
-            "com.example.app.IfwOff",
-            "com.example.app.BothOff",
-        ).inOrder()
-        assertThat(entries.map { it.getValue("block").jsonPrimitive.boolean }).containsExactly(true, true, true)
+        assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
+        assertThat(analytics.loggedEvents).hasSize(1)
     }
 
     @Test
-    fun givenNoBlockedComponents_whenGetComponents_thenJsonHasEmptyComponentsArray() {
-        runBlocking { repository.seed(listOf(component("com.example.app.Enabled"))) }
+    fun givenControlThrows_whenBlocks_thenReturnsNull() = runTest {
+        seed(status("A"))
+        repository.controlEvents = { error("Control failed") }
 
-        assertThat(getComponentsJson("com.example.app")).isEqualTo(
-            """{"pkg":"com.example.app","components":[]}""",
-        )
+        assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
+        assertThat(analytics.loggedEvents).isEmpty()
     }
 
     @Test
-    fun givenBlockedComponent_whenGetComponents_thenJsonIsCompactWithFieldOrderTypeNameBlock() {
-        runBlocking {
-            repository.seed(listOf(component("com.example.app.Tracker", pmBlocked = true)))
+    fun givenAccessMissing_whenBlocks_thenReturnsNullWithoutPrompting() = runTest {
+        seed(status("A"))
+        channel.setState(DENIED)
+
+        assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
+
+        assertQuietConnect()
+        assertThat(repository.requests).isEmpty()
+    }
+
+    @Test
+    fun givenRefreshCannotFinishBeforeDeadline_whenBlocks_thenReturnsNullWhileRefreshIsPending() = runTest {
+        seed(status("A"))
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        refresh = {
+            withContext(NonCancellable) {
+                started.complete(Unit)
+                release.await()
+            }
+            ReadResult.Success(Unit)
         }
 
-        assertThat(getComponentsJson("com.example.app")).isEqualTo(
-            """{"pkg":"com.example.app","components":""" +
-                """[{"type":"com.example.app","name":"com.example.app.Tracker","block":true}]}""",
+        try {
+            assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
+            assertThat(started.isCompleted).isTrue()
+            assertThat(repository.requests).isEmpty()
+        } finally {
+            release.complete(Unit)
+        }
+    }
+
+    @Test
+    fun givenMissingArgumentsOrUnknownMethod_whenCalling_thenReturnsNull() = runTest {
+        assertThat(call("getComponents", null)).isNull()
+        assertThat(call("unknown", PACKAGE_NAME)).isNull()
+        assertThat(call("blocks", null, input("A" to true))).isNull()
+        assertThat(call("blocks", PACKAGE_NAME)).isNull()
+        assertThat(call("blocks", PACKAGE_NAME, Bundle())).isNull()
+        assertThat(repository.requests).isEmpty()
+        assertThat(repository.refreshedApps).isEmpty()
+    }
+
+    @Test
+    fun givenMalformedOrNonconformingJson_whenBlocks_thenReturnsNullWithoutWork() = runTest {
+        val invalidJson = listOf(
+            "not json",
+            """{"pkg":"p","components":[],"extra":1}""",
+            """{"pkg":"p","components":[{"type":"t","name":"X"}]}""",
         )
+        for (json in invalidJson) {
+            assertThat(call("blocks", PACKAGE_NAME, Bundle().apply { putString("cmp_list", json) })).isNull()
+        }
+        assertThat(repository.refreshedApps).isEmpty()
+        assertThat(repository.requests).isEmpty()
+        assertThat(channel.quietConnectCount).isEqualTo(0)
     }
 
     @Test
-    fun givenNullPackageName_whenGetComponents_thenReturnsNull() {
-        assertThat(provider.call("getComponents", null, null)).isNull()
+    fun givenUntrustedUid_whenCalling_thenRejectsBeforeAnyWork() = runTest {
+        withContext(Dispatchers.IO) {
+            ShadowBinder.setCallingUid(Process.myUid() + 1)
+            try {
+                assertThrows(SecurityException::class.java) { provider.call("getComponents", PACKAGE_NAME, null) }
+                assertThrows(SecurityException::class.java) { provider.call("blocks", PACKAGE_NAME, input("A" to true)) }
+                assertThrows(SecurityException::class.java) { provider.call("unknown", null, null) }
+            } finally {
+                ShadowBinder.setCallingUid(Process.myUid())
+            }
+        }
+
+        assertThat(application.entryPointReads).isEqualTo(0)
+        assertThat(repository.refreshedApps).isEmpty()
+        assertThat(repository.requests).isEmpty()
+        assertThat(channel.quietConnectCount).isEqualTo(0)
+        assertThat(channel.connectCount).isEqualTo(0)
     }
 
     @Test
-    fun givenUnknownMethod_whenCalling_thenReturnsNull() {
-        assertThat(provider.call("unknown", "com.example.app", null)).isNull()
-    }
-
-    @Test
-    fun givenCmpListJson_whenBlocks_thenEachComponentIsControlledWithInvertedBlockFlag() {
-        val json = """
-            {"pkg":"com.example.app","components":[
-                {"type":"ignored","name":"com.example.app.A","block":true},
-                {"type":"ignored","name":"com.example.app.B","block":false}
-            ]}
-        """.trimIndent()
-
-        val result = provider.call("blocks", "com.example.app", Bundle().apply { putString("cmp_list", json) })
-
-        assertThat(repository.controls.map { it.component.name to it.newState }).containsExactly(
-            "com.example.app.A" to false,
-            "com.example.app.B" to true,
-        ).inOrder()
-        // The package comes from the call argument, not from "pkg" in the JSON, and the type is
-        // always ACTIVITY because the controller looks it up itself.
-        assertThat(repository.controls.map { it.component.packageName }.toSet()).containsExactly("com.example.app")
-        assertThat(repository.controls.map { it.component.type }.toSet()).containsExactly(ComponentType.ACTIVITY)
-        assertThat(analytics.enableStatisticsUpdates).isEmpty()
-        // The provider hands the request bundle back, although callers do not use it.
-        assertThat(result?.getString("cmp_list")).isEqualTo(json)
-    }
-
-    @Test
-    fun givenPackageArgumentDiffersFromJson_whenBlocks_thenCallArgumentWins() {
-        val json = """{"pkg":"com.other","components":[{"type":"t","name":"X","block":true}]}"""
-
-        provider.call("blocks", "com.example.app", Bundle().apply { putString("cmp_list", json) })
-
-        assertThat(repository.controls.single().component.packageName).isEqualTo("com.example.app")
-    }
-
-    @Test
-    fun givenMissingExtrasOrKey_whenBlocks_thenReturnsNullAndControlsNothing() {
-        assertThat(provider.call("blocks", "com.example.app", null)).isNull()
-        assertThat(provider.call("blocks", "com.example.app", Bundle())).isNull()
-        assertThat(provider.call("blocks", null, Bundle())).isNull()
-        assertThat(repository.controls).isEmpty()
-    }
-
-    @Test
-    fun givenMalformedJson_whenBlocks_thenReturnsNull() {
-        val result = provider.call("blocks", "com.example.app", Bundle().apply { putString("cmp_list", "not json") })
-
-        assertThat(result).isNull()
-        assertThat(repository.controls).isEmpty()
-    }
-
-    @Test
-    fun givenJsonWithUnknownKey_whenBlocks_thenReturnsNullBecauseDecodingIsStrict() {
-        val json = """{"pkg":"p","components":[],"extra":1}"""
-
-        val result = provider.call("blocks", "com.example.app", Bundle().apply { putString("cmp_list", json) })
-
-        assertThat(result).isNull()
-    }
-
-    @Test
-    fun givenComponentWithoutBlockKey_whenBlocks_thenReturnsNullBecauseNoFieldHasADefault() {
-        val json = """{"pkg":"p","components":[{"type":"t","name":"X"}]}"""
-
-        val result = provider.call("blocks", "com.example.app", Bundle().apply { putString("cmp_list", json) })
-
-        assertThat(result).isNull()
-        assertThat(repository.controls).isEmpty()
+    fun givenMainThread_whenCalling_thenDoesNotStartWork() {
+        assertThat(provider.call("getComponents", PACKAGE_NAME, null)).isNull()
+        assertThat(application.entryPointReads).isEqualTo(0)
     }
 
     @Test
     fun givenProviderInfo_whenReadingType_thenItIsTheComponentCursorItemType() {
-        assertThat(provider.getType(android.net.Uri.parse("content://x/y")))
+        assertThat(provider.getType(Uri.parse("content://x/y")))
             .isEqualTo("vnd.android.cursor.item/vnd.com.merxury.blocker.component")
     }
 
-    companion object {
-        lateinit var entryPoint: TestEntryPoint
+    private suspend fun call(method: String, arg: String?, extras: Bundle? = null): Bundle? = withContext(Dispatchers.IO) { provider.call(method, arg, extras) }
+
+    private suspend fun assertComponents(expected: String) {
+        val result = checkNotNull(call("getComponents", PACKAGE_NAME))
+        assertThat(result.keySet()).containsExactly("cmp_list")
+        assertThat(result.getString("cmp_list")).isEqualTo(expected)
+    }
+
+    private fun assertQuietConnect() {
+        assertThat(channel.quietConnectCount).isEqualTo(1)
+        assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    private fun seed(vararg components: ComponentStatus) = repository.sendComponents(OWN_USER, components.toList())
+
+    private fun status(
+        name: String,
+        pm: PmSetting = PmSetting.DEFAULT,
+        ifw: IfwBlock = IfwBlock.NOT_BLOCKED,
+        enabledInManifest: Boolean = true,
+        type: ComponentType = ComponentType.SERVICE,
+        packageName: String = PACKAGE_NAME,
+    ) = ComponentStatus(
+        ComponentDeclaration(ComponentId(packageName, "$packageName.$name"), type, exported = true, enabledInManifest = enabledInManifest),
+        ControlState(pm, ifw),
+    )
+
+    private fun input(vararg components: Pair<String, Boolean>): Bundle {
+        val entries = components.joinToString(",") { (name, block) ->
+            val className = if (name.isEmpty()) "" else "$PACKAGE_NAME.$name"
+            """{"type":"ignored","name":"$className","block":$block}"""
+        }
+        return Bundle().apply { putString("cmp_list", """{"pkg":"com.example.other","components":[$entries]}""") }
+    }
+
+    private companion object {
+        const val PACKAGE_NAME = "com.example.app"
+        const val EMPTY_JSON = """{"pkg":"com.example.app","components":[]}"""
+        const val TRACKER_JSON = """{"pkg":"com.example.app","components":[{"type":"com.example.app","name":"com.example.app.Tracker","block":true}]}"""
+        val OWN_USER = UserId(10)
+        val APP = AppKey(PACKAGE_NAME, OWN_USER)
+        val DENIED = ChannelState.Unavailable(UnavailableReason.DENIED)
     }
 }

@@ -130,7 +130,7 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
     }
 
     override suspend fun <R> execute(call: PrivilegedCall<R>): CallResult<R> {
-        if (state.value !is ChannelState.Ready) connect()
+        if (state.value !is ChannelState.Ready && permissionPromptsAllowed()) connect()
         return executeIfReady(call)
     }
 

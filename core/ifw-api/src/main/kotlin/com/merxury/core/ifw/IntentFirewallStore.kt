@@ -69,10 +69,11 @@ class IntentFirewallStore(
     private val mutableChanges = MutableSharedFlow<String>(extraBufferCapacity = CHANGE_BUFFER)
     override val changes: SharedFlow<String> = mutableChanges.asSharedFlow()
 
-    override suspend fun blocks(packageName: String, components: Collection<ComponentDeclaration>): Map<ComponentId, IfwBlock> {
+    override suspend fun blocks(packageName: String, components: Collection<ComponentDeclaration>, refresh: Boolean): Map<ComponentId, IfwBlock> {
         requireComponentsOf(packageName, components)
         if (components.none { it.type.isFilteredByIntentFirewall }) return components.associate { it.id to IfwBlock.NOT_BLOCKED }
-        val rules = cache[packageName] ?: withLock(packageName) {
+        val rules = cache[packageName]?.takeUnless { refresh } ?: withLock(packageName) {
+            if (refresh) cache.remove(packageName)
             cache[packageName] ?: when (val read = read(packageName, connect = false)) {
                 is IfwResult.Success -> read.value.rules
                 is IfwResult.Failure -> null

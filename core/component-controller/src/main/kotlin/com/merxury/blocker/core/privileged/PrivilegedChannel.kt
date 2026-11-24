@@ -18,7 +18,11 @@ package com.merxury.blocker.core.privileged
 
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
 
 /**
  * The privileged service Blocker reaches the system through: a root process, or Shizuku, as the
@@ -54,4 +58,16 @@ interface PrivilegedChannel {
      * limited time, answers that one su start as its settings say: by refusing, or with its prompt.
      */
     suspend fun connectIfGranted(): ChannelState
+}
+
+/**
+ * Runs work for a caller that cannot request permission. Nested reads, writes and retries
+ * inherit the restriction. Root calls in this scope can only reuse an active root process.
+ */
+suspend fun <T> withoutPermissionPrompts(block: suspend () -> T): T = withContext(NoPermissionPrompts) { block() }
+
+internal suspend fun permissionPromptsAllowed(): Boolean = currentCoroutineContext()[NoPermissionPrompts.Key] == null
+
+private object NoPermissionPrompts : AbstractCoroutineContextElement(Key) {
+    object Key : CoroutineContext.Key<NoPermissionPrompts>
 }

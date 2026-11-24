@@ -22,18 +22,44 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
+import android.os.Looper
 import android.os.Process
 import androidx.core.os.bundleOf
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
+import com.merxury.blocker.core.di.ApplicationScope
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.Availability
+import com.merxury.blocker.core.model.component.BlockReason
+import com.merxury.blocker.core.model.component.ComponentStatus
+import com.merxury.blocker.core.model.component.ControlLayer
+import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
+import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.system.ReadFailure
+import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.privileged.withoutPermissionPrompts
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -42,10 +68,18 @@ class ComponentProvider : ContentProvider() {
 
     @EntryPoint
     @InstallIn(SingletonComponent::class)
-    interface ComponentRepositoryEntryPoint {
-        fun componentRepository(): ComponentRepository
-
+    interface ProviderEntryPoint {
+        fun componentStatuses(): ComponentStatusRepository
+        fun selectedUsers(): SelectedUserRepository
+        fun controlLayers(): GetControlLayersUseCase
+        fun privilegedChannel(): PrivilegedChannel
         fun analyticsHelper(): AnalyticsHelper
+
+        @ApplicationScope
+        fun applicationScope(): CoroutineScope
+
+        @Dispatcher(IO)
+        fun ioDispatcher(): CoroutineDispatcher
     }
 
     private val callerVerifier: ProviderCallerVerifier by lazy {
@@ -59,8 +93,16 @@ class ComponentProvider : ContentProvider() {
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
         enforceTrustedCaller()
         return when (method) {
-            "getComponents" -> getBlockedComponents(arg)
-            "blocks" -> controlComponent(arg, extras)
+            "getComponents" -> arg?.let { packageName ->
+                runCall(method) { getBlockedComponents(packageName) }
+            }
+
+            "blocks" -> if (arg != null && extras != null) {
+                runCall(method) { controlComponents(arg, extras) }
+            } else {
+                null
+            }
+
             else -> null
         }
     }
@@ -75,62 +117,113 @@ class ComponentProvider : ContentProvider() {
         throw SecurityException("uid $callingUid is not allowed to call Blocker's ComponentProvider")
     }
 
-    private fun getBlockedComponents(packageName: String?): Bundle? = runBlocking {
-        if (packageName == null) return@runBlocking null
-        val appContext = context?.applicationContext ?: return@runBlocking null
-        val hintEntryPoint = EntryPointAccessors.fromApplication(
-            appContext,
-            ComponentRepositoryEntryPoint::class.java,
-        )
-        // Do not get data from the DB directly, because the data may be uninitialized
-        val repository = hintEntryPoint.componentRepository()
-        val blockedComponents = repository.getComponentList(packageName).first()
-            .filter { it.ifwBlocked || it.pmBlocked }
-            .map {
-                ShareCmpInfo.Component(
-                    it.packageName,
-                    it.name,
-                    block = true,
-                )
+    private fun runCall(method: String, work: suspend ProviderEntryPoint.() -> Bundle?): Bundle? {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            Timber.w("ComponentProvider.%s must be called off the main thread", method)
+            return null
+        }
+        return try {
+            val appContext = context?.applicationContext ?: return null
+            val entryPoint = EntryPointAccessors.fromApplication(appContext, ProviderEntryPoint::class.java)
+            // The Binder wait must end even if an in-flight write is finishing in NonCancellable.
+            val task = entryPoint.applicationScope().async(entryPoint.ioDispatcher()) {
+                withoutPermissionPrompts { entryPoint.work() }
             }
-        val returnJson = Json.encodeToString(ShareCmpInfo(packageName, blockedComponents))
-        return@runBlocking bundleOf("cmp_list" to returnJson)
+            try {
+                runBlocking { withTimeout(CALL_TIMEOUT_MILLIS) { task.await() } }
+            } finally {
+                task.cancel()
+            }
+        } catch (e: TimeoutCancellationException) {
+            Timber.w("ComponentProvider.%s timed out", method)
+            null
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Error in ComponentProvider.%s", method)
+            null
+        }
     }
 
-    private fun controlComponent(packageName: String?, data: Bundle?): Bundle? = runBlocking {
-        if (packageName == null || data == null) return@runBlocking null
-        val rawString = data.getString("cmp_list") ?: return@runBlocking null
-        val appContext = context?.applicationContext ?: return@runBlocking null
-        val hintEntryPoint = EntryPointAccessors.fromApplication(
-            appContext,
-            ComponentRepositoryEntryPoint::class.java,
-        )
-        val componentRepository = hintEntryPoint.componentRepository()
-        val analyticsHelper = hintEntryPoint.analyticsHelper()
-        try {
-            val shareCmpInfo = Json.decodeFromString<ShareCmpInfo>(rawString)
-            Timber.d("controlComponent: $shareCmpInfo")
-            shareCmpInfo.components.forEach { component ->
-                val blockerComponent = ComponentInfo(
-                    name = component.name,
-                    packageName = packageName,
-                    // The controller doesn't care about the type of the component
-                    // It will query internally, so we just set it to ACTIVITY
-                    // Just to avoid compilation error
-                    type = ACTIVITY,
-                )
-                componentRepository.controlComponent(
-                    blockerComponent,
-                    newState = !component.block,
-                ).first()
-                analyticsHelper.logControlComponentViaProvider(newState = !component.block)
+    private suspend fun ProviderEntryPoint.getBlockedComponents(packageName: String): Bundle {
+        val blocked = if (packageName.isBlank()) {
+            emptyList()
+        } else {
+            val app = AppKey(packageName, selectedUsers().ownUser)
+            val ready = privilegedChannel().connectIfGranted() is ChannelState.Ready
+            refreshComponents(app, preferCache = !ready).mapNotNull { status ->
+                val reasons = (status.availability as? Availability.Blocked)?.reasons.orEmpty()
+                if (BlockReason.PM_SETTING in reasons || BlockReason.IFW_RULE in reasons) {
+                    val id = status.declaration.id
+                    // The wire format carries the package name in "type".
+                    ShareCmpInfo.Component(id.packageName, id.className, block = true)
+                } else {
+                    null
+                }
             }
-            // Returned, but seems that it's not used.
-            return@runBlocking data
-        } catch (e: Exception) {
-            Timber.e(e, "Error in controlComponent")
-            return@runBlocking null
         }
+        return bundleOf("cmp_list" to Json.encodeToString(ShareCmpInfo(packageName, blocked)))
+    }
+
+    private suspend fun ProviderEntryPoint.refreshComponents(app: AppKey, preferCache: Boolean = false): List<ComponentStatus> {
+        val repository = componentStatuses()
+        val cached = repository.components(app).first()
+        val refreshed = try {
+            repository.refresh(app)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot refresh components of %s", app.packageName)
+            return cached
+        }
+        return when (val reason = (refreshed as? ReadResult.Failure)?.reason) {
+            is ReadFailure.PackageNotFound -> emptyList()
+
+            is ReadFailure.RulesUnreadable -> repository.components(app).first()
+
+            null -> if (preferCache && cached.isNotEmpty()) cached else repository.components(app).first()
+
+            else -> {
+                Timber.w("Cannot refresh components of %s: %s", app.packageName, reason)
+                cached.ifEmpty { repository.components(app).first() }
+            }
+        }
+    }
+
+    private suspend fun ProviderEntryPoint.controlComponents(packageName: String, data: Bundle): Bundle? {
+        val rawString = data.getString("cmp_list") ?: return null
+        val entries = Json.decodeFromString<ShareCmpInfo>(rawString).components
+        if (entries.isEmpty()) return data
+        val app = packageName.takeUnless(String::isBlank)?.let { AppKey(it, selectedUsers().ownUser) }
+        if (app != null) {
+            val declarations = refreshComponents(app).associate { it.declaration.id.className to it.declaration }
+            // A repeated class ends in the state asked for by its last entry.
+            val changes = entries.associate { it.name to it.block }.filterKeys { it in declarations }
+            if (changes.isNotEmpty()) {
+                if (privilegedChannel().connectIfGranted() !is ChannelState.Ready) return null
+                for (goal in listOf(ControlGoal.BLOCK, ControlGoal.ENABLE)) {
+                    val components = changes.filterValues { it == (goal == ControlGoal.BLOCK) }.keys.map(declarations::getValue)
+                    if (components.isEmpty()) continue
+                    val request = ControlRequest(app.userId, components, goal, controlLayers()(goal))
+                    val ownBlock = goal == ControlGoal.BLOCK && app.packageName == context?.packageName
+                    val failed = componentStatuses().control(request)
+                        .filterIsInstance<ControlEvent.PackageDone>()
+                        .fold(false) { failed, event -> failed || event.outcomes.any { it.failures.isControlException(ownBlock) } }
+                    if (failed) return null
+                }
+            }
+        }
+        // The old provider logged each input entry, including entries that made no change.
+        entries.forEach { analyticsHelper().logControlComponentViaProvider(newState = !it.block) }
+        return data
+    }
+
+    // A failed read-back or IFW write could return false in the old controller. PM exceptions
+    // and missing access returned null. Blocking our own components is now an explicit refusal.
+    private fun Map<ControlLayer, ControlFailure>.isControlException(ownBlock: Boolean): Boolean = ControlFailure.ChannelUnavailable in values || when (get(ControlLayer.PACKAGE_MANAGER)) {
+        is ControlFailure.NotPermitted -> !ownBlock
+        is ControlFailure.SystemError, is ControlFailure.TargetNotFound -> true
+        else -> false
     }
 
     override fun onCreate(): Boolean = true
@@ -167,4 +260,9 @@ class ComponentProvider : ContentProvider() {
     }
 
     override fun getType(uri: Uri): String = "vnd.android.cursor.item/vnd.com.merxury.blocker.component"
+
+    private companion object {
+        // One interactive wait for all work in a call, including both batches.
+        const val CALL_TIMEOUT_MILLIS = 5_000L
+    }
 }

@@ -42,6 +42,7 @@ import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.PrivilegedExecutor
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
+import com.merxury.blocker.core.privileged.permissionPromptsAllowed
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.isPackageRuleFileName
@@ -77,7 +78,7 @@ internal class PrivilegedComponentControl @Inject constructor(
 
     override fun apply(request: ControlRequest): Flow<ControlEvent> = flow {
         val packages = request.components.distinctBy { it.id }.groupBy { it.id.packageName }
-        if (packages.isNotEmpty() && channel.state.value !is ChannelState.Ready) {
+        if (packages.isNotEmpty() && channel.state.value !is ChannelState.Ready && permissionPromptsAllowed()) {
             Timber.i("Connect the privileged channel to ${request.goal} components")
             channel.connect()
         }

@@ -25,8 +25,8 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Brings the component list the app list and app detail screens still read up to date after a
- * restore or reset changed the system through the new repositories. That list holds only the user
+ * Brings the component list used by the global firewall editor and component details up to date
+ * after a restore or reset changed the system through the device repositories. The list holds only the user
  * Blocker runs in and reads the firewall through [IIntentFirewall], whose rule cache is dropped.
  */
 class LegacyComponentCache @Inject constructor(

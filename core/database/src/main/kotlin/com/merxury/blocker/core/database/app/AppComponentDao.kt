@@ -22,7 +22,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import androidx.room.Upsert
 import com.merxury.blocker.core.model.ComponentType
 import kotlinx.coroutines.flow.Flow
@@ -31,9 +30,6 @@ import kotlinx.coroutines.flow.Flow
 interface AppComponentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg appComponentEntities: AppComponentEntity)
-
-    @Update
-    suspend fun update(appComponentEntity: AppComponentEntity): Int
 
     @Delete
     suspend fun delete(appComponentEntity: AppComponentEntity): Int

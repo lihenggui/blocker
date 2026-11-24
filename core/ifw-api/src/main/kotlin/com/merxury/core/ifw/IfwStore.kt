@@ -86,8 +86,9 @@ interface IfwStore {
      * considered, a known limit.
      *
      * @param components components of [packageName]
+     * @param refresh read this package's rule file even when its rules are already cached
      */
-    suspend fun blocks(packageName: String, components: Collection<ComponentDeclaration>): Map<ComponentId, IfwBlock>
+    suspend fun blocks(packageName: String, components: Collection<ComponentDeclaration>, refresh: Boolean = false): Map<ComponentId, IfwBlock>
 
     /**
      * Blocks (true) or unblocks (false) components of one package in one read-modify-write.

@@ -36,6 +36,7 @@ import com.merxury.blocker.core.privileged.calls.ForceStop
 import com.merxury.blocker.core.privileged.calls.ReadWakeSource
 import com.merxury.blocker.core.privileged.encodeOutcome
 import com.merxury.blocker.core.privileged.unmarshallCall
+import com.merxury.blocker.core.privileged.withoutPermissionPrompts
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -54,7 +55,8 @@ class RootTransportTest {
     private val scope = TestScope()
     private val runner = FakeRootRunner()
     private val grants = FakeRootGrantMemory()
-    private val transport = RootTransport(runner, grants, StandardTestDispatcher(scope.testScheduler))
+    private var activeServer = true
+    private val transport = RootTransport(runner, grants, StandardTestDispatcher(scope.testScheduler)) { activeServer }
 
     @Test
     fun givenRootProcessRunsAsRoot_whenConnect_thenReadyRoot() = scope.runTest {
@@ -150,6 +152,31 @@ class RootTransportTest {
         assertThat(transport.executeIfReady(CALL)).isEqualTo(CallResult.Success(Unit))
         assertThat(runner.system.activityManager.forceStopped).hasSize(1)
         assertThat(runner.sent).isEqualTo(2)
+    }
+
+    @Test
+    fun givenRememberedGrantWithoutAServer_whenPermissionPromptsAreForbidden_thenNeverStartsSu() = scope.runTest {
+        grants.remembered = true
+        activeServer = false
+
+        withoutPermissionPrompts {
+            assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Unavailable(UnavailableReason.DENIED))
+            assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        }
+
+        assertThat(runner.sent).isEqualTo(0)
+        assertThat(grants.remembered).isTrue()
+    }
+
+    @Test
+    fun givenServerLostAfterQuietConnect_whenWriting_thenDoesNotReconnect() = scope.runTest {
+        withoutPermissionPrompts {
+            assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+            activeServer = false
+            assertThat(transport.execute(CALL)).isEqualTo(CallResult.Failure(CallFailure.ChannelUnavailable))
+        }
+
+        assertThat(runner.sent).isEqualTo(1)
     }
 
     @Test

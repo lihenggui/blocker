@@ -36,10 +36,6 @@ class TestComponentRepository : ComponentRepository {
         it.find { componentInfo -> componentInfo.name == name }
     }
 
-    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = componentList.map {
-        it.filter { componentInfo -> componentInfo.packageName == packageName }
-    }
-
     override fun getComponentList(
         packageName: String,
         type: ComponentType,
@@ -50,11 +46,6 @@ class TestComponentRepository : ComponentRepository {
     override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
-
-    override fun controlComponent(
-        component: ComponentInfo,
-        newState: Boolean,
-    ): Flow<Boolean> = flowOf(true)
 
     override suspend fun saveComponents(components: List<ComponentInfo>) {
         componentList.emit(components)

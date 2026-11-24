@@ -29,12 +29,11 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Fills the old app and component tables, which the parts not yet moved to the device
- * repositories read: the global firewall rules, the component content provider,
- * rule import and reset through LegacyComponentCache, and the one-time seeding of the
- * record of Blocker's PackageManager blocks. The app list filled them before
- * it moved; the general rules and the rule detail no longer read them. Delete this class once
- * the last reader of the old tables has moved to the device repositories.
+ * Fills the old app and component tables. The global firewall editor uses the component
+ * list, user-generated component details look up components in it, and LegacyComponentCache
+ * refreshes it after rule import or reset. The one-time seed of Blocker's PackageManager
+ * blocks also reads the component table on upgrade. Delete this class once the last reader
+ * of the old tables has moved to the device repositories.
  */
 class LegacyAppTables @Inject constructor(
     private val appRepository: AppRepository,

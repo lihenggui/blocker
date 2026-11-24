@@ -26,11 +26,15 @@ android {
 dependencies {
     implementation(projects.core.analytics)
     implementation(projects.core.common)
+    implementation(projects.core.componentController)
     implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.core.model)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.timber)
 
+    testImplementation(projects.core.dataTest)
+    testImplementation(projects.core.datastoreTest)
     testImplementation(projects.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)

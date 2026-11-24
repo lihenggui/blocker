@@ -34,6 +34,7 @@ import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.identityOfUid
 import com.merxury.blocker.core.privileged.lostReason
 import com.merxury.blocker.core.privileged.marshallCall
+import com.merxury.blocker.core.privileged.permissionPromptsAllowed
 import com.merxury.blocker.core.root.BlockerRootSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -71,6 +72,7 @@ internal class RootTransport(
     private val runner: RootCommandRunner,
     private val grants: RootGrantMemory,
     private val ioDispatcher: CoroutineDispatcher,
+    private val hasActiveServer: () -> Boolean,
 ) : AbstractPrivilegedTransport() {
 
     @Inject constructor(
@@ -79,10 +81,16 @@ internal class RootTransport(
         @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
     ) : this(
         RootCommandRunner { command ->
-            rootSession.use { server -> server.execute(command, RootCallCommand::class.java.classLoader) }
+            if (permissionPromptsAllowed()) {
+                rootSession.use { server -> server.execute(command, RootCallCommand::class.java.classLoader) }
+            } else {
+                val server = rootSession.activeServer ?: throw PrivilegedProcessUnavailableException("No active root process")
+                server.execute(command, RootCallCommand::class.java.classLoader)
+            }
         },
         grants,
         ioDispatcher,
+        { rootSession.activeServer != null },
     )
 
     override suspend fun acquire(): ChannelState = startRootProcess().also {
@@ -90,12 +98,19 @@ internal class RootTransport(
     }
 
     override suspend fun acquireIfGranted(): ChannelState {
+        if (!permissionPromptsAllowed()) {
+            return if (hasActiveServer()) acquire() else ChannelState.Unavailable(UnavailableReason.DENIED)
+        }
         if (!grants.isRemembered()) {
             Timber.i("su has not given Blocker a root process before; not asking without a prompt")
             return ChannelState.Unavailable(UnavailableReason.DENIED)
         }
         return acquire()
     }
+
+    override suspend fun connectIfGranted(): ChannelState = if (permissionPromptsAllowed() || hasActiveServer()) super.connectIfGranted() else ChannelState.Unavailable(UnavailableReason.DENIED)
+
+    override suspend fun checkedState(): ChannelState = if (permissionPromptsAllowed() || hasActiveServer()) super.checkedState() else ChannelState.Unavailable(UnavailableReason.DENIED)
 
     private suspend fun startRootProcess(): ChannelState = try {
         when (val result = sendOnce(CallerUid)) {
@@ -120,7 +135,7 @@ internal class RootTransport(
         sendOnce(call)
     } catch (e: ChannelLostException) {
         // A refused su would refuse again.
-        if (e.reason == UnavailableReason.DENIED) throw e
+        if (e.reason == UnavailableReason.DENIED || !permissionPromptsAllowed()) throw e
         // It may already have reached the system; the caller decides what to do.
         if (!call.retryable) throw PrivilegedProcessUnavailableException("The root process went away while running $call", e)
         Timber.w(e, "The root process went away; sending $call again on a new one")
