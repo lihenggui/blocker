@@ -61,6 +61,7 @@ class UserAndAppCacheTest : ComponentCacheTestBase() {
             versionName = "2.1",
             versionCode = 21_000_000_000,
             isSystem = true,
+            enabled = false,
             enabledSetting = AppEnabledSetting.DISABLED_USER,
             apkPath = null,
             firstInstallTime = Instant.fromEpochMilliseconds(123),

@@ -71,7 +71,7 @@ class FakeInstalledAppRepository @Inject constructor() : InstalledAppRepository 
         callFailure?.let { return CallResult.Failure(it) }
         val app = cached.value[key] ?: return CallResult.Failure(CallFailure.TargetNotFound("$key is not installed"))
         val setting = if (enabled) AppEnabledSetting.ENABLED else AppEnabledSetting.DISABLED_USER
-        cached.update { it + (key to app.copy(enabledSetting = setting)) }
+        cached.update { it + (key to app.copy(enabled = enabled, enabledSetting = setting)) }
         return CallResult.Success(setting)
     }
 

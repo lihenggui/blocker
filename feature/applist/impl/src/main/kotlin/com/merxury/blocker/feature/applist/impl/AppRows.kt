@@ -33,14 +33,17 @@ import com.merxury.blocker.core.ui.coil.ApkIcon
  * chose, with the apps the user picked kept on top.
  *
  * @param running the package names running in that user, or null when that cannot be read
+ * @param self Blocker in the user it runs in, which is left out: changing it from here could only
+ * break the app in use. A copy of Blocker in another user is listed like any app.
  */
 internal fun appRows(
     apps: List<InstalledApp>,
     running: Set<String>?,
     services: Map<AppKey, ServiceCounts>,
     preferences: UserPreferenceData,
+    self: AppKey,
 ): List<AppRow> = apps
-    .filter { preferences.showSystemApps || !it.isSystem }
+    .filter { it.key != self && (preferences.showSystemApps || !it.isSystem) }
     .sortedWith(appOrder(preferences.appSorting, preferences.appSortingOrder))
     .map { app ->
         AppRow(
@@ -49,7 +52,7 @@ internal fun appRows(
             versionName = app.versionName,
             versionCode = app.versionCode,
             icon = ApkIcon(app.key.packageName, app.apkPath, app.versionCode, app.uid),
-            isDisabled = app.enabledSetting.isDisabled,
+            isDisabled = !app.enabled,
             isRunning = running?.let { app.key.packageName in it },
             services = if (preferences.showServiceInfo) services[app.key] else null,
         )

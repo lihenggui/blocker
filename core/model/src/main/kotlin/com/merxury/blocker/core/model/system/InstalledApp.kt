@@ -27,6 +27,11 @@ import kotlin.time.Instant
  *
  * @property uid the app's Linux uid in the user in [key], which differs between users, or null when
  * the system does not report it
+ * @property enabled whether the app is enabled for the user in [key], as the system decides from
+ * [enabledSetting] and, while that is [AppEnabledSetting.DEFAULT], the manifest's
+ * `android:enabled`
+ * @property enabledSetting the override set for the user in [key], which says why the app is
+ * enabled or not
  * @property apkPath the base APK, or null when the system does not report one
  */
 data class InstalledApp(
@@ -36,6 +41,7 @@ data class InstalledApp(
     val versionName: String,
     val versionCode: Long,
     val isSystem: Boolean,
+    val enabled: Boolean,
     val enabledSetting: AppEnabledSetting,
     val apkPath: String?,
     val firstInstallTime: Instant,

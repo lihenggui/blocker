@@ -24,6 +24,7 @@ import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.AppKey
@@ -73,7 +74,9 @@ class AppListViewModel @Inject internal constructor(
     userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
+    @AppPackageName appPackageName: String,
 ) : ViewModel() {
+    private val self = AppKey(appPackageName, selectedUsers.ownUser)
     private val refreshes = MutableStateFlow<Map<UserId, RefreshStatus>>(emptyMap())
 
     // What the system last answered for each user; absent when it could not be read.
@@ -106,7 +109,7 @@ class AppListViewModel @Inject internal constructor(
             profiles = users.map { it.toProfileTab() },
             apps = when {
                 cached || selected.refresh == RefreshStatus.Done ->
-                    AppsUiState.Loaded(appRows(selected.apps, selected.running, counts, preferences))
+                    AppsUiState.Loaded(appRows(selected.apps, selected.running, counts, preferences, self))
 
                 selected.refresh is RefreshStatus.Failed -> AppsUiState.Error(selected.refresh.failure)
 

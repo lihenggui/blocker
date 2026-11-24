@@ -92,6 +92,7 @@ class PlatformSystemPackageReaderTest {
                     targetSdkVersion = 34
                     uid = 10_123
                     nonLocalizedLabel = "Example"
+                    enabled = false
                 }
             },
         )
@@ -105,6 +106,7 @@ class PlatformSystemPackageReaderTest {
         assertThat(app.versionName).isEqualTo("1.2")
         assertThat(app.versionCode).isEqualTo(12)
         assertThat(app.isSystem).isTrue()
+        assertThat(app.enabled).isFalse()
         assertThat(app.enabledSetting).isEqualTo(AppEnabledSetting.DISABLED_USER)
         assertThat(app.apkPath).isEqualTo("/data/app/example/base.apk")
         assertThat(app.firstInstallTime).isEqualTo(Instant.fromEpochMilliseconds(1_000))
@@ -133,6 +135,20 @@ class PlatformSystemPackageReaderTest {
         assertThat(app.apkPath).isNull()
         assertThat(app.uid).isNull()
         assertThat(app.isSystem).isFalse()
+        assertThat(app.enabled).isTrue()
+    }
+
+    @Test
+    fun givenManifestDisabledAppWithoutOverride_whenReadApps_thenDisabledWithDefaultSetting() = scope.runTest {
+        platform.install(
+            OWNER,
+            packageInfo(PKG) { applicationInfo!!.enabled = false },
+        )
+
+        val app = reader.apps(OWNER).getOrNull()!!.single()
+
+        assertThat(app.enabled).isFalse()
+        assertThat(app.enabledSetting).isEqualTo(AppEnabledSetting.DEFAULT)
     }
 
     @Test

@@ -57,6 +57,7 @@ internal fun installedApp(
     versionName = "1.2.3",
     versionCode = 123,
     isSystem = isSystem,
+    enabled = true,
     enabledSetting = AppEnabledSetting.DEFAULT,
     apkPath = null,
     firstInstallTime = Instant.fromEpochMilliseconds(0),

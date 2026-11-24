@@ -45,6 +45,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlin.time.Instant
 
 internal val OWNER = UserId(0)
+
+/** The package name the view model is told Blocker has. */
+internal const val SELF_PACKAGE = "com.merxury.blocker.test"
 internal val WORK = UserId(10)
 
 internal val ownerUser = DeviceUser(OWNER, name = "Owner", kind = UserKind.OWNER, parent = null, running = true)
@@ -56,6 +59,7 @@ internal fun installedApp(
     label: String = packageName,
     isSystem: Boolean = false,
     enabledSetting: AppEnabledSetting = AppEnabledSetting.DEFAULT,
+    enabled: Boolean = !enabledSetting.isDisabled,
     firstInstallTime: Long = 1_000,
     lastUpdateTime: Long = 2_000,
 ) = InstalledApp(
@@ -65,6 +69,7 @@ internal fun installedApp(
     versionName = "1.0",
     versionCode = 1,
     isSystem = isSystem,
+    enabled = enabled,
     enabledSetting = enabledSetting,
     apkPath = "/data/app/$packageName/base.apk",
     firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
@@ -110,6 +115,7 @@ internal class AppListFixture(dispatcher: CoroutineDispatcher) {
         userDataRepository = userData,
         analyticsHelper = analytics,
         cpuDispatcher = dispatcher,
+        appPackageName = SELF_PACKAGE,
     )
 
     /** The rows shown, or fails when the list is not loaded. */

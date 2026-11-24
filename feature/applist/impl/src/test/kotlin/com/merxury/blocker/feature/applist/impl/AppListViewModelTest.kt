@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.applist.impl
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
@@ -81,7 +82,7 @@ class AppListViewModelTest {
 
         val state = viewModel.uiState.value
         assertThat(state.showProfileSwitcher).isFalse()
-        assertThat(state.canOpenDetail).isTrue()
+        assertThat(state.selectedUser).isEqualTo(state.ownUser)
         assertThat(fixture.rows().map { it.label }).containsExactly("A")
     }
 
@@ -127,7 +128,6 @@ class AppListViewModelTest {
 
         val state = viewModel.uiState.value
         assertThat(state.selectedUser).isEqualTo(WORK)
-        assertThat(state.canOpenDetail).isFalse()
         assertThat(state.showProfileSwitcher).isTrue()
         assertThat(fixture.rows().map { it.label }).containsExactly("C", "B").inOrder()
         assertThat(fixture.installedApps.calls.count { it == "refresh 10" }).isEqualTo(1)
@@ -344,5 +344,50 @@ class AppListViewModelTest {
         collectState()
 
         assertThat(fixture.rows().map { it.label to it.isDisabled }).containsExactly("B" to true, "A" to false).inOrder()
+    }
+
+    @Test
+    fun givenBlockerInstalledForItsOwnUser_whenCollected_thenLeftOut() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp(SELF_PACKAGE, label = "Blocker"), installedApp("com.a", label = "A")))
+        collectState()
+
+        assertThat(fixture.rows().map { it.label }).containsExactly("A")
+    }
+
+    @Test
+    fun givenBlockerInstalledInWorkProfile_whenWorkSelected_thenListed() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.installedApps.sendApps(listOf(installedApp(SELF_PACKAGE, label = "Blocker"), installedApp(SELF_PACKAGE, WORK, "Blocker")))
+        collectState()
+
+        viewModel.selectUser(WORK)
+
+        assertThat(fixture.rows().map { it.key }).containsExactly(AppKey(SELF_PACKAGE, WORK))
+    }
+
+    @Test
+    fun givenManifestDisabledAppWithoutOverride_whenCollected_thenShownDisabled() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", enabledSetting = AppEnabledSetting.DEFAULT, enabled = false)))
+        collectState()
+
+        assertThat(fixture.rows().single().isDisabled).isTrue()
+    }
+
+    @Test
+    fun givenManifestDisabledAppWithEnabledOverride_whenCollected_thenShownEnabled() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", enabledSetting = AppEnabledSetting.ENABLED, enabled = true)))
+        collectState()
+
+        assertThat(fixture.rows().single().isDisabled).isFalse()
+    }
+
+    @Test
+    fun givenManifestDisabledApp_whenEnabled_thenShownEnabledFromTheFreshRead() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", enabledSetting = AppEnabledSetting.DEFAULT, enabled = false)))
+        collectState()
+
+        viewModel.setEnabled(AppKey("com.a", OWNER), enabled = true)
+
+        assertThat(fixture.rows().single().isDisabled).isFalse()
     }
 }
