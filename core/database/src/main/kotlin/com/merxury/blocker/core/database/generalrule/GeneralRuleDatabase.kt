@@ -16,13 +16,23 @@
 
 package com.merxury.blocker.core.database.generalrule
 
+import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteColumn
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
 import com.merxury.blocker.core.database.util.ListConverter
 
-@Database(entities = [GeneralRuleEntity::class], version = 3)
+@Database(
+    entities = [GeneralRuleEntity::class],
+    version = 4,
+    autoMigrations = [AutoMigration(from = 3, to = 4, spec = RemoveMatchedAppCount::class)],
+)
 @TypeConverters(ListConverter::class)
 internal abstract class GeneralRuleDatabase : RoomDatabase() {
     abstract fun generalRuleDao(): GeneralRuleDao
 }
+
+@DeleteColumn(tableName = "general_rules", columnName = "matchedAppCount")
+internal class RemoveMatchedAppCount : AutoMigrationSpec
