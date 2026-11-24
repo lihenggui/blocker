@@ -20,7 +20,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.appcontrol.AppControl
-import com.merxury.blocker.core.appcontrol.ServiceControl
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.RuleBaseFolder
@@ -45,8 +44,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.control.ComponentAction
-import com.merxury.blocker.core.ui.control.ComponentActionFailed
+import com.merxury.blocker.core.ui.control.ActivityLaunchFailed
 import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.QueuedControlMessage
 import com.merxury.blocker.core.ui.control.batchSummary
@@ -107,7 +105,6 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val controlComponent: ControlComponentUseCase,
     private val layersFor: GetControlLayersUseCase,
     private val appControl: AppControl,
-    private val serviceControl: ServiceControl,
     private val channel: PrivilegedChannel,
     userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
@@ -122,7 +119,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val sortType = MutableStateFlow(RuleDetailSortType.NAME)
     private val singles = MutableStateFlow<Set<ComponentKey>>(emptySet())
     private val messages = MutableStateFlow<List<QueuedControlMessage>>(emptyList())
-    private val actionFailure = MutableStateFlow<ComponentActionFailed?>(null)
+    private val actionFailure = MutableStateFlow<ActivityLaunchFailed?>(null)
     private var nextMessageId = 0L
 
     private val rule: Flow<GeneralRule> = ruleRepository.getGeneralRule(id).map { rule ->
@@ -249,17 +246,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         val result = appControl.startActivity(activity)
         if (result is CallResult.Failure) {
             Timber.w("Cannot launch $activity: ${result.reason}")
-            actionFailure.value = ComponentActionFailed.of(ComponentAction.LAUNCH_ACTIVITY, activity.id.simpleName, result.reason)
-        }
-    }
-
-    /** Stops [service], for the user of its row. */
-    fun stopService(service: ComponentKey) = viewModelScope.launch {
-        analyticsHelper.logStopServiceClicked()
-        val result = serviceControl.stop(service)
-        if (result is CallResult.Failure) {
-            Timber.w("Cannot stop $service: ${result.reason}")
-            actionFailure.value = ComponentActionFailed.of(ComponentAction.STOP_SERVICE, service.id.simpleName, result.reason)
+            actionFailure.value = ActivityLaunchFailed.of(activity.id.simpleName, result.reason)
         }
     }
 
@@ -319,7 +306,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         val inFlight: Set<ComponentId>,
         val batch: ProcessingProgress?,
         val messages: List<QueuedControlMessage>,
-        val actionFailure: ComponentActionFailed?,
+        val actionFailure: ActivityLaunchFailed?,
     )
 
     private companion object {

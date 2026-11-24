@@ -17,15 +17,18 @@
 package com.merxury.blocker.feature.ruledetail.impl
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType
@@ -132,5 +135,27 @@ class RuleMatchedAppListTest {
         composeTestRule.onNodeWithText("Work app").performClick()
 
         composeTestRule.onNode(isToggleable()).assertIsOff()
+    }
+
+    @Test
+    fun givenAService_whenItsMenuIsOpened_thenNeitherARunningMarkerNorStopAreOffered() {
+        // As before this screen read the cache: it never read which services run.
+        composeTestRule.setContent {
+            BlockerTheme {
+                RuleMatchedAppList(
+                    ruleMatchedAppListUiState = MatchedAppsUiState.Loaded(
+                        listOf(workApp.copy(rows = listOf(ComponentRow(component, ComponentType.SERVICE, enabled = true)))),
+                    ),
+                    actions = actions,
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("Work app").performClick()
+
+        composeTestRule.onNodeWithText(component.simpleName).performTouchInput { longClick() }
+
+        composeTestRule.onNodeWithText(text(uiString.core_ui_copy_name)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_stop_service)).assertDoesNotExist()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_running)).assertDoesNotExist()
     }
 }

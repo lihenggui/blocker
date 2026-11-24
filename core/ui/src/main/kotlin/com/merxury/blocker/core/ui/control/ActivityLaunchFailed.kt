@@ -23,26 +23,19 @@ import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.ui.R.string
 
 /**
- * Launching an activity or stopping a service, called [name], failed.
+ * Launching the activity called [name] failed.
  *
  * @property needsAccess whether there was no root or Shizuku access, so the message offers to
  * grant it
  */
-data class ComponentActionFailed(
-    val action: ComponentAction,
+data class ActivityLaunchFailed(
     val name: String,
     val needsAccess: Boolean,
 ) {
     companion object {
-        /** The failure of [action] on the component called [name] for the reason the system gave. */
-        fun of(action: ComponentAction, name: String, reason: CallFailure) = ComponentActionFailed(action, name, needsAccess = reason == CallFailure.ChannelUnavailable)
+        /** The failure to launch the activity called [name] for the reason the system gave. */
+        fun of(name: String, reason: CallFailure) = ActivityLaunchFailed(name, needsAccess = reason == CallFailure.ChannelUnavailable)
     }
-}
-
-/** What can be done to one running component from its menu. */
-enum class ComponentAction {
-    LAUNCH_ACTIVITY,
-    STOP_SERVICE,
 }
 
 /**
@@ -50,13 +43,7 @@ enum class ComponentAction {
  * access when its lack was the cause.
  */
 @Composable
-fun ComponentActionFailed.text(): String {
-    val title = when (action) {
-        ComponentAction.LAUNCH_ACTIVITY -> stringResource(string.core_ui_launch_failed, name)
-        ComponentAction.STOP_SERVICE -> stringResource(string.core_ui_stop_failed, name)
-    }
-    return withAccessHint(title, needsAccess)
-}
+fun ActivityLaunchFailed.text(): String = withAccessHint(stringResource(string.core_ui_launch_failed, name), needsAccess)
 
 /**
  * Shows [failure] in a snackbar for its whole duration, with an action to grant access when
@@ -65,8 +52,8 @@ fun ComponentActionFailed.text(): String {
  * @param onShow called once the failure is no longer shown
  */
 @Composable
-fun ComponentActionFailedSnackbar(
-    failure: ComponentActionFailed?,
+fun ActivityLaunchFailedSnackbar(
+    failure: ActivityLaunchFailed?,
     snackbarHostState: SnackbarHostState,
     onShow: () -> Unit,
     onGrantAccess: () -> Unit,

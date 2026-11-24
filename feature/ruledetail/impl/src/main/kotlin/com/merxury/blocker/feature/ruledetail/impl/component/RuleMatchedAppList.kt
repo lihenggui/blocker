@@ -50,7 +50,6 @@ import com.merxury.blocker.feature.ruledetail.impl.MatchedAppsUiState
 class MatchedAppActions(
     /** A component's switch was turned; true means on. */
     val onSwitch: (ComponentKey, Boolean) -> Unit = { _, _ -> },
-    val onStopService: (ComponentKey) -> Unit = {},
     val onLaunchActivity: (ComponentKey) -> Unit = {},
     val onCopyName: (String) -> Unit = {},
     val onCopyFullName: (String) -> Unit = {},
@@ -113,7 +112,6 @@ private fun MatchedComponentItem(
         type = row.type,
         isServiceRunning = row.isRunning,
         inFlight = inFlight,
-        onStopServiceClick = { actions.onStopService(key) },
         onLaunchActivityClick = { actions.onLaunchActivity(key) },
         onCopyNameClick = { actions.onCopyName(row.id.simpleName) },
         onCopyFullNameClick = { actions.onCopyFullName(row.id.className) },

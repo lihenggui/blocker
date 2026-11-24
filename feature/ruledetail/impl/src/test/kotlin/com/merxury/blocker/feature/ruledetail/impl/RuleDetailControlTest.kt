@@ -270,11 +270,9 @@ class RuleDetailControlTest {
 
         viewModel.setEnabled(ComponentKey(openA, OWNER), enabled = false)
         viewModel.launchActivity(ComponentKey(openA, OWNER))
-        viewModel.stopService(ComponentKey(openA, OWNER))
         settle()
 
         assertThat(fixture.components.requests.single().user).isEqualTo(OWNER)
         assertThat(fixture.appControl.calls.single()).contains("UserId(value=0)")
-        assertThat(fixture.serviceControl.stopped.single().userId).isEqualTo(OWNER)
     }
 }

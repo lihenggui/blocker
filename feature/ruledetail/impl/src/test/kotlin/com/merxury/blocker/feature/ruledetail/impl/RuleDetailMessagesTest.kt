@@ -30,9 +30,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.control.ComponentAction
-import com.merxury.blocker.core.ui.control.ComponentActionFailed
-import com.merxury.blocker.core.ui.control.ComponentActionFailedSnackbar
+import com.merxury.blocker.core.ui.control.ActivityLaunchFailed
+import com.merxury.blocker.core.ui.control.ActivityLaunchFailedSnackbar
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.Test
@@ -41,7 +40,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import com.merxury.blocker.core.ui.R.string as uiString
 
-/** A failed launch or stop is told in the app detail's words, offering access when it was missing. */
+/** A failed launch is told in the app detail's words, offering access when it was missing. */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltTestApplication::class)
 class RuleDetailMessagesTest {
@@ -51,13 +50,13 @@ class RuleDetailMessagesTest {
     private var granted = 0
     private var shown = 0
 
-    private fun show(failure: ComponentActionFailed) {
+    private fun show(failure: ActivityLaunchFailed) {
         composeTestRule.setContent {
             val hostState = remember { SnackbarHostState() }
-            var current by remember { mutableStateOf<ComponentActionFailed?>(failure) }
+            var current by remember { mutableStateOf<ActivityLaunchFailed?>(failure) }
             BlockerTheme {
                 SnackbarHost(hostState)
-                ComponentActionFailedSnackbar(
+                ActivityLaunchFailedSnackbar(
                     failure = current,
                     snackbarHostState = hostState,
                     onShow = {
@@ -74,7 +73,7 @@ class RuleDetailMessagesTest {
 
     @Test
     fun givenNoAccess_whenALaunchFails_thenTheAppDetailTextAndTheAccessHintAreShown() {
-        show(ComponentActionFailed(ComponentAction.LAUNCH_ACTIVITY, "MainActivity", needsAccess = true))
+        show(ActivityLaunchFailed("MainActivity", needsAccess = true))
 
         composeTestRule.onNodeWithText("${text(uiString.core_ui_launch_failed, "MainActivity")}\n${text(uiString.core_ui_reason_no_access)}").assertIsDisplayed()
         composeTestRule.onNodeWithText(text(uiString.core_ui_grant_access)).performClick()
@@ -85,10 +84,10 @@ class RuleDetailMessagesTest {
     }
 
     @Test
-    fun givenNotPermitted_whenAStopFails_thenOnlyTheAppDetailTextIsShown() {
-        show(ComponentActionFailed(ComponentAction.STOP_SERVICE, "SyncService", needsAccess = false))
+    fun givenNotPermitted_whenALaunchFails_thenOnlyTheAppDetailTextIsShown() {
+        show(ActivityLaunchFailed("MainActivity", needsAccess = false))
 
-        composeTestRule.onNodeWithText(text(uiString.core_ui_stop_failed, "SyncService")).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_launch_failed, "MainActivity")).assertIsDisplayed()
         assertThat(composeTestRule.onAllNodesWithText(text(uiString.core_ui_grant_access)).fetchSemanticsNodes()).isEmpty()
     }
 }
