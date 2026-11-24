@@ -24,6 +24,7 @@ import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
@@ -123,6 +124,8 @@ interface ComponentControl {
      * packages, and the flow never throws except for cancellation.
      *
      * The [ControlLayer]s to set or clear come from the request for every goal; see [ComponentControl].
+     * [writeObserver] can decline to start a package's writes and receives acknowledgments
+     * as writes complete, before read-back.
      */
-    fun apply(request: ControlRequest): Flow<ControlEvent>
+    fun apply(request: ControlRequest, writeObserver: ComponentWriteObserver? = null): Flow<ControlEvent>
 }

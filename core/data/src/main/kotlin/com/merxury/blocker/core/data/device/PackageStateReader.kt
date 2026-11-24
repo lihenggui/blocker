@@ -113,6 +113,7 @@ internal class PackageStateReader @Inject constructor(
         automatic: Boolean = false,
         previous: AppEntity? = null,
         forceDeclarations: Boolean = false,
+        requireFirewall: Boolean = false,
     ): PackageRefresh {
         val packageName = key.packageName
         val failures = listOfNotNull(appFailure).toMutableList()
@@ -174,7 +175,7 @@ internal class PackageStateReader @Inject constructor(
         }
         val ifwReadable = channel.state.value.allowsFirewallReads
         val ifw = readIfw(packageName, declarations, refresh = forceDeclarations)
-        if (ifw == null && (ifwWasReadable || ifwReadable || channel.state.value.allowsFirewallReads)) {
+        if (ifw == null && (requireFirewall || ifwWasReadable || ifwReadable || channel.state.value.allowsFirewallReads)) {
             val failure = ReadFailure.RulesUnreadable(packageName)
             if (automatic) return aborted(failure)
             failures += failure
@@ -218,8 +219,10 @@ internal class PackageStateReader @Inject constructor(
     suspend fun refreshIfw(packageName: String) {
         val declarations = dao.getDeclarations(packageName).map { it.asExternalModel() }
         if (declarations.isEmpty()) return
-        val ifw = readIfw(packageName, declarations)
-        if (ifw == null) Timber.w("Cannot read the changed IFW rules of $packageName, store them as unknown")
+        val ifw = readIfw(packageName, declarations) ?: run {
+            Timber.w("Cannot read the changed IFW rules of $packageName, keep the cached state")
+            return
+        }
         withContext(NonCancellable) { dao.upsertIfwBlocks(packageName, ifwBlocksOf(declarations, ifw)) }
     }
 

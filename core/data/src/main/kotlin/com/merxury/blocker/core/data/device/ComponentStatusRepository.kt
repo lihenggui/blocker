@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
@@ -107,6 +108,13 @@ interface ComponentStatusRepository {
     suspend fun refresh(app: AppKey): ReadResult<Unit>
 
     /**
+     * Re-reads the app using the automatic refresh policy. Failed reads preserve the cached
+     * state, and confirmed removals evict it. Set [requireFirewall] after establishing access
+     * with an identity that can read firewall rules.
+     */
+    suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit>
+
+    /**
      * Refreshes the apps of [user], then the components of each app a few apps at a time. It can
      * reuse declarations already scanned for the current revision. A failed app does not stop
      * the others. Cancelling the collection stops between reads, and a package whose writes have
@@ -134,7 +142,14 @@ interface ComponentStatusRepository {
      * they end [com.merxury.blocker.core.model.control.ControlResult.FAILED] as not permitted,
      * without a change and with the cached state, and count as failed in the last event.
      */
-    fun control(request: ControlRequest): Flow<ControlEvent>
+    fun control(request: ControlRequest): Flow<ControlEvent> = control(request, keepKnownState = false)
+
+    /**
+     * Runs [control], optionally keeping the cached value of a layer whose read-back failed.
+     * [writeObserver] can decline to start a package's writes and receives acknowledgments as
+     * writes complete.
+     */
+    fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver? = null): Flow<ControlEvent>
 
     /**
      * The components Blocker disabled through PackageManager for [user] that are still

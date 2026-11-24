@@ -91,17 +91,25 @@ class IntentFirewallStore(
     override suspend fun setBlocked(
         packageName: String,
         changes: Map<ComponentDeclaration, Boolean>,
+        onWrite: ((Collection<ComponentId>) -> Unit)?,
     ): IfwResult<Map<ComponentId, IfwBlock>> {
         requireComponentsOf(packageName, changes.keys)
         val providers = changes.keys.filterNot { it.type.isFilteredByIntentFirewall }.associate { it.id to IfwBlock.NOT_BLOCKED }
         val filtered = changes.filterKeys { it.type.isFilteredByIntentFirewall }
         if (filtered.isEmpty()) return IfwResult.Success(providers)
         Timber.i("Set IFW block of ${filtered.size} components of $packageName")
+        val written = if (onWrite != null) mutableSetOf<ComponentId>() else null
         val result = modify(packageName) { current ->
-            filtered.entries.fold(current) { rules, (component, blocked) -> rules.withBlocked(component, blocked) }
+            filtered.entries.fold(current) { rules, (component, blocked) ->
+                rules.withBlocked(component, blocked).also { if (it !== rules) written?.add(component.id) }
+            }.also { if (written != null && it == current) written.clear() }
         }
         return when (result) {
-            is IfwResult.Success -> IfwResult.Success(providers + filtered.keys.associate { it.id to result.value.blockOf(it) })
+            is IfwResult.Success -> {
+                if (!written.isNullOrEmpty()) onWrite?.invoke(written)
+                IfwResult.Success(providers + filtered.keys.associate { it.id to result.value.blockOf(it) })
+            }
+
             is IfwResult.Failure -> result
         }
     }
