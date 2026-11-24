@@ -19,7 +19,6 @@ package com.merxury.blocker.core.domain.wake
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.control.PackageLocks
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
@@ -54,7 +53,7 @@ class WakeUserBlockTest {
     private val userBlocks = FakePmBlockRecordDao()
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, system, FakePrivilegedChannel(), userBlocks, PackageLocks()),
+        WakeProtectionRepository(repository, ownership, catalogue, rules, system, FakePrivilegedChannel(), userBlocks),
         StandardTestDispatcher(testScheduler),
     )
 
@@ -65,13 +64,8 @@ class WakeUserBlockTest {
     )
     private val claimed = candidate.copy(configured = true, previousState = COMPONENT_ENABLED_STATE_DEFAULT)
 
-    /** Whether this version already dropped the block records of claims made before it, once. */
-    private var seededRecordsChecked = false
-
     private suspend fun reconcileWith(previous: List<WakeProtection>, qualifying: List<WakeProtection>) {
         whenever(repository.isOwnerProfile).thenReturn(true)
-        whenever(repository.seededBlockRecordsChecked).thenAnswer { seededRecordsChecked }
-        whenever(repository.markSeededBlockRecordsChecked()).then { seededRecordsChecked = true }
         whenever(repository.access()).thenReturn(WakeAccess.DIRECT_ROOT)
         whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), listOf(0)))
         whenever(repository.firewallResets()).thenReturn(emptyMap())
@@ -129,37 +123,25 @@ class WakeUserBlockTest {
         verify(ownership).save(claimed.copy(configured = false, pendingChange = false))
     }
 
-    @Test fun givenSeedTookTheWakeChangeForABlock_whenPathRetires_thenOriginalStateIsRestored() = runTest {
-        // An earlier version disabled it for the wake feature; the seed from the old list recorded it.
+    @Test fun givenBulkUserBlockOfAComponentWakeClaims_whenWakeKeepsThenReleasesIt_thenRecordAndBlockStay() = runTest {
         system.put("target", "target.Wake", COMPONENT_ENABLED_STATE_DISABLED)
+        // The user blocks the whole app through Blocker, the component wake disabled among them.
         userBlocks.userBlocked("target", "target.Wake")
+        userBlocks.userBlocked("target", "target.Other")
 
-        reconcileWith(previous = listOf(claimed), qualifying = emptyList())
-        assertThat(manager.reconcile()).isTrue()
-
-        assertThat(system.setting("target", "target.Wake")).isEqualTo(COMPONENT_ENABLED_STATE_DEFAULT)
-        assertThat(system.changes).containsExactly("target/target.Wake 0 2->0")
-        assertThat(userBlocks.getByPackage("target", 0)).isEmpty()
-    }
-
-    @Test fun givenSeedTookTheWakeChange_whenTheUserBlocksItLater_thenItStaysDisabled() = runTest {
-        system.put("target", "target.Wake", COMPONENT_ENABLED_STATE_DISABLED)
-        userBlocks.userBlocked("target", "target.Wake")
         reconcileWith(previous = listOf(claimed), qualifying = listOf(claimed))
         assertThat(manager.reconcile()).isTrue()
-        assertThat(userBlocks.getByPackage("target", 0)).isEmpty()
-
-        // Now a real block through Blocker, after the seeded record was dropped.
-        userBlocks.userBlocked("target", "target.Wake")
+        assertThat(userBlocks.getByPackage("target", 0).map { it.className }).containsExactly("target.Wake", "target.Other")
         reconcileWith(previous = listOf(claimed), qualifying = emptyList())
         assertThat(manager.reconcile()).isTrue()
 
         assertThat(system.setting("target", "target.Wake")).isEqualTo(COMPONENT_ENABLED_STATE_DISABLED)
+        assertThat(userBlocks.getByPackage("target", 0).map { it.className }).containsExactly("target.Wake", "target.Other")
         assertThat(system.changes).isEmpty()
+        verify(ownership).save(claimed.copy(configured = false, pendingChange = false))
     }
 
     @Test fun givenStaleRecordOfAnEnabledComponent_whenWakeDisablesItAndLaterRetires_thenItIsRestored() = runTest {
-        seededRecordsChecked = true
         // A record the app has not dropped yet although the component is enabled again.
         userBlocks.userBlocked("target", "target.Wake")
 
@@ -174,7 +156,6 @@ class WakeUserBlockTest {
     }
 
     @Test fun givenSecondUser_whenWakeRetiresItsClaim_thenUsersBlockStays() = runTest {
-        seededRecordsChecked = true
         // With a second user no path qualifies (see ReviewedWakePaths), so wake retires its claims.
         system.put("target", "target.Wake", COMPONENT_ENABLED_STATE_DISABLED)
         userBlocks.userBlocked("target", "target.Wake")

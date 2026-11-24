@@ -5,7 +5,6 @@ package com.merxury.blocker.core.domain.wake
 
 import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.control.PackageLocks
 import com.merxury.blocker.core.controllers.wake.ManagedComponentState
 import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
 import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
@@ -50,7 +49,7 @@ class WakeProtectionManagerTest {
     private val userBlocks = FakePmBlockRecordDao()
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, userBlocks, PackageLocks()),
+        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, userBlocks),
         StandardTestDispatcher(testScheduler),
     )
     private val path = WakeProtection(

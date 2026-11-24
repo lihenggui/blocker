@@ -4,7 +4,6 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.control.PackageLocks
 import com.merxury.blocker.core.controllers.wake.ManagedComponentState
 import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
 import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
@@ -47,7 +46,6 @@ class WakeProtectionRepository @Inject constructor(
     private val components: ManagedComponentState,
     private val channel: PrivilegedChannel,
     private val userBlocks: PmBlockRecordDao,
-    private val locks: PackageLocks,
 ) {
     /**
      * What this run may change, from the channel acquired without a prompt: background work must
@@ -124,10 +122,6 @@ class WakeProtectionRepository @Inject constructor(
     private suspend fun reconcileComponents(previous: List<WakeProtection>, desired: List<WakeProtection>) {
         val disabled = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         val active = previous.filter { it.method == "PM" && (it.configured || it.pendingChange) }.associateBy { it.pathId }
-        if (!repository.seededBlockRecordsChecked) {
-            forgetSeededBlocks(active.values)
-            repository.markSeededBlockRecordsChecked()
-        }
         val ids = desired.map { it.pathId }.toSet()
         for (old in active.values.filter { it.pathId !in ids }) {
             val original = old.previousState ?: continue
@@ -195,23 +189,14 @@ class WakeProtectionRepository @Inject constructor(
         JournalAccess.UNREADABLE
     }
 
-    /**
-     * Drops, once, the records of the components the wake feature claimed before records were kept
-     * apart from its own changes: the seed from the old component list may have taken them for
-     * user blocks. Each goes under its package's lock, as the app writes that record.
-     */
-    private suspend fun forgetSeededBlocks(claims: Collection<WakeProtection>) {
-        for (claim in claims) locks.withLock(claim.target) { forgetBlock(claim) }
-        if (claims.isNotEmpty()) Timber.i("Dropped the block records of ${claims.size} components the wake feature changed")
-    }
-
     private suspend fun forgetBlock(path: WakeProtection) = userBlocks.delete(listOf(PmBlockRecordEntity(path.target, path.component, WAKE_USER.value, 0)))
 
     /**
      * Whether the user blocked [path]'s component through Blocker: it is in the record of the
      * components Blocker disabled. Read under the package's lock, which that record is written under.
-     * The wake feature drops that record when it disables the component itself, so a record of a
-     * component it claims was made by a block after its change.
+     * The wake feature drops that record only when it disables the component itself, and the seed
+     * from the old component list leaves out what it claims, so a record of a claimed component
+     * was made by a block after its change. A component the user disabled first is never claimed.
      */
     private suspend fun isBlockedByUser(path: WakeProtection): Boolean = userBlocks.getByPackage(path.target, WAKE_USER.value).any { it.className == path.component }
 }
