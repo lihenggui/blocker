@@ -79,11 +79,7 @@ object ApplicationUtil {
         val pm = context.packageManager
         val blockerName = context.packageName
         return withContext(dispatcher) {
-            val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
-            } else {
-                pm.getInstalledPackages(0)
-            }
+            val installedPackages = pm.getInstalledPackagesCompat(0)
             installedPackages
                 .filter { (it.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == blockerName }

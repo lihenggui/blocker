@@ -13,6 +13,7 @@ import com.merxury.blocker.core.controllers.wake.WakePackageUid
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeIdentity
 import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
+import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getVersionCode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -28,8 +29,7 @@ class WakeIdentityIndex @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val dao: WakeHistoryDao,
 ) {
-    @Suppress("DEPRECATION")
-    internal fun installedPackages(): List<PackageInfo> = context.packageManager.getInstalledPackages(0)
+    internal fun installedPackages(): List<PackageInfo> = context.packageManager.getInstalledPackagesCompat(0)
 
     internal fun labels(local: List<PackageInfo>, remote: List<WakePackageUid>, now: Long): Map<Int, List<WakePackageLabel>> {
         val localLabels = local.mapNotNull {
