@@ -59,10 +59,6 @@
     <string name="feature_appdetail_api_disabled_first">Vô hiệu trước</string>
     <string name="feature_appdetail_api_enabled_first">Kích hoạt trước</string>
     <string name="feature_appdetail_api_none">Không</string>
-    <string name="feature_appdetail_api_unknown_state_title">Vì sao không rõ trạng thái</string>
-    <string name="feature_appdetail_api_unknown_pm">Blocker không đọc được cài đặt Package Manager của thành phần này cho người dùng này. Hãy cấp quyền root hoặc Shizuku, rồi kéo xuống để làm mới.</string>
-    <string name="feature_appdetail_api_unknown_no_firewall_access">Không thể đọc quy tắc Intent Firewall ở chế độ hiện tại. Hãy cấp quyền root hoặc khởi động Shizuku bằng root, rồi kéo xuống để làm mới.</string>
-    <string name="feature_appdetail_api_unknown_rules_unreadable">Không đọc được tệp quy tắc Intent Firewall của ứng dụng này và tệp có thể đã bị hỏng, nên Blocker không động đến nó. Đặt lại IFW ở thẻ thông tin ứng dụng sẽ xóa tệp này.</string>
     <string name="feature_appdetail_api_block">Chặn</string>
     <string name="feature_appdetail_api_enable">Bật</string>
     <string name="feature_appdetail_api_changing">Đang thay đổi…</string>

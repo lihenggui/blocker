@@ -23,16 +23,22 @@ import com.merxury.blocker.core.ui.control.ControlMessage
 /**
  * The changes of components in flight and what they ended in.
  *
- * @property inFlight components whose change has not ended; their switches ignore taps
- * @property batch the progress of the batch running for the app, or null; the batch actions are
- * disabled meanwhile
+ * @property inFlight components whose change has not ended, including those a batch of another
+ * screen changes; their switches ignore taps
+ * @property batch the progress of the batch running for the app, or null
+ * @property batchElsewhere whether a batch of another screen, such as the search, changes
+ * components of the app
  * @property messages outcomes to tell, oldest first; see [ComponentControlViewModel.onMessageShown]
  */
 data class ControlUiState(
     val inFlight: Set<ComponentId> = emptySet(),
     val batch: BatchProgress? = null,
+    val batchElsewhere: Boolean = false,
     val messages: List<QueuedControlMessage> = emptyList(),
-)
+) {
+    /** Whether a batch can be started: not while one runs for the app, from any screen. */
+    val batchActionsEnabled: Boolean get() = batch == null && !batchElsewhere
+}
 
 /**
  * [done] of [total] components of a batch have been changed or failed.

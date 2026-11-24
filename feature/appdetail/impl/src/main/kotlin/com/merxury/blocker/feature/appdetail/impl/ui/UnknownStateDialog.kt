@@ -24,8 +24,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.ui.control.UnknownCause
+import com.merxury.blocker.core.ui.control.explanation
 import com.merxury.blocker.feature.appdetail.api.R.string
-import com.merxury.blocker.feature.appdetail.impl.UnknownCause
+import com.merxury.blocker.core.ui.R.string as uiString
 
 /**
  * Explains why a component's state cannot be read and what to do about it, and lets the user block
@@ -41,7 +43,7 @@ internal fun UnknownStateDialog(
 ) {
     AlertDialog(
         modifier = modifier.testTag("component:unknownDialog"),
-        title = { Text(text = stringResource(string.feature_appdetail_api_unknown_state_title)) },
+        title = { Text(text = stringResource(uiString.core_ui_unknown_state_title)) },
         text = { Text(text = stringResource(cause.explanation())) },
         onDismissRequest = onDismissRequest,
         confirmButton = {
@@ -65,10 +67,4 @@ internal fun UnknownStateDialog(
             }
         },
     )
-}
-
-private fun UnknownCause.explanation(): Int = when (this) {
-    UnknownCause.PM_UNREADABLE -> string.feature_appdetail_api_unknown_pm
-    UnknownCause.NO_FIREWALL_ACCESS -> string.feature_appdetail_api_unknown_no_firewall_access
-    UnknownCause.RULES_UNREADABLE -> string.feature_appdetail_api_unknown_rules_unreadable
 }

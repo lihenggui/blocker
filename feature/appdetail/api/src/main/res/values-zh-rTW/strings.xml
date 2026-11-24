@@ -58,10 +58,6 @@
     <string name="feature_appdetail_api_disabled_first">禁用組件優先</string>
     <string name="feature_appdetail_api_enabled_first">啟用組件優先</string>
     <string name="feature_appdetail_api_none">無</string>
-    <string name="feature_appdetail_api_unknown_state_title">為什麼狀態未知</string>
-    <string name="feature_appdetail_api_unknown_pm">Blocker 無法讀取此元件在該使用者下的 Package Manager 設定。請授予 Root 或 Shizuku 權限，然後下拉重新整理。</string>
-    <string name="feature_appdetail_api_unknown_no_firewall_access">目前模式無法讀取 Intent Firewall 規則。請授予 Root 權限，或以 Root 方式啟動 Shizuku，然後下拉重新整理。</string>
-    <string name="feature_appdetail_api_unknown_rules_unreadable">無法讀取此應用程式的 Intent Firewall 規則檔案，檔案可能已損壞，因此 Blocker 不會變更它。在應用程式資訊分頁中重設 IFW 會刪除該檔案。</string>
     <string name="feature_appdetail_api_block">封鎖</string>
     <string name="feature_appdetail_api_enable">啟用</string>
     <string name="feature_appdetail_api_changing">正在變更…</string>

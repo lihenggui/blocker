@@ -38,12 +38,15 @@ internal fun SearchMessage.text(): String = when (this) {
     SearchMessage.IndexFailed -> stringResource(string.feature_search_api_index_failed)
 }
 
-/** The title of [this] tab with its number of results. */
+/** The title of [this] tab with its number of results, or without one while that is not known. */
 @Composable
-internal fun SearchTab.title(count: Int): String = when (this) {
-    SearchTab.APPS -> stringResource(uiString.core_ui_application_with_count, count)
-    SearchTab.COMPONENTS -> stringResource(uiString.core_ui_component_with_count, count)
-    SearchTab.RULES -> stringResource(uiString.core_ui_online_rule_with_count, count)
+internal fun SearchTab.title(count: Int?): String = when (this) {
+    SearchTab.APPS -> stringResource(uiString.core_ui_application_with_count, count ?: 0)
+
+    SearchTab.COMPONENTS -> count?.let { stringResource(uiString.core_ui_component_with_count, it) }
+        ?: stringResource(string.feature_search_api_component_not_counted)
+
+    SearchTab.RULES -> stringResource(uiString.core_ui_online_rule_with_count, count ?: 0)
 }
 
 /** How many components of each type were found in [group], such as "2 Receivers / 1 Service". */

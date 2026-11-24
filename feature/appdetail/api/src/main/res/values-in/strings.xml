@@ -45,10 +45,6 @@
     <string name="feature_appdetail_api_disabled_first">Nonaktif dahulu</string>
     <string name="feature_appdetail_api_enabled_first">Aktif dahulu</string>
     <string name="feature_appdetail_api_none">Kosong</string>
-    <string name="feature_appdetail_api_unknown_state_title">Mengapa status tidak diketahui</string>
-    <string name="feature_appdetail_api_unknown_pm">Blocker tidak dapat membaca setelan Package Manager komponen ini untuk pengguna ini. Berikan akses root atau Shizuku, lalu tarik ke bawah untuk memuat ulang.</string>
-    <string name="feature_appdetail_api_unknown_no_firewall_access">Aturan Intent Firewall tidak dapat dibaca dalam mode saat ini. Berikan akses root, atau jalankan Shizuku dengan root, lalu tarik ke bawah untuk memuat ulang.</string>
-    <string name="feature_appdetail_api_unknown_rules_unreadable">File aturan Intent Firewall aplikasi ini tidak dapat dibaca dan mungkin rusak, jadi Blocker tidak mengubahnya. Atur ulang IFW di tab info aplikasi akan menghapusnya.</string>
     <string name="feature_appdetail_api_block">Blokir</string>
     <string name="feature_appdetail_api_enable">Aktifkan</string>
     <string name="feature_appdetail_api_changing">Mengubah…</string>

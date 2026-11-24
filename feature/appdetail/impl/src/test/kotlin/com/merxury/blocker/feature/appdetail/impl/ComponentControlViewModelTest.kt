@@ -601,4 +601,45 @@ class ComponentControlViewModelTest {
             emitAll(delegate.control(request))
         }
     }
+
+    @Test
+    fun givenSearchBatchChangingAComponent_whenShown_thenItIsInFlightAndBatchesWait() = runTest {
+        fixture.sendComponents(component("A"), component("B"))
+        collectState()
+
+        val run = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.BLOCK, listOf(id("A")))!!
+        viewModel.setEnabled(id("A"), enabled = false)
+
+        assertThat(viewModel.uiState.value.inFlight).containsExactly(id("A"))
+        assertThat(viewModel.uiState.value.batchActionsEnabled).isFalse()
+        assertThat(fixture.components.requests).isEmpty()
+        fixture.batches.release(run)
+        assertThat(viewModel.uiState.value.inFlight).isEmpty()
+        assertThat(viewModel.uiState.value.batchActionsEnabled).isTrue()
+    }
+
+    @Test
+    fun givenSearchBatchOfAnotherUser_whenShown_thenNothingOfThisAppIsInFlight() = runTest {
+        fixture.sendComponents(component("A"))
+        collectState()
+
+        fixture.batches.reserve(BatchKey.Search(WORK), ControlGoal.BLOCK, listOf(id("A")))
+
+        assertThat(viewModel.uiState.value.inFlight).isEmpty()
+        assertThat(viewModel.uiState.value.batchActionsEnabled).isTrue()
+    }
+
+    @Test
+    fun givenComponentGoneBeforeTheBatch_whenBlocked_thenToldAsNotFound() = runTest {
+        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
+        fixture.sendComponents(component("A"))
+        collectState()
+
+        viewModel.blockAll(listOf(id("A"), id("Gone")))
+
+        val summary = messages().single() as ControlMessage.BatchDone
+        assertThat(summary.changed to summary.notChanged).isEqualTo(1 to 1)
+        assertThat(summary.mostCommon).isEqualTo(LayerFailure(ControlLayer.PACKAGE_MANAGER, ControlFailure.TargetNotFound(message = null)))
+        assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(id("A"))
+    }
 }

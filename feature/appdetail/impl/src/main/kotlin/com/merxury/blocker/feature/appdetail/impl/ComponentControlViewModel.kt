@@ -28,6 +28,7 @@ import com.merxury.blocker.core.domain.control.BatchStep
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.control.ComponentOutcome
@@ -51,6 +52,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -95,10 +97,17 @@ class ComponentControlViewModel @AssistedInject constructor(
         run?.step?.map { run to it } ?: flowOf(null)
     }
 
-    val uiState: StateFlow<ControlUiState> = combine(singles, batch, messages) { singles, batch, messages ->
+    // The app's components a batch of any screen is changing, such as one started from the search.
+    private val inBatches: Flow<Set<ComponentId>> = batches.inFlight.map { keys ->
+        keys.filter { it.userId == app.userId && it.id.packageName == app.packageName }.mapTo(mutableSetOf()) { it.id }
+    }.distinctUntilChanged()
+
+    val uiState: StateFlow<ControlUiState> = combine(singles, batch, inBatches, messages) { singles, batch, inBatches, messages ->
+        val ownPending = batch?.second?.pending.orEmpty()
         ControlUiState(
-            inFlight = singles + batch?.second?.pending.orEmpty(),
+            inFlight = singles + inBatches,
             batch = batch?.let { (run, step) -> BatchProgress(run.goal, done = step.done.takeIf { step.total > BATCH_LIMIT }, total = step.total) },
+            batchElsewhere = (inBatches - ownPending).isNotEmpty(),
             messages = messages,
         )
     }
@@ -163,17 +172,18 @@ class ComponentControlViewModel @AssistedInject constructor(
             try {
                 // The states the rows showed when the batch was sent, to tell what it changed.
                 val statuses = cachedStatuses(ids)
+                val vanished = (ids - statuses.mapTo(mutableSetOf()) { it.declaration.id }).map { ComponentKey(it, app.userId) }
                 val layers = layersFor(goal)
                 batches.start(run, statuses.map { it.declaration }, layers)
                 started = true
-                tell(batchSummary(goal, run.outcomes.await(), statuses.associateBy { it.declaration.id }, layers, identity()))
+                tell(batchSummary(goal, run.outcomes.await(), statuses.associateBy { it.declaration.id }, layers, identity(), vanished))
             } finally {
                 if (!started) batches.release(run)
             }
         }
     }
 
-    private fun isInFlight(component: ComponentId): Boolean = component in singles.value || batches.current(batchKey)?.step?.value?.pending?.contains(component) == true
+    private fun isInFlight(component: ComponentId): Boolean = component in singles.value || batches.isInFlight(ComponentKey(component, app.userId))
 
     private suspend fun layersFor(goal: ControlGoal): Set<ControlLayer> = if (goal == ControlGoal.BLOCK) {
         userDataRepository.userData.first().controllerType.blockLayers
@@ -185,7 +195,7 @@ class ComponentControlViewModel @AssistedInject constructor(
         val cached = componentStatuses.components(app).first().associateBy { it.declaration.id }
         return ids.mapNotNull { id ->
             cached[id] ?: run {
-                Timber.w("$id is no longer cached for $app, leave it out")
+                Timber.w("$id is no longer cached for $app, tell it as not found")
                 null
             }
         }

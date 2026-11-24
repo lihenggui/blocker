@@ -24,6 +24,7 @@ import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.Availability
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
@@ -264,5 +265,97 @@ class SearchSelectionTest {
 
         assertThat(viewModel.uiState.value.isSelectionMode).isFalse()
         assertThat(viewModel.uiState.value.selected).isEmpty()
+    }
+
+    /** Selects the work copy of a component, with the same package also installed for the owner. */
+    private fun TestScope.selectInWork(): ComponentId {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A"), installedApp("com.a", WORK, "A")))
+        fixture.components.sendComponents(WORK, listOf(component("com.a", "PushReceiver")))
+        showPush()
+        viewModel.selectUser(WORK)
+        runCurrent()
+        viewModel.selectTab(SearchTab.COMPONENTS)
+        viewModel.setSelectionMode(true)
+        viewModel.toggleSelected(pushA)
+        assertThat(viewModel.uiState.value.selected).containsExactly(pushA)
+        return pushA
+    }
+
+    @Test
+    fun givenWorkSelection_whenTheUserFallsBackOnItsOwn_thenTheSelectionEndsAndBlockChangesNothing() = runTest {
+        selectInWork()
+
+        // As when the channel is lost: the shared selection falls back to the own user by itself.
+        fixture.selectedUsers.sendUsers(listOf(ownerUser))
+        runCurrent()
+        val state = viewModel.uiState.value
+        viewModel.blockSelected()
+        runCurrent()
+
+        assertThat(state.isSelectionMode).isFalse()
+        assertThat(state.selected).isEmpty()
+        assertThat(state.selectedAppCount).isEqualTo(0)
+        assertThat(fixture.components.requests).isEmpty()
+    }
+
+    @Test
+    fun givenWorkSelection_whenAnotherScreenSelectsTheOwner_thenBlockChangesNothing() = runTest {
+        selectInWork()
+
+        fixture.selectedUsers.select(OWNER)
+        runCurrent()
+        viewModel.blockSelected()
+        runCurrent()
+
+        assertThat(viewModel.uiState.value.isSelectionMode).isFalse()
+        assertThat(fixture.components.requests).isEmpty()
+    }
+
+    @Test
+    fun givenWorkSelectionEnded_whenWorkIsSelectedAgain_thenTheOldSelectionDoesNotReturn() = runTest {
+        selectInWork()
+        fixture.selectedUsers.select(OWNER)
+        runCurrent()
+
+        viewModel.selectUser(WORK)
+        runCurrent()
+
+        assertThat(viewModel.uiState.value.isSelectionMode).isFalse()
+        assertThat(viewModel.uiState.value.selected).isEmpty()
+    }
+
+    @Test
+    fun givenComponentGoneBeforeTheBatch_whenBlocked_thenToldAsNotFound() = runTest {
+        showPush()
+        viewModel.setSelectionMode(true)
+        viewModel.toggleSelected(pushA)
+        viewModel.toggleSelected(pushB)
+        fixture.components.sendComponents(OWNER, listOf(component("com.a", "PushReceiver"), component("com.a", "PushService", type = ComponentType.SERVICE)))
+        runCurrent()
+
+        viewModel.blockSelected()
+        runCurrent()
+
+        assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(pushA)
+        assertThat(summary().changed to summary().notChanged).isEqualTo(1 to 1)
+        assertThat(summary().mostCommon).isEqualTo(LayerFailure(ControlLayer.PACKAGE_MANAGER, ControlFailure.TargetNotFound(message = null)))
+    }
+
+    @Test
+    fun givenAppDetailBatchChangingASelectedComponent_whenShown_thenItIsInFlightAndTheSelectionWaits() = runTest {
+        showPush()
+        viewModel.setSelectionMode(true)
+        viewModel.toggleSelected(pushA)
+        assertThat(viewModel.uiState.value.selectionActionsEnabled).isTrue()
+
+        val run = fixture.batches.reserve(BatchKey.App(AppKey("com.a", OWNER)), ControlGoal.BLOCK, listOf(pushA))!!
+        runCurrent()
+
+        assertThat(fixture.loaded().components.flatMap { it.components }.single { it.id == pushA }.inFlight).isTrue()
+        assertThat(viewModel.uiState.value.selectionActionsEnabled).isFalse()
+        fixture.batches.release(run)
+        runCurrent()
+        assertThat(viewModel.uiState.value.selectionActionsEnabled).isTrue()
     }
 }

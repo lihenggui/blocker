@@ -219,4 +219,8 @@
         <item quantity="other">يبقى %1$d معطّلًا لأن التطبيق يأتي بها معطّلة؛ فعّل أحدها بمفتاحه لفرض تشغيله</item>
     </plurals>
     <string name="core_ui_grant_failed">لا يزال Blocker بلا صلاحية الروت أو Shizuku.</string>
+    <string name="core_ui_unknown_state_title">لماذا الحالة غير معروفة</string>
+    <string name="core_ui_unknown_pm">تعذّر على Blocker قراءة إعداد Package Manager لهذا المكون لدى هذا المستخدم. امنح صلاحية الروت أو Shizuku، ثم اسحب للأسفل للتحديث.</string>
+    <string name="core_ui_unknown_no_firewall_access">لا يمكن قراءة قواعد Intent Firewall في الوضع الحالي. امنح صلاحية الروت أو شغّل Shizuku بصلاحية الروت، ثم اسحب للأسفل للتحديث.</string>
+    <string name="core_ui_unknown_rules_unreadable">تتعذّر قراءة ملف قواعد Intent Firewall لهذا التطبيق وقد يكون تالفًا، لذا يتركه Blocker كما هو. يحذفه خيار إعادة تعيين IFW في تبويب معلومات التطبيق.</string>
 </resources>

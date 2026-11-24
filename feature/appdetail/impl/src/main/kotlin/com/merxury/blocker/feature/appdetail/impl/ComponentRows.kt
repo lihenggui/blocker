@@ -33,6 +33,7 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.control.unknownCause
 import java.io.File
 
 /** The app a detail screen shows: [packageName] for [userId], or for the user Blocker runs in when null. */
@@ -56,12 +57,6 @@ internal fun ComponentStatus.toRow(description: String?, running: Set<ComponentI
         isRunning = running?.contains(id) == true,
         description = description,
     )
-}
-
-private fun ComponentStatus.unknownCause(firewallReadable: Boolean): UnknownCause = when {
-    state.pm == PmSetting.UNKNOWN -> UnknownCause.PM_UNREADABLE
-    !firewallReadable -> UnknownCause.NO_FIREWALL_ACCESS
-    else -> UnknownCause.RULES_UNREADABLE
 }
 
 /** [rows] by type, each sorted as the user chose, running services first. */

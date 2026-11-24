@@ -198,4 +198,8 @@
         <item quantity="other">%1$d 个组件仍保持关闭，因为应用默认将其禁用；可用其开关单独强制开启</item>
     </plurals>
     <string name="core_ui_grant_failed">Blocker 仍没有 Root 或 Shizuku 权限。</string>
+    <string name="core_ui_unknown_state_title">为什么状态未知</string>
+    <string name="core_ui_unknown_pm">Blocker 无法读取此组件在该用户下的 Package Manager 设置。请授予 Root 或 Shizuku 权限，然后下拉刷新。</string>
+    <string name="core_ui_unknown_no_firewall_access">当前模式无法读取 Intent Firewall 规则。请授予 Root 权限，或以 Root 方式启动 Shizuku，然后下拉刷新。</string>
+    <string name="core_ui_unknown_rules_unreadable">无法读取此应用的 Intent Firewall 规则文件，文件可能已损坏，因此 Blocker 不会改动它。在应用信息标签页中重置 IFW 会删除该文件。</string>
 </resources>

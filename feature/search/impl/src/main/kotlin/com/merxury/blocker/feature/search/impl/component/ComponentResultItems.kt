@@ -22,6 +22,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,17 +35,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
@@ -53,10 +58,13 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
+import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.ui.applist.AppIcon
+import com.merxury.blocker.core.ui.control.UnknownCause
+import com.merxury.blocker.core.ui.control.explanation
 import com.merxury.blocker.core.ui.control.label
 import com.merxury.blocker.feature.search.api.R.string
 import com.merxury.blocker.feature.search.impl.ComponentGroup
@@ -133,7 +141,8 @@ internal fun ComponentGroupHeader(
 /**
  * One component found: its names, why it is blocked when it is, and its state as the cache holds
  * it. A tap opens it in its app or, in selection mode, selects it; a long press starts selection
- * mode with it.
+ * mode with it. When its state is unknown, its unknown tag and icon explain why, as app detail
+ * does.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -146,6 +155,7 @@ internal fun FoundComponentItem(
     modifier: Modifier = Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
+    var explainUnknown by remember { mutableStateOf(false) }
     val background by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
         animationSpec = tween(300, 0, LinearEasing),
@@ -171,15 +181,35 @@ internal fun FoundComponentItem(
         Column(modifier = Modifier.weight(1f)) {
             BlockerBodyLargeText(text = component.id.simpleName)
             BlockerBodyMediumText(text = component.id.className, style = MaterialTheme.typography.bodyMedium.condensedRegular())
-            StateTags(component)
+            StateTags(component, onExplainUnknown = { explainUnknown = true })
         }
         Spacer(modifier = Modifier.width(8.dp))
-        StateIcon(component)
+        StateIcon(component, onExplainUnknown = { explainUnknown = true })
+        val cause = component.unknownCause
+        if (explainUnknown && cause != null) {
+            UnknownCauseDialog(cause = cause, onDismissRequest = { explainUnknown = false })
+        }
     }
 }
 
+/** Why a component's state cannot be read and what to do about it. */
 @Composable
-private fun StateTags(component: FoundComponent) {
+private fun UnknownCauseDialog(cause: UnknownCause, onDismissRequest: () -> Unit) {
+    AlertDialog(
+        modifier = Modifier.testTag("search:unknownDialog"),
+        title = { Text(text = stringResource(uiString.core_ui_unknown_state_title)) },
+        text = { Text(text = stringResource(cause.explanation())) },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            BlockerTextButton(onClick = onDismissRequest) {
+                Text(text = stringResource(android.R.string.ok))
+            }
+        },
+    )
+}
+
+@Composable
+private fun StateTags(component: FoundComponent, onExplainUnknown: () -> Unit) {
     val reasons = REASON_ORDER.filter { it in component.blockedBy }
     if (reasons.isEmpty() && !component.conditional && component.state != FoundState.UNKNOWN) return
     FlowRow(
@@ -189,30 +219,41 @@ private fun StateTags(component: FoundComponent) {
     ) {
         reasons.forEach { reason -> Tag(stringResource(reason.label())) }
         if (component.conditional) Tag(stringResource(uiString.core_ui_conditional_rule))
-        if (component.state == FoundState.UNKNOWN) Tag(stringResource(uiString.core_ui_unknown))
+        if (component.state == FoundState.UNKNOWN) Tag(stringResource(uiString.core_ui_unknown), onClick = onExplainUnknown.takeIf { component.unknownCause != null })
     }
 }
 
-/** Progress while a batch changes the component, otherwise whether it can run; the tags tell why not. */
+/**
+ * Progress while a batch changes the component, otherwise whether it can run; the tags tell why
+ * not. An unknown state offers to explain why.
+ */
 @Composable
-private fun StateIcon(component: FoundComponent) {
+private fun StateIcon(component: FoundComponent, onExplainUnknown: () -> Unit) {
     when {
         component.inFlight -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+
         component.state == FoundState.RUNNABLE -> Icon(BlockerIcons.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+
         component.state == FoundState.BLOCKED -> Icon(BlockerIcons.Block, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-        else -> Icon(BlockerIcons.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+
+        component.unknownCause == null -> Icon(BlockerIcons.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+
+        else -> IconButton(onClick = onExplainUnknown) {
+            Icon(BlockerIcons.Info, contentDescription = stringResource(uiString.core_ui_unknown_state_title), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
 @Composable
-private fun Tag(text: String, container: Color = MaterialTheme.colorScheme.secondaryContainer, content: Color = MaterialTheme.colorScheme.onSecondaryContainer) {
+private fun Tag(text: String, onClick: (() -> Unit)? = null) {
     val shape = RoundedCornerShape(4.dp)
     BlockerLabelSmallText(
         text = text,
-        color = content,
+        color = MaterialTheme.colorScheme.onSecondaryContainer,
         modifier = Modifier
             .clip(shape)
-            .background(container, shape)
+            .background(MaterialTheme.colorScheme.secondaryContainer, shape)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = 4.dp, vertical = 2.dp),
     )
 }

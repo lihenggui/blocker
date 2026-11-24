@@ -47,10 +47,6 @@
     <string name="feature_appdetail_api_enabled_first">Habilitado primeiro</string>
     <string name="feature_appdetail_api_none">Nenhum</string>
     <string name="feature_appdetail_api_ascending">Crescente</string>
-    <string name="feature_appdetail_api_unknown_state_title">Por que o estado é desconhecido</string>
-    <string name="feature_appdetail_api_unknown_pm">O Blocker não conseguiu ler a configuração do Package Manager deste componente para este usuário. Conceda acesso root ou Shizuku e puxe para baixo para atualizar.</string>
-    <string name="feature_appdetail_api_unknown_no_firewall_access">As regras do Intent Firewall não podem ser lidas no modo atual. Conceda acesso root ou inicie o Shizuku com root e puxe para baixo para atualizar.</string>
-    <string name="feature_appdetail_api_unknown_rules_unreadable">O arquivo de regras do Intent Firewall deste app não pode ser lido e pode estar danificado, então o Blocker não o altera. Redefinir IFW na guia de informações do app o exclui.</string>
     <string name="feature_appdetail_api_block">Bloquear</string>
     <string name="feature_appdetail_api_enable">Ativar</string>
     <string name="feature_appdetail_api_changing">Alterando…</string>

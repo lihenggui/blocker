@@ -25,6 +25,7 @@ import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.ui.control.ModeBanner
+import com.merxury.blocker.core.ui.control.UnknownCause
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.core.ui.profile.ProfileTab
 
@@ -52,7 +53,7 @@ internal object SearchStates {
             label = "Mail",
             icon = ApkIcon("com.example.mail", apkPath = null, versionCode = 1, uid = null),
             components = listOf(
-                FoundComponent(id("com.example.mail", "PushActivity"), ComponentType.ACTIVITY, FoundState.UNKNOWN),
+                FoundComponent(id("com.example.mail", "PushActivity"), ComponentType.ACTIVITY, FoundState.UNKNOWN, unknownCause = UnknownCause.NO_FIREWALL_ACCESS),
                 FoundComponent(id("com.example.mail", "PushProvider"), ComponentType.PROVIDER, FoundState.BLOCKED, setOf(BlockReason.IFW_RULE, BlockReason.MANIFEST_DEFAULT)),
             ),
         ),
@@ -75,10 +76,11 @@ internal object SearchStates {
 
     fun loading() = idle().copy(keyword = KEYWORD, results = SearchResults.Loading)
 
-    fun shown(tab: SearchTab, results: SearchResults.Loaded = loaded()) = idle().copy(
+    fun shown(tab: SearchTab, results: SearchResults.Loaded = loaded(), componentsCounted: Boolean = true) = idle().copy(
         keyword = KEYWORD,
         results = results,
-        tabs = tabsOf(results, tab),
+        tabs = tabsOf(results, tab, componentsCounted),
+        selectionActionsEnabled = true,
     )
 
     fun noResult() = shown(SearchTab.APPS, SearchResults.Loaded())
@@ -94,7 +96,7 @@ internal object SearchStates {
         return shown(SearchTab.COMPONENTS, loaded().copy(components = groups)).copy(batch = ProcessingProgress(current = 200, total = 450, isEnabling = false))
     }
 
-    fun indexing() = shown(SearchTab.COMPONENTS).copy(indexing = IndexingProgress(done = 34, total = 212))
+    fun indexing() = shown(SearchTab.COMPONENTS, componentsCounted = false).copy(indexing = IndexingProgress(done = 34, total = 212))
 
     fun banners() = shown(SearchTab.COMPONENTS).copy(banners = listOf(ModeBanner.NEEDS_ROOT, ModeBanner.FIREWALL_UNAVAILABLE))
 

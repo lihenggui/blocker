@@ -61,10 +61,6 @@
     <string name="feature_appdetail_api_disabled_first">Disabled first</string>
     <string name="feature_appdetail_api_enabled_first">Enabled first</string>
     <string name="feature_appdetail_api_none">None</string>
-    <string name="feature_appdetail_api_unknown_state_title">Why the state is unknown</string>
-    <string name="feature_appdetail_api_unknown_pm">Blocker couldn\'t read this component\'s Package Manager setting for this user. Grant root or Shizuku access, then pull down to refresh.</string>
-    <string name="feature_appdetail_api_unknown_no_firewall_access">Intent Firewall rules can\'t be read in the current mode. Grant root access, or start Shizuku with root, then pull down to refresh.</string>
-    <string name="feature_appdetail_api_unknown_rules_unreadable">This app\'s Intent Firewall rule file can\'t be read and may be damaged, so Blocker leaves it alone. Reset IFW on the App info tab deletes it.</string>
     <string name="feature_appdetail_api_block">Block</string>
     <string name="feature_appdetail_api_enable">Enable</string>
     <string name="feature_appdetail_api_changing">Changing…</string>

@@ -38,11 +38,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -90,6 +94,28 @@ class ComponentBatchRunner @Inject constructor(
 
     /** The batch running for [key] now, or null. */
     fun current(key: BatchKey): BatchRun? = runs.value[key]
+
+    /**
+     * The components whose batch request has not ended, of every batch whatever its key, so a
+     * screen shows a component in flight however it was asked to change.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val inFlight: Flow<Set<ComponentKey>> = runs
+        .flatMapLatest { current ->
+            if (current.isEmpty()) {
+                flowOf(emptySet())
+            } else {
+                combine(current.values.map { run -> run.step.map { step -> step.pending.mapTo(mutableSetOf()) { ComponentKey(it, run.key.user) } } }) { pending ->
+                    pending.flatMapTo(mutableSetOf()) { it }
+                }
+            }
+        }
+        .distinctUntilChanged()
+
+    /** Whether a batch of any key is changing [component] now. */
+    fun isInFlight(component: ComponentKey): Boolean = runs.value.values.any { run ->
+        run.key.user == component.userId && component.id in run.step.value.pending
+    }
 
     /**
      * Lists a batch of [components] of [key]'s user towards [goal] as running, before anything is

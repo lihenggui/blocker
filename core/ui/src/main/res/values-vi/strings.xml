@@ -52,4 +52,8 @@
         <item quantity="other">%1$d thành phần vẫn tắt vì ứng dụng tắt sẵn chúng; bật một thành phần bằng công tắc của nó để buộc bật</item>
     </plurals>
     <string name="core_ui_grant_failed">Blocker vẫn chưa có quyền root hoặc Shizuku.</string>
+    <string name="core_ui_unknown_state_title">Vì sao không rõ trạng thái</string>
+    <string name="core_ui_unknown_pm">Blocker không đọc được cài đặt Package Manager của thành phần này cho người dùng này. Hãy cấp quyền root hoặc Shizuku, rồi kéo xuống để làm mới.</string>
+    <string name="core_ui_unknown_no_firewall_access">Không thể đọc quy tắc Intent Firewall ở chế độ hiện tại. Hãy cấp quyền root hoặc khởi động Shizuku bằng root, rồi kéo xuống để làm mới.</string>
+    <string name="core_ui_unknown_rules_unreadable">Không đọc được tệp quy tắc Intent Firewall của ứng dụng này và tệp có thể đã bị hỏng, nên Blocker không động đến nó. Đặt lại IFW ở thẻ thông tin ứng dụng sẽ xóa tệp này.</string>
 </resources>

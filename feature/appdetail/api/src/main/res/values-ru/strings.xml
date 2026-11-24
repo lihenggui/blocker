@@ -61,10 +61,6 @@
     <string name="feature_appdetail_api_disabled_first">Сначала отключенные</string>
     <string name="feature_appdetail_api_enabled_first">Сначала включенные</string>
     <string name="feature_appdetail_api_none">Нет</string>
-    <string name="feature_appdetail_api_unknown_state_title">Почему состояние неизвестно</string>
-    <string name="feature_appdetail_api_unknown_pm">Blocker не смог прочитать настройку Package Manager этого компонента для этого пользователя. Предоставьте доступ root или Shizuku, затем потяните вниз, чтобы обновить.</string>
-    <string name="feature_appdetail_api_unknown_no_firewall_access">Правила Intent Firewall нельзя прочитать в текущем режиме. Предоставьте доступ root или запустите Shizuku с root, затем потяните вниз, чтобы обновить.</string>
-    <string name="feature_appdetail_api_unknown_rules_unreadable">Файл правил Intent Firewall этого приложения не читается и может быть повреждён, поэтому Blocker его не трогает. Сброс IFW на вкладке сведений о приложении удалит его.</string>
     <string name="feature_appdetail_api_block">Заблокировать</string>
     <string name="feature_appdetail_api_enable">Включить</string>
     <string name="feature_appdetail_api_changing">Изменение…</string>

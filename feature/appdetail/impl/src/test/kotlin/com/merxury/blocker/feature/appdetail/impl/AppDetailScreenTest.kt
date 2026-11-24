@@ -143,8 +143,8 @@ class AppDetailScreenTest {
         show("SettingsActivity")
 
         composeTestRule.onNode(isToggleable()).assertDoesNotExist()
-        composeTestRule.onNodeWithContentDescription(text(string.feature_appdetail_api_unknown_state_title)).performClick()
-        composeTestRule.onNodeWithText(text(string.feature_appdetail_api_unknown_rules_unreadable)).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_unknown_state_title)).performClick()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown_rules_unreadable)).assertIsDisplayed()
         composeTestRule.onNodeWithText(text(string.feature_appdetail_api_block)).performClick()
 
         assertThat(controlled).containsExactly("SettingsActivity" to ControlGoal.BLOCK)

@@ -29,6 +29,7 @@ import com.merxury.blocker.core.ui.applist.AppRow
 import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.ModeBanner
+import com.merxury.blocker.core.ui.control.UnknownCause
 import com.merxury.blocker.core.ui.profile.ProfileTab
 
 /**
@@ -37,6 +38,9 @@ import com.merxury.blocker.core.ui.profile.ProfileTab
  *
  * @property keyword the keyword the results are for, which trails the typed text by a moment
  * @property selected the components chosen in selection mode, of apps of [selectedUser]
+ * @property selectionActionsEnabled whether the selection can be blocked or enabled now: false
+ * while nothing is selected, a batch of the search runs, or a batch of any screen changes a
+ * selected component
  * @property batch the progress of the batch running for [selectedUser], or null; the selection
  * actions are disabled meanwhile
  * @property indexing how far the reading of every app's components got, or null when it does not
@@ -53,6 +57,7 @@ data class SearchUiState(
     val results: SearchResults = SearchResults.Idle,
     val isSelectionMode: Boolean = false,
     val selected: Set<ComponentId> = emptySet(),
+    val selectionActionsEnabled: Boolean = false,
     val batch: ProcessingProgress? = null,
     val indexing: IndexingProgress? = null,
     val banners: List<ModeBanner> = emptyList(),
@@ -118,6 +123,7 @@ data class ComponentGroup(
  * @property blockedBy every known reason it cannot start; empty unless [state] is BLOCKED
  * @property conditional whether a conditional Intent Firewall rule names it
  * @property inFlight whether a batch is changing it now
+ * @property unknownCause why [state] is UNKNOWN; null otherwise
  */
 data class FoundComponent(
     val id: ComponentId,
@@ -126,6 +132,7 @@ data class FoundComponent(
     val blockedBy: Set<BlockReason> = emptySet(),
     val conditional: Boolean = false,
     val inFlight: Boolean = false,
+    val unknownCause: UnknownCause? = null,
 )
 
 enum class FoundState {

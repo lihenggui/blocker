@@ -25,6 +25,7 @@ import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.coil.ApkIcon
+import com.merxury.blocker.core.ui.control.unknownCause
 
 /**
  * The components found for one user, grouped by app in the order of their package names, with
@@ -34,6 +35,8 @@ import com.merxury.blocker.core.ui.coil.ApkIcon
  *
  * @param apps the cached apps of the user the components were found for
  * @param inFlight the components a batch is changing now
+ * @param firewallReadable whether the current mode can read Intent Firewall rules at all, which
+ * tells why a state is unknown
  */
 internal fun componentGroups(
     found: List<ComponentStatus>,
@@ -41,6 +44,7 @@ internal fun componentGroups(
     showSystemApps: Boolean,
     self: AppKey,
     inFlight: Set<ComponentId>,
+    firewallReadable: Boolean,
 ): List<ComponentGroup> {
     val installed = apps.associateBy { it.key.packageName }
     return found
@@ -53,28 +57,33 @@ internal fun componentGroups(
                 app = app.key,
                 label = app.label,
                 icon = ApkIcon(packageName, app.apkPath, app.versionCode, app.uid),
-                components = statuses.map { it.toFound(it.declaration.id in inFlight) },
+                components = statuses.map { it.toFound(it.declaration.id in inFlight, firewallReadable) },
             )
         }
 }
 
-private fun ComponentStatus.toFound(inFlight: Boolean): FoundComponent {
+private fun ComponentStatus.toFound(inFlight: Boolean, firewallReadable: Boolean): FoundComponent {
     val type = declaration.type
     val conditional = type.isFilteredByIntentFirewall && state.ifw == IfwBlock.CONDITIONAL
     return when (val availability = availability) {
         Availability.Runnable, Availability.Conditional -> FoundComponent(declaration.id, type, FoundState.RUNNABLE, conditional = conditional, inFlight = inFlight)
         is Availability.Blocked -> FoundComponent(declaration.id, type, FoundState.BLOCKED, availability.reasons, conditional, inFlight)
-        Availability.Unknown -> FoundComponent(declaration.id, type, FoundState.UNKNOWN, conditional = conditional, inFlight = inFlight)
+        Availability.Unknown -> FoundComponent(declaration.id, type, FoundState.UNKNOWN, conditional = conditional, inFlight = inFlight, unknownCause = unknownCause(firewallReadable))
     }
 }
 
-/** The tabs with the number of results of each: apps, components and rules. */
-internal fun tabsOf(results: SearchResults, selected: SearchTab): TabState<SearchTab> {
+/**
+ * The tabs with the number of results of each: apps, components and rules.
+ *
+ * @param componentsCounted whether every app of the user has had its components read, so the
+ * number of components found is final; until then the components tab shows no number
+ */
+internal fun tabsOf(results: SearchResults, selected: SearchTab, componentsCounted: Boolean): TabState<SearchTab> {
     val loaded = results as? SearchResults.Loaded
-    val counts = mapOf(
-        SearchTab.APPS to (loaded?.apps?.size ?: 0),
-        SearchTab.COMPONENTS to (loaded?.components?.sumOf { it.components.size } ?: 0),
-        SearchTab.RULES to (loaded?.let { it.matchedRules.size + it.unmatchedRules.size } ?: 0),
-    )
+    val counts = buildMap {
+        put(SearchTab.APPS, loaded?.apps?.size ?: 0)
+        if (componentsCounted) put(SearchTab.COMPONENTS, loaded?.components?.sumOf { it.components.size } ?: 0)
+        put(SearchTab.RULES, loaded?.let { it.matchedRules.size + it.unmatchedRules.size } ?: 0)
+    }
     return TabState(items = SearchTab.entries, selectedItem = selected, itemCount = counts)
 }

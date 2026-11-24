@@ -20,6 +20,7 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.ui.coil.ApkIcon
+import com.merxury.blocker.core.ui.control.UnknownCause
 import kotlin.time.Instant
 
 /* Data for previews and screenshot tests: one row in each state a component can show. */

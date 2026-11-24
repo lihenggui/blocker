@@ -80,7 +80,7 @@ internal fun SearchTopBar(
                 onSelectAll = onSelectAll,
                 onBlockAllSelectedComponents = onBlockSelection,
                 onEnableAllSelectedComponents = onEnableSelection,
-                actionsEnabled = uiState.batch == null && uiState.selected.isNotEmpty(),
+                actionsEnabled = uiState.selectionActionsEnabled,
             )
         } else {
             SearchBar(

@@ -37,6 +37,7 @@ import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ServiceCounts
@@ -130,10 +131,10 @@ class SearchViewModel @Inject internal constructor(
         .debounce { if (it.isEmpty()) 0L else TYPING_PAUSE_MILLIS }
         .distinctUntilChanged()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val inFlight: Flow<Set<ComponentId>> = selectedUsers.selectedUser.flatMapLatest { user ->
-        batches.running(BatchKey.Search(user)).flatMapLatest { run -> run?.step?.map { it.pending } ?: flowOf(emptySet()) }
-    }
+    // The selected user's components a batch of any screen is changing, such as one of app detail.
+    private val inFlight: Flow<Set<ComponentId>> = combine(selectedUsers.selectedUser, batches.inFlight) { user, keys ->
+        keys.filter { it.userId == user }.mapTo(mutableSetOf()) { it.id }
+    }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val batch: Flow<ProcessingProgress?> = selectedUsers.selectedUser.flatMapLatest { user ->
@@ -175,22 +176,26 @@ class SearchViewModel @Inject internal constructor(
         queued + listOfNotNull(index.note()?.takeIf { (index as IndexState.Indexed).run !in told })
     }
 
-    private val controls = combine(selection, batch, indexState, banners, messages) { selection, batch, index, banners, messages ->
-        Controls(selection, batch, (index as? IndexState.Indexing)?.let { IndexingProgress(it.done, it.total) }, banners, messages)
-    }
+    private val activity = combine(batch, inFlight, indexState, ::Activity)
+
+    private val controls = combine(selection, activity, banners, messages, ::Controls)
 
     val uiState: StateFlow<SearchUiState> = combine(selectedUsers.users, selectedUsers.selectedUser, results, tab, controls) { users, user, (keyword, results), tab, controls ->
+        // A selection made for another user has ended: the user changed elsewhere or fell back.
+        val selection = controls.selection.takeIf { it.user == user } ?: Selection()
+        val activity = controls.activity
         SearchUiState(
             ownUser = selectedUsers.ownUser,
             selectedUser = user,
             profiles = users.map { it.toProfileTab() },
             keyword = keyword,
-            tabs = tabsOf(results, tab),
+            tabs = tabsOf(results, tab, componentsCounted = activity.index is IndexState.Indexed),
             results = results,
-            isSelectionMode = controls.selection.active,
-            selected = controls.selection.ids,
-            batch = controls.batch,
-            indexing = controls.indexing,
+            isSelectionMode = selection.active,
+            selected = selection.ids,
+            selectionActionsEnabled = activity.batch == null && selection.ids.isNotEmpty() && selection.ids.none { it in activity.inFlight },
+            batch = activity.batch,
+            indexing = (activity.index as? IndexState.Indexing)?.let { IndexingProgress(it.done, it.total) },
             banners = controls.banners,
             messages = controls.messages,
         )
@@ -277,11 +282,12 @@ class SearchViewModel @Inject internal constructor(
     }
 
     fun setSelectionMode(enabled: Boolean) {
-        selection.value = if (enabled) selection.value.copy(active = true) else Selection()
+        selection.value = if (enabled) currentSelection().copy(active = true) else Selection()
     }
 
     fun toggleSelected(id: ComponentId) {
-        selection.update { it.copy(ids = if (id in it.ids) it.ids - id else it.ids + id) }
+        val current = currentSelection()
+        selection.value = current.copy(ids = if (id in current.ids) current.ids - id else current.ids + id)
     }
 
     /** Selects every component found in [app], or deselects them when all are selected. */
@@ -309,9 +315,14 @@ class SearchViewModel @Inject internal constructor(
     }
 
     private fun toggleAll(ids: List<ComponentId>) {
-        selection.update { current ->
-            current.copy(ids = if (current.ids.containsAll(ids)) current.ids - ids.toSet() else current.ids + ids)
-        }
+        val current = currentSelection()
+        selection.value = current.copy(ids = if (current.ids.containsAll(ids)) current.ids - ids.toSet() else current.ids + ids)
+    }
+
+    /** The selection of the selected user; one made for another user has ended. */
+    private fun currentSelection(): Selection {
+        val user = selectedUsers.selectedUser.value
+        return selection.value.takeIf { it.user == user } ?: Selection(user = user)
     }
 
     private fun foundComponents(): List<ComponentId> = (uiState.value.results as? SearchResults.Loaded)?.components.orEmpty().flatMap { group -> group.components.map { it.id } }
@@ -320,12 +331,18 @@ class SearchViewModel @Inject internal constructor(
      * Sends the selection as one batch through [batches], so it ends even when the screen goes
      * away. Selection mode ends at once; the batch counts as running from the moment it is
      * chosen, before the cache and the settings are read, and nothing starts while another batch
-     * of the search runs for the user.
+     * of the search runs for the user. The batch acts on the user the selection was made for, and
+     * not at all once another user is selected, so it never reaches components not chosen there.
      */
     private fun startBatch(goal: ControlGoal) {
-        val user = selectedUsers.selectedUser.value
-        val ids = selection.value.ids.toList()
+        val chosen = selection.value
         selection.value = Selection()
+        val user = chosen.user ?: return
+        if (user != selectedUsers.selectedUser.value) {
+            Timber.i("The selection was made for user ${user.value}, which is no longer selected; nothing is changed")
+            return
+        }
+        val ids = chosen.ids.toList()
         if (ids.isEmpty()) return
         val run = batches.reserve(BatchKey.Search(user), goal, ids) ?: return
         analyticsHelper.logBatchOperationPerformed(enable = goal != ControlGoal.BLOCK)
@@ -334,10 +351,12 @@ class SearchViewModel @Inject internal constructor(
             try {
                 // The states the results showed when the batch was sent, to tell what it changed.
                 val statuses = cachedStatuses(user, ids)
+                val vanished = (ids - statuses.mapTo(mutableSetOf()) { it.declaration.id }).map { ComponentKey(it, user) }
                 val layers = layersFor(goal)
                 batches.start(run, statuses.map { it.declaration }, layers)
                 started = true
-                tell(SearchMessage.Control(batchSummary(goal, run.outcomes.await(), statuses.associateBy { it.declaration.id }, layers, identity())))
+                val summary = batchSummary(goal, run.outcomes.await(), statuses.associateBy { it.declaration.id }, layers, identity(), vanished)
+                tell(SearchMessage.Control(summary))
             } finally {
                 if (!started) batches.release(run)
             }
@@ -350,7 +369,7 @@ class SearchViewModel @Inject internal constructor(
             .associateBy { it.declaration.id }
         return ids.mapNotNull { id ->
             cached[id] ?: run {
-                Timber.w("$id is no longer cached for user ${user.value}, leave it out")
+                Timber.w("$id is no longer cached for user ${user.value}, tell it as not found")
                 null
             }
         }
@@ -385,14 +404,21 @@ class SearchViewModel @Inject internal constructor(
         installedApps.apps(user),
         userDataRepository.userData.map { it.showSystemApps }.distinctUntilChanged(),
         inFlight,
-    ) { found, apps, showSystemApps, inFlight -> componentGroups(found, apps, showSystemApps, self, inFlight) }
+        componentStatuses.firewallReadable,
+    ) { found, apps, showSystemApps, inFlight, firewallReadable -> componentGroups(found, apps, showSystemApps, self, inFlight, firewallReadable) }
 
-    private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet())
+    /** Components chosen in selection mode, of the [user] selected when the selection began. */
+    private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet(), val user: UserId? = null)
+
+    private data class Activity(
+        val batch: ProcessingProgress?,
+        val inFlight: Set<ComponentId>,
+        val index: IndexState,
+    )
 
     private data class Controls(
         val selection: Selection,
-        val batch: ProcessingProgress?,
-        val indexing: IndexingProgress?,
+        val activity: Activity,
         val banners: List<ModeBanner>,
         val messages: List<QueuedSearchMessage>,
     )

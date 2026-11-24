@@ -198,4 +198,8 @@
         <item quantity="other">%1$d continuam desativados porque o app os traz desativados; ative um com o seu interruptor para forçá-lo</item>
     </plurals>
     <string name="core_ui_grant_failed">O Blocker ainda não tem acesso root nem Shizuku.</string>
+    <string name="core_ui_unknown_state_title">Por que o estado é desconhecido</string>
+    <string name="core_ui_unknown_pm">O Blocker não conseguiu ler a configuração do Package Manager deste componente para este usuário. Conceda acesso root ou Shizuku e puxe para baixo para atualizar.</string>
+    <string name="core_ui_unknown_no_firewall_access">As regras do Intent Firewall não podem ser lidas no modo atual. Conceda acesso root ou inicie o Shizuku com root e puxe para baixo para atualizar.</string>
+    <string name="core_ui_unknown_rules_unreadable">O arquivo de regras do Intent Firewall deste app não pode ser lido e pode estar danificado, então o Blocker não o altera. Redefinir IFW na guia de informações do app o exclui.</string>
 </resources>

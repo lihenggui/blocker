@@ -43,4 +43,5 @@
     <string name="feature_search_api_indexing_progress">Indexing apps %1$d/%2$d</string>
     <string name="feature_search_api_index_incomplete">Some component states couldn\'t be read and show as unknown.</string>
     <string name="feature_search_api_index_failed">Couldn\'t list the apps of this user, so only components read before can be found.</string>
+    <string name="feature_search_api_component_not_counted">Component</string>
 </resources>

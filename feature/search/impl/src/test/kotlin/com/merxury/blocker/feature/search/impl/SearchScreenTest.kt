@@ -242,4 +242,23 @@ class SearchScreenTest {
 
         assertThat(asked).containsExactly("openRule 1")
     }
+
+    @Test
+    fun givenUnknownState_whenItsTagIsTapped_thenWhyIsExplained() {
+        show(SearchStates.shown(SearchTab.COMPONENTS))
+
+        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown)).performClick()
+
+        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown_no_firewall_access)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(android.R.string.ok)).performClick()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_unknown_no_firewall_access)).assertDoesNotExist()
+        assertThat(asked).isEmpty()
+    }
+
+    @Test
+    fun givenUserNotIndexed_whenShown_thenTheComponentsTabHasNoCount() {
+        show(SearchStates.indexing())
+
+        composeTestRule.onNodeWithText(text(string.feature_search_api_component_not_counted)).assertIsDisplayed()
+    }
 }

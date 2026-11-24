@@ -23,4 +23,5 @@
     <string name="feature_search_api_indexing_progress">Mengindeks apl %1$d/%2$d</string>
     <string name="feature_search_api_index_incomplete">Beberapa status komponen tidak dapat dibaca dan ditampilkan sebagai tidak diketahui.</string>
     <string name="feature_search_api_index_failed">Tidak dapat mencantumkan apl pengguna ini, jadi hanya komponen yang dibaca sebelumnya yang dapat ditemukan.</string>
+    <string name="feature_search_api_component_not_counted">Komponen</string>
 </resources>

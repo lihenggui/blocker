@@ -143,7 +143,7 @@ internal fun SearchResultTabs(
                 BlockerTab(
                     selected = index == pagerState.currentPage,
                     onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    text = { Text(text = tab.title(tabs.itemCount[tab] ?: 0)) },
+                    text = { Text(text = tab.title(tabs.itemCount[tab])) },
                 )
             }
         }

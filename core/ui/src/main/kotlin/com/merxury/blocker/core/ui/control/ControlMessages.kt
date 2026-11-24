@@ -18,8 +18,11 @@ package com.merxury.blocker.core.ui.control
 
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
+import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
@@ -90,6 +93,9 @@ fun ComponentOutcome.toMessage(goal: ControlGoal, identity: PrivilegedIdentity?)
  * and did not meet the goal there: a layer that was unknown may have met it already. The most
  * common reason counts each layer and kind of failure once per component, whatever its message,
  * and keeps the first message seen. The components may belong to several apps of one user.
+ *
+ * @param vanished components chosen for the batch that were no longer cached when it was sent, so
+ * nothing was sent for them; they count as not changed because they were not found
  */
 fun batchSummary(
     goal: ControlGoal,
@@ -97,9 +103,10 @@ fun batchSummary(
     before: Map<ComponentId, ComponentStatus>,
     layers: Set<ControlLayer>,
     identity: PrivilegedIdentity?,
+    vanished: Collection<ComponentKey> = emptyList(),
 ): ControlMessage.BatchDone {
     val achieved = outcomes.filter { it.result == ControlResult.ACHIEVED }
-    val notChanged = outcomes.filter { it.result != ControlResult.ACHIEVED }
+    val notChanged = outcomes.filter { it.result != ControlResult.ACHIEVED } + vanished.map { it.notFound() }
     val changed = achieved.count { outcome -> before[outcome.key.id]?.wasShortOf(goal, layers) ?: false }
     val staysOff = if (goal == ControlGoal.UNBLOCK) achieved.count { before[it.key.id]?.declaration?.isShippedDisabledAt(it.state.pm) == true } else 0
     val mostCommon = notChanged
@@ -110,6 +117,13 @@ fun batchSummary(
         ?.first()
     return ControlMessage.BatchDone(goal, changed = changed, notChanged = notChanged.size, mostCommon = mostCommon, identity = identity, staysOffAsShipped = staysOff)
 }
+
+private fun ComponentKey.notFound() = ComponentOutcome(
+    key = this,
+    state = ControlState(PmSetting.UNKNOWN, IfwBlock.UNKNOWN),
+    result = ControlResult.FAILED,
+    failures = mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.TargetNotFound(message = null)),
+)
 
 /** Whether a layer of [this] component was read and did not meet [goal]. */
 private fun ComponentStatus.wasShortOf(goal: ControlGoal, layers: Set<ControlLayer>): Boolean = declaration.layersFor(layers).any { layer ->

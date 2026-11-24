@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.control.ModeBanner
+import com.merxury.blocker.core.ui.control.UnknownCause
 import java.io.File
 
 /**
@@ -94,18 +95,6 @@ enum class SwitchState {
 
     /** Nothing known blocks it, but part of its state could not be read. */
     UNKNOWN,
-}
-
-/** Why the state of a component cannot be told. */
-enum class UnknownCause {
-    /** Its PackageManager setting for the user could not be read. */
-    PM_UNREADABLE,
-
-    /** The current mode cannot read Intent Firewall rules. */
-    NO_FIREWALL_ACCESS,
-
-    /** The app's Intent Firewall rule file could not be read, for example because it is damaged. */
-    RULES_UNREADABLE,
 }
 
 /**

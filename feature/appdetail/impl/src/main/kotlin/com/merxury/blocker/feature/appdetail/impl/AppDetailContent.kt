@@ -123,7 +123,7 @@ internal fun AppDetailContent(
                     toolbarState = toolbarState,
                     actions = topBarActions,
                     showBackButton = showBackButton,
-                    batchRunning = control.batch != null,
+                    batchRunning = !control.batchActionsEnabled,
                 )
             },
             modifier = Modifier.nestedScroll(nestedScrollConnection),
@@ -143,7 +143,7 @@ internal fun AppDetailContent(
                     header = header,
                     list = list,
                     inFlight = control.inFlight,
-                    batchRunning = control.batch != null,
+                    batchRunning = !control.batchActionsEnabled,
                     rowActions = rowActions,
                     actions = actions,
                     modifier = contentModifier,

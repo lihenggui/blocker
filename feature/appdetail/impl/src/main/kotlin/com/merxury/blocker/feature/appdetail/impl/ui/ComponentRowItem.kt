@@ -210,7 +210,7 @@ private fun ComponentSwitch(row: ComponentRow, inFlight: Boolean, onSwitch: (Boo
         }
 
         row.switch == SwitchState.UNKNOWN -> {
-            val why = stringResource(string.feature_appdetail_api_unknown_state_title)
+            val why = stringResource(uiString.core_ui_unknown_state_title)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier

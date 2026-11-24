@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ModeBanner
+import com.merxury.blocker.core.ui.control.UnknownCause
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -201,7 +202,7 @@ class SearchViewModelTest {
         val loaded = fixture.loaded()
         assertThat(loaded.matchedRules.map { it.id }).containsExactly(1)
         assertThat(loaded.unmatchedRules.map { it.id }).containsExactly(2)
-        assertThat(viewModel.uiState.value.tabs.itemCount).containsExactly(SearchTab.APPS, 1, SearchTab.COMPONENTS, 2, SearchTab.RULES, 2)
+        assertThat(viewModel.uiState.value.tabs.itemCount).containsExactly(SearchTab.APPS, 1, SearchTab.RULES, 2)
     }
 
     @Test
@@ -300,6 +301,40 @@ class SearchViewModelTest {
         viewModel.countServices(AppKey("com.a", OWNER))
 
         assertThat(fixture.loaded().apps.single().services?.total).isEqualTo(1)
+    }
+
+    @Test
+    fun givenShellWithoutFirewallAccess_whenAComponentStateIsUnknown_thenItsCauseIsKnown() = runTest {
+        fixture.components.setFirewallReadable(false)
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        fixture.components.sendComponents(
+            OWNER,
+            listOf(
+                component("com.a", "PushReceiver", ifw = IfwBlock.UNKNOWN),
+                component("com.a", "PushService", type = ComponentType.SERVICE, pm = PmSetting.UNKNOWN),
+            ),
+        )
+        collectState()
+
+        searchNow("push")
+
+        val causes = fixture.loaded().components.single().components.associate { it.id.simpleName to it.unknownCause }
+        assertThat(causes).containsExactly("PushReceiver", UnknownCause.NO_FIREWALL_ACCESS, "PushService", UnknownCause.PM_UNREADABLE)
+    }
+
+    @Test
+    fun givenUserNotIndexed_whenSearched_thenTheComponentsTabShowsNoCountUntilIndexed() = runTest {
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+        fixture.components.sendComponents(OWNER, listOf(component("com.a", "PushReceiver")))
+        collectState()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
+
+        searchNow("push")
+        assertThat(viewModel.uiState.value.tabs.itemCount).doesNotContainKey(SearchTab.COMPONENTS)
+        viewModel.selectTab(SearchTab.COMPONENTS)
+        runCurrent()
+
+        assertThat(viewModel.uiState.value.tabs.itemCount[SearchTab.COMPONENTS]).isEqualTo(1)
     }
 
     private companion object {
