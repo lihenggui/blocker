@@ -22,7 +22,7 @@ import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.result.Result
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.takeWhile
 import timber.log.Timber
@@ -53,7 +53,11 @@ class LegacyAppTables @Inject constructor(
         initializeDatabase().takeWhile { it is InitializeState.Initializing }.collect {}
         installedApps.apps(selectedUsers.ownUser)
             .distinctUntilChanged()
-            .collectLatest { fillAppTable() }
+            // Each fill runs to its end: it saves the app rows before their components, and a
+            // cancelled fill would leave components behind that the next fill no longer sees as
+            // changed. Changes arriving meanwhile collapse into one more fill.
+            .conflate()
+            .collect { fillAppTable() }
     }
 
     private suspend fun fillAppTable() {
