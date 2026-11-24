@@ -62,20 +62,43 @@ fun ControlMessageSnackbar(
     onShow: (Long) -> Unit,
     onGrantAccess: () -> Unit,
 ) {
+    val queued = messages.firstOrNull()
+    AccessMessageSnackbar(
+        key = queued?.id,
+        text = queued?.message?.text(),
+        needsAccess = queued?.message?.needsAccess == true,
+        snackbarHostState = snackbarHostState,
+        onShow = { queued?.let { onShow(it.id) } },
+        onGrantAccess = onGrantAccess,
+    )
+}
+
+/**
+ * Shows [text] in a snackbar for its whole duration each time [key] names another message, with
+ * an action to grant access when [needsAccess], then calls [onShow], so each message is told
+ * once. Nothing is shown while [text] is null.
+ */
+@Composable
+fun AccessMessageSnackbar(
+    key: Any?,
+    text: String?,
+    needsAccess: Boolean,
+    snackbarHostState: SnackbarHostState,
+    onShow: () -> Unit,
+    onGrantAccess: () -> Unit,
+) {
     val grantLabel = stringResource(string.core_ui_grant_access)
     val currentGrant by rememberUpdatedState(onGrantAccess)
     val currentShow by rememberUpdatedState(onShow)
-    val queued = messages.firstOrNull()
-    val text = queued?.message?.text()
-    LaunchedEffect(queued?.id) {
-        if (queued == null || text == null) return@LaunchedEffect
+    LaunchedEffect(key) {
+        val message = text ?: return@LaunchedEffect
         val result = snackbarHostState.showSnackbar(
-            message = text,
-            actionLabel = grantLabel.takeIf { queued.message.needsAccess },
+            message = message,
+            actionLabel = grantLabel.takeIf { needsAccess },
             duration = SnackbarDuration.Long,
             withDismissAction = true,
         )
         if (result == SnackbarResult.ActionPerformed) currentGrant()
-        currentShow(queued.id)
+        currentShow()
     }
 }

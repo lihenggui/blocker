@@ -16,13 +16,8 @@
 
 package com.merxury.blocker.core.ui.control
 
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.ui.R.string
@@ -76,19 +71,12 @@ fun ComponentActionFailedSnackbar(
     onShow: () -> Unit,
     onGrantAccess: () -> Unit,
 ) {
-    val grantLabel = stringResource(string.core_ui_grant_access)
-    val currentGrant by rememberUpdatedState(onGrantAccess)
-    val currentShow by rememberUpdatedState(onShow)
-    val text = failure?.text()
-    LaunchedEffect(failure) {
-        if (failure == null || text == null) return@LaunchedEffect
-        val result = snackbarHostState.showSnackbar(
-            message = text,
-            actionLabel = grantLabel.takeIf { failure.needsAccess },
-            duration = SnackbarDuration.Long,
-            withDismissAction = true,
-        )
-        if (result == SnackbarResult.ActionPerformed) currentGrant()
-        currentShow()
-    }
+    AccessMessageSnackbar(
+        key = failure,
+        text = failure?.text(),
+        needsAccess = failure?.needsAccess == true,
+        snackbarHostState = snackbarHostState,
+        onShow = onShow,
+        onGrantAccess = onGrantAccess,
+    )
 }
