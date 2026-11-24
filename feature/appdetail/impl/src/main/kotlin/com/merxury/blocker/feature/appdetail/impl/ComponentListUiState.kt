@@ -27,6 +27,8 @@ import java.io.File
 /**
  * The component lists of one app for one user, with the tabs, search and selection around them.
  *
+ * @property refreshFailure why the last refresh failed; null while one runs, after one succeeded and
+ * before the first. [ReadFailure.PackageNotFound] means the app is not installed for the user.
  * @property banners limits of the current mode, shown once above the lists
  * @property message something to tell once; see [ComponentListViewModel.onMessageShown]
  */
@@ -39,9 +41,19 @@ data class ComponentListUiState(
     val isSelectionMode: Boolean = false,
     val selected: Set<ComponentId> = emptySet(),
     val isRefreshing: Boolean = false,
+    val refreshFailure: ReadFailure? = null,
     val banners: List<ModeBanner> = emptyList(),
     val message: ListMessage? = null,
 )
+
+/**
+ * The components the batch actions of the selected tab act on: the rows it shows, or on the
+ * matched rules tab every component the rules match, each once. None on the app info tab.
+ */
+internal fun ComponentListUiState.componentsOfSelectedPage(): List<ComponentId> = when (val tab = tabs.selectedItem) {
+    AppDetailTabs.Sdk -> (matchedRules as? MatchedRulesUiState.Loaded)?.rules.orEmpty().flatMap { rule -> rule.rows.map { it.id } }.distinct()
+    else -> (components as? ComponentsUiState.Loaded)?.components?.of(tab)?.map { it.id }.orEmpty()
+}
 
 sealed interface ComponentsUiState {
     /** Nothing is cached for the app yet and the first refresh has not finished. */

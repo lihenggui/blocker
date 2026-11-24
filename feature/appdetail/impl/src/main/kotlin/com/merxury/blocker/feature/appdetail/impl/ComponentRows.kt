@@ -117,6 +117,10 @@ internal fun matchedRules(rules: List<GeneralRule>, rows: List<ComponentRow>, ic
     MatchedRule(id = rule.id, title = rule.name, icon = rule.iconUrl?.let(iconOf), rows = matched)
 }
 
+/** Whether [this] tab lists rows that can be searched, sorted and selected. */
+internal val AppDetailTabs.listsComponents: Boolean
+    get() = this != AppDetailTabs.Info && this != AppDetailTabs.Sdk
+
 private val TAB_ORDER = listOf(
     AppDetailTabs.Info,
     AppDetailTabs.Receiver,

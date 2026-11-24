@@ -35,6 +35,7 @@ import com.merxury.blocker.core.model.component.Availability
 import com.merxury.blocker.core.model.component.BlockReason
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -108,7 +109,10 @@ class ComponentListViewModel @AssistedInject constructor(
     private val running = MutableStateFlow<Set<ComponentId>?>(null)
     private val message = MutableStateFlow<ListMessage?>(null)
     private var refreshJob: Job? = null
-    private var refreshedWith: Access? = null
+
+    // The access keepFresh last saw, and whether it refreshed since the screen was opened.
+    private var lastAccess: Access? = null
+    private var refreshedOnce = false
 
     private val statuses = componentStatuses.components(app)
 
@@ -123,21 +127,37 @@ class ComponentListViewModel @AssistedInject constructor(
     // In the repository's order, by class name.
     private val rows: Flow<List<ComponentRow>> = combine(statuses, descriptions, running, componentStatuses.firewallReadable) { statuses, descriptions, running, readable ->
         statuses.map { it.toRow(descriptions[it.declaration.id.className], running, readable) }
+    }.distinctUntilChanged()
+
+    // Only the preferences that order the rows, so another change of the settings sorts nothing.
+    private val sortPreferences: Flow<UserPreferenceData> = userDataRepository.userData.distinctUntilChanged { old, new ->
+        old.componentSorting == new.componentSorting && old.componentSortingOrder == new.componentSortingOrder && old.componentShowPriority == new.componentShowPriority
     }
 
-    private val lists: Flow<Lists> = combine(rows, userDataRepository.userData, search, refresh) { rows, preferences, search, refresh ->
-        val loading = rows.isEmpty() && (refresh == null || refresh == RefreshStatus.Running)
-        val components = if (loading) ComponentsUiState.Loading else ComponentsUiState.Loaded(appComponents(rows, preferences).matching(keywordsOf(search.keyword)))
-        Lists(rows, components, search, isRefreshing = !loading && refresh == RefreshStatus.Running)
+    // Sorted again only when the rows or their order change, not for a search or a refresh.
+    private val sorted: Flow<AppComponents> = combine(rows, sortPreferences, ::appComponents)
+
+    private val loading: Flow<Boolean> = combine(rows.map { it.isEmpty() }.distinctUntilChanged(), refresh) { empty, refresh ->
+        empty && (refresh == null || refresh == RefreshStatus.Running)
+    }.distinctUntilChanged()
+
+    private val components: Flow<ComponentsUiState> = combine(sorted, search.map { keywordsOf(it.keyword) }.distinctUntilChanged(), loading) { sorted, keywords, loading ->
+        if (loading) ComponentsUiState.Loading else ComponentsUiState.Loaded(sorted.matching(keywords))
     }
 
-    private val listsAndRules: Flow<Pair<Lists, MatchedRulesUiState>> = combine(lists, generalRules.getGeneralRules()) { lists, rules ->
-        val matched = if (lists.components is ComponentsUiState.Loading) {
-            MatchedRulesUiState.Loading
-        } else {
-            MatchedRulesUiState.Loaded(matchedRules(rules, lists.rows) { filesDir.resolve(ruleBaseFolder).resolve(it) })
-        }
-        lists to matched
+    // From the rows alone, so a search or a refresh matches nothing again.
+    private val matchedRules: Flow<MatchedRulesUiState> = combine(rows, generalRules.getGeneralRules(), loading) { rows, rules, loading ->
+        if (loading) MatchedRulesUiState.Loading else MatchedRulesUiState.Loaded(matchedRules(rules, rows) { filesDir.resolve(ruleBaseFolder).resolve(it) })
+    }.distinctUntilChanged()
+
+    private val lists: Flow<Lists> = combine(components, matchedRules, search, refresh, loading) { components, matched, search, refresh, loading ->
+        Lists(
+            components = components,
+            matchedRules = matched,
+            search = search,
+            isRefreshing = !loading && refresh == RefreshStatus.Running,
+            refreshFailure = (refresh as? RefreshStatus.Failed)?.reason,
+        )
     }
 
     private val banners: Flow<List<ModeBanner>> = combine(channel.state, componentStatuses.firewallReadable, userDataRepository.userData) { state, readable, preferences ->
@@ -145,21 +165,22 @@ class ComponentListViewModel @AssistedInject constructor(
     }
 
     val uiState: StateFlow<ComponentListUiState> = combine(
-        listsAndRules,
+        lists,
         banners,
         requestedTab,
         selection,
         message,
-    ) { (lists, matched), banners, requestedTab, selection, message ->
+    ) { lists, banners, requestedTab, selection, message ->
         ComponentListUiState(
-            tabs = tabsOf(lists.components, matched, requestedTab),
+            tabs = tabsOf(lists.components, lists.matchedRules, requestedTab),
             components = lists.components,
-            matchedRules = matched,
+            matchedRules = lists.matchedRules,
             isSearchMode = lists.search.isSearchMode,
             keyword = lists.search.keyword,
             isSelectionMode = selection.active,
             selected = selection.ids,
             isRefreshing = lists.isRefreshing,
+            refreshFailure = lists.refreshFailure,
             banners = banners,
             message = message,
         )
@@ -176,18 +197,24 @@ class ComponentListViewModel @AssistedInject constructor(
         )
 
     /**
-     * Keeps the rows current while the screen is shown: refreshes the app when first called and
-     * again whenever the privileged channel's access changes, since that changes what can be
-     * read, and reads the running services again after a change of the components' state.
-     * Returns only when cancelled.
+     * Keeps the rows current while the screen is shown. Refreshes the app once the privileged
+     * channel's first access check has settled, never before: until then another user's app
+     * cannot be read and the firewall state would be stored as unknown. Refreshes again whenever
+     * access becomes ready, or ready as another identity, since that changes what can be read,
+     * and reads the running services again after a change of the components' state. Returns
+     * only when cancelled.
      */
     @OptIn(FlowPreview::class)
     suspend fun keepFresh(): Unit = coroutineScope {
         launch {
             channel.state.map(::accessOf).distinctUntilChanged().collect { access ->
+                val previous = lastAccess
+                lastAccess = access
                 // A screen shown again, such as after a rotation, has nothing new to read.
-                if (access != refreshedWith) {
-                    refreshedWith = access
+                val settles = access == Access.None && !refreshedOnce
+                val becomesReady = access is Access.Ready && access != previous
+                if (settles || becomesReady) {
+                    refreshedOnce = true
                     startRefresh(restart = true)
                 }
             }
@@ -201,11 +228,19 @@ class ComponentListViewModel @AssistedInject constructor(
         }
     }
 
-    /** Reads the app again from the system; the cached rows stay shown meanwhile. */
-    fun refresh() = startRefresh(restart = false)
+    /**
+     * Reads the app again from the system; the cached rows stay shown meanwhile. Ignored until
+     * the channel's first access check has settled, after which [keepFresh] refreshes anyway.
+     */
+    fun refresh() {
+        if (accessOf(channel.state.value) == Access.Unchecked) return
+        startRefresh(restart = false)
+    }
 
+    /** Shows [tab]. Selection mode ends on a tab without selectable rows. */
     fun selectTab(tab: AppDetailTabs) {
         requestedTab.value = tab
+        if (!tab.listsComponents) selection.value = Selection()
     }
 
     fun setSearchMode(enabled: Boolean) {
@@ -287,7 +322,8 @@ class ComponentListViewModel @AssistedInject constructor(
 
                 is ReadResult.Failure -> {
                     Timber.w("Cannot refresh $app: ${result.reason}")
-                    message.value = ListMessage.RefreshFailed(result.reason)
+                    // Not told while the channel is checked again: its answer decides what can be read.
+                    if (accessOf(channel.state.value) != Access.Unchecked) message.value = ListMessage.RefreshFailed(result.reason)
                     RefreshStatus.Failed(result.reason)
                 }
             }
@@ -320,10 +356,11 @@ class ComponentListViewModel @AssistedInject constructor(
     private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet())
 
     private data class Lists(
-        val rows: List<ComponentRow>,
         val components: ComponentsUiState,
+        val matchedRules: MatchedRulesUiState,
         val search: Search,
         val isRefreshing: Boolean,
+        val refreshFailure: ReadFailure?,
     )
 
     private sealed interface RefreshStatus {

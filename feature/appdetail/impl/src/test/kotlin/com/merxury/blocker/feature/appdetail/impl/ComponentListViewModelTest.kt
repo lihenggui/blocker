@@ -165,16 +165,92 @@ class ComponentListViewModelTest {
 
         assertThat(fixture.loaded()).isEqualTo(AppComponents())
         assertThat(viewModel.uiState.value.tabs.items).containsExactly(AppDetailTabs.Info)
+        assertThat(viewModel.uiState.value.refreshFailure).isEqualTo(ReadFailure.PackageNotFound(OWN_APP))
     }
 
     @Test
-    fun givenChannelNotReady_whenItBecomesReady_thenRefreshedAgain() = runTest {
+    fun givenFailedRefresh_whenRefreshedAgainSuccessfully_thenNoFailureIsKept() = runTest {
+        fixture.components.refreshFailure = ReadFailure.UserNotReachable(OWNER)
+        show()
+        assertThat(viewModel.uiState.value.refreshFailure).isEqualTo(ReadFailure.UserNotReachable(OWNER))
+
+        fixture.components.refreshFailure = null
+        viewModel.refresh()
+
+        assertThat(viewModel.uiState.value.refreshFailure).isNull()
+    }
+
+    @Test
+    fun givenShownRows_whenSearchingOrRefreshing_thenNeitherSortedNorMatchedAgain() = runTest {
+        fixture.rules.sendRuleList(listOf(GeneralRule(id = 7, name = "Firebase", searchKeyword = listOf("firebase"))))
+        fixture.sendComponents(component("firebase.Messaging", type = ComponentType.SERVICE), component("Main"))
+        show()
+        val sorted = fixture.loaded()
+        val matched = viewModel.uiState.value.matchedRules
+
+        viewModel.refresh()
+        assertThat(fixture.loaded()).isSameInstanceAs(sorted)
+        assertThat(viewModel.uiState.value.matchedRules).isSameInstanceAs(matched)
+
+        viewModel.setSearchMode(true)
+        viewModel.search("main")
+        assertThat(viewModel.uiState.value.matchedRules).isSameInstanceAs(matched)
+
+        fixture.userData.sendUserData(defaultUserData.copy(useDynamicColor = !defaultUserData.useDynamicColor))
+        viewModel.search("")
+        assertThat(fixture.loaded()).isSameInstanceAs(sorted)
+    }
+
+    @Test
+    fun givenAccessUnchecked_whenShownOrPulled_thenNothingIsReadAndNoFailureIsTold() = runTest {
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, userId = WORK.value)
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        fixture.components.refreshFailure = ReadFailure.UserNotReachable(WORK)
+        fixture.sendComponents(component("Main"))
+        show()
+
+        viewModel.refresh()
+
+        assertThat(fixture.components.refreshedApps).isEmpty()
+        assertThat(viewModel.uiState.value.message).isNull()
+        assertThat(viewModel.uiState.value.isRefreshing).isFalse()
+    }
+
+    @Test
+    fun givenAccessUnchecked_whenTheCheckSettlesReady_thenRefreshedOnceWithoutAFailure() = runTest {
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, userId = WORK.value)
         fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
         show()
 
         fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
 
-        assertThat(fixture.components.refreshedApps).containsExactly(OWN_APP, OWN_APP)
+        assertThat(fixture.components.refreshedApps).containsExactly(WORK_APP)
+        assertThat(viewModel.uiState.value.message).isNull()
+    }
+
+    @Test
+    fun givenAccessUnchecked_whenTheCheckSettlesWithoutAccess_thenRefreshedOnce() = runTest {
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        show()
+
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+
+        assertThat(fixture.components.refreshedApps).containsExactly(OWN_APP)
+    }
+
+    @Test
+    fun givenAccessReady_whenLostAndRegained_thenRefreshedOnlyWhenReadyAgain() = runTest {
+        show()
+        assertThat(fixture.components.refreshedApps).hasSize(1)
+
+        fixture.channel.setState(ChannelState.Unavailable(UnavailableReason.FAILED))
+        assertThat(fixture.components.refreshedApps).hasSize(1)
+
+        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        assertThat(fixture.components.refreshedApps).hasSize(2)
+
+        fixture.channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        assertThat(fixture.components.refreshedApps).hasSize(3)
     }
 
     @Test
@@ -440,5 +516,44 @@ class ComponentListViewModelTest {
         viewModel.toggleSelected(id("B"))
         viewModel.setSelectionMode(false)
         assertThat(viewModel.uiState.value.let { it.isSelectionMode to it.selected }).isEqualTo(false to emptySet<Any>())
+    }
+
+    @Test
+    fun givenSelectionMode_whenTheMatchedRulesTabIsSelected_thenSelectionModeEnds() = runTest {
+        fixture.rules.sendRuleList(listOf(GeneralRule(id = 7, name = "Firebase", searchKeyword = listOf("firebase"))))
+        fixture.sendComponents(component("firebase.Receiver", type = ComponentType.RECEIVER))
+        show()
+        viewModel.setSelectionMode(true)
+        viewModel.toggleSelected(id("firebase.Receiver"))
+
+        viewModel.selectTab(AppDetailTabs.Sdk)
+
+        assertThat(viewModel.uiState.value.let { it.isSelectionMode to it.selected }).isEqualTo(false to emptySet<Any>())
+    }
+
+    @Test
+    fun givenMatchedRulesTab_whenItsPageIsTaken_thenEveryMatchedComponentOnce() = runTest {
+        fixture.rules.sendRuleList(
+            listOf(
+                GeneralRule(id = 1, name = "Firebase", searchKeyword = listOf("firebase")),
+                GeneralRule(id = 2, name = "Messaging", searchKeyword = listOf("messaging")),
+            ),
+        )
+        fixture.sendComponents(
+            component("firebase.Messaging", type = ComponentType.SERVICE),
+            component("firebase.Init", type = ComponentType.PROVIDER),
+            component("other.MessagingReceiver", type = ComponentType.RECEIVER),
+            component("Main"),
+        )
+        show()
+
+        viewModel.selectTab(AppDetailTabs.Sdk)
+
+        assertThat(viewModel.uiState.value.componentsOfSelectedPage())
+            .containsExactly(id("firebase.Init"), id("firebase.Messaging"), id("other.MessagingReceiver"))
+        viewModel.selectTab(AppDetailTabs.Activity)
+        assertThat(viewModel.uiState.value.componentsOfSelectedPage()).containsExactly(id("Main"))
+        viewModel.selectTab(AppDetailTabs.Info)
+        assertThat(viewModel.uiState.value.componentsOfSelectedPage()).isEmpty()
     }
 }
