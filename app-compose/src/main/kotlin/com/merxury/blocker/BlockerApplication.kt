@@ -127,7 +127,7 @@ class BlockerApplication :
         // otherwise be taken for blocks of an earlier version.
         applicationScope.launch {
             pmBlockRecordSeeder.seedOnce()
-            legacyAppTables.fill()
+            legacyAppTables.keepFilled()
         }
         applicationScope.launch {
             val userData = userDataRepository.userData.first()

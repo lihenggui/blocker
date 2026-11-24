@@ -16,10 +16,14 @@
 
 package com.merxury.blocker
 
+import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.result.Result
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.takeWhile
 import timber.log.Timber
 import javax.inject.Inject
@@ -33,13 +37,28 @@ import javax.inject.Inject
 class LegacyAppTables @Inject constructor(
     private val appRepository: AppRepository,
     private val initializeDatabase: InitializeDatabaseUseCase,
+    private val installedApps: InstalledAppRepository,
+    private val selectedUsers: SelectedUserRepository,
 ) {
-    /** Reads the installed apps into the old table, then scans their components once per install. */
-    suspend fun fill() {
+    /**
+     * Reads the installed apps into the old table and scans their components once per install.
+     * Then reads the apps into the old table again whenever the cached apps of the user Blocker
+     * runs in change, as a refresh or an action in the app list changes them, so an app installed
+     * or removed while Blocker runs reaches the old screens too. The old table holds that user
+     * only. A failure is logged and never reaches the app list. Returns only when cancelled.
+     */
+    suspend fun keepFilled() {
+        fillAppTable()
+        // The scan keeps watching the app table once done, so stop at its end.
+        initializeDatabase().takeWhile { it is InitializeState.Initializing }.collect {}
+        installedApps.apps(selectedUsers.ownUser)
+            .distinctUntilChanged()
+            .collectLatest { fillAppTable() }
+    }
+
+    private suspend fun fillAppTable() {
         appRepository.updateApplicationList().collect { result ->
             if (result is Result.Error) Timber.e(result.exception, "Cannot fill the old app table")
         }
-        // The scan keeps watching the app table once done, so stop at its end.
-        initializeDatabase().takeWhile { it is InitializeState.Initializing }.collect {}
     }
 }
