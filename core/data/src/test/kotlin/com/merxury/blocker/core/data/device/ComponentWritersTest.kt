@@ -34,17 +34,10 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
-import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.rule.backup.IfwRuleImporter
-import com.merxury.blocker.core.rule.backup.MatRuleImporter
-import com.merxury.blocker.core.rule.backup.PackageManagerReset
-import com.merxury.blocker.core.rule.backup.RuleRunResult
-import com.merxury.blocker.core.testing.repository.TestUserDataRepository
-import com.merxury.blocker.core.testing.storage.FakeBackupStorage
+import com.merxury.core.ifw.getOrThrow
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.withIfwEditorAccess
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
-import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -160,13 +153,10 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
     }
 
     @Test
-    fun givenCachedComponent_whenMatImportAndPmResetFinish_thenTheirReadBackIsAlreadyStored() = runTest {
+    fun givenCachedComponent_whenBlockingAndUnblockingThroughPm_thenTheirReadBackIsAlreadyStored() = runTest {
         val repository = components(backgroundScope)
         system.install(installedApp(PKG), MAIN)
         repository.refresh(OWNER_APP)
-        val preferences = TestUserDataRepository().apply { setControllerType(ControllerType.PM) }
-        val importer = MatRuleImporter(apps, repository, channel, preferences)
-        val reset = PackageManagerReset(repository, channel)
         componentControl.apply = { request ->
             flow {
                 val setting = if (request.goal == ControlGoal.BLOCK) PmSetting.DISABLED else PmSetting.DEFAULT
@@ -176,9 +166,11 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
             }
         }
 
-        assertThat((importer.import(listOf(MAIN.id.flatten()), OWNER) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+        val request = blockRequest(MAIN)
+        repository.control(request).toList()
         assertThat(repository.components(OWNER_APP).first().single().state.pm).isEqualTo(PmSetting.DISABLED)
-        assertThat((reset.reset(OWNER) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+        assertThat(pmBlocks.of(OWNER)).containsExactly(ComponentKey(MAIN.id, OWNER))
+        repository.control(request.copy(goal = ControlGoal.UNBLOCK)).toList()
         assertThat(repository.components(OWNER_APP).first().single().state.pm).isEqualTo(PmSetting.DEFAULT)
         assertThat(pmBlocks.of(OWNER)).isEmpty()
     }
@@ -188,19 +180,15 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
         val repository = components(backgroundScope)
         system.install(installedApp(PKG), MAIN)
         repository.refresh(OWNER_APP)
-        val backup = FakeBackupStorage().apply {
-            putFile(
-                "ifw/$PKG.xml",
-                """<rules><activity block="true" log="false"><component-filter name="$PKG/${MAIN.id.className}" /></activity></rules>""",
-            )
-        }
-        val importer = IfwRuleImporter(store, users, apps, channel, IfwXmlDeserializer(), IfwXmlSerializer())
+        val importedRules = IfwXmlDeserializer().deserialize(
+            """<rules><activity block="true" log="false"><component-filter name="$PKG/${MAIN.id.className}" /></activity></rules>""",
+        )
         val reset = FirewallResetRepository({ true }, store)
 
         repository.components(OWNER_APP).test {
             assertThat(awaitItem().single().state.ifw).isEqualTo(IfwBlock.NOT_BLOCKED)
 
-            assertThat((importer.import(backup) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+            store.update(PKG) { importedRules }.getOrThrow()
             assertThat(awaitItem().single().state.ifw).isEqualTo(IfwBlock.BLOCKED)
 
             assertThat(reset.reset(PKG) { _, _, _ -> }).isEqualTo(1)
