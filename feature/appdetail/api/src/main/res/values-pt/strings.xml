@@ -99,10 +99,12 @@
     <string name="feature_appdetail_api_profile_user">Usuário %1$d</string>
     <plurals name="feature_appdetail_api_batch_changed">
         <item quantity="one">%1$d componente alterado</item>
+        <item quantity="many">%1$d componentes alterados</item>
         <item quantity="other">%1$d componentes alterados</item>
     </plurals>
     <plurals name="feature_appdetail_api_batch_not_changed">
         <item quantity="one">%1$d não pôde ser alterado</item>
+        <item quantity="many">%1$d não puderam ser alterados</item>
         <item quantity="other">%1$d não puderam ser alterados</item>
     </plurals>
     <plurals name="feature_appdetail_api_batch_stays_off_as_shipped">

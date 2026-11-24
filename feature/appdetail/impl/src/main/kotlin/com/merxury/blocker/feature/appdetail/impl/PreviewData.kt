@@ -26,6 +26,8 @@ import kotlin.time.Instant
 
 private const val PREVIEW_PACKAGE = "com.merxury.blocker"
 
+// The data directory is sample text for a preview, not a path the app opens.
+@Suppress("SdCardPath")
 internal val previewHeaderApp = HeaderApp(
     packageName = PREVIEW_PACKAGE,
     label = "Blocker",
