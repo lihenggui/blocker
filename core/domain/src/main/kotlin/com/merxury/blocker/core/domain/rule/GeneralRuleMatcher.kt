@@ -27,6 +27,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.SqlLikePattern
 import com.merxury.blocker.core.domain.foldSqlLikeCase
+import com.merxury.blocker.core.domain.readAtMostEvery
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentStatus
@@ -244,16 +245,4 @@ data class GeneralRuleMatches(private val byRule: Map<Int, List<ComponentStatus>
     /** Every component a rule matches, each once. */
     val allComponents: List<ComponentStatus>
         get() = byRule.values.flatten().distinctBy { it.declaration.id }
-}
-
-/**
- * Emits each value of [this] and then waits [periodMillis] before it takes the next. A source that
- * keeps only its latest value while it waits, as a Room query does with the changes to its tables,
- * is then read at most once per period, and its latest value still arrives.
- */
-internal fun <T> Flow<T>.readAtMostEvery(periodMillis: Long): Flow<T> = flow {
-    collect {
-        emit(it)
-        delay(periodMillis)
-    }
 }

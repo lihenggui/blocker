@@ -25,6 +25,7 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -66,7 +67,7 @@ class ComponentIndex @Inject constructor(
     fun ensureIndexed(user: UserId) = synchronized(jobs) {
         when (val state = states.value[user]) {
             is IndexState.Indexing -> return
-            is IndexState.Indexed -> if (!state.couldReadMore(channel.state.value)) return
+            is IndexState.Indexed -> if (state.exception == null && !state.couldReadMore(channel.state.value)) return
             IndexState.NotIndexed, null -> Unit
         }
         start(user)
@@ -86,19 +87,13 @@ class ComponentIndex @Inject constructor(
             // state would be stored as unknown, so wait for it, but not forever.
             withTimeoutOrNull(ACCESS_CHECK_TIMEOUT_MILLIS) { channel.state.first { it != NOT_CHECKED } }
             val identity = (channel.state.value as? ChannelState.Ready)?.identity
-            componentStatuses.refreshAll(user).collect { progress ->
-                val state = when (progress) {
-                    is RefreshProgress.Refreshing -> IndexState.Indexing(run, progress.done, progress.total)
-
-                    is RefreshProgress.Finished -> {
-                        // Access lost or changed during the run left the apps read since with less.
-                        val atEnd = (channel.state.value as? ChannelState.Ready)?.identity
-                        val throughout = identity.takeIf { it == atEnd }
-                        Timber.i("Indexed ${progress.total} apps of user ${user.value}, ${progress.failed} failed, as $identity until $atEnd")
-                        IndexState.Indexed(run, progress.total, progress.failed, progress.appListFailure, throughout)
-                    }
-                }
-                states.update { it + (user to state) }
+            try {
+                refresh(user, run, identity)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Cannot index user ${user.value}")
+                publish(user, run, IndexState.Indexed(run, 0, 0, null, identity, exception = e))
             }
         }.also { job ->
             job.invokeOnCompletion { cause ->
@@ -108,6 +103,29 @@ class ComponentIndex @Inject constructor(
                     if (cause != null) states.update { current -> if ((current[user] as? IndexState.Indexing)?.run == run) current - user else current }
                 }
             }
+        }
+    }
+
+    private suspend fun refresh(user: UserId, run: Long, identity: PrivilegedIdentity?) {
+        componentStatuses.refreshAll(user).collect { progress ->
+            val state = when (progress) {
+                is RefreshProgress.Refreshing -> IndexState.Indexing(run, progress.done, progress.total)
+
+                is RefreshProgress.Finished -> {
+                    // Access lost or changed during the run left the apps read since with less.
+                    val atEnd = (channel.state.value as? ChannelState.Ready)?.identity
+                    val throughout = identity.takeIf { it == atEnd }
+                    Timber.i("Indexed ${progress.total} apps of user ${user.value}, ${progress.failed} failed, as $identity until $atEnd")
+                    IndexState.Indexed(run, progress.total, progress.failed, progress.appListFailure, throughout)
+                }
+            }
+            publish(user, run, state)
+        }
+    }
+
+    private fun publish(user: UserId, run: Long, state: IndexState) {
+        states.update { current ->
+            if ((current[user] as? IndexState.Indexing)?.run == run) current + (user to state) else current
         }
     }
 
@@ -135,6 +153,7 @@ sealed interface IndexState {
      * @property identity what the privileged channel ran as throughout the run, or null when it
      * was not ready or did not run as the same identity from the start to the end, so the parts
      * that need it may show as unknown
+     * @property exception an unexpected failure while indexing, if it could not finish
      */
     data class Indexed(
         val run: Long,
@@ -142,9 +161,10 @@ sealed interface IndexState {
         val failed: Int,
         val appListFailure: ReadFailure?,
         val identity: PrivilegedIdentity?,
+        val exception: Throwable? = null,
     ) : IndexState {
         /** Whether some state could not be read: an app failed or the channel was not ready. */
-        val incomplete: Boolean get() = failed > 0 || appListFailure != null || identity == null
+        val incomplete: Boolean get() = failed > 0 || appListFailure != null || identity == null || exception != null
 
         /** Whether indexing again could read more, as the channel now runs as another identity. */
         fun couldReadMore(now: ChannelState): Boolean = now is ChannelState.Ready && now.identity != identity

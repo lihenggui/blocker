@@ -75,6 +75,9 @@ sealed interface BatchKey {
 
     /** Components the general rule [ruleId] matches in apps of [user], as its detail screen changes them. */
     data class Rule(val ruleId: Int, override val user: UserId) : BatchKey
+
+    /** The debloater actions for one Android user. */
+    data class Debloater(override val user: UserId) : BatchKey
 }
 
 /**
@@ -86,7 +89,8 @@ sealed interface BatchKey {
  * A batch is [reserve]d at once with the components it will change, so it counts as running
  * before anything is read, then [start]ed. A [BatchRun] holds nothing of the screen that started
  * it. That screen follows [running] and awaits [BatchRun.outcomes] in its own scope, so once it is
- * gone nothing is told to it; [BatchRun.outcomes] always completes with an outcome per component.
+ * gone nothing is told to it. [BatchRun.outcomes] completes with the outcomes of the components
+ * sent, or fails if the batch could not be prepared.
  */
 @Singleton
 class ComponentBatchRunner @Inject constructor(
@@ -150,15 +154,42 @@ class ComponentBatchRunner @Inject constructor(
      * not yet done with [ControlFailure.SystemError].
      */
     fun start(run: BatchRun, components: List<ComponentDeclaration>, layers: Set<ControlLayer>) {
+        updatePending(run, components)
+        launch(run) { ControlRequest(run.key.user, components, run.goal, layers) }
+    }
+
+    /** Prepares and sends a reserved batch in the application scope. */
+    fun start(run: BatchRun, prepare: suspend () -> ControlRequest) {
+        launch(run) {
+            val request = prepare()
+            require(request.user == run.key.user && request.goal == run.goal)
+            updatePending(run, request.components)
+            request
+        }
+    }
+
+    private fun updatePending(run: BatchRun, components: List<ComponentDeclaration>) {
         run.progress.value = BatchStep(done = 0, total = components.size, pending = components.mapTo(mutableSetOf()) { it.id })
+    }
+
+    private fun launch(run: BatchRun, prepare: suspend () -> ControlRequest) {
         scope.launch {
             val outcomes = mutableListOf<ComponentOutcome>()
             try {
-                send(run, components, layers, outcomes)
-            } finally {
+                val request = prepare()
+                send(run, request.components, request.layers, outcomes)
                 run.result.complete(outcomes)
+            } catch (e: CancellationException) {
+                run.result.cancel(e)
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Cannot run batch ${run.goal} of ${run.key}")
+                run.result.completeExceptionally(e)
+            } finally {
                 remove(run)
             }
+        }.invokeOnCompletion { cause ->
+            if (cause is CancellationException) release(run)
         }
     }
 
