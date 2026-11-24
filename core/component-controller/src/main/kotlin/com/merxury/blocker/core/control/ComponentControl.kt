@@ -72,10 +72,11 @@ import kotlinx.coroutines.flow.Flow
  * when every layer it uses lets the component run, so with every layer requested achieved means
  * [Availability.Runnable] or [Availability.Conditional]. An unblock or enable is partial when a
  * layer that did not meet the goal before does now but another requested layer does not or
- * cannot be read, and failed when no requested layer moved toward the goal. A layer whose call
- * succeeded but whose state
- * does not show it fails with [ControlFailure.StateNotConfirmed]. A partial result is kept, not
- * rolled back.
+ * cannot be read, and failed when no requested layer moved toward the goal. A layer counts as moved
+ * only when it was read before the change and nothing failed for it: a setting that could not be
+ * read may have met the goal already, so one that reads differently afterwards proves no progress.
+ * A layer whose call succeeded but whose state does not show it fails with
+ * [ControlFailure.StateNotConfirmed]. A partial result is kept, not rolled back.
  *
  * Without a ready channel nothing is sent and the layers fail with
  * [ControlFailure.ChannelUnavailable]. Shizuku running as the shell may change the components of

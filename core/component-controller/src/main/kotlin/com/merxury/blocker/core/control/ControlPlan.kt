@@ -78,12 +78,30 @@ internal fun judge(
         goal == ControlGoal.BLOCK -> if (missed.size < layers.size) ControlResult.PARTIAL else ControlResult.FAILED
 
         // Unblocking or enabling moved a layer to the goal, but another requested one does not meet it or cannot be read.
-        layers.any { component.meets(goal, it, after) && !component.meets(goal, it, before) } -> ControlResult.PARTIAL
+        layers.any { component.moved(goal, it, before, after, failures) } -> ControlResult.PARTIAL
 
         else -> ControlResult.FAILED
     }
     val reported = missed.associateWith { failures[it] ?: ControlFailure.StateNotConfirmed }
     return ComponentOutcome(ComponentKey(component.id, user), after, result, reported)
+}
+
+/**
+ * Whether [layer] moved to [goal]: it was read before and did not show the goal, shows it now, and
+ * nothing failed for it. A layer that could not be read before may have shown the goal already, so
+ * reading it afterwards proves no change; nor does a layer whose call could not run.
+ */
+private fun ComponentDeclaration.moved(
+    goal: ControlGoal,
+    layer: ControlLayer,
+    before: ControlState,
+    after: ControlState,
+    failures: Map<ControlLayer, ControlFailure>,
+): Boolean = layer !in failures && before.isKnown(layer) && !meets(goal, layer, before) && meets(goal, layer, after)
+
+private fun ControlState.isKnown(layer: ControlLayer): Boolean = when (layer) {
+    ControlLayer.PACKAGE_MANAGER -> pm != PmSetting.UNKNOWN
+    ControlLayer.INTENT_FIREWALL -> ifw != IfwBlock.UNKNOWN
 }
 
 /** Whether [layer] shows [goal] in [state]. */

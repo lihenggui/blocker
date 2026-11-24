@@ -165,6 +165,72 @@ class ComponentControlFailureTest {
     }
 
     @Test
+    fun givenRootDeniedAfterTheChannelDied_whenEnabledTwice_thenBothAttemptsFailAlike() = runTest {
+        // The channel still reads as ready after its process died: the first read through it fails
+        // and marks it lost, and a later connect is refused.
+        val fixture = ControlFixture()
+        fixture.blockInIfw(BOOT)
+        fixture.files.connected = false
+        fixture.channel.connectResult = ChannelState.Unavailable(UnavailableReason.DENIED)
+        var reads = 0
+        fixture.system.beforeRead = {
+            reads++
+            fixture.system.readFailure = if (reads == 1) ReadFailure.ChannelUnavailable else null
+            if (reads == 1) fixture.channel.mutableState.value = ChannelState.Unavailable(UnavailableReason.FAILED)
+        }
+
+        val first = fixture.run(enable(BOOT)).outcomeOf(BOOT)
+        val second = fixture.run(enable(BOOT)).outcomeOf(BOOT)
+
+        assertThat(fixture.executor.calls).isEmpty()
+        listOf(first, second).forEach { outcome ->
+            assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+            assertThat(outcome.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.BLOCKED))
+            assertThat(outcome.failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.ChannelUnavailable)
+        }
+    }
+
+    @Test
+    fun givenSettingUnreadableBefore_whenUnblockClearsItButTheRuleStays_thenFailedNotPartial() = runTest {
+        val fixture = ControlFixture()
+        fixture.blockInIfw(MAIN)
+        fixture.files.writeFailure = IOException("Disk full")
+        var reads = 0
+        fixture.system.beforeRead = {
+            reads++
+            fixture.system.readFailure = if (reads == 1) ReadFailure.ChannelUnavailable else null
+        }
+
+        val outcome = fixture.run(unblock(MAIN)).outcomeOf(MAIN)
+
+        // The setting was cleared as it might have been a block, but it may have been clear already.
+        assertThat(fixture.executor.calls).hasSize(1)
+        assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+        assertThat(outcome.failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.WriteFailed("Disk full"))
+    }
+
+    @Test
+    fun givenNoChannel_whenEnableNeedsBothLayers_thenEachListsChannelUnavailableAndFailed() = runTest {
+        val fixture = ControlFixture(NOT_CHECKED)
+        val shippedOff = declaration("Off", ComponentType.RECEIVER, enabledInManifest = false)
+        fixture.blockInIfw(shippedOff)
+        fixture.files.connected = false
+        fixture.channel.connectResult = ChannelState.Unavailable(UnavailableReason.DENIED)
+
+        repeat(2) {
+            val outcome = fixture.run(enable(shippedOff)).outcomeOf(shippedOff)
+
+            assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+            assertThat(outcome.failures).containsExactly(
+                ControlLayer.PACKAGE_MANAGER,
+                ControlFailure.ChannelUnavailable,
+                ControlLayer.INTENT_FIREWALL,
+                ControlFailure.ChannelUnavailable,
+            )
+        }
+    }
+
+    @Test
     fun givenChannelLostInFirstPackage_whenNextPackage_thenNotConnectedAgainAndNothingSent() = runTest {
         val fixture = ControlFixture()
         fixture.system.beforeSet = {

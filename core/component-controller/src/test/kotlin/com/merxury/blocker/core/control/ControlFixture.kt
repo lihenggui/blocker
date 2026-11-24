@@ -132,6 +132,10 @@ internal class FakePmSystem {
     @Volatile
     var readFailure: ReadFailure? = null
 
+    /** Runs before each read of the settings, so tests can change the world between reads. */
+    @Volatile
+    var beforeRead: suspend () -> Unit = {}
+
     /** Runs before each call is applied, so tests can hold it or change the world. */
     @Volatile
     var beforeSet: suspend (SetComponentEnabledSettings) -> Unit = {}
@@ -208,6 +212,7 @@ internal class FakeExecutor(private val system: FakePmSystem, private val channe
 internal class FakeReader(private val system: FakePmSystem) : SystemPackageReader {
     override suspend fun pmSettings(app: AppKey, components: Collection<ComponentId>): ReadResult<Map<ComponentId, PmSetting>> {
         system.log += "read ${app.packageName}"
+        system.beforeRead()
         system.readFailure?.let { return ReadResult.Failure(it) }
         if (app.packageName in system.missing) return ReadResult.Failure(ReadFailure.PackageNotFound(app))
         return ReadResult.Success(
