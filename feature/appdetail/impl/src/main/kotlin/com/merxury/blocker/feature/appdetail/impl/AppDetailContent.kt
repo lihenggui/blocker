@@ -149,7 +149,9 @@ internal fun AppDetailContent(
         }
         val bottomInset = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         ProcessingProgressSnackbar(
-            progress = control.batch?.let { ProcessingProgress(current = it.done, total = it.total, isEnabling = it.goal != ControlGoal.BLOCK) },
+            progress = control.batch?.let {
+                ProcessingProgress(current = it.done ?: 0, total = it.total, isEnabling = it.goal != ControlGoal.BLOCK, isIndeterminate = it.done == null)
+            },
             onDismiss = {},
             modifier = Modifier
                 .align(Alignment.BottomCenter)

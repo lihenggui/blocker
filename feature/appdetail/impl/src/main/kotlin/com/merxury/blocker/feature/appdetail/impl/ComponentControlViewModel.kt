@@ -89,8 +89,10 @@ class ComponentControlViewModel @AssistedInject constructor(
     }
 
     /**
-     * Changes [components] towards [goal] in steps, reporting the progress, and ends with one
-     * summary. Components already in flight are left out.
+     * Changes [components] towards [goal] and ends with one summary. Up to [BATCH_LIMIT]
+     * components go in one request, which is fastest: one read, one PackageManager call and one
+     * firewall write for the app. A larger batch goes in steps of [BATCH_LIMIT], reporting the
+     * components done. Components already in flight are left out.
      */
     fun controlAll(components: List<ComponentId>, goal: ControlGoal, fromMatchedRule: Boolean = false) {
         val ids = components.distinct().filterNot { it in inFlight.value }
@@ -98,7 +100,7 @@ class ComponentControlViewModel @AssistedInject constructor(
         viewModelScope.launch {
             val enable = goal != ControlGoal.BLOCK
             if (fromMatchedRule) analyticsHelper.logControlAllComponentsInSdkClicked(enable) else analyticsHelper.logBatchOperationPerformed(enable)
-            batch.value = BatchProgress(goal, done = 0, total = ids.size)
+            batch.value = BatchProgress(goal, done = if (ids.size > BATCH_LIMIT) 0 else null, total = ids.size)
             val outcomes = try {
                 run(ids, goal) { done -> batch.value = BatchProgress(goal, done, ids.size).takeIf { done < ids.size } }
             } finally {
@@ -113,8 +115,8 @@ class ComponentControlViewModel @AssistedInject constructor(
     }
 
     /**
-     * Sends [ids] in steps of [STEP], each its own request, so a batch reports progress. Every
-     * component is in flight until its step ends.
+     * Sends [ids] in steps of at most [BATCH_LIMIT], each its own request. Every component is in
+     * flight until its step ends.
      */
     private suspend fun run(ids: List<ComponentId>, goal: ControlGoal, onStep: (done: Int) -> Unit): List<ComponentOutcome> {
         inFlight.update { it + ids }
@@ -122,7 +124,7 @@ class ComponentControlViewModel @AssistedInject constructor(
             val declarations = declarationsOf(ids)
             val layers = if (goal == ControlGoal.BLOCK) userDataRepository.userData.first().controllerType.blockLayers else ControlLayer.entries.toSet()
             val outcomes = mutableListOf<ComponentOutcome>()
-            declarations.chunked(STEP).forEach { step ->
+            declarations.chunked(BATCH_LIMIT).forEach { step ->
                 componentStatuses.control(ControlRequest(app.userId, step, goal, layers)).collect { event ->
                     if (event is ControlEvent.PackageDone) outcomes += event.outcomes
                 }
@@ -155,7 +157,10 @@ class ComponentControlViewModel @AssistedInject constructor(
     }
 
     private companion object {
-        /** Components per request of a batch: few enough to show progress, many enough to be quick. */
-        const val STEP = 10
+        /**
+         * Components per request. Each request reads the app, changes it and reads it back, so
+         * fewer requests are faster; above this a batch shows its progress between requests.
+         */
+        const val BATCH_LIMIT = 200
     }
 }

@@ -184,29 +184,51 @@ class ComponentControlViewModelTest {
     }
 
     @Test
-    fun givenManyComponents_whenAllBlocked_thenSentInStepsWithProgressAndOneSummary() = runTest {
+    fun givenUpTo200Components_whenAllBlocked_thenOneRequestWithoutCountsAndOneSummary() = runTest {
         val gated = GatedComponents(fixture.components)
         fixture.controlStatuses = gated
-        val names = (1..25).map { "Service$it" }
+        val names = (1..200).map { "Service$it" }
         fixture.sendComponents(*names.map { component(it, type = ComponentType.SERVICE) }.toTypedArray())
         collectState()
 
         viewModel.controlAll(names.map(::id), ControlGoal.BLOCK)
-        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.BLOCK, done = 0, total = 25))
-        assertThat(viewModel.uiState.value.inFlight).hasSize(25)
+        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.BLOCK, done = null, total = 200))
+        assertThat(viewModel.uiState.value.inFlight).hasSize(200)
 
         gated.permits.send(Unit)
         runCurrent()
-        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.BLOCK, done = 10, total = 25))
-        assertThat(viewModel.uiState.value.inFlight).hasSize(15)
+        assertThat(fixture.components.requests.map { it.components.size }).containsExactly(200)
+        assertThat(viewModel.uiState.value.batch).isNull()
+        assertThat(viewModel.uiState.value.inFlight).isEmpty()
+        assertThat(viewModel.uiState.value.messages).containsExactly(ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 200, notChanged = 0, mostCommon = null))
+    }
+
+    @Test
+    fun givenMoreThan200Components_whenAllEnabled_thenStepsOf200WithProgressAndOneSummary() = runTest {
+        val gated = GatedComponents(fixture.components)
+        fixture.controlStatuses = gated
+        val names = (1..450).map { "Receiver$it" }
+        fixture.sendComponents(*names.map { component(it, type = ComponentType.RECEIVER, pm = PmSetting.DISABLED) }.toTypedArray())
+        collectState()
+
+        viewModel.controlAll(names.map(::id), ControlGoal.ENABLE)
+        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.ENABLE, done = 0, total = 450))
+
+        gated.permits.send(Unit)
+        runCurrent()
+        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.ENABLE, done = 200, total = 450))
+        assertThat(viewModel.uiState.value.inFlight).hasSize(250)
         assertThat(viewModel.uiState.value.messages).isEmpty()
 
         gated.permits.send(Unit)
+        runCurrent()
+        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.ENABLE, done = 400, total = 450))
+
         gated.permits.send(Unit)
         runCurrent()
-        assertThat(fixture.components.requests.map { it.components.size }).containsExactly(10, 10, 5).inOrder()
+        assertThat(fixture.components.requests.map { it.components.size }).containsExactly(200, 200, 50).inOrder()
         assertThat(viewModel.uiState.value.batch).isNull()
-        assertThat(viewModel.uiState.value.messages).containsExactly(ControlMessage.BatchDone(ControlGoal.BLOCK, changed = 25, notChanged = 0, mostCommon = null))
+        assertThat(viewModel.uiState.value.messages).containsExactly(ControlMessage.BatchDone(ControlGoal.ENABLE, changed = 450, notChanged = 0, mostCommon = null))
     }
 
     @Test

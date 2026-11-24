@@ -36,10 +36,14 @@ data class ControlUiState(
     val messages: List<ControlMessage> = emptyList(),
 )
 
-/** [done] of [total] components of a batch have been changed or failed. */
+/**
+ * [done] of [total] components of a batch have been changed or failed.
+ *
+ * @property done null while the batch is a single request, which reports only once it ends
+ */
 data class BatchProgress(
     val goal: ControlGoal,
-    val done: Int,
+    val done: Int?,
     val total: Int,
 )
 
