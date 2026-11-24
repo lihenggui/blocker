@@ -18,6 +18,7 @@ package com.merxury.blocker.core.domain.rule
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -28,8 +29,17 @@ import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRep
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -48,10 +58,10 @@ class GeneralRuleMatcherTest {
     private val rules = TestGeneralRuleRepository().apply { sendRuleList(listOf(TRACKER)) }
     private val userData = TestUserDataRepository().apply { sendUserData(defaultUserData) }
 
-    private fun TestScope.matcher() = GeneralRuleMatcher(
+    private fun TestScope.matcher(generalRules: GeneralRuleRepository = rules) = GeneralRuleMatcher(
         componentStatuses = components,
         installedApps = apps,
-        generalRules = rules,
+        generalRules = generalRules,
         userData = userData,
         selectedUsers = FakeSelectedUserRepository(OWNER),
         appPackageName = SELF_PACKAGE,
@@ -162,6 +172,71 @@ class GeneralRuleMatcherTest {
             "com.first.Both",
             "com.third.Both",
         ).inOrder()
+    }
+
+    @Test
+    fun givenAnAppUpdateChangesItsComponents_whenMatching_thenThatPackageIsMatchedAgain() = runTest {
+        apps.sendApps(listOf(installedApp("com.alpha"), installedApp("com.beta")))
+        components.sendComponents(OWNER, listOf(status("com.alpha", "com.tracker.Old"), status("com.beta", "com.tracker.B")))
+
+        matcher().matches(OWNER).test {
+            assertThat(awaitItem().componentsOf(TRACKER.id).map { it.declaration.id.className }).containsExactly("com.tracker.Old", "com.tracker.B")
+            components.sendComponents(
+                OWNER,
+                listOf(status("com.alpha", "com.tracker.New"), status("com.alpha", "com.other.Gone"), status("com.beta", "com.tracker.B")),
+            )
+            assertThat(awaitItem().componentsOf(TRACKER.id).map { it.declaration.id.className }).containsExactly("com.tracker.New", "com.tracker.B")
+        }
+    }
+
+    @Test
+    fun givenRulesThatCannotBeRead_whenMatching_thenTheFailureIsThrownAndTheMatchingRecovers() = runTest {
+        apps.sendApps(listOf(installedApp("com.alpha")))
+        components.sendComponents(OWNER, listOf(status("com.alpha", "com.tracker.A")))
+        var broken = true
+        val failing = object : GeneralRuleRepository by rules {
+            override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
+                check(!broken) { "The rule file is damaged" }
+                emitAll(rules.getGeneralRules())
+            }
+        }
+        val matcher = matcher(generalRules = failing)
+        val failures = mutableListOf<Throwable>()
+        val counts = mutableListOf<Int>()
+        backgroundScope.launch {
+            matcher.matches(OWNER)
+                .retryWhen { cause, _ ->
+                    failures += cause
+                    delay(1_000)
+                    true
+                }
+                .collect { counts += it.appCountOf(TRACKER.id) }
+        }
+        runCurrent()
+        assertThat(failures.first()).hasMessageThat().isEqualTo("The rule file is damaged")
+        assertThat(counts).isEmpty()
+
+        broken = false
+        advanceTimeBy(GeneralRuleMatcher.RETRY_MILLIS + 1_000)
+
+        assertThat(counts).containsExactly(1)
+    }
+
+    @Test
+    fun givenOneRule_whenOnlyItIsMatched_thenTheCatalogIsNotRead() = runTest {
+        apps.sendApps(listOf(installedApp("com.alpha")))
+        components.sendComponents(OWNER, listOf(status("com.alpha", "com.tracker.A"), status("com.alpha", "com.ads.B")))
+        val other = GeneralRule(id = 2, name = "Ads", searchKeyword = listOf("com.ads."))
+        rules.sendRuleList(listOf(TRACKER, other))
+        var catalogReads = 0
+        val counting = object : GeneralRuleRepository by rules {
+            override fun getGeneralRules(): Flow<List<GeneralRule>> = rules.getGeneralRules().onStart { catalogReads++ }
+        }
+
+        val matched = matcher(generalRules = counting).matches(OWNER, other.id).first()
+
+        assertThat(matched.map { it.declaration.id.className }).containsExactly("com.ads.B")
+        assertThat(catalogReads).isEqualTo(0)
     }
 
     private companion object {

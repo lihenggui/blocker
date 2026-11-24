@@ -78,7 +78,7 @@ class RuleDetailControlTest {
 
     private fun TestScope.show() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
-        runCurrent()
+        settle()
     }
 
     private fun failingWith(failure: ControlFailure): (ControlRequest) -> List<ControlEvent> = { request ->
@@ -100,8 +100,8 @@ class RuleDetailControlTest {
     fun givenSwitchOn_whenTurnedOff_thenBlocksThroughTheControllerLayersAndTheRowFollowsTheCache() = runTest {
         show()
 
-        viewModel.setEnabled(openA, enabled = false)
-        runCurrent()
+        viewModel.setEnabled(ComponentKey(openA, OWNER), enabled = false)
+        settle()
 
         val request = fixture.components.requests.single()
         assertThat(request.user).isEqualTo(OWNER)
@@ -119,8 +119,8 @@ class RuleDetailControlTest {
         fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW))
         show()
 
-        viewModel.setEnabled(pmA, enabled = true)
-        runCurrent()
+        viewModel.setEnabled(ComponentKey(pmA, OWNER), enabled = true)
+        settle()
 
         val request = fixture.components.requests.single()
         assertThat(request.goal).isEqualTo(ControlGoal.ENABLE)
@@ -133,14 +133,14 @@ class RuleDetailControlTest {
         fixture.control.gate = CompletableDeferred()
         show()
 
-        viewModel.setEnabled(openA, enabled = false)
-        runCurrent()
+        viewModel.setEnabled(ComponentKey(openA, OWNER), enabled = false)
+        settle()
         assertThat(viewModel.uiState.value.inFlight).containsExactly(openA)
         assertThat(enabledOf(openA)).isTrue()
-        viewModel.setEnabled(openA, enabled = false)
+        viewModel.setEnabled(ComponentKey(openA, OWNER), enabled = false)
 
         fixture.control.gate.complete(Unit)
-        runCurrent()
+        settle()
         assertThat(fixture.components.requests).hasSize(1)
         assertThat(viewModel.uiState.value.inFlight).isEmpty()
     }
@@ -150,8 +150,8 @@ class RuleDetailControlTest {
         fixture.components.controlEvents = failingWith(ControlFailure.NotPermitted("shell"))
         show()
 
-        viewModel.setEnabled(openA, enabled = false)
-        runCurrent()
+        viewModel.setEnabled(ComponentKey(openA, OWNER), enabled = false)
+        settle()
 
         assertThat(viewModel.uiState.value.messages.single().message).isEqualTo(ControlMessage.ComponentNotChanged("Open", ControlGoal.BLOCK, needsAccess = false))
     }
@@ -161,14 +161,14 @@ class RuleDetailControlTest {
         fixture.components.controlEvents = failingWith(ControlFailure.ChannelUnavailable)
         show()
 
-        viewModel.setEnabled(pmA, enabled = true)
-        runCurrent()
+        viewModel.setEnabled(ComponentKey(pmA, OWNER), enabled = true)
+        settle()
         val shown = viewModel.uiState.value.messages.single()
         assertThat(shown.message).isEqualTo(ControlMessage.ComponentNotChanged("Pm", ControlGoal.ENABLE, needsAccess = true))
 
         viewModel.grantAccess()
         viewModel.onMessageShown(shown.id)
-        runCurrent()
+        settle()
         assertThat(fixture.channel.connectCount).isEqualTo(1)
         assertThat(viewModel.uiState.value.messages).isEmpty()
     }
@@ -178,7 +178,7 @@ class RuleDetailControlTest {
         show()
 
         viewModel.controlAllComponents(fixture.apps().first(), enable = false)
-        runCurrent()
+        settle()
 
         val request = fixture.components.requests.single()
         assertThat(request.goal).isEqualTo(ControlGoal.BLOCK)
@@ -193,7 +193,7 @@ class RuleDetailControlTest {
         show()
 
         viewModel.controlAllComponentsInPage(enable = true)
-        runCurrent()
+        settle()
 
         val request = fixture.components.requests.single()
         assertThat(request.goal).isEqualTo(ControlGoal.UNBLOCK)
@@ -209,7 +209,7 @@ class RuleDetailControlTest {
         show()
 
         viewModel.controlAllComponentsInPage(enable = false)
-        runCurrent()
+        settle()
 
         assertThat(viewModel.uiState.value.messages.single().message).isEqualTo(ControlMessage.BatchDone(notChanged = 3, needsAccess = true))
     }
@@ -220,16 +220,16 @@ class RuleDetailControlTest {
         show()
 
         viewModel.controlAllComponents(fixture.apps().first(), enable = false)
-        runCurrent()
+        settle()
         val progress = viewModel.uiState.value.batch!!
         assertThat(progress.isEnabling).isFalse()
         assertThat(progress.total).isEqualTo(2)
         assertThat(viewModel.uiState.value.inFlight).containsExactly(openA, pmA)
         viewModel.controlAllComponentsInPage(enable = true)
-        viewModel.setEnabled(openA, enabled = true)
+        viewModel.setEnabled(ComponentKey(openA, OWNER), enabled = true)
 
         fixture.control.gate.complete(Unit)
-        runCurrent()
+        settle()
         assertThat(fixture.components.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK)
         assertThat(viewModel.uiState.value.batch).isNull()
     }
@@ -239,7 +239,7 @@ class RuleDetailControlTest {
         show()
 
         val run = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.BLOCK, listOf(openB))!!
-        runCurrent()
+        settle()
 
         assertThat(viewModel.uiState.value.inFlight).containsExactly(openB)
         assertThat(viewModel.uiState.value.batch).isNull()
@@ -250,15 +250,31 @@ class RuleDetailControlTest {
     fun givenWorkProfileSelected_whenTheSwitchAndBlockAllAreUsed_thenOnlyItsComponentsChange() = runTest {
         show()
         fixture.selectedUsers.select(WORK)
-        runCurrent()
+        settle()
         val work = id("com.w", "Work")
 
-        viewModel.setEnabled(work, enabled = false)
-        runCurrent()
+        viewModel.setEnabled(ComponentKey(work, WORK), enabled = false)
+        settle()
         viewModel.controlAllComponents(fixture.apps().single(), enable = true)
-        runCurrent()
+        settle()
 
         assertThat(fixture.components.requests.map { it.user }).containsExactly(WORK, WORK)
         assertThat(fixture.components.requests.flatMap { it.components.map { component -> component.id } }).containsExactly(work, work)
+    }
+
+    @Test
+    fun givenTheSelectionChangesOnItsOwn_whenARowOfTheOwnUserIsUsed_thenItActsOnThatUser() = runTest {
+        show()
+        // As when another screen selects the work profile while this one still shows the owner's rows.
+        fixture.selectedUsers.select(WORK)
+
+        viewModel.setEnabled(ComponentKey(openA, OWNER), enabled = false)
+        viewModel.launchActivity(ComponentKey(openA, OWNER))
+        viewModel.stopService(ComponentKey(openA, OWNER))
+        settle()
+
+        assertThat(fixture.components.requests.single().user).isEqualTo(OWNER)
+        assertThat(fixture.appControl.calls.single()).contains("UserId(value=0)")
+        assertThat(fixture.serviceControl.stopped.single().userId).isEqualTo(OWNER)
     }
 }

@@ -23,13 +23,13 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
-import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
@@ -56,6 +56,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -67,6 +68,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
@@ -94,6 +97,7 @@ class GeneralRulesViewModel @AssistedInject constructor(
     private val analyticsHelper: AnalyticsHelper,
     private val savedStateHandle: SavedStateHandle,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @Assisted val initialRuleId: String,
 ) : ViewModel() {
     private val rulesReady = MutableStateFlow(false)
@@ -120,11 +124,8 @@ class GeneralRulesViewModel @AssistedInject constructor(
     private val batch: Flow<ProcessingProgress?> = combine(
         selectedUsers.selectedUser.flatMapLatest { user ->
             batches.running(BatchKey.GeneralRules(user)).flatMapLatest { run ->
-                run?.step?.map { step ->
-                    // A batch of one request reports only once it ends.
-                    val done = step.done.takeIf { step.total > BATCH_LIMIT }
-                    ProcessingProgress(current = done ?: 0, total = step.total, isEnabling = run.goal != ControlGoal.BLOCK, isIndeterminate = done == null)
-                } ?: flowOf(null)
+                // As before, the count of what is done: 0 until a request of the batch ends.
+                run?.step?.map { step -> ProcessingProgress(current = step.done, total = step.total, isEnabling = run.goal != ControlGoal.BLOCK, isComplete = false) } ?: flowOf(null)
             }
         },
         gathering,
@@ -134,6 +135,7 @@ class GeneralRulesViewModel @AssistedInject constructor(
     }
 
     val uiState: StateFlow<GeneralRulesScreenUiState> = combine(rules, batch, alert, messages, ::GeneralRulesScreenUiState)
+        .flowOn(cpuDispatcher)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -172,6 +174,13 @@ class GeneralRulesViewModel @AssistedInject constructor(
         gathering.value = goal
         viewModelScope.launch {
             try {
+                // As the menu offers it: only once every app of the user was read, so the batch
+                // never acts on what a part of the apps matches, even from a dialog opened before
+                // the reading started over.
+                if (componentIndex.state(user).first() !is IndexState.Indexed) {
+                    Timber.i("The apps of user ${user.value} are being read; nothing is changed")
+                    return@launch
+                }
                 analyticsHelper.logControlAllSdksClicked(newState = enable)
                 startBatch(user, goal)
             } catch (e: CancellationException) {
@@ -216,6 +225,11 @@ class GeneralRulesViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * The rules with their matches for [user]; loading until they are matched, so the counts of
+     * the user selected before never show for this one. After a failure the error shows until
+     * the rules can be matched again.
+     */
     private fun rulesOf(user: UserId): Flow<GeneralRuleUiState> = combine(
         searchRule(user),
         componentIndex.state(user),
@@ -227,10 +241,15 @@ class GeneralRulesViewModel @AssistedInject constructor(
             matchProgress = index.progress(),
             selectedRuleId = selected,
         ) as GeneralRuleUiState
-    }.catch { e ->
-        Timber.e(e, "Cannot load the general rules")
-        emit(GeneralRuleUiState.Error(e.toErrorMessage()))
     }
+        .onStart { emit(GeneralRuleUiState.Loading) }
+        .retryWhen { e, _ ->
+            if (e is CancellationException) return@retryWhen false
+            Timber.e(e, "Cannot load the general rules")
+            emit(GeneralRuleUiState.Error(e.toErrorMessage()))
+            delay(RETRY_MILLIS)
+            true
+        }
 
     /** Copies the rules into storage when missing, then updates the cached rules from it once. */
     private suspend fun prepareRules() {
@@ -279,6 +298,9 @@ class GeneralRulesViewModel @AssistedInject constructor(
         ): GeneralRulesViewModel
     }
 }
+
+/** How long the rules wait after a failure before they are read again. */
+private const val RETRY_MILLIS = 5_000L
 
 /** How far the reading of the user's apps into the cache got, from 0 to 1. */
 private fun IndexState.progress(): Float = when (this) {

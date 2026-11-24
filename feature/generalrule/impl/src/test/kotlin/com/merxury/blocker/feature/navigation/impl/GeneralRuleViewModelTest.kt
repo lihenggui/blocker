@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -74,7 +75,7 @@ class GeneralRuleViewModelTest {
     private fun TestScope.show(keepFresh: Boolean = true) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
         if (keepFresh) backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
-        runCurrent()
+        settle()
     }
 
     private fun success() = viewModel.uiState.value.rules as GeneralRuleUiState.Success
@@ -113,7 +114,7 @@ class GeneralRuleViewModelTest {
         show()
 
         fixture.selectedUsers.select(WORK)
-        runCurrent()
+        settle()
 
         val state = success()
         assertThat(state.matchedRules.map { it.id to it.matchedAppCount }).containsExactly(3 to 1)
@@ -131,7 +132,7 @@ class GeneralRuleViewModelTest {
         progress.emit(RefreshProgress.Refreshing(done = 1, total = 4, current = "com.a"))
         assertThat(success().matchProgress).isEqualTo(0.25F)
         fixture.components.sendComponents(OWNER, listOf(component("com.a", "com.absent.A")))
-        runCurrent()
+        settle()
         assertThat(success().matchedRules.map { it.id }).containsExactly(3)
 
         progress.emit(RefreshProgress.Finished(total = 4, failed = 0, appListFailure = null))
@@ -142,9 +143,9 @@ class GeneralRuleViewModelTest {
     fun givenIndexedOnce_whenShownAgain_thenNotIndexedAgain() = runTest {
         show()
         fixture.selectedUsers.select(WORK)
-        runCurrent()
+        settle()
         fixture.selectedUsers.select(OWNER)
-        runCurrent()
+        settle()
 
         assertThat(fixture.components.refreshedUsers).containsExactly(OWNER, WORK).inOrder()
         assertThat(success().matchProgress).isEqualTo(1F)
@@ -155,7 +156,7 @@ class GeneralRuleViewModelTest {
         show()
 
         viewModel.onRuleClick("2")
-        runCurrent()
+        settle()
 
         assertThat(success().selectedRuleId).isEqualTo("2")
     }
@@ -163,8 +164,39 @@ class GeneralRuleViewModelTest {
     @Test
     fun givenSummaryOffersAccess_whenAccessIsAskedFor_thenTheChannelConnects() = runTest {
         viewModel.grantAccess()
-        runCurrent()
+        settle()
 
         assertThat(fixture.channel.connectCount).isEqualTo(1)
+    }
+
+    @Test
+    fun givenOwnCountsShown_whenTheWorkProfileIsSelected_thenLoadingShowsUntilItsOwnCounts() = runTest {
+        val shown = mutableListOf<GeneralRuleUiState>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { shown += it.rules } }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
+        settle()
+        shown.clear()
+
+        fixture.selectedUsers.select(WORK)
+        settle()
+
+        assertThat(shown.first()).isEqualTo(GeneralRuleUiState.Loading)
+        // The owner's counts never show once the work profile is selected.
+        val counts = shown.filterIsInstance<GeneralRuleUiState.Success>().map { state -> state.matchedRules.map { it.id } }
+        assertThat(counts.distinct()).containsExactly(listOf(3))
+    }
+
+    @Test
+    fun givenRulesThatCannotBeRead_whenShown_thenTheErrorShowsUntilTheyCanBeReadAgain() = runTest {
+        fixture.rules.readFailure = IllegalStateException("The rule file is damaged")
+        show()
+        assertThat(viewModel.uiState.value.rules).isInstanceOf(GeneralRuleUiState.Error::class.java)
+
+        fixture.rules.readFailure = null
+        // Longer than the matcher and the screen wait before they read the rules again.
+        advanceTimeBy(20_000)
+        settle()
+
+        assertThat(success().matchedRules.map { it.id }).containsExactly(1, 2)
     }
 }

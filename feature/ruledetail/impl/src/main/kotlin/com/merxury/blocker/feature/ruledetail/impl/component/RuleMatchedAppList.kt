@@ -32,6 +32,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
@@ -42,12 +43,15 @@ import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.ruledetail.impl.MatchedApp
 import com.merxury.blocker.feature.ruledetail.impl.MatchedAppsUiState
 
-/** What the matched apps and their component rows can ask for. */
+/**
+ * What the matched apps and their component rows can ask for. A component is named with the user
+ * of the app its row is in, so an action acts on what the row shows.
+ */
 class MatchedAppActions(
     /** A component's switch was turned; true means on. */
-    val onSwitch: (ComponentId, Boolean) -> Unit = { _, _ -> },
-    val onStopService: (ComponentId) -> Unit = {},
-    val onLaunchActivity: (ComponentId) -> Unit = {},
+    val onSwitch: (ComponentKey, Boolean) -> Unit = { _, _ -> },
+    val onStopService: (ComponentKey) -> Unit = {},
+    val onLaunchActivity: (ComponentKey) -> Unit = {},
     val onCopyName: (String) -> Unit = {},
     val onCopyFullName: (String) -> Unit = {},
     val onBlockAll: (MatchedApp) -> Unit = {},
@@ -85,7 +89,8 @@ fun RuleMatchedAppList(
                 onBlockAllClick = { group -> apps[group.key]?.let(actions.onBlockAll) },
                 onEnableAllClick = { group -> apps[group.key]?.let(actions.onEnableAll) },
             ) { row, itemModifier ->
-                MatchedComponentItem(row = row, inFlight = row.id in inFlight, actions = actions, modifier = itemModifier)
+                val user = apps[row.id.packageName]?.app?.userId ?: return@CollapsibleList
+                MatchedComponentItem(row = row, key = ComponentKey(row.id, user), inFlight = row.id in inFlight, actions = actions, modifier = itemModifier)
             }
         }
     }
@@ -94,6 +99,7 @@ fun RuleMatchedAppList(
 @Composable
 private fun MatchedComponentItem(
     row: ComponentRow,
+    key: ComponentKey,
     inFlight: Boolean,
     actions: MatchedAppActions,
     modifier: Modifier = Modifier,
@@ -107,11 +113,11 @@ private fun MatchedComponentItem(
         type = row.type,
         isServiceRunning = row.isRunning,
         inFlight = inFlight,
-        onStopServiceClick = { actions.onStopService(row.id) },
-        onLaunchActivityClick = { actions.onLaunchActivity(row.id) },
+        onStopServiceClick = { actions.onStopService(key) },
+        onLaunchActivityClick = { actions.onLaunchActivity(key) },
         onCopyNameClick = { actions.onCopyName(row.id.simpleName) },
         onCopyFullNameClick = { actions.onCopyFullName(row.id.className) },
-        onSwitchClick = { enabled -> actions.onSwitch(row.id, enabled) },
+        onSwitchClick = { enabled -> actions.onSwitch(key, enabled) },
     )
 }
 

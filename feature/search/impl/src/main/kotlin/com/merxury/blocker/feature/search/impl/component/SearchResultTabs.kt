@@ -66,6 +66,7 @@ import com.merxury.blocker.feature.search.impl.SearchUiState
 import com.merxury.blocker.feature.search.impl.logAppSearchResultClicked
 import com.merxury.blocker.feature.search.impl.logComponentSearchResultClicked
 import com.merxury.blocker.feature.search.impl.logRuleSearchResultClicked
+import com.merxury.blocker.feature.search.impl.screen.SearchingScreen
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -237,6 +238,11 @@ private fun ComponentGroupList(groups: List<ComponentGroup>, uiState: SearchUiSt
 
 @Composable
 private fun RuleResults(results: SearchResults.Loaded, actions: SearchActions) {
+    // The look the whole search has while it loads.
+    if (results.rulesLoading) {
+        SearchingScreen()
+        return
+    }
     // As before: a search that matches no rule of an installed app shows nothing.
     if (results.matchedRules.isEmpty()) {
         EmptyScreen(textRes = string.feature_search_api_no_search_result)

@@ -43,6 +43,7 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ServiceCounts
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
@@ -150,13 +151,14 @@ class SearchViewModel @Inject internal constructor(
             if (keyword.isEmpty()) {
                 flowOf(keyword to SearchResults.Idle)
             } else {
-                combine(appResults(user, keyword), componentResults(user, keyword), searchRules(user, keyword)) { apps, components, rules ->
+                combine(appResults(user, keyword), componentResults(user, keyword), ruleResults(user, keyword)) { apps, components, rules ->
                     keyword to SearchResults.Loaded(
                         apps = apps.first,
                         showServiceInfo = apps.second,
                         components = components,
-                        matchedRules = rules.filter { it.matchedAppCount > 0 },
-                        unmatchedRules = rules.filter { it.matchedAppCount == 0 },
+                        matchedRules = rules.orEmpty().filter { it.matchedAppCount > 0 },
+                        unmatchedRules = rules.orEmpty().filter { it.matchedAppCount == 0 },
+                        rulesLoading = rules == null,
                     )
                 }.onStart<Pair<String, SearchResults>> { emit(keyword to SearchResults.Loading) }
             }
@@ -366,6 +368,14 @@ class SearchViewModel @Inject internal constructor(
         serviceCounts,
         userDataRepository.userData,
     ) { apps, running, counts, preferences -> appRows(apps, running, counts, preferences, self) to preferences.showServiceInfo }
+
+    /**
+     * The rules with their matches for [user], or null until the rules are matched, which the
+     * first time takes longer than the apps and components need, so they do not wait for it.
+     */
+    private fun ruleResults(user: UserId, keyword: String): Flow<List<GeneralRule>?> = searchRules(user, keyword)
+        .map<List<GeneralRule>, List<GeneralRule>?> { it }
+        .onStart { emit(null) }
 
     private fun componentResults(user: UserId, keyword: String) = combine(
         componentStatuses.search(user, keyword),

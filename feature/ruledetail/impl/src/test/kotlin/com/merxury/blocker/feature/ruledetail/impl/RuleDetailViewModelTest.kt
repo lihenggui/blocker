@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.ruledetail.impl
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.privileged.CallFailure
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -77,7 +79,7 @@ class RuleDetailViewModelTest {
     private fun TestScope.show(keepFresh: Boolean = true) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
         if (keepFresh) backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
-        runCurrent()
+        settle()
     }
 
     @Test
@@ -124,7 +126,7 @@ class RuleDetailViewModelTest {
         show()
 
         fixture.selectedUsers.select(WORK)
-        runCurrent()
+        settle()
 
         assertThat(fixture.apps().map { it.app }).containsExactly(AppKey("com.w", WORK))
         assertThat(fixture.components.refreshedUsers).containsExactly(OWNER, WORK).inOrder()
@@ -147,7 +149,7 @@ class RuleDetailViewModelTest {
         assertThat(info.seedIcon).isNull()
 
         fixture.userData.sendUserData(defaultUserData.copy(useDynamicColor = true))
-        runCurrent()
+        settle()
         assertThat((viewModel.uiState.value.ruleInfo as RuleInfoUiState.Success).seedIcon).isEqualTo(icon)
     }
 
@@ -156,10 +158,10 @@ class RuleDetailViewModelTest {
         show()
 
         viewModel.updateSortType(RuleDetailSortType.RECENTLY_INSTALLED)
-        runCurrent()
+        settle()
         assertThat(fixture.apps().map { it.label }).containsExactly("Bravo", "alpha").inOrder()
         viewModel.updateSortType(RuleDetailSortType.MOST_MATCHED)
-        runCurrent()
+        settle()
         assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo").inOrder()
         assertThat(viewModel.uiState.value.sortType).isEqualTo(RuleDetailSortType.MOST_MATCHED)
     }
@@ -168,7 +170,7 @@ class RuleDetailViewModelTest {
     fun givenSortByMostBlocked_whenAComponentIsBlocked_thenItsAppKeepsItsPlace() = runTest {
         show()
         viewModel.updateSortType(RuleDetailSortType.MOST_BLOCKED)
-        runCurrent()
+        settle()
         assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo").inOrder()
 
         fixture.components.sendComponents(
@@ -179,7 +181,7 @@ class RuleDetailViewModelTest {
                 component("com.b", "Other", pm = PmSetting.DISABLED),
             ),
         )
-        runCurrent()
+        settle()
 
         assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo").inOrder()
         assertThat(fixture.apps().last().rows.map { it.enabled }).containsExactly(false, false)
@@ -191,7 +193,7 @@ class RuleDetailViewModelTest {
         assertThat(viewModel.uiState.value.appBarUiState.actions).containsExactly(AppBarAction.SORT, AppBarAction.MORE)
 
         viewModel.switchTab(RuleDetailTabs.Description)
-        runCurrent()
+        settle()
 
         assertThat(viewModel.uiState.value.tabState.selectedItem).isEqualTo(RuleDetailTabs.Description)
         assertThat(viewModel.uiState.value.appBarUiState.actions).isEmpty()
@@ -201,11 +203,11 @@ class RuleDetailViewModelTest {
     fun givenMatchedApps_whenTheirActivityOrServiceIsUsed_thenTheSelectedUserIsAsked() = runTest {
         show()
         fixture.selectedUsers.select(WORK)
-        runCurrent()
+        settle()
 
-        viewModel.launchActivity(id("com.w", "Work"))
-        viewModel.stopService(id("com.w", "Work"))
-        runCurrent()
+        viewModel.launchActivity(ComponentKey(id("com.w", "Work"), WORK))
+        viewModel.stopService(ComponentKey(id("com.w", "Work"), WORK))
+        settle()
 
         assertThat(fixture.appControl.calls.single()).contains("UserId(value=10)")
         assertThat(fixture.serviceControl.stopped.single().userId).isEqualTo(WORK)
@@ -217,12 +219,12 @@ class RuleDetailViewModelTest {
         fixture.appControl.failures["startActivity"] = CallFailure.ChannelUnavailable
         show()
 
-        viewModel.launchActivity(id("com.a", "Pm"))
-        runCurrent()
+        viewModel.launchActivity(ComponentKey(id("com.a", "Pm"), OWNER))
+        settle()
 
         assertThat(viewModel.uiState.value.actionFailure).isEqualTo(ComponentActionFailed(ComponentAction.LAUNCH_ACTIVITY, "Pm", needsAccess = true))
         viewModel.onActionFailureShown()
-        runCurrent()
+        settle()
         assertThat(viewModel.uiState.value.actionFailure).isNull()
     }
 
@@ -231,9 +233,31 @@ class RuleDetailViewModelTest {
         fixture.serviceControl.stopFailure = CallFailure.NotPermitted("shell")
         show()
 
-        viewModel.stopService(id("com.b", "Open"))
-        runCurrent()
+        viewModel.stopService(ComponentKey(id("com.b", "Open"), OWNER))
+        settle()
 
         assertThat(viewModel.uiState.value.actionFailure).isEqualTo(ComponentActionFailed(ComponentAction.STOP_SERVICE, "Open", needsAccess = false))
+    }
+
+    @Test
+    fun givenNoRuleMatchedYet_whenOpened_thenOnlyThisRuleIsMatched() = runTest {
+        show()
+
+        assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo")
+        assertThat(fixture.rules.catalogReads).isEqualTo(0)
+    }
+
+    @Test
+    fun givenTheRuleCannotBeRead_whenOpened_thenTheErrorShowsUntilItCanBeReadAgain() = runTest {
+        fixture.rules.readFailure = IllegalStateException("The rule file is damaged")
+        show()
+        assertThat(viewModel.uiState.value.ruleInfo).isInstanceOf(RuleInfoUiState.Error::class.java)
+
+        fixture.rules.readFailure = null
+        // Longer than the matcher and the screen wait before they read the rule again.
+        advanceTimeBy(20_000)
+        settle()
+
+        assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo")
     }
 }

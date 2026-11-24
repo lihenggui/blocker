@@ -31,7 +31,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
-import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
 import com.merxury.blocker.core.domain.control.ControlComponentUseCase
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
@@ -65,11 +64,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -79,6 +78,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -120,7 +120,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val id = ruleId.toInt()
     private val tabState = MutableStateFlow(TabState(items = listOf(Applicable, Description), selectedItem = RuleDetailTabs.fromName(tab)))
     private val sortType = MutableStateFlow(RuleDetailSortType.NAME)
-    private val singles = MutableStateFlow<Set<ComponentId>>(emptySet())
+    private val singles = MutableStateFlow<Set<ComponentKey>>(emptySet())
     private val messages = MutableStateFlow<List<QueuedControlMessage>>(emptyList())
     private val actionFailure = MutableStateFlow<ComponentActionFailed?>(null)
     private var nextMessageId = 0L
@@ -131,7 +131,8 @@ class RuleDetailViewModel @AssistedInject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val matched: Flow<MatchedAppsUiState> = selectedUsers.selectedUser.flatMapLatest { user ->
-        combine(ruleMatcher.matches(user).map { it.componentsOf(id) }.distinctUntilChanged(), installedApps.apps(user), ::matchedApps)
+        // Only this rule is matched, which is quicker than matching every rule the first time.
+        combine(ruleMatcher.matches(user, id), installedApps.apps(user), ::matchedApps)
             .combine(sortType, ::Pair)
             .runningFold(SortedApps.NONE) { sorted, (apps, sort) -> sorted.next(apps, sort) }
             .drop(1)
@@ -146,24 +147,25 @@ class RuleDetailViewModel @AssistedInject constructor(
         userDataRepository.userData.map { it.useDynamicColor }.distinctUntilChanged(),
     ) { rule, matched, useDynamicColor ->
         RuleInfoUiState.Success(rule, matched, seedIcon = rule.iconUrl?.takeIf { useDynamicColor }?.let(::File)) as RuleInfoUiState
-    }.catch { e ->
+    }.retryWhen { e, _ ->
+        if (e is CancellationException) return@retryWhen false
+        // Shown until the rule and its matches can be read again.
         Timber.e(e, "Cannot load general rule $ruleId")
         emit(RuleInfoUiState.Error(e.toErrorMessage()))
+        delay(RETRY_MILLIS)
+        true
     }
 
     // The selected user's components a change of any screen has not ended for.
     private val inFlight: Flow<Set<ComponentId>> = combine(selectedUsers.selectedUser, batches.inFlight, singles) { user, keys, singles ->
-        keys.filter { it.userId == user }.mapTo(mutableSetOf()) { it.id } + singles
+        (keys + singles).filter { it.userId == user }.mapTo(mutableSetOf()) { it.id }
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val batch: Flow<ProcessingProgress?> = selectedUsers.selectedUser.flatMapLatest { user ->
         batches.running(BatchKey.Rule(id, user)).flatMapLatest { run ->
-            run?.step?.map { step ->
-                // A batch of one request reports only once it ends.
-                val done = step.done.takeIf { step.total > BATCH_LIMIT }
-                ProcessingProgress(current = done ?: 0, total = step.total, isEnabling = run.goal != ControlGoal.BLOCK, isIndeterminate = done == null)
-            } ?: flowOf(null)
+            // As before, the count of what is done: 0 until a request of the batch ends.
+            run?.step?.map { step -> ProcessingProgress(current = step.done, total = step.total, isEnabling = run.goal != ControlGoal.BLOCK, isComplete = false) } ?: flowOf(null)
         }
     }
 
@@ -206,16 +208,18 @@ class RuleDetailViewModel @AssistedInject constructor(
         this.sortType.value = sortType
     }
 
-    /** Turns one component's switch: on enables it through every layer, off blocks it. */
-    fun setEnabled(component: ComponentId, enabled: Boolean) {
-        val user = selectedUsers.selectedUser.value
-        if (isInFlight(component, user)) return
+    /**
+     * Turns the switch of [component], for the user of the row it is on: on enables it through
+     * every layer, off blocks it.
+     */
+    fun setEnabled(component: ComponentKey, enabled: Boolean) {
+        if (isInFlight(component)) return
         val goal = if (enabled) ControlGoal.ENABLE else ControlGoal.BLOCK
         singles.update { it + component }
         viewModelScope.launch {
             try {
                 analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
-                controlComponent(ComponentKey(component, user), goal)?.toMessage(goal)?.let { tell(it, component) }
+                controlComponent(component, goal)?.toMessage(goal)?.let { tell(it, component.id) }
             } finally {
                 singles.update { it - component }
             }
@@ -239,23 +243,23 @@ class RuleDetailViewModel @AssistedInject constructor(
         startBatch(apps.first().app.userId, apps.flatMap { app -> app.rows.map { it.id } }, enable)
     }
 
-    /** Starts [activity] for the selected user; a blocked one stays blocked, as its switch shows. */
-    fun launchActivity(activity: ComponentId) = viewModelScope.launch {
+    /** Starts [activity], for the user of its row; a blocked one stays blocked, as its switch shows. */
+    fun launchActivity(activity: ComponentKey) = viewModelScope.launch {
         analyticsHelper.logLaunchActivityClicked()
-        val result = appControl.startActivity(ComponentKey(activity, selectedUsers.selectedUser.value))
+        val result = appControl.startActivity(activity)
         if (result is CallResult.Failure) {
             Timber.w("Cannot launch $activity: ${result.reason}")
-            actionFailure.value = ComponentActionFailed.of(ComponentAction.LAUNCH_ACTIVITY, activity.simpleName, result.reason)
+            actionFailure.value = ComponentActionFailed.of(ComponentAction.LAUNCH_ACTIVITY, activity.id.simpleName, result.reason)
         }
     }
 
-    /** Stops [service] for the selected user. */
-    fun stopService(service: ComponentId) = viewModelScope.launch {
+    /** Stops [service], for the user of its row. */
+    fun stopService(service: ComponentKey) = viewModelScope.launch {
         analyticsHelper.logStopServiceClicked()
-        val result = serviceControl.stop(ComponentKey(service, selectedUsers.selectedUser.value))
+        val result = serviceControl.stop(service)
         if (result is CallResult.Failure) {
             Timber.w("Cannot stop $service: ${result.reason}")
-            actionFailure.value = ComponentActionFailed.of(ComponentAction.STOP_SERVICE, service.simpleName, result.reason)
+            actionFailure.value = ComponentActionFailed.of(ComponentAction.STOP_SERVICE, service.id.simpleName, result.reason)
         }
     }
 
@@ -281,13 +285,13 @@ class RuleDetailViewModel @AssistedInject constructor(
      */
     private fun startBatch(user: UserId, components: List<ComponentId>, enable: Boolean) {
         val goal = if (enable) ControlGoal.UNBLOCK else ControlGoal.BLOCK
-        val ids = components.distinct().filterNot { isInFlight(it, user) }
+        val ids = components.distinct().filterNot { isInFlight(ComponentKey(it, user)) }
         if (ids.isEmpty()) return
         val run = batches.reserve(BatchKey.Rule(id, user), goal, ids) ?: return
         viewModelScope.launch {
             var started = false
             try {
-                val cached = ruleMatcher.matches(user).first().componentsOf(id).associateBy { it.declaration.id }
+                val cached = ruleMatcher.matches(user, id).first().associateBy { it.declaration.id }
                 val declarations = ids.mapNotNull { cached[it]?.declaration }
                 val vanished = (ids - declarations.mapTo(mutableSetOf()) { it.id }).map { ComponentKey(it, user) }
                 if (vanished.isNotEmpty()) Timber.w("${vanished.size} components of rule $ruleId are no longer matched, tell them as not changed")
@@ -305,7 +309,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private fun isInFlight(component: ComponentId, user: UserId): Boolean = component in singles.value || batches.isInFlight(ComponentKey(component, user))
+    private fun isInFlight(component: ComponentKey): Boolean = component in singles.value || batches.isInFlight(component)
 
     private fun tell(message: ControlMessage, component: ComponentId? = null) {
         messages.update { it.enqueue(QueuedControlMessage(nextMessageId++, message, component)) }
@@ -317,6 +321,11 @@ class RuleDetailViewModel @AssistedInject constructor(
         val messages: List<QueuedControlMessage>,
         val actionFailure: ComponentActionFailed?,
     )
+
+    private companion object {
+        /** How long the screen waits after a failure to read the rule before it reads it again. */
+        const val RETRY_MILLIS = 5_000L
+    }
 
     @AssistedFactory
     interface Factory {

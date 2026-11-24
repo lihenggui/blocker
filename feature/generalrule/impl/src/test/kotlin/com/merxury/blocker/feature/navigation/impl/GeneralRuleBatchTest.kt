@@ -20,6 +20,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
+import com.merxury.blocker.core.data.device.RefreshProgress
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
@@ -37,6 +38,7 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ControlMessage
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -87,7 +89,7 @@ class GeneralRuleBatchTest {
     private fun TestScope.show() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
-        runCurrent()
+        settle()
     }
 
     private fun summary(): ControlMessage = viewModel.uiState.value.messages.single().message
@@ -98,7 +100,7 @@ class GeneralRuleBatchTest {
         show()
 
         viewModel.controlAllComponents(enable = false)
-        runCurrent()
+        settle()
 
         val request = fixture.components.requests.single()
         assertThat(request.user).isEqualTo(OWNER)
@@ -117,7 +119,7 @@ class GeneralRuleBatchTest {
         show()
 
         viewModel.controlAllComponents(enable = true)
-        runCurrent()
+        settle()
 
         val request = fixture.components.requests.single()
         assertThat(request.goal).isEqualTo(ControlGoal.UNBLOCK)
@@ -130,10 +132,10 @@ class GeneralRuleBatchTest {
     fun givenWorkProfileSelected_whenBlockAll_thenOnlyItsComponentsChange() = runTest {
         show()
         fixture.selectedUsers.select(WORK)
-        runCurrent()
+        settle()
 
         viewModel.controlAllComponents(enable = false)
-        runCurrent()
+        settle()
 
         val request = fixture.components.requests.single()
         assertThat(request.user).isEqualTo(WORK)
@@ -146,16 +148,18 @@ class GeneralRuleBatchTest {
         show()
 
         viewModel.controlAllComponents(enable = false)
-        runCurrent()
+        settle()
         val progress = viewModel.uiState.value.batch!!
         assertThat(progress.isEnabling).isFalse()
-        assertThat(progress.isIndeterminate).isTrue()
+        // As before, the count of what is done, 0 until the request ends.
+        assertThat(progress.isIndeterminate).isFalse()
+        assertThat(progress.current).isEqualTo(0)
         assertThat(progress.total).isEqualTo(3)
         viewModel.controlAllComponents(enable = true)
-        runCurrent()
+        settle()
 
         fixture.control.gate.complete(Unit)
-        runCurrent()
+        settle()
         assertThat(fixture.components.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK)
         assertThat(viewModel.uiState.value.batch).isNull()
         assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
@@ -167,7 +171,7 @@ class GeneralRuleBatchTest {
         val search = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.BLOCK, listOf(trackerB))!!
 
         viewModel.controlAllComponents(enable = false)
-        runCurrent()
+        settle()
 
         assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(trackerA, adsA)
         fixture.batches.release(search)
@@ -190,12 +194,12 @@ class GeneralRuleBatchTest {
         show()
 
         viewModel.controlAllComponents(enable = false)
-        runCurrent()
+        settle()
 
         assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 3, needsAccess = true))
         val shown = viewModel.uiState.value.messages.single()
         viewModel.onMessageShown(shown.id)
-        runCurrent()
+        settle()
         assertThat(viewModel.uiState.value.messages).isEmpty()
     }
 
@@ -205,10 +209,25 @@ class GeneralRuleBatchTest {
         show()
 
         viewModel.controlAllComponents(enable = false)
-        runCurrent()
+        settle()
 
         assertThat(fixture.components.requests).isEmpty()
         assertThat(viewModel.uiState.value.batch).isNull()
         assertThat(viewModel.uiState.value.messages).isEmpty()
+    }
+
+    @Test
+    fun givenTheAppsAreBeingRead_whenBlockAll_thenNothingIsChanged() = runTest {
+        val progress = MutableSharedFlow<RefreshProgress>()
+        fixture.components.refreshAllProgress = { progress }
+        show()
+        progress.emit(RefreshProgress.Refreshing(done = 1, total = 3, current = "com.a"))
+
+        // As from a confirmation dialog opened before the reading started over.
+        viewModel.controlAllComponents(enable = false)
+        settle()
+
+        assertThat(fixture.components.requests).isEmpty()
+        assertThat(viewModel.uiState.value.batch).isNull()
     }
 }

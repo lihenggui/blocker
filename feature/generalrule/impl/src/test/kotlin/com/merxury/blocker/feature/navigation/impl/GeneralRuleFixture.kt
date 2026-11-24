@@ -57,10 +57,14 @@ import com.merxury.blocker.feature.generalrule.impl.GeneralRulesViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import org.mockito.kotlin.mock
 import java.io.File
 import kotlin.time.Instant
@@ -102,6 +106,16 @@ internal fun component(
 )
 
 internal fun rule(id: Int, vararg keywords: String) = GeneralRule(id = id, name = "Rule $id", searchKeyword = keywords.toList())
+
+/**
+ * Runs what is due once the cache has been read again: the rule matcher reads it at most every
+ * 300 ms, so a change shows only after that.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun TestScope.settle() {
+    advanceTimeBy(1_000)
+    runCurrent()
+}
 
 /** Sends each control request on once [gate] completes, as a slow device would. */
 internal class GatedControl(private val delegate: FakeComponentStatusRepository) : ComponentStatusRepository by delegate {
@@ -153,6 +167,7 @@ internal class GeneralRuleFixture(dispatcher: CoroutineDispatcher, filesDir: Fil
         analyticsHelper = analytics,
         savedStateHandle = SavedStateHandle(),
         ioDispatcher = dispatcher,
+        cpuDispatcher = dispatcher,
         initialRuleId = "",
     )
 

@@ -229,6 +229,27 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun givenRulesNotMatchedYet_whenSearched_thenAppsAndComponentsShowAndTheRulesFollow() = runTest {
+        fixture.rules.catalogGate = CompletableDeferred()
+        fixture.rules.sendRuleList(listOf(rule(1, "Push SDK", keywords = listOf("com.push."))))
+        fixture.installedApps.sendApps(listOf(installedApp("com.push")))
+        fixture.components.sendComponents(OWNER, listOf(component("com.push", "PushA")))
+        collectState()
+
+        searchNow("push")
+        val waiting = fixture.loaded()
+        assertThat(waiting.apps.map { it.key.packageName }).containsExactly("com.push")
+        assertThat(waiting.components.map { it.app.packageName }).containsExactly("com.push")
+        assertThat(waiting.rulesLoading).isTrue()
+
+        fixture.rules.catalogGate!!.complete(Unit)
+        runCurrent()
+
+        assertThat(fixture.loaded().rulesLoading).isFalse()
+        assertThat(fixture.loaded().matchedRules.map { it.id }).containsExactly(1)
+    }
+
+    @Test
     fun givenAppRemovedFromTheCache_whenShown_thenItLeavesTheResults() = runTest {
         fixture.installedApps.sendApps(listOf(installedApp("com.a"), installedApp("com.b")))
         collectState()

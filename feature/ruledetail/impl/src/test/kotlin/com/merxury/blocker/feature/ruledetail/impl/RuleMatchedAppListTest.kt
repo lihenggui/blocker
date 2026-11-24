@@ -31,6 +31,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.ui.component.ComponentRow
 import com.merxury.blocker.feature.ruledetail.impl.component.MatchedAppActions
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleMatchedAppList
@@ -50,7 +51,7 @@ class RuleMatchedAppListTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private val opened = mutableListOf<AppKey>()
-    private val switched = mutableListOf<Pair<ComponentId, Boolean>>()
+    private val switched = mutableListOf<Pair<ComponentKey, Boolean>>()
     private val blocked = mutableListOf<AppKey>()
     private val component = id("com.w", "Work")
     private val workApp = MatchedApp(
@@ -104,7 +105,8 @@ class RuleMatchedAppListTest {
 
         composeTestRule.onNode(isToggleable()).assertIsOn().performClick()
 
-        assertThat(switched).containsExactly(component to false)
+        // Named with the work profile, the user of the app the row is in.
+        assertThat(switched).containsExactly(ComponentKey(component, WORK) to false)
     }
 
     @Test

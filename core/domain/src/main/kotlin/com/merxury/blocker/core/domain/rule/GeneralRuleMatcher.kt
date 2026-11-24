@@ -33,10 +33,12 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.system.InstalledApp
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -47,6 +49,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
@@ -64,8 +67,13 @@ import kotlin.time.TimeSource
  * Blocker in the user it runs in: changing it from a rule could only break the app in use.
  *
  * The matches follow the cache: whenever it, the rules or the apps change they are matched again,
- * and each component carries the state the cache holds now. Packages whose declarations did not
- * change keep their earlier matches. Nothing is persisted.
+ * and each component carries the state the cache holds now. The cache is read at most once every
+ * [CACHE_READ_PERIOD_MILLIS], as an indexing writes to it many times a second, and a matching
+ * equal to the one before is not emitted. Packages whose declarations did not change keep their
+ * earlier matches. Nothing is persisted.
+ *
+ * A failure to read the rules or the cache is logged and thrown to the collectors, so a screen can
+ * show its error; the matching starts over after [RETRY_MILLIS] and recovers once reading works.
  */
 @Singleton
 class GeneralRuleMatcher @Inject constructor(
@@ -79,29 +87,48 @@ class GeneralRuleMatcher @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope,
 ) {
     private val self = AppKey(appPackageName, selectedUsers.ownUser)
-    private val shared = ConcurrentHashMap<UserId, Flow<GeneralRuleMatches>>()
+    private val shared = ConcurrentHashMap<UserId, Flow<Result<GeneralRuleMatches>>>()
 
     /**
      * What every general rule matches among the cached apps of [user]. The first value comes once
      * the cache has been matched, then a new one after each change. Collectors of the same user
-     * share one matching.
+     * share one matching. Throws what kept the rules or the cache from being read; collecting
+     * again later gets the matching that started over.
      */
     fun matches(user: UserId): Flow<GeneralRuleMatches> = shared.computeIfAbsent(user) {
-        matching(it).shareIn(scope, SharingStarted.WhileSubscribed(KEEP_MATCHING_MILLIS, replayExpirationMillis = 0), replay = 1)
-    }
+        matching(it, generalRules.getGeneralRules()).shareIn(scope, SharingStarted.WhileSubscribed(KEEP_MATCHING_MILLIS, replayExpirationMillis = 0), replay = 1)
+    }.map { it.getOrThrow() }
+
+    /**
+     * The components the general rule [ruleId] matches among the cached apps of [user], in the
+     * order of [GeneralRuleMatches.componentsOf]. Only that rule is matched, so it comes quicker
+     * than [matches] the first time. Throws as [matches] does.
+     */
+    fun matches(user: UserId, ruleId: Int): Flow<List<ComponentStatus>> = matching(user, generalRules.getGeneralRule(ruleId).map(::listOf))
+        .map { it.getOrThrow().componentsOf(ruleId) }
+        .distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun matching(user: UserId): Flow<GeneralRuleMatches> = flow {
+    private fun matching(user: UserId, rules: Flow<List<GeneralRule>>): Flow<Result<GeneralRuleMatches>> = flow {
         val memo = MatchMemo()
         val input = combine(
-            generalRules.getGeneralRules(),
-            componentStatuses.allComponents(user),
+            rules,
+            componentStatuses.allComponents(user).readAtMostEvery(CACHE_READ_PERIOD_MILLIS),
             installedApps.apps(user),
             userData.userData.map { it.showSystemApps }.distinctUntilChanged(),
         ) { rules, components, apps, showSystemApps -> MatchInput(rules, components, apps.filter { it.isShown(showSystemApps) }) }
         // A newer cache replaces a matching still running; the packages it matched stay in the memo.
-        emitAll(input.mapLatest { memo.match(it) })
-    }.flowOn(cpuDispatcher)
+        emitAll(input.mapLatest { Result.success(memo.match(it)) })
+    }
+        .retryWhen { cause, _ ->
+            if (cause is CancellationException) return@retryWhen false
+            Timber.e(cause, "Cannot match the general rules for user ${user.value}")
+            emit(Result.failure(cause))
+            delay(RETRY_MILLIS)
+            true
+        }
+        .distinctUntilChanged()
+        .flowOn(cpuDispatcher)
 
     private fun InstalledApp.isShown(showSystemApps: Boolean): Boolean = key != self && (showSystemApps || !isSystem)
 
@@ -172,12 +199,18 @@ class GeneralRuleMatcher @Inject constructor(
     /** A rule that lists a keyword, at [position] among its keywords. */
     private data class KeywordOf(val ruleId: Int, val position: Int)
 
-    private companion object {
+    internal companion object {
         /** How long a matching keeps running without collectors, as while a screen is recreated. */
         const val KEEP_MATCHING_MILLIS = 5_000L
 
+        /** The shortest time between two reads of the cache, which an indexing writes to many times a second. */
+        const val CACHE_READ_PERIOD_MILLIS = 300L
+
+        /** How long a matching that failed waits before it starts over. */
+        const val RETRY_MILLIS = 5_000L
+
         /** The order the old component table filled its rows in: one app's activities, services, receivers, then providers. */
-        val TYPE_ORDER = listOf(ComponentType.ACTIVITY, ComponentType.SERVICE, ComponentType.RECEIVER, ComponentType.PROVIDER)
+        private val TYPE_ORDER = listOf(ComponentType.ACTIVITY, ComponentType.SERVICE, ComponentType.RECEIVER, ComponentType.PROVIDER)
 
         /**
          * The order the rule detail listed an app's matched components in before it read the cache:
@@ -185,7 +218,7 @@ class GeneralRuleMatcher @Inject constructor(
          * first, each search in the order the old table held the rows, by type. The table held each
          * type in manifest order, which the cache does not keep; the class name stands in for it.
          */
-        val OLD_SCREEN_ORDER: Comparator<Pair<ComponentStatus, Int>> = compareBy<Pair<ComponentStatus, Int>>(
+        private val OLD_SCREEN_ORDER: Comparator<Pair<ComponentStatus, Int>> = compareBy<Pair<ComponentStatus, Int>>(
             { it.first.declaration.id.packageName },
             { it.second },
             { TYPE_ORDER.indexOf(it.first.declaration.type) },
@@ -211,4 +244,16 @@ data class GeneralRuleMatches(private val byRule: Map<Int, List<ComponentStatus>
     /** Every component a rule matches, each once. */
     val allComponents: List<ComponentStatus>
         get() = byRule.values.flatten().distinctBy { it.declaration.id }
+}
+
+/**
+ * Emits each value of [this] and then waits [periodMillis] before it takes the next. A source that
+ * keeps only its latest value while it waits, as a Room query does with the changes to its tables,
+ * is then read at most once per period, and its latest value still arrives.
+ */
+internal fun <T> Flow<T>.readAtMostEvery(periodMillis: Long): Flow<T> = flow {
+    collect {
+        emit(it)
+        delay(periodMillis)
+    }
 }

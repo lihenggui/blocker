@@ -86,6 +86,8 @@ sealed interface SearchResults {
      * @property components by app, in the order of their package names
      * @property matchedRules the general rules that match components of the user's apps; [unmatchedRules] the rest
      * @property showServiceInfo whether the app rows show their service counts, as the user chose
+     * @property rulesLoading whether the rules are still being matched; the apps and components do
+     * not wait for them
      */
     data class Loaded(
         val apps: List<AppRow> = emptyList(),
@@ -93,6 +95,7 @@ sealed interface SearchResults {
         val components: List<ComponentGroup> = emptyList(),
         val matchedRules: List<GeneralRule> = emptyList(),
         val unmatchedRules: List<GeneralRule> = emptyList(),
+        val rulesLoading: Boolean = false,
     ) : SearchResults
 }
 
