@@ -21,26 +21,34 @@ import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.ifw.IfwFailure
+import com.merxury.blocker.core.model.ifw.IfwResult
+import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.editor.IfwEditorNode
+import com.merxury.core.ifw.getOrThrow
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
+import com.merxury.core.ifw.withIfwEditorAccess
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class GlobalIfwRuleViewModel @Inject constructor(
-    private val intentFirewall: IIntentFirewall,
-    private val componentRepository: ComponentRepository,
+    private val ifwStore: IfwStore,
+    private val componentRepository: ComponentStatusRepository,
+    selectedUsers: SelectedUserRepository,
     private val packageManager: PackageManager,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -56,6 +64,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
     private val _editorState = MutableStateFlow(GlobalIfwRuleEditorUiState())
     val editorState: StateFlow<GlobalIfwRuleEditorUiState> = _editorState.asStateFlow()
 
+    private val ownUser = selectedUsers.ownUser
     private var componentsJob: Job? = null
 
     init {
@@ -330,31 +339,32 @@ class GlobalIfwRuleViewModel @Inject constructor(
                 componentLoadError = null,
                 availableComponents = emptyList(),
             )
-            try {
-                componentRepository.updateComponentList(packageName, componentType).first()
-            } catch (e: Exception) {
-                Timber.w(e, "Failed to refresh components for $packageName")
+            val app = AppKey(packageName, ownUser)
+            if (componentRepository.refresh(app) is ReadResult.Failure) {
+                Timber.w("Failed to refresh components for $packageName")
             }
 
             try {
-                componentRepository.getComponentList(packageName, componentType).collect { components ->
+                componentRepository.components(app).collect { components ->
                     val currentDraft = editorState.value.simpleDraft ?: return@collect
                     if (currentDraft.selectedPackageName != packageName || currentDraft.componentType != draft.componentType) {
                         return@collect
                     }
 
-                    val availableComponents = components
-                        .sortedBy { component -> component.simpleName.lowercase() }
+                    val availableComponents = components.asSequence()
+                        .map { it.declaration }
+                        .filter { it.type == componentType }
+                        .sortedBy { it.id.simpleName.lowercase() }
                         .map { component ->
-                            val flattenedName = flattenComponentName(component.packageName, component.name)
+                            val flattenedName = flattenComponentName(component.id.packageName, component.id.className)
                             SimpleRuleComponentUiState(
                                 flattenedName = flattenedName,
-                                componentName = component.name,
-                                simpleName = component.simpleName,
+                                componentName = component.id.className,
+                                simpleName = component.id.simpleName,
                                 exported = component.exported,
                                 selected = flattenedName in currentDraft.targets,
                             )
-                        }
+                        }.toList()
 
                     val validTargets = currentDraft.targets.filter { target ->
                         availableComponents.any { component -> component.flattenedName == target }
@@ -373,6 +383,8 @@ class GlobalIfwRuleViewModel @Inject constructor(
                         updateSimpleDraft(markDirty = false) { copy(targets = validTargets) }
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Failed to observe components for $packageName")
                 _editorState.value = _editorState.value.copy(
@@ -396,6 +408,8 @@ class GlobalIfwRuleViewModel @Inject constructor(
             )
             dismissEditor()
             loadAllRules()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to save simple IFW rule for ${draft.storagePackageName}")
         }
@@ -413,6 +427,8 @@ class GlobalIfwRuleViewModel @Inject constructor(
             )
             dismissEditor()
             loadAllRules()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to save advanced IFW rule for ${draft.storagePackageName}")
         }
@@ -436,7 +452,7 @@ class GlobalIfwRuleViewModel @Inject constructor(
 
         // Check that the source can be read, then add the rule to the destination before removing
         // it from the source, so an unreadable file leaves the rule where it was instead of losing it.
-        intentFirewall.getRules(originalStoragePackageName)
+        withIfwEditorAccess { ifwStore.rules(originalStoragePackageName).getOrThrow() }
         appendRule(destinationStoragePackageName, newRule)
         removeRule(originalStoragePackageName, editingRuleIndex)
     }
@@ -445,11 +461,9 @@ class GlobalIfwRuleViewModel @Inject constructor(
         packageName: String,
         newRule: IfwRule,
     ) {
-        val currentRules = intentFirewall.getRules(packageName)
-        intentFirewall.saveRules(
-            packageName,
-            IfwRules(currentRules.rules + newRule),
-        )
+        withIfwEditorAccess {
+            ifwStore.update(packageName) { IfwRules(it.rules + newRule) }.getOrThrow()
+        }
     }
 
     private suspend fun replaceRule(
@@ -457,25 +471,24 @@ class GlobalIfwRuleViewModel @Inject constructor(
         ruleIndex: Int,
         newRule: IfwRule,
     ) {
-        val currentRules = intentFirewall.getRules(packageName)
-        val updatedRules = currentRules.rules.toMutableList()
-        if (ruleIndex !in updatedRules.indices) {
-            appendRule(packageName, newRule)
-            return
+        withIfwEditorAccess {
+            ifwStore.update(packageName) { rules ->
+                val updatedRules = rules.rules.toMutableList()
+                if (ruleIndex in updatedRules.indices) updatedRules[ruleIndex] = newRule else updatedRules.add(newRule)
+                IfwRules(updatedRules)
+            }.getOrThrow()
         }
-        updatedRules[ruleIndex] = newRule
-        intentFirewall.saveRules(packageName, IfwRules(updatedRules))
     }
 
     private suspend fun removeRule(
         packageName: String,
         ruleIndex: Int,
     ) {
-        val currentRules = intentFirewall.getRules(packageName)
-        val updatedRules = currentRules.rules.toMutableList()
-        if (ruleIndex !in updatedRules.indices) return
-        updatedRules.removeAt(ruleIndex)
-        intentFirewall.saveRules(packageName, IfwRules(updatedRules))
+        withIfwEditorAccess {
+            ifwStore.update(packageName) { rules ->
+                if (ruleIndex !in rules.rules.indices) rules else IfwRules(rules.rules.filterIndexed { index, _ -> index != ruleIndex })
+            }.getOrThrow()
+        }
     }
 
     private suspend fun deleteRuleInternal(
@@ -489,6 +502,8 @@ class GlobalIfwRuleViewModel @Inject constructor(
                 dismissEditor()
             }
             loadAllRules()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to delete IFW rule for $packageName at index $ruleIndex")
         }
@@ -497,22 +512,25 @@ class GlobalIfwRuleViewModel @Inject constructor(
     private suspend fun loadAllRules() {
         _uiState.value = GlobalIfwRuleUiState.Loading
         try {
-            intentFirewall.resetCache()
-            val groups = intentFirewall.getAllRules()
-                .mapNotNull { (packageName, ifwRules) ->
-                    if (ifwRules.isEmpty()) return@mapNotNull null
-                    PackageRuleGroup(
-                        packageName = packageName,
-                        appLabel = resolveAppLabel(packageName),
-                        packageInfo = resolvePackageInfo(packageName),
-                        rules = ifwRules.rules.mapIndexed { index, rule ->
-                            rule.toRuleItemUiState(index, packageName)
-                        },
-                    )
-                }
+            val result = withIfwEditorAccess { ifwStore.allRules() }
+            val files = if (result == IfwResult.Failure(IfwFailure.NoAccess)) emptyMap() else result.getOrThrow()
+            val groups = files.mapNotNull { (packageName, read) ->
+                val ifwRules = (read as? IfwResult.Success)?.value ?: return@mapNotNull null
+                if (ifwRules.isEmpty()) return@mapNotNull null
+                PackageRuleGroup(
+                    packageName = packageName,
+                    appLabel = resolveAppLabel(packageName),
+                    packageInfo = resolvePackageInfo(packageName),
+                    rules = ifwRules.rules.mapIndexed { index, rule ->
+                        rule.toRuleItemUiState(index, packageName)
+                    },
+                )
+            }
                 .sortedBy { group -> group.appLabel ?: group.packageName }
             _uiState.value = GlobalIfwRuleUiState.Success(groups)
             restoreEditorState(groups)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to load all IFW rules")
             _uiState.value = GlobalIfwRuleUiState.Error(e.message ?: "Unknown error")

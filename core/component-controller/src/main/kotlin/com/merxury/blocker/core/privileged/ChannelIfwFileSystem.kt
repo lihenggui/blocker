@@ -22,8 +22,10 @@ import com.merxury.blocker.core.privileged.calls.DeleteIfwRuleFile
 import com.merxury.blocker.core.privileged.calls.ListIfwRuleFiles
 import com.merxury.blocker.core.privileged.calls.ReadIfwRuleFile
 import com.merxury.blocker.core.privileged.calls.ReplaceIfwRuleFile
+import com.merxury.blocker.core.privileged.root.RootTransport
 import com.merxury.core.ifw.IfwAccessException
 import com.merxury.core.ifw.IfwFileSystem
+import com.merxury.core.ifw.isIfwEditorAccess
 import com.merxury.core.ifw.isRuleFileName
 import timber.log.Timber
 import java.io.IOException
@@ -32,26 +34,32 @@ import javax.inject.Inject
 /**
  * The Intent Firewall rule files, reached through the privileged channel the user chose: the root
  * process, or Shizuku's user service when Shizuku runs as root or the system uid. Never falls
- * back from one to the other.
+ * back from one to the other. The rule editors explicitly use the same root transport
+ * in every mode.
  *
  * Writes and [readRules] connect the channel when needed, which may show a permission prompt;
  * [readRulesIfConnected] never does. A channel that is unavailable, or whose identity may not
  * touch the files, throws [IfwAccessException]; any other failure throws [IOException].
  */
-internal class ChannelIfwFileSystem @Inject constructor(
+internal class ChannelIfwFileSystem(
     private val executor: PrivilegedExecutor,
+    private val rootExecutor: PrivilegedExecutor = executor,
 ) : IfwFileSystem {
 
-    override suspend fun readRules(packageName: String): String? = executor.execute(ReadIfwRuleFile(packageName)).getOrThrow("read the rules of $packageName")
+    @Inject constructor(executor: PrivilegedExecutor, rootTransport: RootTransport) : this(executor, rootExecutor = rootTransport)
+
+    private suspend fun editorOrSelectedExecutor() = if (isIfwEditorAccess()) rootExecutor else executor
+
+    override suspend fun readRules(packageName: String): String? = editorOrSelectedExecutor().execute(ReadIfwRuleFile(packageName)).getOrThrow("read the rules of $packageName")
 
     override suspend fun readRulesIfConnected(packageName: String): String? = executor.executeIfReady(ReadIfwRuleFile(packageName)).getOrThrow("read the rules of $packageName")
 
     override suspend fun writeRules(packageName: String, content: String) {
-        executor.execute(ReplaceIfwRuleFile(packageName, content)).getOrThrow("write the rules of $packageName")
+        editorOrSelectedExecutor().execute(ReplaceIfwRuleFile(packageName, content)).getOrThrow("write the rules of $packageName")
         Timber.i("Saved IFW rules of $packageName")
     }
 
-    override suspend fun deleteRules(packageName: String): Boolean = executor.execute(DeleteIfwRuleFile(packageName)).getOrThrow("delete the rules of $packageName")
+    override suspend fun deleteRules(packageName: String): Boolean = editorOrSelectedExecutor().execute(DeleteIfwRuleFile(packageName)).getOrThrow("delete the rules of $packageName")
         .also { if (it) Timber.i("Deleted IFW rules of $packageName") }
 
     override suspend fun fileExists(packageName: String): Boolean = readRules(packageName) != null
@@ -60,7 +68,7 @@ internal class ChannelIfwFileSystem @Inject constructor(
      * Every rule file name, named after a package or not, without hidden files and the files the
      * wake feature manages; see [isRuleFileName].
      */
-    override suspend fun listRuleFiles(): List<String> = executor.execute(ListIfwRuleFiles).getOrThrow("list the rule files")
+    override suspend fun listRuleFiles(): List<String> = editorOrSelectedExecutor().execute(ListIfwRuleFiles).getOrThrow("list the rule files")
         .filter(::isRuleFileName)
 
     private fun <R> CallResult<R>.getOrThrow(action: String): R = when (this) {
