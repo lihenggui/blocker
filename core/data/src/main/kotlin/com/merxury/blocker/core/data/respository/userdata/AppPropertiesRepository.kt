@@ -22,9 +22,5 @@ import kotlinx.coroutines.flow.Flow
 interface AppPropertiesRepository {
     val appProperties: Flow<AppPropertiesData>
 
-    suspend fun markComponentDatabaseInitialized()
-
-    suspend fun markGeneralRuleDatabaseInitialized()
-
     suspend fun updateLastOpenedRuleHash(hash: String)
 }

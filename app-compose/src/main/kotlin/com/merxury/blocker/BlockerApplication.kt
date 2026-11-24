@@ -19,6 +19,7 @@ package com.merxury.blocker
 
 import android.app.Application
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
@@ -32,6 +33,8 @@ import com.merxury.blocker.core.data.device.PackageChangeMonitor
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.logging.ReleaseTree
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
@@ -40,6 +43,7 @@ import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.Sync
 import com.merxury.blocker.sync.workers.WakeWork
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -88,7 +92,8 @@ class BlockerApplication :
     lateinit var pmBlockRecordSeeder: PmBlockRecordSeeder
 
     @Inject
-    lateinit var legacyAppTables: LegacyAppTables
+    @Dispatcher(IO)
+    lateinit var ioDispatcher: CoroutineDispatcher
 
     @Inject
     lateinit var deviceUserMonitor: DeviceUserMonitor
@@ -133,12 +138,9 @@ class BlockerApplication :
     private fun initAppSettings() {
         applicationScope.launch { analyticsCollectionObserver.observe() }
         deviceUserMonitor.start()
-        applicationScope.launch { removeLegacyDebloaterDatabase(this@BlockerApplication) }
-        // Before the first scan of a new install fills the old component list, which would
-        // otherwise be taken for blocks of an earlier version.
-        applicationScope.launch {
+        applicationScope.launch(ioDispatcher) {
+            removeLegacyDebloaterDatabase(this@BlockerApplication)
             pmBlockRecordSeeder.seedOnce()
-            legacyAppTables.keepFilled()
         }
         applicationScope.launch {
             val userData = userDataRepository.userData.first()
@@ -182,7 +184,7 @@ class BlockerApplication :
 
 /** Deletes the obsolete manifest cache left by versions that used a separate database. */
 internal fun removeLegacyDebloaterDatabase(context: Context) {
-    if (context.getDatabasePath("share_target").exists() && !context.deleteDatabase("share_target")) {
-        Timber.w("Cannot delete the old debloater database")
-    }
+    val file = context.getDatabasePath("share_target")
+    SQLiteDatabase.deleteDatabase(file)
+    if (file.exists()) Timber.w("Cannot delete the old debloater database")
 }

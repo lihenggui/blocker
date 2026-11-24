@@ -16,17 +16,28 @@
 
 package com.merxury.blocker.core.data.device
 
-import com.merxury.blocker.core.database.app.AppComponentDao
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
+import androidx.core.database.getStringOrNull
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -55,42 +66,94 @@ interface PmBlockRecordSeeder {
  * that reset drops what it cleared and refreshes drop what is no longer disabled. The reset clears
  * only what is still DISABLED when it runs, so a flag the system has meanwhile cleared costs nothing.
  *
- * When the old list was never filled ([BlockerAppPropertiesDataStore] says the component database
- * was never initialised), this is a new install with no earlier blocks: nothing is seeded, and
- * the seed is marked done all the same, so the list the first scan fills later, which holds only
- * what the system and the apps disabled, is never taken for Blocker's blocks.
- *
  * Components the wake feature disabled and still claims are left out: they are not the user's
  * blocks, and the wake feature restores them itself when it lets go of them. It changes components
  * of the owner user only.
  */
 @Singleton
-internal class LegacyListPmBlockRecordSeeder @Inject constructor(
-    private val legacyComponents: AppComponentDao,
+internal class InstalledAppDbPmBlockRecordSeeder @Inject constructor(
+    @ApplicationContext private val context: Context,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val properties: BlockerAppPropertiesDataStore,
     private val records: PmBlockRecords,
     private val wakeHistory: WakeHistoryDao,
 ) : PmBlockRecordSeeder {
     private val mutex = Mutex()
 
-    override suspend fun seedOnce() = mutex.withLock {
-        try {
-            if (properties.pmBlockRecordsSeeded.first()) return@withLock
-            if (properties.appPropertiesData.first().componentDatabaseInitialized) {
-                val user = ownUser()
-                val wakeClaims = if (user == UserId.SYSTEM) wakeClaims() else emptySet()
-                val keys = legacyComponents.getPmBlockedComponents().map { ComponentKey(ComponentId(it.packageName, it.componentName), user) }
-                    .filterNot { it.id in wakeClaims }
-                records.record(keys)
-                Timber.i("Seeded ${keys.size} PM blocks of user ${user.value} from the old component list, leaving out ${wakeClaims.size} the wake feature claims")
-            } else {
-                Timber.i("The old component list was never filled, there are no PM blocks to seed")
+    override suspend fun seedOnce() {
+        withContext(ioDispatcher) {
+            mutex.withLock {
+                try {
+                    val file = context.getDatabasePath(LEGACY_DATABASE)
+                    if (!properties.pmBlockRecordsSeeded.first()) {
+                        seed(file)
+                        properties.markPmBlockRecordsSeeded()
+                    }
+                    // A restart after the flag was written or a failed deletion only retries cleanup.
+                    SQLiteDatabase.deleteDatabase(file)
+                    if (file.exists()) Timber.w("Cannot delete the old installed app database")
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "Cannot migrate the old installed app database, try again next time")
+                }
             }
-            properties.markPmBlockRecordsSeeded()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Cannot seed the PM blocks from the old component list, try again next time")
+        }
+    }
+
+    private suspend fun seed(file: File) {
+        val ids = readBlockedComponents(file)
+        if (ids.isEmpty()) return
+
+        val user = ownUser()
+        val wakeClaims = if (user == UserId.SYSTEM) wakeClaims() else emptySet()
+        val keys = ids.filterNot { it in wakeClaims }.map { ComponentKey(it, user) }
+        records.record(keys)
+        Timber.i("Seeded ${keys.size} PM blocks of user ${user.value} from the old component list")
+    }
+
+    // Released versions 1 and 2 have the same app_component schema. Keep the file if it cannot
+    // be opened or if its table has changed. Only a confirmed missing file or table is empty.
+    private fun readBlockedComponents(file: File): List<ComponentId> {
+        if (!file.exists()) {
+            if (file.parentFile?.list()?.contains(file.name) == false) return emptyList()
+            try {
+                Os.stat(file.path)
+            } catch (e: ErrnoException) {
+                if (e.errno == OsConstants.ENOENT) return emptyList()
+                throw e
+            }
+        }
+        val flags = SQLiteDatabase.OPEN_READONLY or SQLiteDatabase.NO_LOCALIZED_COLLATORS
+        val database = SQLiteDatabase.openDatabase(file.path, null, flags) { Timber.w("The old installed app database is corrupt") }
+        database.use { database ->
+            val hasTable = database.rawQuery(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'app_component'",
+                null,
+            ).use { it.moveToFirst() }
+            if (!hasTable) return emptyList()
+
+            val columns = database.rawQuery("PRAGMA table_info(app_component)", null).use { cursor ->
+                buildMap {
+                    while (cursor.moveToNext()) put(cursor.getString(1), cursor.getString(2).uppercase())
+                }
+            }
+            check(columns["package_name"] == "TEXT" && columns["component_name"] == "TEXT" && columns["pm_blocked"] == "INTEGER") {
+                "Unexpected schema in the old component table"
+            }
+
+            return database.rawQuery(
+                "SELECT package_name, component_name FROM app_component WHERE pm_blocked = 1",
+                null,
+            ).use { cursor ->
+                buildList {
+                    while (cursor.moveToNext()) {
+                        val packageName = checkNotNull(cursor.getStringOrNull(0))
+                        val className = checkNotNull(cursor.getStringOrNull(1))
+                        add(checkNotNull(ComponentId.unflatten("$packageName/$className")))
+                    }
+                }
+            }
         }
     }
 
@@ -99,4 +162,7 @@ internal class LegacyListPmBlockRecordSeeder @Inject constructor(
         .filter { it.method == "PM" && (it.configured || it.pendingChange) }
         .map { ComponentId(it.target, it.component) }
         .toSet()
+    private companion object {
+        const val LEGACY_DATABASE = "installed_app"
+    }
 }

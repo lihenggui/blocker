@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.datastore.di
 
+import androidx.datastore.core.DataMigration
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
@@ -72,6 +73,22 @@ internal fun createAppPropertiesDataStore(
         storeName = "app properties",
         replacement = serializer.defaultValue,
     ),
+    migrations = listOf(RemoveObsoleteAppProperties),
     scope = scope,
     produceFile = produceFile,
 )
+
+/** Keep the live preferences and unknown fields while removing the old cache flags. */
+private object RemoveObsoleteAppProperties : DataMigration<AppProperties> {
+    override suspend fun shouldMigrate(currentData: AppProperties): Boolean =
+        currentData.componentDatabaseInitialized || currentData.generalRuleDatabaseInitialized ||
+            currentData.lastOpenedAppListHash.isNotEmpty()
+
+    override suspend fun migrate(currentData: AppProperties): AppProperties = currentData.copy {
+        clearComponentDatabaseInitialized()
+        clearGeneralRuleDatabaseInitialized()
+        clearLastOpenedAppListHash()
+    }
+
+    override suspend fun cleanUp() = Unit
+}

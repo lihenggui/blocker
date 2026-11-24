@@ -21,7 +21,7 @@ import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InMemorySelectedUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
-import com.merxury.blocker.core.data.device.LegacyListPmBlockRecordSeeder
+import com.merxury.blocker.core.data.device.InstalledAppDbPmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.LocalComponentStatusRepository
 import com.merxury.blocker.core.data.device.LocalDebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.LocalDeviceUserRepository
@@ -30,10 +30,6 @@ import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
-import com.merxury.blocker.core.data.respository.app.AppRepository
-import com.merxury.blocker.core.data.respository.app.LocalAppRepository
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.LocalComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSource
@@ -86,16 +82,6 @@ abstract class DataModule {
     ): NetworkMonitor
 
     @Binds
-    internal abstract fun bindsLocalComponentRepository(
-        localComponentRepository: LocalComponentRepository,
-    ): ComponentRepository
-
-    @Binds
-    internal abstract fun bindsLocalAppRepository(
-        localAppRepository: LocalAppRepository,
-    ): AppRepository
-
-    @Binds
     internal abstract fun bindLocalGeneralRuleDataSource(
         localGeneralRuleDataSource: LocalGeneralRuleDataSource,
     ): GeneralRuleDataSource
@@ -132,5 +118,5 @@ abstract class DataModule {
     internal abstract fun bindSelectedUserRepository(repository: InMemorySelectedUserRepository): SelectedUserRepository
 
     @Binds
-    internal abstract fun bindPmBlockRecordSeeder(seeder: LegacyListPmBlockRecordSeeder): PmBlockRecordSeeder
+    internal abstract fun bindPmBlockRecordSeeder(seeder: InstalledAppDbPmBlockRecordSeeder): PmBlockRecordSeeder
 }

@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.device
 
 import android.content.Context
 import androidx.room.Room
+import kotlinx.coroutines.Dispatchers
 import androidx.test.core.app.ApplicationProvider
 import com.merxury.blocker.core.appcontrol.AppControl
 import com.merxury.blocker.core.control.ComponentControl
@@ -113,12 +114,12 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
         .build()
     internal val recordDao = recordsDb.pmBlockRecordDao()
     internal val pmBlocks = PmBlockRecords(recordDao)
-    internal val legacyComponents = FakeAppComponentDao()
+    internal val applicationContext: Context = ApplicationProvider.getApplicationContext()
     internal val appProperties = InMemoryDataStore(AppProperties.getDefaultInstance())
     internal val wakeDb: WakeHistoryDatabase = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
         .allowMainThreadQueries()
         .build()
-    internal val seeder = LegacyListPmBlockRecordSeeder(legacyComponents, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
+    internal val seeder = InstalledAppDbPmBlockRecordSeeder(applicationContext, Dispatchers.IO, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
     internal val system = FakeSystem()
     internal val files = FakeIfwFileSystem()
     internal val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())
@@ -137,6 +138,7 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
     fun closeDatabase() {
         db.close()
         recordsDb.close()
+        wakeDb.close()
     }
 }
 

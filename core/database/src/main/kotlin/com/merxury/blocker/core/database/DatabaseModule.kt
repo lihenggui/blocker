@@ -18,7 +18,6 @@ package com.merxury.blocker.core.database
 
 import android.content.Context
 import androidx.room.Room
-import com.merxury.blocker.core.database.app.InstalledAppDatabase
 import com.merxury.blocker.core.database.cache.COMPONENT_CACHE_DATABASE_NAME
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
@@ -35,18 +34,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 internal object DatabaseModule {
-    @Provides
-    @Singleton
-    fun provideInstalledAppDatabase(
-        @ApplicationContext context: Context,
-    ): InstalledAppDatabase = Room.databaseBuilder(
-        context,
-        InstalledAppDatabase::class.java,
-        "installed_app",
-    )
-        .fallbackToDestructiveMigration(true)
-        .build()
-
     @Provides
     @Singleton
     fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase = Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")

@@ -150,9 +150,9 @@ class ProtoDataStoresTest {
         )
         dataStore.data.first()
 
-        dataStore.updateData { it.copy { componentDatabaseInitialized = true } }
+        dataStore.updateData { it.copy { pmBlockRecordsSeeded = true } }
 
-        assertTrue(dataStore.data.first().componentDatabaseInitialized)
+        assertTrue(dataStore.data.first().pmBlockRecordsSeeded)
         // Only one DataStore may be active per file, so close the first one.
         firstScope.cancel()
         val reopened = createAppPropertiesDataStore(
@@ -160,7 +160,27 @@ class ProtoDataStoresTest {
             scope = backgroundScope,
             produceFile = { file },
         )
-        assertEquals(appProperties { componentDatabaseInitialized = true }, reopened.data.first())
+        assertEquals(appProperties { pmBlockRecordsSeeded = true }, reopened.data.first())
+    }
+
+    @Test
+    fun givenObsoleteCacheFields_whenOpeningTheStore_thenTheyAreRemovedFromDisk() = testScope.runTest {
+        val current = appProperties {
+            lastOpenedRuleHash = "rule"
+            rootGrantRemembered = true
+            pmBlockRecordsSeeded = true
+        }
+        val old = current.copy {
+            componentDatabaseInitialized = true
+            generalRuleDatabaseInitialized = true
+            lastOpenedAppListHash = "obsolete"
+        }
+        val file = tempFolder.newFile("app_properties.pb").apply { writeBytes(old.toByteArray()) }
+
+        val store = createAppPropertiesDataStore(AppPropertiesSerializer(), backgroundScope) { file }
+
+        assertEquals(current, store.data.first())
+        assertEquals(current, AppProperties.parseFrom(file.readBytes()))
     }
 
     @Test
