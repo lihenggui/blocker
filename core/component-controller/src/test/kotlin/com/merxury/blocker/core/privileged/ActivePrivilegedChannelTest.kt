@@ -169,15 +169,24 @@ class ActivePrivilegedChannelTest {
 
     @Test
     fun givenEachRootBasedType_whenConnect_thenRootTransportUsed() = scope.runTest {
-        val channel = channel()
         listOf(ControllerType.PM, ControllerType.IFW, ControllerType.IFW_PLUS_PM).forEach { type ->
             preferences.setControllerType(type)
-            channel.connect()
-        }
+            val freshRoot = FakeTransport()
+            val channel = ActivePrivilegedChannel(preferences.userData.map { it.controllerType }, freshRoot, shizuku, backgroundScope)
 
-        assertThat(root.acquireCount).isEqualTo(3)
+            assertThat(channel.connect()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+            assertThat(freshRoot.acquireCount).isEqualTo(1)
+        }
         assertThat(shizuku.acquireCount).isEqualTo(0)
-        assertThat(channel.state.value).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+    }
+
+    @Test
+    fun givenReadyRootTransport_whenConnectingAgain_thenThereIsNoSecondAcquisition() = scope.runTest {
+        val channel = channel()
+        val first = channel.connect()
+
+        assertThat(channel.connect()).isEqualTo(first)
+        assertThat(root.acquireCount).isEqualTo(1)
     }
 
     @Test
