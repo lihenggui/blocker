@@ -128,7 +128,7 @@ class PrivilegedChannelDeviceTest {
     fun givenRootGrantedBefore_whenReadInNewProcess_thenConnectsWithoutPromptAndReadsOtherUser() = runBlocking<Unit> {
         quietConnectCase("root-granted")
         val runner = SessionRootRunner()
-        val root = RootTransport(runner, InMemoryRootGrantMemory(remembered = true), Dispatchers.IO)
+        val root = RootTransport(runner, InMemoryRootGrantMemory(remembered = true), Dispatchers.IO, runner::hasActiveServer)
 
         val packages = root.executeIfReady(InstalledPackages(otherUser)).value()
 
@@ -141,7 +141,7 @@ class PrivilegedChannelDeviceTest {
     fun givenRootNeverGranted_whenConnectIfGranted_thenDeniedWithoutStartingSu() = runBlocking<Unit> {
         quietConnectCase("root-not-granted")
         val runner = SessionRootRunner()
-        val root = RootTransport(runner, InMemoryRootGrantMemory(remembered = false), Dispatchers.IO)
+        val root = RootTransport(runner, InMemoryRootGrantMemory(remembered = false), Dispatchers.IO, runner::hasActiveServer)
 
         assertEquals(ChannelState.Unavailable(UnavailableReason.DENIED), root.connectIfGranted())
         assertEquals(CallResult.Failure(CallFailure.ChannelUnavailable), root.executeIfReady(ListUsers))
@@ -153,7 +153,8 @@ class PrivilegedChannelDeviceTest {
     fun givenRootRefusedSinceGranted_whenConnectIfGranted_thenDeniedAndForgotten() = runBlocking<Unit> {
         quietConnectCase("root-refused")
         val grants = InMemoryRootGrantMemory(remembered = true)
-        val root = RootTransport(SessionRootRunner(), grants, Dispatchers.IO)
+        val runner = SessionRootRunner()
+        val root = RootTransport(runner, grants, Dispatchers.IO, runner::hasActiveServer)
 
         val state = root.connectIfGranted()
 
