@@ -22,8 +22,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -31,55 +29,90 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
-import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.collapseList.collapsibleGroup
+import com.merxury.blocker.core.ui.component.ComponentListItem
+import com.merxury.blocker.core.ui.component.ComponentRow
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.feature.ruledetail.impl.MatchedApp
+import com.merxury.blocker.feature.ruledetail.impl.MatchedAppsUiState
 
+/** What the matched apps and their component rows can ask for. */
+class MatchedAppActions(
+    /** A component's switch was turned; true means on. */
+    val onSwitch: (ComponentId, Boolean) -> Unit = { _, _ -> },
+    val onStopService: (ComponentId) -> Unit = {},
+    val onLaunchActivity: (ComponentId) -> Unit = {},
+    val onCopyName: (String) -> Unit = {},
+    val onCopyFullName: (String) -> Unit = {},
+    val onBlockAll: (MatchedApp) -> Unit = {},
+    val onEnableAll: (MatchedApp) -> Unit = {},
+    val onOpenApp: (AppKey) -> Unit = {},
+)
+
+/**
+ * The apps with components the rule matches, each expandable to those components. A switch
+ * shows whether its component can run and ignores taps while a change of it is in flight; it
+ * moves once the system shows the change.
+ */
 @Composable
 fun RuleMatchedAppList(
-    ruleMatchedAppListUiState: Result<List<MatchedItem>>,
+    ruleMatchedAppListUiState: MatchedAppsUiState,
     modifier: Modifier = Modifier,
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigateToAppDetail: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
+    inFlight: Set<ComponentId> = emptySet(),
+    actions: MatchedAppActions = MatchedAppActions(),
 ) {
     when (ruleMatchedAppListUiState) {
-        is Result.Loading -> LoadingScreen()
+        MatchedAppsUiState.Loading -> LoadingScreen()
 
-        is Result.Error -> ErrorScreen(error = ruleMatchedAppListUiState.exception.toErrorMessage())
-
-        is Result.Success -> {
-            if (ruleMatchedAppListUiState.data.isEmpty()) {
+        is MatchedAppsUiState.Loaded -> {
+            if (ruleMatchedAppListUiState.apps.isEmpty()) {
                 NoApplicableAppScreen()
                 return
             }
+            val apps = ruleMatchedAppListUiState.apps.associateBy { it.app.packageName }
             CollapsibleList(
                 modifier = modifier.testTag("rule:matchedAppList"),
-                list = ruleMatchedAppListUiState.data,
-                navigateToDetail = navigateToAppDetail,
+                groups = ruleMatchedAppListUiState.apps.map { collapsibleGroup(key = it.app.packageName, title = it.label, icon = it.icon, rows = it.rows) },
+                itemKey = { it.id.className },
                 navigationMenuItemDesc = string.core_ui_open_app_detail,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-                onBlockAllInItemClick = onBlockAllInItemClick,
-                onEnableAllInItemClick = onEnableAllInItemClick,
-                onSwitch = onSwitch,
-            )
+                navigateToDetail = { group -> apps[group.key]?.let { actions.onOpenApp(it.app) } },
+                onBlockAllClick = { group -> apps[group.key]?.let(actions.onBlockAll) },
+                onEnableAllClick = { group -> apps[group.key]?.let(actions.onEnableAll) },
+            ) { row, itemModifier ->
+                MatchedComponentItem(row = row, inFlight = row.id in inFlight, actions = actions, modifier = itemModifier)
+            }
         }
     }
+}
+
+@Composable
+private fun MatchedComponentItem(
+    row: ComponentRow,
+    inFlight: Boolean,
+    actions: MatchedAppActions,
+    modifier: Modifier = Modifier,
+) {
+    ComponentListItem(
+        modifier = modifier,
+        simpleName = row.id.simpleName,
+        name = row.id.className,
+        description = row.description,
+        enabled = row.enabled,
+        type = row.type,
+        isServiceRunning = row.isRunning,
+        inFlight = inFlight,
+        onStopServiceClick = { actions.onStopService(row.id) },
+        onLaunchActivityClick = { actions.onLaunchActivity(row.id) },
+        onCopyNameClick = { actions.onCopyName(row.id.simpleName) },
+        onCopyFullNameClick = { actions.onCopyFullName(row.id.className) },
+        onSwitchClick = { enabled -> actions.onSwitch(row.id, enabled) },
+    )
 }
 
 @Composable
@@ -101,31 +134,16 @@ fun NoApplicableAppScreen(
 @Composable
 @Preview
 private fun RuleMatchedAppListPreview() {
-    val componentInfo = ComponentInfo(
-        name = ".ui.component.ComponentListActivity",
-        packageName = "com.merxury.blocker.test1",
+    val row = ComponentRow(
+        id = ComponentId("com.merxury.blocker.test1", "com.merxury.blocker.test1.ui.component.ComponentListActivity"),
         type = ACTIVITY,
+        enabled = true,
     )
-    val matchedItem = MatchedItem(
-        header = MatchedHeaderData(
-            title = "Blocker",
-            uniqueId = "com.merxury.blocker.test1",
+    val uiState = MatchedAppsUiState.Loaded(
+        listOf(
+            MatchedApp(app = AppKey("com.merxury.blocker.test1", UserId.SYSTEM), label = "Blocker", icon = null, rows = listOf(row)),
+            MatchedApp(app = AppKey("com.merxury.blocker.test2", UserId.SYSTEM), label = "Test long long long long long name", icon = null, rows = emptyList()),
         ),
-        componentList = remember {
-            mutableStateListOf(componentInfo)
-        },
-    )
-    val matchedItem2 = MatchedItem(
-        header = MatchedHeaderData(
-            title = "Test long long long long long name",
-            uniqueId = "com.merxury.blocker.test2",
-        ),
-        componentList = remember {
-            mutableStateListOf()
-        },
-    )
-    val uiState = Result.Success(
-        listOf(matchedItem, matchedItem2),
     )
     BlockerTheme {
         Surface {

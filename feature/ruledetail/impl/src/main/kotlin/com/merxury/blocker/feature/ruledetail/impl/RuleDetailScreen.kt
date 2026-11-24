@@ -20,10 +20,8 @@ import android.content.ClipData
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,24 +29,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -59,110 +54,86 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
+import androidx.lifecycle.repeatOnLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
-import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
-import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
-import com.merxury.blocker.core.designsystem.component.PreviewThemes
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.result.Result.Loading
-import com.merxury.blocker.core.result.Result.Success
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
-import com.merxury.blocker.core.ui.applist.previewAppRows
-import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
-import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
+import com.merxury.blocker.core.ui.control.ControlMessageSnackbar
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
 import com.merxury.blocker.feature.ruledetail.impl.RuleInfoUiState.Error
+import com.merxury.blocker.feature.ruledetail.impl.component.MatchedAppActions
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleDescription
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleMatchedAppList
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.ui.R.string as uistring
-import com.merxury.blocker.feature.ruledetail.api.R.string as ruledetailString
+
+/**
+ * Opens the detail screen of an app.
+ *
+ * @param userId the user whose copy to open; null for the user Blocker runs in
+ */
+typealias OpenAppDetail = (packageName: String, userId: Int?) -> Unit
+
+/** The user to open [this] app for: null for the user Blocker runs in, [ownUser]. */
+internal fun AppKey.userIdFor(ownUser: UserId): Int? = userId.value.takeIf { userId != ownUser }
 
 @Composable
 fun RuleDetailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    navigateToAppDetail: (String) -> Unit,
+    navigateToAppDetail: OpenAppDetail,
     updateIconThemingState: (IconThemingState) -> Unit,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = true,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
-    val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
-    val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-    val appBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
-    val sortType by viewModel.sortType.collectAsStateWithLifecycle()
-    val processingProgress by viewModel.processingProgress.collectAsStateWithLifecycle()
-    val clipboardManager = LocalClipboard.current
-    val scope = rememberCoroutineScope()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(viewModel, lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { viewModel.keepFresh() }
+    }
+    val actions = rememberMatchedAppActions(viewModel, uiState, navigateToAppDetail)
     Box(modifier = modifier.fillMaxSize()) {
         RuleDetailScreen(
-            ruleInfoUiState = ruleInfoUiState,
+            ruleInfoUiState = uiState.ruleInfo,
             showBackButton = showBackButton,
             onBackClick = onBackClick,
-            tabState = tabState,
+            tabState = uiState.tabState,
             switchTab = viewModel::switchTab,
-            appBarUiState = appBarUiState,
-            sortType = sortType,
+            appBarUiState = uiState.appBarUiState,
+            sortType = uiState.sortType,
             onSortTypeChange = viewModel::updateSortType,
-            onStopServiceClick = viewModel::stopService,
-            onLaunchActivityClick = viewModel::launchActivity,
-            onCopyNameClick = {
-                scope.launch {
-                    clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
-                }
-            },
-            onCopyFullNameClick = {
-                scope.launch {
-                    clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(it, it)))
-                }
-            },
-            onBlockAllInItemClick = { viewModel.controlAllComponents(it, false) },
-            onEnableAllInItemClick = { viewModel.controlAllComponents(it, true) },
+            inFlight = uiState.inFlight,
+            actions = actions,
             onBlockAllInPageClick = { viewModel.controlAllComponentsInPage(false) },
             onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
-            onSwitch = viewModel::controlComponent,
-            navigateToAppDetail = navigateToAppDetail,
-            updateIconThemingState = updateIconThemingState,
         )
         val bottomInset = WindowInsets.systemBars.asPaddingValues()
             .calculateBottomPadding()
         ProcessingProgressSnackbar(
-            progress = processingProgress,
-            onDismiss = viewModel::dismissProcessingProgress,
+            progress = uiState.batch,
+            onDismiss = {},
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(
@@ -172,17 +143,43 @@ fun RuleDetailScreen(
                 ),
         )
     }
-    if (errorState != null) {
-        BlockerErrorAlertDialog(
-            title = errorState?.title.orEmpty(),
-            text = errorState?.content.orEmpty(),
-            onDismissRequest = viewModel::dismissAlert,
-        )
-    }
-    DisposableEffect(Unit) {
-        onDispose {
-            updateIconThemingState(IconThemingState())
+    ControlMessageSnackbar(
+        messages = uiState.messages,
+        snackbarHostState = snackbarHostState,
+        onShow = viewModel::onMessageShown,
+        onGrantAccess = viewModel::grantAccess,
+    )
+    RuleSeedColor(
+        icon = (uiState.ruleInfo as? RuleInfoUiState.Success)?.seedIcon,
+        updateIconThemingState = updateIconThemingState,
+    )
+}
+
+/** The actions of the matched apps, one object for the life of the screen. */
+@Composable
+private fun rememberMatchedAppActions(
+    viewModel: RuleDetailViewModel,
+    uiState: RuleDetailUiState,
+    navigateToAppDetail: OpenAppDetail,
+): MatchedAppActions {
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    val currentState by rememberUpdatedState(uiState)
+    val openApp by rememberUpdatedState(navigateToAppDetail)
+    return remember(viewModel) {
+        fun copy(text: String) {
+            scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(text, text))) }
         }
+        MatchedAppActions(
+            onSwitch = viewModel::setEnabled,
+            onStopService = viewModel::stopService,
+            onLaunchActivity = viewModel::launchActivity,
+            onCopyName = ::copy,
+            onCopyFullName = ::copy,
+            onBlockAll = { viewModel.controlAllComponents(it, enable = false) },
+            onEnableAll = { viewModel.controlAllComponents(it, enable = true) },
+            onOpenApp = { app -> openApp(app.packageName, app.userIdFor(currentState.ownUser)) },
+        )
     }
 }
 
@@ -197,17 +194,10 @@ fun RuleDetailScreen(
     onSortTypeChange: (RuleDetailSortType) -> Unit = {},
     onBackClick: () -> Unit = {},
     switchTab: (RuleDetailTabs) -> Unit = { _ -> },
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    inFlight: Set<ComponentId> = emptySet(),
+    actions: MatchedAppActions = MatchedAppActions(),
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
-    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
-    navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateIconThemingState: (IconThemingState) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -218,7 +208,6 @@ fun RuleDetailScreen(
             RuleDetailContent(
                 modifier = modifier,
                 showBackButton = showBackButton,
-                ruleMatchedAppListUiState = ruleInfoUiState.matchedAppsUiState,
                 ruleInfoUiState = ruleInfoUiState,
                 onBackClick = onBackClick,
                 appBarUiState = appBarUiState,
@@ -226,17 +215,10 @@ fun RuleDetailScreen(
                 onSortTypeChange = onSortTypeChange,
                 tabState = tabState,
                 switchTab = switchTab,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-                onBlockAllInItemClick = onBlockAllInItemClick,
-                onEnableAllInItemClick = onEnableAllInItemClick,
+                inFlight = inFlight,
+                actions = actions,
                 onBlockAllInPageClick = onBlockAllInPageClick,
                 onEnableAllInPageClick = onEnableAllInPageClick,
-                onSwitch = onSwitch,
-                navigateToAppDetail = navigateToAppDetail,
-                updateIconThemingState = updateIconThemingState,
             )
         }
 
@@ -251,7 +233,6 @@ fun RuleDetailScreen(
 fun RuleDetailContent(
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
-    ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -259,17 +240,10 @@ fun RuleDetailContent(
     appBarUiState: AppBarUiState = AppBarUiState(),
     sortType: RuleDetailSortType = RuleDetailSortType.NAME,
     onSortTypeChange: (RuleDetailSortType) -> Unit = {},
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    inFlight: Set<ComponentId> = emptySet(),
+    actions: MatchedAppActions = MatchedAppActions(),
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
-    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
-    navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateIconThemingState: (IconThemingState) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -277,40 +251,7 @@ fun RuleDetailContent(
         MinToolbarHeight.roundToPx() + systemStatusHeight.roundToPx()..MaxToolbarHeight.roundToPx() + systemStatusHeight.roundToPx()
     }
     val toolbarState = rememberToolbarState(toolbarHeightRange)
-    val scope = rememberCoroutineScope()
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                toolbarState.scrollTopLimitReached =
-                    listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
-                toolbarState.scrollOffset -= available.y
-                return Offset(0f, toolbarState.consumed)
-            }
-
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                if (available.y > 0) {
-                    scope.launch {
-                        animateDecay(
-                            initialValue = toolbarState.height + toolbarState.offset,
-                            initialVelocity = available.y,
-                            animationSpec = FloatExponentialDecaySpec(),
-                        ) { value, _ ->
-                            toolbarState.scrollTopLimitReached =
-                                listState.firstVisibleItemIndex == 0 &&
-                                listState.firstVisibleItemScrollOffset == 0
-                            toolbarState.scrollOffset -= (value - (toolbarState.height + toolbarState.offset))
-                            if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
-                        }
-                    }
-                }
-                return super.onPostFling(consumed, available)
-            }
-        }
-    }
-    updateIconThemingState(
-        IconThemingState(seedColor = ruleInfoUiState.seedColor),
-    )
+    val nestedScrollConnection = rememberToolbarScrollConnection(toolbarState, listState)
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
@@ -342,110 +283,48 @@ fun RuleDetailContent(
             modifier = Modifier
                 .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize(),
-            ruleMatchedAppListUiState = ruleMatchedAppListUiState,
             ruleInfoUiState = ruleInfoUiState,
             tabState = tabState,
             switchTab = switchTab,
-            onStopServiceClick = onStopServiceClick,
-            onLaunchActivityClick = onLaunchActivityClick,
-            onCopyNameClick = onCopyNameClick,
-            onCopyFullNameClick = onCopyFullNameClick,
-            onBlockAllInItemClick = onBlockAllInItemClick,
-            onEnableAllInItemClick = onEnableAllInItemClick,
-            onSwitch = onSwitch,
-            navigateToAppDetail = navigateToAppDetail,
+            inFlight = inFlight,
+            actions = actions,
         )
     }
 }
 
+/** Collapses and expands the toolbar with the scroll of [listState]. */
 @Composable
-fun RuleDetailAppBarActions(
-    modifier: Modifier = Modifier,
-    appBarUiState: AppBarUiState = AppBarUiState(),
-    sortType: RuleDetailSortType = RuleDetailSortType.NAME,
-    onSortTypeChange: (RuleDetailSortType) -> Unit = {},
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(end = 8.dp),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        val actions = appBarUiState.actions
-        if (actions.isEmpty()) return
-        if (actions.contains(SORT)) {
-            SortActionMenu(
-                sortType = sortType,
-                onSortTypeChange = onSortTypeChange,
-            )
-        }
-        if (actions.contains(MORE)) {
-            MoreActionMenu(
-                blockAllComponents = blockAllComponents,
-                enableAllComponents = enableAllComponents,
-            )
-        }
-    }
-}
+private fun rememberToolbarScrollConnection(toolbarState: ToolbarState, listState: LazyListState): NestedScrollConnection {
+    val scope = rememberCoroutineScope()
+    return remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                toolbarState.scrollTopLimitReached =
+                    listState.firstVisibleItemIndex == 0 &&
+                    listState.firstVisibleItemScrollOffset == 0
+                toolbarState.scrollOffset -= available.y
+                return Offset(0f, toolbarState.consumed)
+            }
 
-@Composable
-fun MoreActionMenu(
-    modifier: Modifier = Modifier,
-    blockAllComponents: () -> Unit = {},
-    enableAllComponents: () -> Unit = {},
-) {
-    val items = listOf(
-        DropDownMenuItem(
-            ruledetailString.feature_ruledetail_api_block_all_of_this_page,
-            blockAllComponents,
-        ),
-        DropDownMenuItem(
-            ruledetailString.feature_ruledetail_api_enable_all_of_this_page,
-            enableAllComponents,
-        ),
-    )
-    BlockerAppTopBarMenu(
-        modifier = modifier,
-        menuIcon = BlockerIcons.MoreVert,
-        menuIconDesc = uistring.core_ui_more_menu,
-        menuList = items,
-    )
-}
-
-@Composable
-fun SortActionMenu(
-    sortType: RuleDetailSortType,
-    onSortTypeChange: (RuleDetailSortType) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier) {
-        var expanded by remember { mutableStateOf(false) }
-        IconButton(onClick = { expanded = true }) {
-            Icon(
-                imageVector = BlockerIcons.Sort,
-                contentDescription = stringResource(ruledetailString.feature_ruledetail_api_sort_menu),
-            )
-        }
-        BlockerDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            items = RuleDetailSortType.entries,
-            onItemClick = { entry ->
-                onSortTypeChange(entry)
-            },
-            itemText = { entry -> Text(text = stringResource(entry.labelRes)) },
-            itemTrailingIcon = { entry ->
-                if (entry == sortType) {
-                    Icon(
-                        imageVector = BlockerIcons.CheckSmall,
-                        contentDescription = null,
-                    )
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (available.y > 0) {
+                    scope.launch {
+                        animateDecay(
+                            initialValue = toolbarState.height + toolbarState.offset,
+                            initialVelocity = available.y,
+                            animationSpec = FloatExponentialDecaySpec(),
+                        ) { value, _ ->
+                            toolbarState.scrollTopLimitReached =
+                                listState.firstVisibleItemIndex == 0 &&
+                                listState.firstVisibleItemScrollOffset == 0
+                            toolbarState.scrollOffset -= (value - (toolbarState.height + toolbarState.offset))
+                            if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
+                        }
+                    }
                 }
-            },
-        )
+                return super.onPostFling(consumed, available)
+            }
+        }
     }
 }
 
@@ -457,19 +336,12 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = r
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RuleDetailTabContent(
-    ruleMatchedAppListUiState: Result<List<MatchedItem>>,
     ruleInfoUiState: RuleInfoUiState.Success,
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigateToAppDetail: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
+    inFlight: Set<ComponentId> = emptySet(),
+    actions: MatchedAppActions = MatchedAppActions(),
 ) {
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     val coroutineScope = rememberCoroutineScope()
@@ -504,143 +376,13 @@ fun RuleDetailTabContent(
         ) {
             when (it) {
                 0 -> RuleMatchedAppList(
-                    ruleMatchedAppListUiState = ruleMatchedAppListUiState,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                    navigateToAppDetail = navigateToAppDetail,
-                    onBlockAllInItemClick = onBlockAllInItemClick,
-                    onEnableAllInItemClick = onEnableAllInItemClick,
-                    onSwitch = onSwitch,
+                    ruleMatchedAppListUiState = ruleInfoUiState.matchedAppsUiState,
+                    inFlight = inFlight,
+                    actions = actions,
                 )
 
                 1 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
             }
-        }
-    }
-}
-
-@Composable
-@PreviewThemes
-private fun RuleDetailScreenPreview(
-    @PreviewParameter(RuleListPreviewParameterProvider::class)
-    ruleList: List<GeneralRule>,
-) {
-    val components = ComponentListPreviewParameterProvider().values.first()
-    val appList = previewAppRows()
-    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
-
-    BlockerTheme {
-        Surface {
-            RuleDetailScreen(
-                showBackButton = false,
-                ruleInfoUiState = RuleInfoUiState.Success(
-                    ruleInfo = ruleList.first(),
-                    matchedAppsUiState = Success(
-                        listOf(
-                            MatchedItem(
-                                header = MatchedHeaderData(
-                                    title = appList.first().label,
-                                    uniqueId = appList.first().key.packageName,
-                                ),
-                                componentList = components,
-                            ),
-                        ),
-                    ),
-                ),
-                tabState = tabState[0],
-                appBarUiState = AppBarUiState(
-                    actions = listOf(
-                        SORT,
-                        MORE,
-                    ),
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-@PreviewThemes
-private fun RuleDetailScreenSelectedDescriptionPreview(
-    @PreviewParameter(RuleListPreviewParameterProvider::class)
-    ruleList: List<GeneralRule>,
-) {
-    val components = ComponentListPreviewParameterProvider().values.first()
-    val appList = previewAppRows()
-    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
-
-    BlockerTheme {
-        Surface {
-            RuleDetailScreen(
-                ruleInfoUiState = RuleInfoUiState.Success(
-                    ruleInfo = ruleList.first(),
-                    matchedAppsUiState = Success(
-                        listOf(
-                            MatchedItem(
-                                header = MatchedHeaderData(
-                                    title = appList.first().label,
-                                    uniqueId = appList.first().key.packageName,
-                                ),
-                                componentList = components,
-                            ),
-                        ),
-                    ),
-                ),
-                tabState = tabState[1],
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun RuleDetailScreenWithApplicableLoadingPreview(
-    @PreviewParameter(RuleListPreviewParameterProvider::class)
-    ruleList: List<GeneralRule>,
-) {
-    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
-
-    BlockerTheme {
-        Surface {
-            RuleDetailScreen(
-                ruleInfoUiState = RuleInfoUiState.Success(
-                    ruleInfo = ruleList.first(),
-                    matchedAppsUiState = Loading,
-                ),
-                tabState = tabState[0],
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun RuleDetailScreenLoadingPreview() {
-    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
-    BlockerTheme {
-        Surface {
-            RuleDetailScreen(
-                ruleInfoUiState = RuleInfoUiState.Loading,
-                tabState = tabState[0],
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun RuleDetailScreenErrorPreview() {
-    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
-    BlockerTheme {
-        Surface {
-            RuleDetailScreen(
-                ruleInfoUiState = Error(
-                    error = UiMessage("Error"),
-                ),
-                tabState = tabState[0],
-            )
         }
     }
 }

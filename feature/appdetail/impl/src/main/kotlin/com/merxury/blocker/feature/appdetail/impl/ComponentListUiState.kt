@@ -16,11 +16,11 @@
 
 package com.merxury.blocker.feature.appdetail.impl
 
-import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.component.ComponentRow
 import java.io.File
 
 /**
@@ -79,20 +79,6 @@ data class AppComponents(
         else -> emptyList()
     }
 }
-
-/**
- * One component as the cache holds it.
- *
- * @property enabled whether its switch shows on, see [com.merxury.blocker.core.ui.component.isSwitchOn]
- * @property isRunning whether the service runs; false when that cannot be read
- */
-data class ComponentRow(
-    val id: ComponentId,
-    val type: ComponentType,
-    val enabled: Boolean,
-    val isRunning: Boolean = false,
-    val description: String? = null,
-)
 
 sealed interface MatchedRulesUiState {
     data object Loading : MatchedRulesUiState

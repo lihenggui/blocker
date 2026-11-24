@@ -21,16 +21,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.result.Result.Loading
-import com.merxury.blocker.core.result.Result.Success
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -57,9 +51,6 @@ class RuleDetailScreenScreenshotTests {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private val ruleList = RuleListPreviewParameterProvider().values.first()
-    private val components = ComponentListPreviewParameterProvider().values
-        .first()
-    private val appList = previewAppRows()
     private val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
     @Before
@@ -170,17 +161,7 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        matchedAppsUiState = Success(
-                            listOf(
-                                MatchedItem(
-                                    header = MatchedHeaderData(
-                                        title = appList.first().label,
-                                        uniqueId = appList.first().key.packageName,
-                                    ),
-                                    componentList = components,
-                                ),
-                            ),
-                        ),
+                        matchedAppsUiState = previewMatchedApps(),
                     ),
                     tabState = tabState[0],
                     appBarUiState = AppBarUiState(
@@ -201,17 +182,7 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        matchedAppsUiState = Success(
-                            listOf(
-                                MatchedItem(
-                                    header = MatchedHeaderData(
-                                        title = appList.first().label,
-                                        uniqueId = appList.first().key.packageName,
-                                    ),
-                                    componentList = components,
-                                ),
-                            ),
-                        ),
+                        matchedAppsUiState = previewMatchedApps(),
                     ),
                     tabState = tabState[1],
                 )
@@ -226,7 +197,7 @@ class RuleDetailScreenScreenshotTests {
                 RuleDetailScreen(
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
-                        matchedAppsUiState = Loading,
+                        matchedAppsUiState = MatchedAppsUiState.Loading,
                     ),
                     tabState = tabState[1],
                 )

@@ -16,429 +16,290 @@
 
 package com.merxury.blocker.feature.ruledetail.impl
 
-import android.app.Application
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.annotation.VisibleForTesting
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil3.imageLoader
-import coil3.request.ImageRequest
-import coil3.request.SuccessResult
-import coil3.request.allowHardware
-import coil3.size.Scale
-import coil3.toBitmap
-import com.materialkolor.ktx.themeColorOrNull
 import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.appcontrol.AppControl
+import com.merxury.blocker.core.appcontrol.ServiceControl
+import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.RuleBaseFolder
-import com.merxury.blocker.core.data.respository.app.AppRepository
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.FilesDir
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.domain.control.BatchKey
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner
+import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
+import com.merxury.blocker.core.domain.control.ControlComponentUseCase
+import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
+import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
+import com.merxury.blocker.core.domain.search.ComponentIndex
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.root.RootCommandExecutor
+import com.merxury.blocker.core.model.privileged.CallResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.control.QueuedControlMessage
+import com.merxury.blocker.core.ui.control.batchSummary
+import com.merxury.blocker.core.ui.control.enqueue
+import com.merxury.blocker.core.ui.control.toMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.extension.updateComponentInfoSwitchState
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
-import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
-import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.MOST_BLOCKED
-import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.MOST_ENABLED
-import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.MOST_MATCHED
-import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.NAME
-import com.merxury.blocker.feature.ruledetail.RuleDetailSortType.RECENTLY_INSTALLED
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.runningFold
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
+/**
+ * The detail of one general rule and the apps of the selected user with components it matches,
+ * from the component cache, see [GeneralRuleMatcher]. Every row shows what the cache holds: after
+ * a change the repository's flow updates the rows, never a copy kept here.
+ *
+ * Turning one switch on enables the component through every layer; turning it off blocks it
+ * through the layers of the controller type. The block and enable actions of an app or of the
+ * whole page run as one batch, see [ComponentBatchRunner], which removes every block of the
+ * components when enabling, as a batch in the app detail does.
+ */
 @HiltViewModel(assistedFactory = RuleDetailViewModel.Factory::class)
 class RuleDetailViewModel @AssistedInject constructor(
-    private val appContext: Application,
-    private val pm: PackageManager,
+    private val selectedUsers: SelectedUserRepository,
+    ruleRepository: GeneralRuleRepository,
+    private val ruleMatcher: GeneralRuleMatcher,
+    private val installedApps: InstalledAppRepository,
+    private val componentIndex: ComponentIndex,
+    private val batches: ComponentBatchRunner,
+    private val controlComponent: ControlComponentUseCase,
+    private val layersFor: GetControlLayersUseCase,
+    private val appControl: AppControl,
+    private val serviceControl: ServiceControl,
+    private val channel: PrivilegedChannel,
+    userDataRepository: UserDataRepository,
+    private val analyticsHelper: AnalyticsHelper,
     @FilesDir private val filesDir: File,
     @RuleBaseFolder private val ruleBaseFolder: String,
-    private val ruleRepository: GeneralRuleRepository,
-    private val appRepository: AppRepository,
-    private val userDataRepository: UserDataRepository,
-    private val componentRepository: ComponentRepository,
-    private val rootCommandExecutor: RootCommandExecutor,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
-    private val analyticsHelper: AnalyticsHelper,
+    @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @Assisted("ruleId") val ruleId: String,
     @Assisted("tab") val tab: String = Applicable.name,
 ) : ViewModel() {
-    private val _ruleInfoUiState: MutableStateFlow<RuleInfoUiState> =
-        MutableStateFlow(RuleInfoUiState.Loading)
-    val ruleInfoUiState: StateFlow<RuleInfoUiState> = _ruleInfoUiState
-    private val _errorState = MutableStateFlow<UiMessage?>(null)
-    val errorState = _errorState.asStateFlow()
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Timber.e(throwable)
-        _errorState.tryEmit(throwable.toErrorMessage())
+    private val id = ruleId.toInt()
+    private val tabState = MutableStateFlow(TabState(items = listOf(Applicable, Description), selectedItem = RuleDetailTabs.fromName(tab)))
+    private val sortType = MutableStateFlow(RuleDetailSortType.NAME)
+    private val singles = MutableStateFlow<Set<ComponentId>>(emptySet())
+    private val messages = MutableStateFlow<List<QueuedControlMessage>>(emptyList())
+    private var nextMessageId = 0L
+
+    private val rule: Flow<GeneralRule> = ruleRepository.getGeneralRule(id).map { rule ->
+        rule.copy(iconUrl = rule.iconUrl?.let { File(filesDir, ruleBaseFolder).resolve(it).absolutePath })
     }
 
-    private val _tabState = MutableStateFlow(
-        TabState(
-            items = listOf(
-                Applicable,
-                Description,
-            ),
-            selectedItem = Applicable,
-        ),
-    )
-    val tabState: StateFlow<TabState<RuleDetailTabs>> = _tabState.asStateFlow()
-    private val _appBarUiState = MutableStateFlow(AppBarUiState(actions = getAppBarAction()))
-    val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
-    private val _processingProgress = MutableStateFlow<ProcessingProgress?>(null)
-    val processingProgress: StateFlow<ProcessingProgress?> = _processingProgress.asStateFlow()
-    private var currentSearchKeyword: List<String> = emptyList()
-    private var loadRuleDetailJob: Job? = null
-    private var controlComponentJob: Job? = null
-    private val _sortType = MutableStateFlow(NAME)
-    val sortType: StateFlow<RuleDetailSortType> = _sortType.asStateFlow()
-    private var installedAppMap: Map<String, InstalledApp> = emptyMap()
-
-    init {
-        loadTabInfo()
-        loadData()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val matched: Flow<MatchedAppsUiState> = selectedUsers.selectedUser.flatMapLatest { user ->
+        combine(ruleMatcher.matches(user).map { it.componentsOf(id) }.distinctUntilChanged(), installedApps.apps(user), ::matchedApps)
+            .combine(sortType, ::Pair)
+            .runningFold(SortedApps.NONE) { sorted, (apps, sort) -> sorted.next(apps, sort) }
+            .drop(1)
+            .map<SortedApps, MatchedAppsUiState> { MatchedAppsUiState.Loaded(it.apps) }
+            // Another user's apps are never shown, nor acted on, while this user's are matched.
+            .onStart { emit(MatchedAppsUiState.Loading) }
     }
 
-    @VisibleForTesting
-    fun loadData() {
-        loadRuleDetailJob?.cancel()
-        loadRuleDetailJob = viewModelScope.launch {
-            val ruleId = ruleId
-            val rule = ruleRepository.getGeneralRule(ruleId.toInt())
-                .first()
-            val iconFile = withContext(ioDispatcher) {
-                val iconUrl = rule.iconUrl ?: return@withContext null
-                File(filesDir, ruleBaseFolder)
-                    .resolve(iconUrl)
-            }
-            val ruleWithIcon = rule.copy(iconUrl = iconFile?.absolutePath)
-            _ruleInfoUiState.update {
-                RuleInfoUiState.Success(
-                    ruleInfo = ruleWithIcon,
-                    matchedAppsUiState = Result.Loading,
-                )
-            }
-            updateSeedColor(iconFile)
-            currentSearchKeyword = rule.searchKeyword
-            loadMatchedApps(rule.searchKeyword)
+    private val ruleInfo: Flow<RuleInfoUiState> = combine(
+        rule,
+        matched,
+        userDataRepository.userData.map { it.useDynamicColor }.distinctUntilChanged(),
+    ) { rule, matched, useDynamicColor ->
+        RuleInfoUiState.Success(rule, matched, seedIcon = rule.iconUrl?.takeIf { useDynamicColor }?.let(::File)) as RuleInfoUiState
+    }.catch { e ->
+        Timber.e(e, "Cannot load general rule $ruleId")
+        emit(RuleInfoUiState.Error(e.toErrorMessage()))
+    }
+
+    // The selected user's components a change of any screen has not ended for.
+    private val inFlight: Flow<Set<ComponentId>> = combine(selectedUsers.selectedUser, batches.inFlight, singles) { user, keys, singles ->
+        keys.filter { it.userId == user }.mapTo(mutableSetOf()) { it.id } + singles
+    }.distinctUntilChanged()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val batch: Flow<ProcessingProgress?> = selectedUsers.selectedUser.flatMapLatest { user ->
+        batches.running(BatchKey.Rule(id, user)).flatMapLatest { run ->
+            run?.step?.map { step ->
+                // A batch of one request reports only once it ends.
+                val done = step.done.takeIf { step.total > BATCH_LIMIT }
+                ProcessingProgress(current = done ?: 0, total = step.total, isEnabling = run.goal != ControlGoal.BLOCK, isIndeterminate = done == null)
+            } ?: flowOf(null)
         }
     }
 
-    private fun updateSeedColor(iconFile: File?) = viewModelScope.launch(ioDispatcher) {
-        if (iconFile == null) return@launch
-        val useDynamicColor = userDataRepository.userData.first().useDynamicColor
-        if (!useDynamicColor) return@launch
-        _ruleInfoUiState.update {
-            if (it !is RuleInfoUiState.Success) return@update it
-            val seedColor = getSeedColor(iconFile, context = appContext)
-            it.copy(seedColor = seedColor)
-        }
-    }
+    private val controls = combine(inFlight, batch, messages, ::Controls)
 
-    fun controlAllComponentsInPage(enable: Boolean) {
-        controlComponentJob?.cancel()
-        controlComponentJob = viewModelScope.launch {
-            analyticsHelper.logControlAllInPageClicked(newState = enable)
-            // Make sure that the user is in the correct state
-            val ruleUiList = _ruleInfoUiState.value
-            if (ruleUiList !is RuleInfoUiState.Success) {
-                Timber.e("Rule info is not ready")
-                return@launch
-            }
-            val matchedAppState = ruleUiList.matchedAppsUiState
-            if (matchedAppState !is Result.Success) {
-                Timber.e("Matched app list is not ready")
-                return@launch
-            }
-            val list = matchedAppState.data
-                .flatMap { it.componentList }
-            controlAllComponentsInternal(list, enable)
-        }
-    }
-
-    fun controlAllComponents(
-        list: List<ComponentInfo>,
-        enable: Boolean,
-    ) {
-        controlComponentJob?.cancel()
-        controlComponentJob = viewModelScope.launch {
-            analyticsHelper.logControlAllComponentsClicked(newState = enable)
-            controlAllComponentsInternal(list, enable)
-        }
-    }
-
-    private suspend fun controlAllComponentsInternal(
-        list: List<ComponentInfo>,
-        enable: Boolean,
-    ) {
-        val controllerType = userDataRepository.userData.first().controllerType
-        var processedCount = 0
-        var failedCount = 0
-        componentRepository.batchControlComponent(
-            components = list,
-            newState = enable,
+    val uiState: StateFlow<RuleDetailUiState> = combine(ruleInfo, tabState, sortType, controls) { ruleInfo, tabs, sort, controls ->
+        RuleDetailUiState(
+            ownUser = selectedUsers.ownUser,
+            ruleInfo = ruleInfo,
+            tabState = tabs,
+            sortType = sort,
+            inFlight = controls.inFlight,
+            batch = controls.batch,
+            messages = controls.messages,
         )
-            .onStart {
-                _processingProgress.value = ProcessingProgress(
-                    current = 0,
-                    total = list.size,
-                    isEnabling = enable,
-                )
-                changeComponentUiStatus(list, controllerType, enable)
-            }
-            .catch { exception ->
-                changeComponentUiStatus(list, controllerType, !enable)
-                _processingProgress.value = null
-                _errorState.emit(exception.toErrorMessage())
-            }
-            .collect { result ->
-                processedCount++
-                if (!result.succeeded) {
-                    failedCount++
-                    changeComponentUiStatus(listOf(result.component), controllerType, !enable)
-                }
-                _processingProgress.value = ProcessingProgress(
-                    current = processedCount,
-                    total = list.size,
-                    isEnabling = enable,
-                    failed = failedCount,
-                )
-            }
     }
+        .flowOn(cpuDispatcher)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = RuleDetailUiState(ownUser = selectedUsers.ownUser, tabState = tabState.value),
+        )
 
-    private suspend fun loadMatchedApps(keywords: List<String>) {
-        val matchedComponents = mutableListOf<ComponentInfo>()
-        for (keyword in keywords) {
-            val components = componentRepository.searchComponent(keyword).first()
-            matchedComponents.addAll(components)
-        }
-        Timber.v("Find ${matchedComponents.size} matched components for rule: $keywords")
-        val showSystemApps = userDataRepository.userData.first().showSystemApps
-        val appMap = mutableMapOf<String, InstalledApp>()
-        val searchResult = matchedComponents.groupBy { it.packageName }
-            .mapNotNull { (packageName, components) ->
-                val app = appRepository.getApplication(packageName).first()
-                    ?: return@mapNotNull null
-                if (!showSystemApps && app.isSystem) return@mapNotNull null
-                appMap[packageName] = app
-                val packageInfo = pm.getPackageInfoCompat(packageName, 0)
-                val headerData = MatchedHeaderData(
-                    title = app.label,
-                    uniqueId = packageName,
-                    icon = packageInfo,
-                )
-                val searchedComponentInfo = components
-                    .toSet() // Remove duplicate components caused by multiple keywords
-                    .toList()
-                MatchedItem(headerData, searchedComponentInfo)
-            }
-        installedAppMap = appMap
-        val sortedResult = sortMatchedItems(searchResult)
-        withContext(mainDispatcher) {
-            _ruleInfoUiState.update {
-                val matchedApps = Result.Success(sortedResult)
-                if (it is RuleInfoUiState.Success) {
-                    it.copy(matchedAppsUiState = matchedApps)
-                } else {
-                    // Unreachable code
-                    Timber.e("Updating matched apps when rule info is not ready")
-                    RuleInfoUiState.Error(UiMessage("Wrong UI state"))
-                }
-            }
-        }
+    /**
+     * Reads the selected user's apps into the component cache the first time this run shows that
+     * user, and again when that ran with less access than the privileged channel has now, so the
+     * rule matches apps never opened. Returns only when cancelled.
+     */
+    suspend fun keepFresh() {
+        combine(selectedUsers.selectedUser, channel.state) { user, _ -> user }
+            .collect(componentIndex::ensureIndexed)
     }
 
     fun switchTab(newTab: RuleDetailTabs) {
-        if (newTab != tabState.value.selectedItem) {
-            _tabState.update {
-                it.copy(selectedItem = newTab)
-            }
-            _appBarUiState.update {
-                it.copy(actions = getAppBarAction())
-            }
-        }
-    }
-
-    private fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
-        Description -> listOf()
-        else -> listOf(SORT, MORE)
+        tabState.update { it.copy(selectedItem = newTab) }
     }
 
     fun updateSortType(sortType: RuleDetailSortType) {
-        _sortType.value = sortType
-        applySorting()
+        this.sortType.value = sortType
     }
 
-    private fun applySorting() {
-        val currentUiState = _ruleInfoUiState.value
-        if (currentUiState !is RuleInfoUiState.Success) return
-        val matchedAppsState = currentUiState.matchedAppsUiState
-        if (matchedAppsState !is Result.Success) return
-        val sorted = sortMatchedItems(matchedAppsState.data)
-        _ruleInfoUiState.update {
-            currentUiState.copy(matchedAppsUiState = Result.Success(sorted))
+    /** Turns one component's switch: on enables it through every layer, off blocks it. */
+    fun setEnabled(component: ComponentId, enabled: Boolean) {
+        val user = selectedUsers.selectedUser.value
+        if (isInFlight(component, user)) return
+        val goal = if (enabled) ControlGoal.ENABLE else ControlGoal.BLOCK
+        singles.update { it + component }
+        viewModelScope.launch {
+            try {
+                analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
+                controlComponent(ComponentKey(component, user), goal)?.toMessage(goal)?.let { tell(it, component) }
+            } finally {
+                singles.update { it - component }
+            }
         }
     }
 
-    private fun sortMatchedItems(items: List<MatchedItem>): List<MatchedItem> = when (_sortType.value) {
-        NAME -> items.sortedBy { it.header.title.lowercase() }
-
-        RECENTLY_INSTALLED -> items.sortedByDescending {
-            installedAppMap[it.header.uniqueId]?.firstInstallTime
-        }
-
-        MOST_MATCHED -> items.sortedByDescending { it.componentList.size }
-
-        MOST_BLOCKED -> items.sortedByDescending { item ->
-            item.componentList.count { !it.enabled() }
-        }
-
-        MOST_ENABLED -> items.sortedByDescending { item ->
-            item.componentList.count { it.enabled() }
-        }
+    /** Blocks or enables every component the rule matches in [app], in one batch. */
+    fun controlAllComponents(app: MatchedApp, enable: Boolean) {
+        analyticsHelper.logControlAllComponentsClicked(newState = enable)
+        startBatch(app.app.userId, app.rows.map { it.id }, enable)
     }
 
-    fun dismissAlert() = viewModelScope.launch {
-        _errorState.emit(null)
-    }
-
-    fun dismissProcessingProgress() {
-        _processingProgress.value = null
-    }
-
-    fun launchActivity(packageName: String, componentName: String) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            rootCommandExecutor.run("/system/bin/am", "start", "-n", "$packageName/$componentName")
-            analyticsHelper.logLaunchActivityClicked()
-        }
-    }
-
-    fun stopService(packageName: String, componentName: String) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            rootCommandExecutor.run("/system/bin/am", "stopservice", "$packageName/$componentName")
-            analyticsHelper.logStopServiceClicked()
-        }
-    }
-
-    fun controlComponent(
-        component: ComponentInfo,
-        enabled: Boolean,
-    ) {
-        controlComponentJob?.cancel()
-        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            controlComponentInternal(component, enabled)
-            analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
-        }
-    }
-
-    private fun changeComponentUiStatus(
-        changed: List<ComponentInfo>,
-        controllerType: ControllerType,
-        enable: Boolean,
-    ) {
-        val currentUiState = _ruleInfoUiState.value
-        if (currentUiState !is RuleInfoUiState.Success) {
-            Timber.e("Cannot control component when rule info is not ready")
+    /** Blocks or enables every component the rule matches in the apps shown, in one batch. */
+    fun controlAllComponentsInPage(enable: Boolean) {
+        val apps = ((uiState.value.ruleInfo as? RuleInfoUiState.Success)?.matchedAppsUiState as? MatchedAppsUiState.Loaded)?.apps
+        if (apps.isNullOrEmpty()) {
+            Timber.w("No matched apps of rule $ruleId to change")
             return
         }
-        val newState = currentUiState.matchedAppsUiState.updateComponentInfoSwitchState(
-            changed = changed,
-            controllerType = controllerType,
-            enabled = enable,
-        )
-        _ruleInfoUiState.update {
-            currentUiState.copy(matchedAppsUiState = newState)
+        analyticsHelper.logControlAllInPageClicked(newState = enable)
+        startBatch(apps.first().app.userId, apps.flatMap { app -> app.rows.map { it.id } }, enable)
+    }
+
+    fun launchActivity(activity: ComponentId) = viewModelScope.launch {
+        analyticsHelper.logLaunchActivityClicked()
+        val result = appControl.startActivity(ComponentKey(activity, selectedUsers.selectedUser.value))
+        if (result is CallResult.Failure) Timber.w("Cannot launch $activity: ${result.reason}")
+    }
+
+    fun stopService(service: ComponentId) = viewModelScope.launch {
+        analyticsHelper.logStopServiceClicked()
+        val result = serviceControl.stop(ComponentKey(service, selectedUsers.selectedUser.value))
+        if (result is CallResult.Failure) Timber.w("Cannot stop $service: ${result.reason}")
+    }
+
+    /** Asks for root or Shizuku access, which may show a prompt. */
+    fun grantAccess() = viewModelScope.launch {
+        if (channel.connect() !is ChannelState.Ready) Timber.i("Access was not granted from rule $ruleId")
+    }
+
+    fun onMessageShown(id: Long) {
+        messages.update { queued -> queued.filterNot { it.id == id } }
+    }
+
+    /**
+     * Sends [components] of [user] as one batch through [batches], so it ends even when the screen
+     * goes away: blocking through the layers of the controller type, or removing every block when
+     * enabling. The batch counts as running, with its components in flight, from the moment it is
+     * chosen. Components in flight are left out, and nothing starts while another batch of the
+     * rule runs for the user.
+     */
+    private fun startBatch(user: UserId, components: List<ComponentId>, enable: Boolean) {
+        val goal = if (enable) ControlGoal.UNBLOCK else ControlGoal.BLOCK
+        val ids = components.distinct().filterNot { isInFlight(it, user) }
+        if (ids.isEmpty()) return
+        val run = batches.reserve(BatchKey.Rule(id, user), goal, ids) ?: return
+        viewModelScope.launch {
+            var started = false
+            try {
+                val cached = ruleMatcher.matches(user).first().componentsOf(id).associateBy { it.declaration.id }
+                val declarations = ids.mapNotNull { cached[it]?.declaration }
+                val vanished = (ids - declarations.mapTo(mutableSetOf()) { it.id }).map { ComponentKey(it, user) }
+                if (vanished.isNotEmpty()) Timber.w("${vanished.size} components of rule $ruleId are no longer matched, tell them as not changed")
+                batches.start(run, declarations, layersFor(goal))
+                started = true
+                tell(batchSummary(run.outcomes.await(), vanished))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Cannot read the components of rule $ruleId to change for user ${user.value}")
+                tell(batchSummary(emptyList(), ids.map { ComponentKey(it, user) }))
+            } finally {
+                if (!started) batches.release(run)
+            }
         }
     }
 
-    private suspend fun controlComponentInternal(
-        component: ComponentInfo,
-        enabled: Boolean,
-    ) {
-        val controllerType = userDataRepository.userData.first().controllerType
-        componentRepository.controlComponent(component, enabled)
-            .onStart {
-                changeComponentUiStatus(listOf(component), controllerType, enabled)
-            }
-            .catch { exception ->
-                _errorState.emit(exception.toErrorMessage())
-                changeComponentUiStatus(listOf(component), controllerType, !enabled)
-            }
-            .collect { result ->
-                if (!result) {
-                    changeComponentUiStatus(listOf(component), controllerType, !enabled)
-                }
-            }
+    private fun isInFlight(component: ComponentId, user: UserId): Boolean = component in singles.value || batches.isInFlight(ComponentKey(component, user))
+
+    private fun tell(message: ControlMessage, component: ComponentId? = null) {
+        messages.update { it.enqueue(QueuedControlMessage(nextMessageId++, message, component)) }
     }
 
-    @VisibleForTesting
-    fun loadTabInfo() = viewModelScope.launch {
-        val screen = RuleDetailTabs.fromName(tab)
-        Timber.v("Jump to tab: $screen")
-        _tabState.update { it.copy(selectedItem = screen) }
-    }
-
-    private suspend fun getSeedColor(icon: File?, context: Context): Color? = withContext(ioDispatcher) {
-        val useDynamicColor = userDataRepository.userData.first().useDynamicColor
-        if (!useDynamicColor) return@withContext null
-        val request = ImageRequest.Builder(context)
-            .data(icon)
-            // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
-            .size(128).scale(Scale.FILL)
-            // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
-            .allowHardware(false)
-            // Set a custom memory cache key to avoid overwriting the displayed image in the cache
-            .memoryCacheKey("$icon.palette")
-            .build()
-
-        val bitmap = when (val result = context.imageLoader.execute(request)) {
-            is SuccessResult -> result.image.toBitmap()
-            else -> null
-        }
-        return@withContext bitmap?.asImageBitmap()
-            ?.themeColorOrNull()
-    }
+    private data class Controls(
+        val inFlight: Set<ComponentId>,
+        val batch: ProcessingProgress?,
+        val messages: List<QueuedControlMessage>,
+    )
 
     @AssistedFactory
     interface Factory {
@@ -447,14 +308,4 @@ class RuleDetailViewModel @AssistedInject constructor(
             @Assisted("tab") tab: String = Applicable.name,
         ): RuleDetailViewModel
     }
-}
-
-sealed interface RuleInfoUiState {
-    data object Loading : RuleInfoUiState
-    class Error(val error: UiMessage) : RuleInfoUiState
-    data class Success(
-        val ruleInfo: GeneralRule,
-        val matchedAppsUiState: Result<List<MatchedItem>>,
-        val seedColor: Color? = null,
-    ) : RuleInfoUiState
 }

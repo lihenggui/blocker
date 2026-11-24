@@ -36,6 +36,7 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.component.ComponentRow
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
