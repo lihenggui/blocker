@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.debloater.impl
 import androidx.lifecycle.viewModelScope
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.device.DebloaterMetadata
 import com.merxury.blocker.core.data.device.RefreshProgress
 import com.merxury.blocker.core.data.util.PermissionStatus
 import com.merxury.blocker.core.domain.control.BatchKey
@@ -34,6 +33,8 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ControlMessage
@@ -178,7 +179,8 @@ class DebloaterViewModelTest {
         val f = fixture()
         val app = installed("example")
         f.install(app)
-        f.metadata.manifests[app.key] = DebloaterMetadata(classificationManifest, classificationPermissions)
+        f.metadata.manifests[app.key] = classificationManifest
+        f.metadata.apks[app.key] = f.metadata.apks.getValue(app.key).copy(requestedPermissions = classificationPermissions)
         f.components.sendComponents(
             owner,
             listOf(
@@ -213,7 +215,7 @@ class DebloaterViewModelTest {
     }
 
     @Test
-    fun givenHiddenSystemApps_whenShowSystemAppsChanges_thenIncludeThem() = runTest {
+    fun givenSystemApps_whenTogglingTheirVisibility_thenReuseTheirClassifications() = runTest {
         val f = fixture()
         f.install(installed(system = true))
         f.viewModel.uiState.test {
@@ -222,6 +224,13 @@ class DebloaterViewModelTest {
             f.preferences.setShowSystemApps(true)
             settle()
             assertThat(expectMostRecentItem().apps().single().app.packageName).isEqualTo(APP)
+            f.preferences.setShowSystemApps(false)
+            settle()
+            assertThat(expectMostRecentItem().apps()).isEmpty()
+            f.preferences.setShowSystemApps(true)
+            settle()
+            assertThat(expectMostRecentItem().apps().single().app.packageName).isEqualTo(APP)
+            assertThat(f.metadata.reads).containsExactly(installed().key)
         }
     }
 
@@ -360,7 +369,7 @@ class DebloaterViewModelTest {
         f.preparationGate.complete(Unit)
         settle()
         assertThat(f.started.single().user).isEqualTo(owner)
-        assertThat(f.batches.current(BatchKey.Debloater(owner))).isNull()
+        assertThat(f.batches.current(BatchKey.Debloater(installed().key))).isNull()
         assertThat(f.batches.isInFlight(key)).isFalse()
     }
 
@@ -396,6 +405,235 @@ class DebloaterViewModelTest {
             f.permission.value = PermissionStatus.NO_PERMISSION
             settle()
             assertThat(expectMostRecentItem().hasRootPermission).isFalse()
+        }
+    }
+
+    @Test
+    fun givenLoadedRows_whenResubscribingAfterTimeout_thenKeepRowsWithoutLoadingOrParsingAgain() = runTest {
+        val f = fixture()
+        f.install(installed())
+        f.viewModel.uiState.test {
+            settle()
+            assertThat(expectMostRecentItem().apps()).hasSize(1)
+        }
+        advanceTimeBy(5_001)
+        runCurrent()
+
+        f.viewModel.uiState.test {
+            assertThat(awaitItem().apps()).hasSize(1)
+            settle()
+            expectNoEvents()
+            assertThat(f.metadata.reads).containsExactly(installed().key)
+        }
+    }
+
+    @Test
+    fun givenLoadedRows_whenTheChannelChanges_thenKeepRowsWithoutLoadingOrParsingAgain() = runTest {
+        val f = fixture()
+        f.install(installed())
+        f.viewModel.uiState.test {
+            settle()
+            assertThat(expectMostRecentItem().apps()).hasSize(1)
+
+            f.channel.setState(ChannelState.Unavailable(UnavailableReason.FAILED))
+            settle()
+
+            expectNoEvents()
+            assertThat(f.metadata.reads).containsExactly(installed().key)
+        }
+    }
+
+    @Test
+    fun givenLoadedRows_whenTheIndexRunsAgain_thenKeepRowsWithoutLoadingOrParsingAgain() = runTest {
+        val f = fixture()
+        f.install(installed())
+        f.viewModel.uiState.test {
+            settle()
+            assertThat(expectMostRecentItem().apps()).hasSize(1)
+            val finish = CompletableDeferred<Unit>()
+            f.components.refreshAllProgress = {
+                flow {
+                    emit(RefreshProgress.Refreshing(0, 1, APP))
+                    finish.await()
+                    emit(RefreshProgress.Finished(1, 0, null))
+                }
+            }
+
+            f.index.reindex(owner)
+            settle()
+            expectNoEvents()
+            finish.complete(Unit)
+            settle()
+
+            expectNoEvents()
+            assertThat(f.metadata.reads).containsExactly(installed().key)
+        }
+    }
+
+    @Test
+    fun givenStaleCachedPath_whenTheLiveApkChanges_thenReadTheNewRevisionFromItsLivePath() = runTest {
+        val f = fixture()
+        val app = installed().copy(apkPath = "/removed/base.apk")
+        f.install(app)
+        f.viewModel.uiState.test {
+            settle()
+            val first = f.metadata.readApks.single()
+            assertThat(first.path).isNotEqualTo(app.apkPath)
+            assertThat(expectMostRecentItem().apps()).hasSize(1)
+
+            val replacement = first.copy(path = "/updated/base.apk", lastUpdateTime = 1, versionCode = 2)
+            f.metadata.apks[app.key] = replacement
+            f.index.reindex(owner)
+            settle()
+
+            assertThat(f.metadata.readApks).containsExactly(first, replacement).inOrder()
+            assertThat(f.viewModel.uiState.value.apps()).hasSize(1)
+        }
+    }
+
+    @Test
+    fun givenUnreadableApk_whenReindexed_thenRetryOnlyAfterTheLiveRevisionChanges() = runTest {
+        val f = fixture()
+        val app = installed()
+        f.install(app)
+        val manifest = f.metadata.manifests.remove(app.key)!!
+        val apk = f.metadata.apks.getValue(app.key)
+        f.viewModel.uiState.test {
+            settle()
+            assertThat(expectMostRecentItem().apps()).isEmpty()
+
+            f.index.reindex(owner)
+            settle()
+            assertThat(f.metadata.readApks).containsExactly(apk)
+
+            val updated = apk.copy(lastUpdateTime = 1)
+            f.metadata.apks[app.key] = updated
+            f.metadata.manifests[app.key] = manifest
+            f.index.reindex(owner)
+            settle()
+
+            assertThat(f.metadata.readApks).containsExactly(apk, updated).inOrder()
+            assertThat(expectMostRecentItem().apps()).hasSize(1)
+        }
+    }
+
+    @Test
+    fun givenWorkRows_whenPackageReadsBecomeUnavailable_thenKeepThemInCachedAppOrder() = runTest {
+        val f = fixture()
+        val first = installed("example.first", work)
+        val second = installed("example.second", work)
+        f.install(first, second)
+        f.metadata.order[work] = listOf(second.key.packageName, first.key.packageName)
+        f.users.select(work)
+        f.viewModel.uiState.test {
+            settle()
+            assertThat(expectMostRecentItem().apps().map { it.app }).containsExactly(second.key, first.key).inOrder()
+
+            val unavailable = IllegalStateException()
+            f.metadata.failure = unavailable
+            f.metadata.orderFailure = unavailable
+            f.channel.setState(ChannelState.Unavailable(UnavailableReason.FAILED))
+            settle()
+
+            assertThat(expectMostRecentItem().apps().map { it.app }).containsExactly(first.key, second.key).inOrder()
+            assertThat(f.metadata.reads).containsExactly(second.key, first.key).inOrder()
+        }
+    }
+
+    @Test
+    fun givenTwoApps_whenBatchesOverlapAndTheFirstIsTappedAgain_thenRunOneBatchPerApp() = runTest {
+        val f = fixture()
+        f.install(installed(), installed("example.second"))
+        f.viewModel.uiState.test {
+            settle()
+            val (first, second) = expectMostRecentItem().apps()
+            f.controlGate = CompletableDeferred()
+
+            f.viewModel.setAllEnabled(first.app, first.targets, enabled = false)
+            f.viewModel.setAllEnabled(second.app, second.targets, enabled = false)
+            f.viewModel.setAllEnabled(first.app, first.targets, enabled = true)
+            settle()
+
+            assertThat(f.started.map { it.components.first().id.packageName }).containsExactly(first.app.packageName, second.app.packageName)
+            assertThat(f.started.map { it.goal }).containsExactly(ControlGoal.BLOCK, ControlGoal.BLOCK)
+            assertThat(expectMostRecentItem().inFlight).containsExactlyElementsIn((first.targets + second.targets).map { it.key })
+
+            f.controlGate.complete(Unit)
+            settle()
+            assertThat(expectMostRecentItem().inFlight).isEmpty()
+            assertThat(f.viewModel.uiState.value.messages).isEmpty()
+        }
+    }
+
+    @Test
+    fun givenBatchWithSomeFailedComponents_whenItEnds_thenQueueTheSharedSummaryAndOfferAccess() = runTest {
+        val f = fixture()
+        val installedApp = installed()
+        f.install(installedApp)
+        f.viewModel.uiState.test {
+            settle()
+            val app = expectMostRecentItem().apps().single()
+            f.components.controlEvents = { request ->
+                val outcomes = request.components.mapIndexed { index, declaration ->
+                    val failed = index == 0
+                    ComponentOutcome(
+                        ComponentKey(declaration.id, request.user),
+                        status(installedApp, "Share", pm = if (failed) PmSetting.DEFAULT else PmSetting.DISABLED).state,
+                        if (failed) ControlResult.FAILED else ControlResult.ACHIEVED,
+                        if (failed) mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable) else emptyMap(),
+                    )
+                }
+                listOf(ControlEvent.PackageDone(APP, outcomes), ControlEvent.Finished(outcomes.size - 1, 0, 1))
+            }
+
+            f.viewModel.setAllEnabled(app.app, app.targets, enabled = false)
+            settle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.messages.single().message).isEqualTo(ControlMessage.BatchDone(notChanged = 1, needsAccess = true))
+            assertThat(state.apps().single().targets.first().component.enabled).isTrue()
+            f.viewModel.grantAccess()
+            f.viewModel.onMessageShown(state.messages.single().id)
+            settle()
+            assertThat(f.channel.connectCount).isEqualTo(1)
+            assertThat(expectMostRecentItem().messages).isEmpty()
+        }
+    }
+
+    @Test
+    fun givenBatchPreparationThrows_whenTheBatchEnds_thenShowAnAlert() = runTest {
+        val f = fixture()
+        f.install(installed())
+        f.preparationFailure = IllegalStateException("Cannot prepare changes")
+        f.viewModel.uiState.test {
+            settle()
+            val app = expectMostRecentItem().apps().single()
+            f.viewModel.setAllEnabled(app.app, app.targets, enabled = false)
+            settle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.alert?.title).isEqualTo("Cannot prepare changes")
+            assertThat(state.inFlight).isEmpty()
+            assertThat(f.started).isEmpty()
+        }
+    }
+
+    @Test
+    fun givenBatchErrorAlert_whenDismissed_thenClearTheAlert() = runTest {
+        val f = fixture()
+        f.install(installed())
+        f.preparationFailure = IllegalStateException("Cannot prepare changes")
+        f.viewModel.uiState.test {
+            settle()
+            val app = expectMostRecentItem().apps().single()
+            f.viewModel.setAllEnabled(app.app, app.targets, enabled = false)
+            settle()
+            assertThat(expectMostRecentItem().alert).isNotNull()
+
+            f.viewModel.dismissError()
+            settle()
+
+            assertThat(expectMostRecentItem().alert).isNull()
         }
     }
 

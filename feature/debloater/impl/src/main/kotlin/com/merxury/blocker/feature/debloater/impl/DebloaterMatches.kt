@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.debloater.impl
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.DebloaterApk
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
@@ -30,8 +31,11 @@ import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.InstalledApp
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.ui.component.toRow
+import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -39,15 +43,15 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
-import kotlin.time.Instant
 
 /** Joins the cached app and component state with the manifest classifications used by the debloater. */
+@ViewModelScoped
 class DebloaterMatches @Inject constructor(
     private val installedApps: InstalledAppRepository,
     private val componentStatuses: ComponentStatusRepository,
@@ -59,18 +63,25 @@ class DebloaterMatches @Inject constructor(
 ) {
     private val self = AppKey(appPackageName, selectedUsers.ownUser)
 
+    private val manifests = ConcurrentHashMap<UserId, ManifestMatches>()
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun forUser(user: UserId): Flow<List<MatchedTarget>> = flow {
-        val memo = ManifestMatches()
+    fun forUser(user: UserId): Flow<Result<List<MatchedTarget>>> {
+        val memo = manifests.getOrPut(user) { ManifestMatches() }
         val apps = combine(
             installedApps.apps(user).readAtMostEvery(CACHE_READ_PERIOD_MILLIS),
             userData.userData.map { it.showSystemApps }.distinctUntilChanged(),
-        ) { cached, showSystemApps ->
-            cached.filter { it.key != self && (showSystemApps || !it.isSystem) }
-        }.distinctUntilChanged().mapLatest { memo.classify(user, it) }
+            ::Pair,
+        ).distinctUntilChanged().mapLatest { (cached, showSystemApps) ->
+            memo.classify(user, cached, showSystemApps)
+        }
         val statuses = componentStatuses.allComponents(user).readAtMostEvery(CACHE_READ_PERIOD_MILLIS)
-        emitAll(combine(apps, statuses, ::attachStates).distinctUntilChanged())
-    }.flowOn(cpuDispatcher)
+        return combine(apps, statuses) { classified, components ->
+            val rows = attachStates(classified.apps, components)
+            val failure = classified.failure
+            if (rows.isEmpty() && failure != null) Result.Error(failure) else Result.Success(rows)
+        }.distinctUntilChanged().flowOn(cpuDispatcher)
+    }
 
     private suspend fun attachStates(apps: List<ClassifiedApp>, statuses: List<ComponentStatus>): List<MatchedTarget> {
         val byId = statuses.associateBy { it.declaration.id }
@@ -86,40 +97,61 @@ class DebloaterMatches @Inject constructor(
         }
     }
 
-    /** Keeps the classification for a package until its APK changes. */
+    /** Keeps each app's classification, including an unreadable manifest, for this APK revision. */
     private inner class ManifestMatches {
-        private var packageNames = emptySet<String>()
-        private var packageOrder = emptyList<String>()
         private val matches = mutableMapOf<AppKey, ClassifiedApk>()
 
-        suspend fun classify(user: UserId, apps: List<InstalledApp>): List<ClassifiedApp> {
-            val byName = apps.associateBy { it.key.packageName }
-            if (packageNames != byName.keys) {
-                packageOrder = metadata.packageOrder(user).distinct()
-                packageNames = byName.keys
+        suspend fun classify(user: UserId, cached: List<InstalledApp>, showSystemApps: Boolean): Classifications {
+            val byName = cached.filter { it.key != self }.associateBy { it.key.packageName }
+            matches.keys.retainAll(byName.values.mapTo(mutableSetOf()) { it.key })
+            val visible = byName.filterValues { showSystemApps || !it.isSystem }
+            if (visible.isEmpty()) return Classifications(emptyList())
+
+            var failure: Exception? = null
+            val order = try {
+                metadata.packageOrder(user).distinct()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "Cannot read the package order for user ${user.value}")
+                failure = e
+                visible.keys
             }
-            matches.keys.retainAll(apps.mapTo(mutableSetOf()) { it.key })
-            return packageOrder.mapNotNull { name ->
-                val app = byName[name] ?: return@mapNotNull null
+            val apps = order.mapNotNull { name ->
+                val app = visible[name] ?: return@mapNotNull null
                 currentCoroutineContext().ensureActive()
-                ClassifiedApp(app, componentsOf(app))
+                val classification = try {
+                    classifyApk(app.key)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.w(e, "Cannot read the debloater package info of ${app.key}")
+                    if (failure == null) failure = e
+                    matches[app.key]
+                }
+                classification?.let { ClassifiedApp(app, it.components) }
             }
+            return Classifications(apps, failure)
         }
 
-        private suspend fun componentsOf(app: InstalledApp): List<ClassifiedComponent> {
-            val apk = ApkVersion(app.apkPath, app.versionCode, app.lastUpdateTime)
-            val known = matches[app.key]
-            if (known?.version == apk) return known.components
-            val source = metadata.read(app) ?: return emptyList()
-            val components = classifyDebloatableComponents(app.key.packageName, source.manifest, source.requestedPermissions)
-            matches[app.key] = ClassifiedApk(apk, components)
-            return components
+        private suspend fun classifyApk(app: AppKey): ClassifiedApk? {
+            val apk = metadata.apk(app)
+            if (apk == null) {
+                matches.remove(app)
+                return null
+            }
+            val known = matches[app]
+            if (known?.apk == apk) return known
+            val components = metadata.read(apk)?.let { manifest ->
+                classifyDebloatableComponents(app.packageName, manifest, apk.requestedPermissions)
+            }.orEmpty()
+            return ClassifiedApk(apk, components).also { matches[app] = it }
         }
     }
 
+    private data class Classifications(val apps: List<ClassifiedApp>, val failure: Exception? = null)
     private data class ClassifiedApp(val app: InstalledApp, val matches: List<ClassifiedComponent>)
-    private data class ClassifiedApk(val version: ApkVersion, val components: List<ClassifiedComponent>)
-    private data class ApkVersion(val path: String?, val versionCode: Long, val lastUpdateTime: Instant)
+    private data class ClassifiedApk(val apk: DebloaterApk, val components: List<ClassifiedComponent>)
 
     private companion object {
         const val CACHE_READ_PERIOD_MILLIS = 300L

@@ -32,15 +32,16 @@ import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
-import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.QueuedControlMessage
+import com.merxury.blocker.core.ui.control.batchSummary
 import com.merxury.blocker.core.ui.control.enqueue
 import com.merxury.blocker.core.ui.control.toMessage
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -97,6 +98,7 @@ class DebloaterViewModel @Inject constructor(
     private val filters = MutableStateFlow(Filters())
     private val singles = MutableStateFlow<Set<ComponentKey>>(emptySet())
     private val feedback = MutableStateFlow<Map<UserId, Feedback>>(emptyMap())
+    private val loadedContent = mutableMapOf<UserId, Result.Success<List<MatchedTarget>>>()
     private var nextMessageId = 0L
 
     private val content = selectedUsers.selectedUser.flatMapLatest { user ->
@@ -132,32 +134,34 @@ class DebloaterViewModel @Inject constructor(
             messages = feedbackForUser?.messages.orEmpty(),
             alert = feedbackForUser?.alert,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000, replayExpirationMillis = 0), DebloaterUiState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DebloaterUiState())
 
     private fun content(user: UserId): Flow<Result<List<MatchedTarget>>> = combine(
         channel.state.onEach { componentIndex.ensureIndexed(user) },
         componentIndex.state(user),
     ) { _, index -> index }
         .flatMapLatest { index -> indexedContent(user, index) }
-        .onStart { emit(Result.Loading) }
+        .onStart { emit(loadedContent[user] ?: Result.Loading) }
+        .onEach { if (it is Result.Success) loadedContent[user] = it }
 
     private fun indexedContent(user: UserId, index: IndexState): Flow<Result<List<MatchedTarget>>> = flow {
         when (index) {
             is IndexState.Indexed -> {
-                index.exception?.let { throw it }
-                if (index.appListFailure != null) {
-                    Timber.w("Cannot list the apps of user ${user.value}: ${index.appListFailure}")
-                    emit(Result.Error(IllegalStateException()))
+                if (index.appListFailure == null) {
+                    emitAll(matches.forUser(user))
                 } else {
-                    emitAll(matches.forUser(user).map { Result.Success(it) })
+                    Timber.w("Cannot list the apps of user ${user.value}: ${index.appListFailure}")
+                    throw IllegalStateException()
                 }
             }
 
-            is IndexState.Indexing, IndexState.NotIndexed -> emit(Result.Loading)
+            is IndexState.Failed -> throw index.exception
+
+            is IndexState.Indexing, IndexState.NotIndexed -> emit(loadedContent[user] ?: Result.Loading)
         }
     }.catch { error ->
         Timber.e(error, "Cannot load debloatable components of user ${user.value}")
-        emit(Result.Error(error))
+        emit(loadedContent[user]?.takeIf { it.data.isNotEmpty() } ?: Result.Error(error))
     }
 
     fun updateSearchQuery(query: String) {
@@ -203,7 +207,7 @@ class DebloaterViewModel @Inject constructor(
         val ids = targets.map { it.key.id }.distinct()
         // Enable all has always enabled components explicitly, including ones shipped disabled.
         val goal = if (enabled) ControlGoal.ENABLE else ControlGoal.BLOCK
-        val run = batches.reserve(BatchKey.Debloater(app.userId), goal, ids) ?: return
+        val run = batches.reserve(BatchKey.Debloater(app), goal, ids) ?: return
         batches.start(run) {
             val cached = componentStatuses.components(app).first().associateBy { it.declaration.id }
             ControlRequest(app.userId, ids.mapNotNull { cached[it]?.declaration }, goal, layersFor(goal))
@@ -218,8 +222,10 @@ class DebloaterViewModel @Inject constructor(
                     deeplinkEntryCount = targets.count { ComponentClassification.DEEPLINK in it.kinds },
                 )
                 val outcomes = run.outcomes.await()
-                val failed = ids.size - outcomes.count { it.result == ControlResult.ACHIEVED }
-                Timber.v("Changed ${ids.size - failed}/${ids.size} debloatable components of $app")
+                val reported = outcomes.mapTo(mutableSetOf()) { it.key.id }
+                val missing = (ids - reported).map { ComponentKey(it, app.userId) }
+                val summary = batchSummary(outcomes, missing)
+                if (summary.notChanged > 0) tell(summary, app.userId)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -251,10 +257,12 @@ class DebloaterViewModel @Inject constructor(
 
     private fun tellFailure(key: ComponentKey, goal: ControlGoal) = tell(ControlMessage.ComponentNotChanged(key.id.simpleName, goal), key)
 
-    private fun tell(message: ControlMessage, key: ComponentKey) {
-        if (key.userId != selectedUsers.selectedUser.value) return
-        val queued = QueuedControlMessage(nextMessageId++, message, key.id)
-        updateFeedback(key.userId) { it.copy(messages = it.messages.enqueue(queued)) }
+    private fun tell(message: ControlMessage, key: ComponentKey) = tell(message, key.userId, key.id)
+
+    private fun tell(message: ControlMessage, user: UserId, component: ComponentId? = null) {
+        if (user != selectedUsers.selectedUser.value) return
+        val queued = QueuedControlMessage(nextMessageId++, message, component)
+        updateFeedback(user) { it.copy(messages = it.messages.enqueue(queued)) }
     }
 
     private fun updateFeedback(user: UserId, update: (Feedback) -> Feedback) {

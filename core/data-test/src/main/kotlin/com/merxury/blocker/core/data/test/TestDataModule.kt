@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
-import com.merxury.blocker.core.data.device.DebloaterMetadata
+import com.merxury.blocker.core.data.device.DebloaterApk
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
@@ -41,8 +41,9 @@ import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.system.InstalledApp
+import com.merxury.blocker.core.model.manifest.AndroidManifest
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
@@ -127,7 +128,8 @@ internal interface TestDataModule {
         @Provides
         fun debloaterMetadataRepository(): DebloaterMetadataRepository = object : DebloaterMetadataRepository {
             override suspend fun packageOrder(user: UserId): List<String> = emptyList()
-            override suspend fun read(app: InstalledApp): DebloaterMetadata? = null
+            override suspend fun apk(app: AppKey): DebloaterApk? = null
+            override suspend fun read(apk: DebloaterApk): AndroidManifest? = null
         }
     }
 }

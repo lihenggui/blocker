@@ -76,8 +76,10 @@ sealed interface BatchKey {
     /** Components the general rule [ruleId] matches in apps of [user], as its detail screen changes them. */
     data class Rule(val ruleId: Int, override val user: UserId) : BatchKey
 
-    /** The debloater actions for one Android user. */
-    data class Debloater(override val user: UserId) : BatchKey
+    /** The debloater actions for one app. */
+    data class Debloater(val app: AppKey) : BatchKey {
+        override val user: UserId get() = app.userId
+    }
 }
 
 /**
@@ -189,7 +191,10 @@ class ComponentBatchRunner @Inject constructor(
                 remove(run)
             }
         }.invokeOnCompletion { cause ->
-            if (cause is CancellationException) release(run)
+            if (cause is CancellationException) {
+                run.result.cancel(cause)
+                remove(run)
+            }
         }
     }
 
@@ -236,7 +241,8 @@ class ComponentBatchRunner @Inject constructor(
  * A batch of components of [key]'s user changing towards [goal].
  *
  * @property step how far it got
- * @property outcomes every outcome, once the last request ended; none when it was released
+ * @property outcomes every outcome, once the last request ended; none when it was released.
+ * Cancellation of the batch cancels the deferred, even if some components already changed.
  */
 class BatchRun internal constructor(
     val key: BatchKey,

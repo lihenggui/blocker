@@ -59,7 +59,7 @@ internal fun classifyDebloatableComponents(
             is ManifestProvider -> ComponentType.PROVIDER
         }
         ClassifiedComponent(id, component.label ?: name.substringAfterLast('.'), name, type, component.kinds(name, hasWakelockPermission))
-    }
+    }.distinctBy { it.id }
 }
 
 private fun ManifestComponent.kinds(name: String, hasWakelockPermission: Boolean): Set<Kind> = buildSet {

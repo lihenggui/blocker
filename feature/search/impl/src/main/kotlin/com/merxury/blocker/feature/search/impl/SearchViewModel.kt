@@ -54,6 +54,7 @@ import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.applist.AppActionFailed
 import com.merxury.blocker.core.ui.applist.appRows
 import com.merxury.blocker.core.ui.control.batchSummary
+import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.profile.toProfileTab
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -184,9 +185,11 @@ class SearchViewModel @Inject internal constructor(
             results = results,
             isSelectionMode = selection.active,
             selected = selection.ids,
-            selectionActionsEnabled = activity.batch == null && selection.ids.isNotEmpty() && selection.ids.none { it in activity.inFlight },
+            selectionActionsEnabled = activity.index !is IndexState.Failed &&
+                activity.batch == null && selection.ids.isNotEmpty() && selection.ids.none { it in activity.inFlight },
             batch = activity.batch,
             indexing = (activity.index as? IndexState.Indexing)?.let { IndexingProgress(it.done, it.total) },
+            indexError = (activity.index as? IndexState.Failed)?.exception?.toErrorMessage(),
             messages = controls.messages,
         )
     }
@@ -330,6 +333,7 @@ class SearchViewModel @Inject internal constructor(
         viewModelScope.launch {
             var started = false
             try {
+                if (componentIndex.state(user).first() is IndexState.Failed) return@launch
                 val statuses = cachedStatuses(user, ids)
                 val vanished = (ids - statuses.mapTo(mutableSetOf()) { it.declaration.id }).map { ComponentKey(it, user) }
                 batches.start(run, statuses.map { it.declaration }, layersFor(goal))

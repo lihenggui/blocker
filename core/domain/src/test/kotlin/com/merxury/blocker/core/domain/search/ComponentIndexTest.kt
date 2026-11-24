@@ -25,15 +25,23 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ComponentIndexTest {
     private val owner = UserId(0)
     private val work = UserId(10)
@@ -197,5 +205,66 @@ class ComponentIndexTest {
         assertThat(complete.incomplete).isFalse()
         assertThat(complete.copy(failed = 1).incomplete).isTrue()
         assertThat(complete.copy(identity = null).incomplete).isTrue()
+    }
+
+    @Test
+    fun givenPartialProgress_whenTheRefreshThrows_thenPublishFailureAndAllowRetry() = runTest {
+        val failure = IllegalStateException("Cannot read the remaining apps")
+        components.refreshAllProgress = {
+            flow {
+                emit(RefreshProgress.Refreshing(1, 2, "com.a"))
+                throw failure
+            }
+        }
+        val index = index()
+
+        index.ensureIndexed(owner)
+        runCurrent()
+
+        assertThat(index.state(owner).first()).isEqualTo(IndexState.Failed(run = 0, exception = failure))
+
+        components.refreshAllProgress = { flowOf(RefreshProgress.Finished(total = 2, failed = 0, appListFailure = null)) }
+        index.ensureIndexed(owner)
+        runCurrent()
+
+        val completed = index.state(owner).first() as IndexState.Indexed
+        assertThat(completed.run).isEqualTo(1)
+        assertThat(completed.hasAllApps).isTrue()
+    }
+
+    @Test
+    fun givenSupersededRun_whenItFailsDuringCancellation_thenKeepTheNewRunState() = runTest {
+        val finishOld = CompletableDeferred<Unit>()
+        val finishNew = CompletableDeferred<Unit>()
+        components.refreshAllProgress = {
+            flow {
+                try {
+                    awaitCancellation()
+                } finally {
+                    withContext(NonCancellable) { finishOld.await() }
+                    error("Old refresh failed in cleanup")
+                }
+            }
+        }
+        val index = index()
+        index.ensureIndexed(owner)
+        runCurrent()
+
+        components.refreshAllProgress = {
+            flow {
+                emit(RefreshProgress.Refreshing(1, 2, "com.a"))
+                finishNew.await()
+                emit(RefreshProgress.Finished(total = 2, failed = 0, appListFailure = null))
+            }
+        }
+        index.reindex(owner)
+        runCurrent()
+        finishOld.complete(Unit)
+        runCurrent()
+
+        assertThat(index.state(owner).first()).isEqualTo(IndexState.Indexing(run = 1, done = 1, total = 2))
+        finishNew.complete(Unit)
+        runCurrent()
+        assertThat((index.state(owner).first() as IndexState.Indexed).run).isEqualTo(1)
     }
 }

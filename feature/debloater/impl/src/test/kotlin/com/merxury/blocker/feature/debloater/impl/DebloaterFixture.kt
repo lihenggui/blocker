@@ -17,7 +17,7 @@
 package com.merxury.blocker.feature.debloater.impl
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
-import com.merxury.blocker.core.data.device.DebloaterMetadata
+import com.merxury.blocker.core.data.device.DebloaterApk
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.PermissionStatus
@@ -78,6 +78,7 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
     val metadata = FakeMetadata()
     var controlGate = CompletableDeferred(Unit)
     var preparationGate = CompletableDeferred(Unit)
+    var preparationFailure: Exception? = null
     val started = mutableListOf<ControlRequest>()
     val repository = object : ComponentStatusRepository by components {
         override fun control(request: ControlRequest) = flow {
@@ -88,6 +89,7 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
 
         override fun components(app: AppKey) = flow {
             preparationGate.await()
+            preparationFailure?.let { throw it }
             emitAll(components.components(app))
         }
     }
@@ -139,7 +141,8 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
                     services = listOf(ManifestService(".PushService")),
                 ),
             )
-            metadata.manifests[app.key] = DebloaterMetadata(manifest, emptyList())
+            metadata.apks[app.key] = DebloaterApk(app.key, "/live/$packageName/base.apk", 1, 0, emptyList())
+            metadata.manifests[app.key] = manifest
         }
         installed.groupBy { it.key.userId }.forEach { (user, group) ->
             metadata.order[user] = group.map { it.key.packageName }
@@ -155,16 +158,26 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
 
 internal class FakeMetadata : DebloaterMetadataRepository {
     val order = mutableMapOf<UserId, List<String>>()
-    val manifests = mutableMapOf<AppKey, DebloaterMetadata>()
-    val reads = mutableListOf<AppKey>()
+    val apks = mutableMapOf<AppKey, DebloaterApk>()
+    val manifests = mutableMapOf<AppKey, AndroidManifest>()
+    val readApks = mutableListOf<DebloaterApk>()
+    val reads get() = readApks.map { it.app }
     var failure: Exception? = null
+    var orderFailure: Exception? = null
 
-    override suspend fun packageOrder(user: UserId) = order[user].orEmpty()
+    override suspend fun packageOrder(user: UserId): List<String> {
+        orderFailure?.let { throw it }
+        return order[user].orEmpty()
+    }
 
-    override suspend fun read(app: InstalledApp): DebloaterMetadata? {
-        reads += app.key
+    override suspend fun apk(app: AppKey): DebloaterApk? {
         failure?.let { throw it }
-        return manifests[app.key]
+        return apks[app]
+    }
+
+    override suspend fun read(apk: DebloaterApk): AndroidManifest? {
+        readApks += apk
+        return manifests[apk.app]
     }
 }
 

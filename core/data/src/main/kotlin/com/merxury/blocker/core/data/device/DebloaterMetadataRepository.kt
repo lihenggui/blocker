@@ -19,11 +19,11 @@ package com.merxury.blocker.core.data.device
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.getVersionCode
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.manifest.AndroidManifest
-import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.system.PlatformPackages
-import com.merxury.blocker.core.system.UserNotReachableException
 import com.merxury.blocker.core.utils.ManifestParser
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -37,11 +37,20 @@ interface DebloaterMetadataRepository {
     /** PackageManager order for the specified user. App membership still comes from the cache. */
     suspend fun packageOrder(user: UserId): List<String>
 
-    /** The app's base manifest and requested permissions, or null if its manifest cannot be read. */
-    suspend fun read(app: InstalledApp): DebloaterMetadata?
+    /** The live APK location, revision and permissions, or null if the package is gone. */
+    suspend fun apk(app: AppKey): DebloaterApk?
+
+    /** The base manifest of this APK, or null if it cannot be parsed. */
+    suspend fun read(apk: DebloaterApk): AndroidManifest?
 }
 
-data class DebloaterMetadata(val manifest: AndroidManifest, val requestedPermissions: List<String>)
+data class DebloaterApk(
+    val app: AppKey,
+    val path: String?,
+    val versionCode: Long,
+    val lastUpdateTime: Long,
+    val requestedPermissions: List<String>,
+)
 
 internal class LocalDebloaterMetadataRepository @Inject constructor(
     private val packages: PlatformPackages,
@@ -51,26 +60,22 @@ internal class LocalDebloaterMetadataRepository @Inject constructor(
         packages.installedPackages(user).map { it.packageName }
     }
 
-    override suspend fun read(app: InstalledApp): DebloaterMetadata? = withContext(ioDispatcher) {
-        val path = app.apkPath ?: return@withContext null
-        val manifest = ManifestParser.parseManifest(File(path), ioDispatcher).getOrElse {
-            Timber.w(it, "Cannot read the debloater manifest of ${app.key}")
-            return@withContext null
-        }
-        val permissions = try {
-            packages.packageInfo(app.key.packageName, PackageManager.GET_PERMISSIONS, app.key.userId)
-                .requestedPermissions?.toList().orEmpty()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: UserNotReachableException) {
-            throw e
+    override suspend fun apk(app: AppKey): DebloaterApk? = withContext(ioDispatcher) {
+        val info = try {
+            packages.packageInfo(app.packageName, PackageManager.GET_PERMISSIONS, app.userId)
         } catch (e: PackageManager.NameNotFoundException) {
-            Timber.w(e, "Cannot find debloater app ${app.key}")
+            Timber.w(e, "Cannot find debloater app $app")
             return@withContext null
-        } catch (e: Exception) {
-            Timber.w(e, "Cannot read requested permissions for ${app.key}")
-            emptyList()
         }
-        DebloaterMetadata(manifest, permissions)
+        DebloaterApk(app, info.applicationInfo?.sourceDir, info.getVersionCode(), info.lastUpdateTime, info.requestedPermissions?.toList().orEmpty())
+    }
+
+    override suspend fun read(apk: DebloaterApk): AndroidManifest? {
+        val path = apk.path ?: return null
+        return ManifestParser.parseManifest(File(path), ioDispatcher).getOrElse {
+            if (it is CancellationException) throw it
+            Timber.w(it, "Cannot read the debloater manifest of ${apk.app}")
+            null
+        }
     }
 }

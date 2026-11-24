@@ -43,6 +43,55 @@ class DebloaterClassificationTest {
         ).inOrder()
     }
 
+    @Test
+    fun givenBareClassName_whenClassified_thenQualifyTheIdAndKeepTheDisplayName() {
+        val manifest = AndroidManifest("example", application = ManifestApplication(services = listOf(ManifestService("Bare"))))
+
+        val row = classifyDebloatableComponents("example", manifest, emptyList()).single()
+
+        assertThat(row.id.className).isEqualTo("example.Bare")
+        assertThat(row.className).isEqualTo("Bare")
+        assertThat(row.displayName).isEqualTo("Bare")
+    }
+
+    @Test
+    fun givenEquivalentClassNames_whenClassified_thenKeepTheFirstDeclarationPerId() {
+        val manifest = AndroidManifest(
+            "example",
+            application = ManifestApplication(
+                services = listOf(ManifestService(".Foo", label = "First"), ManifestService("example.Foo", label = "Duplicate"), ManifestService(".Bar")),
+            ),
+        )
+
+        val rows = classifyDebloatableComponents("example", manifest, emptyList())
+
+        assertThat(rows.map { it.displayName }).containsExactly("First", "Bar").inOrder()
+        assertThat(rows.map { it.id.className }).containsExactly("example.Foo", "example.Bar").inOrder()
+    }
+
+    @Test
+    fun givenWakeOrExactAlarmPermission_whenClassified_thenEveryRowHasTheWakelockKind() {
+        for (permission in listOf("WAKE_LOCK", "SCHEDULE_EXACT_ALARM", "USE_EXACT_ALARM")) {
+            val rows = classifyDebloatableComponents("example", classificationManifest, listOf("android.permission.$permission"))
+
+            assertThat(rows).hasSize(6)
+            rows.forEach { assertThat(it.kinds).contains(Kind.WAKELOCK) }
+        }
+    }
+
+    @Test
+    fun givenEachAutoStartAction_whenClassified_thenEveryMatchingReceiverHasTheAutoStartKind() {
+        val actions = listOf("BOOT_COMPLETED", "LOCKED_BOOT_COMPLETED", "MY_PACKAGE_REPLACED", "USER_PRESENT", "PACKAGE_REPLACED")
+        val receivers = actions.map { action ->
+            ManifestReceiver(name = ".$action", intentFilters = listOf(ManifestIntentFilter(actions = listOf("android.intent.action.$action"))))
+        }
+        val manifest = AndroidManifest("example", application = ManifestApplication(receivers = receivers))
+
+        val rows = classifyDebloatableComponents("example", manifest, emptyList())
+
+        assertThat(rows.filter { Kind.AUTO_START in it.kinds }.map { it.displayName }).containsExactlyElementsIn(actions.dropLast(1)).inOrder()
+    }
+
     private data class Expected(val name: String, val label: String, val kinds: Set<Kind>)
 }
 

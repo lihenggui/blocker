@@ -20,12 +20,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.component.NoComponentScreen
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.screen.ErrorScreen
@@ -57,7 +59,7 @@ fun DebloaterContent(
             )
         }
 
-        is Result.Error -> ErrorScreen(error = UiMessage(title = data.exception.message.orEmpty()))
+        is Result.Error -> ErrorScreen(error = UiMessage(title = stringResource(R.string.core_ui_error)))
 
         is Result.Loading -> LoadingScreen()
     }
