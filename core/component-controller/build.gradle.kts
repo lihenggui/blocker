@@ -34,7 +34,6 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.core.model)
     implementation(projects.core.datastore)
-    implementation(projects.core.datastoreProto)
     implementation(projects.core.ifwApi)
     implementation(projects.core.system)
 
@@ -51,7 +50,5 @@ dependencies {
     androidTestImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.truth)
     testImplementation(libs.turbine)
-    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
-    testImplementation(libs.mockito.kotlin)
 }

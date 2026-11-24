@@ -17,11 +17,13 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
 - [`feature/`](feature) contains app list, app detail, general rules, rule detail,
   search, settings, debloater, and per-app and global IFW editors. `api` modules
   define navigation contracts and `impl` modules own screens and ViewModels.
-- [`core/domain`](core/domain) contains optional use cases. [`core/data`](core/data)
-  owns repository interfaces and implementations. [`core/model`](core/model)
+- [`core/domain`](core/domain) owns use cases and component batch orchestration.
+  [`core/data`](core/data) owns repository interfaces and implementations, including
+  the device repositories and package change monitor. [`core/model`](core/model)
   contains shared models.
-- [`core/component-controller`](core/component-controller) implements privileged
-  operations. [`core/ifw-api`](core/ifw-api) owns IFW rules and XML.
+- [`core/component-controller`](core/component-controller) runs typed privileged
+  calls over the root and Shizuku transports. [`core/ifw-api`](core/ifw-api) owns
+  `IfwStore` and the rule XML model.
   [`core/system`](core/system) reads users, installed apps, and declared components.
 - [`core/database`](core/database), [`core/datastore`](core/datastore), and
   [`core/datastore-proto`](core/datastore-proto) own Room and Proto DataStore.
@@ -78,10 +80,13 @@ device tests, coverage, graphs, release builds, and baseline profiles.
   `api` modules for navigation. Share implementation code through `core`.
 - Route UI through `core:data` repository interfaces, with `core:domain` use cases
   where needed. Bind repositories with Hilt in `DataModule`.
-- For persisted app data, observe Room or DataStore through the repository.
-  `OfflineFirstGeneralRuleRepository` owns the rule cache and sync updates.
+- Observe installed apps, users, and component status through the device
+  repositories. `PackageChangeMonitor` refreshes affected cache entries on
+  package and profile events.
+- Observe persisted data through the repository. `OfflineFirstGeneralRuleRepository`
+  owns the general rule cache and sync updates.
 - Use `<Verb><Noun>UseCase` and `operator fun invoke` in `core:domain`.
-  `GetControllerUseCase` shows the naming and Hilt constructor injection.
+  `PerformAppActionUseCase` shows the naming and Hilt constructor injection.
 - Collect flows with `collectAsStateWithLifecycle` at the screen boundary.
   Pass state and callbacks to child composables and keep ViewModels at screen scope.
 - Use design system equivalents where provided. Keep adaptive navigation in
@@ -95,8 +100,8 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 
 ### Guidance for new code
 
-- Keep DAOs, data sources, `IIntentFirewall`, and `RootCommandExecutor` behind
-  data or domain APIs. Existing exceptions include `SettingsViewModel` using DataStore directly.
+- Keep DAOs, data sources, and privileged calls behind data or domain APIs.
+  The IFW editors work directly with `IfwStore`.
 - Add a use case only for logic shared by several ViewModels. Keep single-screen
   orchestration in its ViewModel and data access in the repository.
 - Expose one read-only `StateFlow<ScreenUiState>` called `uiState`. For upstream flows,
@@ -110,14 +115,16 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 
 ### Component control
 
-- Use the Hilt-bound controllers. `GetControllerUseCase` selects `IController`
-  from the DataStore-backed `UserDataRepository`.
-- Keep PackageManager operations on the typed librootkotlinx path used by
-  `RootApiController`.
+- Use `ComponentStatusRepository.control` for component changes. It stores the
+  system read-back. Use `ComponentBatchRunner` for queued changes and progress.
+- Use the selected `PrivilegedChannel` for typed system calls. Request access
+  in the foreground with `connect()` and check existing grants with
+  `connectIfGranted()` when a caller cannot prompt.
 - PackageManager and privileged Shizuku persist enabled state in each user's
   `package_restrictions.xml` under `/data/system/users/`. Apps can detect that state.
-- IFW uses root to write XML in `/data/system/ifw/`. It filters activity,
-  service, and broadcast intents while leaving PackageManager enabled state alone.
+- `IfwStore` reads and replaces XML in `/data/system/ifw/` and reports changes
+  to the component cache. IFW filters activity, service, and broadcast intents
+  while leaving PackageManager enabled state alone.
 - Preserve the Shizuku permission distinction. Shell-based component switching is
   limited to eligible test-only targets. Regular targets require root-backed Shizuku.
 - Verify enabled state and matching IFW rules separately when changing combined mode.
@@ -133,7 +140,7 @@ device tests, coverage, graphs, release builds, and baseline profiles.
   Turbine for flow emissions. Use `MainDispatcherRule` when substituting Main.
 - Prefer fakes over mocks. Repository fakes live in [`core/data-test`](core/data-test),
   DataStore doubles in [`core/datastore-test`](core/datastore-test), and shared
-  helpers and controller fakes in [`core/testing`](core/testing).
+  helpers and privileged-channel fakes in [`core/testing`](core/testing).
 - Test repositories with fake DAOs or in-memory Room when appropriate.
   Exercise navigation through the affected route and back stack.
 - Use Roborazzi for visual regressions. Record screenshots on Linux using the CI

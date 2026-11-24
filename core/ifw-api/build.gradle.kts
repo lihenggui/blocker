@@ -26,8 +26,10 @@ android {
 }
 
 dependencies {
-    implementation(projects.core.common)
     implementation(projects.core.model)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.timber)
 
     testImplementation(projects.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)
