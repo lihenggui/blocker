@@ -45,38 +45,8 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-
-@Composable
-fun CollapsibleItem(
-    matchedItem: MatchedItem,
-    modifier: Modifier = Modifier,
-    @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
-    navigation: () -> Unit = {},
-    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    expanded: Boolean = false,
-    onCardArrowClick: (String) -> Unit = {},
-) {
-    CollapsibleHeader(
-        title = matchedItem.header.title,
-        icon = matchedItem.header.icon,
-        matchedCount = matchedItem.componentList.size,
-        blockedCount = matchedItem.componentList.count { !it.enabled() },
-        enabledCount = matchedItem.componentList.count { it.enabled() },
-        modifier = modifier,
-        navigationMenuItemDesc = navigationMenuItemDesc,
-        navigation = navigation,
-        onBlockAllClick = { onBlockAllInItemClick(matchedItem.componentList) },
-        onEnableAllClick = { onEnableAllInItemClick(matchedItem.componentList) },
-        expanded = expanded,
-        onCardArrowClick = { onCardArrowClick(matchedItem.header.uniqueId) },
-    )
-}
 
 /**
  * The header of a group of components that can be expanded: its icon, title and counts, and a
@@ -182,20 +152,16 @@ private fun MatchedAppInfo(
 
 @Composable
 @PreviewThemes
-private fun CollapseAppItemPreview() {
-    val components = ComponentListPreviewParameterProvider().values
-        .first()
-    val matchedItem = MatchedItem(
-        header = MatchedHeaderData(
-            title = "Blocker",
-            uniqueId = "com.merxury.blocker",
-        ),
-        componentList = components,
-    )
+private fun CollapsibleHeaderPreview() {
+    val components = ComponentListPreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
-            CollapsibleItem(
-                matchedItem = matchedItem,
+            CollapsibleHeader(
+                title = "Blocker",
+                icon = null,
+                matchedCount = components.size,
+                blockedCount = components.count { !it.enabled() },
+                enabledCount = components.count { it.enabled() },
             )
         }
     }
@@ -203,42 +169,16 @@ private fun CollapseAppItemPreview() {
 
 @Composable
 @PreviewThemes
-private fun CollapseRuleItemPreview() {
-    val components = ComponentListPreviewParameterProvider().values
-        .first()
-    val matchedItem = MatchedItem(
-        header = MatchedHeaderData(
-            title = "Blocker",
-            uniqueId = "com.merxury.blocker",
-            icon = null,
-        ),
-        componentList = components,
-    )
+private fun CollapsibleHeaderLongNamePreview() {
+    val components = ComponentListPreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
-            CollapsibleItem(
-                matchedItem = matchedItem,
-            )
-        }
-    }
-}
-
-@Composable
-@PreviewThemes
-private fun CollapseItemLongNamePreview() {
-    val components = ComponentListPreviewParameterProvider().values
-        .first()
-    val matchedItem = MatchedItem(
-        header = MatchedHeaderData(
-            title = "Blocker Test test long long long long name",
-            uniqueId = "com.merxury.blocker",
-        ),
-        componentList = components,
-    )
-    BlockerTheme {
-        Surface {
-            CollapsibleItem(
-                matchedItem = matchedItem,
+            CollapsibleHeader(
+                title = "Blocker Test test long long long long name",
+                icon = null,
+                matchedCount = components.size,
+                blockedCount = components.count { !it.enabled() },
+                enabledCount = components.count { it.enabled() },
                 expanded = true,
             )
         }

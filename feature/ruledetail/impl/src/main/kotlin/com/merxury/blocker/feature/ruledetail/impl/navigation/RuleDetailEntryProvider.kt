@@ -26,6 +26,7 @@ import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.ruledetail.api.navigation.RuleDetailNavKey
+import com.merxury.blocker.feature.ruledetail.impl.OpenAppDetail
 import com.merxury.blocker.feature.ruledetail.impl.RuleDetailScreen
 import com.merxury.blocker.feature.ruledetail.impl.RuleDetailViewModel
 
@@ -42,7 +43,7 @@ fun EntryProviderScope<NavKey>.ruleDetailEntry(
         RuleDetailScreen(
             snackbarHostState = LocalSnackbarHostState.current,
             onBackClick = navigator::goBack,
-            navigateToAppDetail = navigator::navigateToAppDetail,
+            navigateToAppDetail = navigator.openAppDetail(),
             updateIconThemingState = updateIconThemingState,
             viewModel = hiltViewModel<RuleDetailViewModel, RuleDetailViewModel.Factory>(
                 key = ruleId,
@@ -51,4 +52,9 @@ fun EntryProviderScope<NavKey>.ruleDetailEntry(
             },
         )
     }
+}
+
+/** Opens the detail screen of an app for its user. */
+internal fun Navigator.openAppDetail(): OpenAppDetail = { packageName, userId ->
+    navigateToAppDetail(packageName, userId = userId)
 }

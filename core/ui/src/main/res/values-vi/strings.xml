@@ -11,6 +11,8 @@
     <string name="core_ui_clear_cache_failed">Không thể xóa bộ nhớ đệm của %1$s</string>
     <string name="core_ui_clear_data_failed">Không thể xóa dữ liệu của %1$s</string>
     <string name="core_ui_uninstall_app_failed">Không thể gỡ cài đặt %1$s</string>
+    <string name="core_ui_launch_failed">Không thể mở %1$s</string>
+    <string name="core_ui_stop_failed">Không thể dừng %1$s</string>
     <string name="core_ui_reason_no_access">Hãy cấp cho Blocker quyền root hoặc Shizuku rồi thử lại.</string>
     <string name="core_ui_unknown">Không rõ</string>
     <string name="core_ui_grant_access">Cấp quyền</string>

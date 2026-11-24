@@ -39,8 +39,9 @@ interface InstalledAppRepository {
     fun app(key: AppKey): Flow<InstalledApp?>
 
     /**
-     * The cached apps of [user] whose label or package name contains [keyword], ignoring ASCII
-     * case. `%` and `_` match themselves.
+     * The cached apps of [user] whose label or package name contains [keyword], ignoring case as
+     * Android's SQLite `LIKE` does, which folds letters beyond ASCII too. `%` and `_` match
+     * themselves.
      */
     fun search(user: UserId, keyword: String): Flow<List<InstalledApp>>
 

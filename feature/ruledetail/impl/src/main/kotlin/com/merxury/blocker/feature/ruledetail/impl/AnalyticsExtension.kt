@@ -46,12 +46,6 @@ internal fun AnalyticsHelper.logSwitchComponentStateClicked(newState: Boolean) =
     ),
 )
 
-internal fun AnalyticsHelper.logStopServiceClicked() = logEvent(
-    AnalyticsEvent(
-        type = "rule_detail_stop_service_clicked",
-    ),
-)
-
 internal fun AnalyticsHelper.logLaunchActivityClicked() = logEvent(
     AnalyticsEvent(
         type = "rule_detail_launch_activity_clicked",

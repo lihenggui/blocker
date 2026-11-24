@@ -30,8 +30,8 @@ import com.merxury.blocker.core.ui.R.string as uiString
 @Composable
 internal fun ListMessage.text(): String = when (this) {
     is ListMessage.RefreshFailed -> withAccessHint(stringResource(string.feature_appdetail_api_refresh_failed), needsAccess)
-    is ListMessage.LaunchFailed -> withAccessHint(stringResource(string.feature_appdetail_api_launch_failed, name), needsAccess)
-    is ListMessage.StopFailed -> withAccessHint(stringResource(string.feature_appdetail_api_stop_failed, name), needsAccess)
+    is ListMessage.LaunchFailed -> withAccessHint(stringResource(uiString.core_ui_launch_failed, name), needsAccess)
+    is ListMessage.StopFailed -> withAccessHint(stringResource(uiString.core_ui_stop_failed, name), needsAccess)
     ListMessage.GrantFailed -> stringResource(uiString.core_ui_grant_failed)
     ListMessage.AccessCheckFailed -> stringResource(string.feature_appdetail_api_access_not_checked)
 }

@@ -33,7 +33,9 @@ import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.control.QueuedControlMessage
 import com.merxury.blocker.core.ui.control.batchSummary
+import com.merxury.blocker.core.ui.control.enqueue
 import com.merxury.blocker.core.ui.control.toMessage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -187,10 +189,7 @@ class ComponentControlViewModel @AssistedInject constructor(
      */
     private fun tell(message: ControlMessage, component: ComponentId? = null) {
         val queued = QueuedControlMessage(nextMessageId++, message, component)
-        messages.update { current ->
-            val waiting = current.drop(1).filterNot { component != null && it.component == component }
-            current.take(1) + waiting + queued
-        }
+        messages.update { it.enqueue(queued) }
     }
 
     @AssistedFactory

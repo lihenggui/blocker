@@ -23,6 +23,7 @@ import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
 import com.merxury.blocker.core.domain.applist.ReadRunningPackagesUseCase
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
+import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -107,7 +108,7 @@ internal fun component(
     state = ControlState(pm, ifw),
 )
 
-internal fun rule(id: Int, name: String, matchedAppCount: Int) = GeneralRule(id = id, name = name, matchedAppCount = matchedAppCount)
+internal fun rule(id: Int, name: String, keywords: List<String> = emptyList()) = GeneralRule(id = id, name = name, searchKeyword = keywords)
 
 /** Sends each control request through [delegate] once [gate] completes, as a slow device would. */
 internal class GatedControl(private val delegate: FakeComponentStatusRepository) : ComponentStatusRepository by delegate {
@@ -136,6 +137,7 @@ internal class SearchFixture(dispatcher: CoroutineDispatcher) {
     val control = GatedControl(components)
     val batches = ComponentBatchRunner(control, applicationScope)
     val index = ComponentIndex(components, channel, applicationScope)
+    val ruleMatcher = GeneralRuleMatcher(components, installedApps, rules, userData, selectedUsers, SELF_PACKAGE, dispatcher, applicationScope)
 
     val viewModel = SearchViewModel(
         selectedUsers = selectedUsers,
@@ -144,7 +146,7 @@ internal class SearchFixture(dispatcher: CoroutineDispatcher) {
         componentIndex = index,
         batches = batches,
         layersFor = GetControlLayersUseCase(userData),
-        searchRules = SearchGeneralRuleUseCase(rules, userData, File("/files"), "rules"),
+        searchRules = SearchGeneralRuleUseCase(rules, ruleMatcher, File("/files"), "rules"),
         performAppAction = PerformAppActionUseCase(installedApps, appControl, channel),
         readRunningPackages = ReadRunningPackagesUseCase(appControl, channel),
         countAppServices = CountServicesUseCase(components, serviceControl, channel),

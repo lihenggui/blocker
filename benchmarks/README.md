@@ -192,6 +192,7 @@ graph TB
   :feature:debloater:impl -.-> :feature:debloater:api
   :feature:generalrule:api --> :core:navigation
   :feature:generalrule:api -.-> :core:ui
+  :feature:generalrule:impl -.-> :core:component-controller
   :feature:generalrule:impl -.-> :core:data
   :feature:generalrule:impl -.-> :core:designsystem
   :feature:generalrule:impl -.-> :core:domain

@@ -34,7 +34,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -66,7 +65,6 @@ class OfflineFirstGeneralRuleRepositoryTest {
         name = rule.name,
         networkSignature = rule.networkSignature,
         website = rule.website,
-        matchedAppCount = 7,
     )
 
     @Before
@@ -75,7 +73,7 @@ class OfflineFirstGeneralRuleRepositoryTest {
     }
 
     @Test
-    fun givenEmptyCache_whenReadingRulesAndUpdatingCounts_thenInitializesFallbackBeforeCountUpdate() = runTest {
+    fun givenEmptyCache_whenReadingRules_thenInitializesFallback() = runTest {
         val fallbackRules = listOf(rule)
         val fallbackEntities = fallbackRules.map(GeneralRule::fromExternalModel)
         whenever(generalRuleDao.getGeneralRuleEntities()).thenReturn(flowOf(emptyList()))
@@ -83,12 +81,8 @@ class OfflineFirstGeneralRuleRepositoryTest {
         whenever(generalRuleDao.getOrInitializeGeneralRules(fallbackEntities)).thenReturn(fallbackEntities)
 
         assertThat(repository.getGeneralRules().first()).containsExactlyElementsIn(fallbackRules)
-        repository.updateMatchedAppCounts(mapOf(rule.id to 3))
 
-        inOrder(generalRuleDao) {
-            verify(generalRuleDao).getOrInitializeGeneralRules(fallbackEntities)
-            verify(generalRuleDao).updateMatchedAppCounts(mapOf(rule.id to 3))
-        }
+        verify(generalRuleDao).getOrInitializeGeneralRules(fallbackEntities)
     }
 
     @Test

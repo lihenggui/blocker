@@ -35,8 +35,6 @@ class TestComponentRepository : ComponentRepository {
     private val componentList: MutableSharedFlow<List<ComponentInfo>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
-    override fun getAllComponents(): Flow<List<ComponentInfo>> = componentList
-
     override fun getComponent(name: String): Flow<ComponentInfo?> = componentList.map {
         it.find { componentInfo -> componentInfo.name == name }
     }
@@ -67,10 +65,6 @@ class TestComponentRepository : ComponentRepository {
         newState: Boolean,
         controllerType: ControllerType?,
     ): Flow<ComponentControlResult> = components.map { ComponentControlResult(it, succeeded = true) }.asFlow()
-
-    override fun searchComponent(keyword: String): Flow<List<ComponentInfo>> = componentList.map {
-        it.filter { componentInfo -> componentInfo.name.contains(keyword) }
-    }
 
     override suspend fun saveComponents(components: List<ComponentInfo>) {
         componentList.emit(components)

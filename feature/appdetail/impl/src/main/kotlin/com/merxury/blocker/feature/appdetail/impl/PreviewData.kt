@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.appdetail.impl
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.ui.coil.ApkIcon
+import com.merxury.blocker.core.ui.component.ComponentRow
 import kotlin.time.Instant
 
 /* Data for previews and screenshot tests. */

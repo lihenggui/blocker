@@ -118,8 +118,9 @@ abstract class ComponentCacheDao {
     abstract suspend fun getApps(userId: Int): List<AppEntity>
 
     /**
-     * The apps for [userId] whose label or package name contains [keyword], ignoring ASCII case.
-     * `%` and `_` in [keyword] match themselves, not any text.
+     * The apps for [userId] whose label or package name contains [keyword], ignoring case as
+     * Android's SQLite `LIKE` does, which folds letters beyond ASCII too. `%` and `_` in [keyword]
+     * match themselves, not any text.
      */
     fun searchApps(userId: Int, keyword: String): Flow<List<AppEntity>> = querySearchApps(userId, keyword.escapeLikeWildcards()).distinctUntilChanged()
 
@@ -182,7 +183,8 @@ abstract class ComponentCacheDao {
 
     /**
      * The components of packages installed for [userId] whose class name contains [keyword],
-     * ignoring ASCII case. `%` and `_` in [keyword] match themselves, not any text.
+     * ignoring case as Android's SQLite `LIKE` does, which folds letters beyond ASCII too. `%` and
+     * `_` in [keyword] match themselves, not any text.
      */
     fun searchComponents(userId: Int, keyword: String): Flow<List<ComponentRow>> = querySearchComponents(userId, keyword.escapeLikeWildcards()).distinctUntilChanged()
 

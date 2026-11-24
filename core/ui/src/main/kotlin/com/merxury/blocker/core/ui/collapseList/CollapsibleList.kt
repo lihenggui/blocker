@@ -27,16 +27,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Alignment
@@ -49,89 +51,93 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScroll
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.component.ComponentListItem
-import timber.log.Timber
+import com.merxury.blocker.core.ui.component.ComponentRow
 
+/**
+ * One group of a [CollapsibleList]: a header with [title], [icon] and the counts of its [items],
+ * over the items while it is expanded.
+ *
+ * @property key tells the group apart while the list changes, such as the package name of an
+ * app; a group stays expanded by its key
+ * @property icon Coil data for the icon; the Android icon when null or when it cannot be loaded
+ * @property blockedCount the items shown blocked; with [enabledCount] it may be fewer than the
+ * items when the state of some is not known
+ */
+data class CollapsibleGroup<T>(
+    val key: String,
+    val title: String,
+    val icon: Any?,
+    val items: List<T>,
+    val blockedCount: Int,
+    val enabledCount: Int,
+)
+
+/** The group of [rows], each counted as blocked or enabled by its switch. */
+fun collapsibleGroup(key: String, title: String, icon: Any?, rows: List<ComponentRow>): CollapsibleGroup<ComponentRow> = CollapsibleGroup(
+    key = key,
+    title = title,
+    icon = icon,
+    items = rows,
+    blockedCount = rows.count { !it.enabled },
+    enabledCount = rows.count { it.enabled },
+)
+
+/**
+ * Groups, each a header that expands to its items, with a scrollbar.
+ *
+ * @param itemKey tells an item apart within its group
+ * @param itemContent one item, which is given the modifier that animates it
+ */
 @Composable
-fun CollapsibleList(
-    list: List<MatchedItem>,
+fun <T> CollapsibleList(
+    groups: List<CollapsibleGroup<T>>,
+    itemKey: (T) -> String,
     modifier: Modifier = Modifier,
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
-    navigateToDetail: (String) -> Unit = { _ -> },
-    onBlockAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<ComponentInfo>) -> Unit = { _ -> },
-    onSwitch: (ComponentInfo, Boolean) -> Unit = { _, _ -> },
+    navigateToDetail: (CollapsibleGroup<T>) -> Unit = {},
+    onBlockAllClick: (CollapsibleGroup<T>) -> Unit = {},
+    onEnableAllClick: (CollapsibleGroup<T>) -> Unit = {},
+    itemContent: @Composable LazyItemScope.(item: T, modifier: Modifier) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val isExpandedMap = rememberSavableSnapshotStateMap {
-        List(list.size) { index: Int -> index to false }
-            .toMutableStateMap()
-    }
+    var expandedKeys by rememberSaveable { mutableStateOf(emptySet<String>()) }
 
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.testTag("rule:matchedAppList"),
             state = listState,
         ) {
-            list.forEachIndexed { index, ruleMatchedApp ->
-                val expanded = isExpandedMap[index] ?: false
-                item(key = ruleMatchedApp.header.uniqueId) {
-                    CollapsibleItem(
+            groups.forEach { group ->
+                val expanded = group.key in expandedKeys
+                item(key = group.key) {
+                    CollapsibleHeader(
+                        title = group.title,
+                        icon = group.icon,
+                        matchedCount = group.items.size,
+                        blockedCount = group.blockedCount,
+                        enabledCount = group.enabledCount,
                         modifier = Modifier.animateItem(),
-                        matchedItem = ruleMatchedApp,
                         navigationMenuItemDesc = navigationMenuItemDesc,
-                        navigation = {
-                            navigateToDetail(ruleMatchedApp.header.uniqueId)
-                        },
-                        onBlockAllInItemClick = onBlockAllInItemClick,
-                        onEnableAllInItemClick = onEnableAllInItemClick,
+                        navigation = { navigateToDetail(group) },
+                        onBlockAllClick = { onBlockAllClick(group) },
+                        onEnableAllClick = { onEnableAllClick(group) },
                         expanded = expanded,
-                        onCardArrowClick = {
-                            isExpandedMap[index] = !(isExpandedMap[index] ?: false)
-                        },
+                        onCardArrowClick = { expandedKeys = if (expanded) expandedKeys - group.key else expandedKeys + group.key },
                     )
                     HorizontalDivider()
                 }
                 if (expanded) {
                     items(
-                        items = ruleMatchedApp.componentList,
-                        key = { item -> ruleMatchedApp.header.uniqueId + "/" + item.name },
-                    ) {
-                        ComponentListItem(
-                            modifier = Modifier.animateItem(),
-                            simpleName = it.simpleName,
-                            name = it.name,
-                            description = it.description,
-                            enabled = it.enabled(),
-                            type = it.type,
-                            isServiceRunning = it.isRunning,
-                            onStopServiceClick = {
-                                onStopServiceClick(
-                                    it.packageName,
-                                    it.name,
-                                )
-                            },
-                            onLaunchActivityClick = {
-                                onLaunchActivityClick(
-                                    it.packageName,
-                                    it.name,
-                                )
-                            },
-                            onCopyNameClick = { onCopyNameClick(it.simpleName) },
-                            onCopyFullNameClick = { onCopyFullNameClick(it.name) },
-                            onSwitchClick = { enabled -> onSwitch(it, enabled) },
-                        )
+                        items = group.items,
+                        key = { item -> group.key + "/" + itemKey(item) },
+                    ) { item ->
+                        itemContent(item, Modifier.animateItem())
                         // Add horizontal divider after last item
-                        if (ruleMatchedApp.componentList.last() == it) {
+                        if (group.items.last() == item) {
                             HorizontalDivider()
                         }
                     }
@@ -141,18 +147,9 @@ fun CollapsibleList(
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
-        val expandItemCount = isExpandedMap.filterValues { it }
-            .keys
-            .mapNotNull {
-                val item = list.getOrNull(it)
-                if (item == null) {
-                    Timber.e("Item not found for index $it, map = $isExpandedMap, list = $list")
-                }
-                item
-            }
-            .fastSumBy { it.componentList.size }
+        val expandItemCount = groups.filter { it.key in expandedKeys }.fastSumBy { it.items.size }
         val scrollbarState = listState.scrollbarState(
-            itemsAvailable = list.size + expandItemCount,
+            itemsAvailable = groups.size + expandItemCount,
         )
         listState.DraggableScrollbar(
             modifier = Modifier
@@ -162,7 +159,7 @@ fun CollapsibleList(
             state = scrollbarState,
             orientation = Vertical,
             onThumbMove = listState.rememberDraggableScroller(
-                itemsAvailable = list.size,
+                itemsAvailable = groups.size,
             ),
         )
     }
@@ -182,35 +179,29 @@ fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): 
 @Composable
 @Preview
 private fun RuleMatchedAppListPreview() {
-    val componentInfo = ComponentInfo(
-        name = ".ui.component.ComponentListActivity",
-        simpleName = "ComponentListItem",
-        packageName = "com.merxury.blocker.test1",
+    val row = ComponentRow(
+        id = ComponentId("com.merxury.blocker.test1", "com.merxury.blocker.test1.ui.component.ComponentListActivity"),
         type = ACTIVITY,
-    )
-    val matchedItem = MatchedItem(
-        header = MatchedHeaderData(
-            title = "Blocker",
-            uniqueId = "com.merxury.blocker.test1",
-        ),
-        componentList = remember {
-            mutableStateListOf(componentInfo)
-        },
-    )
-    val matchedItem2 = MatchedItem(
-        header = MatchedHeaderData(
-            title = "Test long long long long long name",
-            uniqueId = "com.merxury.blocker.test2",
-        ),
-        componentList = remember {
-            mutableStateListOf()
-        },
+        enabled = true,
     )
     BlockerTheme {
         Surface {
             CollapsibleList(
-                list = listOf(matchedItem, matchedItem2),
-            )
+                groups = listOf(
+                    collapsibleGroup(key = "com.merxury.blocker.test1", title = "Blocker", icon = null, rows = listOf(row)),
+                    collapsibleGroup(key = "com.merxury.blocker.test2", title = "Test long long long long long name", icon = null, rows = emptyList()),
+                ),
+                itemKey = { it.id.className },
+            ) { item, itemModifier ->
+                ComponentListItem(
+                    simpleName = item.id.simpleName,
+                    name = item.id.className,
+                    enabled = item.enabled,
+                    type = item.type,
+                    isServiceRunning = item.isRunning,
+                    modifier = itemModifier,
+                )
+            }
         }
     }
 }

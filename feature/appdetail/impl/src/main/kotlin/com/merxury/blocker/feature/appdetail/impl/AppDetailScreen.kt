@@ -51,6 +51,9 @@ import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.coil.ApkIcon
+import com.merxury.blocker.core.ui.component.ComponentRow
+import com.merxury.blocker.core.ui.control.AccessMessageSnackbar
+import com.merxury.blocker.core.ui.control.ControlMessageSnackbar
 import com.merxury.blocker.core.ui.control.text
 import com.merxury.blocker.feature.appdetail.api.R.string
 import com.merxury.blocker.feature.appdetail.impl.bottomsheet.ComponentSortBottomSheetRoute
@@ -265,24 +268,20 @@ internal fun ScreenMessages(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val grantLabel = stringResource(uiString.core_ui_grant_access)
-    val currentGrant by rememberUpdatedState(onGrantAccess)
-    val listMessage = list.message?.text()
-    val listNeedsAccess = list.message?.needsAccess == true
-    LaunchedEffect(list.message) {
-        if (listMessage != null) {
-            snackbarHostState.showMessage(listMessage, grantLabel.takeIf { listNeedsAccess }) { currentGrant() }
-            onListMessageConsume()
-        }
-    }
-    val queued = control.messages.firstOrNull()
-    val controlText = queued?.message?.text()
-    LaunchedEffect(queued?.id) {
-        if (queued != null && controlText != null) {
-            snackbarHostState.showMessage(controlText, grantLabel.takeIf { queued.message.needsAccess }) { currentGrant() }
-            onControlMessageConsume(queued.id)
-        }
-    }
+    AccessMessageSnackbar(
+        key = list.message,
+        text = list.message?.text(),
+        needsAccess = list.message?.needsAccess == true,
+        snackbarHostState = snackbarHostState,
+        onShow = onListMessageConsume,
+        onGrantAccess = onGrantAccess,
+    )
+    ControlMessageSnackbar(
+        messages = control.messages,
+        snackbarHostState = snackbarHostState,
+        onShow = onControlMessageConsume,
+        onGrantAccess = onGrantAccess,
+    )
     val ruleWork = header.ruleWork
     val ruleWorkText = ruleWork?.let { it.resultMessage(LocalResources.current) ?: stringResource(ruleString.core_rule_processing_please_wait) }
     LaunchedEffect(ruleWork) {
@@ -319,13 +318,4 @@ private fun SeedColor(icon: ApkIcon?, updateIconThemingState: (IconThemingState)
     DisposableEffect(Unit) {
         onDispose { updateIconThemingState(IconThemingState()) }
     }
-}
-
-/**
- * Shows [message] for its whole duration, with [actionLabel] as its action when set, and calls
- * [onAction] when the user takes it.
- */
-internal suspend fun SnackbarHostState.showMessage(message: String, actionLabel: String?, onAction: () -> Unit) {
-    val result = showSnackbar(message, actionLabel = actionLabel, duration = SnackbarDuration.Long, withDismissAction = true)
-    if (result == SnackbarResult.ActionPerformed) onAction()
 }

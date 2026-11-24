@@ -20,7 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.merxury.blocker.core.ui.component.ComponentListItem
-import com.merxury.blocker.feature.appdetail.impl.ComponentRow
+import com.merxury.blocker.core.ui.component.ComponentRow
 
 /** What a component row can ask for. */
 class ComponentRowActions(

@@ -47,7 +47,7 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
     override fun getGeneralRules(): Flow<List<GeneralRule>> = generalRuleDao.getGeneralRuleEntities()
         .map { cachedRules ->
             val rules = cachedRules.ifEmpty {
-                // Cache fallback rules before their matched counts can be updated.
+                // Nothing cached yet: store the rules read from the rule files.
                 val fallbackRules = dataSource.getGeneralRules().first()
                     .map(GeneralRule::fromExternalModel)
                 generalRuleDao.getOrInitializeGeneralRules(fallbackRules)
@@ -94,10 +94,6 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
         generalRuleDao.upsertGeneralRule(rule.fromExternalModel())
     }
 
-    override suspend fun updateMatchedAppCounts(counts: Map<Int, Int>) {
-        generalRuleDao.updateMatchedAppCounts(counts)
-    }
-
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = generalRuleDao.searchGeneralRule(keyword)
         .map { it.map(GeneralRuleEntity::asExternalModel) }
 
@@ -117,11 +113,7 @@ internal class OfflineFirstGeneralRuleRepository @Inject constructor(
                 return@forEach
             }
             Timber.v("Saving new rules ${networkEntity.name} to local db.")
-            // Update the rule but keep the matched app count as a cache
-            val cachedMatchedAppCount = cachedEntity?.matchedAppCount ?: 0
-            generalRuleDao.upsertGeneralRule(
-                networkEntity.copy(matchedAppCount = cachedMatchedAppCount),
-            )
+            generalRuleDao.upsertGeneralRule(networkEntity)
         }
         // Delete outdated rules in the local cache
         // Find the rules that's not existed

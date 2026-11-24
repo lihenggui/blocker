@@ -37,6 +37,11 @@ data class GeneralRuleEntity(
     val sideEffect: String? = null,
     val website: String? = null,
     val contributors: List<String> = listOf(),
+    /**
+     * Neither read nor given a count any more: the matched apps are counted per user from the
+     * component cache, see the rule matcher in core:domain.
+     * Kept so the schema does not change.
+     */
     val matchedAppCount: Int = 0,
 )
 
@@ -53,7 +58,6 @@ fun GeneralRuleEntity.asExternalModel() = GeneralRule(
     sideEffect = sideEffect,
     website = website,
     contributors = contributors,
-    matchedAppCount = matchedAppCount,
 )
 
 fun GeneralRule.fromExternalModel() = GeneralRuleEntity(
@@ -69,5 +73,4 @@ fun GeneralRule.fromExternalModel() = GeneralRuleEntity(
     sideEffect = sideEffect,
     website = website,
     contributors = contributors,
-    matchedAppCount = matchedAppCount,
 )

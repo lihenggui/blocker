@@ -157,6 +157,8 @@
     <string name="core_ui_clear_cache_failed">无法清除 %1$s 的缓存</string>
     <string name="core_ui_clear_data_failed">无法清除 %1$s 的数据</string>
     <string name="core_ui_uninstall_app_failed">无法卸载 %1$s</string>
+    <string name="core_ui_launch_failed">无法启动 %1$s</string>
+    <string name="core_ui_stop_failed">无法停止 %1$s</string>
     <string name="core_ui_reason_no_access">请授予 Blocker Root 或 Shizuku 权限后重试。</string>
     <string name="core_ui_unknown">未知</string>
     <string name="core_ui_grant_access">授予权限</string>

@@ -42,8 +42,8 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggab
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.ui.TrackScrollJank
+import com.merxury.blocker.core.ui.component.ComponentRow
 import com.merxury.blocker.core.ui.component.NoComponentScreen
-import com.merxury.blocker.feature.appdetail.impl.ComponentRow
 
 /**
  * The rows of one component tab. Pulling down refreshes the app; the rows shown meanwhile are the

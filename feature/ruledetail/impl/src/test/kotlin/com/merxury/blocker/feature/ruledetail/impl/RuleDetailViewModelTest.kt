@@ -16,295 +16,236 @@
 
 package com.merxury.blocker.feature.ruledetail.impl
 
-import android.app.Application
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
-import android.content.pm.PackageManager.PackageInfoFlags
-import app.cash.turbine.test
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.root.RootCommandExecutor
-import com.merxury.blocker.core.testing.repository.TestAppRepository
-import com.merxury.blocker.core.testing.repository.TestComponentRepository
-import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
-import com.merxury.blocker.core.testing.repository.TestUserDataRepository
+import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
+import com.merxury.blocker.core.ui.control.ActivityLaunchFailed
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
-import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
-import com.merxury.blocker.feature.ruledetail.impl.RuleInfoUiState.Loading
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
-import kotlin.test.assertEquals
+import java.io.File
 
-/**
- * To learn more about how this test handles Flows created with stateIn, see
- * https://developer.android.com/kotlin/flow/test#statein
- *
- */
-@OptIn(ExperimentalCoroutinesApi::class)
+/** The rule detail lists the apps of the selected user with components the rule matches, from the cache. */
 class RuleDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    @get:Rule
-    val tempFolder: TemporaryFolder = TemporaryFolder.builder()
-        .assureDeletion()
-        .build()
-
-    private val analyticsHelper = TestAnalyticsHelper()
-    private val appRepository = TestAppRepository()
-    private val generalRuleRepository = TestGeneralRuleRepository()
-    private val userDataRepository = TestUserDataRepository()
-    private val componentRepository = TestComponentRepository()
-    private val rootCommandExecutor = mock<RootCommandExecutor>()
-    private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
-    private val appContext = mock<Application>()
-    private val packageInfo = mock<PackageInfo> {
-        on { toString() } doReturn "MockedPackageInfo"
-    }
-    private val pm = mock<PackageManager> {
-        on { getPackageInfo(any<String>(), any<Int>()) } doReturn packageInfo
-        on {
-            getPackageInfo(
-                any<String>(),
-                any<PackageInfoFlags>(),
-            )
-        } doReturn packageInfo
-    }
-
-    private lateinit var viewModel: RuleDetailViewModel
+    private lateinit var fixture: RuleDetailFixture
+    private val viewModel get() = fixture.viewModel
 
     @Before
-    fun setup() {
-        viewModel = RuleDetailViewModel(
-            appRepository = appRepository,
-            ioDispatcher = dispatcher,
-            appContext = appContext,
-            pm = pm,
-            filesDir = tempFolder.newFolder(),
-            ruleBaseFolder = tempFolder.newFolder().absolutePath,
-            ruleRepository = generalRuleRepository,
-            userDataRepository = userDataRepository,
-            componentRepository = componentRepository,
-            rootCommandExecutor = rootCommandExecutor,
-            mainDispatcher = dispatcher,
-            analyticsHelper = analyticsHelper,
-            ruleId = sampleRuleList.first().id.toString(),
-            tab = RuleDetailTabs.APPLICABLE,
+    fun setUp() {
+        fixture = RuleDetailFixture(mainDispatcherRule.testDispatcher)
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.installedApps.sendApps(
+            listOf(
+                installedApp("com.b", label = "Bravo", installedAt = 2_000),
+                installedApp("com.a", label = "alpha", installedAt = 1_000),
+                installedApp(SELF_PACKAGE, label = "Blocker"),
+                installedApp("com.w", WORK, label = "Work app"),
+            ),
         )
+        fixture.components.sendComponents(
+            OWNER,
+            listOf(
+                component("com.a", "Pm", pm = PmSetting.DISABLED),
+                component("com.a", "Ifw", ifw = IfwBlock.BLOCKED),
+                component("com.a", "Shipped", enabledInManifest = false),
+                component("com.a", "Unreadable", ifw = IfwBlock.UNKNOWN),
+                component("com.b", "Open"),
+                component(SELF_PACKAGE, "Self"),
+            ),
+        )
+        fixture.components.sendComponents(WORK, listOf(component("com.w", "Work")))
+    }
+
+    private fun TestScope.show(keepFresh: Boolean = true) {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
+        if (keepFresh) backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
+        settle()
     }
 
     @Test
-    fun ruleInfoUiState_whenInitial_thenShowLoading() = runTest {
-        assertEquals(Loading, viewModel.ruleInfoUiState.value)
+    fun givenCachedComponents_whenShown_thenEachMatchedAppWithASwitchPerComponentByName() = runTest {
+        show()
+
+        val apps = fixture.apps()
+        assertThat(apps.map { it.label }).containsExactly("alpha", "Bravo").inOrder()
+        val alpha = apps.first()
+        assertThat(alpha.app).isEqualTo(AppKey("com.a", OWNER))
+        // Off when PackageManager, the firewall or the manifest blocks it; unreadable firewall rules count as none.
+        assertThat(alpha.rows.associate { it.id.simpleName to it.enabled })
+            .containsExactly("Ifw", false, "Pm", false, "Shipped", false, "Unreadable", true)
+        // As before, which services run is not read, so no row shows one running.
+        assertThat(apps.flatMap { it.rows }.none { it.isRunning }).isTrue()
     }
 
     @Test
-    fun tabState_whenInitial_thenShowDefault() = runTest {
-        assertEquals(RuleDetailTabs.Applicable, viewModel.tabState.value.selectedItem)
+    fun givenSeveralKeywords_whenAnAppIsShown_thenItsRowsKeepTheOldOrder() = runTest {
+        fixture.rules.sendRuleList(listOf(TRACKER.copy(searchKeyword = listOf("com.tracker.Z", "com.tracker."))))
+        fixture.components.sendComponents(
+            OWNER,
+            listOf(
+                component("com.a", "Activity", type = ComponentType.ACTIVITY),
+                component("com.a", "Receiver"),
+                component("com.a", "ZReceiver"),
+                component("com.a", "ZService", type = ComponentType.SERVICE),
+            ),
+        )
+        show()
+
+        // The first keyword's components first, then by type, as the screen listed them before.
+        assertThat(fixture.apps().single().rows.map { it.id.simpleName })
+            .containsExactly("ZService", "ZReceiver", "Activity", "Receiver").inOrder()
     }
 
     @Test
-    fun appBarUiState_whenInitial_thenShowDefault() = runTest {
-        assertEquals(AppBarUiState(actions = listOf(SORT, MORE)), viewModel.appBarUiState.value)
+    fun givenBlockerMatchesTheRule_whenShown_thenItIsNotListed() = runTest {
+        show()
+
+        assertThat(fixture.apps().map { it.app.packageName }).doesNotContain(SELF_PACKAGE)
     }
 
     @Test
-    fun ruleInfoUiState_whenSuccess_thenShowData() = runTest {
-        viewModel.ruleInfoUiState.test {
-            appRepository.sendAppList(sampleAppList)
-            userDataRepository.sendUserData(defaultUserData)
-            generalRuleRepository.sendRuleList(sampleRuleList)
-            componentRepository.sendComponentList(sampleComponentList)
-            viewModel.loadData()
-            val matchedApps = listOf(
-                MatchedItem(
-                    header = MatchedHeaderData(
-                        title = sampleAppList.first().label,
-                        uniqueId = sampleAppList.first().packageName,
-                        icon = pm.getPackageInfoCompat(sampleAppList.first().packageName, 0),
-                    ),
-                    componentList = listOf(sampleComponentList.first()),
-                ),
-            )
-            assertEquals(
-                Loading,
-                awaitItem(),
-            )
-            assertEquals(
-                RuleInfoUiState.Success(
-                    ruleInfo = sampleRuleList.first(),
-                    matchedAppsUiState = Result.Loading,
-                ),
-                awaitItem(),
-            )
-            awaitItem()
-            awaitItem()
-            assertEquals(
-                RuleInfoUiState.Success(
-                    ruleInfo = sampleRuleList.first(),
-                    matchedAppsUiState = Result.Success(matchedApps),
-                ),
-                awaitItem(),
-            )
-        }
+    fun givenWorkProfileSelected_whenShown_thenItsAppsAreMatchedAndIndexed() = runTest {
+        show()
+
+        fixture.selectedUsers.select(WORK)
+        settle()
+
+        assertThat(fixture.apps().map { it.app }).containsExactly(AppKey("com.w", WORK))
+        assertThat(fixture.components.refreshedUsers).containsExactly(OWNER, WORK).inOrder()
     }
 
     @Test
-    fun tabState_whenSwitchTab_thenUpdateSelectedItem() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
-        viewModel.switchTab(RuleDetailTabs.Description)
-        assertEquals(RuleDetailTabs.Description, viewModel.tabState.value.selectedItem)
-        collectJob.cancel()
+    fun givenNothingObserves_whenCreated_thenNothingIsIndexed() = runTest {
+        show(keepFresh = false)
+
+        assertThat(fixture.components.refreshedUsers).isEmpty()
     }
 
     @Test
-    fun appBarUiState_whenSwitchTab_thenUpdateAppBarActions() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
-        viewModel.switchTab(RuleDetailTabs.Description)
-        assertEquals(listOf(), viewModel.appBarUiState.value.actions)
-        collectJob.cancel()
+    fun givenTheRule_whenShown_thenItsIconIsAFileAndThemesTheScreenOnlyWithDynamicColour() = runTest {
+        show()
+        val icon = File("/files/rules", "icon/tracker.svg")
+
+        val info = viewModel.uiState.value.ruleInfo as RuleInfoUiState.Success
+        assertThat(info.ruleInfo.iconUrl).isEqualTo(icon.absolutePath)
+        assertThat(info.seedIcon).isNull()
+
+        fixture.userData.sendUserData(defaultUserData.copy(useDynamicColor = true))
+        settle()
+        assertThat((viewModel.uiState.value.ruleInfo as RuleInfoUiState.Success).seedIcon).isEqualTo(icon)
     }
 
     @Test
-    fun sortType_whenInitial_thenDefaultToName() = runTest {
-        assertEquals(RuleDetailSortType.NAME, viewModel.sortType.value)
-    }
+    fun givenSortChosen_whenShown_thenTheAppsFollowIt() = runTest {
+        show()
 
-    @Test
-    fun sortType_whenUpdated_thenReflectNewValue() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.sortType.collect() }
+        viewModel.updateSortType(RuleDetailSortType.RECENTLY_INSTALLED)
+        settle()
+        assertThat(fixture.apps().map { it.label }).containsExactly("Bravo", "alpha").inOrder()
         viewModel.updateSortType(RuleDetailSortType.MOST_MATCHED)
-        assertEquals(RuleDetailSortType.MOST_MATCHED, viewModel.sortType.value)
-        collectJob.cancel()
+        settle()
+        assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo").inOrder()
+        assertThat(viewModel.uiState.value.sortType).isEqualTo(RuleDetailSortType.MOST_MATCHED)
+    }
+
+    @Test
+    fun givenSortByMostBlocked_whenAComponentIsBlocked_thenItsAppKeepsItsPlace() = runTest {
+        show()
+        viewModel.updateSortType(RuleDetailSortType.MOST_BLOCKED)
+        settle()
+        assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo").inOrder()
+
+        fixture.components.sendComponents(
+            OWNER,
+            listOf(
+                component("com.a", "Pm"),
+                component("com.b", "Open", pm = PmSetting.DISABLED),
+                component("com.b", "Other", pm = PmSetting.DISABLED),
+            ),
+        )
+        settle()
+
+        assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo").inOrder()
+        assertThat(fixture.apps().last().rows.map { it.enabled }).containsExactly(false, false)
+    }
+
+    @Test
+    fun givenDescriptionTab_whenSwitched_thenTheAppBarHasNoActions() = runTest {
+        show()
+        assertThat(viewModel.uiState.value.appBarUiState.actions).containsExactly(AppBarAction.SORT, AppBarAction.MORE)
+
+        viewModel.switchTab(RuleDetailTabs.Description)
+        settle()
+
+        assertThat(viewModel.uiState.value.tabState.selectedItem).isEqualTo(RuleDetailTabs.Description)
+        assertThat(viewModel.uiState.value.appBarUiState.actions).isEmpty()
+    }
+
+    @Test
+    fun givenMatchedApps_whenTheirActivityOrServiceIsUsed_thenTheSelectedUserIsAsked() = runTest {
+        show()
+        fixture.selectedUsers.select(WORK)
+        settle()
+
+        viewModel.launchActivity(ComponentKey(id("com.w", "Work"), WORK))
+        settle()
+
+        assertThat(fixture.appControl.calls.single()).contains("UserId(value=10)")
+        assertThat(viewModel.uiState.value.actionFailure).isNull()
+    }
+
+    @Test
+    fun givenNoAccess_whenAnActivityCannotBeLaunched_thenTellsItWithTheAccessHint() = runTest {
+        fixture.appControl.failures["startActivity"] = CallFailure.ChannelUnavailable
+        show()
+
+        viewModel.launchActivity(ComponentKey(id("com.a", "Pm"), OWNER))
+        settle()
+
+        assertThat(viewModel.uiState.value.actionFailure).isEqualTo(ActivityLaunchFailed("Pm", needsAccess = true))
+        viewModel.onActionFailureShown()
+        settle()
+        assertThat(viewModel.uiState.value.actionFailure).isNull()
+    }
+
+    @Test
+    fun givenNoRuleMatchedYet_whenOpened_thenOnlyThisRuleIsMatched() = runTest {
+        show()
+
+        assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo")
+        assertThat(fixture.rules.catalogReads).isEqualTo(0)
+    }
+
+    @Test
+    fun givenTheRuleCannotBeRead_whenOpened_thenTheErrorShowsUntilItCanBeReadAgain() = runTest {
+        fixture.rules.readFailure = IllegalStateException("The rule file is damaged")
+        show()
+        assertThat(viewModel.uiState.value.ruleInfo).isInstanceOf(RuleInfoUiState.Error::class.java)
+
+        fixture.rules.readFailure = null
+        // Longer than the matcher and the screen wait before they read the rule again.
+        advanceTimeBy(20_000)
+        settle()
+
+        assertThat(fixture.apps().map { it.label }).containsExactly("alpha", "Bravo")
     }
 }
-
-private val sampleRuleList = listOf(
-    GeneralRule(
-        id = 1,
-        name = "Rule1",
-        company = "Rule1 company",
-        description = "Rule1 description",
-        sideEffect = "Unknown",
-        safeToBlock = true,
-        contributors = listOf("Online contributor"),
-        searchKeyword = listOf(
-            "com.merxury.blocker.test.activity1",
-        ),
-        matchedAppCount = 2,
-    ),
-    GeneralRule(
-        id = 2,
-        name = "Rule2",
-        company = "Rule2 company",
-        description = "Rule2 description",
-        sideEffect = "Unknown",
-        safeToBlock = false,
-        contributors = listOf("Google"),
-        searchKeyword = listOf(
-            "androidx.google.example1",
-            "androidx.google.example2",
-            "androidx.google.example3",
-            "androidx.google.example4",
-            "test.service",
-        ),
-        matchedAppCount = 13,
-    ),
-    GeneralRule(
-        id = 3,
-        name = "Rule3",
-        company = "Rule3 company",
-        description = "Rule3 description",
-        sideEffect = "Unknown",
-        safeToBlock = false,
-        contributors = listOf("Tester"),
-        searchKeyword = listOf(
-            "com.ss.android.socialbase.",
-            "com.ss.android.downloadlib.",
-            "com.example.component.",
-            "com.example.component.",
-            "com.example.tea.component.",
-            "com.example.sdk.component.",
-        ),
-    ),
-)
-
-private val sampleAppList = listOf(
-    InstalledApp(
-        label = "App1",
-        packageName = "com.merxury.test1",
-    ),
-    InstalledApp(
-        label = "App2",
-        packageName = "com.merxury.test2",
-    ),
-    InstalledApp(
-        label = "App3",
-        packageName = "com.merxury.test3",
-    ),
-)
-
-private val sampleComponentList = listOf(
-    ComponentInfo(
-        simpleName = "Activity1",
-        name = "com.merxury.blocker.test.activity1",
-        packageName = "com.merxury.test1",
-        type = ACTIVITY,
-        description = "An example activity",
-    ),
-    ComponentInfo(
-        simpleName = "Service1",
-        name = "com.merxury.blocker.test.service1",
-        packageName = "com.merxury.test1",
-        type = SERVICE,
-        description = "An example service",
-        pmBlocked = true,
-    ),
-    ComponentInfo(
-        simpleName = "Service2",
-        name = "com.merxury.blocker.test.service2",
-        packageName = "com.merxury.test1",
-        type = SERVICE,
-        description = "An example service",
-    ),
-    ComponentInfo(
-        simpleName = "Receiver1",
-        name = "com.merxury.blocker.test.receiver1",
-        packageName = "com.merxury.test1",
-        type = RECEIVER,
-        description = "An example receiver",
-    ),
-    ComponentInfo(
-        simpleName = "Provider1",
-        name = "com.merxury.blocker.test.provider1",
-        packageName = "com.merxury.test1",
-        type = PROVIDER,
-        description = "An example provider",
-    ),
-)

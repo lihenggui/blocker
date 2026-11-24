@@ -69,6 +69,12 @@ sealed interface BatchKey {
 
     /** Components of any apps of [user], as the search changes them. */
     data class Search(override val user: UserId) : BatchKey
+
+    /** Components the general rules match in apps of [user], as the rule list changes them. */
+    data class GeneralRules(override val user: UserId) : BatchKey
+
+    /** Components the general rule [ruleId] matches in apps of [user], as its detail screen changes them. */
+    data class Rule(val ruleId: Int, override val user: UserId) : BatchKey
 }
 
 /**

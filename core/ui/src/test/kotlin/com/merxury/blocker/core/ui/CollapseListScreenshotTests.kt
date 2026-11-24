@@ -20,8 +20,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.FontScale
@@ -29,13 +27,12 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.collapseList.collapsibleGroup
+import com.merxury.blocker.core.ui.component.ComponentListItem
+import com.merxury.blocker.core.ui.previewparameter.previewComponentRows
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -87,37 +84,26 @@ class CollapseListScreenshotTests {
 
     @Composable
     private fun CollapseListExample() {
-        val components = ComponentListPreviewParameterProvider().values
-            .first()
-        val emptyList = remember {
-            mutableStateListOf<ComponentInfo>()
-        }
-        val matchedItem = MatchedItem(
-            header = MatchedHeaderData(
-                title = "Blocker",
-                uniqueId = "com.merxury.blocker",
-            ),
-            componentList = components,
-        )
-        val matchedItem1 = MatchedItem(
-            header = MatchedHeaderData(
-                title = "Blocker Test",
-                uniqueId = "com.test.blocker",
-            ),
-            componentList = emptyList,
-        )
-        val matchedItem2 = MatchedItem(
-            header = MatchedHeaderData(
-                title = "Blocker Test test long long long long name",
-                uniqueId = "com.test",
-            ),
-            componentList = emptyList,
-        )
+        val rows = previewComponentRows()
         BlockerTheme {
             Surface {
                 CollapsibleList(
-                    list = listOf(matchedItem, matchedItem1, matchedItem2),
-                )
+                    groups = listOf(
+                        collapsibleGroup(key = "com.merxury.blocker", title = "Blocker", icon = null, rows = rows),
+                        collapsibleGroup(key = "com.test.blocker", title = "Blocker Test", icon = null, rows = emptyList()),
+                        collapsibleGroup(key = "com.test", title = "Blocker Test test long long long long name", icon = null, rows = emptyList()),
+                    ),
+                    itemKey = { it.id.className },
+                ) { row, modifier ->
+                    ComponentListItem(
+                        simpleName = row.id.simpleName,
+                        name = row.id.className,
+                        enabled = row.enabled,
+                        type = row.type,
+                        isServiceRunning = row.isRunning,
+                        modifier = modifier,
+                    )
+                }
             }
         }
     }

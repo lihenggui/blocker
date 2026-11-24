@@ -102,6 +102,8 @@
     <string name="core_ui_clear_cache_failed">無法清除 %1$s 的快取</string>
     <string name="core_ui_clear_data_failed">無法清除 %1$s 的資料</string>
     <string name="core_ui_uninstall_app_failed">無法解除安裝 %1$s</string>
+    <string name="core_ui_launch_failed">無法啟動 %1$s</string>
+    <string name="core_ui_stop_failed">無法停止 %1$s</string>
     <string name="core_ui_reason_no_access">請授予 Blocker Root 或 Shizuku 權限後重試。</string>
     <string name="core_ui_unknown">未知</string>
     <string name="core_ui_grant_access">授予權限</string>

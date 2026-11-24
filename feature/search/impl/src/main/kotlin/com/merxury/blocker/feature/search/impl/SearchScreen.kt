@@ -59,6 +59,7 @@ import com.merxury.blocker.core.ui.applist.AppRow
 import com.merxury.blocker.core.ui.applist.PendingConfirmation
 import com.merxury.blocker.core.ui.applist.PendingConfirmationSaver
 import com.merxury.blocker.core.ui.applist.needsConfirmation
+import com.merxury.blocker.core.ui.control.AccessMessageSnackbar
 import com.merxury.blocker.core.ui.profile.ProfileSwitcher
 import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.feature.search.api.R.string
@@ -123,17 +124,14 @@ private fun KeepFreshWhileStarted(keepFresh: suspend () -> Unit) {
 @Composable
 private fun SearchMessages(uiState: SearchUiState, snackbarHostState: SnackbarHostState, onConsume: (Long) -> Unit, onGrantAccess: () -> Unit) {
     val queued = uiState.messages.firstOrNull()
-    val text = queued?.message?.text()
-    val grantLabel = stringResource(uiString.core_ui_grant_access)
-    val currentGrant by rememberUpdatedState(onGrantAccess)
-    LaunchedEffect(queued?.id) {
-        if (queued != null && text != null) {
-            val actionLabel = grantLabel.takeIf { queued.message.needsAccess }
-            val result = snackbarHostState.showSnackbar(text, actionLabel = actionLabel, duration = SnackbarDuration.Long, withDismissAction = true)
-            if (result == SnackbarResult.ActionPerformed) currentGrant()
-            onConsume(queued.id)
-        }
-    }
+    AccessMessageSnackbar(
+        key = queued?.id,
+        text = queued?.message?.text(),
+        needsAccess = queued?.message?.needsAccess == true,
+        snackbarHostState = snackbarHostState,
+        onShow = { queued?.let { onConsume(it.id) } },
+        onGrantAccess = onGrantAccess,
+    )
 }
 
 @Composable

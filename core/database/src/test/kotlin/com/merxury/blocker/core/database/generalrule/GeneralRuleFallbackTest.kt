@@ -28,18 +28,17 @@ import kotlin.test.assertEquals
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
-class GeneralRuleMatchCountTest {
+class GeneralRuleFallbackTest {
     @Test
-    fun givenEmptyCache_whenInitializingFallbackAndUpdatingCounts_thenPersistsRulesAndCounts() = runTest {
+    fun givenEmptyCache_whenInitializingFallback_thenPersistsRules() = runTest {
         val database = Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), GeneralRuleDatabase::class.java).build()
         try {
             val dao = database.generalRuleDao()
             val fallbackRule = GeneralRuleEntity(7, "Fallback rule", searchKeyword = listOf("sdk"))
 
             assertEquals(listOf(fallbackRule), dao.getOrInitializeGeneralRules(listOf(fallbackRule)))
-            dao.updateMatchedAppCounts(mapOf(7 to 3))
 
-            assertEquals(listOf(fallbackRule.copy(matchedAppCount = 3)), dao.getGeneralRuleEntities().first())
+            assertEquals(listOf(fallbackRule), dao.getGeneralRuleEntities().first())
         } finally {
             database.close()
         }
@@ -50,7 +49,7 @@ class GeneralRuleMatchCountTest {
         val database = Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), GeneralRuleDatabase::class.java).build()
         try {
             val dao = database.generalRuleDao()
-            val currentRule = GeneralRuleEntity(1, "Current rule", searchKeyword = listOf("current.sdk"), matchedAppCount = 5)
+            val currentRule = GeneralRuleEntity(1, "Current rule", searchKeyword = listOf("current.sdk"))
             val deletedRule = GeneralRuleEntity(2, "Deleted rule")
             dao.upsertGeneralRules(listOf(currentRule, deletedRule))
             dao.delete(deletedRule)
@@ -77,23 +76,6 @@ class GeneralRuleMatchCountTest {
 
             assertEquals(listOf(firstRule, secondRule), rules)
             assertEquals(listOf(firstRule, secondRule), dao.getGeneralRuleEntities().first())
-        } finally {
-            database.close()
-        }
-    }
-
-    @Test
-    fun givenUpdatedMetadataAndDeletedRules_whenUpdatingCounts_thenPreservesMetadataAndDoesNotRecreateRules() = runTest {
-        val database = Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), GeneralRuleDatabase::class.java).build()
-        try {
-            val dao = database.generalRuleDao()
-            val first = GeneralRuleEntity(1, "New name", searchKeyword = listOf("new.keyword"), website = "https://example.com")
-            val second = GeneralRuleEntity(2, "Unchanged", matchedAppCount = 3)
-            dao.upsertGeneralRules(listOf(first, second))
-
-            dao.updateMatchedAppCounts(mapOf(1 to 5, 2 to 3, 99 to 10))
-
-            assertEquals(listOf(first.copy(matchedAppCount = 5), second), dao.getGeneralRuleEntities().first())
         } finally {
             database.close()
         }

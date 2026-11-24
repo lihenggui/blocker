@@ -29,5 +29,6 @@ data class GeneralRule(
     val sideEffect: String? = null,
     val website: String? = null,
     val contributors: List<String> = listOf(),
+    /** The apps of one user the rule matches, as the rule search counts them; 0 as the repository reads the rule. */
     val matchedAppCount: Int = 0,
 )

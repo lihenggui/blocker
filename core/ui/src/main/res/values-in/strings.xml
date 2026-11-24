@@ -143,6 +143,8 @@
     <string name="core_ui_clear_cache_failed">Tidak dapat menghapus cache %1$s</string>
     <string name="core_ui_clear_data_failed">Tidak dapat menghapus data %1$s</string>
     <string name="core_ui_uninstall_app_failed">Tidak dapat mencopot pemasangan %1$s</string>
+    <string name="core_ui_launch_failed">Tidak dapat membuka %1$s</string>
+    <string name="core_ui_stop_failed">Tidak dapat menghentikan %1$s</string>
     <string name="core_ui_reason_no_access">Berikan akses root atau Shizuku ke Blocker, lalu coba lagi.</string>
     <string name="core_ui_unknown">Tidakk tahu</string>
     <string name="core_ui_grant_access">Berikan akses</string>

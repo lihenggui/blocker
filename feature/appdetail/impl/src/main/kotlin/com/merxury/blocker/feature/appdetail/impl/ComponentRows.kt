@@ -19,13 +19,7 @@ package com.merxury.blocker.feature.appdetail.impl
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.component.Availability
-import com.merxury.blocker.core.model.component.ComponentId
-import com.merxury.blocker.core.model.component.ComponentStatus
-import com.merxury.blocker.core.model.component.IfwBlock
-import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
@@ -33,24 +27,11 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.component.isSwitchOn
+import com.merxury.blocker.core.ui.component.ComponentRow
 import java.io.File
 
 /** The app a detail screen shows: [packageName] for [userId], or for the user Blocker runs in when null. */
 internal fun SelectedUserRepository.appKeyOf(packageName: String, userId: Int?): AppKey = AppKey(packageName, userId?.let(::UserId) ?: ownUser)
-
-/**
- * The row for [this] component, from what the repository holds and nothing else.
- *
- * @param running the running services of the app, or null when they cannot be read
- */
-internal fun ComponentStatus.toRow(description: String?, running: Set<ComponentId>?): ComponentRow = ComponentRow(
-    id = declaration.id,
-    type = declaration.type,
-    enabled = isSwitchOn,
-    isRunning = running?.contains(declaration.id) == true,
-    description = description,
-)
 
 /** [rows] by type, each sorted as the user chose, running services first. */
 internal fun appComponents(rows: List<ComponentRow>, preferences: UserPreferenceData): AppComponents {

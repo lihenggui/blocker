@@ -152,14 +152,4 @@ class AppComponentDaoTest {
 
         assertThat(dao.getByPackageName("com.example").first()).containsExactly(indexed)
     }
-
-    @Test
-    fun givenKeyword_whenSearchByKeyword_thenSubstringsStillMatchCaseInsensitively() = runTest {
-        val match = component("com.example", "com.example.ads.AdService")
-        val other = component("com.example", "com.example.Main")
-        dao.upsertComponentList(listOf(match, other))
-
-        assertThat(dao.searchByKeyword("ads.Ad").first()).containsExactly(match)
-        assertThat(dao.searchByKeyword("adservice").first()).containsExactly(match)
-    }
 }

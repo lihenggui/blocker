@@ -65,8 +65,6 @@
     <string name="feature_appdetail_api_read_manifest_unreadable">Không đọc được danh sách thành phần của ứng dụng.</string>
     <string name="feature_appdetail_api_read_no_answer">Dịch vụ hệ thống không phản hồi. Hãy thử lại.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">Không đọc được tệp quy tắc Intent Firewall của ứng dụng. Tệp có thể đã bị hỏng.</string>
-    <string name="feature_appdetail_api_launch_failed">Không thể mở %1$s</string>
-    <string name="feature_appdetail_api_stop_failed">Không thể dừng %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker không kiểm tra được quyền root hoặc Shizuku nên không thể đọc ứng dụng này. Hãy cấp quyền để thử lại.</string>
     <string name="feature_appdetail_api_profile_personal">Hồ sơ cá nhân</string>
     <string name="feature_appdetail_api_profile_work">Hồ sơ công việc</string>

@@ -67,8 +67,6 @@
     <string name="feature_appdetail_api_read_manifest_unreadable">The app\'s component list couldn\'t be read.</string>
     <string name="feature_appdetail_api_read_no_answer">The system service didn\'t answer. Try again.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">The app\'s Intent Firewall rule file can\'t be read. It may be damaged.</string>
-    <string name="feature_appdetail_api_launch_failed">Couldn\'t launch %1$s</string>
-    <string name="feature_appdetail_api_stop_failed">Couldn\'t stop %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker couldn\'t check its root or Shizuku access, so it can\'t read this app. Grant access to try again.</string>
     <string name="feature_appdetail_api_profile_personal">Personal profile</string>
     <string name="feature_appdetail_api_profile_work">Work profile</string>

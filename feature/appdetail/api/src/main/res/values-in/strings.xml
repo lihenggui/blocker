@@ -51,8 +51,6 @@
     <string name="feature_appdetail_api_read_manifest_unreadable">Daftar komponen aplikasi tidak dapat dibaca.</string>
     <string name="feature_appdetail_api_read_no_answer">Layanan sistem tidak merespons. Coba lagi.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">File aturan Intent Firewall aplikasi tidak dapat dibaca. File mungkin rusak.</string>
-    <string name="feature_appdetail_api_launch_failed">Tidak dapat membuka %1$s</string>
-    <string name="feature_appdetail_api_stop_failed">Tidak dapat menghentikan %1$s</string>
     <string name="feature_appdetail_api_access_not_checked">Blocker tidak dapat memeriksa akses root atau Shizuku-nya, jadi tidak dapat membaca aplikasi ini. Berikan akses untuk mencoba lagi.</string>
     <string name="feature_appdetail_api_profile_personal">Profil pribadi</string>
     <string name="feature_appdetail_api_profile_work">Profil kerja</string>

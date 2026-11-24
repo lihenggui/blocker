@@ -35,8 +35,6 @@ internal class FakeAppComponentDao : AppComponentDao {
 
     private fun put(entities: Collection<AppComponentEntity>) = rows.update { current -> current + entities.associateBy { it.key() } }
 
-    override fun getAll(): Flow<List<AppComponentEntity>> = rows.map { it.values.toList() }
-
     override suspend fun insert(vararg appComponentEntities: AppComponentEntity) = put(appComponentEntities.toList())
 
     override suspend fun update(appComponentEntity: AppComponentEntity): Int {
@@ -78,6 +76,4 @@ internal class FakeAppComponentDao : AppComponentDao {
     override fun getByName(name: String): Flow<AppComponentEntity?> = rows.map { all -> all.values.firstOrNull { it.componentName == name } }
 
     override suspend fun upsertComponentList(componentList: List<AppComponentEntity>) = put(componentList)
-
-    override fun searchByKeyword(searchKeyword: String): Flow<List<AppComponentEntity>> = rows.map { all -> all.values.filter { it.componentName.contains(searchKeyword) } }
 }

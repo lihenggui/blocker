@@ -20,8 +20,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.FontScale
@@ -29,14 +27,9 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
-import com.merxury.blocker.core.domain.model.MatchedItem
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
-import com.merxury.blocker.core.ui.collapseList.CollapsibleItem
+import com.merxury.blocker.core.ui.collapseList.CollapsibleHeader
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -102,29 +95,14 @@ class CollapseItemScreenshotTests {
         } else {
             "Blocker"
         }
-        val componentList = remember {
-            mutableStateListOf(
-                ComponentInfo(
-                    packageName = "com.merxury.example",
-                    name = "com.merxury.example.MainActivity",
-                    simpleName = "MainActivity",
-                    pmBlocked = true,
-                    type = ACTIVITY,
-                ),
-                ComponentInfo(
-                    packageName = "com.merxury.example",
-                    name = "com.merxury.example.provider",
-                    type = PROVIDER,
-                ),
-            )
-        }
-        val matchedItem = MatchedItem(
-            header = MatchedHeaderData(
-                title = label,
-                uniqueId = "com.merxury.example",
-            ),
-            componentList = componentList,
+        // MainActivity is blocked and the provider is enabled.
+        CollapsibleHeader(
+            title = label,
+            icon = null,
+            matchedCount = 2,
+            blockedCount = 1,
+            enabledCount = 1,
+            expanded = isLongName,
         )
-        CollapsibleItem(matchedItem = matchedItem, expanded = isLongName)
     }
 }

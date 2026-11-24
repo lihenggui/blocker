@@ -27,6 +27,7 @@ import androidx.work.ExistingWorkPolicy.KEEP
 import androidx.work.WorkManager
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import com.merxury.blocker.core.data.device.DeviceUserMonitor
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
@@ -88,6 +89,9 @@ class BlockerApplication :
     @Inject
     lateinit var legacyAppTables: LegacyAppTables
 
+    @Inject
+    lateinit var deviceUserMonitor: DeviceUserMonitor
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -123,6 +127,7 @@ class BlockerApplication :
 
     private fun initAppSettings() {
         applicationScope.launch { analyticsCollectionObserver.observe() }
+        deviceUserMonitor.start()
         // Before the first scan of a new install fills the old component list, which would
         // otherwise be taken for blocks of an earlier version.
         applicationScope.launch {

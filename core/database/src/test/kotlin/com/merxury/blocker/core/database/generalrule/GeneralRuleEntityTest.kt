@@ -29,7 +29,6 @@ class GeneralRuleEntityTest {
             name = "Rule",
             networkSignature = listOf("api.example.com", "ads.example.com"),
             website = "https://example.com",
-            matchedAppCount = 7,
         )
 
         val model = entity.asExternalModel()
@@ -46,7 +45,6 @@ class GeneralRuleEntityTest {
             name = "Rule",
             networkSignature = listOf("api.example.com", "ads.example.com"),
             website = "https://example.com",
-            matchedAppCount = 7,
         )
 
         val entity = model.fromExternalModel()

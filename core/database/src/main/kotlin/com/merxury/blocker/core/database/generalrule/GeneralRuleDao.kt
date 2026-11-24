@@ -40,14 +40,6 @@ interface GeneralRuleDao {
         return initialRules
     }
 
-    @Query("UPDATE general_rules SET matchedAppCount = :count WHERE id = :id AND matchedAppCount != :count")
-    suspend fun updateMatchedAppCount(id: Int, count: Int)
-
-    @Transaction
-    suspend fun updateMatchedAppCounts(counts: Map<Int, Int>) {
-        counts.forEach { (id, count) -> updateMatchedAppCount(id, count) }
-    }
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(generalRule: GeneralRuleEntity)
 

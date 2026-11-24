@@ -19,7 +19,9 @@ package com.merxury.blocker.core.ui.previewparameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.ui.component.ComponentRow
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterData.componentList
 
 class ComponentListPreviewParameterProvider : PreviewParameterProvider<List<ComponentInfo>> {
@@ -54,5 +56,16 @@ object ComponentListPreviewParameterData {
             packageName = "com.merxury.blocker",
             type = RECEIVER,
         ),
+    )
+}
+
+/** The rows of [ComponentListPreviewParameterData.componentList], with the same names and states. */
+fun previewComponentRows(): List<ComponentRow> = componentList.map {
+    ComponentRow(
+        id = ComponentId(it.packageName, it.name),
+        type = it.type,
+        enabled = it.enabled(),
+        isRunning = it.isRunning,
+        description = it.description,
     )
 }
