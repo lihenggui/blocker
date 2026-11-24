@@ -25,8 +25,7 @@ import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.core.ui.control.ComponentAction
-import com.merxury.blocker.core.ui.control.ComponentActionFailed
+import com.merxury.blocker.core.ui.control.ActivityLaunchFailed
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
@@ -93,6 +92,8 @@ class RuleDetailViewModelTest {
         // Off when PackageManager, the firewall or the manifest blocks it; unreadable firewall rules count as none.
         assertThat(alpha.rows.associate { it.id.simpleName to it.enabled })
             .containsExactly("Ifw", false, "Pm", false, "Shipped", false, "Unreadable", true)
+        // As before, which services run is not read, so no row shows one running.
+        assertThat(apps.flatMap { it.rows }.none { it.isRunning }).isTrue()
     }
 
     @Test
@@ -206,11 +207,9 @@ class RuleDetailViewModelTest {
         settle()
 
         viewModel.launchActivity(ComponentKey(id("com.w", "Work"), WORK))
-        viewModel.stopService(ComponentKey(id("com.w", "Work"), WORK))
         settle()
 
         assertThat(fixture.appControl.calls.single()).contains("UserId(value=10)")
-        assertThat(fixture.serviceControl.stopped.single().userId).isEqualTo(WORK)
         assertThat(viewModel.uiState.value.actionFailure).isNull()
     }
 
@@ -222,21 +221,10 @@ class RuleDetailViewModelTest {
         viewModel.launchActivity(ComponentKey(id("com.a", "Pm"), OWNER))
         settle()
 
-        assertThat(viewModel.uiState.value.actionFailure).isEqualTo(ComponentActionFailed(ComponentAction.LAUNCH_ACTIVITY, "Pm", needsAccess = true))
+        assertThat(viewModel.uiState.value.actionFailure).isEqualTo(ActivityLaunchFailed("Pm", needsAccess = true))
         viewModel.onActionFailureShown()
         settle()
         assertThat(viewModel.uiState.value.actionFailure).isNull()
-    }
-
-    @Test
-    fun givenNotPermitted_whenAServiceCannotBeStopped_thenTellsItWithoutTheAccessHint() = runTest {
-        fixture.serviceControl.stopFailure = CallFailure.NotPermitted("shell")
-        show()
-
-        viewModel.stopService(ComponentKey(id("com.b", "Open"), OWNER))
-        settle()
-
-        assertThat(viewModel.uiState.value.actionFailure).isEqualTo(ComponentActionFailed(ComponentAction.STOP_SERVICE, "Open", needsAccess = false))
     }
 
     @Test

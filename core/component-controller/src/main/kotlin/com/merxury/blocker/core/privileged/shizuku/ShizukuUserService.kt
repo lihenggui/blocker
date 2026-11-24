@@ -265,8 +265,8 @@ internal class ShizukuUserService(
         try {
             connector.unbind(connection, stop)
         } catch (e: RuntimeException) {
-            // Shizuku itself may be gone, which ends the service too.
-            Timber.w(e, "Cannot unbind the Shizuku user service (stop=$stop)")
+            // Expected when Shizuku itself is gone, which ends the service too.
+            Timber.d("Cannot unbind the Shizuku user service (stop=$stop): ${e.message}")
         }
     }
 }

@@ -24,7 +24,7 @@ import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.ui.component.ComponentRow
-import com.merxury.blocker.core.ui.control.ComponentActionFailed
+import com.merxury.blocker.core.ui.control.ActivityLaunchFailed
 import com.merxury.blocker.core.ui.control.QueuedControlMessage
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
@@ -42,7 +42,7 @@ import kotlin.time.Instant
  * another screen changes; their switches ignore taps
  * @property batch the progress of the batch running for the rule, or null
  * @property messages outcomes to tell, oldest first; see [RuleDetailViewModel.onMessageShown]
- * @property actionFailure a launch or stop that failed, to tell once; see
+ * @property actionFailure a launch of an activity that failed, to tell once; see
  * [RuleDetailViewModel.onActionFailureShown]
  */
 data class RuleDetailUiState(
@@ -53,7 +53,7 @@ data class RuleDetailUiState(
     val inFlight: Set<ComponentId> = emptySet(),
     val batch: ProcessingProgress? = null,
     val messages: List<QueuedControlMessage> = emptyList(),
-    val actionFailure: ComponentActionFailed? = null,
+    val actionFailure: ActivityLaunchFailed? = null,
 ) {
     /** The sort and batch actions on the matched apps, which the description tab does not offer. */
     val appBarUiState: AppBarUiState

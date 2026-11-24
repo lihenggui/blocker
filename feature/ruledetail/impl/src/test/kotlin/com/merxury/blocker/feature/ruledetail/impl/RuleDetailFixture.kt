@@ -42,7 +42,6 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.controller.FakeAppControl
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
-import com.merxury.blocker.core.testing.controller.FakeServiceControl
 import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
@@ -136,7 +135,6 @@ internal class RuleDetailFixture(dispatcher: CoroutineDispatcher) {
     val rules = TestGeneralRuleRepository().apply { sendRuleList(listOf(TRACKER)) }
     val userData = TestUserDataRepository().apply { sendUserData(defaultUserData) }
     val appControl = FakeAppControl()
-    val serviceControl = FakeServiceControl()
     val analytics = TestAnalyticsHelper()
 
     /** The application's scope, which batches, indexing and matching run in. */
@@ -157,7 +155,6 @@ internal class RuleDetailFixture(dispatcher: CoroutineDispatcher) {
         controlComponent = ControlComponentUseCase(control, layers),
         layersFor = layers,
         appControl = appControl,
-        serviceControl = serviceControl,
         channel = channel,
         userDataRepository = userData,
         analyticsHelper = analytics,

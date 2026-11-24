@@ -38,6 +38,7 @@ import androidx.metrics.performance.JankStats
 import com.merxury.blocker.MainActivityUiState.Loading
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
+import com.merxury.blocker.core.data.device.DeviceUserMonitor
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
@@ -76,6 +77,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var analyticsHelper: AnalyticsHelper
+
+    @Inject
+    lateinit var deviceUserMonitor: DeviceUserMonitor
 
     val viewModel: MainActivityViewModel by viewModels()
 
@@ -170,6 +174,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // A work profile may have been added or removed while Blocker was in the background.
+        deviceUserMonitor.onForeground()
     }
 
     override fun onResume() {
