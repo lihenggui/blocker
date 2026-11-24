@@ -82,7 +82,6 @@
         <item quantity="other">Opération terminée. %1$d composants n\'ont pas pu être modifiés</item>
     </plurals>
     <string name="core_ui_application_with_count">Application (%1$d)</string>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Voulez-vous désinstaller cette application ?</string>
     <string name="core_ui_found">Correspondance</string>
     <string name="core_ui_not_found">Pas de correspondance</string>

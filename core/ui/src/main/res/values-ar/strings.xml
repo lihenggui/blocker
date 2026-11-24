@@ -30,7 +30,6 @@
     <string name="core_ui_close">اغلاق</string>
     <string name="core_ui_select_all">تحديد الكل</string>
     <string name="core_ui_enable_selected">تمكين الكل</string>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">هل تريد مسح بيانات هذا التطبيق؟</string>
     <string name="core_ui_found">موجود</string>
     <string name="core_ui_not_found">ليس موجودا</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">هل تريد إلغاء تثبيت هذا التطبيق؟</string>

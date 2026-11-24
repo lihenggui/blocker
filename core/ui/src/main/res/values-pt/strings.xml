@@ -68,7 +68,6 @@
         <item quantity="many">Operação concluída. Não foi possível alterar %1$d componentes</item>
         <item quantity="other">Operação concluída. Não foi possível alterar %1$d componentes</item>
     </plurals>
-    <string name="core_ui_do_you_want_to_clear_data_of_this_app">Deseja limpar os dados deste app?</string>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Deseja desinstalar este app?</string>
     <string name="core_ui_found">Encontrado</string>
     <string name="core_ui_not_found">Não encontrado</string>
