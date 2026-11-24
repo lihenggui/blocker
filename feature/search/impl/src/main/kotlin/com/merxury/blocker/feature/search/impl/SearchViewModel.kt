@@ -33,7 +33,6 @@ import com.merxury.blocker.core.domain.applist.ReadRunningPackagesUseCase
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner.Companion.BATCH_LIMIT
-import com.merxury.blocker.core.domain.control.ControlComponentUseCase
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
@@ -54,7 +53,6 @@ import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.applist.AppActionFailed
 import com.merxury.blocker.core.ui.applist.appRows
 import com.merxury.blocker.core.ui.control.batchSummary
-import com.merxury.blocker.core.ui.control.toMessage
 import com.merxury.blocker.core.ui.profile.toProfileTab
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -98,7 +96,6 @@ class SearchViewModel @Inject internal constructor(
     private val componentStatuses: ComponentStatusRepository,
     private val componentIndex: ComponentIndex,
     private val batches: ComponentBatchRunner,
-    private val controlComponent: ControlComponentUseCase,
     private val layersFor: GetControlLayersUseCase,
     private val searchRules: SearchGeneralRuleUseCase,
     private val performAppAction: PerformAppActionUseCase,
@@ -121,9 +118,6 @@ class SearchViewModel @Inject internal constructor(
     private val queued = MutableStateFlow<List<QueuedSearchMessage>>(emptyList())
     private var nextMessageId = 0L
 
-    // Components whose switch was turned here and whose change has not ended.
-    private val singles = MutableStateFlow<Set<ComponentKey>>(emptySet())
-
     // Users whose apps this screen has read from the system.
     private val refreshedUsers = mutableSetOf<UserId>()
 
@@ -134,9 +128,9 @@ class SearchViewModel @Inject internal constructor(
         .debounce { if (it.isEmpty()) 0L else TYPING_PAUSE_MILLIS }
         .distinctUntilChanged()
 
-    // The selected user's components changing now: by a switch here, or a batch of any screen.
-    private val inFlight: Flow<Set<ComponentId>> = combine(selectedUsers.selectedUser, batches.inFlight, singles) { user, keys, singles ->
-        (keys + singles).filter { it.userId == user }.mapTo(mutableSetOf()) { it.id }
+    // The selected user's components that a batch of any screen changes now.
+    private val inFlight: Flow<Set<ComponentId>> = combine(selectedUsers.selectedUser, batches.inFlight) { user, keys ->
+        keys.filter { it.userId == user }.mapTo(mutableSetOf()) { it.id }
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -275,26 +269,6 @@ class SearchViewModel @Inject internal constructor(
         readRunning(app.userId)
     }
 
-    /**
-     * Turns one component's switch: on enables it through every layer, off blocks it through the
-     * layers of the controller type, as in its app's detail screen. Ignored while a change of it
-     * runs; the switch moves once the system shows the change.
-     */
-    fun setEnabled(component: ComponentId, enabled: Boolean) {
-        val key = ComponentKey(component, selectedUsers.selectedUser.value)
-        if (key in singles.value || batches.isInFlight(key)) return
-        singles.update { it + key }
-        val goal = if (enabled) ControlGoal.ENABLE else ControlGoal.BLOCK
-        viewModelScope.launch {
-            try {
-                analyticsHelper.logSwitchComponentClicked(enabled)
-                controlComponent(key, goal)?.toMessage(goal)?.let { tell(SearchMessage.Control(it)) }
-            } finally {
-                singles.update { it - key }
-            }
-        }
-    }
-
     fun setSelectionMode(enabled: Boolean) {
         selection.value = if (enabled) currentSelection().copy(active = true) else Selection()
     }
@@ -397,8 +371,7 @@ class SearchViewModel @Inject internal constructor(
         componentStatuses.search(user, keyword),
         installedApps.apps(user),
         userDataRepository.userData.map { it.showSystemApps }.distinctUntilChanged(),
-        inFlight,
-    ) { found, apps, showSystemApps, inFlight -> componentGroups(found, apps, showSystemApps, self, inFlight) }
+    ) { found, apps, showSystemApps -> componentGroups(found, apps, showSystemApps, self) }
 
     /** Components chosen in selection mode, of the [user] selected when the selection began. */
     private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet(), val user: UserId? = null)

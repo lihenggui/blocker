@@ -41,8 +41,8 @@ internal object SearchStates {
             label = "Chat",
             icon = ApkIcon("com.example.chat", apkPath = null, versionCode = 1, uid = null),
             components = listOf(
-                FoundComponent(id("com.example.chat", "PushReceiver"), ComponentType.RECEIVER, enabled = false),
-                FoundComponent(id("com.example.chat", "PushService"), ComponentType.SERVICE, enabled = true),
+                FoundComponent(id("com.example.chat", "PushReceiver"), ComponentType.RECEIVER),
+                FoundComponent(id("com.example.chat", "PushService"), ComponentType.SERVICE),
             ),
         ),
         ComponentGroup(
@@ -50,8 +50,8 @@ internal object SearchStates {
             label = "Mail",
             icon = ApkIcon("com.example.mail", apkPath = null, versionCode = 1, uid = null),
             components = listOf(
-                FoundComponent(id("com.example.mail", "PushActivity"), ComponentType.ACTIVITY, enabled = true),
-                FoundComponent(id("com.example.mail", "PushProvider"), ComponentType.PROVIDER, enabled = false),
+                FoundComponent(id("com.example.mail", "PushActivity"), ComponentType.ACTIVITY),
+                FoundComponent(id("com.example.mail", "PushProvider"), ComponentType.PROVIDER),
             ),
         ),
     )
@@ -87,11 +87,8 @@ internal object SearchStates {
         selected = groups().flatMap { group -> group.components.map { it.id } }.toSet(),
     )
 
-    /** A batch over the first app's components, which show as changing. */
-    fun batchRunning(): SearchUiState {
-        val groups = groups().mapIndexed { index, group -> if (index == 0) group.copy(components = group.components.map { it.copy(inFlight = true) }) else group }
-        return shown(SearchTab.COMPONENTS, loaded().copy(components = groups)).copy(batch = ProcessingProgress(current = 200, total = 450, isEnabling = false))
-    }
+    /** A batch of the selection, part done. */
+    fun batchRunning() = shown(SearchTab.COMPONENTS).copy(batch = ProcessingProgress(current = 200, total = 450, isEnabling = false))
 
     fun indexing() = shown(SearchTab.COMPONENTS).copy(indexing = IndexingProgress(done = 34, total = 212))
 

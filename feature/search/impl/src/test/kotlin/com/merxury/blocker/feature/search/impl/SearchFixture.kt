@@ -22,7 +22,6 @@ import com.merxury.blocker.core.domain.applist.CountServicesUseCase
 import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
 import com.merxury.blocker.core.domain.applist.ReadRunningPackagesUseCase
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
-import com.merxury.blocker.core.domain.control.ControlComponentUseCase
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.model.ComponentType
@@ -144,7 +143,6 @@ internal class SearchFixture(dispatcher: CoroutineDispatcher) {
         componentStatuses = components,
         componentIndex = index,
         batches = batches,
-        controlComponent = ControlComponentUseCase(control, GetControlLayersUseCase(userData)),
         layersFor = GetControlLayersUseCase(userData),
         searchRules = SearchGeneralRuleUseCase(rules, userData, File("/files"), "rules"),
         performAppAction = PerformAppActionUseCase(installedApps, appControl, channel),

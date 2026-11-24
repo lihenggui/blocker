@@ -159,11 +159,7 @@ private fun rememberSearchActions(
                 val tab = group.firstType?.tab ?: AppDetailTabs.Info
                 openApp(group.app.packageName, userIdOf(group.app.userId), tab, keyword())
             },
-            onOpenComponent = { component ->
-                openApp(component.id.packageName, userIdOf(currentState.selectedUser), component.type.tab, keyword())
-            },
             onSelectionModeChange = viewModel::setSelectionMode,
-            onSwitch = { component, enabled -> viewModel.setEnabled(component.id, enabled) },
             onToggleSelectedApp = viewModel::toggleSelectedApp,
             onRefreshComponents = viewModel::refreshComponents,
             onOpenRule = { id -> openRule(id) },

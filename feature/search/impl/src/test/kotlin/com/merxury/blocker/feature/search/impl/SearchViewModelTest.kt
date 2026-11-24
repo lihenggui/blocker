@@ -170,7 +170,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun givenComponentsOfTwoApps_whenSearched_thenGroupedByAppWithTheirSwitches() = runTest {
+    fun givenComponentsOfTwoApps_whenSearched_thenGroupedByApp() = runTest {
         fixture.installedApps.sendApps(listOf(installedApp("com.a", label = "A"), installedApp("com.b", label = "B")))
         fixture.components.sendComponents(
             OWNER,
@@ -190,9 +190,8 @@ class SearchViewModelTest {
         assertThat(groups.map { it.label }).containsExactly("A", "B").inOrder()
         val a = groups.first().components.associateBy { it.id.simpleName }
         assertThat(a.keys).containsExactly("PushActivity", "PushProvider", "PushReceiver")
-        assertThat(a.mapValues { it.value.enabled }).containsExactly("PushActivity", true, "PushProvider", true, "PushReceiver", false)
         assertThat(groups.first().firstType).isEqualTo(ComponentType.RECEIVER)
-        assertThat(groups.last().components.single().enabled).isFalse()
+        assertThat(groups.last().components.single().type).isEqualTo(ComponentType.SERVICE)
     }
 
     @Test
@@ -305,108 +304,6 @@ class SearchViewModelTest {
         viewModel.countServices(AppKey("com.a", OWNER))
 
         assertThat(fixture.loaded().apps.single().services?.total).isEqualTo(1)
-    }
-
-    @Test
-    fun givenShellWithoutFirewallAccess_whenAStateIsUnknown_thenTheSwitchShowsWhatIsKnown() = runTest {
-        fixture.components.setFirewallReadable(false)
-        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
-        fixture.components.sendComponents(
-            OWNER,
-            listOf(
-                component("com.a", "PushReceiver", ifw = IfwBlock.UNKNOWN),
-                component("com.a", "PushService", type = ComponentType.SERVICE, pm = PmSetting.UNKNOWN),
-                component("com.a", "PushActivity", type = ComponentType.ACTIVITY, pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN),
-            ),
-        )
-        collectState()
-
-        searchNow("push")
-
-        val enabled = fixture.loaded().components.single().components.associate { it.id.simpleName to it.enabled }
-        assertThat(enabled).containsExactly("PushActivity", false, "PushReceiver", true, "PushService", true)
-    }
-
-    @Test
-    fun givenRunnableComponent_whenSwitchedOff_thenBlockedThroughTheControllerLayersWithoutAMessage() = runTest {
-        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW_PLUS_PM))
-        showPushReceiver()
-
-        viewModel.setEnabled(pushReceiver, enabled = false)
-        runCurrent()
-
-        val request = fixture.components.requests.single()
-        assertThat(request.goal).isEqualTo(ControlGoal.BLOCK)
-        assertThat(request.layers).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
-        assertThat(fixture.loaded().components.single().components.single().enabled).isFalse()
-        assertThat(viewModel.uiState.value.messages).isEmpty()
-    }
-
-    @Test
-    fun givenBlockedComponent_whenSwitchedOn_thenEnabledThroughEveryLayer() = runTest {
-        fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.PM))
-        showPushReceiver(pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED)
-
-        viewModel.setEnabled(pushReceiver, enabled = true)
-        runCurrent()
-
-        val request = fixture.components.requests.single()
-        assertThat(request.goal).isEqualTo(ControlGoal.ENABLE)
-        assertThat(request.layers).containsExactlyElementsIn(ControlLayer.entries)
-        assertThat(fixture.loaded().components.single().components.single().enabled).isTrue()
-    }
-
-    @Test
-    fun givenSwitchChanging_whenTurnedAgain_thenIgnoredAndShownInFlightUntilDone() = runTest {
-        fixture.control.gate = CompletableDeferred()
-        showPushReceiver()
-
-        viewModel.setEnabled(pushReceiver, enabled = false)
-        viewModel.setEnabled(pushReceiver, enabled = true)
-        runCurrent()
-        val found = fixture.loaded().components.single().components.single()
-        assertThat(found.inFlight).isTrue()
-        // No optimistic flip: the switch shows the state read until the change is read back.
-        assertThat(found.enabled).isTrue()
-
-        fixture.control.gate.complete(Unit)
-        runCurrent()
-
-        assertThat(fixture.components.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK)
-        assertThat(fixture.loaded().components.single().components.single().let { it.inFlight to it.enabled }).isEqualTo(false to false)
-    }
-
-    @Test
-    fun givenNoAccess_whenASwitchFails_thenToldWithTheAccessHint() = runTest {
-        fixture.components.controlEvents = { request ->
-            val outcomes = request.components.map { declaration ->
-                ComponentOutcome(
-                    key = ComponentKey(declaration.id, request.user),
-                    state = ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
-                    result = ControlResult.FAILED,
-                    failures = mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable),
-                )
-            }
-            listOf(ControlEvent.PackageDone("com.a", outcomes), ControlEvent.Finished(achieved = 0, partial = 0, failed = outcomes.size))
-        }
-        showPushReceiver()
-
-        viewModel.setEnabled(pushReceiver, enabled = false)
-        runCurrent()
-
-        assertThat(viewModel.uiState.value.messages.map { it.message })
-            .containsExactly(SearchMessage.Control(ControlMessage.ComponentNotChanged("PushReceiver", ControlGoal.BLOCK, needsAccess = true)))
-    }
-
-    private val pushReceiver = id("com.a", "PushReceiver")
-
-    private fun TestScope.showPushReceiver(pm: PmSetting = PmSetting.DEFAULT, ifw: IfwBlock = IfwBlock.NOT_BLOCKED) {
-        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
-        fixture.components.sendComponents(OWNER, listOf(component("com.a", "PushReceiver", pm = pm, ifw = ifw)))
-        collectState()
-        searchNow("push")
-        viewModel.selectTab(SearchTab.COMPONENTS)
-        runCurrent()
     }
 
     private companion object {

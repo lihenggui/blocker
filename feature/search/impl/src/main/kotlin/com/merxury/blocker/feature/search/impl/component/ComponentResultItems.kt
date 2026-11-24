@@ -59,7 +59,7 @@ import com.merxury.blocker.feature.search.impl.IndexingProgress
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun ComponentGroupHeader(
+internal fun ComponentGroupItem(
     group: ComponentGroup,
     selected: Boolean,
     isSelectionMode: Boolean,

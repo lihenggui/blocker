@@ -112,17 +112,10 @@ data class ComponentGroup(
     }
 }
 
-/**
- * One component found, with whether its switch shows on.
- *
- * @property enabled whether it can run, see [com.merxury.blocker.core.ui.component.isSwitchOn]
- * @property inFlight whether a change of it runs now, from any screen; its switch ignores taps
- */
+/** One component found, which its app's row counts by [type]. */
 data class FoundComponent(
     val id: ComponentId,
     val type: ComponentType,
-    val enabled: Boolean,
-    val inFlight: Boolean = false,
 )
 
 /**
@@ -145,6 +138,6 @@ sealed interface SearchMessage {
     /** An action on an app of the results failed. */
     data class AppFailed(val failure: AppActionFailed) : SearchMessage
 
-    /** A switch or a batch did not change every component it was asked to. */
+    /** A batch of the selection ended. */
     data class Control(val message: ControlMessage) : SearchMessage
 }

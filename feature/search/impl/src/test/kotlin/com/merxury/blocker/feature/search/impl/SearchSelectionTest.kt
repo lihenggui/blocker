@@ -159,8 +159,8 @@ class SearchSelectionTest {
         assertThat(request.components.map { it.id }).containsExactly(pushA, pushService, pushB)
         assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
         assertThat(viewModel.uiState.value.isSelectionMode).isFalse()
-        val found = fixture.loaded().components.flatMap { it.components }
-        assertThat(found.map { it.enabled }.toSet()).containsExactly(false)
+        val availability = fixture.components.allComponents(OWNER).first().map { it.availability }
+        assertThat(availability.all { it is Availability.Blocked }).isTrue()
         assertThat(fixture.analytics.hasLogged(AnalyticsEvent("search_screen_batch_operation_performed", listOf(Param("new_state", "false"))))).isTrue()
     }
 
@@ -212,7 +212,7 @@ class SearchSelectionTest {
     }
 
     @Test
-    fun givenBatchRunning_whenShown_thenItsComponentsAreInFlightAndTheActionsWait() = runTest {
+    fun givenBatchRunning_whenShown_thenItsProgressShowsAndTheActionsWait() = runTest {
         showPush()
         viewModel.setSelectionMode(true)
         viewModel.toggleSelectedApp(appA)
@@ -221,7 +221,7 @@ class SearchSelectionTest {
         runCurrent()
 
         assertThat(viewModel.uiState.value.batch).isNotNull()
-        assertThat(fixture.loaded().components.flatMap { it.components }.single { it.id == pushA }.inFlight).isTrue()
+        assertThat(viewModel.uiState.value.selectionActionsEnabled).isFalse()
         viewModel.blockSelected()
         runCurrent()
         assertThat(fixture.components.requests).isEmpty()
@@ -340,7 +340,7 @@ class SearchSelectionTest {
     }
 
     @Test
-    fun givenAppDetailBatchChangingASelectedComponent_whenShown_thenItIsInFlightAndTheSelectionWaits() = runTest {
+    fun givenAppDetailBatchChangingASelectedComponent_whenShown_thenTheSelectionWaits() = runTest {
         showPush()
         viewModel.setSelectionMode(true)
         viewModel.toggleSelectedApp(appA)
@@ -349,7 +349,6 @@ class SearchSelectionTest {
         val run = fixture.batches.reserve(BatchKey.App(AppKey("com.a", OWNER)), ControlGoal.BLOCK, listOf(pushA))!!
         runCurrent()
 
-        assertThat(fixture.loaded().components.flatMap { it.components }.single { it.id == pushA }.inFlight).isTrue()
         assertThat(viewModel.uiState.value.selectionActionsEnabled).isFalse()
         fixture.batches.release(run)
         runCurrent()

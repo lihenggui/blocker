@@ -64,8 +64,7 @@ import com.merxury.blocker.core.ui.R.string
 
 /**
  * One component: its names and description, a running marker for a running service, and a switch
- * that is on while the component can run. A long press opens the menu of the component unless
- * [onLongClick] replaces it.
+ * that is on while the component can run. A long press opens the menu of the component.
  *
  * @param inFlight whether a change of the component runs; the switch then ignores taps
  * @param onSwitchClick asked to turn the switch to the state given
@@ -82,7 +81,6 @@ fun ComponentListItem(
     description: String? = null,
     inFlight: Boolean = false,
     onClick: () -> Unit = { },
-    onLongClick: (() -> Unit)? = null,
     onStopServiceClick: () -> Unit = { },
     onLaunchActivityClick: () -> Unit = { },
     onCopyNameClick: () -> Unit = { },
@@ -108,8 +106,8 @@ fun ComponentListItem(
             .combinedClickable(
                 onClick = { if (isSelectedMode) onSelectionToggle() else onClick() },
                 onLongClick = {
+                    expanded = true
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    if (onLongClick != null) onLongClick() else expanded = true
                 },
             )
             .pointerInteropFilter {

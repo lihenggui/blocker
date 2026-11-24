@@ -17,28 +17,24 @@
 package com.merxury.blocker.feature.search.impl
 
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.coil.ApkIcon
-import com.merxury.blocker.core.ui.component.isSwitchOn
 
 /**
- * The components found for one user, grouped by app in the order of their package names, each
- * with whether its switch shows on. Like the apps, system apps only show when the user shows them,
+ * The components found for one user, grouped by app in the order of their package names. Like the
+ * apps, system apps only show when the user shows them,
  * and Blocker in the user it runs in is left out: changing it from here could only break the app
  * in use. Components of an app that is not cached as installed are left out.
  *
  * @param apps the cached apps of the user the components were found for
- * @param inFlight the components whose change runs now
  */
 internal fun componentGroups(
     found: List<ComponentStatus>,
     apps: List<InstalledApp>,
     showSystemApps: Boolean,
     self: AppKey,
-    inFlight: Set<ComponentId>,
 ): List<ComponentGroup> {
     val installed = apps.associateBy { it.key.packageName }
     return found
@@ -51,7 +47,7 @@ internal fun componentGroups(
                 app = app.key,
                 label = app.label,
                 icon = ApkIcon(packageName, app.apkPath, app.versionCode, app.uid),
-                components = statuses.map { FoundComponent(it.declaration.id, it.declaration.type, it.isSwitchOn, it.declaration.id in inFlight) },
+                components = statuses.map { FoundComponent(it.declaration.id, it.declaration.type) },
             )
         }
 }
