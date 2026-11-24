@@ -33,7 +33,6 @@ import com.merxury.blocker.core.wake.proto.WakeStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -204,20 +203,27 @@ class WakeDeviceTest {
         }
     }
 
+    /**
+     * Installs the config through the instrumentation's shell, whose uid owns it and logs the
+     * breadcrumbs: the shell, or root where adbd runs as root. The lease matches breadcrumbs of
+     * the owner only, so the config must name that uid.
+     */
     @Test
-    fun givenActiveMetrics_whenLeaseExpires_thenRecordingStopsUntilRenewal() = runTest {
+    fun givenActiveMetrics_whenLeaseExpires_thenRecordingStopsUntilRenewal() = runBlocking<Unit> {
         assumeTrue(arguments.getString("wakeDeviceTest") != null)
         assumeTrue(Build.VERSION.SDK_INT >= 31)
         val ui = instrumentation.uiAutomation
         val id = WakeStatsCodec.configId(Process.myUid(), 0) xor 0x200000000000L
         val label = WakeStatsCodec.leaseLabel(id)
-        val config = WakeStats.Config.parseFrom(WakeStatsCodec.config(id, 2000)).toBuilder()
+        val owner = shellText("id -u").toInt()
+        val config = WakeStats.Config.parseFrom(WakeStatsCodec.config(id, owner)).toBuilder()
         for ((index, metric) in config.metricActivationList.withIndex()) {
             config.setMetricActivation(index, metric.toBuilder().setEventActivation(0, metric.getEventActivation(0).toBuilder().setTtlSeconds(8)))
         }
         fun active(expected: Boolean): Boolean {
             val fd = ui.executeShellCommand("cmd stats dump-report $id --keep_data --include_current_bucket --proto")
             val report = ParcelFileDescriptor.AutoCloseInputStream(fd).use { WakeStats.ReportList.parseFrom(it) }
+            check(report.configKey.uid == owner) { "The config is owned by ${report.configKey.uid}, not $owner" }
             val metrics = report.reportsList.lastOrNull()?.metricsList.orEmpty()
             return metrics.size == config.eventMetricCount && metrics.all { it.hasIsActive() && it.isActive == expected }
         }
