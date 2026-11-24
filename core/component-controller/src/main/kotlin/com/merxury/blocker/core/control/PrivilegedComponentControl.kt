@@ -103,7 +103,8 @@ internal class PrivilegedComponentControl @Inject constructor(
      * the package's lock. Once a change is sent, the rest runs even if the caller is cancelled.
      */
     private suspend fun controlPackage(app: AppKey, components: List<ComponentDeclaration>, request: ControlRequest): List<ComponentOutcome> {
-        val layers = components.associate { it.id to it.layersFor(request.layers) }
+        val identity = (channel.state.value as? ChannelState.Ready)?.identity
+        val layers = components.associate { it.id to it.layersFor(request.layers).reachableBy(request.goal, identity) }
         val before = readState(app, components)
         val pmChanges = components.mapNotNull { component ->
             component.pmChange(request.goal, layers.getValue(component.id), before.getValue(component.id).pm)?.let { component.id to it }
@@ -127,20 +128,14 @@ internal class PrivilegedComponentControl @Inject constructor(
         }
     }
 
+    /**
+     * Sends the changes. A failure is recorded only for a layer of a component whose change was
+     * attempted and did not complete: a call or a store that throws fails only what it was sent.
+     */
     private suspend fun change(app: AppKey, pmChanges: List<Pair<ComponentId, PmSetting>>, ifwChanges: Map<ComponentDeclaration, Boolean>, failures: Failures) {
         val identity = (channel.state.value as? ChannelState.Ready)?.identity
-        try {
-            changePm(app, pmChanges, identity, failures)
-            changeIfw(app.packageName, ifwChanges, identity, failures)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            // Not expected from either; the read-back still tells what changed.
-            Timber.e(e, "Cannot change components of $app")
-            val failure = ControlFailure.SystemError(e.toString())
-            pmChanges.forEach { (id, _) -> failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, failure) }
-            ifwChanges.keys.forEach { failures.addIfAbsent(it.id, ControlLayer.INTENT_FIREWALL, failure) }
-        }
+        changePm(app, pmChanges, identity, failures)
+        changeIfw(app.packageName, ifwChanges, identity, failures)
     }
 
     private suspend fun changePm(app: AppKey, changes: List<Pair<ComponentId, PmSetting>>, identity: PrivilegedIdentity?, failures: Failures) {
@@ -197,10 +192,18 @@ internal class PrivilegedComponentControl @Inject constructor(
     }
 
     // The channel was connected when the request started; a channel lost since then is not
-    // connected again, so a request shows at most one prompt.
-    private suspend fun sendPm(app: AppKey, setting: PmSetting, ids: List<ComponentId>): CallResult<Unit> = executor.executeIfReady(
-        SetComponentEnabledSettings(ids.map { ComponentName(it.packageName, it.className) }, setting.toComponentState(), app.userId),
-    )
+    // connected again, so a request shows at most one prompt. A call that throws, which the
+    // executor is not expected to do, fails the components it was sent for.
+    private suspend fun sendPm(app: AppKey, setting: PmSetting, ids: List<ComponentId>): CallResult<Unit> = try {
+        executor.executeIfReady(
+            SetComponentEnabledSettings(ids.map { ComponentName(it.packageName, it.className) }, setting.toComponentState(), app.userId),
+        )
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.e(e, "Cannot set ${ids.size} components of $app to $setting")
+        CallResult.Failure(CallFailure.SystemError(e.toString()))
+    }
 
     private suspend fun changeIfw(packageName: String, changes: Map<ComponentDeclaration, Boolean>, identity: PrivilegedIdentity?, failures: Failures) {
         if (changes.isEmpty()) return
@@ -209,9 +212,17 @@ internal class PrivilegedComponentControl @Inject constructor(
 
             !identity.canWriteSystemFiles -> ControlFailure.NotPermitted("$identity may not write the Intent Firewall rules")
 
-            else -> when (val result = ifwStore.setBlocked(packageName, changes)) {
-                is IfwResult.Success -> return
-                is IfwResult.Failure -> result.reason.toControlFailure()
+            else -> try {
+                when (val result = ifwStore.setBlocked(packageName, changes)) {
+                    is IfwResult.Success -> return
+                    is IfwResult.Failure -> result.reason.toControlFailure()
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // The store is not expected to throw; only the firewall layer of these failed.
+                Timber.e(e, "The rule store failed for $packageName")
+                ControlFailure.SystemError(e.toString())
             }
         }
         Timber.w("Cannot change IFW rules of ${changes.size} components of $packageName: $failure")

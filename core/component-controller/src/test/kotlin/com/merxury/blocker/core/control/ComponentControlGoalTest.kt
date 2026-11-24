@@ -29,6 +29,8 @@ import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -279,6 +281,29 @@ class ComponentControlGoalTest {
                             assertWithMessage(label).that(outcome.result).isEqualTo(ControlResult.ACHIEVED)
                         }
                     }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun givenShellAndATestOnlyApp_whenUnblockedOrEnabledThroughEveryLayer_thenJudgedOnThePackageManagerAlone() = runTest {
+        // The shell can change a test-only app's settings but can neither read nor write the rules.
+        for (goal in listOf(ControlGoal.UNBLOCK, ControlGoal.ENABLE)) {
+            for (enabledInManifest in listOf(true, false)) {
+                for (setting in listOf(PmSetting.DEFAULT, PmSetting.ENABLED, PmSetting.DISABLED)) {
+                    val component = declaration("Case", ComponentType.SERVICE, enabledInManifest = enabledInManifest)
+                    val case = ControlFixture(ChannelState.Ready(PrivilegedIdentity.SHELL))
+                    case.files.noAccess = true
+                    case.system.testOnly += PKG
+                    case.system.put(OWNER, component.id, setting)
+
+                    val outcome = case.run(ControlRequest(OWNER, listOf(component), goal, BOTH)).outcomeOf(component)
+
+                    val label = "$goal manifest=$enabledInManifest $setting"
+                    assertWithMessage(label).that(outcome.state).isEqualTo(ControlState(expectedSetting(goal, enabledInManifest, setting), IfwBlock.UNKNOWN))
+                    assertWithMessage(label).that(outcome.result).isEqualTo(ControlResult.ACHIEVED)
+                    assertWithMessage(label).that(case.files.operations.filterNot { it.startsWith("peek") }).isEmpty()
                 }
             }
         }

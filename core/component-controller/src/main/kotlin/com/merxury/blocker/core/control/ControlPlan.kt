@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 
 // What a goal asks of each layer and how the state read back is judged, as ComponentControl says.
 
@@ -78,7 +79,7 @@ internal fun judge(
         goal == ControlGoal.BLOCK -> if (missed.size < layers.size) ControlResult.PARTIAL else ControlResult.FAILED
 
         // Unblocking or enabling moved a layer to the goal, but another requested one does not meet it or cannot be read.
-        layers.any { component.moved(goal, it, before, after, failures) } -> ControlResult.PARTIAL
+        layers.any { component.moved(goal, it, before, after) } -> ControlResult.PARTIAL
 
         else -> ControlResult.FAILED
     }
@@ -87,21 +88,33 @@ internal fun judge(
 }
 
 /**
- * Whether [layer] moved to [goal]: it was read before and did not show the goal, shows it now, and
- * nothing failed for it. A layer that could not be read before may have shown the goal already, so
- * reading it afterwards proves no change; nor does a layer whose call could not run.
+ * Whether [layer] moved to [goal]: it was read before and did not show the goal, and shows it now.
+ * A layer that could not be read before may have shown the goal already, so reading it afterwards
+ * proves no change. What the calls answered does not count, only the states read.
  */
 private fun ComponentDeclaration.moved(
     goal: ControlGoal,
     layer: ControlLayer,
     before: ControlState,
     after: ControlState,
-    failures: Map<ControlLayer, ControlFailure>,
-): Boolean = layer !in failures && before.isKnown(layer) && !meets(goal, layer, before) && meets(goal, layer, after)
+): Boolean = before.isKnown(layer) && !meets(goal, layer, before) && meets(goal, layer, after)
 
 private fun ControlState.isKnown(layer: ControlLayer): Boolean = when (layer) {
     ControlLayer.PACKAGE_MANAGER -> pm != PmSetting.UNKNOWN
     ControlLayer.INTENT_FIREWALL -> ifw != IfwBlock.UNKNOWN
+}
+
+/**
+ * The layers a request works on and judges for one component, from [this], the requested ones.
+ * An identity that cannot write system files, such as the shell, can neither read nor change the
+ * Intent Firewall, so an unblock or enable leaves that layer out and is judged on the
+ * PackageManager layer alone. A block, or a request for the firewall layer alone, keeps it and
+ * reports that the identity is not permitted. Without a channel nothing changes here.
+ */
+internal fun Set<ControlLayer>.reachableBy(goal: ControlGoal, identity: PrivilegedIdentity?): Set<ControlLayer> {
+    val firewallUnreachable = identity != null && !identity.canWriteSystemFiles
+    val dropFirewall = goal != ControlGoal.BLOCK && firewallUnreachable && ControlLayer.PACKAGE_MANAGER in this
+    return if (dropFirewall) this - ControlLayer.INTENT_FIREWALL else this
 }
 
 /** Whether [layer] shows [goal] in [state]. */

@@ -42,6 +42,7 @@ import com.merxury.blocker.core.privileged.PrivilegedExecutor
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
+import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.di.IfwModule
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
@@ -77,15 +78,22 @@ internal fun List<ControlEvent>.outcomes(): List<ComponentOutcome> = filterIsIns
 
 internal fun List<ControlEvent>.outcomeOf(component: ComponentDeclaration, user: UserId = OWNER): ComponentOutcome = outcomes().single { it.key.id == component.id && it.key.userId == user }
 
-/** The control under test over fakes that share one [system] and record what reaches them. */
-internal class ControlFixture(initialChannel: ChannelState = ChannelState.Ready(PrivilegedIdentity.ROOT)) {
+/**
+ * The control under test over fakes that share one [system] and record what reaches them.
+ *
+ * @param storeSeenByControl the rule store the control uses, made from the real one over [files]
+ */
+internal class ControlFixture(
+    initialChannel: ChannelState = ChannelState.Ready(PrivilegedIdentity.ROOT),
+    storeSeenByControl: (IfwStore) -> IfwStore = { it },
+) {
     val system = FakePmSystem()
     val channel = FakeChannel(initialChannel)
     val executor = FakeExecutor(system, channel)
     val files = FakeIfwFileSystem()
     val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())
     val locks = PackageLocks()
-    val control = PrivilegedComponentControl(channel, executor, FakeReader(system), store, locks)
+    val control = PrivilegedComponentControl(channel, executor, FakeReader(system), storeSeenByControl(store), locks)
 
     suspend fun run(request: ControlRequest): List<ControlEvent> = control.apply(request).toList()
 

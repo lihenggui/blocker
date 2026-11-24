@@ -82,8 +82,15 @@ import kotlinx.coroutines.flow.Flow
  * [ControlFailure.ChannelUnavailable]. Shizuku running as the shell may change the components of
  * a test-only app only; the system decides, so the PackageManager call is sent and its refusal
  * becomes [ControlFailure.NotPermitted], once per package and setting rather than once per
- * component. An identity that may not write system files, such as the shell, gets
- * [ControlFailure.NotPermitted] for the firewall layer without a call.
+ * component. An identity that may not write system files, such as the shell, can neither read nor
+ * change the Intent Firewall: an unblock or enable that also asks for the PackageManager layer
+ * leaves the firewall layer out and is judged on the PackageManager layer alone, while the state
+ * reported still shows the firewall as [IfwBlock.UNKNOWN]; a block, or a request for the firewall
+ * layer alone, gets [ControlFailure.NotPermitted] for it without a call.
+ *
+ * A failure is reported for a layer whose change was attempted and did not complete; a step that
+ * throws unexpectedly fails only the layer and components it was changing, with
+ * [ControlFailure.SystemError].
  *
  * ## Order and cancellation
  * The work on one package holds that package's lock, shared by every request in the process,
