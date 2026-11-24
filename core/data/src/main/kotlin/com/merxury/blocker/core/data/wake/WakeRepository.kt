@@ -76,6 +76,17 @@ class WakeRepository @Inject constructor(
     }
     val lastDiagnostic get() = preferences.getLong("last_diagnostic", 0)
 
+    /**
+     * Whether the records of user blocks were cleared, once, of components the wake feature claimed
+     * before this version: a seed from the old component list could have taken them for user blocks.
+     */
+    val seededBlockRecordsChecked get() = preferences.getBoolean("seeded_block_records_checked", false)
+
+    @SuppressLint("UseKtx")
+    fun markSeededBlockRecordsChecked() {
+        check(preferences.edit().putBoolean("seeded_block_records_checked", true).commit())
+    }
+
     suspend fun access() = collector.access()
 
     suspend fun attributionRecords(boot: String) = history.attributionWindow(boot, 0) + history.scheduledWork(boot, 0)

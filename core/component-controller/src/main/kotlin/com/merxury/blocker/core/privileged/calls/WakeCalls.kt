@@ -19,6 +19,7 @@ package com.merxury.blocker.core.privileged.calls
 import android.os.Parcel
 import android.os.Process
 import com.merxury.blocker.core.controllers.wake.WakeCommand
+import com.merxury.blocker.core.controllers.wake.WakeJournalRead
 import com.merxury.blocker.core.controllers.wake.readComponentJournal
 import com.merxury.blocker.core.controllers.wake.requireComponentJournal
 import com.merxury.blocker.core.controllers.wake.writeComponentJournal
@@ -159,26 +160,27 @@ internal data class RemoveWakeRuleTarget(
 }
 
 /**
- * The wake feature's component journal of [owner], `/data/system/blocker-wake-<owner>.json`, or
- * null when there is none.
+ * The wake feature's component journal of [owner], `/data/system/blocker-wake-<owner>.json`: its
+ * contents, that there is none, or that there is one the privileged process may not open.
  *
  * @throws IllegalStateException in the privileged process when the file is empty or larger than
  * 256 KiB, which becomes a system error
  */
 @Parcelize
-internal data class ReadWakeJournal(val owner: String) : PrivilegedCall<String?> {
+internal data class ReadWakeJournal(val owner: String) : PrivilegedCall<WakeJournalRead> {
     init {
         requireComponentJournal(owner)
     }
 
     override val needsPrivilegedProcess: Boolean get() = true
 
-    override fun run(system: SystemServices): String? = readComponentJournal(owner)
+    override fun run(system: SystemServices): WakeJournalRead = readComponentJournal(owner)
 }
 
 /**
- * Replaces [owner]'s component journal with [contents]: a file only its owner may read or write,
- * renamed over the old one and the directory synced, so after a crash it is the old or the new.
+ * Replaces [owner]'s component journal with [contents]: a file of mode 0640 in the system group,
+ * which root and the system uid can both read, renamed over the old one and the directory synced,
+ * so after a crash it is the old or the new.
  *
  * @throws IllegalArgumentException when [contents] is empty or larger than 256 KiB
  */

@@ -4,8 +4,12 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.pm.PackageManager
+import com.merxury.blocker.core.control.PackageLocks
 import com.merxury.blocker.core.controllers.wake.ManagedComponentState
+import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
+import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.database.record.PmBlockRecordDao
+import com.merxury.blocker.core.database.record.PmBlockRecordEntity
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -43,6 +47,7 @@ class WakeProtectionRepository @Inject constructor(
     private val components: ManagedComponentState,
     private val channel: PrivilegedChannel,
     private val userBlocks: PmBlockRecordDao,
+    private val locks: PackageLocks,
 ) {
     /**
      * What this run may change, from the channel acquired without a prompt: background work must
@@ -51,18 +56,23 @@ class WakeProtectionRepository @Inject constructor(
     suspend fun writeAccess(): WakeWrites {
         val state = channel.connectIfGranted()
         if (!state.mayEnforce) return WakeWrites.ObserveOnly(state.observingStatus())
-        // Shizuku before 13 runs as root but cannot run the calls that reach files.
-        if (ownership.fileCallsRefused()) return WakeWrites.ObserveOnly("OBSERVING_WITHOUT_FILE_CALLS")
-        return WakeWrites.Enforce
+        return when (journalAccess()) {
+            JournalAccess.READABLE -> WakeWrites.Enforce
+            JournalAccess.CALLS_REFUSED -> WakeWrites.ObserveOnly("OBSERVING_WITHOUT_FILE_CALLS")
+            JournalAccess.UNREADABLE -> WakeWrites.ObserveOnly("OBSERVING_WITH_UNREADABLE_JOURNAL")
+        }
     }
 
     /**
      * Resets the wake rules of [packageName], or all of them when null. Returns false, without a
      * change, when the channel cannot write them. Never shows a prompt; a reset the user asked for
      * runs after the rule store's own calls, which connect the channel when needed.
+     *
+     * The reset touches only the rule files and the firewall paths; the component journal holds
+     * PackageManager changes only, so a journal this identity cannot read does not stop it.
      */
     suspend fun resetFirewall(packageName: String?): Boolean {
-        if (writeAccess() != WakeWrites.Enforce) return false
+        if (!channel.connectIfGranted().mayEnforce || journalAccess() == JournalAccess.CALLS_REFUSED) return false
         val alreadyPending = repository.rulesPending
         repository.markRulesPending(true)
         repository.resetFirewall(packageName)
@@ -114,6 +124,10 @@ class WakeProtectionRepository @Inject constructor(
     private suspend fun reconcileComponents(previous: List<WakeProtection>, desired: List<WakeProtection>) {
         val disabled = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         val active = previous.filter { it.method == "PM" && (it.configured || it.pendingChange) }.associateBy { it.pathId }
+        if (!repository.seededBlockRecordsChecked) {
+            forgetSeededBlocks(active.values)
+            repository.markSeededBlockRecordsChecked()
+        }
         val ids = desired.map { it.pathId }.toSet()
         for (old in active.values.filter { it.pathId !in ids }) {
             val original = old.previousState ?: continue
@@ -156,14 +170,48 @@ class WakeProtectionRepository @Inject constructor(
             if (!path.pendingChange && current != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) continue
             val saved = path.copy(previousState = path.previousState ?: current, pendingChange = true)
             ownership.save(saved)
-            check(components.compareAndSet(path.target, path.component, WAKE_USER, requireNotNull(saved.previousState), disabled))
+            check(
+                components.compareAndSet(path.target, path.component, WAKE_USER, requireNotNull(saved.previousState), disabled) {
+                    // The component is not disabled yet, so a record of it is stale. Only a block
+                    // after this change can make it the user's block too.
+                    if (current != disabled) forgetBlock(path)
+                    true
+                },
+            )
             ownership.save(saved.copy(configured = true, pendingChange = false))
         }
     }
 
+    private enum class JournalAccess { READABLE, UNREADABLE, CALLS_REFUSED }
+
+    private suspend fun journalAccess(): JournalAccess = try {
+        ownership.probeJournal()
+        JournalAccess.READABLE
+    } catch (e: WakeCallRefusedException) {
+        Timber.w(e, "The privileged channel cannot run the calls that reach files")
+        JournalAccess.CALLS_REFUSED
+    } catch (e: WakeJournalUnreadableException) {
+        Timber.w(e, "The component journal cannot be read under this identity")
+        JournalAccess.UNREADABLE
+    }
+
+    /**
+     * Drops, once, the records of the components the wake feature claimed before records were kept
+     * apart from its own changes: the seed from the old component list may have taken them for
+     * user blocks. Each goes under its package's lock, as the app writes that record.
+     */
+    private suspend fun forgetSeededBlocks(claims: Collection<WakeProtection>) {
+        for (claim in claims) locks.withLock(claim.target) { forgetBlock(claim) }
+        if (claims.isNotEmpty()) Timber.i("Dropped the block records of ${claims.size} components the wake feature changed")
+    }
+
+    private suspend fun forgetBlock(path: WakeProtection) = userBlocks.delete(listOf(PmBlockRecordEntity(path.target, path.component, WAKE_USER.value, 0)))
+
     /**
      * Whether the user blocked [path]'s component through Blocker: it is in the record of the
      * components Blocker disabled. Read under the package's lock, which that record is written under.
+     * The wake feature drops that record when it disables the component itself, so a record of a
+     * component it claims was made by a block after its change.
      */
     private suspend fun isBlockedByUser(path: WakeProtection): Boolean = userBlocks.getByPackage(path.target, WAKE_USER.value).any { it.className == path.component }
 }

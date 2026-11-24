@@ -5,10 +5,10 @@ package com.merxury.blocker.core.data.wake
 
 import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
 import com.merxury.blocker.core.controllers.wake.WakeComponentJournal
+import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeProtection
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 import javax.inject.Inject
 
 /** Commits the privileged rollback journal before reflecting each change in Room. */
@@ -20,16 +20,15 @@ class WakeComponentOwnership @Inject constructor(
     private fun WakeProtection.needsComponentJournal() = method == "PM" && (configured || pendingChange || disabledByUser)
 
     /**
-     * Whether the channel refuses the journal, the first file the wake feature needs, although its
-     * identity may write system files: Shizuku before 13 runs as root but cannot run such calls.
-     * Any other failure is thrown.
+     * Reads the journal, the first file the wake feature needs, to find whether the channel can
+     * reach it before anything is changed.
+     *
+     * @throws WakeCallRefusedException when the channel cannot run the calls that reach files,
+     * as Shizuku before 13 cannot, although it runs as root
+     * @throws WakeJournalUnreadableException when there is a journal this identity may not read
      */
-    suspend fun fileCallsRefused(): Boolean = try {
+    suspend fun probeJournal() {
         journal.read()
-        false
-    } catch (e: WakeCallRefusedException) {
-        Timber.w(e, "The privileged channel cannot reach the component journal")
-        true
     }
 
     suspend fun recover() {

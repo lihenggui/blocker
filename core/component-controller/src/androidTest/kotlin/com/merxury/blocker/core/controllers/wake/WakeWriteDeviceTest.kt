@@ -198,7 +198,20 @@ class WakeWriteDeviceTest {
         assertEquals("""[{"pathId":"second"}]""", journal.read())
         val stat = inSystem(StatFile(journalFile))
         Log.i(TAG, "$case: journal $stat")
-        assertEquals("600 0:0", stat)
+        // Root and the system uid can both read it, so the user can switch between them.
+        assertEquals("640 0:1000", stat)
+    }
+
+    @Test
+    fun givenJournalAnEarlierVersionWroteForRootOnly_whenReadAsRoot_thenItIsSharedWithTheSystemUid() = runBlocking<Unit> {
+        val journal = WakeComponentJournal(connect("root", "shizuku-root"), context)
+        inSystem(WriteFile(journalFile, """[{"pathId":"old"}]"""))
+        inSystem(SetFileMode(journalFile, 0x180))
+        assertEquals("600 0:0", inSystem(StatFile(journalFile)))
+
+        assertEquals("""[{"pathId":"old"}]""", journal.read())
+
+        assertEquals("640 0:1000", inSystem(StatFile(journalFile)))
     }
 
     @Test

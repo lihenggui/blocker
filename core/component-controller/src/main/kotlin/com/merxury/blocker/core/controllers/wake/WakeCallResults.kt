@@ -27,6 +27,12 @@ import java.io.IOException
 class WakeCallRefusedException(message: String) : IOException(message)
 
 /**
+ * There is a component journal, but the channel's identity may not read it, such as one root
+ * wrote with mode 0600 before the journal was shared with the system uid, read as the system uid.
+ */
+class WakeJournalUnreadableException(message: String) : IOException(message)
+
+/**
  * The value of a wake write, or an [IOException] naming [action] and the failure, a
  * [WakeCallRefusedException] when the channel refused it. A write that cannot be made stops the
  * run that asked for it, which reports the message as its status.

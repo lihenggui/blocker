@@ -60,6 +60,14 @@ internal data class WriteFile(val path: String, val content: String) : Privilege
     override fun run(system: SystemServices) = File(path).writeText(content)
 }
 
+/** Sets the mode of [path] to [mode]. */
+@Parcelize
+internal data class SetFileMode(val path: String, val mode: Int) : PrivilegedAction {
+    override val needsPrivilegedProcess: Boolean get() = true
+
+    override fun run(system: SystemServices) = Os.chmod(path, mode)
+}
+
 /** Deletes each of [paths] that is there. */
 @Parcelize
 internal data class DeleteFiles(val paths: List<String>) : PrivilegedAction {

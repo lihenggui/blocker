@@ -5,7 +5,10 @@ package com.merxury.blocker.core.domain.wake
 
 import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.control.PackageLocks
 import com.merxury.blocker.core.controllers.wake.ManagedComponentState
+import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
+import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
@@ -47,7 +50,7 @@ class WakeProtectionManagerTest {
     private val userBlocks = FakePmBlockRecordDao()
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, userBlocks),
+        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, userBlocks, PackageLocks()),
         StandardTestDispatcher(testScheduler),
     )
     private val path = WakeProtection(
@@ -63,7 +66,6 @@ class WakeProtectionManagerTest {
         profiles: List<Int> = listOf(0),
     ) {
         channel.setState(writes)
-        whenever(ownership.fileCallsRefused()).thenReturn(false)
         whenever(repository.isOwnerProfile).thenReturn(true)
         whenever(catalogue.isCurrent(any())).thenReturn(true)
         whenever(repository.access()).thenReturn(access)
@@ -135,7 +137,7 @@ class WakeProtectionManagerTest {
     @Test fun givenRootChannelThatRefusesFileCalls_whenReconciling_thenObservesOnlyWithoutRetrying() = runTest {
         // Shizuku before 13 runs as root but cannot run the calls that reach files.
         authorizedWith(path.copy(method = "IFW", configured = true), access = WakeAccess.SHIZUKU_LEGACY_ROOT)
-        whenever(ownership.fileCallsRefused()).thenReturn(true)
+        whenever(ownership.probeJournal()).thenAnswer { throw WakeCallRefusedException("Shizuku 12 cannot run ReadWakeJournal") }
 
         assertThat(manager.reconcile()).isTrue()
         assertThat(manager.resetFirewall(null)).isFalse()
@@ -144,6 +146,34 @@ class WakeProtectionManagerTest {
         verify(ownership, never()).recover()
         verify(repository, never()).markRulesPending(any())
         verifyNoInteractions(rules, components)
+    }
+
+    @Test fun givenJournalThisIdentityCannotRead_whenReconciling_thenEvidenceIsCollectedAndProtectionObservesOnly() = runTest {
+        // Root wrote the journal with mode 0600; the user then chose Shizuku running as the system uid.
+        authorizedWith(path.copy(configured = true, pendingChange = false), writes = ChannelState.Ready(PrivilegedIdentity.SYSTEM))
+        whenever(ownership.probeJournal()).thenAnswer { throw WakeJournalUnreadableException("owned by 0:0 with mode 600, read as uid 1000") }
+
+        assertThat(manager.reconcile()).isTrue()
+
+        verify(repository).collect(any(), any())
+        verify(repository).saveDetection(any(), any(), any(), any(), any())
+        verify(repository).reportStatus(argThat { source == "protection" && status == "OBSERVING_WITH_UNREADABLE_JOURNAL" })
+        verify(ownership, never()).recover()
+        verify(ownership, never()).save(any())
+        verifyNoInteractions(rules, components)
+    }
+
+    @Test fun givenJournalThisIdentityCannotRead_whenResettingFirewall_thenManagedRulesAreRemovedAndTheJournalIsLeft() = runTest {
+        authorizedWith(path.copy(configured = true, pendingChange = false), writes = ChannelState.Ready(PrivilegedIdentity.SYSTEM))
+        whenever(ownership.probeJournal()).thenAnswer { throw WakeJournalUnreadableException("owned by 0:0 with mode 600, read as uid 1000") }
+
+        assertThat(manager.resetFirewall(null)).isTrue()
+
+        verify(rules).reset(null)
+        verify(repository).resetFirewall(null)
+        verify(ownership, never()).recover()
+        verify(ownership, never()).save(any())
+        verifyNoInteractions(components)
     }
 
     @Test fun givenAnyChannelState_whenReconciling_thenNoPromptIsRequested() = runTest {

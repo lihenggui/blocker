@@ -43,7 +43,7 @@ class WakeComponentJournalTest {
         executor.answer = { call ->
             when (call) {
                 is ReplaceWakeJournal -> CallResult.Success(Unit).also { stored = call.contents }
-                is ReadWakeJournal -> CallResult.Success(stored)
+                is ReadWakeJournal -> CallResult.Success(stored?.let { WakeJournalRead.Found(it) } ?: WakeJournalRead.Missing)
                 else -> error("Unexpected $call")
             }
         }
@@ -57,6 +57,15 @@ class WakeComponentJournalTest {
             ReplaceWakeJournal(owner, "[]") to false,
             ReadWakeJournal(owner) to false,
         ).inOrder()
+    }
+
+    @Test fun givenJournalThisIdentityCannotOpen_whenReading_thenUnreadableIsThrown() = runTest {
+        executor.answer = { CallResult.Success(WakeJournalRead.Unreadable("owned by 0:0 with mode 600, read as uid 1000")) }
+
+        val thrown = runCatching { journal.read() }.exceptionOrNull()
+
+        assertThat(thrown).isInstanceOf(WakeJournalUnreadableException::class.java)
+        assertThat(thrown).hasMessageThat().contains("read as uid 1000")
     }
 
     @Test fun givenRefusedOrUnavailable_whenReading_thenOnlyTheRefusalIsARefusal() = runTest {

@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.device
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.respository.component.RecordingLegacyPmBlockHook
 import com.merxury.blocker.core.database.app.AppComponentEntity
+import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.datastore.copy
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -75,6 +76,20 @@ class PmBlockSeedAndLegacyHookTest : DeviceRepositoryTestBase() {
         assertThat(recordDao.getByUser(own.value)).isEqualTo(first)
         assertThat(legacyComponents.pmBlockedReads).isEqualTo(1)
         assertThat(appProperties.data.value.pmBlockRecordsSeeded).isTrue()
+    }
+
+    @Test
+    fun givenComponentTheWakeFeatureDisabled_whenSeeded_thenItIsNotTakenForAUserBlock() = runTest {
+        markOldListInitialized()
+        // The old list saw both disabled; the wake feature disabled the tracker and still claims it.
+        legacyComponents.upsertComponentList(listOf(TRACKER.legacyRow(pmBlocked = true), SELF_OFF.legacyRow(pmBlocked = true)))
+        val claim = WakeProtection("path", PKG, PKG, TRACKER.id.className, "", "proof", false, true, "PM", previousState = 0)
+        val released = claim.copy(pathId = "released", component = SELF_OFF.id.className, configured = false)
+        wakeDb.history().putProtections(listOf(claim, released))
+
+        seeder.seedOnce()
+
+        assertThat(pmBlocks.of(own)).containsExactly(SELF_OFF.key())
     }
 
     @Test
