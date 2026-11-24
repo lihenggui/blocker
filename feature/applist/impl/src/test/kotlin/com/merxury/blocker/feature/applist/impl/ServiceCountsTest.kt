@@ -115,9 +115,38 @@ class ServiceCountsTest {
     }
 
     @Test
-    fun givenFirewallUnreadable_whenCounted_thenNothingShown() = runTest {
+    fun givenFirewallReadableButRuleStateUnknown_whenCounted_thenNothingShown() = runTest {
         showApp()
         fixture.components.sendComponents(OWNER, listOf(service("com.a", "Running", ifw = IfwBlock.UNKNOWN)))
+
+        countNow()
+
+        assertThat(fixture.rows().single().services).isNull()
+    }
+
+    @Test
+    fun givenFirewallNotReachable_whenCounted_thenBlockedCountsPackageManagerOnly() = runTest {
+        showApp()
+        fixture.components.setFirewallReadable(false)
+        fixture.components.sendComponents(
+            OWNER,
+            listOf(
+                service("com.a", "Running", ifw = IfwBlock.UNKNOWN),
+                service("com.a", "DisabledByPm", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN),
+                service("com.a", "Idle", ifw = IfwBlock.UNKNOWN),
+            ),
+        )
+
+        countNow()
+
+        assertThat(fixture.rows().single().services).isEqualTo(ServiceCounts(running = 1, blocked = 1, total = 3))
+    }
+
+    @Test
+    fun givenFirewallNotReachable_whenSettingUnknown_thenNothingShown() = runTest {
+        showApp()
+        fixture.components.setFirewallReadable(false)
+        fixture.components.sendComponents(OWNER, listOf(service("com.a", "Running", pm = PmSetting.UNKNOWN, ifw = IfwBlock.UNKNOWN)))
 
         countNow()
 

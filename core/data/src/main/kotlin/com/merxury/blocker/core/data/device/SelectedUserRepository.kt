@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.device
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.privileged.PrivilegedChannel
@@ -46,8 +47,9 @@ interface SelectedUserRepository {
 
     /**
      * The users whose apps can be shown now, by id. While the privileged channel is ready these
-     * are the cached users; otherwise only [ownUser], because no other user can be read and
-     * cached data of other users may be out of date. Never empty: [ownUser] is listed even before
+     * are the cached users, and also before its first check at start ends, so a channel granted
+     * before does not show a single user first. Once the channel is unavailable, only [ownUser],
+     * because no other user can be read and cached data of other users may be out of date. Never empty: [ownUser] is listed even before
      * the users are first read.
      */
     val users: StateFlow<List<DeviceUser>>
@@ -83,7 +85,7 @@ internal class InMemorySelectedUserRepository(
 
     override val users: StateFlow<List<DeviceUser>> = combine(deviceUsers.users, channel.state) { cached, state ->
         val own = cached.find { it.id == ownUser } ?: ownFallback
-        if (state is ChannelState.Ready) {
+        if (state is ChannelState.Ready || state == NOT_CHECKED) {
             (cached.filter { it.id != ownUser } + own).sortedBy { it.id.value }
         } else {
             listOf(own)
@@ -112,5 +114,9 @@ internal class InMemorySelectedUserRepository(
             return
         }
         selected.value = user
+    }
+
+    private companion object {
+        val NOT_CHECKED = ChannelState.Unavailable(UnavailableReason.NOT_CHECKED)
     }
 }

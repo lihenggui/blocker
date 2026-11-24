@@ -27,7 +27,8 @@ import javax.inject.Inject
 /**
  * Fills the old app and component tables, which the screens not yet moved to the device
  * repositories read: app detail, search, the rule screens and rule import and export. The app list
- * filled them before it moved; remove this once nothing reads them.
+ * filled them before it moved. Delete this class once the last screen that reads the old tables
+ * has moved to the device repositories.
  */
 class LegacyAppTables @Inject constructor(
     private val appRepository: AppRepository,

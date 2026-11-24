@@ -69,6 +69,19 @@ class SelectedUserRepositoryTest {
     }
 
     @Test
+    fun givenChannelNotCheckedYet_whenProfileCached_thenListedUntilTheCheckFails() = runTest(UnconfinedTestDispatcher()) {
+        channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        val repository = repository()
+        deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
+
+        assertThat(repository.users.value.map { it.id }).containsExactly(OWNER, WORK).inOrder()
+
+        channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+
+        assertThat(repository.users.value.map { it.id }).containsExactly(OWNER)
+    }
+
+    @Test
     fun givenReachableUser_whenSelected_thenSelected() = runTest(UnconfinedTestDispatcher()) {
         val repository = repository()
         deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))

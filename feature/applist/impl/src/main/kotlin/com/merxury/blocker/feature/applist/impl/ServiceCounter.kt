@@ -21,6 +21,8 @@ import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.Availability
+import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.availability
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.system.ReadResult
@@ -43,8 +45,11 @@ internal class ServiceCounter @Inject constructor(
 
     /**
      * Refreshes [app]'s components, then counts its services that run, that are blocked and in
-     * total. Null when any of that cannot be read: without the privileged channel, which running
-     * services need, when the refresh fails, or when a service's state is unknown.
+     * total. While the Intent Firewall rules cannot be reached at all, such as with Shizuku
+     * running as the shell, blocked counts what the PackageManager settings and the manifest
+     * block, which is all that can be known then. Null when any part cannot be read otherwise:
+     * without the privileged channel, which running services need, when the refresh fails, or when
+     * a service's state is unknown for another reason, such as a damaged rule file.
      */
     suspend fun count(app: AppKey): ServiceCounts? {
         // Listing running services connects the channel, which may prompt; a list never asks.
@@ -63,11 +68,20 @@ internal class ServiceCounter @Inject constructor(
                     return@withPermit null
                 }
             }
+            val firewallReadable = components.firewallReadable.first()
             val services = components.components(app).first().filter { it.declaration.type == ComponentType.SERVICE }
-            if (services.any { it.availability == Availability.Unknown }) return@withPermit null
+            val availability = services.map { service ->
+                if (firewallReadable) {
+                    service.availability
+                } else {
+                    // The rules are unknown by design here, so judge by the other layer alone.
+                    service.declaration.availability(service.state.copy(ifw = IfwBlock.NOT_BLOCKED))
+                }
+            }
+            if (availability.any { it == Availability.Unknown }) return@withPermit null
             ServiceCounts(
                 running = services.count { it.declaration.id in running },
-                blocked = services.count { it.availability is Availability.Blocked },
+                blocked = availability.count { it is Availability.Blocked },
                 total = services.size,
             )
         }
