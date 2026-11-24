@@ -30,8 +30,8 @@ import javax.inject.Inject
 
 /**
  * Fills the old app and component tables, which the parts not yet moved to the device
- * repositories read: the global firewall rules, the debloater, the component content provider,
- * rule import, export and reset through LegacyComponentCache, and the one-time seeding of the
+ * repositories read: the global firewall rules, the component content provider,
+ * rule import and reset through LegacyComponentCache, and the one-time seeding of the
  * record of Blocker's PackageManager blocks. The app list filled them before
  * it moved; the general rules and the rule detail no longer read them. Delete this class once
  * the last reader of the old tables has moved to the device repositories.

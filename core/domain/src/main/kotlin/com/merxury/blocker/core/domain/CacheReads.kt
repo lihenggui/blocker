@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.component
+package com.merxury.blocker.core.domain
 
-import com.merxury.blocker.core.model.data.ComponentInfo
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
-/** Outcome for one component of [ComponentRepository.batchControlComponent]. */
-data class ComponentControlResult(
-    /** The component with the enabled state read back from the device after the change. */
-    val component: ComponentInfo,
-    /** True when the controller applied the change and the device now reports the requested state. */
-    val succeeded: Boolean,
-)
+/**
+ * Emits each value of [this] and then waits [periodMillis] before it takes the next. A source that
+ * keeps only its latest value while it waits, as a Room query does with the changes to its tables,
+ * is then read at most once per period, and its latest value still arrives.
+ */
+fun <T> Flow<T>.readAtMostEvery(periodMillis: Long): Flow<T> = flow {
+    collect {
+        emit(it)
+        delay(periodMillis)
+    }
+}

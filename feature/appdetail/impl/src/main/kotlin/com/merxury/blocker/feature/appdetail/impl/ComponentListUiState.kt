@@ -24,7 +24,7 @@ import com.merxury.blocker.core.ui.component.ComponentRow
 import java.io.File
 
 /**
- * The component lists of one app for one user, with the tabs, search and selection around them.
+ * The component lists of one app for one user, with the tabs and selection around them.
  *
  * @property refreshFailure why the last refresh failed; null while one runs, after one succeeded and
  * before the first. [ReadFailure.PackageNotFound] means the app is not installed for the user.
@@ -36,8 +36,6 @@ data class ComponentListUiState(
     val tabs: TabState<AppDetailTabs>,
     val components: ComponentsUiState = ComponentsUiState.Loading,
     val matchedRules: MatchedRulesUiState = MatchedRulesUiState.Loading,
-    val isSearchMode: Boolean = false,
-    val keyword: String = "",
     val isSelectionMode: Boolean = false,
     val selected: Set<ComponentId> = emptySet(),
     val isRefreshing: Boolean = false,

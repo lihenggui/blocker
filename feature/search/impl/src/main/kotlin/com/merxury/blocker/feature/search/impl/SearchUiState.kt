@@ -27,6 +27,7 @@ import com.merxury.blocker.core.ui.applist.AppActionFailed
 import com.merxury.blocker.core.ui.applist.AppRow
 import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.profile.ProfileTab
 
 /**
@@ -56,6 +57,7 @@ data class SearchUiState(
     val selectionActionsEnabled: Boolean = false,
     val batch: ProcessingProgress? = null,
     val indexing: IndexingProgress? = null,
+    val indexError: UiMessage? = null,
     val messages: List<QueuedSearchMessage> = emptyList(),
 ) {
     val showProfileSwitcher: Boolean get() = profiles.size > 1

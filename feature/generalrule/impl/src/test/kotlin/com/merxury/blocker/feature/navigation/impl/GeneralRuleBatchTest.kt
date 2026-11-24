@@ -34,12 +34,17 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ControlMessage
+import com.merxury.blocker.feature.generalrule.impl.GeneralRuleUiState
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -53,6 +58,7 @@ import org.junit.runner.RunWith
 
 /** Block all and enable all of the rules list change every matched component of the selected user in one batch. */
 @RunWith(AndroidJUnit4::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class GeneralRuleBatchTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -224,6 +230,39 @@ class GeneralRuleBatchTest {
         progress.emit(RefreshProgress.Refreshing(done = 1, total = 3, current = "com.a"))
 
         // As from a confirmation dialog opened before the reading started over.
+        viewModel.controlAllComponents(enable = false)
+        settle()
+
+        assertThat(fixture.components.requests).isEmpty()
+        assertThat(viewModel.uiState.value.batch).isNull()
+    }
+
+    @Test
+    fun givenPartialMatchesAndFailedIndex_whenBlockAll_thenShowTheErrorAndSendNothing() = runTest {
+        fixture.components.refreshAllProgress = {
+            flow {
+                emit(RefreshProgress.Refreshing(done = 1, total = 3, current = "com.a"))
+                error("Index failed")
+            }
+        }
+        show()
+
+        viewModel.controlAllComponents(enable = false)
+        settle()
+
+        val state = viewModel.uiState.value
+        assertThat((state.rules as GeneralRuleUiState.Error).error.title).isEqualTo("Index failed")
+        assertThat(state.batch).isNull()
+        assertThat(fixture.components.requests).isEmpty()
+    }
+
+    @Test
+    fun givenAppListCouldNotBeRead_whenBlockAll_thenSendNothing() = runTest {
+        fixture.components.refreshAllProgress = {
+            flowOf(RefreshProgress.Finished(total = 0, failed = 0, appListFailure = ReadFailure.ChannelUnavailable))
+        }
+        show()
+
         viewModel.controlAllComponents(enable = false)
         settle()
 

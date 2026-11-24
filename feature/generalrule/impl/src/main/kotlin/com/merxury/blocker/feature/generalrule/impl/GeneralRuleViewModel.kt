@@ -177,12 +177,13 @@ class GeneralRulesViewModel @AssistedInject constructor(
                 // As the menu offers it: only once every app of the user was read, so the batch
                 // never acts on what a part of the apps matches, even from a dialog opened before
                 // the reading started over.
-                if (componentIndex.state(user).first() !is IndexState.Indexed) {
-                    Timber.i("The apps of user ${user.value} are being read; nothing is changed")
+                val index = componentIndex.state(user).first() as? IndexState.Indexed
+                if (index?.hasAllApps != true) {
+                    Timber.i("The apps of user ${user.value} have not been fully indexed; nothing is changed")
                     return@launch
                 }
                 analyticsHelper.logControlAllSdksClicked(newState = enable)
-                startBatch(user, goal)
+                startBatch(user, goal, index)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -208,11 +209,11 @@ class GeneralRulesViewModel @AssistedInject constructor(
      * screen goes away. Components another batch is changing are left out, and nothing starts
      * while another batch of the rule list runs for the user.
      */
-    private suspend fun startBatch(user: UserId, goal: ControlGoal) {
+    private suspend fun startBatch(user: UserId, goal: ControlGoal, index: IndexState.Indexed) {
         val declarations = ruleMatcher.matches(user).first().allComponents
             .map { it.declaration }
             .filterNot { batches.isInFlight(ComponentKey(it.id, user)) }
-        if (declarations.isEmpty()) return
+        if (declarations.isEmpty() || componentIndex.state(user).first() != index) return
         val run = batches.reserve(BatchKey.GeneralRules(user), goal, declarations.map { it.id }) ?: return
         var started = false
         try {
@@ -235,12 +236,16 @@ class GeneralRulesViewModel @AssistedInject constructor(
         componentIndex.state(user),
         selectedRuleId,
     ) { rules, index, selected ->
-        GeneralRuleUiState.Success(
-            matchedRules = rules.filter { it.matchedAppCount > 0 },
-            unmatchedRules = rules.filter { it.matchedAppCount == 0 },
-            matchProgress = index.progress(),
-            selectedRuleId = selected,
-        ) as GeneralRuleUiState
+        if (index is IndexState.Failed) {
+            GeneralRuleUiState.Error(index.exception.toErrorMessage())
+        } else {
+            GeneralRuleUiState.Success(
+                matchedRules = rules.filter { it.matchedAppCount > 0 },
+                unmatchedRules = rules.filter { it.matchedAppCount == 0 },
+                matchProgress = index.progress(),
+                selectedRuleId = selected,
+            )
+        }
     }
         .onStart { emit(GeneralRuleUiState.Loading) }
         .retryWhen { e, _ ->
@@ -304,9 +309,9 @@ private const val RETRY_MILLIS = 5_000L
 
 /** How far the reading of the user's apps into the cache got, from 0 to 1. */
 private fun IndexState.progress(): Float = when (this) {
-    IndexState.NotIndexed -> 0F
+    IndexState.NotIndexed, is IndexState.Failed -> 0F
     is IndexState.Indexing -> if (total == 0) 0F else done.toFloat() / total
-    is IndexState.Indexed -> 1F
+    is IndexState.Indexed -> if (hasAllApps) 1F else 0F
 }
 
 /**

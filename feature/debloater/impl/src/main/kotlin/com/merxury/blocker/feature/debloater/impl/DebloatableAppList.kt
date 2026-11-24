@@ -43,6 +43,7 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.DraggableScroll
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.ui.collapseList.rememberSavableSnapshotStateMap
 import timber.log.Timber
 
@@ -50,8 +51,9 @@ import timber.log.Timber
 fun DebloatableAppList(
     list: List<MatchedTarget>,
     modifier: Modifier = Modifier,
-    onBlockAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = { _ -> },
-    onEnableAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = { _ -> },
+    inFlight: Set<ComponentKey> = emptySet(),
+    onBlockAllInItemClick: (MatchedTarget) -> Unit = { _ -> },
+    onEnableAllInItemClick: (MatchedTarget) -> Unit = { _ -> },
     onSwitch: (DebloatableComponentUiItem, Boolean) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
@@ -67,7 +69,7 @@ fun DebloatableAppList(
         ) {
             list.forEachIndexed { index, debloatableApp ->
                 val expanded = isExpandedMap[index] ?: false
-                item(key = debloatableApp.header.uniqueId) {
+                item(key = debloatableApp.app.packageName) {
                     DebloatCollapsibleItem(
                         modifier = Modifier.animateItem(),
                         matchedTarget = debloatableApp,
@@ -85,14 +87,15 @@ fun DebloatableAppList(
                         count = debloatableApp.targets.size,
                         key = { itemIndex ->
                             val uiItem = debloatableApp.targets[itemIndex]
-                            "${debloatableApp.header.uniqueId}/${uiItem.entity.componentName}"
+                            "${debloatableApp.app.packageName}/${uiItem.key.id.className}"
                         },
                     ) { itemIndex ->
                         val uiItem = debloatableApp.targets[itemIndex]
                         DebloatableAppSubItem(
                             modifier = Modifier.animateItem(),
                             item = uiItem,
-                            enabled = !uiItem.entity.pmBlocked && !uiItem.entity.ifwBlocked,
+                            enabled = uiItem.component.enabled,
+                            inFlight = uiItem.key in inFlight,
                             onSwitchClick = onSwitch,
                         )
                         if (itemIndex == debloatableApp.targets.size - 1) {

@@ -17,6 +17,8 @@
 package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.DebloaterApk
+import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
@@ -25,7 +27,6 @@ import com.merxury.blocker.core.data.di.DataModule
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
-import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
@@ -34,13 +35,15 @@ import com.merxury.blocker.core.data.test.repository.FakeAppPropertiesRepository
 import com.merxury.blocker.core.data.test.repository.FakeAppRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentRepository
-import com.merxury.blocker.core.data.test.repository.FakeDebloatableComponentRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.test.repository.FakeLicensesRepository
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.manifest.AndroidManifest
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
@@ -48,6 +51,7 @@ import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeede
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 
@@ -120,8 +124,12 @@ internal interface TestDataModule {
     @Binds
     fun bindsPmBlockRecordSeeder(seeder: FakePmBlockRecordSeeder): PmBlockRecordSeeder
 
-    @Binds
-    fun bindsDebloatableComponentRepository(
-        debloatableRepository: FakeDebloatableComponentRepository,
-    ): DebloatableComponentRepository
+    companion object {
+        @Provides
+        fun debloaterMetadataRepository(): DebloaterMetadataRepository = object : DebloaterMetadataRepository {
+            override suspend fun packageOrder(user: UserId): List<String> = emptyList()
+            override suspend fun apk(app: AppKey): DebloaterApk? = null
+            override suspend fun read(apk: DebloaterApk): AndroidManifest? = null
+        }
+    }
 }

@@ -60,9 +60,10 @@ fun ComponentDetailDialog(
         factory.create(componentName)
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val editedDetail by viewModel.editedDetail.collectAsStateWithLifecycle()
     ComponentDetailDialog(
         modifier = modifier,
-        uiState = uiState,
+        uiState = editedDetail?.let(::Success) ?: uiState,
         onDismiss = dismissHandler,
         onInfoChange = viewModel::onInfoChanged,
         onSaveDetailClick = viewModel::save,
@@ -74,7 +75,7 @@ fun ComponentDetailDialog(
     uiState: ComponentDetailUiState,
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit = {},
-    onInfoChange: (ComponentDetail) -> Unit = {},
+    onInfoChange: (ComponentDetail.() -> ComponentDetail) -> Unit = {},
     onSaveDetailClick: (ComponentDetail) -> Unit = {},
 ) {
     AlertDialog(
@@ -143,7 +144,7 @@ fun ComponentDetailDialog(
 @Composable
 fun ComponentDetailPanel(
     componentDetailInfo: ComponentDetail,
-    onInfoChange: (ComponentDetail) -> Unit,
+    onInfoChange: (ComponentDetail.() -> ComponentDetail) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -153,7 +154,7 @@ fun ComponentDetailPanel(
                 Text(text = stringResource(id = UiString.core_ui_description))
             },
             onValueChange = {
-                onInfoChange.invoke(componentDetailInfo.copy(description = it))
+                onInfoChange { copy(description = it) }
             },
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -163,7 +164,7 @@ fun ComponentDetailPanel(
                 Text(text = stringResource(id = string.feature_appdetail_api_blocking_effect))
             },
             onValueChange = {
-                onInfoChange.invoke(componentDetailInfo.copy(disableEffect = it))
+                onInfoChange { copy(disableEffect = it) }
             },
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -171,7 +172,7 @@ fun ComponentDetailPanel(
             Checkbox(
                 checked = componentDetailInfo.recommendToBlock,
                 onCheckedChange = {
-                    onInfoChange.invoke(componentDetailInfo.copy(recommendToBlock = it))
+                    onInfoChange { copy(recommendToBlock = it) }
                 },
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -181,16 +182,8 @@ fun ComponentDetailPanel(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
                 checked = componentDetailInfo.sdkName.isNullOrEmpty().not(),
-                onCheckedChange = {
-                    onInfoChange.invoke(
-                        componentDetailInfo.copy(
-                            sdkName = if (it) {
-                                unknownSdkName
-                            } else {
-                                null
-                            },
-                        ),
-                    )
+                onCheckedChange = { checked ->
+                    onInfoChange { copy(sdkName = unknownSdkName.takeIf { checked }) }
                 },
             )
             Spacer(modifier = Modifier.width(8.dp))

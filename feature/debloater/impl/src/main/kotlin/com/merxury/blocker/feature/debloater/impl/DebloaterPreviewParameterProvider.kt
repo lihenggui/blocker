@@ -17,191 +17,75 @@
 package com.merxury.blocker.feature.debloater.impl
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.merxury.blocker.core.database.debloater.DebloatableComponentEntity
-import com.merxury.blocker.core.domain.model.MatchedHeaderData
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.IntentFilterDataInfo
-import com.merxury.blocker.core.model.data.IntentFilterInfo
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.ui.component.ComponentRow
 
 class DebloaterPreviewParameterProvider : PreviewParameterProvider<List<MatchedTarget>> {
     override val values: Sequence<List<MatchedTarget>> = sequenceOf(DebloaterPreviewParameterData.debloaterList)
 }
 
 object DebloaterPreviewParameterData {
+    private val app = AppKey("com.example.app", UserId.SYSTEM)
+    private val anotherApp = AppKey("com.example.another", UserId.SYSTEM)
 
-    private val launcherIntentFilter = IntentFilterInfo(
-        actions = listOf("android.intent.action.MAIN"),
-        categories = listOf("android.intent.category.LAUNCHER"),
-        data = emptyList(),
+    val debloaterComponentUiItem = previewItem(
+        app,
+        "MainActivity",
+        "Main Activity",
+        kinds = setOf(ComponentClassification.SHAREABLE, ComponentClassification.LAUNCHER, ComponentClassification.DEEPLINK),
     )
-
-    private val shareIntentFilter = IntentFilterInfo(
-        actions = listOf("android.intent.action.SEND"),
-        categories = listOf("android.intent.category.DEFAULT"),
-        data = listOf(
-            IntentFilterDataInfo(mimeType = "text/plain"),
-        ),
+    val launcherOnlyComponent = previewItem(
+        app,
+        "LauncherActivity",
+        "Launcher",
+        kinds = setOf(ComponentClassification.LAUNCHER),
     )
-
-    private val deeplinkIntentFilter = IntentFilterInfo(
-        actions = listOf("android.intent.action.VIEW"),
-        categories = listOf("android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"),
-        data = listOf(
-            IntentFilterDataInfo(scheme = "https", host = "example.com"),
-        ),
+    private val blockedComponent = previewItem(app, "BlockedActivity", "", enabled = false)
+    val shareComponent = previewItem(
+        app,
+        "ShareActivity",
+        "Share Handler",
+        kinds = setOf(ComponentClassification.SHAREABLE),
     )
-
-    val debloaterComponentUiItem = DebloatableComponentUiItem(
-        entity = DebloatableComponentEntity(
-            packageName = "com.example.app",
-            componentName = "com.example.app.MainActivity",
-            simpleName = "MainActivity",
-            displayName = "Main Activity",
-            ifwBlocked = false,
-            pmBlocked = false,
-            type = ComponentType.ACTIVITY,
-            exported = true,
-            label = "Main",
-            intentFilters = listOf(launcherIntentFilter, shareIntentFilter, deeplinkIntentFilter),
-        ),
-        isShareableComponent = true,
-        isLauncherEntry = true,
-        isDeeplinkEntry = true,
-    )
-
-    val launcherOnlyComponent = DebloatableComponentUiItem(
-        entity = DebloatableComponentEntity(
-            packageName = "com.example.app",
-            componentName = "com.example.app.LauncherActivity",
-            simpleName = "LauncherActivity",
-            displayName = "Launcher",
-            ifwBlocked = false,
-            pmBlocked = false,
-            type = ComponentType.ACTIVITY,
-            exported = true,
-            label = "Launcher",
-            intentFilters = listOf(launcherIntentFilter),
-        ),
-        isShareableComponent = false,
-        isLauncherEntry = true,
-        isDeeplinkEntry = false,
-    )
-
-    val blockedComponent = DebloatableComponentUiItem(
-        entity = DebloatableComponentEntity(
-            packageName = "com.example.app",
-            componentName = "com.example.app.BlockedActivity",
-            simpleName = "BlockedActivity",
-            displayName = "",
-            ifwBlocked = true,
-            pmBlocked = false,
-            type = ComponentType.ACTIVITY,
-            exported = false,
-            label = null,
-            intentFilters = emptyList(),
-        ),
-        isShareableComponent = false,
-        isLauncherEntry = false,
-        isDeeplinkEntry = false,
-    )
-
-    val shareComponent = DebloatableComponentUiItem(
-        entity = DebloatableComponentEntity(
-            packageName = "com.example.app",
-            componentName = "com.example.app.ShareActivity",
-            simpleName = "ShareActivity",
-            displayName = "Share Handler",
-            ifwBlocked = false,
-            pmBlocked = false,
-            type = ComponentType.ACTIVITY,
-            exported = true,
-            label = "Share",
-            intentFilters = listOf(shareIntentFilter),
-        ),
-        isShareableComponent = true,
-        isLauncherEntry = false,
-        isDeeplinkEntry = false,
-    )
-
-    val deeplinkComponent = DebloatableComponentUiItem(
-        entity = DebloatableComponentEntity(
-            packageName = "com.example.app",
-            componentName = "com.example.app.DeeplinkActivity",
-            simpleName = "DeeplinkActivity",
-            displayName = "Deeplink Handler",
-            ifwBlocked = false,
-            pmBlocked = false,
-            type = ComponentType.ACTIVITY,
-            exported = true,
-            label = "Deeplink",
-            intentFilters = listOf(deeplinkIntentFilter),
-        ),
-        isShareableComponent = false,
-        isLauncherEntry = false,
-        isDeeplinkEntry = true,
+    private val deeplinkComponent = previewItem(
+        app,
+        "DeeplinkActivity",
+        "Deeplink Handler",
+        kinds = setOf(ComponentClassification.DEEPLINK),
     )
 
     val matchedTarget = MatchedTarget(
-        header = MatchedHeaderData(
-            title = "Example App",
-            uniqueId = "com.example.app",
-            icon = null,
-        ),
+        app = app,
+        title = "Example App",
+        icon = null,
+        targets = listOf(debloaterComponentUiItem, launcherOnlyComponent, shareComponent, deeplinkComponent, blockedComponent),
+    )
+
+    private val secondMatchedTarget = MatchedTarget(
+        app = anotherApp,
+        title = "Another App",
+        icon = null,
         targets = listOf(
-            debloaterComponentUiItem,
-            launcherOnlyComponent,
-            shareComponent,
-            deeplinkComponent,
-            blockedComponent,
+            previewItem(anotherApp, "MainActivity", "Main Activity", kinds = setOf(ComponentClassification.LAUNCHER)),
+            previewItem(anotherApp, "BackgroundService", "", enabled = false, type = ComponentType.SERVICE),
         ),
     )
 
-    val secondMatchedTarget = MatchedTarget(
-        header = MatchedHeaderData(
-            title = "Another App",
-            uniqueId = "com.example.another",
-            icon = null,
-        ),
-        targets = listOf(
-            DebloatableComponentUiItem(
-                entity = DebloatableComponentEntity(
-                    packageName = "com.example.another",
-                    componentName = "com.example.another.MainActivity",
-                    simpleName = "MainActivity",
-                    displayName = "Main Activity",
-                    ifwBlocked = false,
-                    pmBlocked = false,
-                    type = ComponentType.ACTIVITY,
-                    exported = true,
-                    label = "Main",
-                    intentFilters = listOf(launcherIntentFilter),
-                ),
-                isShareableComponent = false,
-                isLauncherEntry = true,
-                isDeeplinkEntry = false,
-            ),
-            DebloatableComponentUiItem(
-                entity = DebloatableComponentEntity(
-                    packageName = "com.example.another",
-                    componentName = "com.example.another.BackgroundService",
-                    simpleName = "BackgroundService",
-                    displayName = "",
-                    ifwBlocked = false,
-                    pmBlocked = true,
-                    type = ComponentType.SERVICE,
-                    exported = false,
-                    label = null,
-                    intentFilters = emptyList(),
-                ),
-                isShareableComponent = false,
-                isLauncherEntry = false,
-                isDeeplinkEntry = false,
-            ),
-        ),
-    )
+    val debloaterList = listOf(matchedTarget, secondMatchedTarget)
 
-    val debloaterList: List<MatchedTarget> = listOf(
-        matchedTarget,
-        secondMatchedTarget,
-    )
+    private fun previewItem(
+        app: AppKey,
+        name: String,
+        label: String,
+        kinds: Set<ComponentClassification> = emptySet(),
+        enabled: Boolean = true,
+        type: ComponentType = ComponentType.ACTIVITY,
+    ): DebloatableComponentUiItem {
+        val id = ComponentId(app.packageName, "${app.packageName}.$name")
+        return DebloatableComponentUiItem(ComponentKey(id, app.userId), ComponentRow(id, type, enabled), label, kinds)
+    }
 }

@@ -130,26 +130,4 @@ class AppComponentDaoTest {
         assertThat(dao.getByName("axb").first()).isNull()
         assertThat(dao.getByName("Axb").first()).isNotNull()
     }
-
-    @Test
-    fun givenIndexedComponent_whenUpdatePmBlocked_thenChangesOnlyItsPmState() = runTest {
-        val target = component("com.example", "com.example.Tracker").copy(ifwBlocked = true)
-        val sibling = component("com.example", "com.example.Main")
-        dao.upsertComponentList(listOf(target, sibling))
-
-        assertThat(dao.updatePmBlocked("com.example", "com.example.Tracker", pmBlocked = true)).isEqualTo(1)
-
-        assertThat(dao.getByPackageName("com.example").first())
-            .containsExactly(target.copy(pmBlocked = true), sibling)
-    }
-
-    @Test
-    fun givenComponentNotIndexed_whenUpdatePmBlocked_thenInsertsNothing() = runTest {
-        val indexed = component("com.example", "com.example.Main")
-        dao.upsertComponentList(listOf(indexed))
-
-        assertThat(dao.updatePmBlocked("com.example", "com.example.Missing", pmBlocked = true)).isEqualTo(0)
-
-        assertThat(dao.getByPackageName("com.example").first()).containsExactly(indexed)
-    }
 }

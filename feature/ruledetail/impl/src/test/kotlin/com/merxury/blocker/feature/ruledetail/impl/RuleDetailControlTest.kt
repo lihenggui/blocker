@@ -37,6 +37,7 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ControlMessage
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -48,6 +49,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /** The switches and the batch actions of the rule detail change the selected user's components. */
+@OptIn(ExperimentalCoroutinesApi::class)
 class RuleDetailControlTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -78,6 +80,7 @@ class RuleDetailControlTest {
 
     private fun TestScope.show() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.keepFresh() }
         settle()
     }
 

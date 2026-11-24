@@ -34,6 +34,7 @@ import com.merxury.blocker.core.domain.control.ControlComponentUseCase
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
 import com.merxury.blocker.core.domain.search.ComponentIndex
+import com.merxury.blocker.core.domain.search.IndexState
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
@@ -138,12 +139,18 @@ class RuleDetailViewModel @AssistedInject constructor(
             .onStart { emit(MatchedAppsUiState.Loading) }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val ruleInfo: Flow<RuleInfoUiState> = combine(
         rule,
         matched,
         userDataRepository.userData.map { it.useDynamicColor }.distinctUntilChanged(),
-    ) { rule, matched, useDynamicColor ->
-        RuleInfoUiState.Success(rule, matched, seedIcon = rule.iconUrl?.takeIf { useDynamicColor }?.let(::File)) as RuleInfoUiState
+        selectedUsers.selectedUser.flatMapLatest { componentIndex.state(it) },
+    ) { rule, matched, useDynamicColor, index ->
+        if (index is IndexState.Failed) {
+            RuleInfoUiState.Error(index.exception.toErrorMessage())
+        } else {
+            RuleInfoUiState.Success(rule, matched, seedIcon = rule.iconUrl?.takeIf { useDynamicColor }?.let(::File))
+        }
     }.retryWhen { e, _ ->
         if (e is CancellationException) return@retryWhen false
         // Shown until the rule and its matches can be read again.
@@ -237,7 +244,7 @@ class RuleDetailViewModel @AssistedInject constructor(
             return
         }
         analyticsHelper.logControlAllInPageClicked(newState = enable)
-        startBatch(apps.first().app.userId, apps.flatMap { app -> app.rows.map { it.id } }, enable)
+        startBatch(apps.first().app.userId, apps.flatMap { app -> app.rows.map { it.id } }, enable, requireCompleteIndex = true)
     }
 
     /** Starts [activity], for the user of its row; a blocked one stays blocked, as its switch shows. */
@@ -270,7 +277,7 @@ class RuleDetailViewModel @AssistedInject constructor(
      * chosen. Components in flight are left out, and nothing starts while another batch of the
      * rule runs for the user.
      */
-    private fun startBatch(user: UserId, components: List<ComponentId>, enable: Boolean) {
+    private fun startBatch(user: UserId, components: List<ComponentId>, enable: Boolean, requireCompleteIndex: Boolean = false) {
         val goal = if (enable) ControlGoal.UNBLOCK else ControlGoal.BLOCK
         val ids = components.distinct().filterNot { isInFlight(ComponentKey(it, user)) }
         if (ids.isEmpty()) return
@@ -278,7 +285,10 @@ class RuleDetailViewModel @AssistedInject constructor(
         viewModelScope.launch {
             var started = false
             try {
+                val index = componentIndex.state(user).first() as? IndexState.Indexed
+                if (requireCompleteIndex && index?.hasAllApps != true) return@launch
                 val cached = ruleMatcher.matches(user, id).first().associateBy { it.declaration.id }
+                if (requireCompleteIndex && componentIndex.state(user).first() != index) return@launch
                 val declarations = ids.mapNotNull { cached[it]?.declaration }
                 val vanished = (ids - declarations.mapTo(mutableSetOf()) { it.id }).map { ComponentKey(it, user) }
                 if (vanished.isNotEmpty()) Timber.w("${vanished.size} components of rule $ruleId are no longer matched, tell them as not changed")

@@ -87,6 +87,7 @@ fun AppDetailScreen(
 ) {
     val header by headerViewModel.uiState.collectAsStateWithLifecycle()
     val list by listViewModel.uiState.collectAsStateWithLifecycle()
+    val searchQuery by listViewModel.searchQuery.collectAsStateWithLifecycle()
     val control by controlViewModel.uiState.collectAsStateWithLifecycle()
     KeepFreshWhileStarted(keepFresh = listViewModel::keepFresh, refresh = listViewModel::refresh)
     var detailOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -123,6 +124,7 @@ fun AppDetailScreen(
         header = header,
         list = list,
         control = control,
+        searchQuery = searchQuery,
         modifier = modifier,
         showBackButton = showBackButton,
         topBarActions = topBarActions,

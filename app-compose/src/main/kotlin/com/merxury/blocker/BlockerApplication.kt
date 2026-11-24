@@ -128,6 +128,7 @@ class BlockerApplication :
     private fun initAppSettings() {
         applicationScope.launch { analyticsCollectionObserver.observe() }
         deviceUserMonitor.start()
+        applicationScope.launch { removeLegacyDebloaterDatabase(this@BlockerApplication) }
         // Before the first scan of a new install fills the old component list, which would
         // otherwise be taken for blocks of an earlier version.
         applicationScope.launch {
@@ -171,5 +172,12 @@ class BlockerApplication :
             Timber.i("Add hidden API exemptions")
             HiddenApiBypass.addHiddenApiExemptions("")
         }
+    }
+}
+
+/** Deletes the obsolete manifest cache left by versions that used a separate database. */
+internal fun removeLegacyDebloaterDatabase(context: Context) {
+    if (context.getDatabasePath("share_target").exists() && !context.deleteDatabase("share_target")) {
+        Timber.w("Cannot delete the old debloater database")
     }
 }

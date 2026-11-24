@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.debloater.impl
 
+import android.content.Intent
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,7 +51,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.PreviewThemes
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.ui.control.ControlMessageSnackbar
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.appdebloater.api.R
 
@@ -61,22 +64,26 @@ fun DebloaterScreen(
     modifier: Modifier = Modifier,
     viewModel: DebloaterViewModel = hiltViewModel(),
 ) {
-    val debloatableUiState by viewModel.debloatableUiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
-    val componentTypeFilter by viewModel.componentTypeFilter.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-    val hasRootPermission by viewModel.hasRootPermission.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val noRootPermissionWarning = stringResource(R.string.feature_debloater_api_no_root_permission)
 
-    LaunchedEffect(hasRootPermission) {
-        if (!hasRootPermission) {
+    LaunchedEffect(uiState.hasRootPermission) {
+        if (uiState.hasRootPermission == false) {
             snackbarHostState.showSnackbar(
                 message = noRootPermissionWarning,
                 duration = SnackbarDuration.Long,
             )
         }
     }
+
+    ControlMessageSnackbar(
+        messages = uiState.messages,
+        snackbarHostState = snackbarHostState,
+        onShow = viewModel::onMessageShown,
+        onGrantAccess = viewModel::grantAccess,
+    )
 
     Scaffold(
         modifier = modifier,
@@ -88,7 +95,14 @@ fun DebloaterScreen(
                 actions = {
                     IconButton(
                         onClick = {
-                            viewModel.triggerTestShare(context)
+                            viewModel.onTestShare()
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                putExtra(Intent.EXTRA_TEXT, "Test share message from Blocker")
+                                type = "*/*"
+                            }
+                            val shareIntent = Intent.createChooser(sendIntent, null)
+                            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(shareIntent)
                         },
                     ) {
                         Icon(
@@ -102,21 +116,16 @@ fun DebloaterScreen(
     ) { padding ->
         DebloaterScreenContent(
             modifier = Modifier.padding(padding),
-            debloatableUiState = debloatableUiState,
+            debloatableUiState = uiState.content,
             searchQuery = searchQuery,
-            componentTypeFilter = componentTypeFilter,
-            errorState = errorState,
+            componentTypeFilter = uiState.componentTypeFilter,
+            errorState = uiState.alert,
+            inFlight = uiState.inFlight,
             onSearchQueryChange = viewModel::updateSearchQuery,
             onComponentTypeFilterChange = viewModel::updateComponentTypeFilter,
-            onSwitchClick = { uiItem, enabled ->
-                viewModel.controlComponent(uiItem.entity, enabled)
-            },
-            onBlockAllInItemClick = { uiItems ->
-                viewModel.controlAllComponents(uiItems.map { it.entity }, enable = false)
-            },
-            onEnableAllInItemClick = { uiItems ->
-                viewModel.controlAllComponents(uiItems.map { it.entity }, enable = true)
-            },
+            onSwitchClick = viewModel::setEnabled,
+            onBlockAllInItemClick = { viewModel.setAllEnabled(it.app, it.targets, enabled = false) },
+            onEnableAllInItemClick = { viewModel.setAllEnabled(it.app, it.targets, enabled = true) },
             onDismissError = viewModel::dismissError,
         )
     }
@@ -129,11 +138,12 @@ internal fun DebloaterScreenContent(
     searchQuery: String = "",
     componentTypeFilter: Set<ComponentClassification> = emptySet(),
     errorState: UiMessage? = null,
+    inFlight: Set<ComponentKey> = emptySet(),
     onSearchQueryChange: (String) -> Unit = {},
     onComponentTypeFilterChange: (Set<ComponentClassification>) -> Unit = {},
     onSwitchClick: (DebloatableComponentUiItem, Boolean) -> Unit = { _, _ -> },
-    onBlockAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = {},
-    onEnableAllInItemClick: (List<DebloatableComponentUiItem>) -> Unit = {},
+    onBlockAllInItemClick: (MatchedTarget) -> Unit = {},
+    onEnableAllInItemClick: (MatchedTarget) -> Unit = {},
     onDismissError: () -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -170,6 +180,7 @@ internal fun DebloaterScreenContent(
         DebloaterContent(
             modifier = Modifier.weight(1f),
             data = debloatableUiState,
+            inFlight = inFlight,
             onBlockAllInItemClick = onBlockAllInItemClick,
             onEnableAllInItemClick = onEnableAllInItemClick,
             onSwitch = onSwitchClick,

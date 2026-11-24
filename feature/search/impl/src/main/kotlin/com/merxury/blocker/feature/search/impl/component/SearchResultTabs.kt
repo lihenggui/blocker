@@ -58,6 +58,7 @@ import com.merxury.blocker.core.ui.applist.AppRow
 import com.merxury.blocker.core.ui.applist.AppRowList
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.EmptyScreen
+import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.feature.search.api.R.string
 import com.merxury.blocker.feature.search.impl.ComponentGroup
 import com.merxury.blocker.feature.search.impl.SearchResults
@@ -141,8 +142,13 @@ internal fun SearchResultTabs(
         HorizontalPager(state = pagerState, modifier = Modifier.testTag("search:pager")) { page ->
             when (tabs.items[page]) {
                 SearchTab.APPS -> AppResults(results, actions, onAppAction)
+
                 SearchTab.COMPONENTS -> ComponentResults(uiState, results.components, actions)
-                SearchTab.RULES -> RuleResults(results, actions)
+
+                SearchTab.RULES -> {
+                    val error = uiState.indexError
+                    if (error != null) ErrorScreen(error) else RuleResults(results, actions)
+                }
             }
         }
     }
@@ -178,7 +184,12 @@ private fun ComponentResults(uiState: SearchUiState, groups: List<ComponentGroup
     Column(modifier = Modifier.fillMaxSize()) {
         uiState.indexing?.let { IndexingBar(it) }
         Box(modifier = Modifier.fillMaxSize().pullRefresh(refreshState)) {
-            if (groups.isEmpty()) {
+            val error = uiState.indexError
+            if (error != null) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item { ErrorScreen(error, modifier = Modifier.fillParentMaxSize()) }
+                }
+            } else if (groups.isEmpty()) {
                 // Scrollable, so the empty page takes the pull too.
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item { EmptyScreen(textRes = string.feature_search_api_no_search_result, modifier = Modifier.fillParentMaxSize()) }

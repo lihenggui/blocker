@@ -17,11 +17,13 @@
 package com.merxury.blocker.core.data.di
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InMemorySelectedUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.LegacyListPmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.LocalComponentStatusRepository
+import com.merxury.blocker.core.data.device.LocalDebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.LocalDeviceUserRepository
 import com.merxury.blocker.core.data.device.LocalInstalledAppRepository
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
@@ -36,8 +38,6 @@ import com.merxury.blocker.core.data.respository.component.LocalComponentReposit
 import com.merxury.blocker.core.data.respository.component.RecordingLegacyPmBlockHook
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.LocalComponentDetailRepository
-import com.merxury.blocker.core.data.respository.debloater.DebloatableComponentRepository
-import com.merxury.blocker.core.data.respository.debloater.LocalDebloatableComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSource
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.LocalGeneralRuleDataSource
@@ -119,9 +119,7 @@ abstract class DataModule {
     ): LicensesRepository
 
     @Binds
-    internal abstract fun bindDebloatableComponentRepository(
-        debloatableComponentRepository: LocalDebloatableComponentRepository,
-    ): DebloatableComponentRepository
+    internal abstract fun bindDebloaterMetadataRepository(repository: LocalDebloaterMetadataRepository): DebloaterMetadataRepository
 
     @Binds
     internal abstract fun bindDeviceUserRepository(repository: LocalDeviceUserRepository): DeviceUserRepository

@@ -81,6 +81,7 @@ graph TB
   :core:ui --> :core:model
   :feature:debloater:api --> :core:navigation
   :feature:debloater:api -.-> :core:ui
+  :feature:debloater:impl -.-> :core:component-controller
   :feature:debloater:impl -.-> :core:data
   :feature:debloater:impl -.-> :core:designsystem
   :feature:debloater:impl -.-> :core:domain
