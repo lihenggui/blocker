@@ -52,7 +52,7 @@ class PackageManagerReset @Inject constructor(
      */
     suspend fun reset(user: UserId, onProgress: RuleRunProgress = { _, _, _ -> }): RuleRunResult {
         if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
-        if (!seeder.seedOnce()) return RuleRunResult.Failed(FailureReason.STATE_UNREADABLE)
+        if (!seeder.seedOnce()) return RuleRunResult.Failed(FailureReason.LEGACY_PM_RECORDS_UNREADABLE)
         val found = when (val read = components.disabledByBlocker(user)) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)

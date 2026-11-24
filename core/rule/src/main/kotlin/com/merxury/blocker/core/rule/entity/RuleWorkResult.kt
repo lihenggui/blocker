@@ -25,6 +25,7 @@ object RuleWorkResult {
     const val MISSING_STORAGE_PERMISSION = 4
     const val UNEXPECTED_EXCEPTION = 5
     const val CANCELLED = 6
+    const val LEGACY_PM_RECORDS_UNREADABLE = 7
 
     /**
      * Output of every rule work that finishes: how many items it changed, such as backup files

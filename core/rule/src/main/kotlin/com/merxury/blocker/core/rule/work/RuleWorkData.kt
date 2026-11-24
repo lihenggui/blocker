@@ -92,9 +92,10 @@ internal fun RuleRunSummary.changedCount(type: RuleWorkType): Int = when (type) 
 /**
  * The work result for [this] run. A run that could not start for want of the backup folder or of
  * privilege fails with [RuleWorkResult.MISSING_STORAGE_PERMISSION] or
- * [RuleWorkResult.MISSING_ROOT_PERMISSION]. A completed run succeeds with its counts, also when
- * items failed, such as an unreadable backup file: that is a run done with failures, not an
- * unexpected exception. Only a completed run that changed nothing and failed solely for privilege
+ * [RuleWorkResult.MISSING_ROOT_PERMISSION]. A reset that could not recover the pre-update list
+ * fails with [RuleWorkResult.LEGACY_PM_RECORDS_UNREADABLE]. A completed run succeeds with its counts,
+ * including item failures such as an unreadable backup file. Only a completed run that changed
+ * nothing and failed solely for privilege
  * fails, with [RuleWorkResult.MISSING_ROOT_PERMISSION] and its counts. A run that could not start
  * for another reason succeeds with one failure. [RuleWorkResult.UNEXPECTED_EXCEPTION] is left to
  * throwables nothing expected, which fail the work without a code.
@@ -107,6 +108,7 @@ internal fun RuleRunResult.toWorkResult(countKey: String, count: (RuleRunSummary
     is RuleRunResult.Failed -> when (reason) {
         FailureReason.STORAGE_UNAVAILABLE -> failureOf(RuleWorkResult.MISSING_STORAGE_PERMISSION)
         FailureReason.NO_PRIVILEGE -> failureOf(RuleWorkResult.MISSING_ROOT_PERMISSION)
+        FailureReason.LEGACY_PM_RECORDS_UNREADABLE -> failureOf(RuleWorkResult.LEGACY_PM_RECORDS_UNREADABLE)
         else -> RuleRunResult.Completed(RuleRunSummary(failed = mapOf(reason to 1))).toWorkResult(countKey, count)
     }
 

@@ -28,6 +28,7 @@
     <string name="core_rule_error_msg_folder_not_defined">No se ha definido una carpeta para Backups, por favor seleccioneuna en configuración.</string>
     <string name="core_rule_error_msg_missing_root_permission">Sin permisos root, por favor conceda permisos a Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Error inesperado, por favor informe al programador.</string>
+    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Blocker no pudo leer la lista de componentes que deshabilitó antes de la actualización. Tus componentes bloqueados no se modificaron.</string>
     <string name="core_rule_task_cancelled">Proceso cancelado</string>
     <string name="core_rule_copying_rules_to_internal_storage">Copiando reglas en el almacenamiento interno…</string>
     <plurals name="core_rule_result_changed">

@@ -37,7 +37,6 @@ import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
-import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.BackupSet
 import com.merxury.blocker.core.rule.backup.FailureReason
 import com.merxury.blocker.core.rule.backup.PackageManagerReset
@@ -228,22 +227,24 @@ class RuleWorkDataTest {
     }
 
     @Test
-    fun givenLegacySeedFails_whenResetPmWorkRuns_thenItShowsTheExistingErrorWithoutResetting() = runTest {
+    fun givenLegacySeedFails_whenResetPmWorkRuns_thenItExplainsTheUnreadableListWithoutResetting() = runTest {
         val components = FakeComponentStatusRepository()
         val boot = ComponentDeclaration(ComponentId("com.example", "com.example.Boot"), ComponentType.RECEIVER, exported = true, enabledInManifest = true)
         components.sendComponents(ownUser(), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
-        components.recorded += ComponentKey(boot.id, ownUser())
+        val blocked = ComponentKey(boot.id, ownUser())
+        components.recorded += blocked
         val worker = resetPmWorker(components, FakePmBlockRecordSeeder().apply { seeded = false })
 
         val result = worker.doWork()
 
         assertThat(components.requests).isEmpty()
+        assertThat(components.recorded).containsExactly(blocked)
         assertThat(result).isInstanceOf(ListenableWorker.Result.Failure::class.java)
         val code = result.output().getInt(RuleWorkResult.PARAM_WORK_RESULT, -1)
-        assertThat(code).isEqualTo(RuleWorkResult.UNEXPECTED_EXCEPTION)
+        assertThat(code).isEqualTo(RuleWorkResult.LEGACY_PM_RECORDS_UNREADABLE)
         val resources = ApplicationProvider.getApplicationContext<Context>().resources
         assertThat(RuleWorkEvent(RuleWorkType.RESET_PM, code).resultMessage(resources))
-            .isEqualTo(resources.getString(R.string.core_rule_error_msg_unexpected_exception))
+            .isEqualTo("Blocker could not read the list of components it disabled before the update. Your blocked components were not changed.")
     }
 
     private fun resetPmWorker(components: FakeComponentStatusRepository, seeder: PmBlockRecordSeeder): ResetPmWorker {

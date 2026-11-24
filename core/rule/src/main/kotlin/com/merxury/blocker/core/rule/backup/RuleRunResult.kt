@@ -85,6 +85,9 @@ enum class FailureReason {
     /** The app's state could not be read from the system. Counts apps. */
     STATE_UNREADABLE,
 
+    /** The pre-update list of PackageManager blocks could not be recovered. Only for [RuleRunResult.Failed]. */
+    LEGACY_PM_RECORDS_UNREADABLE,
+
     /** Writing a backup file or a rule file failed. Counts files. */
     WRITE_FAILED,
 

@@ -29,6 +29,7 @@
     <string name="core_rule_error_msg_folder_not_defined">Backup folder is not defined, please go to settings to assign one.</string>
     <string name="core_rule_error_msg_missing_root_permission">Missing root permission, please grant permission to Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Unexpected exception, please report to developer.</string>
+    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Blocker could not read the list of components it disabled before the update. Your blocked components were not changed.</string>
     <string name="core_rule_task_cancelled">Task cancelled</string>
     <string name="core_rule_copying_rules_to_internal_storage">Copying rules to internal storage…</string>
     <plurals name="core_rule_result_changed">

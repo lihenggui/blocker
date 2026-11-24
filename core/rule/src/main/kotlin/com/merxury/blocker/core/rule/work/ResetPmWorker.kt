@@ -23,10 +23,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.backup.FailureReason
 import com.merxury.blocker.core.rule.backup.PackageManagerReset
-import com.merxury.blocker.core.rule.backup.RuleRunResult
-import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -47,9 +44,6 @@ class ResetPmWorker @AssistedInject constructor(
         Timber.i("Reset the PM settings of user ${user.value}")
         val result = reset.reset(user) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Reset PM settings: $result")
-        if (result == RuleRunResult.Failed(FailureReason.STATE_UNREADABLE)) {
-            return failureOf(RuleWorkResult.UNEXPECTED_EXCEPTION)
-        }
         return result.toWorkResult(PARAM_RESTORED_COUNT) { it.changedCount(RuleWorkType.RESET_PM) }
     }
 

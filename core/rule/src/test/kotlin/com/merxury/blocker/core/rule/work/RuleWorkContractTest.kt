@@ -32,6 +32,7 @@ class RuleWorkContractTest {
         assertThat(RuleWorkResult.MISSING_STORAGE_PERMISSION).isEqualTo(4)
         assertThat(RuleWorkResult.UNEXPECTED_EXCEPTION).isEqualTo(5)
         assertThat(RuleWorkResult.CANCELLED).isEqualTo(6)
+        assertThat(RuleWorkResult.LEGACY_PM_RECORDS_UNREADABLE).isEqualTo(7)
     }
 
     @Test
