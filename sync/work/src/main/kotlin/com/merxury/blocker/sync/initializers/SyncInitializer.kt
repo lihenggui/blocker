@@ -20,6 +20,7 @@ package com.merxury.blocker.sync.initializers
 import android.content.Context
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
+import com.merxury.blocker.sync.workers.CatalogSeedWorker
 import com.merxury.blocker.sync.workers.SyncWorker
 import com.merxury.blocker.sync.workers.WakeWork
 import timber.log.Timber
@@ -34,6 +35,11 @@ object Sync {
         }
         wakeWork.initialize()
         WorkManager.getInstance(context).apply {
+            enqueueUniqueWork(
+                CatalogSeedWorker.WORK_NAME,
+                ExistingWorkPolicy.KEEP,
+                CatalogSeedWorker.startupWork(),
+            )
             // Run sync on app startup and ensure only one sync worker runs at any time
             enqueueUniqueWork(
                 SYNC_WORK_NAME,

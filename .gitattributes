@@ -13,3 +13,6 @@
 *.jar binary
 *.keystore binary
 *.jks binary
+
+# Catalog payloads are checked against upstream byte sizes and digests.
+core/data/src/main/assets/catalog/** -text !eol -whitespace

@@ -26,12 +26,14 @@ import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.DataModule
+import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
 import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.test.repository.FakeAppPropertiesRepository
+import com.merxury.blocker.core.data.test.repository.FakeCatalogRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.test.repository.FakeLicensesRepository
@@ -76,6 +78,9 @@ internal interface TestDataModule {
     fun bindsTestGeneralRuleRepository(
         testGeneralRuleRepository: FakeGeneralRuleRepository,
     ): GeneralRuleRepository
+
+    @Binds
+    fun bindsCatalogRepository(repository: FakeCatalogRepository): CatalogRepository
 
     @Binds
     fun bindsComponentDetailRepository(
