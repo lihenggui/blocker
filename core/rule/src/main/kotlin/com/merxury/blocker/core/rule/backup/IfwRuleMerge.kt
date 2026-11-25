@@ -34,11 +34,14 @@ internal data class MergedIfwRules(val rules: IfwRules, val added: Int, val pres
  * Every rule on the device is kept. A backup rule equal to one on the device, field by field, is
  * already present. A backup rule made only of component-filters with `block="true"`, the form
  * Blocker writes, adds the components no unconditional rule of its type names yet to the first
- * unconditional rule of that type without intent-filters, as blocking one does, or becomes a rule
- * of its own when there is none; so a plain backup restores to one rule per type. Any other rule,
- * such as one with conditions or `block="false"`, is added as it is.
+ * unconditional rule of that type without intent-filters that [canExtend] accepts, as blocking one
+ * does, or becomes a rule of its own when there is none. Any other rule, such as one with
+ * conditions or `block="false"`, is added as it is.
  */
-internal class IfwRuleMerge(private val serializer: IfwXmlSerializer) {
+internal class IfwRuleMerge(
+    private val serializer: IfwXmlSerializer,
+    private val canExtend: (IfwRule) -> Boolean,
+) {
 
     fun merge(current: IfwRules, backup: IfwRules): MergedIfwRules {
         val rules = current.rules.toMutableList()
@@ -46,7 +49,7 @@ internal class IfwRuleMerge(private val serializer: IfwXmlSerializer) {
         var present = 0
         backup.rules.filterNot { it.filters.isEmpty() && it.intentFilters.isEmpty() }.forEach { rule ->
             val changed = when {
-                rules.any { same(it, rule) } -> false
+                rules.any { serializer.sameRule(it, rule) } -> false
                 rule.isComponentList -> mergeComponents(rules, rule)
                 else -> rules.add(rule)
             }
@@ -61,7 +64,7 @@ internal class IfwRuleMerge(private val serializer: IfwXmlSerializer) {
             rules.none { it.componentType == rule.componentType && it.isUnconditional && it.names(filter) }
         }
         if (missing.isEmpty()) return false
-        val target = rules.indexOfFirst { it.componentType == rule.componentType && it.isUnconditional && it.intentFilters.isEmpty() }
+        val target = rules.indexOfFirst { it.componentType == rule.componentType && it.isUnconditional && it.intentFilters.isEmpty() && canExtend(it) }
         if (target < 0) {
             rules += rule.copy(filters = missing)
         } else {
@@ -69,10 +72,6 @@ internal class IfwRuleMerge(private val serializer: IfwXmlSerializer) {
         }
         return true
     }
-
-    // Intent-filter extras are bundles, which compare by identity, so compare those rules as XML.
-    private fun same(a: IfwRule, b: IfwRule): Boolean = a == b ||
-        ((a.hasExtras || b.hasExtras) && serializer.serialize(IfwRules(listOf(a))) == serializer.serialize(IfwRules(listOf(b))))
 }
 
 /** `block="true"` with only component-filters as filter elements, as IfwStore defines it. */
@@ -80,8 +79,6 @@ private val IfwRule.isUnconditional: Boolean get() = block && filters.all { it i
 
 /** A rule in the form Blocker writes: an unconditional rule of component-filters only. */
 private val IfwRule.isComponentList: Boolean get() = isUnconditional && filters.isNotEmpty() && intentFilters.isEmpty()
-
-private val IfwRule.hasExtras: Boolean get() = intentFilters.any { it.extras != null }
 
 /** Names the component of [filter] in a top-level component-filter, in its full or `package/.Class` form. */
 private fun IfwRule.names(filter: IfwFilter.ComponentFilter): Boolean {

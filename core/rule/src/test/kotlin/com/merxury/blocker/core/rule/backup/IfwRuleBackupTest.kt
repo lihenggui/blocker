@@ -113,6 +113,22 @@ class IfwRuleBackupTest {
     }
 
     @Test
+    fun givenInstalledAppsFileWithARestoredOwnBlock_whenImportingAnUnrelatedBlock_thenItIsAddedSeparately() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        val ownRule = """<activity block="true"><component-filter name="com.merxury.blocker.test/.MainActivity"/></activity>"""
+        val incomingRule = """<activity block="true"><component-filter name="$APP/.MainActivity"/></activity>"""
+        fileSystem.putFile(APP, "<rules>$ownRule</rules>")
+        storage.putFile("ifw/$APP.xml", "<rules>$incomingRule</rules>")
+
+        val result = importer.import(storage)
+
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(result.summary.skipped).isEmpty()
+        assertThat(result.summary.failed).isEmpty()
+        assertThat(rulesOn(APP)).isEqualTo(IfwXmlDeserializer().deserialize("<rules>$ownRule$incomingRule</rules>"))
+    }
+
+    @Test
     fun givenRuleFiles_whenExporting_thenEachIsCopiedAsStoredWithoutTheWakeFeatures() = runTest {
         fileSystem.putFile(APP, BLOCKER_RULE)
         fileSystem.putFile("com.broken", DAMAGED_RULE)

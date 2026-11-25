@@ -137,7 +137,12 @@ internal class PrivilegedComponentControl @Inject constructor(
             if (change == PmSetting.DISABLED && current == PmSetting.UNKNOWN) {
                 val failure = when (val readFailure = pmReadFailure) {
                     is ReadFailure.PackageNotFound -> ControlFailure.TargetNotFound(readFailure.toString())
-                    is ReadFailure.UserNotReachable, ReadFailure.ChannelUnavailable -> ControlFailure.ChannelUnavailable
+
+                    is ReadFailure.UserNotReachable -> ControlFailure.ChannelUnavailable
+
+                    ReadFailure.ChannelUnavailable ->
+                        if (identity == null) ControlFailure.ChannelUnavailable else ControlFailure.StateNotConfirmed
+
                     else -> ControlFailure.StateNotConfirmed
                 }
                 failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, failure)
@@ -161,7 +166,16 @@ internal class PrivilegedComponentControl @Inject constructor(
         fun outcome(after: Map<ComponentId, ControlState>, sentPm: Boolean): ControlEvent.PackageDone {
             val outcomes = components.map { component ->
                 val id = component.id
-                judge(component, app.userId, request.goal, layers.getValue(id), before.getValue(id), after.getValue(id), failures[id].orEmpty())
+                judge(
+                    component,
+                    app.userId,
+                    request.goal,
+                    layers.getValue(id),
+                    before.getValue(id),
+                    after.getValue(id),
+                    failures[id].orEmpty(),
+                    blockingFirewallProtected,
+                )
             }
             val pmWrites = if (sentPm) {
                 pmChanges.filter { (id, setting) ->

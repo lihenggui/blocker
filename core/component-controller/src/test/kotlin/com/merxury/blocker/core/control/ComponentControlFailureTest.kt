@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.control
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -28,6 +29,7 @@ import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -55,6 +57,75 @@ private val SHELL = ChannelState.Ready(PrivilegedIdentity.SHELL)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class ComponentControlFailureTest {
+
+    @Test
+    fun givenRestoredOwnBlockInAnotherPackagesFile_whenUnblockingThatPackage_thenTheOtherRuleIsRemoved() = runTest {
+        val fixture = ControlFixture()
+        val own = declaration("Main", packageName = "com.merxury.blocker.test")
+        fixture.files.putFile(
+            PKG,
+            """<rules>
+                <activity block="true"><component-filter name="${own.id.flatten()}"/></activity>
+                <activity block="true"><component-filter name="${MAIN.id.flatten()}"/></activity>
+                </rules>""",
+        )
+
+        val outcome = fixture.run(unblock(MAIN, layers = IFW_ONLY)).outcomeOf(MAIN)
+
+        assertThat(outcome.result).isEqualTo(ControlResult.ACHIEVED)
+        assertThat(outcome.state.ifw).isEqualTo(IfwBlock.NOT_BLOCKED)
+        val rules = (fixture.store.rules(PKG) as IfwResult.Success).value.rules
+        assertThat(fixture.store.blocksOwnComponent(rules.single())).isTrue()
+    }
+
+    @Test
+    fun givenRestoredOwnBlockOfTheSameType_whenBlockingAnotherPackage_thenItsRuleIsWrittenSeparately() = runTest {
+        val fixture = ControlFixture()
+        val own = declaration("Main", packageName = "com.merxury.blocker.test")
+        fixture.files.putFile(PKG, """<rules><activity block="true"><component-filter name="${own.id.flatten()}"/></activity></rules>""")
+        val legacyRule = (fixture.store.rules(PKG) as IfwResult.Success).value.rules.single()
+
+        val outcome = fixture.run(block(IFW_ONLY, MAIN)).outcomeOf(MAIN)
+
+        assertThat(outcome.result).isEqualTo(ControlResult.ACHIEVED)
+        assertThat(outcome.state.ifw).isEqualTo(IfwBlock.BLOCKED)
+        val rules = (fixture.store.rules(PKG) as IfwResult.Success).value.rules
+        assertThat(rules.filter(fixture.store::blocksOwnComponent)).containsExactly(legacyRule)
+    }
+
+    @Test
+    fun givenStoreRefusesAnUnblockForProtection_whenUnblocking_thenTheRefusalIsAFailure() = runTest {
+        val fixture = ControlFixture(storeSeenByControl = { store ->
+            object : IfwStore by store {
+                override suspend fun setBlocked(
+                    packageName: String,
+                    changes: Map<ComponentDeclaration, Boolean>,
+                    onWrite: ((Collection<ComponentId>) -> Unit)?,
+                ): IfwResult<Map<ComponentId, IfwBlock>> = IfwResult.Failure(IfwFailure.ProtectedComponent)
+            }
+        })
+
+        fixture.control.apply(unblock(MAIN, layers = IFW_ONLY)).test {
+            val outcome = (awaitItem() as ControlEvent.PackageDone).outcomes.single()
+            assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+            assertThat(outcome.failures).containsExactly(ControlLayer.INTENT_FIREWALL, ControlFailure.ProtectedComponent)
+            assertThat(awaitItem()).isEqualTo(ControlEvent.Finished(0, 0, 1, skipped = 0))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun givenReadyChannelButSystemDoesNotAnswer_whenBlockingWithPm_thenStateIsUnconfirmed() = runTest {
+        val fixture = ControlFixture()
+        fixture.system.readFailure = ReadFailure.ChannelUnavailable
+
+        val outcome = fixture.run(block(PM_ONLY, MAIN)).outcomeOf(MAIN)
+
+        assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+        assertThat(outcome.failures).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlFailure.StateNotConfirmed)
+        assertThat(outcome.state.pm).isEqualTo(PmSetting.UNKNOWN)
+        assertThat(fixture.executor.calls).isEmpty()
+    }
 
     @Test
     fun givenProtectedComponentInBatch_whenBlockWithPm_thenOneByOneAndOnlyItFails() = runTest {

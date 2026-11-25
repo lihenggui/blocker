@@ -51,8 +51,8 @@ import kotlinx.coroutines.flow.SharedFlow
  *
  * ## Writes
  * Blocking adds the component-filter to the first unconditional rule of the type that has no
- * intent-filter, or appends such a rule. Unblocking removes the component-filter from every
- * unconditional rule of the type and drops a rule left with neither component-filters nor
+ * intent-filter and does not explicitly block Blocker, or appends such a rule. Unblocking removes
+ * the component-filter from every unconditional rule of the type and drops a rule left with neither component-filters nor
  * intent-filters. Neither touches a rule with further conditions, so an unblocked component can
  * stay [IfwBlock.CONDITIONAL]. Every change to a package runs as one read-modify-write under that
  * package's lock: a file that cannot be read is never written, a change that leaves the rules as
@@ -121,8 +121,9 @@ interface IfwStore {
     /**
      * The one read-modify-write path for editor saves. [transform] gets the current rules and
      * runs only when they could be read; rules for which [IfwRules.isEmpty] holds delete the
-     * file. A write that would leave an explicit block of Blocker in the file fails with
-     * [IfwFailure.ProtectedComponent]. Returns the rules now in effect.
+     * file. A rule that explicitly blocks Blocker may stay in the file or be removed. Adding a
+     * rule that explicitly blocks Blocker fails with [IfwFailure.ProtectedComponent]. Returns the
+     * rules now in effect.
      *
      * @param name a rule file name as [isRuleFileName] decides
      */

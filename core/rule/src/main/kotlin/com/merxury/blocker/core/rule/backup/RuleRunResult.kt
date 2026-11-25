@@ -37,7 +37,7 @@ enum class SkipReason {
      */
     APP_NOT_INSTALLED,
 
-    /** Blocker protects its own components. Counts entries, rules or files, or apps in an export. */
+    /** Blocker protects its own components. Counts skipped entries, rules or files in an import. */
     PROTECTED_COMPONENT,
 
     /** A system app while system apps are left out. Counts apps in a backup, files in an Intent Firewall import, components otherwise. */
@@ -162,13 +162,12 @@ internal val ReadFailure.reason: FailureReason
     }
 
 /** The failure category of one layer of a control request. */
-internal val ControlFailure.reason: FailureReason?
+internal val ControlFailure.reason: FailureReason
     get() = when (this) {
-        ControlFailure.ProtectedComponent -> null
         ControlFailure.ChannelUnavailable -> FailureReason.NO_PRIVILEGE
         is ControlFailure.NotPermitted -> if (isSystemRefusal) FailureReason.SYSTEM_ERROR else FailureReason.NO_PRIVILEGE
         ControlFailure.RulesUnreadable -> FailureReason.RULES_UNREADABLE
-        is ControlFailure.WriteFailed -> FailureReason.WRITE_FAILED
+        is ControlFailure.WriteFailed, ControlFailure.ProtectedComponent -> FailureReason.WRITE_FAILED
         is ControlFailure.TargetNotFound, is ControlFailure.SystemError, ControlFailure.StateNotConfirmed -> FailureReason.SYSTEM_ERROR
     }
 

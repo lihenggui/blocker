@@ -61,16 +61,16 @@ internal fun IfwRules.blockOf(component: ComponentDeclaration): IfwBlock {
 }
 
 /** These rules with [component] blocked or unblocked. A provider leaves them as they are. */
-internal fun IfwRules.withBlocked(component: ComponentDeclaration, blocked: Boolean): IfwRules {
+internal fun IfwRules.withBlocked(component: ComponentDeclaration, blocked: Boolean, canExtend: (IfwRule) -> Boolean): IfwRules {
     val type = component.type.ifwType ?: return this
-    return if (blocked) withBlocked(type, component.id) else withUnblocked(type, component.id)
+    return if (blocked) withBlocked(type, component.id, canExtend) else withUnblocked(type, component.id)
 }
 
-private fun IfwRules.withBlocked(type: IfwComponentType, id: ComponentId): IfwRules {
+private fun IfwRules.withBlocked(type: IfwComponentType, id: ComponentId, canExtend: (IfwRule) -> Boolean): IfwRules {
     if (rulesFor(type).any { it.isUnconditional && it.names(id) }) return this
     val filter = IfwFilter.ComponentFilter(id.flatten())
     // Never one with intent-filters: those are the user's rules, not Blocker's list.
-    val target = rules.indexOfFirst { it.componentType == type && it.isUnconditional && it.intentFilters.isEmpty() }
+    val target = rules.indexOfFirst { it.componentType == type && it.isUnconditional && it.intentFilters.isEmpty() && canExtend(it) }
     if (target < 0) return IfwRules(rules + IfwRule(componentType = type, filters = listOf(filter)))
     return IfwRules(rules.mapIndexed { index, rule -> if (index == target) rule.copy(filters = rule.filters + filter) else rule })
 }

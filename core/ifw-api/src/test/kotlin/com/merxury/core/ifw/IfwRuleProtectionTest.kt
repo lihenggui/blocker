@@ -3,10 +3,13 @@
 
 package com.merxury.core.ifw
 
+import android.os.PersistableBundle
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
+import com.merxury.core.ifw.model.IfwIntentFilter
+import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.test.runTest
@@ -86,7 +89,56 @@ class IfwRuleProtectionTest {
         assertThat(store.rules("custom")).isEqualTo(IfwResult.Success(safeRules))
     }
 
-    private val ownComponentBlock = """<rules><activity block="true">
+    @Test
+    fun givenSeveralExistingOwnComponentBlocks_whenRemovingOne_thenTheOtherRemains() = runTest {
+        val rules = xml.deserialize("""<rules>$ownActivityRule$ownServiceRule</rules>""")
+        fs.putFile("custom", IfwXmlSerializer().serialize(rules))
+        val remaining = rules.copy(rules = rules.rules.drop(1))
+
+        assertThat(store.update("custom") { it.copy(rules = it.rules.drop(1)) }).isEqualTo(IfwResult.Success(remaining))
+        assertThat(store.rules("custom")).isEqualTo(IfwResult.Success(remaining))
+    }
+
+    @Test
+    fun givenAnExistingOwnBlockAndAnotherRule_whenEditingTheOtherRule_thenBothRulesAreSaved() = runTest {
+        val otherRule = """<service block="true"><component-filter name="com.other/.Service" /></service>"""
+        fs.putFile("custom", "<rules>$ownActivityRule$otherRule</rules>")
+        val expected = xml.deserialize("<rules>$ownActivityRule${otherRule.replace("true", "false")}</rules>")
+
+        val result = store.update("custom") { it.copy(rules = listOf(it.rules.first(), it.rules.last().copy(block = false))) }
+
+        assertThat(result).isEqualTo(IfwResult.Success(expected))
+        assertThat(store.rules("custom")).isEqualTo(IfwResult.Success(expected))
+    }
+
+    @Test
+    fun givenAnExistingOwnBlock_whenAddingAnother_thenTheFileIsKept() = runTest {
+        fs.putFile("custom", ownComponentBlock)
+        val added = xml.deserialize("<rules>$ownServiceRule</rules>").rules
+
+        val result = store.update("custom") { it.copy(rules = it.rules + added) }
+
+        assertThat(result).isEqualTo(IfwResult.Failure(IfwFailure.ProtectedComponent))
+        assertThat(fs.fileContent("custom")).isEqualTo(ownComponentBlock)
+    }
+
+    @Test
+    fun givenAnExistingOwnBlockWithIntentExtras_whenSavingTheSameRuleWithAnotherRule_thenBothAreSaved() = runTest {
+        val extras = PersistableBundle().apply { putString("key", "value") }
+        val original = xml.deserialize(ownComponentBlock).rules.single()
+        val ownWithExtras = original.copy(intentFilters = listOf(IfwIntentFilter(actions = listOf("com.example.OPEN"), extras = extras)))
+        val serializer = IfwXmlSerializer()
+        val content = serializer.serialize(IfwRules(listOf(ownWithExtras)))
+        fs.putFile("custom", content)
+        val edited = IfwRules(listOf(ownWithExtras, original.copy(block = false)))
+
+        assertThat(store.update("custom") { edited }).isEqualTo(IfwResult.Success(edited))
+        assertThat(fs.fileContent("custom")).isEqualTo(serializer.serialize(edited))
+    }
+
+    private val ownActivityRule = """<activity block="true">
         <component-filter name="$own/.MainActivity" />
-        </activity></rules>"""
+        </activity>"""
+    private val ownServiceRule = """<service block="true"><component-filter name="$own/.SyncService" /></service>"""
+    private val ownComponentBlock = "<rules>$ownActivityRule</rules>"
 }

@@ -62,7 +62,7 @@ class IfwRuleImporter @Inject constructor(
     private val deserializer: IfwXmlDeserializer,
     serializer: IfwXmlSerializer,
 ) {
-    private val merge = IfwRuleMerge(serializer)
+    private val merge = IfwRuleMerge(serializer, canExtend = { !ifwStore.blocksOwnComponent(it) })
 
     /**
      * Restores every backed-up file, merging those of installed apps, third-party apps only unless

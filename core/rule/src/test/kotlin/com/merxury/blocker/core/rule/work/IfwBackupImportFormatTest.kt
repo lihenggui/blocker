@@ -26,7 +26,7 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class IfwBackupImportFormatTest {
     private val deserializer = IfwXmlDeserializer()
-    private val merge = IfwRuleMerge(IfwXmlSerializer())
+    private val merge = IfwRuleMerge(IfwXmlSerializer(), canExtend = { true })
 
     private fun resource(name: String): String = checkNotNull(javaClass.classLoader?.getResource("ifw-backup/$name")) {
         "Missing test resource $name"

@@ -20,7 +20,6 @@ import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
-import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentOutcome
@@ -63,6 +62,8 @@ internal fun ifwChange(goal: ControlGoal, layers: Set<ControlLayer>): Boolean? =
  * Judges [component] by [after], the state read back. [before] is the state the request started
  * from; [failures] holds what went wrong per layer while changing it. A layer that does not show
  * [goal] without a recorded failure gets [ControlFailure.StateNotConfirmed].
+ * [blockingFirewallProtected] excludes the firewall layer when the controller has refused to
+ * block Blocker itself. A protection failure returned by the store remains a failed layer.
  */
 internal fun judge(
     component: ComponentDeclaration,
@@ -72,21 +73,22 @@ internal fun judge(
     before: ControlState,
     after: ControlState,
     failures: Map<ControlLayer, ControlFailure>,
+    blockingFirewallProtected: Boolean,
 ): ComponentOutcome {
     // Only the requested layers count: an unblock of one layer is achieved when that layer is
     // clear, even if another layer still blocks; the state reported still shows that layer.
-    val allowed = layers.filterNot { failures[it] == ControlFailure.ProtectedComponent }
+    val allowed = if (blockingFirewallProtected) layers - ControlLayer.INTENT_FIREWALL else layers
     if (allowed.isEmpty()) {
         return ComponentOutcome(ComponentKey(component.id, user), after, ControlResult.SKIPPED, failures)
     }
-    val missed = allowed.filterNot { component.meets(goal, it, after) }
+    val missed = allowed.filter { failures[it] == ControlFailure.ProtectedComponent || !component.meets(goal, it, after) }
     val result = when {
         missed.isEmpty() -> ControlResult.ACHIEVED
 
         goal == ControlGoal.BLOCK -> if (missed.size < allowed.size) ControlResult.PARTIAL else ControlResult.FAILED
 
         // Unblocking or enabling moved a layer to the goal, but another requested one does not meet it or cannot be read.
-        allowed.any { component.moved(goal, it, before, after) } -> ControlResult.PARTIAL
+        allowed.any { it !in missed && component.moved(goal, it, before, after) } -> ControlResult.PARTIAL
 
         else -> ControlResult.FAILED
     }

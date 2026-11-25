@@ -60,11 +60,13 @@ import kotlinx.coroutines.flow.Flow
  * Each package's state is read first. PackageManager calls are sent only for components whose
  * setting does not already meet the goal: one call per package and target setting where the
  * platform can change many components in one call (Android 13 and later). A refused batch call is
- * repeated one component at a time, so a protected component fails alone. Every component whose
- * goal involves the Intent Firewall goes to the rule store in one change per package; the store
- * re-reads the file under its lock and writes nothing when the rules stay as they are, so it alone
- * decides whether the firewall needs a change. The outcome comes from the state read back
- * afterwards, never from what a call answered. A block is [ControlResult.ACHIEVED] when every
+ * repeated one component at a time, so a protected system component fails alone. Eligible
+ * firewall changes go to the rule store in one batch per package. The store
+ * re-reads the file under its lock and writes nothing when the rules stay as they are. The
+ * controller excludes the firewall layer when blocking Blocker itself. A request with only
+ * that layer is [ControlResult.SKIPPED] with [ControlFailure.ProtectedComponent]. A protection
+ * refusal from the rule store counts as a failed layer. Other outcomes are judged by the state
+ * read back afterwards. A block is [ControlResult.ACHIEVED] when every
  * layer it uses shows the component blocked, [ControlResult.PARTIAL] when some do, and
  * [ControlResult.FAILED] when none does. An unblock is achieved when no layer it uses blocks the
  * component any more: the setting is not [PmSetting.DISABLED] and no unconditional rule names it,
@@ -74,10 +76,12 @@ import kotlinx.coroutines.flow.Flow
  * [Availability.Runnable] or [Availability.Conditional]. An unblock or enable is partial when a
  * layer that did not meet the goal before does now but another requested layer does not or
  * cannot be read, and failed when no requested layer moved toward the goal. A layer counts as moved
- * only when it was read before the change and nothing failed for it: a setting that could not be
+ * only when it was read before the change and now meets the goal: a setting that could not be
  * read may have met the goal already, so one that reads differently afterwards proves no progress.
- * A layer whose call succeeded but whose state does not show it fails with
- * [ControlFailure.StateNotConfirmed]. A partial result is kept, not rolled back.
+ * A PackageManager disable requires a known starting setting so Blocker can journal its own
+ * writes. When the starting setting cannot be confirmed or the read-back does not show the goal,
+ * a layer without a more specific failure gets [ControlFailure.StateNotConfirmed]. A partial
+ * result is kept and no change is rolled back.
  *
  * Without a ready channel nothing is sent and the layers fail with
  * [ControlFailure.ChannelUnavailable]. Shizuku running as the shell may change the components of
@@ -89,8 +93,7 @@ import kotlinx.coroutines.flow.Flow
  * reported still shows the firewall as [IfwBlock.UNKNOWN]; a block, or a request for the firewall
  * layer alone, gets [ControlFailure.NotPermitted] for it without a call.
  *
- * A failure is reported for a layer whose change was attempted and did not complete; a step that
- * throws unexpectedly fails only the layer and components it was changing, with
+ * A step that throws unexpectedly fails only the layer and components it was changing, with
  * [ControlFailure.SystemError].
  *
  * ## Order and cancellation

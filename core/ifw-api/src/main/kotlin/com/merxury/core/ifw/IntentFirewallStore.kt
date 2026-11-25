@@ -112,7 +112,8 @@ class IntentFirewallStore(
         val written = if (onWrite != null) mutableSetOf<ComponentId>() else null
         val result = modify(packageName) { current ->
             filtered.entries.fold(current) { rules, (component, blocked) ->
-                rules.withBlocked(component, blocked).also { if (it !== rules) written?.add(component.id) }
+                rules.withBlocked(component, blocked, canExtend = { !blocksOwnComponent(it) })
+                    .also { if (it !== rules) written?.add(component.id) }
             }.also { if (written != null && it == current) written.clear() }
         }
         return when (result) {
@@ -262,8 +263,12 @@ class IntentFirewallStore(
         val updated = transform(current.rules)
         when {
             updated == current.rules -> IfwResult.Success(updated)
-            updated.rules.any(::blocksOwnComponent) -> IfwResult.Failure(IfwFailure.ProtectedComponent)
+
+            updated.rules.any { rule -> blocksOwnComponent(rule) && current.rules.rules.none { serializer.sameRule(rule, it) } } ->
+                IfwResult.Failure(IfwFailure.ProtectedComponent)
+
             updated.isEmpty() && !current.exists -> IfwResult.Success(IfwRules.empty())
+
             else -> withContext(NonCancellable) { save(packageName, updated) }
         }
     }

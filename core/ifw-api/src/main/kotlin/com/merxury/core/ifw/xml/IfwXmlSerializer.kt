@@ -59,6 +59,12 @@ import org.xmlpull.v1.XmlSerializer as XmlPullSerializer
  */
 class IfwXmlSerializer {
 
+    /** Compares the contents of a rule. Extras are compared as XML because bundles compare by identity. */
+    fun sameRule(first: IfwRule, second: IfwRule): Boolean = first == second ||
+        ((first.hasExtras || second.hasExtras) && serialize(IfwRules(listOf(first))) == serialize(IfwRules(listOf(second))))
+
+    private val IfwRule.hasExtras: Boolean get() = intentFilters.any { it.extras != null }
+
     /**
      * Serializes an [IfwRules] to an XML string.
      *

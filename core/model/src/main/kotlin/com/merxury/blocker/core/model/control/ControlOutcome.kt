@@ -48,7 +48,7 @@ sealed interface ControlFailure {
     /** The system failed in another way. */
     data class SystemError(val message: String?) : ControlFailure
 
-    /** The change reported success, but the state read back afterwards does not show it. */
+    /** The starting state could not be verified, or the state read back did not confirm the goal. */
     data object StateNotConfirmed : ControlFailure
 }
 
@@ -68,8 +68,8 @@ enum class ControlResult {
  * What a request did to one component.
  *
  * @property state as read back after the change, or before it when nothing had to change
- * @property failures why each layer that does not show the goal does not; empty exactly when
- * [result] is [ControlResult.ACHIEVED]
+ * @property failures why each reported layer failed or was skipped. Empty exactly when [result]
+ * is [ControlResult.ACHIEVED].
  */
 data class ComponentOutcome(
     val key: ComponentKey,
