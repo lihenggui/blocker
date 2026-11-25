@@ -24,11 +24,13 @@ import android.system.OsConstants
 import androidx.core.database.getStringOrNull
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
+import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.data.ControllerType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -79,33 +81,49 @@ internal class InstalledAppDbPmBlockRecordSeeder @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val properties: BlockerAppPropertiesDataStore,
+    private val preferences: BlockerPreferencesDataSource,
     private val records: PmBlockRecords,
     private val wakeHistory: WakeHistoryDao,
 ) : PmBlockRecordSeeder {
     private val mutex = Mutex()
 
-    override suspend fun seedOnce(): Boolean = withContext(ioDispatcher) {
-        mutex.withLock {
-            var seeded = false
-            try {
-                val file = context.getDatabasePath(LEGACY_DATABASE)
-                val exists = legacyDatabaseExists(file)
-                seeded = !exists
-                if (!properties.pmBlockRecordsSeeded.first()) {
-                    if (exists) seed(file)
-                    properties.markPmBlockRecordsSeeded()
+    @Volatile
+    private var complete = false
+
+    override suspend fun seedOnce(): Boolean {
+        if (complete) return true
+        return withContext(ioDispatcher) { mutex.withLock { if (complete) true else migrate() } }
+    }
+
+    private suspend fun migrate(): Boolean {
+        var seeded = false
+        try {
+            val file = context.getDatabasePath(LEGACY_DATABASE)
+            val exists = legacyDatabaseExists(file)
+            seeded = !exists
+            if (!properties.pmBlockRecordsSeeded.first()) {
+                if (exists) seed(file)
+                val rememberRoot = exists && when (preferences.userData.first().controllerType) {
+                    ControllerType.PM, ControllerType.IFW, ControllerType.IFW_PLUS_PM -> true
+                    ControllerType.SHIZUKU -> false
                 }
-                seeded = true
-                // A restart after the flag was written or a failed deletion only retries cleanup.
-                SQLiteDatabase.deleteDatabase(file)
-                if (file.exists()) Timber.w("Cannot delete the old installed app database")
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "Cannot finish migrating the old installed app database, try again next time")
+                // Save any inferred grant with the migration marker, preserving a recorded decision.
+                properties.markPmBlockRecordsSeeded(rememberRoot)
             }
-            seeded
+            seeded = true
+            // A restart after the flag was written or a failed deletion only retries cleanup.
+            SQLiteDatabase.deleteDatabase(file)
+            if (file.exists()) {
+                Timber.w("Cannot delete the old installed app database")
+            } else {
+                complete = true
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot finish migrating the old installed app database, try again next time")
         }
+        return seeded
     }
 
     private suspend fun seed(file: File) {

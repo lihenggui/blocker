@@ -27,6 +27,7 @@ import android.os.Process
 import androidx.core.os.bundleOf
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -52,10 +53,13 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.fold
@@ -65,6 +69,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicReference
 
 class ComponentProvider internal constructor(
     private val readTimeoutMillis: Long,
@@ -101,7 +106,7 @@ class ComponentProvider internal constructor(
         enforceTrustedCaller()
         return when (method) {
             "getComponents" -> arg?.let { packageName ->
-                runCall(method, onFailure = { cachedComponentsBundle(packageName) }) { getBlockedComponents(packageName) }
+                runCall(method, onFailure = { componentsBundle(packageName, emptyList()) }) { getBlockedComponents(packageName) }
             }
 
             "blocks" -> if (arg != null && extras != null) {
@@ -126,7 +131,7 @@ class ComponentProvider internal constructor(
 
     private fun runCall(
         method: String,
-        onFailure: ProviderEntryPoint?.() -> Bundle? = { null },
+        onFailure: () -> Bundle? = { null },
         work: suspend ProviderEntryPoint.() -> Bundle?,
     ): Bundle? {
         if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -134,42 +139,41 @@ class ComponentProvider internal constructor(
             return null
         }
         val appContext = context?.applicationContext ?: return null
-        var entryPoint: ProviderEntryPoint? = null
         return try {
             val resolved = EntryPointAccessors.fromApplication(appContext, ProviderEntryPoint::class.java)
-            entryPoint = resolved
             runBlocking { resolved.work() }
         } catch (e: Exception) {
             Timber.e(e, "Error in ComponentProvider.%s", method)
-            entryPoint.onFailure()
+            onFailure()
         }
     }
 
     private suspend fun ProviderEntryPoint.getBlockedComponents(packageName: String): Bundle {
         if (packageName.isBlank()) return componentsBundle(packageName, emptyList())
-        val components = readBeforeDeadline {
+        val cached = AtomicReference(emptyList<ComponentStatus>())
+        val task = startQuietly {
             val app = AppKey(packageName, selectedUsers().ownUser)
-            val access = privilegedChannel().connectIfGranted() as? ChannelState.Ready
-            if (access != null && refreshComponents(app, access) is ReadFailure.PackageNotFound) emptyList() else cachedComponents(app)
+            // Leave two of the five seconds for a local PackageManager refresh.
+            val privileged = withTimeoutOrNull(readTimeoutMillis * 3 / 5) {
+                cached.set(cachedComponents(app))
+                val access = privilegedChannel().connectIfGranted() as? ChannelState.Ready ?: return@withTimeoutOrNull null
+                refreshAndReadComponents(app, access)
+            }
+            privileged ?: refreshAndReadComponents(app, access = null)
+        }
+        val components = try {
+            withTimeout(readTimeoutMillis) { task.await() }
+        } catch (e: Exception) {
+            if (e is CancellationException) currentCoroutineContext().ensureActive()
+            Timber.w(e, "Cannot finish refreshing components of %s", packageName)
+            cached.get()
+        } finally {
+            task.cancel()
         }
         return componentsBundle(packageName, components)
     }
 
-    private fun ProviderEntryPoint?.cachedComponentsBundle(packageName: String): Bundle {
-        val cached = try {
-            if (this == null) {
-                emptyList()
-            } else {
-                runBlocking {
-                    readBeforeDeadline { cachedComponents(AppKey(packageName, selectedUsers().ownUser)) }
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Cannot read cached components of %s", packageName)
-            emptyList()
-        }
-        return componentsBundle(packageName, cached)
-    }
+    private suspend fun ProviderEntryPoint.refreshAndReadComponents(app: AppKey, access: ChannelState.Ready?): List<ComponentStatus> = if (refreshComponents(app, access) is ReadFailure.PackageNotFound) emptyList() else cachedComponents(app)
 
     private fun componentsBundle(packageName: String, components: List<ComponentStatus>): Bundle {
         val blocked = components.mapNotNull { status ->
@@ -187,8 +191,13 @@ class ComponentProvider internal constructor(
 
     private suspend fun ProviderEntryPoint.cachedComponents(app: AppKey): List<ComponentStatus> = componentStatuses().components(app).first()
 
-    private suspend fun ProviderEntryPoint.refreshComponents(app: AppKey, access: ChannelState.Ready): ReadFailure? {
-        val result = componentStatuses().refreshIfReadable(app, requireFirewall = access.identity.canWriteSystemFiles)
+    private suspend fun ProviderEntryPoint.refreshComponents(app: AppKey, access: ChannelState.Ready?): ReadFailure? {
+        val firewall = when {
+            access == null -> FirewallRead.KEEP_CACHED
+            access.identity.canWriteSystemFiles -> FirewallRead.REQUIRED
+            else -> FirewallRead.IF_AVAILABLE
+        }
+        val result = componentStatuses().refreshIfReadable(app, firewall)
         val reason = (result as? ReadResult.Failure)?.reason
         if (reason != null && reason !is ReadFailure.PackageNotFound) {
             Timber.w("Cannot refresh components of %s: %s", app.packageName, reason)
@@ -200,23 +209,13 @@ class ComponentProvider internal constructor(
         withoutPermissionPrompts(work)
     }
 
-    private suspend fun <T> ProviderEntryPoint.readBeforeDeadline(work: suspend () -> T): T {
-        val task = startQuietly(work)
-        return try {
-            withTimeout(readTimeoutMillis) { task.await() }
-        } finally {
-            task.cancel()
-        }
-    }
-
     private suspend fun ProviderEntryPoint.controlComponents(packageName: String, data: Bundle): Bundle? {
         val rawString = data.getString("cmp_list") ?: return null
         val entries = Json.decodeFromString<ShareCmpInfo>(rawString).components
         if (entries.isEmpty()) return data
         // A repeated class ends in the state asked for by its last entry.
         val changes = entries.associate { it.name to it.block }
-        val requests = if (packageName.isBlank()) emptyList() else readBeforeDeadline { prepareControl(packageName, changes) }
-        if (requests == null || (requests.isNotEmpty() && !writeBeforeDeadline(packageName, requests))) return null
+        if (packageName.isNotBlank() && !writeBeforeDeadline(packageName, changes)) return null
         // The old provider logged each input entry, including entries that made no change.
         entries.forEach { analyticsHelper().logControlComponentViaProvider(newState = !it.block) }
         return data
@@ -225,12 +224,13 @@ class ComponentProvider internal constructor(
     private suspend fun ProviderEntryPoint.prepareControl(packageName: String, changes: Map<String, Boolean>): List<ControlRequest>? {
         val app = AppKey(packageName, selectedUsers().ownUser)
         val access = privilegedChannel().connectIfGranted() as? ChannelState.Ready
-        val failure = access?.let { refreshComponents(app, it) }
+        val failure = refreshComponents(app, access)
         if (failure is ReadFailure.PackageNotFound) return emptyList()
+        if (failure == ReadFailure.ChannelUnavailable) return null
         val declarations = cachedComponents(app).associate { it.declaration.id.className to it.declaration }
         val known = changes.filterKeys { it in declarations }
-        if (known.isEmpty()) return emptyList()
-        if (access == null || failure == ReadFailure.ChannelUnavailable) return null
+        if (known.isEmpty()) return if (failure == null) emptyList() else null
+        if (access == null) return null
 
         return listOf(ControlGoal.BLOCK, ControlGoal.ENABLE).mapNotNull { goal ->
             val components = known.filterValues { it == (goal == ControlGoal.BLOCK) }.keys.map(declarations::getValue)
@@ -238,14 +238,18 @@ class ComponentProvider internal constructor(
         }
     }
 
-    private suspend fun ProviderEntryPoint.writeBeforeDeadline(packageName: String, requests: List<ControlRequest>): Boolean {
+    private suspend fun ProviderEntryPoint.writeBeforeDeadline(packageName: String, changes: Map<String, Boolean>): Boolean {
         val progress = WriteProgress(packageName)
-        val task = startQuietly { applyControl(packageName, requests, progress) }
+        val task = startQuietly {
+            val requests = prepareControl(packageName, changes) ?: return@startQuietly false
+            if (requests.isEmpty()) return@startQuietly true
+            progress.beginControl() && applyControl(packageName, requests, progress)
+        }
         return try {
             withTimeoutOrNull(writeTimeoutMillis) { task.await() } ?: progress.onTimeout()
         } finally {
-            // Let the in-flight batch finish and report its writes. Stop before the next batch.
-            progress.stop()
+            // Cancel preparation. Once control starts, let its in-flight batch report its writes.
+            if (progress.stopBeforeControl()) task.cancel()
         }
     }
 
@@ -306,6 +310,7 @@ class ComponentProvider internal constructor(
 
     private class WriteProgress(private val packageName: String) : ComponentWriteObserver {
         private val written = linkedSetOf<ComponentId>()
+        private var controlStarted = false
         private var stopped = false
         private var timedOut = false
 
@@ -313,8 +318,16 @@ class ComponentProvider internal constructor(
         override fun canStart(): Boolean = !stopped
 
         @Synchronized
-        fun stop() {
+        fun beginControl(): Boolean {
+            if (stopped) return false
+            controlStarted = true
+            return true
+        }
+
+        @Synchronized
+        fun stopBeforeControl(): Boolean {
             stopped = true
+            return !controlStarted
         }
 
         @Synchronized

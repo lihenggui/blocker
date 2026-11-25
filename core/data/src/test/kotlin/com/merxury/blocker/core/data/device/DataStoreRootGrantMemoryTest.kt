@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.privileged.root
+package com.merxury.blocker.core.data.device
 
 import androidx.datastore.core.DataStore
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
 import com.merxury.blocker.core.datastore.test.InMemoryDataStore
+import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
@@ -29,24 +30,25 @@ import java.io.IOException
 
 class DataStoreRootGrantMemoryTest {
 
+    private val seeder = FakePmBlockRecordSeeder()
     private val store = InMemoryDataStore(AppProperties.getDefaultInstance())
 
     @Test
     fun givenNothingStored_whenRead_thenNotRemembered() = runTest {
-        assertThat(DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(store)).isRemembered()).isFalse()
+        assertThat(DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(store), seeder).isRemembered()).isFalse()
     }
 
     @Test
     fun givenRemembered_whenReadByNextProcess_thenRemembered() = runTest {
-        DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(store)).remember(true)
+        DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(store), seeder).remember(true)
 
-        assertThat(DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(store)).isRemembered()).isTrue()
+        assertThat(DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(store), seeder).isRemembered()).isTrue()
         assertThat(store.data.value.rootGrantRemembered).isTrue()
     }
 
     @Test
     fun givenRemembered_whenForgotten_thenNotRemembered() = runTest {
-        val memory = DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(store))
+        val memory = DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(store), seeder)
         memory.remember(true)
 
         memory.remember(false)
@@ -56,7 +58,7 @@ class DataStoreRootGrantMemoryTest {
 
     @Test
     fun givenStoreFails_whenReadAndWrite_thenNotRememberedAndNothingThrown() = runTest {
-        val memory = DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(BrokenDataStore()))
+        val memory = DataStoreRootGrantMemory(BlockerAppPropertiesDataStore(BrokenDataStore()), seeder)
 
         memory.remember(true)
 

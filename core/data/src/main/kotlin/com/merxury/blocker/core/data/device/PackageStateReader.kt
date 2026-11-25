@@ -113,7 +113,7 @@ internal class PackageStateReader @Inject constructor(
         automatic: Boolean = false,
         previous: AppEntity? = null,
         forceDeclarations: Boolean = false,
-        requireFirewall: Boolean = false,
+        firewall: FirewallRead = FirewallRead.IF_AVAILABLE,
     ): PackageRefresh {
         val packageName = key.packageName
         val failures = listOfNotNull(appFailure).toMutableList()
@@ -173,15 +173,19 @@ internal class PackageStateReader @Inject constructor(
             Timber.w("PackageManager did not return all component settings for $key")
             return aborted(ReadFailure.ChannelUnavailable)
         }
-        val ifwReadable = channel.state.value.allowsFirewallReads
-        val ifw = readIfw(packageName, declarations, refresh = forceDeclarations)
-        if (ifw == null && (requireFirewall || ifwWasReadable || ifwReadable || channel.state.value.allowsFirewallReads)) {
-            val failure = ReadFailure.RulesUnreadable(packageName)
-            if (automatic) return aborted(failure)
-            failures += failure
+        val ifwBlocks = if (firewall == FirewallRead.KEEP_CACHED) {
+            emptyMap()
+        } else {
+            val ifwReadable = channel.state.value.allowsFirewallReads
+            val ifw = readIfw(packageName, declarations, refresh = firewall == FirewallRead.FORCE)
+            if (ifw == null && (firewall == FirewallRead.REQUIRED || ifwWasReadable || ifwReadable || channel.state.value.allowsFirewallReads)) {
+                val failure = ReadFailure.RulesUnreadable(packageName)
+                if (automatic) return aborted(failure)
+                failures += failure
+            }
+            ifwBlocksOf(declarations, ifw).filterValues { !automatic || it != IfwBlock.UNKNOWN }
         }
         val pmSettings = declarations.associate { it.id.className to (pm?.get(it.id) ?: PmSetting.UNKNOWN) }
-        val ifwBlocks = ifwBlocksOf(declarations, ifw).filterValues { !automatic || it != IfwBlock.UNKNOWN }
         val entities = fresh?.map { it.asEntity() }
         val stored = withContext(NonCancellable) {
             if (automatic) {

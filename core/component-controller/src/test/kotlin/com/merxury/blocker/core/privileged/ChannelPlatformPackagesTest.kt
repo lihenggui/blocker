@@ -151,6 +151,21 @@ class ChannelPlatformPackagesTest {
     }
 
     @Test
+    fun givenChannelReady_whenLocalPackageReadsRequested_thenOnlyThatScopeUsesLocalPackageManager() = runTest {
+        transport.connect()
+        val own = UserId(0)
+
+        withLocalPackageReads {
+            assertThat(packages.users().single().name).isEqualTo("local")
+            assertThat(packages.packageInfo("p", 0, own).packageName).isEqualTo("local")
+            assertThat(packages.applicationEnabledSettings(listOf("p"), own)).containsExactly(local.answer)
+            assertThat(packages.componentEnabledSettings("p", listOf("c"), own)).containsExactly(local.answer)
+        }
+
+        assertThat(packages.packageInfo("p", 0, own).packageName).isEqualTo("privileged")
+    }
+
+    @Test
     fun givenChannelBecomesReadyThenLost_whenRead_thenEachRequestRoutedOnItsOwn() = runTest {
         assertThat(packages.users().single().name).isEqualTo("local")
 

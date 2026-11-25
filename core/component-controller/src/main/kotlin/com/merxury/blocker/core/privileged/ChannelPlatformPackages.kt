@@ -23,7 +23,18 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformPackages
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
+
+/** Reads packages through the app's own PackageManager without waiting for privileged access. */
+suspend fun <T> withLocalPackageReads(block: suspend () -> T): T = withContext(LocalPackageReads) { block() }
+
+private object LocalPackageReads : AbstractCoroutineContextElement(Key) {
+    object Key : CoroutineContext.Key<LocalPackageReads>
+}
 
 /**
  * The [PlatformPackages] the app reads through: [privileged] while the privileged channel is
@@ -46,7 +57,11 @@ internal class ChannelPlatformPackages(
         local: LocalPlatformPackages,
     ) : this(channel, privileged as PlatformPackages, local as PlatformPackages)
 
-    private suspend fun active(): PlatformPackages = if (channel.checkedState() is ChannelState.Ready) privileged else local
+    private suspend fun active(): PlatformPackages = when {
+        currentCoroutineContext()[LocalPackageReads.Key] != null -> local
+        channel.checkedState() is ChannelState.Ready -> privileged
+        else -> local
+    }
 
     override suspend fun users(): List<DeviceUser> = active().users()
 

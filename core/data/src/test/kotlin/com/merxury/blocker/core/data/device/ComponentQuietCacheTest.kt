@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer.INTENT_FIREWALL
@@ -28,6 +29,9 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -53,10 +57,66 @@ class ComponentQuietCacheTest : DeviceRepositoryTestBase() {
         system.install(installed.copy(versionCode = 2))
         system.put(OWNER, tracker, PmSetting.DISABLED)
         files.noAccess = true
+        store.clearCache()
 
-        assertThat(repository.refreshIfReadable(installed.key, requireFirewall = true)).isInstanceOf(ReadResult.Failure::class.java)
+        assertThat(repository.refreshIfReadable(installed.key, FirewallRead.REQUIRED)).isInstanceOf(ReadResult.Failure::class.java)
         assertThat(cachedRows()).isEqualTo(before)
         assertThat(system.reads("pm ")).isEqualTo(2)
+    }
+
+    @Test
+    fun givenNoChannelAndColdCache_whenQuietRefresh_thenStoresLivePmWithoutFirewallRows() = runTest {
+        val repository = components(backgroundScope)
+        channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        files.noAccess = true
+        system.install(installed, tracker)
+        system.put(OWNER, tracker, PmSetting.DISABLED)
+
+        repository.components(installed.key).test {
+            assertThat(awaitItem()).isEmpty()
+            assertThat(repository.refreshIfReadable(installed.key, FirewallRead.KEEP_CACHED)).isEqualTo(ReadResult.Success(Unit))
+            assertThat(awaitItem().single().state).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.UNKNOWN))
+        }
+        assertThat(dao.observeComponents(PKG, OWNER.value).first().single().ifwBlock).isNull()
+    }
+
+    @Test
+    fun givenNoChannelAndCachedFirewall_whenQuietRefresh_thenUpdatesOnlyPm() = runTest {
+        val repository = repositoryWithCachedBlock()
+        channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        store.clearCache()
+        files.noAccess = true
+        system.put(OWNER, tracker, PmSetting.DISABLED)
+
+        assertThat(repository.refreshIfReadable(installed.key, FirewallRead.KEEP_CACHED)).isEqualTo(ReadResult.Success(Unit))
+        assertThat(repository.components(installed.key).first().single().state).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED))
+    }
+
+    @Test
+    fun givenPackageInAnotherUser_whenRefreshingWithCachedFirewall_thenReturnsChannelUnavailableWithoutWriting() = runTest {
+        val repository = components(backgroundScope)
+        val other = installedApp(PKG, user = WORK)
+        system.install(other, tracker)
+        system.put(WORK, tracker, PmSetting.DISABLED)
+
+        assertThat(repository.refreshIfReadable(other.key, FirewallRead.KEEP_CACHED))
+            .isEqualTo(ReadResult.Failure(ReadFailure.ChannelUnavailable))
+
+        assertThat(system.log).isEmpty()
+        assertThat(dao.getApp(PKG, WORK.value)).isNull()
+        assertThat(dao.getDeclarations(PKG)).isEmpty()
+        assertThat(dao.scanMarker(PKG)).isNull()
+        assertThat(repository.components(other.key).first()).isEmpty()
+    }
+
+    @Test
+    fun givenRulesAlreadyInStore_whenQuietRefresh_thenUsesItsCacheAndReadsLivePm() = runTest {
+        val repository = repositoryWithCachedBlock()
+        files.noAccess = true
+        system.put(OWNER, tracker, PmSetting.DISABLED)
+
+        assertThat(repository.refreshIfReadable(installed.key, FirewallRead.REQUIRED)).isEqualTo(ReadResult.Success(Unit))
+        assertThat(repository.components(installed.key).first().single().state).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED))
     }
 
     @Test

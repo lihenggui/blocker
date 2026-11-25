@@ -25,8 +25,6 @@ import com.merxury.blocker.core.privileged.ChannelIfwFileSystem
 import com.merxury.blocker.core.privileged.ChannelPlatformPackages
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.PrivilegedExecutor
-import com.merxury.blocker.core.privileged.root.DataStoreRootGrantMemory
-import com.merxury.blocker.core.privileged.root.RootGrantMemory
 import com.merxury.blocker.core.system.PlatformPackages
 import com.merxury.core.ifw.IfwFileSystem
 import dagger.Binds
@@ -48,9 +46,6 @@ internal interface PrivilegedModule {
 
     @Binds
     fun bindsPrivilegedExecutor(channel: ActivePrivilegedChannel): PrivilegedExecutor
-
-    @Binds
-    fun bindsRootGrantMemory(memory: DataStoreRootGrantMemory): RootGrantMemory
 
     @Binds
     fun bindsPlatformPackages(packages: ChannelPlatformPackages): PlatformPackages
