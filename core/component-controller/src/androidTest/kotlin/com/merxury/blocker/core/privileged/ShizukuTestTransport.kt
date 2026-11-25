@@ -29,7 +29,9 @@ import com.merxury.blocker.core.privileged.shizuku.ShizukuSystemServices
 import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
 import com.merxury.blocker.core.privileged.shizuku.ShizukuUserService
 import com.merxury.blocker.core.privileged.shizuku.ShizukuUserServiceConnector
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlin.test.assertEquals
@@ -79,6 +81,6 @@ internal fun shizukuTransport(context: Context, api: ShizukuApi = DefaultShizuku
     ShizukuInitializer(api),
     api,
     ShizukuSystemServices(context),
-    ShizukuUserService(ShizukuUserServiceConnector(context), attachTimeout = 15.seconds),
+    ShizukuUserService(ShizukuUserServiceConnector(context), attachTimeout = 15.seconds, scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)),
     Dispatchers.IO,
 )

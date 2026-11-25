@@ -23,7 +23,7 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 /**
  * One component as the cache holds it, for a row with one switch, see [ComponentListItem].
  *
- * @property enabled whether its switch shows on, see [isSwitchOn]
+ * @property enabled whether its switch shows on, see [ComponentStatus.isSwitchOn]
  * @property isRunning whether the service runs; false when that cannot be read
  */
 data class ComponentRow(

@@ -11,6 +11,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
@@ -55,10 +56,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -77,6 +80,7 @@ import org.robolectric.android.controller.ContentProviderController
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowBinder
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Exercises LibChecker's calls through the provider and the Hilt entry point.
@@ -84,9 +88,11 @@ import timber.log.Timber
  * | Call and condition | Return value |
  * | --- | --- |
  * | getComponents, readable package | Bundle with cmp_list JSON listing PM and IFW blocks |
- * | getComponents, unavailable access, failed read, cancellation, or deadline | Same bundle from cache |
+ * | getComponents, unavailable access or privileged deadline | Same bundle with live PM and cached IFW blocks |
+ * | getComponents, failed read, cancellation, or overall deadline | Same bundle from cache |
  * | getComponents, blank, confirmed absent, or no cached package during fallback | Same bundle with an empty array |
  * | blocks, successful control, no matched requests, or controller refusal without an exception | The original extras |
+ * | blocks, no access and all matched requests are protected blocks | The original extras |
  * | blocks, malformed extras, unavailable access for a known component, control exception, cancellation, or deadline | null |
  * | Either method missing an argument, unsupported method, or direct main-thread call | null |
  * | Any method from an untrusted UID | Throws SecurityException |
@@ -123,7 +129,7 @@ class ComponentProviderContractTest {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var application: TestApp
     private lateinit var provider: ComponentProvider
-    private var refresh: suspend (AppKey) -> ReadResult<Unit> = { repository.refreshIfReadable(it, requireFirewall = true) }
+    private var refresh: suspend (AppKey, FirewallRead) -> ReadResult<Unit> = repository::refreshIfReadable
     private var beforeControl: suspend (ControlRequest, ComponentWriteObserver?) -> Unit = { _, _ -> }
 
     @Before
@@ -131,7 +137,7 @@ class ComponentProviderContractTest {
         application = ApplicationProvider.getApplicationContext<TestApp>()
         application.entryPoint = object : TestEntryPoint {
             override fun componentStatuses(): ComponentStatusRepository = object : ComponentStatusRepository by repository {
-                override suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit> = this@ComponentProviderContractTest.refresh(app)
+                override suspend fun refreshIfReadable(app: AppKey, firewall: FirewallRead): ReadResult<Unit> = this@ComponentProviderContractTest.refresh(app, firewall)
                 override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
                     beforeControl(request, writeObserver)
                     emitAll(repository.control(request, keepKnownState, writeObserver))
@@ -188,12 +194,26 @@ class ComponentProviderContractTest {
     }
 
     @Test
-    fun givenAccessMissingAndCachedBlocks_whenGetComponents_thenReturnsCachedJson() = runTest {
+    fun givenAccessMissingAndCachedFirewallBlock_whenGetComponents_thenRefreshesPmAndIncludesTheBlock() = runTest {
         channel.setState(DENIED)
         seed(status("Tracker", ifw = IfwBlock.BLOCKED))
 
         assertComponents(TRACKER_JSON)
-        assertThat(repository.refreshedApps).isEmpty()
+        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertQuietConnect()
+    }
+
+    @Test
+    fun givenAccessMissingAndColdCache_whenGetComponents_thenReportsTheLivePmBlock() = runTest {
+        channel.setState(DENIED)
+        refresh = { app, firewall ->
+            assertThat(firewall).isEqualTo(FirewallRead.KEEP_CACHED)
+            seed(status("Tracker", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN), status("Other", ifw = IfwBlock.UNKNOWN))
+            repository.refresh(app)
+        }
+
+        assertComponents(TRACKER_JSON)
+        assertThat(repository.refreshedApps).containsExactly(APP)
         assertQuietConnect()
     }
 
@@ -209,7 +229,7 @@ class ComponentProviderContractTest {
     @Test
     fun givenRefreshFails_whenGetComponents_thenReturnsCachedJson() = runTest {
         seed(status("Tracker", pm = PmSetting.DISABLED))
-        refresh = { error("Component refresh failed") }
+        refresh = { _, _ -> error("Component refresh failed") }
 
         assertComponents(TRACKER_JSON)
     }
@@ -225,14 +245,14 @@ class ComponentProviderContractTest {
     @Test
     fun givenRefreshCancelled_whenGetComponents_thenReturnsCachedJson() = runTest {
         seed(status("Tracker", ifw = IfwBlock.BLOCKED))
-        refresh = { throw CancellationException("Refresh cancelled") }
+        refresh = { _, _ -> throw CancellationException("Refresh cancelled") }
 
         assertComponents(TRACKER_JSON)
     }
 
     @Test
     fun givenNoCachedPackageAndRefreshThrows_whenGetComponents_thenReturnsEmptyJsonArray() = runTest {
-        refresh = { error("Component refresh failed") }
+        refresh = { _, _ -> error("Component refresh failed") }
 
         assertComponents(EMPTY_JSON)
     }
@@ -242,7 +262,7 @@ class ComponentProviderContractTest {
         attachProvider(ComponentProvider(readTimeoutMillis = 500, writeTimeoutMillis = 5_000))
         seed(status("Tracker", ifw = IfwBlock.BLOCKED))
         val release = CompletableDeferred<Unit>()
-        refresh = {
+        refresh = { _, _ ->
             withContext(NonCancellable) { release.await() }
             ReadResult.Success(Unit)
         }
@@ -255,6 +275,50 @@ class ComponentProviderContractTest {
     }
 
     @Test
+    fun givenSlowSharedStart_whenGetComponentsTimesOutAndBlocksFollows_thenUsesLocalPmAndJoinsTheStart() = runTest {
+        attachProvider(ComponentProvider(readTimeoutMillis = 1_000, writeTimeoutMillis = 5_000))
+        val binds = AtomicInteger()
+        val waiters = AtomicInteger()
+        val serviceReady = CompletableDeferred<Unit>()
+        val writeJoined = CompletableDeferred<Unit>()
+        val start = scope.async(start = CoroutineStart.LAZY) {
+            binds.incrementAndGet()
+            serviceReady.await()
+        }
+        refresh = { app, firewall ->
+            when (firewall) {
+                FirewallRead.REQUIRED -> {
+                    if (waiters.incrementAndGet() == 2) writeJoined.complete(Unit)
+                    start.await()
+                }
+
+                FirewallRead.KEEP_CACHED -> {
+                    delay(100)
+                    seed(status("Tracker", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN))
+                }
+
+                else -> error("Unexpected firewall policy: $firewall")
+            }
+            repository.refreshIfReadable(app, firewall)
+        }
+
+        assertComponents(TRACKER_JSON)
+        assertThat(start.isActive).isTrue()
+        assertThat(waiters.get()).isEqualTo(1)
+        val input = input("Tracker" to false)
+        val write = async { call("blocks", PACKAGE_NAME, input) }
+        writeJoined.await()
+        assertThat(write.isCompleted).isFalse()
+        serviceReady.complete(Unit)
+
+        assertThat(write.await()).isSameInstanceAs(input)
+        assertThat(binds.get()).isEqualTo(1)
+        assertThat(repository.requests.map { it.goal }).containsExactly(ControlGoal.ENABLE)
+        assertThat(channel.quietConnectCount).isEqualTo(2)
+        assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
     fun givenAnotherUserSelected_whenGetComponents_thenRefreshesAndReportsBlockersOwnUser() = runTest {
         selectedUsers.sendUsers(
             listOf(
@@ -264,7 +328,7 @@ class ComponentProviderContractTest {
         )
         selectedUsers.select(UserId.SYSTEM)
         repository.sendComponents(UserId.SYSTEM, listOf(status("Different", pm = PmSetting.DISABLED)))
-        refresh = { app ->
+        refresh = { app, _ ->
             seed(status("Tracker", ifw = IfwBlock.BLOCKED))
             repository.refresh(app)
         }
@@ -366,24 +430,81 @@ class ComponentProviderContractTest {
     }
 
     @Test
-    fun givenNoMatchingComponentsOrEmptyList_whenBlocks_thenReturnsInputWithoutRefreshing() = runTest {
+    fun givenNoMatchingComponentsOrEmptyList_whenBlocks_thenReturnsInputAndRefreshesOnlyNonemptyRequests() = runTest {
         channel.setState(DENIED)
         val unknown = input("Unknown" to true)
         val empty = input()
+        refresh = { app, firewall ->
+            assertThat(firewall).isEqualTo(FirewallRead.KEEP_CACHED)
+            seed(status("Known"))
+            repository.refreshIfReadable(app, firewall)
+        }
+
+        assertThat(call("blocks", PACKAGE_NAME, empty)).isSameInstanceAs(empty)
+        assertThat(repository.refreshedApps).isEmpty()
 
         assertThat(call("blocks", PACKAGE_NAME, unknown)).isSameInstanceAs(unknown)
-        assertThat(call("blocks", PACKAGE_NAME, empty)).isSameInstanceAs(empty)
         assertThat(repository.requests).isEmpty()
-        assertThat(repository.refreshedApps).isEmpty()
-        assertThat(channel.quietConnectCount).isEqualTo(1)
-        assertThat(channel.connectCount).isEqualTo(0)
+        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertQuietConnect()
     }
 
     @Test
     fun givenBlockersOwnComponent_whenBlocks_thenReturnsInputForRepositoryRefusal() = runTest {
+        val own = status("Own", packageName = application.packageName)
+        seed(own)
+        val key = refuseProtectedBlock(own)
+        val input = input("Own" to true, packageName = own.declaration.id.packageName)
+
+        assertThat(call("blocks", own.declaration.id.packageName, input)).isSameInstanceAs(input)
+
+        assertThat(repository.requests.single().components).containsExactly(own.declaration)
+        assertThat(repository.component(key).first()).isEqualTo(own)
+    }
+
+    @Test
+    fun givenNoAccessAndColdCache_whenBlockingOwnComponent_thenRefreshesLocallyAndReturnsInput() = runTest {
+        channel.setState(DENIED)
+        val ownPackage = application.packageName
+        val own = status("Own", packageName = ownPackage, ifw = IfwBlock.UNKNOWN)
+        val key = refuseProtectedBlock(own)
+        refresh = { app, firewall ->
+            assertThat(firewall).isEqualTo(FirewallRead.KEEP_CACHED)
+            seed(own)
+            repository.refreshIfReadable(app, firewall)
+        }
+        val input = input("Own" to true, packageName = ownPackage)
+
+        assertThat(call("blocks", ownPackage, input)).isSameInstanceAs(input)
+
+        assertQuietConnect()
+        assertThat(repository.refreshedApps).containsExactly(AppKey(ownPackage, OWN_USER))
+        assertThat(repository.requests.single().components).containsExactly(own.declaration)
+        assertThat(repository.component(key).first()).isEqualTo(own)
+        assertThat(repository.recorded).isEmpty()
+    }
+
+    @Test
+    fun givenNoAccess_whenBlockingAndEnablingOwnComponents_thenReturnsNullWithoutWriting() = runTest {
+        channel.setState(DENIED)
         val ownPackage = application.packageName
         val own = status("Own", packageName = ownPackage)
-        seed(own)
+        val disabled = status("Disabled", packageName = ownPackage, pm = PmSetting.DISABLED)
+        seed(own, disabled)
+        refuseProtectedBlock(own)
+        val input = input("Own" to true, "Disabled" to false, packageName = ownPackage)
+
+        assertThat(call("blocks", ownPackage, input)).isNull()
+
+        assertQuietConnect()
+        assertThat(repository.refreshedApps).containsExactly(AppKey(ownPackage, OWN_USER))
+        assertThat(repository.requests).isEmpty()
+        assertThat(repository.component(ComponentKey(disabled.declaration.id, OWN_USER)).first()).isEqualTo(disabled)
+    }
+
+    private fun refuseProtectedBlock(own: ComponentStatus): ComponentKey {
+        val ownPackage = own.declaration.id.packageName
+        repository.protectedApp = AppKey(ownPackage, OWN_USER)
         val key = ComponentKey(own.declaration.id, OWN_USER)
         repository.controlEvents = {
             listOf(
@@ -394,14 +515,7 @@ class ComponentProviderContractTest {
                 ControlEvent.Finished(achieved = 0, partial = 0, failed = 0, skipped = 1),
             )
         }
-        val input = Bundle().apply {
-            putString("cmp_list", """{"pkg":"ignored","components":[{"type":"ignored","name":"$ownPackage.Own","block":true}]}""")
-        }
-
-        assertThat(call("blocks", ownPackage, input)).isSameInstanceAs(input)
-
-        assertThat(repository.requests.single().components).containsExactly(own.declaration)
-        assertThat(repository.component(key).first()).isEqualTo(own)
+        return key
     }
 
     @Test
@@ -455,17 +569,45 @@ class ComponentProviderContractTest {
         assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
 
         assertQuietConnect()
-        assertThat(repository.refreshedApps).isEmpty()
+        assertThat(repository.refreshedApps).containsExactly(APP)
         assertThat(repository.requests).isEmpty()
     }
 
     @Test
-    fun givenRefreshCannotFinishBeforeDeadline_whenBlocks_thenReturnsNullWhileRefreshIsPending() = runTest {
-        attachProvider(ComponentProvider(readTimeoutMillis = 500, writeTimeoutMillis = 5_000))
+    fun givenAccessMissingAndColdCache_whenBlocks_thenRefreshesAndReturnsNullForAKnownComponent() = runTest {
+        channel.setState(DENIED)
+        refresh = { app, firewall ->
+            assertThat(firewall).isEqualTo(FirewallRead.KEEP_CACHED)
+            seed(status("A"))
+            repository.refreshIfReadable(app, firewall)
+        }
+
+        assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
+
+        assertQuietConnect()
+        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertThat(repository.requests).isEmpty()
+    }
+
+    @Test
+    fun givenAccessMissingAndLocalReadFails_whenBlocks_thenReturnsNullForAnUnverifiedClass() = runTest {
+        channel.setState(DENIED)
+        repository.refreshFailure = ReadFailure.ManifestUnreadable(PACKAGE_NAME)
+
+        assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
+
+        assertQuietConnect()
+        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertThat(repository.requests).isEmpty()
+    }
+
+    @Test
+    fun givenPreparationExceedsWriteDeadline_whenBlocks_thenDoesNotStartControl() = runTest {
+        attachProvider(ComponentProvider(readTimeoutMillis = 100, writeTimeoutMillis = 500))
         seed(status("A"))
         val started = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
-        refresh = {
+        refresh = { _, _ ->
             withContext(NonCancellable) {
                 started.complete(Unit)
                 release.await()
@@ -479,7 +621,24 @@ class ComponentProviderContractTest {
             assertThat(repository.requests).isEmpty()
         } finally {
             release.complete(Unit)
+            scope.coroutineContext[Job]?.children?.forEach { it.join() }
         }
+        assertThat(repository.requests).isEmpty()
+    }
+
+    @Test
+    fun givenRefreshTakesLongerThanReadDeadline_whenBlocks_thenUsesTheWriteBudget() = runTest {
+        attachProvider(ComponentProvider(readTimeoutMillis = 100, writeTimeoutMillis = 5_000))
+        refresh = { app, firewall ->
+            delay(200)
+            seed(status("A"))
+            repository.refreshIfReadable(app, firewall)
+        }
+        val input = input("A" to true)
+
+        assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
+        assertThat(repository.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK)
+        assertQuietConnect()
     }
 
     @Test
@@ -623,9 +782,9 @@ class ComponentProviderContractTest {
         ControlState(pm, ifw),
     )
 
-    private fun input(vararg components: Pair<String, Boolean>): Bundle {
+    private fun input(vararg components: Pair<String, Boolean>, packageName: String = PACKAGE_NAME): Bundle {
         val entries = components.joinToString(",") { (name, block) ->
-            val className = if (name.isEmpty()) "" else "$PACKAGE_NAME.$name"
+            val className = if (name.isEmpty()) "" else "$packageName.$name"
             """{"type":"ignored","name":"$className","block":$block}"""
         }
         return Bundle().apply { putString("cmp_list", """{"pkg":"com.example.other","components":[$entries]}""") }

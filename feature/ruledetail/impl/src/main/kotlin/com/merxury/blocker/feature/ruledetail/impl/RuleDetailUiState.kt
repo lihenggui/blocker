@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.ruledetail.impl
 
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -73,7 +74,9 @@ sealed interface RuleInfoUiState {
         val ruleInfo: GeneralRule,
         val matchedAppsUiState: MatchedAppsUiState,
         val seedIcon: File? = null,
-    ) : RuleInfoUiState
+    ) : RuleInfoUiState {
+        val batchActionsEnabled: Boolean get() = matchedAppsUiState is MatchedAppsUiState.Loaded
+    }
 }
 
 sealed interface MatchedAppsUiState {
@@ -89,6 +92,7 @@ sealed interface MatchedAppsUiState {
  *
  * @property icon the app's icon, or null for the Android icon
  * @property firstInstallTime when it was first installed for its user, for sorting
+ * @property declarations the shown components for page actions when the app list cannot be read
  */
 data class MatchedApp(
     val app: AppKey,
@@ -96,4 +100,5 @@ data class MatchedApp(
     val icon: ApkIcon?,
     val rows: List<ComponentRow>,
     val firstInstallTime: Instant? = null,
+    internal val declarations: List<ComponentDeclaration> = emptyList(),
 )

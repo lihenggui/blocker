@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui.control
 
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
@@ -41,6 +42,11 @@ sealed interface ControlMessage {
         override val needsAccess: Boolean = false,
     ) : ControlMessage
 
+    /** No components are available for a batch. */
+    data object NoComponents : ControlMessage {
+        override val needsAccess = false
+    }
+
     /** A batch ended. [notChanged] counts failed or partial outcomes and vanished components. */
     data class BatchDone(
         val notChanged: Int,
@@ -49,12 +55,12 @@ sealed interface ControlMessage {
 }
 
 /**
- * The message for a failed or partial outcome. Achieved and protected skipped outcomes return
- * null.
+ * The message for a failed, partial, or vanished component. Achieved and protected skipped
+ * outcomes return null.
  */
-fun ComponentOutcome.toMessage(goal: ControlGoal): ControlMessage? {
-    if (!needsMessage()) return null
-    return ControlMessage.ComponentNotChanged(name = key.id.simpleName, goal = goal, needsAccess = needsAccess())
+fun ComponentOutcome?.toMessage(component: ComponentId, goal: ControlGoal): ControlMessage? {
+    if (this?.needsMessage() == false) return null
+    return ControlMessage.ComponentNotChanged(name = component.simpleName, goal = goal, needsAccess = this?.needsAccess() == true)
 }
 
 /**

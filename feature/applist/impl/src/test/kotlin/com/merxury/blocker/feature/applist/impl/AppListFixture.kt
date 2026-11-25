@@ -88,12 +88,13 @@ internal fun service(
     name: String,
     pm: PmSetting = PmSetting.DEFAULT,
     ifw: IfwBlock = IfwBlock.NOT_BLOCKED,
+    enabledInManifest: Boolean = true,
 ) = ComponentStatus(
     declaration = ComponentDeclaration(
         id = ComponentId(packageName, "$packageName.$name"),
         type = ComponentType.SERVICE,
         exported = false,
-        enabledInManifest = true,
+        enabledInManifest = enabledInManifest,
     ),
     state = ControlState(pm, ifw),
 )

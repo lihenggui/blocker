@@ -52,6 +52,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.privileged.withLocalPackageReads
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.core.ifw.IfwStore
 import kotlinx.coroutines.CancellationException
@@ -186,11 +187,15 @@ internal class LocalComponentStatusRepository(
 
             is ReadResult.Failure -> null to read.reason
         }
-        refreshPackageLocked(app, installed, appFailure, previous = previous, forceDeclarations = true).asResult()
+        refreshPackageLocked(app, installed, appFailure, previous = previous, forceDeclarations = true, firewall = FirewallRead.FORCE).asResult()
     }
 
-    override suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit> = packageLocks.withLock(app.packageName) {
-        readAndStoreAutomatically(app, forceDeclarations = true, requireFirewall = requireFirewall)
+    override suspend fun refreshIfReadable(app: AppKey, firewall: FirewallRead): ReadResult<Unit> = packageLocks.withLock(app.packageName) {
+        if (firewall == FirewallRead.KEEP_CACHED) {
+            if (app.userId != self.userId) return@withLock ReadResult.Failure(ReadFailure.ChannelUnavailable)
+            return@withLock withLocalPackageReads { readAndStoreAutomatically(app, forceDeclarations = true, firewall = firewall) }
+        }
+        readAndStoreAutomatically(app, forceDeclarations = true, firewall = firewall)
     }
 
     /**
@@ -270,7 +275,7 @@ internal class LocalComponentStatusRepository(
     private suspend fun readAndStoreAutomatically(
         app: AppKey,
         forceDeclarations: Boolean = false,
-        requireFirewall: Boolean = false,
+        firewall: FirewallRead = FirewallRead.IF_AVAILABLE,
     ): ReadResult<Unit> {
         val previous = dao.getApp(app.packageName, app.userId.value)
         val installed = when (val read = installedApps.readForRefresh(app)) {
@@ -285,7 +290,7 @@ internal class LocalComponentStatusRepository(
             Timber.w("PackageManager did not return the app enabled setting for $app")
             return ReadResult.Failure(ReadFailure.ChannelUnavailable)
         }
-        return refreshPackageLocked(app, installed, appFailure = null, automatic = true, previous = previous, forceDeclarations, requireFirewall).asResult()
+        return refreshPackageLocked(app, installed, appFailure = null, automatic = true, previous = previous, forceDeclarations, firewall).asResult()
     }
 
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {
@@ -313,6 +318,8 @@ internal class LocalComponentStatusRepository(
         emit(RefreshProgress.Finished(total = apps.size, failed = failed, appListFailure = null))
     }
 
+    override fun isProtectedFromBlocking(app: AppKey): Boolean = app == self
+
     override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = control(request, keepKnownState, writeObserver, forgetRefusedPmBlocks = false)
 
     override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent> = control(
@@ -328,7 +335,7 @@ internal class LocalComponentStatusRepository(
         writeObserver: ComponentWriteObserver?,
         forgetRefusedPmBlocks: Boolean,
     ): Flow<ControlEvent> = flow {
-        val (own, others) = request.components.partition { request.goal == ControlGoal.BLOCK && AppKey(it.id.packageName, request.user) == self }
+        val (own, others) = request.components.partition { request.goal == ControlGoal.BLOCK && isProtectedFromBlocking(AppKey(it.id.packageName, request.user)) }
         val refused = refuseOwn(request, own)
         refused?.let { emit(it) }
         val refusedCount = refused?.outcomes?.size ?: 0
@@ -458,9 +465,9 @@ internal class LocalComponentStatusRepository(
         automatic: Boolean = false,
         previous: AppEntity? = null,
         forceDeclarations: Boolean = false,
-        requireFirewall: Boolean = false,
+        firewall: FirewallRead = FirewallRead.IF_AVAILABLE,
     ): PackageRefresh {
-        val refresh = packages.refresh(key, app, appFailure, automatic, previous, forceDeclarations, requireFirewall)
+        val refresh = packages.refresh(key, app, appFailure, automatic, previous, forceDeclarations, firewall)
         if (!refresh.removed && (!automatic || refresh.failures.isEmpty())) {
             withContext(NonCancellable) { pmBlocks.afterRefresh(key, refresh) }
         }

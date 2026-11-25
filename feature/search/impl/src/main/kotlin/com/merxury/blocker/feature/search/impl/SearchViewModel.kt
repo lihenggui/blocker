@@ -57,6 +57,7 @@ import com.merxury.blocker.core.ui.control.batchSummary
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.profile.toProfileTab
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -76,6 +77,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -122,6 +124,9 @@ class SearchViewModel @Inject internal constructor(
 
     // Users whose apps this screen has read from the system.
     private val refreshedUsers = mutableSetOf<UserId>()
+
+    // Rule search failures that have yet to recover, even when the keyword changes.
+    private val ruleSearchFailures = mutableSetOf<UserId>()
 
     /** The keyword searched for: the typed one once typing pauses, trimmed; at once when cleared. */
     @OptIn(FlowPreview::class)
@@ -287,12 +292,8 @@ class SearchViewModel @Inject internal constructor(
     /** Blocks the selected components through the layers of the controller type; one message tells how it ended. */
     fun blockSelected() = startBatch(ControlGoal.BLOCK)
 
-    /**
-     * Removes every block of the selected components, through every layer; one message tells how
-     * it ended. Components the app ships disabled stay as they are, as with a batch in the app's
-     * detail screen.
-     */
-    fun enableSelected() = startBatch(ControlGoal.UNBLOCK)
+    /** Enables the selected components through every layer and ends with one summary. */
+    fun enableSelected() = startBatch(ControlGoal.ENABLE)
 
     fun onMessageShown(id: Long) {
         queued.update { messages -> messages.filterNot { it.id == id } }
@@ -378,8 +379,18 @@ class SearchViewModel @Inject internal constructor(
      * first time takes longer than the apps and components need, so they do not wait for it.
      */
     private fun ruleResults(user: UserId, keyword: String): Flow<List<GeneralRule>?> = searchRules(user, keyword)
-        .map<List<GeneralRule>, List<GeneralRule>?> { it }
-        .onStart { emit(null) }
+        .map {
+            ruleSearchFailures.remove(user)
+            it.rules
+        }
+        .retryWhen { error, _ ->
+            if (error is CancellationException) return@retryWhen false
+            if (ruleSearchFailures.add(user)) Timber.w(error, "Cannot load rule search results for user ${user.value}")
+            emit(emptyList())
+            delay(RULE_RETRY_MILLIS)
+            true
+        }
+        .onStart<List<GeneralRule>?> { emit(null) }
 
     private fun componentResults(user: UserId, keyword: String) = combine(
         componentStatuses.search(user, keyword),
@@ -415,6 +426,7 @@ class SearchViewModel @Inject internal constructor(
     }
 
     private companion object {
+        const val RULE_RETRY_MILLIS = 5_000L
         const val TYPING_PAUSE_MILLIS = 300L
         const val SHOWN_BEFORE_COUNTING_MILLIS = 300L
     }

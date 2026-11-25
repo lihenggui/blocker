@@ -161,8 +161,7 @@ internal fun KeepFreshWhileStarted(keepFresh: suspend () -> Unit, refresh: () ->
 
 /**
  * The top bar's actions, one object for the life of the screen. The batch actions act on what the
- * list shows when chosen; enabling in bulk only removes blocks, see
- * [ComponentControlViewModel.unblockAll].
+ * list shows when chosen. Enabling uses the same control goal as an individual switch.
  */
 @Composable
 private fun rememberTopBarActions(
@@ -185,12 +184,12 @@ private fun rememberTopBarActions(
             onSearchModeChange = listViewModel::setSearchMode,
             onSearch = listViewModel::search,
             onBlockAllInTab = { controlViewModel.blockAll(page()) },
-            onEnableAllInTab = { controlViewModel.unblockAll(page()) },
+            onEnableAllInTab = { controlViewModel.enableAll(page()) },
             onSortClick = { currentSort() },
             onSelectionModeChange = listViewModel::setSelectionMode,
             onSelectAll = listViewModel::toggleSelectAllInTab,
             onBlockSelected = { controlViewModel.blockAll(takeSelected()) },
-            onEnableSelected = { controlViewModel.unblockAll(takeSelected()) },
+            onEnableSelected = { controlViewModel.enableAll(takeSelected()) },
             onShareAppRules = headerViewModel::shareAppRules,
             onShareAllRules = headerViewModel::shareAllRules,
         )
@@ -246,7 +245,7 @@ private fun rememberAppDetailActions(
             onResetIfw = headerViewModel::resetIfw,
             navigateToRuleDetail = { currentRuleDetail(it) },
             onBlockAllInRule = { rule -> controlViewModel.blockAll(rule.rows.map { it.id }, fromMatchedRule = true) },
-            onEnableAllInRule = { rule -> controlViewModel.unblockAll(rule.rows.map { it.id }, fromMatchedRule = true) },
+            onEnableAllInRule = { rule -> controlViewModel.enableAll(rule.rows.map { it.id }, fromMatchedRule = true) },
         )
     }
 }

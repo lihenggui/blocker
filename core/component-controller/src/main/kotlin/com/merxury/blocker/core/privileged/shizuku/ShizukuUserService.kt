@@ -24,6 +24,8 @@ import android.os.DeadObjectException
 import android.os.IBinder
 import android.os.Process
 import com.merxury.blocker.core.di.ApplicationScope
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.privileged.CallBytes
@@ -32,19 +34,24 @@ import com.merxury.blocker.core.privileged.PrivilegedProcessUnavailableException
 import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.marshallCall
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
 import timber.log.Timber
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration
@@ -70,7 +77,6 @@ private val IDLE_STOP = 5.seconds
  * a screen the user works in never wait for a new process.
  */
 internal class IdleStop(
-    val scope: CoroutineScope,
     val after: Duration,
     val screenVisible: () -> Boolean,
 )
@@ -132,20 +138,24 @@ internal class ShizukuUserServiceConnector @Inject constructor(
 internal class ShizukuUserService(
     private val connector: UserServiceConnector,
     private val attachTimeout: Duration,
+    private val scope: CoroutineScope,
     private val idleStop: IdleStop? = null,
 ) {
     @Inject constructor(
         connector: ShizukuUserServiceConnector,
         @ApplicationScope scope: CoroutineScope,
-    ) : this(connector, ATTACH_TIMEOUT, IdleStop(scope, IDLE_STOP, ::hasVisibleScreen))
+        @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
+    ) : this(connector, ATTACH_TIMEOUT, scope + ioDispatcher, IdleStop(IDLE_STOP, ::hasVisibleScreen))
 
     private class Attached(val service: IPrivilegedService, val connection: ServiceConnection)
 
-    private val attached = AtomicReference<Attached?>()
+    // The previous bind finishes detaching before a new one can ask Shizuku to start the service.
     private val bindLock = Mutex()
 
-    // Guards inFlight and idleJob, so a stop never lands between a call's start and its use.
-    private val useLock = Mutex()
+    // Guards the service and its lifetime across calls, binder callbacks and the idle timer.
+    private val serviceLock = Any()
+    private var attached: Attached? = null
+    private var pending: Deferred<Result<Attached>>? = null
     private var inFlight = 0
     private var idleJob: Job? = null
 
@@ -164,7 +174,7 @@ internal class ShizukuUserService(
                 CallFailure.NotPermitted("Shizuku $version cannot run $call; $MIN_SHIZUKU_VERSION or later can"),
             )
         }
-        useLock.withLock {
+        synchronized(serviceLock) {
             inFlight++
             idleJob?.cancel()
         }
@@ -182,23 +192,24 @@ internal class ShizukuUserService(
             }
             return decodeOutcome(call, reply.read())
         } finally {
-            withContext(NonCancellable) {
-                useLock.withLock {
-                    inFlight--
-                    if (inFlight == 0) idleJob = scheduleIdleStop()
-                }
+            synchronized(serviceLock) {
+                inFlight--
+                if (inFlight == 0 && pending == null) scheduleIdleStop()
             }
         }
     }
 
-    // Call holding useLock.
-    private fun scheduleIdleStop(): Job? {
-        val policy = idleStop ?: return null
-        return policy.scope.launch {
+    // Call holding serviceLock.
+    private fun scheduleIdleStop() {
+        val policy = idleStop ?: return
+        if (attached == null) return
+        idleJob = scope.launch {
             do delay(policy.after) while (policy.screenVisible())
-            useLock.withLock {
-                if (inFlight > 0) return@withLock
-                attached.getAndSet(null)?.let {
+            synchronized(serviceLock) {
+                ensureActive()
+                if (inFlight > 0 || pending != null) return@synchronized
+                attached?.let {
+                    attached = null
                     Timber.i("Stopping the idle Shizuku user service")
                     detach(it.connection, stop = true)
                 }
@@ -208,21 +219,59 @@ internal class ShizukuUserService(
 
     /** Drops the bound service, for example because Shizuku stopped. The next call binds again. */
     fun reset() {
-        attached.get()?.let(::forget)
-    }
-
-    private suspend fun attach(): Attached {
-        alive()?.let { return it }
-        return bindLock.withLock {
-            alive() ?: bind().also { attached.set(it) }
+        synchronized(serviceLock) {
+            val attempt = pending
+            pending = null
+            attempt?.cancel()
+            idleJob?.cancel()
+            attached?.let(::forget)
         }
     }
 
-    private fun alive(): Attached? {
-        val current = attached.get() ?: return null
-        if (current.service.asBinder().isBinderAlive) return current
-        forget(current)
-        return null
+    private suspend fun attach(): Attached {
+        val attempt = synchronized(serviceLock) {
+            attached?.let { current ->
+                if (current.service.asBinder().isBinderAlive) return current
+                forget(current)
+            }
+            // A caller's cancellation only stops its wait. The next call can join this attach.
+            pending ?: scope.async(start = CoroutineStart.LAZY) { bindAndKeep() }.also { pending = it }
+        }
+        return try {
+            attempt.await().getOrThrow()
+        } catch (e: CancellationException) {
+            currentCoroutineContext().ensureActive()
+            throw PrivilegedProcessUnavailableException("Shizuku disconnected while its user service was starting", e)
+        }
+    }
+
+    private suspend fun bindAndKeep(): Result<Attached> {
+        val attempt = currentCoroutineContext()[Job]
+        try {
+            return bindLock.withLock {
+                val current = bind()
+                synchronized(serviceLock) {
+                    if (pending !== attempt) {
+                        detach(current.connection, stop = false)
+                        throw PrivilegedProcessUnavailableException("Shizuku disconnected while its user service was starting")
+                    }
+                    attached = current
+                }
+                Result.success(current)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "Cannot attach the Shizuku user service")
+            return Result.failure(e)
+        } finally {
+            synchronized(serviceLock) {
+                if (pending === attempt) {
+                    pending = null
+                    if (inFlight == 0) scheduleIdleStop()
+                }
+            }
+        }
     }
 
     private suspend fun bind(): Attached {
@@ -232,12 +281,16 @@ internal class ShizukuUserService(
                 val service = IPrivilegedService.Stub.asInterface(binder) ?: return
                 // Shizuku may deliver again after starting the service anew.
                 if (!delivered.complete(service)) {
-                    attached.getAndUpdate { if (it?.connection === this) Attached(service, this) else it }
+                    synchronized(serviceLock) {
+                        if (attached?.connection === this) attached = Attached(service, this)
+                    }
                 }
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
-                attached.get()?.takeIf { it.connection === this }?.let(::forget)
+                synchronized(serviceLock) {
+                    attached?.takeIf { it.connection === this }?.let(::forget)
+                }
             }
         }
         var bound = false
@@ -249,16 +302,19 @@ internal class ShizukuUserService(
             bound = true
             return Attached(service, connection)
         } finally {
-            // Also when cancelled: a service that attaches later has no one to serve.
+            // Stop a failed attach or one cancelled when Shizuku disconnected.
             if (!bound) detach(connection, stop = true)
         }
     }
 
     private fun forget(current: Attached) {
-        if (attached.compareAndSet(current, null)) {
-            Timber.w("The Shizuku user service is gone; the next call starts it again")
+        synchronized(serviceLock) {
+            if (attached === current) {
+                attached = null
+                Timber.w("The Shizuku user service is gone; the next call starts it again")
+                detach(current.connection, stop = false)
+            }
         }
-        detach(current.connection, stop = false)
     }
 
     private fun detach(connection: ServiceConnection, stop: Boolean) {

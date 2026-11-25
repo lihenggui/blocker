@@ -51,10 +51,11 @@ class BlockerAppPropertiesDataStore @Inject constructor(
      */
     val pmBlockRecordsSeeded: Flow<Boolean> = appProperties.data.map { it.pmBlockRecordsSeeded }
 
-    suspend fun markPmBlockRecordsSeeded() {
+    suspend fun markPmBlockRecordsSeeded(rememberLegacyRootGrant: Boolean) {
         appProperties.updateData {
             it.copy {
                 pmBlockRecordsSeeded = true
+                if (rememberLegacyRootGrant && !hasRootGrantRemembered()) rootGrantRemembered = true
             }
         }
     }

@@ -116,13 +116,20 @@ class ServiceCountsTest {
     }
 
     @Test
-    fun givenFirewallReadableButRuleStateUnknown_whenCounted_thenNothingShown() = runTest {
+    fun givenUnreadableFirewallFile_whenCounted_thenTheServiceLineAgreesWithTheSwitches() = runTest {
         showApp()
-        fixture.components.sendComponents(OWNER, listOf(service("com.a", "Running", ifw = IfwBlock.UNKNOWN)))
+        fixture.components.appRefreshFailures["com.a"] = ReadFailure.RulesUnreadable("com.a")
+        val services = listOf(
+            service("com.a", "Running", ifw = IfwBlock.UNKNOWN),
+            service("com.a", "DisabledByPm", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN),
+            service("com.a", "DisabledByManifest", pm = PmSetting.UNKNOWN, ifw = IfwBlock.UNKNOWN, enabledInManifest = false),
+        )
+        fixture.components.sendComponents(OWNER, services)
 
         countNow()
 
-        assertThat(fixture.rows().single().services).isNull()
+        assertThat(services.map { it.isSwitchOn }).containsExactly(true, false, false).inOrder()
+        assertThat(fixture.rows().single().services).isEqualTo(ServiceCounts(running = 1, blocked = 2, total = 3))
     }
 
     @Test
@@ -144,14 +151,14 @@ class ServiceCountsTest {
     }
 
     @Test
-    fun givenFirewallNotReachable_whenSettingUnknown_thenNothingShown() = runTest {
+    fun givenFirewallNotReachable_whenSettingUnknown_thenCountsTheManifestDefault() = runTest {
         showApp()
         fixture.components.setFirewallReadable(false)
         fixture.components.sendComponents(OWNER, listOf(service("com.a", "Running", pm = PmSetting.UNKNOWN, ifw = IfwBlock.UNKNOWN)))
 
         countNow()
 
-        assertThat(fixture.rows().single().services).isNull()
+        assertThat(fixture.rows().single().services).isEqualTo(ServiceCounts(running = 1, blocked = 0, total = 1))
     }
 
     @Test

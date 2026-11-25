@@ -30,7 +30,6 @@ import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.PmSetting.DEFAULT
 import com.merxury.blocker.core.model.component.PmSetting.DISABLED
 import com.merxury.blocker.core.model.component.PmSetting.ENABLED
-import com.merxury.blocker.core.ui.component.isSwitchOn
 import org.junit.Test
 
 /** What a component's switch shows for every state the cache can hold. */

@@ -51,8 +51,8 @@ import kotlinx.coroutines.flow.Flow
  * the cache; [control], [refresh] and app removal keep it, see [disabledByBlocker].
  *
  * ## Unknown state
- * A part that could not be read is stored as [PmSetting.UNKNOWN] or [IfwBlock.UNKNOWN], never left
- * as it was and never stored as a default. A part never read reads as unknown too.
+ * Explicit refreshes store unreadable parts as [PmSetting.UNKNOWN] or [IfwBlock.UNKNOWN].
+ * Automatic refreshes preserve cached state on failed reads. Parts never read are unknown.
  *
  * Reads never connect the privileged channel, so only [control] can show a prompt. No method
  * throws except for cancellation.
@@ -112,10 +112,9 @@ interface ComponentStatusRepository {
 
     /**
      * Re-reads the app using the automatic refresh policy. Failed reads preserve the cached
-     * state, and confirmed removals evict it. Set [requireFirewall] after establishing access
-     * with an identity that can read firewall rules.
+     * state, and confirmed removals evict it.
      */
-    suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit>
+    suspend fun refreshIfReadable(app: AppKey, firewall: FirewallRead): ReadResult<Unit>
 
     /**
      * Refreshes the apps of [user], then the components of each app a few apps at a time. It can
@@ -126,6 +125,9 @@ interface ComponentStatusRepository {
      * [RefreshProgress.Finished], which a collector that cancels never sees.
      */
     fun refreshAll(user: UserId): Flow<RefreshProgress>
+
+    /** Whether [control] skips block requests for [app] to protect the running copy of Blocker. */
+    fun isProtectedFromBlocking(app: AppKey): Boolean
 
     /**
      * A cold flow that carries out [request] through ComponentControl, which connects the
@@ -174,6 +176,21 @@ interface ComponentStatusRepository {
      * @return what was found, or the failure that kept the user's app list from being read
      */
     suspend fun disabledByBlocker(user: UserId): ReadResult<DisabledComponents>
+}
+
+/** How to read the Intent Firewall layer of a package refresh. */
+enum class FirewallRead {
+    /** Use the app's own PackageManager for its user and keep the cached firewall state. */
+    KEEP_CACHED,
+
+    /** Consult the rule store, allowing unavailable firewall access. */
+    IF_AVAILABLE,
+
+    /** Consult the rule store and fail if the rules cannot be read. */
+    REQUIRED,
+
+    /** Read the rule files again for an explicit refresh. */
+    FORCE,
 }
 
 /**

@@ -29,12 +29,14 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.control.BatchKey
+import com.merxury.blocker.core.domain.control.BatchRun
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
@@ -43,6 +45,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.ProcessingProgress
+import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.QueuedControlMessage
 import com.merxury.blocker.core.ui.control.batchSummary
 import com.merxury.blocker.core.ui.control.enqueue
@@ -162,35 +165,34 @@ class GeneralRulesViewModel @AssistedInject constructor(
         savedStateHandle[selectedRuleIdKey] = ruleId
     }
 
-    /**
-     * Blocks every component the rules match in the selected user's apps, through the layers of
-     * the controller type, or removes every block of them, through every layer, as a batch in the
-     * app detail does; one message tells how it ended.
-     */
+    /** Changes what the rules match for the selected user and reports the batch outcome. */
     fun controlAllComponents(enable: Boolean) {
         val user = selectedUsers.selectedUser.value
         if (gathering.value != null || batches.current(BatchKey.GeneralRules(user)) != null) return
-        val goal = if (enable) ControlGoal.UNBLOCK else ControlGoal.BLOCK
+        val shown = (uiState.value.rules as? GeneralRuleUiState.Success)?.matchedComponents.orEmpty()
+        val selected = shown.filterKeys { it.userId == user }
+        if (selected.isEmpty()) {
+            tell(ControlMessage.NoComponents)
+            return
+        }
+        val targets = selected.filterKeys { !batches.isInFlight(it) }
+        if (targets.isEmpty()) return
+        val goal = if (enable) ControlGoal.ENABLE else ControlGoal.BLOCK
         gathering.value = goal
         viewModelScope.launch {
             try {
-                // As the menu offers it: only once every app of the user was read, so the batch
-                // never acts on what a part of the apps matches, even from a dialog opened before
-                // the reading started over.
-                val index = componentIndex.state(user).first() as? IndexState.Indexed
-                if (index?.hasAllApps != true) {
-                    Timber.i("The apps of user ${user.value} have not been fully indexed; nothing is changed")
-                    return@launch
+                val started = try {
+                    analyticsHelper.logControlAllSdksClicked(newState = enable)
+                    startBatch(user, goal, targets)
+                } finally {
+                    gathering.value = null
                 }
-                analyticsHelper.logControlAllSdksClicked(newState = enable)
-                startBatch(user, goal, index)
+                if (started != null) tell(batchSummary(started.run.outcomes.await(), started.vanished))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Timber.e(e, "Cannot gather the components the general rules match for user ${user.value}")
+                Timber.e(e, "Cannot change the components the general rules match for user ${user.value}")
                 alert.value = e.toErrorMessage()
-            } finally {
-                gathering.value = null
             }
         }
     }
@@ -204,26 +206,33 @@ class GeneralRulesViewModel @AssistedInject constructor(
         messages.update { queued -> queued.filterNot { it.id == id } }
     }
 
-    /**
-     * Sends what the rules match now as one batch through [batches], so it ends even when the
-     * screen goes away. Components another batch is changing are left out, and nothing starts
-     * while another batch of the rule list runs for the user.
-     */
-    private suspend fun startBatch(user: UserId, goal: ControlGoal, index: IndexState.Indexed) {
-        val declarations = ruleMatcher.matches(user).first().allComponents
-            .map { it.declaration }
-            .filterNot { batches.isInFlight(ComponentKey(it.id, user)) }
-        if (declarations.isEmpty() || componentIndex.state(user).first() != index) return
-        val run = batches.reserve(BatchKey.GeneralRules(user), goal, declarations.map { it.id }) ?: return
-        var started = false
-        try {
-            batches.start(run, declarations, layersFor(goal))
-            started = true
-            gathering.value = null
-            tell(QueuedControlMessage(nextMessageId++, batchSummary(run.outcomes.await())))
-        } finally {
-            if (!started) batches.release(run)
+    /** Sends the matches shown at confirmation, leaving any changes already in flight alone. */
+    private suspend fun startBatch(
+        user: UserId,
+        goal: ControlGoal,
+        shown: Map<ComponentKey, ComponentDeclaration>,
+    ): StartedBatch? {
+        val layers = layersFor(goal)
+        val current = componentIndex.readWhenIndexed(user) {
+            ruleMatcher.matches(user).first().allComponents.map { it.declaration }
+        } ?: shown.values
+        val targets = shown.keys.filterNot(batches::isInFlight).toSet()
+        if (targets.isEmpty()) return null
+        val declarations = current.filter { ComponentKey(it.id, user) in targets }
+        val sent = declarations.mapTo(mutableSetOf()) { ComponentKey(it.id, user) }
+        val vanished = targets.filterNot { it in sent }
+        if (declarations.isEmpty()) {
+            tell(batchSummary(emptyList(), vanished))
+            return null
         }
+        val run = batches.reserve(BatchKey.GeneralRules(user), goal, declarations.map { it.id }) ?: return null
+        try {
+            batches.start(run, declarations, layers)
+        } catch (e: Exception) {
+            batches.release(run)
+            throw e
+        }
+        return StartedBatch(run, vanished)
     }
 
     /**
@@ -232,10 +241,17 @@ class GeneralRulesViewModel @AssistedInject constructor(
      * the rules can be matched again.
      */
     private fun rulesOf(user: UserId): Flow<GeneralRuleUiState> = combine(
-        searchRule(user),
+        searchRule(user).map { results ->
+            val components = buildMap {
+                results.rules.forEach { rule ->
+                    results.matches.componentsOf(rule.id).forEach { put(ComponentKey(it.declaration.id, user), it.declaration) }
+                }
+            }
+            results.rules to components
+        },
         componentIndex.state(user),
         selectedRuleId,
-    ) { rules, index, selected ->
+    ) { (rules, components), index, selected ->
         if (index is IndexState.Failed) {
             GeneralRuleUiState.Error(index.exception.toErrorMessage())
         } else {
@@ -243,6 +259,8 @@ class GeneralRulesViewModel @AssistedInject constructor(
                 matchedRules = rules.filter { it.matchedAppCount > 0 },
                 unmatchedRules = rules.filter { it.matchedAppCount == 0 },
                 matchProgress = index.progress(),
+                batchActionsEnabled = index is IndexState.Indexed,
+                matchedComponents = components,
                 selectedRuleId = selected,
             )
         }
@@ -292,9 +310,12 @@ class GeneralRulesViewModel @AssistedInject constructor(
         }
     }
 
-    private fun tell(message: QueuedControlMessage) {
-        messages.update { it.enqueue(message) }
+    private fun tell(message: ControlMessage) {
+        val queued = QueuedControlMessage(nextMessageId++, message)
+        messages.update { it.enqueue(queued) }
     }
+
+    private data class StartedBatch(val run: BatchRun, val vanished: List<ComponentKey>)
 
     @AssistedFactory
     interface Factory {
@@ -311,7 +332,7 @@ private const val RETRY_MILLIS = 5_000L
 private fun IndexState.progress(): Float = when (this) {
     IndexState.NotIndexed, is IndexState.Failed -> 0F
     is IndexState.Indexing -> if (total == 0) 0F else done.toFloat() / total
-    is IndexState.Indexed -> if (hasAllApps) 1F else 0F
+    is IndexState.Indexed -> 1F
 }
 
 /**
@@ -333,14 +354,16 @@ sealed interface GeneralRuleUiState {
     data object Loading : GeneralRuleUiState
 
     /**
-     * @property matchProgress how far the user's apps were read into the cache, from 0 to 1; the
-     * batch actions are offered at 1
+     * @property matchProgress how far indexing has progressed, from 0 to 1
+     * @property batchActionsEnabled whether indexing has finished
      */
     data class Success(
         val matchedRules: List<GeneralRule>,
         val unmatchedRules: List<GeneralRule>,
         val matchProgress: Float = 0F,
         val selectedRuleId: String? = null,
+        val batchActionsEnabled: Boolean = matchProgress == 1F,
+        internal val matchedComponents: Map<ComponentKey, ComponentDeclaration> = emptyMap(),
     ) : GeneralRuleUiState
 
     data class Error(val error: UiMessage) : GeneralRuleUiState

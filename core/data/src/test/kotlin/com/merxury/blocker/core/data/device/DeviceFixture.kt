@@ -28,6 +28,8 @@ import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
 import com.merxury.blocker.core.database.wake.WakeHistoryDatabase
 import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
+import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
+import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.test.InMemoryDataStore
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -125,10 +127,12 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
     internal val pmBlocks = PmBlockRecords(recordDao)
     internal val applicationContext: Context = ApplicationProvider.getApplicationContext()
     internal val appProperties = InMemoryDataStore(AppProperties.getDefaultInstance())
+    internal val properties = BlockerAppPropertiesDataStore(appProperties)
+    internal val preferences = BlockerPreferencesDataSource(InMemoryDataStore(UserPreferences.getDefaultInstance()))
     internal val wakeDb: WakeHistoryDatabase = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
         .allowMainThreadQueries()
         .build()
-    internal val seeder = InstalledAppDbPmBlockRecordSeeder(applicationContext, Dispatchers.IO, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
+    internal val seeder = InstalledAppDbPmBlockRecordSeeder(applicationContext, Dispatchers.IO, properties, preferences, pmBlocks, wakeDb.history())
     internal val system = FakeSystem()
     internal val files = FakeIfwFileSystem()
     internal val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test")

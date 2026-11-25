@@ -18,6 +18,7 @@ package com.merxury.blocker.core.testing.repository.device
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DisabledComponents
+import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.RefreshProgress
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -74,6 +75,8 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
     /** When set, [control] emits these events instead of changing the cached state. */
     var controlEvents: ((ControlRequest) -> List<ControlEvent>)? = null
 
+    var protectedApp: AppKey? = null
+
     /** The requests [control] received, in order. */
     val requests = mutableListOf<ControlRequest>()
 
@@ -113,7 +116,7 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         return failure?.let { ReadResult.Failure(it) } ?: ReadResult.Success(Unit)
     }
 
-    override suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit> = refresh(app)
+    override suspend fun refreshIfReadable(app: AppKey, firewall: FirewallRead): ReadResult<Unit> = refresh(app)
 
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {
         refreshedUsers += user
@@ -130,6 +133,8 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         packages.forEachIndexed { index, packageName -> emit(RefreshProgress.Refreshing(index + 1, packages.size, packageName)) }
         emit(RefreshProgress.Finished(total = packages.size, failed = 0, appListFailure = null))
     }
+
+    override fun isProtectedFromBlocking(app: AppKey): Boolean = app == protectedApp
 
     override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
         requests += request
