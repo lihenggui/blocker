@@ -58,6 +58,9 @@ internal data class SetBackgroundUsageAllowed(
         val uid = backgroundUsageUid(system, packageName, user)
         val deviceIdle = system.deviceIdle
         if (packageName in deviceIdle.systemPowerWhitelist) return false
+        // Allowing an app that may already run in the background changes nothing, so an
+        // unrestricted app keeps its exemption. Only a restricted app becomes optimized.
+        if (allowed && system.appOps.checkOperation(OP_RUN_ANY_IN_BACKGROUND, uid, packageName) != MODE_IGNORED) return true
 
         // Android rejects removing some system exemptions even when there is no user entry.
         val userAllowlisted = packageName in deviceIdle.userPowerWhitelist

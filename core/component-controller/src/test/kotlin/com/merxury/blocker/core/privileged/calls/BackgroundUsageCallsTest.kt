@@ -95,6 +95,16 @@ class BackgroundUsageCallsTest {
     }
 
     @Test
+    fun givenUnrestrictedApp_whenAllow_thenNothingChanges() {
+        system.deviceIdle.userAllowlist += PACKAGE
+
+        assertThat(roundTrip(restrict.copy(allowed = true))).isEqualTo(CallResult.Success(true))
+
+        assertThat(system.backgroundUsageChanges).isEmpty()
+        assertThat(read.run(system)).isEqualTo(BackgroundUsageState(MODE_ALLOWED, false, true))
+    }
+
+    @Test
     fun givenPackageMissingForUser_whenReadAndWrite_thenTargetNotFoundAndNoChanges() {
         val missing = UserId(11)
         val result = CallResult.Failure(CallFailure.TargetNotFound("$PACKAGE is not installed for user 11"))
