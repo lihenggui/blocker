@@ -39,6 +39,9 @@ internal class FakeSystemServices : SystemServices {
     override val packageManager = FakePackageManager()
     override val activityManager = FakeActivityManager()
     override val userManager = FakeUserManager()
+    val backgroundUsageChanges = mutableListOf<String>()
+    override val appOps = FakeAppOpsService(backgroundUsageChanges)
+    override val deviceIdle = FakeDeviceIdleController(backgroundUsageChanges)
     override val packageInstaller = FakePackageInstaller()
     override val callerPackage = "com.merxury.blocker.test"
     override var callerUid = 0

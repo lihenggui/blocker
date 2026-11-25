@@ -23,7 +23,9 @@ import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.IDeviceIdleController
 import android.os.IUserManager
+import com.android.internal.app.IAppOpsService
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.privileged.CallFailure
@@ -182,6 +184,10 @@ internal class ShizukuSystemServices @Inject constructor(
     }
 
     override val userManager: IUserManager by lazy { IUserManager.Stub.asInterface(service("user")) }
+
+    override val appOps: IAppOpsService by lazy { IAppOpsService.Stub.asInterface(service("appops")) }
+
+    override val deviceIdle: IDeviceIdleController by lazy { IDeviceIdleController.Stub.asInterface(service("deviceidle")) }
 
     // The binder the package manager hands out would be called as this app; wrap it too.
     override val packageInstaller: IPackageInstaller by lazy {

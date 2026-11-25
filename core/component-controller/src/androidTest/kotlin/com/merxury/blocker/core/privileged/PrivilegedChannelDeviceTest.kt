@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.privileged
 
+import android.app.AppOpsManager.MODE_ALLOWED
+import android.app.AppOpsManager.MODE_IGNORED
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Build
@@ -23,10 +25,12 @@ import android.os.Parcel
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
+import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -35,11 +39,14 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.model.system.getOrNull
 import com.merxury.blocker.core.privileged.calls.ApplicationEnabledSettings
+import com.merxury.blocker.core.privileged.calls.BackgroundUsageState
 import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.privileged.calls.GetPackageInfo
 import com.merxury.blocker.core.privileged.calls.InstalledPackages
 import com.merxury.blocker.core.privileged.calls.ListUsers
+import com.merxury.blocker.core.privileged.calls.ReadBackgroundUsage
 import com.merxury.blocker.core.privileged.calls.SetApplicationEnabledSetting
+import com.merxury.blocker.core.privileged.calls.SetBackgroundUsageAllowed
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootTransport
@@ -48,7 +55,10 @@ import com.merxury.blocker.core.privileged.wake.WakeFixtureService
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformSystemPackageReader
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -235,6 +245,35 @@ class PrivilegedChannelDeviceTest {
             root.execute(SetComponentEnabledSettings(listOf(fixture), PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, otherUser)).value()
         }
         assertEquals(listOf(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT), root.execute(read).value())
+    }
+
+    @Test
+    fun givenRoot_whenRestrictAndRestoreTestPackage_thenReadBackBothModes() = runTest {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+        restrictAndRestoreTestPackage(rootTransport())
+    }
+
+    @Test
+    fun givenShizukuShell_whenRestrictAndRestoreTestPackage_thenReadBackBothModes() = runTest {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+        restrictAndRestoreTestPackage(shellTransport())
+    }
+
+    private suspend fun restrictAndRestoreTestPackage(transport: PrivilegedTransport) {
+        val user = UserId(userOfUid(context.applicationInfo.uid))
+        val read = ReadBackgroundUsage(self, user)
+        val optimized = BackgroundUsageState(MODE_ALLOWED, systemAllowlisted = false, userAllowlisted = false)
+        assertThat(transport.execute(read).value()).isEqualTo(optimized)
+
+        try {
+            assertThat(transport.execute(SetBackgroundUsageAllowed(self, user, allowed = false)).value()).isTrue()
+            assertThat(transport.execute(read).value()).isEqualTo(optimized.copy(mode = MODE_IGNORED))
+        } finally {
+            withContext(NonCancellable) {
+                assertThat(transport.execute(SetBackgroundUsageAllowed(self, user, allowed = true)).value()).isTrue()
+                assertThat(transport.execute(read).value()).isEqualTo(optimized)
+            }
+        }
     }
 
     @Test

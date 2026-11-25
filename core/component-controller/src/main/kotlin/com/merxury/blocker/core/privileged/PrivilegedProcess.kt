@@ -21,11 +21,13 @@ import android.app.IActivityManager
 import android.content.pm.IPackageManager
 import android.os.Build
 import android.os.IBinder
+import android.os.IDeviceIdleController
 import android.os.IUserManager
 import android.os.Parcel
 import android.os.Parcelable
 import android.os.Process
 import be.mygod.librootkotlinx.systemContext
+import com.android.internal.app.IAppOpsService
 
 /**
  * The system services as seen from a process that itself runs as root, system or the shell: the root
@@ -43,6 +45,10 @@ internal object PrivilegedProcessSystemServices : SystemServices {
     }
 
     override val userManager: IUserManager by lazy { IUserManager.Stub.asInterface(service("user")) }
+
+    override val appOps: IAppOpsService by lazy { IAppOpsService.Stub.asInterface(service("appops")) }
+
+    override val deviceIdle: IDeviceIdleController by lazy { IDeviceIdleController.Stub.asInterface(service("deviceidle")) }
 
     override val callerPackage: String get() = systemContext.packageName
 

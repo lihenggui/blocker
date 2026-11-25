@@ -19,9 +19,11 @@ package com.merxury.blocker.core.privileged
 import android.app.IActivityManager
 import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
+import android.os.IDeviceIdleController
 import android.os.IUserManager
 import android.os.Parcel
 import android.os.Parcelable
+import com.android.internal.app.IAppOpsService
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -34,6 +36,8 @@ internal interface SystemServices {
     val packageManager: IPackageManager
     val activityManager: IActivityManager
     val userManager: IUserManager
+    val appOps: IAppOpsService
+    val deviceIdle: IDeviceIdleController
 
     /**
      * The package installer, called as the privileged identity. The default asks [packageManager]
