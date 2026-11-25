@@ -10,7 +10,7 @@ enum class WakeBlockMethod {
     /** An Intent Firewall rule for one sender and one service. */
     FIREWALL_RULE,
 
-    /** Disabling the component stops it for every caller. */
+    /** Disables the named component or receivers for the action for every caller. */
     COMPONENT,
 
     /** Only Android's background restriction of the whole app limits this path. */

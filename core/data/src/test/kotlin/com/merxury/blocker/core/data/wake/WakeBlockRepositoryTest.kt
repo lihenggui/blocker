@@ -25,6 +25,7 @@ import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
@@ -67,9 +68,11 @@ private const val PEER = "peer.pkg"
 private const val SERVICE = "$TARGET.Service"
 private const val OTHER_SERVICE = "$TARGET.OtherService"
 private const val RECEIVER = "$TARGET.Receiver"
+private const val OTHER_RECEIVER = "$TARGET.OtherReceiver"
 private const val PROVIDER = "$TARGET.Provider"
 private const val ACTIVITY = "$TARGET.Activity"
 private const val ACTION = "sdk.WAKE"
+private const val OTHER_ACTION = "sdk.OTHER_WAKE"
 private val FIREWALL = WakeBlockMethod.FIREWALL_RULE
 private val COMPONENT = WakeBlockMethod.COMPONENT
 
@@ -80,6 +83,7 @@ class WakeBlockRepositoryTest {
     private val dao = FakeWakeBlockDao()
     private val writer = FakeWakeRuleWriter()
     private val components = FakeComponentStatusRepository()
+    private val receivers = FakeWakeReceiverResolver()
     private val channel = FakePrivilegedChannel()
     private val lock = WakeRuleLock()
     private val packages = mock<SystemPackageReader>()
@@ -99,11 +103,12 @@ class WakeBlockRepositoryTest {
                 declaration(SERVICE, ComponentType.SERVICE),
                 declaration(OTHER_SERVICE, ComponentType.SERVICE),
                 declaration(RECEIVER, ComponentType.RECEIVER),
+                declaration(OTHER_RECEIVER, ComponentType.RECEIVER),
                 declaration(PROVIDER, ComponentType.PROVIDER),
                 declaration(ACTIVITY, ComponentType.ACTIVITY),
             ).map { ComponentStatus(it, ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)) },
         )
-        return LocalWakeBlockRepository(dao, firewall, rules, components, channel, lock, StandardTestDispatcher(testScheduler))
+        return LocalWakeBlockRepository(dao, firewall, rules, components, receivers, channel, lock, StandardTestDispatcher(testScheduler))
     }
 
     @Test fun givenKnownTriggersAndHolds_whenBlocking_thenStoredSendersMatchTheWakePaths() = runTest {
@@ -245,6 +250,111 @@ class WakeBlockRepositoryTest {
         assertThat(writer.userWrites).isEmpty()
     }
 
+    @Test fun givenActionWithTwoReceivers_whenBlocking_thenBothAreDisabledInOneRequestForOnePath() = runTest {
+        val repository = repository()
+        val matches = listOf(declaration(RECEIVER, ComponentType.RECEIVER), declaration(OTHER_RECEIVER, ComponentType.RECEIVER))
+        receivers.matches[TARGET to ACTION] = matches
+        val outcome = repository.block(listOf(actionPath("broadcast") to COMPONENT))
+
+        assertThat(outcome.done).containsExactly("broadcast")
+        assertThat(outcome.failure).isNull()
+        assertThat(components.requests.single()).isEqualTo(ControlRequest(UserId.SYSTEM, matches, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER)))
+        val row = repository.blocks.first().single()
+        assertThat(row.method).isEqualTo(COMPONENT)
+        assertThat(row.component).isNull()
+        assertThat(row.action).isEqualTo(ACTION)
+        assertThat(writer.userWrites).isEmpty()
+    }
+
+    @Test fun givenActionWithoutMatchingReceivers_whenBlocking_thenNoRequestOrRowIsCreated() = runTest {
+        val repository = repository()
+        val outcome = repository.block(listOf(actionPath("missing") to COMPONENT))
+
+        assertThat(outcome.failure).isEqualTo(WakeBlockFailure.NotBlockable(listOf("missing")))
+        assertThat(outcome.done).isEmpty()
+        assertThat(components.requests).isEmpty()
+        assertThat(dao.all()).isEmpty()
+    }
+
+    @Test fun givenSharedActionAndNamedBlocks_whenUnblocking_thenOnlyUncoveredReceiversAreEnabled() = runTest {
+        val repository = repository()
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        val other = declaration(OTHER_RECEIVER, ComponentType.RECEIVER)
+        receivers.matches[TARGET to ACTION] = listOf(receiver, other)
+        val named = actionPath("named").copy(component = RECEIVER)
+        val first = actionPath("first")
+        val second = actionPath("second").copy(actor = "another.sender")
+        assertThat(repository.block(listOf(first, second, named).map { it to COMPONENT }).done).hasSize(3)
+
+        assertThat(repository.unblock(listOf("first")).done).containsExactly("first")
+        assertThat(components.requests).hasSize(3)
+        assertThat(repository.unblock(listOf("second")).done).containsExactly("second")
+        assertThat(components.requests.last().components).containsExactly(other)
+        assertThat(repository.unblock(listOf("named")).done).containsExactly("named")
+        assertThat(components.requests.last().components).containsExactly(receiver)
+    }
+
+    @Test fun givenReceiverCoveredByTwoActions_whenUnblocking_thenRemainingActionStillKeepsItDisabled() = runTest {
+        val repository = repository()
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        val other = declaration(OTHER_RECEIVER, ComponentType.RECEIVER)
+        receivers.matches[TARGET to ACTION] = listOf(receiver, other)
+        receivers.matches[TARGET to OTHER_ACTION] = listOf(receiver)
+        val named = actionPath("named").copy(component = RECEIVER)
+        val first = actionPath("first")
+        val second = actionPath("second").copy(action = OTHER_ACTION)
+        assertThat(repository.block(listOf(first, second, named).map { it to COMPONENT }).done).hasSize(3)
+
+        assertThat(repository.unblock(listOf("named")).done).containsExactly("named")
+        assertThat(components.requests).hasSize(3)
+        assertThat(repository.unblock(listOf("first")).done).containsExactly("first")
+        assertThat(components.requests.last().components).containsExactly(other)
+        assertThat(repository.unblock(listOf("second")).done).containsExactly("second")
+        assertThat(components.requests.last().components).containsExactly(receiver)
+    }
+
+    @Test fun givenUpdatedReceiverMatches_whenUnblocking_thenTheActionIsResolvedAgain() = runTest {
+        val repository = repository()
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        val other = declaration(OTHER_RECEIVER, ComponentType.RECEIVER)
+        receivers.matches[TARGET to ACTION] = listOf(receiver, other)
+        val path = actionPath("broadcast")
+        assertThat(repository.block(listOf(path to COMPONENT)).done).containsExactly(path.pathKey)
+
+        receivers.matches[TARGET to ACTION] = listOf(other)
+        assertThat(repository.unblock(listOf(path.pathKey)).done).containsExactly(path.pathKey)
+        assertThat(components.requests.last().components).containsExactly(other)
+        assertThat(dao.all()).isEmpty()
+    }
+
+    @Test fun givenOneFailedReceiverDisable_whenUnblockingTheAction_thenTheAppliedChangeCanBeUndone() = runTest {
+        val repository = repository()
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        val other = declaration(OTHER_RECEIVER, ComponentType.RECEIVER)
+        receivers.matches[TARGET to ACTION] = listOf(receiver, other)
+        components.controlEvents = {
+            val applied = ComponentOutcome(ComponentKey(receiver.id, it.user), ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED), ControlResult.ACHIEVED, emptyMap())
+            val refused = ComponentOutcome(
+                ComponentKey(other.id, it.user),
+                ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
+                ControlResult.FAILED,
+                mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("denied", PrivilegedIdentity.ROOT)),
+            )
+            components.sendComponents(it.user, listOf(ComponentStatus(receiver, applied.state), ComponentStatus(other, refused.state)))
+            listOf(ControlEvent.PackageDone(TARGET, listOf(applied, refused), setOf(receiver.id)))
+        }
+
+        val outcome = repository.block(listOf(actionPath("broadcast") to COMPONENT))
+        assertThat(outcome.done).isEmpty()
+        assertThat(outcome.failure).isEqualTo(WakeBlockFailure.SystemError("denied"))
+        assertThat(dao.all().single().pathKey).isEqualTo("broadcast")
+
+        components.controlEvents = null
+        assertThat(repository.unblock(listOf("broadcast")).done).containsExactly("broadcast")
+        assertThat(components.component(ComponentKey(receiver.id, UserId.SYSTEM)).first()?.state?.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(dao.all()).isEmpty()
+    }
+
     @Test fun givenTwoFirewallBlocks_whenUnblocking_thenFileIsRebuiltAndRemovedAfterLastPath() = runTest {
         val repository = repository()
         repository.block(listOf(path("first") to FIREWALL, path("second", component = OTHER_SERVICE) to FIREWALL))
@@ -331,9 +441,16 @@ class WakeBlockRepositoryTest {
         method: WakeBlockMethod = FIREWALL,
     ) = WakePath(key, TARGET, actor, trigger, hold, component, hint, action, 1, 0, 0, 0, false, method)
 
+    private fun actionPath(key: String) = path(key, trigger = ReviveTrigger.PEER_BROADCAST, component = null, action = ACTION, method = COMPONENT)
+
     private fun declaration(name: String, type: ComponentType) = ComponentDeclaration(ComponentId(TARGET, name), type, exported = true, enabledInManifest = true)
 
     private fun firewallRow(key: String, target: String) = WakeBlockEntity(key, target, FIREWALL.name, ComponentType.SERVICE.name, "sender.pkg", "$target.Service", null, 1)
+}
+
+private class FakeWakeReceiverResolver : WakeReceiverResolver {
+    val matches = mutableMapOf<Pair<String, String>, List<ComponentDeclaration>>()
+    override fun resolve(target: String, action: String): List<ComponentDeclaration> = matches[target to action].orEmpty()
 }
 
 private class FakeWakeBlockDao : WakeBlockDao {

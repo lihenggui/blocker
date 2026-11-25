@@ -223,11 +223,12 @@ private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?
 
     hold == HoldCause.BOUND_BY_PEER && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
-    trigger == ReviveTrigger.PEER_BROADCAST && (action != null || component != null) -> WakeBlockMethod.FIREWALL_RULE
+    (trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST) &&
+        (component != null || action != null) -> WakeBlockMethod.COMPONENT
 
-    trigger == ReviveTrigger.SYSTEM_BROADCAST && (component != null || action != null) -> WakeBlockMethod.FIREWALL_RULE
+    trigger == ReviveTrigger.SELF_PROCESS && component != null -> WakeBlockMethod.FIREWALL_RULE
 
-    trigger == ReviveTrigger.SELF_PROCESS && (component != null || action != null) -> WakeBlockMethod.FIREWALL_RULE
+    trigger == ReviveTrigger.SELF_PROCESS && action != null -> WakeBlockMethod.COMPONENT
 
     (trigger == ReviveTrigger.PEER_PROVIDER || hold == HoldCause.PROVIDER_CLIENT) && component != null -> WakeBlockMethod.COMPONENT
 
