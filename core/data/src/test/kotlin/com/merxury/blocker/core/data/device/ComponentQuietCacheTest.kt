@@ -31,6 +31,7 @@ import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -89,6 +90,23 @@ class ComponentQuietCacheTest : DeviceRepositoryTestBase() {
 
         assertThat(repository.refreshIfReadable(installed.key, FirewallRead.KEEP_CACHED)).isEqualTo(ReadResult.Success(Unit))
         assertThat(repository.components(installed.key).first().single().state).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED))
+    }
+
+    @Test
+    fun givenPackageInAnotherUser_whenRefreshingWithCachedFirewall_thenReturnsChannelUnavailableWithoutWriting() = runTest {
+        val repository = components(backgroundScope)
+        val other = installedApp(PKG, user = WORK)
+        system.install(other, tracker)
+        system.put(WORK, tracker, PmSetting.DISABLED)
+
+        assertThat(repository.refreshIfReadable(other.key, FirewallRead.KEEP_CACHED))
+            .isEqualTo(ReadResult.Failure(ReadFailure.ChannelUnavailable))
+
+        assertThat(system.log).isEmpty()
+        assertThat(dao.getApp(PKG, WORK.value)).isNull()
+        assertThat(dao.getDeclarations(PKG)).isEmpty()
+        assertThat(dao.scanMarker(PKG)).isNull()
+        assertThat(repository.components(other.key).first()).isEmpty()
     }
 
     @Test

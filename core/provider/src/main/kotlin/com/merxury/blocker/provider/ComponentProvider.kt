@@ -153,10 +153,13 @@ class ComponentProvider internal constructor(
         val cached = AtomicReference(emptyList<ComponentStatus>())
         val task = startQuietly {
             val app = AppKey(packageName, selectedUsers().ownUser)
-            // Take the fallback snapshot before waiting for access or the package refresh.
-            cached.set(cachedComponents(app))
-            val access = privilegedChannel().connectIfGranted() as? ChannelState.Ready
-            if (refreshComponents(app, access) is ReadFailure.PackageNotFound) emptyList() else cachedComponents(app)
+            // Leave two of the five seconds for a local PackageManager refresh.
+            val privileged = withTimeoutOrNull(readTimeoutMillis * 3 / 5) {
+                cached.set(cachedComponents(app))
+                val access = privilegedChannel().connectIfGranted() as? ChannelState.Ready ?: return@withTimeoutOrNull null
+                refreshAndReadComponents(app, access)
+            }
+            privileged ?: refreshAndReadComponents(app, access = null)
         }
         val components = try {
             withTimeout(readTimeoutMillis) { task.await() }
@@ -169,6 +172,8 @@ class ComponentProvider internal constructor(
         }
         return componentsBundle(packageName, components)
     }
+
+    private suspend fun ProviderEntryPoint.refreshAndReadComponents(app: AppKey, access: ChannelState.Ready?): List<ComponentStatus> = if (refreshComponents(app, access) is ReadFailure.PackageNotFound) emptyList() else cachedComponents(app)
 
     private fun componentsBundle(packageName: String, components: List<ComponentStatus>): Bundle {
         val blocked = components.mapNotNull { status ->
@@ -219,12 +224,13 @@ class ComponentProvider internal constructor(
     private suspend fun ProviderEntryPoint.prepareControl(packageName: String, changes: Map<String, Boolean>): List<ControlRequest>? {
         val app = AppKey(packageName, selectedUsers().ownUser)
         val access = privilegedChannel().connectIfGranted() as? ChannelState.Ready
-        val failure = access?.let { refreshComponents(app, it) }
+        val failure = refreshComponents(app, access)
         if (failure is ReadFailure.PackageNotFound) return emptyList()
+        if (failure == ReadFailure.ChannelUnavailable) return null
         val declarations = cachedComponents(app).associate { it.declaration.id.className to it.declaration }
         val known = changes.filterKeys { it in declarations }
-        if (known.isEmpty()) return emptyList()
-        if (access == null || failure == ReadFailure.ChannelUnavailable) return null
+        if (known.isEmpty()) return if (failure == null) emptyList() else null
+        if (access == null) return null
 
         return listOf(ControlGoal.BLOCK, ControlGoal.ENABLE).mapNotNull { goal ->
             val components = known.filterValues { it == (goal == ControlGoal.BLOCK) }.keys.map(declarations::getValue)

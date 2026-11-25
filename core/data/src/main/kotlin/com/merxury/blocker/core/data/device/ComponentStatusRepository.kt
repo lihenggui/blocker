@@ -171,7 +171,7 @@ interface ComponentStatusRepository {
 
 /** How to read the Intent Firewall layer of a package refresh. */
 enum class FirewallRead {
-    /** Keep the component cache's existing firewall state. */
+    /** Use the app's own PackageManager for its user and keep the cached firewall state. */
     KEEP_CACHED,
 
     /** Consult the rule store, allowing unavailable firewall access. */

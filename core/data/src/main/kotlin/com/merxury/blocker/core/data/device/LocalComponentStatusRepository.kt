@@ -47,6 +47,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.privileged.withLocalPackageReads
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.core.ifw.IfwStore
 import kotlinx.coroutines.CancellationException
@@ -173,8 +174,9 @@ internal class LocalComponentStatusRepository(
     }
 
     override suspend fun refreshIfReadable(app: AppKey, firewall: FirewallRead): ReadResult<Unit> = lockOf(app.packageName).withLock {
-        if (firewall == FirewallRead.KEEP_CACHED && app.userId != self.userId) {
-            return@withLock ReadResult.Failure(ReadFailure.ChannelUnavailable)
+        if (firewall == FirewallRead.KEEP_CACHED) {
+            if (app.userId != self.userId) return@withLock ReadResult.Failure(ReadFailure.ChannelUnavailable)
+            return@withLock withLocalPackageReads { readAndStoreAutomatically(app, forceDeclarations = true, firewall = firewall) }
         }
         readAndStoreAutomatically(app, forceDeclarations = true, firewall = firewall)
     }

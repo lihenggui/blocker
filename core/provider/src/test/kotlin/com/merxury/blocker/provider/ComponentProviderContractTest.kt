@@ -56,10 +56,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -78,6 +80,7 @@ import org.robolectric.android.controller.ContentProviderController
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowBinder
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Exercises LibChecker's calls through the provider and the Hilt entry point.
@@ -85,7 +88,8 @@ import timber.log.Timber
  * | Call and condition | Return value |
  * | --- | --- |
  * | getComponents, readable package | Bundle with cmp_list JSON listing PM and IFW blocks |
- * | getComponents, unavailable access, failed read, cancellation, or deadline | Same bundle from cache |
+ * | getComponents, unavailable access or privileged deadline | Same bundle with live PM and cached IFW blocks |
+ * | getComponents, failed read, cancellation, or overall deadline | Same bundle from cache |
  * | getComponents, blank, confirmed absent, or no cached package during fallback | Same bundle with an empty array |
  * | blocks, successful control, no matched requests, or controller refusal without an exception | The original extras |
  * | blocks, malformed extras, unavailable access for a known component, control exception, cancellation, or deadline | null |
@@ -270,6 +274,50 @@ class ComponentProviderContractTest {
     }
 
     @Test
+    fun givenSlowSharedStart_whenGetComponentsTimesOutAndBlocksFollows_thenUsesLocalPmAndJoinsTheStart() = runTest {
+        attachProvider(ComponentProvider(readTimeoutMillis = 1_000, writeTimeoutMillis = 5_000))
+        val binds = AtomicInteger()
+        val waiters = AtomicInteger()
+        val serviceReady = CompletableDeferred<Unit>()
+        val writeJoined = CompletableDeferred<Unit>()
+        val start = scope.async(start = CoroutineStart.LAZY) {
+            binds.incrementAndGet()
+            serviceReady.await()
+        }
+        refresh = { app, firewall ->
+            when (firewall) {
+                FirewallRead.REQUIRED -> {
+                    if (waiters.incrementAndGet() == 2) writeJoined.complete(Unit)
+                    start.await()
+                }
+
+                FirewallRead.KEEP_CACHED -> {
+                    delay(100)
+                    seed(status("Tracker", pm = PmSetting.DISABLED, ifw = IfwBlock.UNKNOWN))
+                }
+
+                else -> error("Unexpected firewall policy: $firewall")
+            }
+            repository.refreshIfReadable(app, firewall)
+        }
+
+        assertComponents(TRACKER_JSON)
+        assertThat(start.isActive).isTrue()
+        assertThat(waiters.get()).isEqualTo(1)
+        val input = input("Tracker" to false)
+        val write = async { call("blocks", PACKAGE_NAME, input) }
+        writeJoined.await()
+        assertThat(write.isCompleted).isFalse()
+        serviceReady.complete(Unit)
+
+        assertThat(write.await()).isSameInstanceAs(input)
+        assertThat(binds.get()).isEqualTo(1)
+        assertThat(repository.requests.map { it.goal }).containsExactly(ControlGoal.ENABLE)
+        assertThat(channel.quietConnectCount).isEqualTo(2)
+        assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
     fun givenAnotherUserSelected_whenGetComponents_thenRefreshesAndReportsBlockersOwnUser() = runTest {
         selectedUsers.sendUsers(
             listOf(
@@ -381,17 +429,23 @@ class ComponentProviderContractTest {
     }
 
     @Test
-    fun givenNoMatchingComponentsOrEmptyList_whenBlocks_thenReturnsInputWithoutRefreshing() = runTest {
+    fun givenNoMatchingComponentsOrEmptyList_whenBlocks_thenReturnsInputAndRefreshesOnlyNonemptyRequests() = runTest {
         channel.setState(DENIED)
         val unknown = input("Unknown" to true)
         val empty = input()
+        refresh = { app, firewall ->
+            assertThat(firewall).isEqualTo(FirewallRead.KEEP_CACHED)
+            seed(status("Known"))
+            repository.refreshIfReadable(app, firewall)
+        }
+
+        assertThat(call("blocks", PACKAGE_NAME, empty)).isSameInstanceAs(empty)
+        assertThat(repository.refreshedApps).isEmpty()
 
         assertThat(call("blocks", PACKAGE_NAME, unknown)).isSameInstanceAs(unknown)
-        assertThat(call("blocks", PACKAGE_NAME, empty)).isSameInstanceAs(empty)
         assertThat(repository.requests).isEmpty()
-        assertThat(repository.refreshedApps).isEmpty()
-        assertThat(channel.quietConnectCount).isEqualTo(1)
-        assertThat(channel.connectCount).isEqualTo(0)
+        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertQuietConnect()
     }
 
     @Test
@@ -470,7 +524,35 @@ class ComponentProviderContractTest {
         assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
 
         assertQuietConnect()
-        assertThat(repository.refreshedApps).isEmpty()
+        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertThat(repository.requests).isEmpty()
+    }
+
+    @Test
+    fun givenAccessMissingAndColdCache_whenBlocks_thenRefreshesAndReturnsNullForAKnownComponent() = runTest {
+        channel.setState(DENIED)
+        refresh = { app, firewall ->
+            assertThat(firewall).isEqualTo(FirewallRead.KEEP_CACHED)
+            seed(status("A"))
+            repository.refreshIfReadable(app, firewall)
+        }
+
+        assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
+
+        assertQuietConnect()
+        assertThat(repository.refreshedApps).containsExactly(APP)
+        assertThat(repository.requests).isEmpty()
+    }
+
+    @Test
+    fun givenAccessMissingAndLocalReadFails_whenBlocks_thenReturnsNullForAnUnverifiedClass() = runTest {
+        channel.setState(DENIED)
+        repository.refreshFailure = ReadFailure.ManifestUnreadable(PACKAGE_NAME)
+
+        assertThat(call("blocks", PACKAGE_NAME, input("A" to true))).isNull()
+
+        assertQuietConnect()
+        assertThat(repository.refreshedApps).containsExactly(APP)
         assertThat(repository.requests).isEmpty()
     }
 
