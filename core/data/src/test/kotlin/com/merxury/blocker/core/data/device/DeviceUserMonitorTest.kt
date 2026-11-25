@@ -122,6 +122,43 @@ class DeviceUserMonitorTest {
     }
 
     @Test
+    @Config(sdk = [24, 37])
+    fun givenAWorkProfileIsRunning_whenTheUserStops_thenItIsListedAsNotRunning() = runTest(UnconfinedTestDispatcher()) {
+        val owner = deviceUser(OWNER)
+        val work = deviceUser(WORK)
+        deviceUsers.systemUsers = listOf(owner, work)
+        monitor()
+        val switcher = selectedUsers()
+        assertThat(switcher.users.value.single { it.id == WORK }.running).isTrue()
+        deviceUsers.systemUsers = listOf(owner, work.copy(running = false, unlocked = false))
+
+        announce("android.intent.action.USER_STOPPED")
+
+        assertThat(deviceUsers.refreshCount).isEqualTo(2)
+        assertThat(switcher.users.value.single { it.id == WORK }.running).isFalse()
+    }
+
+    @Test
+    @Config(sdk = [24, 37])
+    fun givenAWorkProfileIsRunning_whenQuietModeChanges_thenItsRunningStateIsRefreshed() = runTest(UnconfinedTestDispatcher()) {
+        val owner = deviceUser(OWNER)
+        val work = deviceUser(WORK)
+        deviceUsers.systemUsers = listOf(owner, work)
+        monitor()
+        val switcher = selectedUsers()
+        deviceUsers.systemUsers = listOf(owner, work.copy(running = false, unlocked = false))
+
+        announce(Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE)
+
+        assertThat(switcher.users.value.single { it.id == WORK }.running).isFalse()
+        deviceUsers.systemUsers = listOf(owner, work)
+
+        announce(Intent.ACTION_MANAGED_PROFILE_AVAILABLE)
+
+        assertThat(switcher.users.value.single { it.id == WORK }.running).isTrue()
+    }
+
+    @Test
     fun givenAWorkProfileIsLocked_whenItUnlocks_thenTheCachedStateIsRefreshed() = runTest(UnconfinedTestDispatcher()) {
         val owner = deviceUser(OWNER)
         val work = deviceUser(WORK).copy(running = true)

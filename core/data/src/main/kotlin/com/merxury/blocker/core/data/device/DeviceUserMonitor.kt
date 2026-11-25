@@ -40,9 +40,9 @@ import javax.inject.Singleton
  * Keeps the cached users current while Blocker runs, so a work profile added or removed meanwhile
  * shows in every profile switcher without a restart: reads the users again when the app comes to
  * the foreground, see [onForeground], and when the system announces that a work profile was added,
- * removed, turned on, turned off or unlocked. These announcements need no permission. Reads resume
- * when the privileged channel becomes ready. Requests that arrive during a read collapse into
- * one more read.
+ * removed, turned on, turned off, unlocked or stopped. These announcements need no receiver
+ * permission. Reads resume when the privileged channel becomes ready. Requests that arrive
+ * during a read collapse into one more read.
  *
  * Reads only while the privileged channel is ready: without it the system shows only the user
  * Blocker runs in, and storing that would drop the other users' cached apps.
@@ -98,12 +98,17 @@ class DeviceUserMonitor @Inject constructor(
     }
 
     private companion object {
+        // Hidden in the SDK. Android sends this protected broadcast to all running users
+        // after the user has stopped, without a receiver permission.
+        const val ACTION_USER_STOPPED = "android.intent.action.USER_STOPPED"
+
         val PROFILE_CHANGES = listOf(
             Intent.ACTION_MANAGED_PROFILE_ADDED,
             Intent.ACTION_MANAGED_PROFILE_REMOVED,
             Intent.ACTION_MANAGED_PROFILE_AVAILABLE,
             Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE,
             Intent.ACTION_MANAGED_PROFILE_UNLOCKED,
+            ACTION_USER_STOPPED,
         )
     }
 }
