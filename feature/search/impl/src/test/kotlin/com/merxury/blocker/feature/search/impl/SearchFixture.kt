@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlRequest
@@ -80,7 +81,7 @@ internal fun installedApp(
     isSystem: Boolean = false,
 ) = InstalledApp(
     key = AppKey(packageName, user),
-    uid = 10_000 + user.value * 100_000,
+    uid = 10_000 + user.value * UIDS_PER_USER,
     label = label,
     versionName = "1.0",
     versionCode = 1,

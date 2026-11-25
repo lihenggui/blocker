@@ -28,6 +28,8 @@ import coil3.fetch.Fetcher
 import coil3.fetch.ImageFetchResult
 import coil3.key.Keyer
 import coil3.request.Options
+import com.merxury.blocker.core.model.component.userOfUid
+import com.merxury.blocker.core.utils.currentUserId
 import me.zhanghai.android.appiconloader.AppIconLoader
 import timber.log.Timber
 
@@ -69,7 +71,7 @@ class ApkIconFetcher private constructor(
 
     private fun applicationInfo(): ApplicationInfo? {
         val uid = icon.uid ?: Process.myUid()
-        val ownUser = uid / UIDS_PER_USER == Process.myUid() / UIDS_PER_USER
+        val ownUser = userOfUid(uid) == currentUserId().value
         // In Blocker's own user the installed app gives the same icon as the launcher shows.
         val installed = if (ownUser) installedInfo() else null
         return (installed ?: archiveInfo())?.apply { this.uid = uid }
@@ -103,10 +105,5 @@ class ApkIconFetcher private constructor(
         private val loader = AppIconLoader(iconSize, shrinkNonAdaptiveIcons, context.applicationContext)
 
         override fun create(data: ApkIcon, options: Options, imageLoader: ImageLoader): Fetcher = ApkIconFetcher(loader, packageManager, data)
-    }
-
-    private companion object {
-        // Android gives each user a range of this many uids.
-        const val UIDS_PER_USER = 100_000
     }
 }

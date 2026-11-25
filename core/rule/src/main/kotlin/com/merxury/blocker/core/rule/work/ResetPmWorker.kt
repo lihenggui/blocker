@@ -25,6 +25,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.PackageManagerReset
 import com.merxury.blocker.core.rule.entity.RuleWorkType
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -40,7 +41,7 @@ class ResetPmWorker @AssistedInject constructor(
     override fun getNotificationTitle(): Int = R.string.core_rule_reset_pm_please_wait
 
     override suspend fun doWork(): Result {
-        val user = inputData.userOr(PARAM_TARGET_USER, ownUser())
+        val user = inputData.userOr(PARAM_TARGET_USER, currentUserId())
         Timber.i("Reset the PM settings of user ${user.value}")
         val result = reset.reset(user) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Reset PM settings: $result")

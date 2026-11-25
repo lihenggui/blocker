@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -70,7 +71,7 @@ internal val workUser = DeviceUser(WORK, name = "Work", kind = UserKind.WORK_PRO
 
 internal fun installedApp(key: AppKey, label: String = "Example") = InstalledApp(
     key = key,
-    uid = 10_100 + key.userId.value * 100_000,
+    uid = 10_100 + key.userId.value * UIDS_PER_USER,
     label = label,
     versionName = "1.0",
     versionCode = 1,

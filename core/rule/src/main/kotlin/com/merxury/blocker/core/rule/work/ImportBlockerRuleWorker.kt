@@ -28,6 +28,7 @@ import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.BackupSet
 import com.merxury.blocker.core.rule.backup.BlockerRuleImporter
 import com.merxury.blocker.core.rule.entity.RuleWorkType
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -49,7 +50,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
             is BackupFolder.Ready -> folder.storage
             is BackupFolder.Unusable -> return failureOf(folder.code)
         }
-        val target = inputData.userOr(PARAM_TARGET_USER, ownUser())
+        val target = inputData.userOr(PARAM_TARGET_USER, currentUserId())
         val source = inputData.sourceSetFor(target)
         Timber.i("Restore the Blocker rules of set '${source.folder}' into user ${target.value}")
         setForeground(updateNotification("", 0, 0))

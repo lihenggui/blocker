@@ -6,21 +6,20 @@ package com.merxury.blocker.core.domain.wake
 import com.merxury.blocker.core.controllers.wake.WAKE_NOTIFICATIONS_OFF
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.component.appIdOfUid
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-internal fun appId(uid: Int) = uid % 100_000
-
-internal fun isApp(uid: Int?) = uid != null && appId(uid) >= 10_000
+internal fun isApp(uid: Int?) = uid != null && appIdOfUid(uid) >= 10_000
 
 /**
  * android.os.Process FIRST_APPLICATION_UID..LAST_APPLICATION_UID. SDK sandbox (20000-29999), app
  * zygote (90000-98999) and isolated (99000-99999) uids run code on behalf of a host app and are not
  * revives of it.
  */
-internal fun isRegularApp(uid: Int?) = uid != null && appId(uid) in 10_000..19_999
+internal fun isRegularApp(uid: Int?) = uid != null && appIdOfUid(uid) in 10_000..19_999
 
 /** Push services whose deliveries wake their clients. GMS also performs other requests, so only its c2dm delivery counts. */
 internal object WakePushTransports {

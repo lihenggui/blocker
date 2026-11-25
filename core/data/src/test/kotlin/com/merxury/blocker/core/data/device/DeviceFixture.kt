@@ -39,6 +39,7 @@ import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
@@ -95,7 +96,7 @@ internal fun installedApp(
     enabledSetting: AppEnabledSetting = AppEnabledSetting.DEFAULT,
 ) = InstalledApp(
     key = AppKey(packageName, user),
-    uid = 10_000 + user.value * 100_000,
+    uid = 10_000 + user.value * UIDS_PER_USER,
     label = "Label of $packageName",
     versionName = "1.0",
     versionCode = 1,

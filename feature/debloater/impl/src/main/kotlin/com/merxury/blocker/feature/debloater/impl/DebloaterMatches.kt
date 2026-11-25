@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.ui.component.toRow
+import com.merxury.blocker.core.utils.ownAppKey
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -61,7 +62,7 @@ class DebloaterMatches @Inject constructor(
     @AppPackageName appPackageName: String,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) {
-    private val self = AppKey(appPackageName, selectedUsers.ownUser)
+    private val self = ownAppKey(appPackageName, selectedUsers.ownUser)
 
     private val manifests = ConcurrentHashMap<UserId, ManifestMatches>()
 

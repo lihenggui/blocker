@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.core.controllers.wake
 
+import com.merxury.blocker.core.model.component.appIdOfUid
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -235,7 +236,7 @@ internal object WakeProcStats {
 
     // ProcessProfileRecord.getUidForAttribution files isolated processes under the host app uid, so
     // they are already part of its rows. SDK sandbox processes keep their own uid and are skipped.
-    private fun isRegularApp(uid: Int) = uid % 100_000 in 10_000..19_999
+    private fun isRegularApp(uid: Int) = appIdOfUid(uid) in 10_000..19_999
 
     // DumpUtils.collapseString drops the package prefix of names inside the package.
     private fun expand(pkg: String, name: String) = when {

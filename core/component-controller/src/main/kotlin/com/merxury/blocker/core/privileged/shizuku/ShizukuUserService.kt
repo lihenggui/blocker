@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.ServiceConnection
 import android.os.DeadObjectException
 import android.os.IBinder
-import android.os.Process
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -33,6 +32,7 @@ import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.PrivilegedProcessUnavailableException
 import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.marshallCall
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -100,15 +100,13 @@ internal interface UserServiceConnector {
     fun unbind(connection: ServiceConnection, stop: Boolean)
 }
 
-private const val UIDS_PER_USER = 100_000
-
 internal class ShizukuUserServiceConnector @Inject constructor(
     @ApplicationContext context: Context,
 ) : UserServiceConnector {
     // Shizuku keeps one service per package and tag for the whole device, and the service serves
     // only the uid it was started for. A tag per Android user gives Blocker in a work profile its
     // own service instead of the owner's, which would refuse it.
-    private val userId = Process.myUid() / UIDS_PER_USER
+    private val userId = currentUserId().value
     private val args = Shizuku.UserServiceArgs(ComponentName(context, ShizukuPrivilegedService::class.java))
         .daemon(false)
         .processNameSuffix("privileged_u$userId")

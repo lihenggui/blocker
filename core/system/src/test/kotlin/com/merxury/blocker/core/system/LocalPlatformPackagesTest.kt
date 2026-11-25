@@ -25,6 +25,7 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.content.pm.ServiceInfo
 import android.os.UserManager
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.UserKind
 import kotlinx.coroutines.runBlocking
@@ -48,7 +49,7 @@ class LocalPlatformPackagesTest {
     private val context: Context = RuntimeEnvironment.getApplication()
 
     private fun platformFor(userId: Int): LocalPlatformPackages {
-        ShadowProcess.setUid(userId * 100_000 + APP_ID)
+        ShadowProcess.setUid(userId * UIDS_PER_USER + APP_ID)
         shadowOf(context.getSystemService(UserManager::class.java)).addUser(userId, "User $userId", 0)
         return LocalPlatformPackages(context)
     }

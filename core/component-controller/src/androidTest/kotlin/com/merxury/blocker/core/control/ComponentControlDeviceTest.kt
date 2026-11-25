@@ -21,7 +21,6 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
@@ -56,6 +55,7 @@ import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootTransport
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformSystemPackageReader
+import com.merxury.blocker.core.utils.currentUserId
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.di.IfwModule
 import com.merxury.core.ifw.model.IfwRules
@@ -80,7 +80,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 private const val TAG = "ComponentControlTest"
-private const val UIDS_PER_USER = 100_000
 
 /**
  * [ComponentControl] against the real system, controlling this test package in another user.
@@ -103,7 +102,7 @@ class ComponentControlDeviceTest {
     private val arguments = InstrumentationRegistry.getArguments()
     private val self = context.packageName
     private val mode = arguments.getString("componentControlTest")
-    private val ownUser = UserId(Process.myUid() / UIDS_PER_USER)
+    private val ownUser = currentUserId()
 
     private val target: UserId
         get() = UserId(requireNotNull(arguments.getString("targetUser")) { "Pass -e targetUser <id>" }.toInt())

@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.data.device
 
-import android.os.Process
 import com.merxury.blocker.core.database.record.PmBlockRecordDao
 import com.merxury.blocker.core.database.record.PmBlockRecordEntity
 import com.merxury.blocker.core.model.component.AppKey
@@ -29,12 +28,6 @@ import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import timber.log.Timber
 import javax.inject.Inject
-
-// Android gives each user a range of this many uids.
-private const val UIDS_PER_USER = 100_000
-
-/** The user Blocker runs in. */
-internal fun ownUser(): UserId = UserId(Process.myUid() / UIDS_PER_USER)
 
 /**
  * The record of components Blocker disabled through PackageManager, per user. The system does not

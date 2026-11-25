@@ -29,11 +29,11 @@ import com.merxury.blocker.core.domain.SqlLikePattern
 import com.merxury.blocker.core.domain.foldSqlLikeCase
 import com.merxury.blocker.core.domain.readAtMostEvery
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.system.InstalledApp
+import com.merxury.blocker.core.utils.ownAppKey
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -87,7 +87,7 @@ class GeneralRuleMatcher @Inject constructor(
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope,
 ) {
-    private val self = AppKey(appPackageName, selectedUsers.ownUser)
+    private val self = ownAppKey(appPackageName, selectedUsers.ownUser)
     private val shared = ConcurrentHashMap<UserId, Flow<Result<GeneralRuleMatches>>>()
 
     /**

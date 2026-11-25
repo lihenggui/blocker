@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.core.controllers.wake
 
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.wake.WakeObservation
 import java.math.BigDecimal
 
@@ -24,7 +25,7 @@ internal object WakeSystemEvidence {
     private fun uidFromDump(value: String): Int? {
         value.toIntOrNull()?.let { return it }
         val match = Regex("""u(\d+)a(\d+)""").matchEntire(value) ?: return null
-        return match.groupValues[1].toInt() * 100000 + 10000 + match.groupValues[2].toInt()
+        return match.groupValues[1].toInt() * UIDS_PER_USER + 10000 + match.groupValues[2].toInt()
     }
 
     fun users(output: String): List<Int> {

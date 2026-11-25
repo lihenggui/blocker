@@ -31,6 +31,7 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -130,7 +131,7 @@ internal class InstalledAppDbPmBlockRecordSeeder @Inject constructor(
         val ids = readBlockedComponents(file)
         if (ids.isEmpty()) return
 
-        val user = ownUser()
+        val user = currentUserId()
         val wakeClaims = if (user == UserId.SYSTEM) wakeClaims() else emptySet()
         val keys = ids.filterNot { it in wakeClaims }.map { ComponentKey(it, user) }
         records.record(keys)

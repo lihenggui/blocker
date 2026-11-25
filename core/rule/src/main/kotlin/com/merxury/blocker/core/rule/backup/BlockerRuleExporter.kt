@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.utils.ownAppKey
 import com.merxury.core.ifw.IfwStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
@@ -103,7 +104,7 @@ class BlockerRuleExporter @Inject constructor(
         includeSystemApps: Boolean,
         summary: SummaryBuilder,
     ): ReadResult<List<InstalledApp>> {
-        val ownApp = AppKey(appPackageName, selectedUsers.ownUser)
+        val ownApp = ownAppKey(appPackageName, selectedUsers.ownUser)
         if (packageName != null) {
             val key = AppKey(packageName, user)
             if (key == ownApp) return ReadResult.Success(emptyList())

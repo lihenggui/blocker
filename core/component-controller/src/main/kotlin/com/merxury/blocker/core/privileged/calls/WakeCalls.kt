@@ -24,6 +24,7 @@ import com.merxury.blocker.core.controllers.wake.readComponentJournal
 import com.merxury.blocker.core.controllers.wake.requireComponentJournal
 import com.merxury.blocker.core.controllers.wake.writeComponentJournal
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.component.appIdOfUid
 import com.merxury.blocker.core.privileged.PrivilegedAction
 import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.SystemServices
@@ -38,8 +39,6 @@ import kotlinx.parcelize.TypeParceler
 import java.io.ByteArrayOutputStream
 
 // The uid range of one Android user: a uid is the user id times this plus the app id.
-private const val UIDS_PER_USER = 100_000
-
 // Root, the system uid and the shell: the uids a privileged process runs as.
 private val PRIVILEGED_UIDS = setOf(0, 1000, 2000)
 
@@ -80,7 +79,7 @@ internal data class ReadWakeSource(
     val owner: Int,
 ) : PrivilegedCall<ByteArray> {
     init {
-        require(appUid >= 0 && appUid % UIDS_PER_USER in Process.FIRST_APPLICATION_UID..Process.LAST_APPLICATION_UID) { "Not an app uid: $appUid" }
+        require(appUid >= 0 && appIdOfUid(appUid) in Process.FIRST_APPLICATION_UID..Process.LAST_APPLICATION_UID) { "Not an app uid: $appUid" }
         require(owner in PRIVILEGED_UIDS) { "Not a privileged uid: $owner" }
         processCommand()
     }

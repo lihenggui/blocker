@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.rule.work
 
 import android.content.Context
-import android.os.Process
 import androidx.work.Data
 import androidx.work.ListenableWorker
 import androidx.work.workDataOf
@@ -38,12 +37,6 @@ internal const val PARAM_TARGET_USER = "param_target_user"
 
 /** Input: the user id of the backup set an import reads; absent means the target user's own set. */
 internal const val PARAM_SOURCE_SET_USER = "param_source_set_user"
-
-// Android gives each user a range of this many uids.
-private const val UIDS_PER_USER = 100_000
-
-/** The user Blocker runs in. */
-internal fun ownUser(): UserId = UserId(Process.myUid() / UIDS_PER_USER)
 
 /** The user stored under [key], or [default] when there is none or it is not a real user id. */
 internal fun Data.userOr(key: String, default: UserId): UserId {

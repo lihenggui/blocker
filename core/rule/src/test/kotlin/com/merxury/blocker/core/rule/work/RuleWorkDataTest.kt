@@ -50,6 +50,7 @@ import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
+import com.merxury.blocker.core.utils.currentUserId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -222,16 +223,16 @@ class RuleWorkDataTest {
     fun givenNoUserInput_whenResetPmWorkRuns_thenItResetsTheUserBlockerRunsIn() = runTest {
         val components = FakeComponentStatusRepository()
         val boot = ComponentDeclaration(ComponentId("com.example", "com.example.Boot"), ComponentType.RECEIVER, exported = true, enabledInManifest = true)
-        components.sendComponents(ownUser(), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
+        components.sendComponents(currentUserId(), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
         components.sendComponents(UserId(10), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
-        components.recorded += listOf(ComponentKey(boot.id, ownUser()), ComponentKey(boot.id, UserId(10)))
+        components.recorded += listOf(ComponentKey(boot.id, currentUserId()), ComponentKey(boot.id, UserId(10)))
         val seeder = FakePmBlockRecordSeeder()
         val worker = resetPmWorker(components, seeder)
 
         val result = worker.doWork()
 
         assertThat(seeder.calls).isEqualTo(1)
-        assertThat(components.requests.map { it.user }).containsExactly(ownUser())
+        assertThat(components.requests.map { it.user }).containsExactly(currentUserId())
         assertThat(result.output().getInt(ResetPmWorker.PARAM_RESTORED_COUNT, -1)).isEqualTo(1)
     }
 
@@ -239,8 +240,8 @@ class RuleWorkDataTest {
     fun givenLegacySeedFails_whenResetPmWorkRuns_thenItExplainsTheUnreadableListWithoutResetting() = runTest {
         val components = FakeComponentStatusRepository()
         val boot = ComponentDeclaration(ComponentId("com.example", "com.example.Boot"), ComponentType.RECEIVER, exported = true, enabledInManifest = true)
-        components.sendComponents(ownUser(), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
-        val blocked = ComponentKey(boot.id, ownUser())
+        components.sendComponents(currentUserId(), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
+        val blocked = ComponentKey(boot.id, currentUserId())
         components.recorded += blocked
         val worker = resetPmWorker(components, FakePmBlockRecordSeeder().apply { seeded = false })
 

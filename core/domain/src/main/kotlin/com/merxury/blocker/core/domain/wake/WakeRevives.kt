@@ -8,6 +8,7 @@ import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO_CLOCK
 import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO_SLEEP
 import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.Justification
 import com.merxury.blocker.core.model.wake.ReviveTrigger
@@ -353,7 +354,7 @@ internal object WakeRevives {
             val killWindow = (start.elapsed - KILL_WINDOW) until start.elapsed
             // Only a kill meaning the user or the system wanted the app gone makes the restart notable.
             val killed = start.process?.let { process ->
-                kills[Triple(start.boot, start.uid / 100_000, process)].orEmpty().lastOrNull { kill ->
+                kills[Triple(start.boot, userOfUid(start.uid), process)].orEmpty().lastOrNull { kill ->
                     kill.elapsedNanos in killWindow && kill.attr("reason")?.let(WakeKillReasons::qualifies) == true
                 }?.attr("reason") ?: deaths[Triple(start.boot, start.uid, process)].orEmpty().map { died ->
                     died to (died.number("reason")?.toInt() to died.number("sub_reason")?.toInt())
