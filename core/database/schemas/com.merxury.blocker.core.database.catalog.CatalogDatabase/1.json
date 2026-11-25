@@ -1,0 +1,263 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "14c9562e2bc43d0522a308160d5c1019",
+    "entities": [
+      {
+        "tableName": "catalog_rule",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `icon` TEXT, `website` TEXT, `keywords` TEXT NOT NULL, `safe_to_block` INTEGER, `contributors` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "website",
+            "columnName": "website",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "keywords",
+            "columnName": "keywords",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "safeToBlock",
+            "columnName": "safe_to_block",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "contributors",
+            "columnName": "contributors",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "catalog_rule_text",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` INTEGER NOT NULL, `language` TEXT NOT NULL, `name` TEXT, `company` TEXT, `description` TEXT, `side_effect` TEXT, PRIMARY KEY(`rule_id`, `language`), FOREIGN KEY(`rule_id`) REFERENCES `catalog_rule`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "language",
+            "columnName": "language",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "company",
+            "columnName": "company",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sideEffect",
+            "columnName": "side_effect",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id",
+            "language"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "catalog_rule",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "rule_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_component",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `sdk_rule_id` INTEGER, `recommend_to_block` INTEGER NOT NULL, `contributor` TEXT, `updated_at` TEXT, PRIMARY KEY(`name`), FOREIGN KEY(`sdk_rule_id`) REFERENCES `catalog_rule`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sdkRuleId",
+            "columnName": "sdk_rule_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "recommendToBlock",
+            "columnName": "recommend_to_block",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contributor",
+            "columnName": "contributor",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "name"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_component_sdk_rule_id",
+            "unique": false,
+            "columnNames": [
+              "sdk_rule_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_component_sdk_rule_id` ON `${TABLE_NAME}` (`sdk_rule_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "catalog_rule",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sdk_rule_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_component_text",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `language` TEXT NOT NULL, `description` TEXT, `disable_effect` TEXT, PRIMARY KEY(`name`, `language`), FOREIGN KEY(`name`) REFERENCES `catalog_component`(`name`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "language",
+            "columnName": "language",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "disableEffect",
+            "columnName": "disable_effect",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "name",
+            "language"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "catalog_component",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "name"
+            ],
+            "referencedColumns": [
+              "name"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`format` INTEGER NOT NULL, `sequence` INTEGER NOT NULL, `source_commit` TEXT NOT NULL, `published_at` TEXT NOT NULL, PRIMARY KEY(`format`))",
+        "fields": [
+          {
+            "fieldPath": "format",
+            "columnName": "format",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sequence",
+            "columnName": "sequence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceCommit",
+            "columnName": "source_commit",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "publishedAt",
+            "columnName": "published_at",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "format"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '14c9562e2bc43d0522a308160d5c1019')"
+    ]
+  }
+}

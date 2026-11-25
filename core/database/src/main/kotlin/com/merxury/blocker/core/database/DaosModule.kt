@@ -18,6 +18,8 @@ package com.merxury.blocker.core.database
 
 import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
+import com.merxury.blocker.core.database.catalog.CatalogDao
+import com.merxury.blocker.core.database.catalog.CatalogDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
 import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
@@ -31,6 +33,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 internal object DaosModule {
+    @Provides
+    fun provideCatalogDao(database: CatalogDatabase): CatalogDao = database.catalogDao()
+
     @Provides
     @Singleton
     fun provideGeneralRuleDao(database: GeneralRuleDatabase): GeneralRuleDao = database.generalRuleDao()

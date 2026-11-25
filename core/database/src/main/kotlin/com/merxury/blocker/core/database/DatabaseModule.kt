@@ -20,6 +20,8 @@ import android.content.Context
 import androidx.room.Room
 import com.merxury.blocker.core.database.cache.COMPONENT_CACHE_DATABASE_NAME
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
+import com.merxury.blocker.core.database.catalog.CATALOG_DATABASE_NAME
+import com.merxury.blocker.core.database.catalog.CatalogDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
 import com.merxury.blocker.core.database.record.BLOCKER_RECORDS_DATABASE_NAME
 import com.merxury.blocker.core.database.record.BLOCKER_RECORDS_MIGRATIONS
@@ -37,6 +39,17 @@ internal object DatabaseModule {
     @Provides
     @Singleton
     fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase = Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
+        .fallbackToDestructiveMigration(true)
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideCatalogDatabase(@ApplicationContext context: Context): CatalogDatabase = Room.databaseBuilder(
+        context,
+        CatalogDatabase::class.java,
+        CATALOG_DATABASE_NAME,
+    )
+        // The catalog is rebuildable. Startup work reinstalls the bundled seed after schema resets.
         .fallbackToDestructiveMigration(true)
         .build()
 
