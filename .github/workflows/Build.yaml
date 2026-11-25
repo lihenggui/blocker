@@ -45,7 +45,6 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
-          submodules: 'true'
           fetch-depth: 0
 
       - name: Enable KVM group perms
@@ -319,7 +318,6 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
-          submodules: 'true'
           fetch-depth: 0
 
       - name: Enable KVM group perms

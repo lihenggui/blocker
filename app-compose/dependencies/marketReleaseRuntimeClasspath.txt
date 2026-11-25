@@ -243,7 +243,6 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
 com.google.j2objc:j2objc-annotations:2.8
 com.google.protobuf:protobuf-javalite:4.36.2
 com.google.protobuf:protobuf-kotlin-lite:4.36.2
-com.googlecode.javaewah:JavaEWAH:1.2.3
 com.jakewharton.timber:timber:5.0.1
 com.materialkolor:material-color-utilities-android:5.0.1
 com.materialkolor:material-color-utilities:5.0.1
@@ -254,7 +253,6 @@ com.squareup.okhttp3:okhttp-android:5.5.1
 com.squareup.okhttp3:okhttp:5.5.1
 com.squareup.okio:okio-jvm:3.18.1
 com.squareup.okio:okio:3.18.1
-commons-codec:commons-codec:1.22.1
 dev.drewhamilton.poko:poko-annotations-jvm:0.23.1
 dev.drewhamilton.poko:poko-annotations:0.23.1
 dev.rikka.shizuku:aidl:13.1.5
@@ -293,7 +291,6 @@ javax.inject:javax.inject:1
 me.zhanghai.android.appiconloader:appiconloader-iconloaderlib:1.5.0
 me.zhanghai.android.appiconloader:appiconloader:1.5.0
 org.checkerframework:checker-qual:3.33.0
-org.eclipse.jgit:org.eclipse.jgit:7.8.1.202611041320-r
 org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.6
 org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.6
 org.jetbrains.androidx.lifecycle:lifecycle-runtime:2.9.6
@@ -355,5 +352,5 @@ org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0
 org.jetbrains:annotations:23.0.0
 org.jspecify:jspecify:1.0.0
 org.lsposed.hiddenapibypass:hiddenapibypass:6.2
-org.slf4j:slf4j-api:2.0.18
+org.slf4j:slf4j-api:2.0.17
 org.smali:dexlib2:2.5.2

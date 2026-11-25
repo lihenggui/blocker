@@ -74,7 +74,6 @@ graph TB
     :core:datastore-proto[datastore-proto]:::jvm-library
     :core:designsystem[designsystem]:::android-library
     :core:domain[domain]:::android-library
-    :core:git[git]:::android-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
     :core:navigation[navigation]:::android-library
@@ -246,7 +245,6 @@ graph TB
   :sync:work -.-> :core:analytics
   :sync:work -.-> :core:data
   :sync:work -.-> :core:domain
-  :sync:work -.-> :core:git
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;
