@@ -37,6 +37,7 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.control.layersFor
+import com.merxury.blocker.core.model.control.supportedLayers
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.flow.Flow
@@ -136,12 +137,24 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
 
     override fun isProtectedFromBlocking(app: AppKey): Boolean = app == protectedApp
 
-    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
+    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = control(request, writeObserver) {
+        it.layersFor(request.layers, request.goal)
+    }
+
+    override fun restore(request: ControlRequest): Flow<ControlEvent> = control(request, writeObserver = null) {
+        it.supportedLayers(request.layers)
+    }
+
+    private fun control(
+        request: ControlRequest,
+        writeObserver: ComponentWriteObserver?,
+        layersForComponent: (ComponentDeclaration) -> Set<ControlLayer>,
+    ): Flow<ControlEvent> = flow {
         requests += request
         val before = cached.value
         controlEvents?.let { events ->
             events(request).forEach {
-                if (it is ControlEvent.PackageDone) record(request, it.outcomes, before)
+                if (it is ControlEvent.PackageDone) record(request, it.outcomes, before, layersForComponent)
                 emit(it)
             }
             return@flow
@@ -149,7 +162,7 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         val outcomes = request.components.distinctBy { it.id }.map { declaration ->
             val key = ComponentKey(declaration.id, request.user)
             val before = cached.value[key]?.state ?: ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)
-            val layers = declaration.layersFor(request.layers)
+            val layers = layersForComponent(declaration)
             val block = request.goal == ControlGoal.BLOCK
             val state = ControlState(
                 pm = if (ControlLayer.PACKAGE_MANAGER in layers) pmAfter(request.goal, declaration, before.pm) else before.pm,
@@ -159,7 +172,7 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
             if (state != before) writeObserver?.onWrite(listOf(declaration.id))
             ComponentOutcome(key, state, ControlResult.ACHIEVED, emptyMap())
         }
-        record(request, outcomes, before)
+        record(request, outcomes, before, layersForComponent)
         outcomes.groupBy { it.key.id.packageName }.forEach { (packageName, done) -> emit(ControlEvent.PackageDone(packageName, done)) }
         emit(ControlEvent.Finished(achieved = outcomes.size, partial = 0, failed = 0))
     }
@@ -186,11 +199,16 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         return ReadResult.Success(DisabledComponents(disabled, unreadable, notInstalled = gone.size))
     }
 
-    private fun record(request: ControlRequest, outcomes: List<ComponentOutcome>, before: Map<ComponentKey, ComponentStatus>) {
+    private fun record(
+        request: ControlRequest,
+        outcomes: List<ComponentOutcome>,
+        before: Map<ComponentKey, ComponentStatus>,
+        layersForComponent: (ComponentDeclaration) -> Set<ControlLayer>,
+    ) {
         val declarations = request.components.associateBy { it.id }
         outcomes.forEach { outcome ->
             if (outcome.result == ControlResult.SKIPPED) return@forEach
-            val throughPm = declarations[outcome.key.id]?.layersFor(request.layers)?.contains(ControlLayer.PACKAGE_MANAGER) == true
+            val throughPm = declarations[outcome.key.id]?.let(layersForComponent)?.contains(ControlLayer.PACKAGE_MANAGER) == true
             when (outcome.state.pm) {
                 PmSetting.DISABLED -> if (request.goal == ControlGoal.BLOCK && throughPm && before[outcome.key]?.state?.pm != PmSetting.DISABLED) {
                     recorded += outcome.key

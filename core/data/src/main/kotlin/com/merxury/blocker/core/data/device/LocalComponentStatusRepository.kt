@@ -45,6 +45,7 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.control.layersFor
+import com.merxury.blocker.core.model.control.supportedLayers
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.system.AppEnabledSetting
 import com.merxury.blocker.core.model.system.DeviceUser
@@ -323,6 +324,14 @@ internal class LocalComponentStatusRepository(
 
     override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = control(request, keepKnownState, writeObserver, forgetRefusedPmBlocks = false)
 
+    override fun restore(request: ControlRequest): Flow<ControlEvent> = control(
+        request,
+        keepKnownState = false,
+        writeObserver = null,
+        forgetRefusedPmBlocks = false,
+        layersForComponent = { it.supportedLayers(request.layers) },
+    )
+
     override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent> = control(
         ControlRequest(user, components, ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER)),
         keepKnownState = false,
@@ -335,9 +344,10 @@ internal class LocalComponentStatusRepository(
         keepKnownState: Boolean,
         writeObserver: ComponentWriteObserver?,
         forgetRefusedPmBlocks: Boolean,
+        layersForComponent: (ComponentDeclaration) -> Set<ControlLayer> = { it.layersFor(request.layers, request.goal) },
     ): Flow<ControlEvent> = flow {
         val (own, others) = request.components.partition { request.goal == ControlGoal.BLOCK && isProtectedFromBlocking(AppKey(it.id.packageName, request.user)) }
-        val refused = refuseOwn(request, own)
+        val refused = refuseOwn(request, own, layersForComponent)
         refused?.let { emit(it) }
         val refusedCount = refused?.outcomes?.size ?: 0
         if (others.isEmpty()) {
@@ -362,7 +372,7 @@ internal class LocalComponentStatusRepository(
             }
         }
         controlActivity.duringControl(packages) {
-            componentControl.apply(request.copy(components = others), writeObserver, persistence).collect { event ->
+            componentControl.apply(request.copy(components = others), writeObserver, persistence, layersForComponent).collect { event ->
                 emit(if (event is ControlEvent.Finished) event.copy(skipped = event.skipped + refusedCount) else event)
             }
         }
@@ -372,7 +382,11 @@ internal class LocalComponentStatusRepository(
      * Blocking Blocker's own components in the user it runs in could only break the app in use,
      * whichever screen, import or restore asks. Return the cached state with a skipped outcome.
      */
-    private suspend fun refuseOwn(request: ControlRequest, own: List<ComponentDeclaration>): ControlEvent.PackageDone? {
+    private suspend fun refuseOwn(
+        request: ControlRequest,
+        own: List<ComponentDeclaration>,
+        layersForComponent: (ComponentDeclaration) -> Set<ControlLayer>,
+    ): ControlEvent.PackageDone? {
         if (own.isEmpty()) return null
         Timber.w("Refuse to block ${own.size} components of Blocker itself for user ${request.user.value}")
         val outcomes = own.distinctBy { it.id }.map { declaration ->
@@ -381,7 +395,7 @@ internal class LocalComponentStatusRepository(
                 key = key,
                 state = component(key).first()?.state ?: ControlState(PmSetting.UNKNOWN, IfwBlock.UNKNOWN),
                 result = ControlResult.SKIPPED,
-                failures = declaration.layersFor(request.layers).associateWith { ControlFailure.ProtectedComponent },
+                failures = layersForComponent(declaration).associateWith { ControlFailure.ProtectedComponent },
             )
         }
         return ControlEvent.PackageDone(self.packageName, outcomes)

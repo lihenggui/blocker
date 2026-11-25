@@ -122,6 +122,17 @@ class BlockerRuleImporterTest {
     }
 
     @Test
+    fun givenReceiverBlockedInBothLayers_whenRestoringAnIfwUnblock_thenPmStaysDisabled() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        components.sendComponents(OWNER, listOf(status(BOOT, pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED)))
+        storage.putFile("$APP.json", rule(entry(BOOT, true, "IFW")))
+
+        importer.import(storage, BackupSet.OWNER, OWNER)
+
+        assertThat(stateOf(OWNER, BOOT)).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
+    }
+
+    @Test
     fun givenRenamedBackupsInTargetSet_whenImportingOneApp_thenOnlyTheFirstMatchIsUsed() = runTest {
         installedApps.sendApps(listOf(installedApp(user = WORK)))
         components.sendComponents(WORK, listOf(status(BOOT)))

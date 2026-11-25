@@ -33,7 +33,6 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
-import com.merxury.blocker.core.model.control.layersFor
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.model.privileged.CallFailure
@@ -83,6 +82,7 @@ internal class PrivilegedComponentControl @Inject constructor(
         request: ControlRequest,
         writeObserver: ComponentWriteObserver?,
         persistence: ComponentControlPersistence?,
+        layersForComponent: (ComponentDeclaration) -> Set<ControlLayer>,
     ): Flow<ControlEvent> = flow {
         val packages = request.components.distinctBy { it.id }.groupBy { it.id.packageName }
         if (packages.isNotEmpty() && channel.state.value !is ChannelState.Ready && permissionPromptsAllowed()) {
@@ -93,7 +93,9 @@ internal class PrivilegedComponentControl @Inject constructor(
         packages.forEach { (packageName, components) ->
             currentCoroutineContext().ensureActive()
             val app = AppKey(packageName, request.user)
-            val event = locks.withLock(packageName) { controlPackage(app, components, request, writeObserver, persistence) }
+            val event = locks.withLock(packageName) {
+                controlPackage(app, components, request, writeObserver, persistence, layersForComponent)
+            }
             results += event.outcomes.map { it.result }
             emit(event)
         }
@@ -117,12 +119,13 @@ internal class PrivilegedComponentControl @Inject constructor(
         request: ControlRequest,
         writeObserver: ComponentWriteObserver?,
         persistence: ComponentControlPersistence?,
+        layersForComponent: (ComponentDeclaration) -> Set<ControlLayer>,
     ): ControlEvent.PackageDone {
         val identity = (executor.checkedState() as? ChannelState.Ready)?.identity
         val failures: Failures = mutableMapOf()
         val blockingFirewallProtected = request.goal == ControlGoal.BLOCK && !ifwStore.allowsBlocking(app.packageName)
         val layers = components.associate { component ->
-            val requested = component.layersFor(request.layers).reachableBy(request.goal, identity)
+            val requested = layersForComponent(component).reachableBy(request.goal, identity)
             if (blockingFirewallProtected && ControlLayer.INTENT_FIREWALL in requested) {
                 failures.addIfAbsent(component.id, ControlLayer.INTENT_FIREWALL, ControlFailure.FirewallProtectedComponent)
             }

@@ -30,6 +30,7 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.control.layersFor
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -41,6 +42,8 @@ import kotlinx.coroutines.flow.Flow
  * PackageManager setting becomes [PmSetting.DISABLED], and the Intent Firewall gets an
  * unconditional rule for it. A provider is not filtered by the firewall, so where the firewall was
  * asked for, its PackageManager setting is changed instead.
+ * An Intent Firewall-only request also blocks receivers through PackageManager, since the
+ * firewall cannot stop implicit broadcasts to a single receiver.
  *
  * [ControlGoal.UNBLOCK] removes the blocks of the requested layers and nothing more, so "reset
  * the PackageManager settings" and "reset the firewall rules" stay separate. Clearing the
@@ -50,6 +53,8 @@ import kotlinx.coroutines.flow.Flow
  * component from the unconditional firewall rules. A conditional rule is not Blocker's to remove;
  * when only that is left, the firewall layer counts as clear. As for a block, a provider asked to
  * clear the firewall layer clears its PackageManager setting instead.
+ * An Intent Firewall-only request for a receiver clears both layers to remove earlier firewall
+ * blocks as well.
  *
  * [ControlGoal.ENABLE] makes the component runnable through the requested layers: it does what
  * an unblock does, and where the PackageManager layer is requested for a component the manifest
@@ -126,7 +131,8 @@ interface ComponentControl {
      * outcome, including those that needed no change. A failed system change leaves the remaining
      * packages eligible. Cancellation and errors from [persistence] propagate.
      *
-     * The [ControlLayer]s to set or clear come from the request for every goal; see [ComponentControl].
+     * [layersForComponent] resolves the requested layers for a component. Backup restoration
+     * supplies the recorded layers.
      * [writeObserver] can decline to start a package's writes and receives acknowledgments
      * as writes complete, before read-back.
      */
@@ -134,6 +140,7 @@ interface ComponentControl {
         request: ControlRequest,
         writeObserver: ComponentWriteObserver? = null,
         persistence: ComponentControlPersistence? = null,
+        layersForComponent: (ComponentDeclaration) -> Set<ControlLayer> = { it.layersFor(request.layers, request.goal) },
     ): Flow<ControlEvent>
 }
 

@@ -181,7 +181,9 @@ class BackupRestoreDeviceTest {
         val receiver = declaration(owner, "com.google.android.gms.measurement.AppMeasurementReceiver")
         val activity = declaration(owner, "com.facebook.ads.AudienceNetworkActivity")
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), service, provider)
-        control(owner, ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL), receiver)
+        val legacyBlock = ControlRequest(owner, listOf(receiver), ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL))
+        components.restore(legacyBlock).toList()
+        assertTrue(ruleFileHas(receiver))
         declared(AppKey(APP_B, user))
         control(user, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), activity)
 

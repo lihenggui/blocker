@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.control
 
+import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.merxury.blocker.core.model.ComponentType
@@ -68,22 +69,42 @@ class ComponentControlGoalTest {
 
     @Test
     fun givenRunnableComponents_whenBlockWithIfw_thenRuleWrittenOnceAndPmUntouched() = runTest {
-        val events = fixture.run(block(IFW_ONLY, MAIN, SYNC, BOOT))
+        val events = fixture.run(block(IFW_ONLY, MAIN, SYNC))
 
         assertThat(events.outcomes()).containsExactly(
             achieved(MAIN, PmSetting.DEFAULT, IfwBlock.BLOCKED),
             achieved(SYNC, PmSetting.DEFAULT, IfwBlock.BLOCKED),
-            achieved(BOOT, PmSetting.DEFAULT, IfwBlock.BLOCKED),
         ).inOrder()
         assertThat(fixture.executor.calls).isEmpty()
         assertThat(fixture.ifwWrites).containsExactly("write $PKG")
     }
 
     @Test
-    fun givenRunnableComponent_whenBlockWithBoth_thenBothLayersBlocked() = runTest {
-        val events = fixture.run(block(BOTH, MAIN))
+    fun givenRunnableReceiver_whenBlockWithIfw_thenPmDisabledAndNoRuleWritten() = runTest {
+        val events = fixture.run(block(IFW_ONLY, BOOT))
 
-        assertThat(events.outcomeOf(MAIN)).isEqualTo(achieved(MAIN, PmSetting.DISABLED, IfwBlock.BLOCKED))
+        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
+        val disable = fixture.executor.calls.single()
+        assertThat(disable.components.single().className).isEqualTo(BOOT.id.className)
+        assertThat(disable.newState).isEqualTo(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+        assertThat(fixture.ifwWrites).isEmpty()
+    }
+
+    @Test
+    fun givenReceiverBlockedByAnEarlierFirewallRule_whenBlockedWithIfw_thenTheRuleStays() = runTest {
+        fixture.blockInIfw(BOOT)
+
+        val events = fixture.run(block(IFW_ONLY, BOOT))
+
+        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DISABLED, IfwBlock.BLOCKED))
+        assertThat(fixture.ifwWrites).isEmpty()
+    }
+
+    @Test
+    fun givenRunnableReceiver_whenBlockWithBoth_thenBothLayersBlocked() = runTest {
+        val events = fixture.run(block(BOTH, BOOT))
+
+        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DISABLED, IfwBlock.BLOCKED))
     }
 
     @Test
@@ -146,25 +167,28 @@ class ComponentControlGoalTest {
     }
 
     @Test
-    fun givenBlockedInBothLayers_whenUnblockWithIfw_thenOnlyRuleRemovedAndPmKept() = runTest {
+    fun givenReceiverBlockedInBothLayers_whenUnblockWithIfw_thenBothLayersCleared() = runTest {
         fixture.system.put(OWNER, BOOT.id, PmSetting.DISABLED)
         fixture.blockInIfw(BOOT)
 
         val events = fixture.run(unblock(BOOT, layers = IFW_ONLY))
 
-        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
-        assertThat(fixture.executor.calls).isEmpty()
+        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+        assertThat(fixture.system.settings).isEmpty()
         assertThat(fixture.ifwWrites).containsExactly("delete $PKG")
     }
 
     @Test
-    fun givenPmDisabledOnly_whenUnblockWithIfw_thenNothingSent() = runTest {
+    fun givenReceiverDisabledInPm_whenUnblockWithIfwAsShell_thenOnlyPmClearedAndJudged() = runTest {
+        val fixture = ControlFixture(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        fixture.files.noAccess = true
+        fixture.system.testOnly += PKG
         fixture.system.put(OWNER, BOOT.id, PmSetting.DISABLED)
 
         val events = fixture.run(unblock(BOOT, layers = IFW_ONLY))
 
-        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
-        assertThat(fixture.executor.calls).isEmpty()
+        assertThat(events.outcomeOf(BOOT)).isEqualTo(achieved(BOOT, PmSetting.DEFAULT, IfwBlock.UNKNOWN))
+        assertThat(fixture.system.settings).isEmpty()
         assertThat(fixture.ifwWrites).isEmpty()
     }
 

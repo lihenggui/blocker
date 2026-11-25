@@ -160,6 +160,12 @@ interface ComponentStatusRepository {
     fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver? = null): Flow<ControlEvent>
 
     /**
+     * Restores the layers recorded in a component backup, with PackageManager for providers.
+     * Uses the same protection, journaling and read-back as [control].
+     */
+    fun restore(request: ControlRequest): Flow<ControlEvent>
+
+    /**
      * Clears PackageManager blocks found by [disabledByBlocker]. Like [control], stores the
      * read-back and updates the records before emitting the result. Also drops records for
      * changes the system refused even under root or the system UID.

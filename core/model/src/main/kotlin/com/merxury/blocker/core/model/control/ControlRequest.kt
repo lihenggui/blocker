@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.model.control
 
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
@@ -27,11 +28,11 @@ import com.merxury.blocker.core.model.data.ControllerType
 
 /** What a [ControlRequest] wants for its components. */
 enum class ControlGoal {
-    /** Stop the component through the requested layers. */
+    /** Stop the component through the layers resolved for this request. */
     BLOCK,
 
     /**
-     * Remove the blocks of the requested layers and nothing more: a DISABLED PackageManager
+     * Remove blocks from the layers resolved for this request. A DISABLED PackageManager
      * setting becomes DEFAULT, any other setting is left alone, and the component leaves the
      * unconditional Intent Firewall rules. A component the manifest ships disabled stays at
      * DEFAULT, so it is still not runnable; a layer that was not requested may still block it.
@@ -40,7 +41,7 @@ enum class ControlGoal {
     UNBLOCK,
 
     /**
-     * Make the component runnable through the requested layers: [UNBLOCK], and when
+     * Make the component runnable through the layers resolved for this request: [UNBLOCK], and when
      * [ControlLayer.PACKAGE_MANAGER] is requested for a component the manifest ships disabled,
      * an ENABLED setting. With every layer, [ControlLayer.entries], the component becomes
      * runnable, or conditional when only a conditional rule is left.
@@ -55,9 +56,9 @@ enum class ControlGoal {
  * change to them reaches every user.
  * @property components in the order to work through them; packages are handled in the order they
  * first appear, and a component listed twice counts once
- * @property layers the layers the goal sets or clears; never empty. A provider is not filtered by
- * the Intent Firewall, so a request that asks for [ControlLayer.INTENT_FIREWALL] uses
- * [ControlLayer.PACKAGE_MANAGER] for it instead, for every goal.
+ * @property layers the requested layers, which must be nonempty. Component control resolves them
+ * with [layersFor] for the component type and goal. Backup restoration uses the recorded layers,
+ * with the PackageManager layer for providers.
  */
 data class ControlRequest(
     val user: UserId,
@@ -79,11 +80,22 @@ val ControllerType.blockLayers: Set<ControlLayer>
     }
 
 /**
- * The layers a request changes and judges for this component: [requested], except that a provider,
- * which the firewall does not filter, uses its PackageManager setting instead. The same holds for
- * every goal, so an unblock with the layers a block used clears what that block set.
+ * Returns the layers to change and judge for this component and [goal]. Providers always use
+ * PackageManager. Intent Firewall alone cannot stop implicit broadcasts to a single receiver,
+ * so blocking a receiver with only that layer requested uses PackageManager. Unblocking or
+ * enabling in that case uses both layers to remove any earlier firewall block as well.
  */
-fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>): Set<ControlLayer> = if (type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)
+fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>, goal: ControlGoal): Set<ControlLayer> = when {
+    type == ComponentType.RECEIVER && requested == setOf(ControlLayer.INTENT_FIREWALL) -> when (goal) {
+        ControlGoal.BLOCK -> setOf(ControlLayer.PACKAGE_MANAGER)
+        ControlGoal.UNBLOCK, ControlGoal.ENABLE -> requested + ControlLayer.PACKAGE_MANAGER
+    }
+
+    else -> supportedLayers(requested)
+}
+
+/** Resolves the layers a component supports, using PackageManager for providers. */
+fun ComponentDeclaration.supportedLayers(requested: Set<ControlLayer>): Set<ControlLayer> = if (type.isFilteredByIntentFirewall) requested else setOf(ControlLayer.PACKAGE_MANAGER)
 
 /** Whether [layer] shows [goal] in [state], as ComponentControl judges a request. */
 fun ComponentDeclaration.meets(goal: ControlGoal, layer: ControlLayer, state: ControlState): Boolean = when (goal) {

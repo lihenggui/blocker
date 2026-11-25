@@ -45,7 +45,6 @@ import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
-import com.merxury.blocker.core.model.control.layersFor
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.system.AppEnabledSetting
@@ -260,6 +259,7 @@ internal class FakeComponentControl(private val locks: PackageLocks, private val
         request: ControlRequest,
         writeObserver: ComponentWriteObserver?,
         persistence: ComponentControlPersistence?,
+        layersForComponent: (ComponentDeclaration) -> Set<ControlLayer>,
     ): Flow<ControlEvent> = flow {
         val before = system.settings.toMap()
         apply.invoke(request).collect { event ->
@@ -272,7 +272,7 @@ internal class FakeComponentControl(private val locks: PackageLocks, private val
                         val declaration = components.getValue(id)
                         id.takeIf {
                             request.goal == ControlGoal.BLOCK &&
-                                ControlLayer.PACKAGE_MANAGER in declaration.layersFor(request.layers) &&
+                                ControlLayer.PACKAGE_MANAGER in layersForComponent(declaration) &&
                                 before[request.user to id] != PmSetting.DISABLED
                         }
                     }
@@ -282,7 +282,7 @@ internal class FakeComponentControl(private val locks: PackageLocks, private val
                             val id = outcome.key.id
                             id.takeIf {
                                 request.goal == ControlGoal.BLOCK &&
-                                    ControlLayer.PACKAGE_MANAGER in components.getValue(id).layersFor(request.layers) &&
+                                    ControlLayer.PACKAGE_MANAGER in layersForComponent(components.getValue(id)) &&
                                     before[request.user to id] == PmSetting.DISABLED
                             }
                         }
