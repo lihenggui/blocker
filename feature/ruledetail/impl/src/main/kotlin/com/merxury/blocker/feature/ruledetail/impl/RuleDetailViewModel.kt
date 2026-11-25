@@ -37,6 +37,7 @@ import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -149,7 +150,12 @@ class RuleDetailViewModel @AssistedInject constructor(
         if (index is IndexState.Failed) {
             RuleInfoUiState.Error(index.exception.toErrorMessage())
         } else {
-            RuleInfoUiState.Success(rule, matched, seedIcon = rule.iconUrl?.takeIf { useDynamicColor }?.let(::File))
+            RuleInfoUiState.Success(
+                rule,
+                matched,
+                seedIcon = rule.iconUrl?.takeIf { useDynamicColor }?.let(::File),
+                batchActionsEnabled = index is IndexState.Indexed && matched is MatchedAppsUiState.Loaded,
+            )
         }
     }.retryWhen { e, _ ->
         if (e is CancellationException) return@retryWhen false
@@ -223,7 +229,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
-                controlComponent(component, goal)?.toMessage(goal)?.let { tell(it, component.id) }
+                controlComponent(component, goal).toMessage(component.id, goal)?.let { tell(it, component.id) }
             } finally {
                 singles.update { it - component }
             }
@@ -240,11 +246,14 @@ class RuleDetailViewModel @AssistedInject constructor(
     fun controlAllComponentsInPage(enable: Boolean) {
         val apps = ((uiState.value.ruleInfo as? RuleInfoUiState.Success)?.matchedAppsUiState as? MatchedAppsUiState.Loaded)?.apps
         if (apps.isNullOrEmpty()) {
-            Timber.w("No matched apps of rule $ruleId to change")
+            tell(ControlMessage.NoComponents)
             return
         }
         analyticsHelper.logControlAllInPageClicked(newState = enable)
-        startBatch(apps.first().app.userId, apps.flatMap { app -> app.rows.map { it.id } }, enable, requireCompleteIndex = true)
+        val user = apps.first().app.userId
+        startBatch(user, apps.flatMap { app -> app.rows.map { it.id } }, enable) {
+            componentIndex.readWhenIndexed(user) { currentMatches(user) }.orEmpty()
+        }
     }
 
     /** Starts [activity], for the user of its row; a blocked one stays blocked, as its switch shows. */
@@ -272,27 +281,34 @@ class RuleDetailViewModel @AssistedInject constructor(
 
     /**
      * Sends [components] of [user] as one batch through [batches], so it ends even when the screen
-     * goes away: blocking through the layers of the controller type, or removing every block when
-     * enabling. The batch counts as running, with its components in flight, from the moment it is
-     * chosen. Components in flight are left out, and nothing starts while another batch of the
-     * rule runs for the user.
+     * goes away: blocking through the layers of the controller type, or enabling through every
+     * layer. The batch counts as running from the moment it is chosen. Components already in
+     * flight are left out, and an existing batch of this rule for the user keeps running.
      */
-    private fun startBatch(user: UserId, components: List<ComponentId>, enable: Boolean, requireCompleteIndex: Boolean = false) {
-        val goal = if (enable) ControlGoal.UNBLOCK else ControlGoal.BLOCK
+    private fun startBatch(
+        user: UserId,
+        components: List<ComponentId>,
+        enable: Boolean,
+        matches: suspend () -> List<ComponentStatus> = { currentMatches(user) },
+    ) {
+        val batchKey = BatchKey.Rule(id, user)
+        if (batches.current(batchKey) != null) return
+        val goal = if (enable) ControlGoal.ENABLE else ControlGoal.BLOCK
         val ids = components.distinct().filterNot { isInFlight(ComponentKey(it, user)) }
-        if (ids.isEmpty()) return
-        val run = batches.reserve(BatchKey.Rule(id, user), goal, ids) ?: return
+        if (ids.isEmpty()) {
+            tell(if (components.isEmpty()) ControlMessage.NoComponents else ControlMessage.BatchDone(notChanged = components.distinct().size))
+            return
+        }
+        val run = batches.reserve(batchKey, goal, ids) ?: return
         viewModelScope.launch {
             var started = false
             try {
-                val index = componentIndex.state(user).first() as? IndexState.Indexed
-                if (requireCompleteIndex && index?.hasAllApps != true) return@launch
-                val cached = ruleMatcher.matches(user, id).first().associateBy { it.declaration.id }
-                if (requireCompleteIndex && componentIndex.state(user).first() != index) return@launch
+                val layers = layersFor(goal)
+                val cached = matches().associateBy { it.declaration.id }
                 val declarations = ids.mapNotNull { cached[it]?.declaration }
                 val vanished = (ids - declarations.mapTo(mutableSetOf()) { it.id }).map { ComponentKey(it, user) }
                 if (vanished.isNotEmpty()) Timber.w("${vanished.size} components of rule $ruleId are no longer matched, tell them as not changed")
-                batches.start(run, declarations, layersFor(goal))
+                batches.start(run, declarations, layers)
                 started = true
                 tell(batchSummary(run.outcomes.await(), vanished))
             } catch (e: CancellationException) {
@@ -305,6 +321,8 @@ class RuleDetailViewModel @AssistedInject constructor(
             }
         }
     }
+
+    private suspend fun currentMatches(user: UserId): List<ComponentStatus> = ruleMatcher.matches(user, id).first()
 
     private fun isInFlight(component: ComponentKey): Boolean = component in singles.value || batches.isInFlight(component)
 

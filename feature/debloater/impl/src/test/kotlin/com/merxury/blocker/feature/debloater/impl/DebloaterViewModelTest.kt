@@ -331,6 +331,23 @@ class DebloaterViewModelTest {
     }
 
     @Test
+    fun givenComponentVanished_whenSwitchedOff_thenTellsItCouldNotBeBlocked() = runTest {
+        val f = fixture()
+        f.install(installed())
+        f.viewModel.uiState.test {
+            settle()
+            val item = expectMostRecentItem().apps().single().targets.first()
+            f.components.sendComponents(owner, emptyList())
+
+            f.viewModel.setEnabled(item, enabled = false)
+            settle()
+
+            assertThat(f.started).isEmpty()
+            assertThat(expectMostRecentItem().messages.single().message).isEqualTo(ControlMessage.ComponentNotChanged("Share", ControlGoal.BLOCK))
+        }
+    }
+
+    @Test
     fun givenFailedSwitches_whenOutcomesArrive_thenOfferAccessOnlyForMissingAccess() = runTest {
         val f = fixture()
         f.install(installed())

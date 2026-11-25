@@ -16,9 +16,11 @@
 
 package com.merxury.blocker.feature.ruledetail.impl
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
+import com.merxury.blocker.core.data.device.RefreshProgress
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
@@ -38,6 +40,7 @@ import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ControlMessage
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -177,6 +180,18 @@ class RuleDetailControlTest {
     }
 
     @Test
+    fun givenComponentVanished_whenSwitchedOn_thenTellsItCouldNotBeEnabled() = runTest {
+        show()
+        fixture.components.sendComponents(OWNER, emptyList())
+
+        viewModel.setEnabled(ComponentKey(pmA, OWNER), enabled = true)
+        settle()
+
+        assertThat(fixture.components.requests).isEmpty()
+        assertThat(viewModel.uiState.value.messages.single().message).isEqualTo(ControlMessage.ComponentNotChanged("Pm", ControlGoal.ENABLE))
+    }
+
+    @Test
     fun givenAnApp_whenBlockAll_thenOneBatchOfItsComponentsAndOneSummary() = runTest {
         show()
 
@@ -192,18 +207,58 @@ class RuleDetailControlTest {
     }
 
     @Test
-    fun givenThePage_whenEnableAll_thenEveryMatchedComponentIsUnblockedThroughEveryLayer() = runTest {
+    fun givenThePageIncludesAManifestDisabledMatch_whenEnableAll_thenEveryMatchedComponentIsEnabled() = runTest {
+        fixture.components.sendComponents(
+            OWNER,
+            listOf(
+                component("com.a", "Pm", enabledInManifest = false),
+                component("com.a", "Open"),
+                component("com.b", "Open"),
+            ),
+        )
         show()
+        assertThat(enabledOf(pmA)).isFalse()
 
         viewModel.controlAllComponentsInPage(enable = true)
         settle()
 
         val request = fixture.components.requests.single()
-        assertThat(request.goal).isEqualTo(ControlGoal.UNBLOCK)
+        assertThat(request.goal).isEqualTo(ControlGoal.ENABLE)
         assertThat(request.layers).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
         assertThat(request.components.map { it.id }).containsExactly(openA, pmA, openB)
         assertThat(enabledOf(pmA)).isTrue()
         assertThat(viewModel.uiState.value.messages.single().message).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
+    }
+
+    @Test
+    fun givenPageActionDuringRebuild_whenIndexFinishesWithAnUnreadableApp_thenOnlyShownMatchesChange() = runTest {
+        show()
+        val progress = MutableSharedFlow<RefreshProgress>()
+        fixture.components.refreshAllProgress = { progress }
+        fixture.index.reindex(OWNER)
+
+        viewModel.uiState.test {
+            settle()
+            assertThat((expectMostRecentItem().ruleInfo as RuleInfoUiState.Success).batchActionsEnabled).isFalse()
+
+            viewModel.controlAllComponentsInPage(enable = false)
+            settle()
+            assertThat(fixture.components.requests).isEmpty()
+            assertThat(expectMostRecentItem().batch).isNotNull()
+
+            // A new match discovered by the rebuild was absent when the action was chosen.
+            fixture.components.sendComponents(
+                OWNER,
+                listOf(component("com.a", "Pm"), component("com.a", "Open"), component("com.b", "Open"), component("com.b", "New")),
+            )
+            progress.emit(RefreshProgress.Finished(total = 3, failed = 1, appListFailure = null))
+            settle()
+
+            val completed = expectMostRecentItem()
+            assertThat((completed.ruleInfo as RuleInfoUiState.Success).batchActionsEnabled).isTrue()
+            assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(openA, pmA, openB)
+            assertThat(completed.messages.single().message).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
+        }
     }
 
     @Test

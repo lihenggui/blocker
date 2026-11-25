@@ -141,7 +141,7 @@ fun GeneralRulesScreen(
                 actions = {
                     if (uiState is GeneralRuleUiState.Success) {
                         GeneralRulesMoreActionMenu(
-                            enabled = uiState.matchProgress == 1F && !isProcessing,
+                            enabled = uiState.batchActionsEnabled && !isProcessing,
                             onBlockAllClick = { showBlockAllDialog = true },
                             onEnableAllClick = { showEnableAllDialog = true },
                         )

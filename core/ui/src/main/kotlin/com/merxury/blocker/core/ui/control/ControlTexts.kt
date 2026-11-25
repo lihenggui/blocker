@@ -32,6 +32,8 @@ fun ControlMessage.text(): String {
             name,
         )
 
+        ControlMessage.NoComponents -> stringResource(string.core_ui_no_components)
+
         is ControlMessage.BatchDone -> if (notChanged == 0) {
             stringResource(string.core_ui_operation_completed)
         } else {

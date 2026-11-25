@@ -52,6 +52,7 @@ fun RuleDetailAppBarActions(
     onSortTypeChange: (RuleDetailSortType) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
+    batchActionsEnabled: Boolean = true,
 ) {
     Row(
         modifier = modifier
@@ -72,6 +73,7 @@ fun RuleDetailAppBarActions(
             MoreActionMenu(
                 blockAllComponents = blockAllComponents,
                 enableAllComponents = enableAllComponents,
+                batchActionsEnabled = batchActionsEnabled,
             )
         }
     }
@@ -82,15 +84,18 @@ fun MoreActionMenu(
     modifier: Modifier = Modifier,
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
+    batchActionsEnabled: Boolean = true,
 ) {
     val items = listOf(
         DropDownMenuItem(
             ruledetailString.feature_ruledetail_api_block_all_of_this_page,
             blockAllComponents,
+            enabled = batchActionsEnabled,
         ),
         DropDownMenuItem(
             ruledetailString.feature_ruledetail_api_enable_all_of_this_page,
             enableAllComponents,
+            enabled = batchActionsEnabled,
         ),
     )
     BlockerAppTopBarMenu(

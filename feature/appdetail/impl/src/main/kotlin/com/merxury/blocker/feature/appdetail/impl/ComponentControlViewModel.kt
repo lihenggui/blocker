@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * Blocks and unblocks components of one app for one user through the component repository.
+ * Blocks and enables components of one app for one user through the component repository.
  *
  * Nothing here changes what a row shows: the repository stores the state read back after each
  * change and its flow updates the rows. This only tracks which components are in flight and turns
@@ -124,7 +124,7 @@ class ComponentControlViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 analyticsHelper.logSwitchComponentClicked(newState = goal != ControlGoal.BLOCK)
-                controlComponent(ComponentKey(component, app.userId), goal)?.toMessage(goal)?.let { tell(it, component) }
+                controlComponent(ComponentKey(component, app.userId), goal).toMessage(component, goal)?.let { tell(it, component) }
             } finally {
                 singles.update { it - component }
             }
@@ -134,12 +134,8 @@ class ComponentControlViewModel @AssistedInject constructor(
     /** Blocks [components] through the layers of the controller type and ends with one summary. */
     fun blockAll(components: List<ComponentId>, fromMatchedRule: Boolean = false) = startBatch(components, ControlGoal.BLOCK, fromMatchedRule)
 
-    /**
-     * Removes every block of [components], through every layer, and ends with one summary.
-     * Components the app ships disabled stay as they are: undoing blocks in bulk does not turn on
-     * what the app keeps off.
-     */
-    fun unblockAll(components: List<ComponentId>, fromMatchedRule: Boolean = false) = startBatch(components, ControlGoal.UNBLOCK, fromMatchedRule)
+    /** Enables [components] through every layer and ends with one summary. */
+    fun enableAll(components: List<ComponentId>, fromMatchedRule: Boolean = false) = startBatch(components, ControlGoal.ENABLE, fromMatchedRule)
 
     fun onMessageShown(id: Long) {
         messages.update { queued -> queued.filterNot { it.id == id } }

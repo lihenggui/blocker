@@ -28,6 +28,7 @@ import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRep
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -230,6 +231,35 @@ class ComponentIndexTest {
         val completed = index.state(owner).first() as IndexState.Indexed
         assertThat(completed.run).isEqualTo(1)
         assertThat(completed.hasAllApps).isTrue()
+    }
+
+    @Test
+    fun givenIndexRebuiltDuringMatchRead_whenReadCompletes_thenReadAgainFromTheFinishedIndex() = runTest {
+        val index = index()
+        index.ensureIndexed(owner)
+        runCurrent()
+        finish(owner)
+
+        val firstRead = CompletableDeferred<Unit>()
+        var reads = 0
+        val matched = async {
+            index.readWhenIndexed(owner) {
+                ++reads
+                if (reads == 1) firstRead.await()
+                reads
+            }
+        }
+        runCurrent()
+        assertThat(reads).isEqualTo(1)
+
+        index.reindex(owner)
+        runCurrent()
+        firstRead.complete(Unit)
+        runCurrent()
+        assertThat(matched.isCompleted).isFalse()
+
+        finish(owner, failed = 1)
+        assertThat(matched.await()).isEqualTo(2)
     }
 
     @Test

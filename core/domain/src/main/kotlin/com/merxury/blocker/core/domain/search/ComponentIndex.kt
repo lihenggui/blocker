@@ -79,6 +79,27 @@ class ComponentIndex @Inject constructor(
         start(user)
     }
 
+    /**
+     * Reads from a completed index, retrying if a rebuild starts during the read. A run may
+     * finish with some apps unreadable. Returns null if it could not list the user's apps.
+     */
+    suspend fun <T : Any> readWhenIndexed(user: UserId, read: suspend () -> T): T? {
+        if (state(user).first() == IndexState.NotIndexed) ensureIndexed(user)
+        while (true) {
+            when (val index = state(user).first { it is IndexState.Indexed || it is IndexState.Failed }) {
+                is IndexState.Indexed -> {
+                    if (index.appListFailure != null) return null
+                    val value = read()
+                    if (state(user).first() == index) return value
+                }
+
+                is IndexState.Failed -> throw index.exception
+
+                else -> error("Expected a completed component index for user ${user.value}")
+            }
+        }
+    }
+
     private fun start(user: UserId) {
         val run = nextRun++
         states.update { it + (user to IndexState.Indexing(run, done = 0, total = 0)) }

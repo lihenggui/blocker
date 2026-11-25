@@ -73,6 +73,7 @@ sealed interface RuleInfoUiState {
         val ruleInfo: GeneralRule,
         val matchedAppsUiState: MatchedAppsUiState,
         val seedIcon: File? = null,
+        val batchActionsEnabled: Boolean = true,
     ) : RuleInfoUiState
 }
 

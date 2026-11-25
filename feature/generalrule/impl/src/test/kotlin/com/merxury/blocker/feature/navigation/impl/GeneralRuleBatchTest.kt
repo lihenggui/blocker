@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.navigation.impl
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
@@ -43,6 +44,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -120,17 +122,19 @@ class GeneralRuleBatchTest {
     }
 
     @Test
-    fun givenBlockedComponents_whenEnableAll_thenEveryLayerIsUnblocked() = runTest {
-        fixture.components.sendComponents(OWNER, listOf(component("com.a", "com.tracker.A", pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED)))
+    fun givenManifestDisabledMatch_whenEnableAll_thenItIsEnabledThroughEveryLayer() = runTest {
+        val status = component("com.a", "com.tracker.A", pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED)
+        fixture.components.sendComponents(OWNER, listOf(status.copy(declaration = status.declaration.copy(enabledInManifest = false))))
         show()
 
         viewModel.controlAllComponents(enable = true)
         settle()
 
         val request = fixture.components.requests.single()
-        assertThat(request.goal).isEqualTo(ControlGoal.UNBLOCK)
+        assertThat(request.goal).isEqualTo(ControlGoal.ENABLE)
         assertThat(request.layers).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
         assertThat(request.components.map { it.id }).containsExactly(trackerA)
+        assertThat(fixture.components.component(ComponentKey(trackerA, OWNER)).first()?.isSwitchOn).isTrue()
         assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
     }
 
@@ -219,22 +223,42 @@ class GeneralRuleBatchTest {
 
         assertThat(fixture.components.requests).isEmpty()
         assertThat(viewModel.uiState.value.batch).isNull()
-        assertThat(viewModel.uiState.value.messages).isEmpty()
+        assertThat(summary()).isEqualTo(ControlMessage.NoComponents)
     }
 
     @Test
-    fun givenTheAppsAreBeingRead_whenBlockAll_thenNothingIsChanged() = runTest {
+    fun givenTheAppsAreBeingRead_whenBlockAllConfirmed_thenWaitsAndChangesTheMatches() = runTest {
         val progress = MutableSharedFlow<RefreshProgress>()
         fixture.components.refreshAllProgress = { progress }
         show()
         progress.emit(RefreshProgress.Refreshing(done = 1, total = 3, current = "com.a"))
-
-        // As from a confirmation dialog opened before the reading started over.
-        viewModel.controlAllComponents(enable = false)
         settle()
 
-        assertThat(fixture.components.requests).isEmpty()
-        assertThat(viewModel.uiState.value.batch).isNull()
+        viewModel.uiState.test {
+            val indexing = awaitItem().rules as GeneralRuleUiState.Success
+            assertThat(indexing.matchProgress).isWithin(0.001F).of(1F / 3)
+            assertThat(indexing.batchActionsEnabled).isFalse()
+
+            // A confirmation dialog may have been opened before the rebuild started.
+            viewModel.controlAllComponents(enable = false)
+            settle()
+            assertThat(fixture.components.requests).isEmpty()
+            assertThat(expectMostRecentItem().batch).isNotNull()
+
+            fixture.components.sendComponents(
+                OWNER,
+                fixture.components.allComponents(OWNER).first() + component("com.b", "com.tracker.New"),
+            )
+            progress.emit(RefreshProgress.Finished(total = 3, failed = 1, appListFailure = null))
+            settle()
+
+            val completed = expectMostRecentItem()
+            val rules = completed.rules as GeneralRuleUiState.Success
+            assertThat(rules.matchProgress).isEqualTo(1F)
+            assertThat(rules.batchActionsEnabled).isTrue()
+            assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(trackerA, adsA, trackerB)
+            assertThat(completed.messages.single().message).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
+        }
     }
 
     @Test
@@ -257,7 +281,7 @@ class GeneralRuleBatchTest {
     }
 
     @Test
-    fun givenAppListCouldNotBeRead_whenBlockAll_thenSendNothing() = runTest {
+    fun givenAppListCouldNotBeRead_whenBlockAll_thenReportsTheMatchesWereNotChanged() = runTest {
         fixture.components.refreshAllProgress = {
             flowOf(RefreshProgress.Finished(total = 0, failed = 0, appListFailure = ReadFailure.ChannelUnavailable))
         }
@@ -268,5 +292,6 @@ class GeneralRuleBatchTest {
 
         assertThat(fixture.components.requests).isEmpty()
         assertThat(viewModel.uiState.value.batch).isNull()
+        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 3))
     }
 }
