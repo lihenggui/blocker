@@ -3,9 +3,6 @@
 
 package com.merxury.blocker.core.domain.wake
 
-import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO
-import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO_CLOCK
-import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO_SLEEP
 import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.component.userOfUid
@@ -15,6 +12,9 @@ import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.WakeFinding
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
+import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO
+import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO_CLOCK
+import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO_SLEEP
 
 /**
  * A finding, the part of its duration that fell while the screen was off, and for a chained revive

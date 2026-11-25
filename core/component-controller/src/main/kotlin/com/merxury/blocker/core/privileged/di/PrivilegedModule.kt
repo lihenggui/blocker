@@ -16,15 +16,15 @@
 
 package com.merxury.blocker.core.privileged.di
 
-import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
-import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.privileged.ActivePrivilegedChannel
 import com.merxury.blocker.core.privileged.ChannelIfwFileSystem
 import com.merxury.blocker.core.privileged.ChannelPlatformPackages
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.PrivilegedExecutor
+import com.merxury.blocker.core.privileged.shizuku.DefaultShizukuApi
+import com.merxury.blocker.core.privileged.shizuku.DefaultShizukuInitializer
+import com.merxury.blocker.core.privileged.shizuku.ShizukuApi
+import com.merxury.blocker.core.privileged.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.system.PlatformPackages
 import com.merxury.core.ifw.IfwFileSystem
 import dagger.Binds
@@ -36,7 +36,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 internal interface PrivilegedModule {
     @Binds
-    fun bindsShizukuInitializer(initializer: ShizukuInitializer): IShizukuInitializer
+    fun bindsShizukuInitializer(initializer: DefaultShizukuInitializer): ShizukuInitializer
 
     @Binds
     fun bindsShizukuApi(api: DefaultShizukuApi): ShizukuApi

@@ -18,17 +18,17 @@ package com.merxury.blocker.core.privileged.calls
 
 import android.os.Parcel
 import android.os.Process
-import com.merxury.blocker.core.controllers.wake.WakeCommand
-import com.merxury.blocker.core.controllers.wake.WakeJournalRead
-import com.merxury.blocker.core.controllers.wake.readComponentJournal
-import com.merxury.blocker.core.controllers.wake.requireComponentJournal
-import com.merxury.blocker.core.controllers.wake.writeComponentJournal
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.component.appIdOfUid
 import com.merxury.blocker.core.privileged.PrivilegedAction
 import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.SystemServices
 import com.merxury.blocker.core.privileged.UserIdParceler
+import com.merxury.blocker.core.privileged.wake.WakeCommand
+import com.merxury.blocker.core.privileged.wake.WakeJournalRead
+import com.merxury.blocker.core.privileged.wake.readComponentJournal
+import com.merxury.blocker.core.privileged.wake.requireComponentJournal
+import com.merxury.blocker.core.privileged.wake.writeComponentJournal
 import com.merxury.core.ifw.WakeRuleFileKind
 import com.merxury.core.ifw.isWakePackageName
 import com.merxury.core.ifw.removeWakeRuleTarget

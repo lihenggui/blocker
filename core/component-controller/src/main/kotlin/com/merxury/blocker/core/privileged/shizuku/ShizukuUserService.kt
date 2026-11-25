@@ -64,7 +64,8 @@ private const val MIN_SHIZUKU_VERSION = 13
 private val ATTACH_TIMEOUT = 15.seconds
 
 // Raise when the AIDL interface changes, so Shizuku replaces a service an older app started.
-private const val SERVICE_VERSION = 1
+// Wake journal replies carry Parcelable class names. Recreate a service from the previous APK.
+private const val SERVICE_VERSION = 2
 
 // A service is a full app_process: after a background collection it held about 160 MB of PSS.
 // Short, because a process left in the background is cached and soon frozen, and a frozen

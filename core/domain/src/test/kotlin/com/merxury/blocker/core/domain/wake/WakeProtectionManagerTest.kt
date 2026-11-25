@@ -5,9 +5,6 @@ package com.merxury.blocker.core.domain.wake
 
 import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.controllers.wake.ManagedComponentState
-import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
-import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
@@ -20,6 +17,9 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.privileged.wake.ManagedComponentState
+import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
+import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.core.ifw.ManagedWakeRules
 import kotlinx.coroutines.test.StandardTestDispatcher

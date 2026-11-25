@@ -9,12 +9,12 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
-import com.merxury.blocker.core.controllers.wake.WakePackageUid
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeIdentity
 import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getVersionCode
+import com.merxury.blocker.core.privileged.wake.WakePackageUid
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import org.json.JSONArray

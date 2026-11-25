@@ -4,11 +4,11 @@
 package com.merxury.blocker.core.data.wake
 
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
-import com.merxury.blocker.core.controllers.wake.WakeComponentJournal
-import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeProtection
+import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
+import com.merxury.blocker.core.privileged.wake.WakeComponentJournal
+import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.kotlin.any

@@ -6,12 +6,6 @@ package com.merxury.blocker.core.data.wake
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.core.content.edit
-import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO_SOURCE
-import com.merxury.blocker.core.controllers.wake.WakeCapture
-import com.merxury.blocker.core.controllers.wake.WakeCollector
-import com.merxury.blocker.core.controllers.wake.WakeExemptionSnapshot
-import com.merxury.blocker.core.controllers.wake.WakeProcStatsPeriod
-import com.merxury.blocker.core.controllers.wake.WakeResume
 import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeDetectionDao
 import com.merxury.blocker.core.database.wake.WakeExemption
@@ -32,6 +26,12 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.wake.WakeBatch
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO_SOURCE
+import com.merxury.blocker.core.privileged.wake.WakeCapture
+import com.merxury.blocker.core.privileged.wake.WakeCollector
+import com.merxury.blocker.core.privileged.wake.WakeExemptionSnapshot
+import com.merxury.blocker.core.privileged.wake.WakeProcStatsPeriod
+import com.merxury.blocker.core.privileged.wake.WakeResume
 import com.merxury.blocker.core.utils.currentUserId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow

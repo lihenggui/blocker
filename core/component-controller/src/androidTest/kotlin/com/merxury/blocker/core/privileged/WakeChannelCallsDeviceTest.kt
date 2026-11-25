@@ -29,8 +29,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.merxury.blocker.core.appcontrol.AppControlFixtureService
 import com.merxury.blocker.core.appcontrol.PrivilegedAppControl
 import com.merxury.blocker.core.control.ControlFixtureActivity
-import com.merxury.blocker.core.controllers.wake.WakeCommand
-import com.merxury.blocker.core.controllers.wake.WakeJournalRead
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
@@ -53,6 +51,8 @@ import com.merxury.blocker.core.privileged.calls.SetComponentEnabledIfCurrent
 import com.merxury.blocker.core.privileged.calls.StartService
 import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootTransport
+import com.merxury.blocker.core.privileged.wake.WakeCommand
+import com.merxury.blocker.core.privileged.wake.WakeJournalRead
 import com.merxury.core.ifw.WakeRuleFileKind
 import com.merxury.core.ifw.WakeServiceFilter
 import com.merxury.core.ifw.renderWakeRules

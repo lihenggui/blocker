@@ -24,9 +24,6 @@ import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IUserManager
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
-import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
-import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.privileged.CallFailure
@@ -68,7 +65,7 @@ import javax.inject.Singleton
  */
 @Singleton
 internal class ShizukuTransport(
-    private val initializer: IShizukuInitializer,
+    private val initializer: ShizukuInitializer,
     private val shizuku: ShizukuApi,
     private val system: SystemServices,
     private val userService: ShizukuUserService,
@@ -76,7 +73,7 @@ internal class ShizukuTransport(
 ) : AbstractPrivilegedTransport() {
 
     @Inject constructor(
-        initializer: IShizukuInitializer,
+        initializer: ShizukuInitializer,
         shizuku: ShizukuApi,
         system: ShizukuSystemServices,
         userService: ShizukuUserService,
@@ -105,7 +102,7 @@ internal class ShizukuTransport(
 
         RegisterShizukuResult.TimedOut -> ChannelState.Unavailable(UnavailableReason.TIMED_OUT)
 
-        // ShizukuInitializer has logged the cause.
+        // DefaultShizukuInitializer has logged the cause.
         is RegisterShizukuResult.Failed -> ChannelState.Unavailable(UnavailableReason.FAILED)
     }
 

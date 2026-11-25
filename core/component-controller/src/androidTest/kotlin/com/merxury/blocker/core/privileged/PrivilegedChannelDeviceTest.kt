@@ -23,7 +23,6 @@ import android.os.Parcel
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.controllers.wake.WakeFixtureService
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.PmSetting
@@ -45,6 +44,7 @@ import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootTransport
 import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
+import com.merxury.blocker.core.privileged.wake.WakeFixtureService
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformSystemPackageReader
 import kotlinx.coroutines.Dispatchers

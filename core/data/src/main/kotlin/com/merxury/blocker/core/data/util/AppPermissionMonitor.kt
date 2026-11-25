@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.data.util
 
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
@@ -24,6 +23,7 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.privileged.shizuku.ShizukuInitializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +42,7 @@ import javax.inject.Singleton
 @Singleton
 class AppPermissionMonitor @Inject constructor(
     userDataRepository: UserDataRepository,
-    private val shizukuInitializer: IShizukuInitializer,
+    private val shizukuInitializer: ShizukuInitializer,
     private val channel: PrivilegedChannel,
     @ApplicationScope appScope: CoroutineScope,
 ) : PermissionMonitor {

@@ -18,14 +18,14 @@ package com.merxury.blocker.core.privileged.calls
 
 import android.os.Parcel
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.controllers.wake.PROCSTATS_COUNT_PROBE
-import com.merxury.blocker.core.controllers.wake.WakeCommand
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.marshallCall
 import com.merxury.blocker.core.privileged.toCallFailure
 import com.merxury.blocker.core.privileged.unmarshallCall
+import com.merxury.blocker.core.privileged.wake.PROCSTATS_COUNT_PROBE
+import com.merxury.blocker.core.privileged.wake.WakeCommand
 import com.merxury.core.ifw.WakeRuleFileKind
 import org.junit.Assert.assertThrows
 import org.junit.Test

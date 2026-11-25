@@ -17,10 +17,10 @@
 package com.merxury.blocker.core.domain.wake
 
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.controllers.wake.ManagedComponentState
 import com.merxury.blocker.core.database.record.PmBlockRecordDao
 import com.merxury.blocker.core.database.record.PmBlockRecordEntity
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.privileged.wake.ManagedComponentState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map

@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <application>
         <service
-            android:name="com.merxury.blocker.core.controllers.wake.WakeFixtureService"
+            android:name="com.merxury.blocker.core.privileged.wake.WakeFixtureService"
             android:exported="false"
             android:process=":wake_fixture" />
         <activity

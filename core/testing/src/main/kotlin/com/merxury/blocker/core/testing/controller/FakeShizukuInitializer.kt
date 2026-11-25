@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.core.testing.controller
 
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
-import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
+import com.merxury.blocker.core.privileged.shizuku.RegisterShizukuResult
+import com.merxury.blocker.core.privileged.shizuku.ShizukuInitializer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 
@@ -31,7 +31,7 @@ class FakeShizukuInitializer(
     var permissionGranted: Boolean = true,
     var grantsOnRequest: Boolean = false,
     shizukuRunning: Boolean = true,
-) : IShizukuInitializer {
+) : ShizukuInitializer {
     private val running = MutableStateFlow(shizukuRunning)
 
     var registerCallCount = 0
