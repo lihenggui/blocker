@@ -150,35 +150,36 @@ class LocalUserDataRepository @Inject constructor(
         analyticsHelper.logLibDisplayLanguageChanged(language)
     }
 
-    override suspend fun getLibDisplayLanguage(): String {
-        val displayLanguageInSettings = userData.first().libDisplayLanguage
-        if (displayLanguageInSettings.isNotBlank()) {
-            return displayLanguageInSettings
-        }
-        // Empty means follow the system language first
-        // If no matching found, fallback to English
-        val locale = Locale.getDefault()
-        val language = locale.language
-        val country = locale.country
-        val systemLanguage = if (country.isNotBlank()) {
-            "$language-$country"
-        } else {
-            language
-        }
-        var splittedLanguage = systemLanguage.split("-")
-        while (splittedLanguage.isNotEmpty()) {
-            val languageTag = splittedLanguage.joinToString("-")
-            val matchingLanguage = LIB_SUPPORTED_LANGUAGE.find { it == languageTag }
-            if (matchingLanguage != null) {
-                return matchingLanguage
-            } else {
-                splittedLanguage = splittedLanguage.dropLast(1)
-            }
-        }
-        return Locale.ENGLISH.toLanguageTag()
-    }
+    override suspend fun getLibDisplayLanguage(): String = resolveLibDisplayLanguage(userData.first().libDisplayLanguage)
 
     override suspend fun setEnableStatistics(allow: Boolean) {
         blockerPreferenceDataSource.setEnableStatistics(allow)
     }
+}
+
+internal fun resolveLibDisplayLanguage(setting: String): String {
+    if (setting.isNotBlank()) {
+        return setting
+    }
+    // Empty means follow the system language first
+    // If no matching found, fallback to English
+    val locale = Locale.getDefault()
+    val language = locale.language
+    val country = locale.country
+    val systemLanguage = if (country.isNotBlank()) {
+        "$language-$country"
+    } else {
+        language
+    }
+    var splittedLanguage = systemLanguage.split("-")
+    while (splittedLanguage.isNotEmpty()) {
+        val languageTag = splittedLanguage.joinToString("-")
+        val matchingLanguage = LIB_SUPPORTED_LANGUAGE.find { it == languageTag }
+        if (matchingLanguage != null) {
+            return matchingLanguage
+        } else {
+            splittedLanguage = splittedLanguage.dropLast(1)
+        }
+    }
+    return Locale.ENGLISH.toLanguageTag()
 }

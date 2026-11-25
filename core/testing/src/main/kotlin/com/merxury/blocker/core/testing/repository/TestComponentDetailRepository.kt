@@ -44,12 +44,8 @@ class TestComponentDetailRepository : ComponentDetailRepository {
         emit(current().any { it.name.startsWith("${app.packageName}.") })
     }
 
-    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = componentDetail.map {
-        it.find { componentDetail -> componentDetail.name == name }
-    }
-
-    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = componentDetail.map {
-        it.find { componentDetail -> componentDetail.name == name }
+    override fun getLocalComponentDetails(names: Set<String>): Flow<Map<String, ComponentDetail>> = componentDetail.map { details ->
+        details.filter { it.name in names }.associateBy(ComponentDetail::name)
     }
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flow {

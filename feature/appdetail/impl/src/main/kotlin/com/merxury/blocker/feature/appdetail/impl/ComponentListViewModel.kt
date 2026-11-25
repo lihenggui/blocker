@@ -64,9 +64,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -132,7 +130,8 @@ class ComponentListViewModel @AssistedInject constructor(
     private val descriptions: Flow<Map<String, String>> = statuses
         .map { list -> list.mapTo(mutableSetOf()) { it.declaration.id.className } }
         .distinctUntilChanged()
-        .flatMapLatest(::descriptionsOf)
+        .flatMapLatest(componentDetails::getLocalComponentDetails)
+        .map { details -> details.mapNotNull { (name, detail) -> detail.description?.takeIf(String::isNotBlank)?.let { name to it } }.toMap() }
         .onStart { emit(emptyMap()) }
         .flowOn(ioDispatcher)
 
@@ -361,20 +360,6 @@ class ComponentListViewModel @AssistedInject constructor(
         val result = if (channel.state.value is ChannelState.Ready) componentActions.runningServices(app) else null
         if (result is CallResult.Failure) Timber.d("No running services of $app: ${result.reason}")
         running.value = (result as? CallResult.Success)?.value
-    }
-
-    private fun descriptionsOf(names: Set<String>): Flow<Map<String, String>> = flow {
-        var descriptions = buildMap {
-            names.forEach { name -> componentDetails.getLocalComponentDetail(name).first()?.description?.takeIf { it.isNotBlank() }?.let { put(name, it) } }
-        }
-        emit(descriptions)
-        // Edits the user saves in the description dialog.
-        componentDetails.updatedComponent.collect { detail ->
-            if (detail.name !in names) return@collect
-            val description = detail.description?.takeIf { it.isNotBlank() }
-            descriptions = if (description == null) descriptions - detail.name else descriptions + (detail.name to description)
-            emit(descriptions)
-        }
     }
 
     private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet())

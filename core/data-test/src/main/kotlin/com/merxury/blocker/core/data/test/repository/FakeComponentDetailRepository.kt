@@ -27,9 +27,8 @@ class FakeComponentDetailRepository @Inject constructor() : ComponentDetailRepos
     override val updatedComponent: Flow<ComponentDetail>
         get() = flowOf(ComponentDetail(""))
     override fun hasUserGeneratedDetail(app: AppKey): Flow<Boolean> = flowOf(false)
-    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
-    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
+    override fun getLocalComponentDetails(names: Set<String>): Flow<Map<String, ComponentDetail>> = flowOf(emptyMap())
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 }
