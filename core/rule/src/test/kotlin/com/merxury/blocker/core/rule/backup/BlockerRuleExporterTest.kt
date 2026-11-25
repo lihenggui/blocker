@@ -57,18 +57,33 @@ class BlockerRuleExporterTest {
     @Test
     fun givenBlockerInstalledForBothUsers_whenExporting_thenOnlyTheOtherUsersCopyIsBackedUp() = runTest {
         val ownPackage = "com.merxury.blocker.test"
-        installedApps.sendApps(listOf(installedApp(ownPackage, user = OWNER), installedApp(ownPackage, user = WORK)))
+        installedApps.sendApps(listOf(installedApp(), installedApp(ownPackage, user = OWNER), installedApp(ownPackage, user = WORK)))
         val main = declaration("Main", BOOT.type, packageName = ownPackage)
-        components.sendComponents(OWNER, listOf(status(main)))
+        components.sendComponents(OWNER, listOf(status(BOOT), status(main)))
         components.sendComponents(WORK, listOf(status(main)))
 
-        val owner = exporter.export(storage, OWNER)
+        val progress = mutableListOf<Triple<String, Int, Int>>()
+        val owner = exporter.export(storage, OWNER) { name, done, total -> progress += Triple(name, done, total) }
         val work = exporter.export(storage, WORK)
 
-        assertThat(owner.summary.skipped).containsExactly(SkipReason.PROTECTED_COMPONENT, 1)
+        assertThat(owner.summary.skipped).isEmpty()
+        assertThat(owner.summary.apps).isEqualTo(1)
+        assertThat(progress).containsExactly(Triple(APP, 0, 1))
         assertThat(storage.read(BackupSet(OWNER).fileOf(ownPackage))).isNull()
         assertThat(work.summary.apps).isEqualTo(1)
         assertThat(storage.read(BackupSet(WORK).fileOf(ownPackage))).isNotNull()
+    }
+
+    @Test
+    fun givenBlockerIsASystemApp_whenExportingThirdPartyApps_thenOnlyOtherSystemAppsAreCounted() = runTest {
+        installedApps.sendApps(
+            listOf(installedApp("com.merxury.blocker.test", isSystem = true), installedApp("com.other.system", isSystem = true)),
+        )
+
+        val result = exporter.export(storage, OWNER)
+
+        assertThat(result.summary.skipped).containsExactly(SkipReason.SYSTEM_APP, 1)
+        assertThat(storage.allFiles).isEmpty()
     }
 
     @Test
