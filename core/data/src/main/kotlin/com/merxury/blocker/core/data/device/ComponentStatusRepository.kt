@@ -26,8 +26,10 @@ import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.flow.Flow
@@ -133,15 +135,18 @@ interface ComponentStatusRepository {
      * outcomes of components the cache does not declare are not stored. A package whose event has
      * arrived is stored even when the collector cancels.
      *
-     * With the read-back, under the same lock, the record of what Blocker disabled is updated: a
-     * [ControlGoal.BLOCK] whose layers for a component include
-     * [ControlLayer.PACKAGE_MANAGER] records the component when it reads back
-     * [PmSetting.DISABLED], and any request drops the record of a component that reads back
-     * DEFAULT or ENABLED. [PmSetting.UNKNOWN] changes no record.
+     * For a [ControlGoal.BLOCK] that will send a [ControlLayer.PACKAGE_MANAGER] disable, Blocker
+     * journals the component before the system call. Under the same package lock, read-back
+     * prunes records whose setting is [PmSetting.DEFAULT] or [PmSetting.ENABLED] and keeps
+     * records whose setting is [PmSetting.DISABLED] or [PmSetting.UNKNOWN]. A later refresh
+     * can prune journal entries left by an interrupted write. An already disabled component
+     * acquires a record only when Blocker verifies that its wake protection owns the disable.
      *
      * A [ControlGoal.BLOCK] never reaches Blocker's own components in the user Blocker runs in:
-     * they end [com.merxury.blocker.core.model.control.ControlResult.FAILED] as not permitted,
-     * without a change and with the cached state, and count as failed in the last event.
+     * they return the cached state with [ControlResult.SKIPPED] and
+     * [ControlFailure.ProtectedComponent], and count as skipped in the last event.
+     * In another user the firewall layer is protected too, while PackageManager can still
+     * block that user's copy.
      */
     fun control(request: ControlRequest): Flow<ControlEvent> = control(request, keepKnownState = false)
 
@@ -163,7 +168,8 @@ interface ComponentStatusRepository {
      * The components Blocker disabled through PackageManager for [user] that are still
      * [PmSetting.DISABLED]. Refreshes the user's app list and each app that has recorded components,
      * as [refresh] does, dropping records of components no longer disabled or declared. An app
-     * whose settings cannot be read is listed in [DisabledComponents.unreadableApps].
+     * whose settings cannot be read is listed in [DisabledComponents.unreadableApps]. A hidden
+     * app confirmed to be installed is left out and keeps its records for a later reset.
      *
      * @return what was found, or the failure that kept the user's app list from being read
      */
@@ -174,8 +180,8 @@ interface ComponentStatusRepository {
  * What [ComponentStatusRepository.disabledByBlocker] found.
  *
  * @property components by package and class name
- * @property unreadableApps apps whose settings could not be read, by package name; their recorded
- * components are not in [components] and keep their records
+ * @property unreadableApps apps whose settings or installation could not be verified, by package
+ * name. Their recorded components are left out of [components] and keep their records.
  * @property notInstalled recorded components of apps no longer installed for the user; their
  * records are dropped
  * @property notDeclared recorded components the installed app does not declare

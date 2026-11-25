@@ -169,6 +169,7 @@ internal class FakeSystem : SystemPackageReader {
 
     @Volatile var usersFailure: ReadFailure? = null
     val appsFailures = ConcurrentHashMap<UserId, ReadFailure>()
+    val installationFailures = ConcurrentHashMap<AppKey, ReadFailure>()
     val declarationFailures = ConcurrentHashMap<String, ReadFailure>()
     val pmFailures = ConcurrentHashMap<String, ReadFailure>()
 
@@ -217,6 +218,7 @@ internal class FakeSystem : SystemPackageReader {
     }
 
     override suspend fun isInstalled(key: AppKey): ReadResult<Boolean> {
+        installationFailures[key]?.let { return ReadResult.Failure(it) }
         appsFailures[key.userId]?.let { return ReadResult.Failure(it) }
         return ReadResult.Success(key in apps.keys)
     }

@@ -396,8 +396,12 @@ internal class LocalComponentStatusRepository(
             val settings = refresh?.pmSettings
             when {
                 refresh == null || refresh.removed -> {
-                    packageLocks.withLock(packageName) {
-                        if (installedApps.forgetIfUninstalled(key)) notInstalled += recorded.size else unreadable += key
+                    when (val uninstalled = packageLocks.withLock(packageName) { installedApps.forgetIfUninstalled(key) }) {
+                        is ReadResult.Success -> {
+                            if (uninstalled.value) notInstalled += recorded.size
+                        }
+
+                        is ReadResult.Failure -> unreadable += key
                     }
                 }
 

@@ -189,9 +189,11 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         assertThat(recorded(WORK)).containsExactly(MAIN.key(WORK))
         apps.refresh(WORK)
         val frozen = repository.disabledByBlocker(WORK) as ReadResult.Success
-        assertThat(frozen.value.unreadableApps).containsExactly(app)
+        assertThat(frozen.value.components).isEmpty()
+        assertThat(frozen.value.unreadableApps).isEmpty()
         assertThat(frozen.value.notInstalled).isEqualTo(0)
         assertThat(recorded(WORK)).containsExactly(MAIN.key(WORK))
+        assertThat(system.settings[WORK to MAIN.id]).isEqualTo(PmSetting.DISABLED)
 
         system.hidden -= app
         val unfrozen = repository.disabledByBlocker(WORK) as ReadResult.Success
@@ -200,6 +202,22 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
 
         assertThat(system.settings[WORK to MAIN.id]).isEqualTo(PmSetting.DEFAULT)
         assertThat(recorded(WORK)).isEmpty()
+    }
+
+    @Test
+    fun givenAnAppMissingFromTheList_whenItsInstallationCannotBeVerified_thenResetReportsItAsUnreadable() = runTest {
+        val repository = installed(backgroundScope)
+        val app = AppKey(PKG, OWNER)
+        repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN)
+        system.hidden += app
+        system.installationFailures[app] = ReadFailure.ChannelUnavailable
+
+        val found = repository.disabledByBlocker(OWNER) as ReadResult.Success
+
+        assertThat(found.value.unreadableApps).containsExactly(app)
+        assertThat(found.value.notInstalled).isEqualTo(0)
+        assertThat(found.value.components).isEmpty()
+        assertThat(recorded()).containsExactly(MAIN.key())
     }
 
     @Test

@@ -130,12 +130,12 @@ internal class LocalInstalledAppRepository @Inject constructor(
     }
 
     /** Requires the package lock. Only a confirmed uninstall discards its PM records. */
-    suspend fun forgetIfUninstalled(key: AppKey): Boolean = when (val read = reader.isInstalled(key)) {
-        is ReadResult.Success -> (!read.value).also { if (it) pmBlocks.forgetApp(key) }
+    suspend fun forgetIfUninstalled(key: AppKey): ReadResult<Boolean> = when (val read = reader.isInstalled(key)) {
+        is ReadResult.Success -> ReadResult.Success(!read.value).also { if (it.value) pmBlocks.forgetApp(key) }
 
         is ReadResult.Failure -> {
             Timber.w("Cannot verify installation of $key, keep its PM records: ${read.reason}")
-            false
+            read
         }
     }
 
