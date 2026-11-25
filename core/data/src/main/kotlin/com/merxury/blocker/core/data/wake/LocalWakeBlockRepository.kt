@@ -79,11 +79,10 @@ internal class LocalWakeBlockRepository @Inject constructor(
 
                             method == WakeBlockMethod.COMPONENT -> blockComponent(path, current)
 
-                            !identity.canWriteSystemFiles -> WakeBlockFailure.NeedsRoot
-
                             else -> {
                                 val block = buildFirewallBlock(path) ?: return@failureOf notBlockable(key)
-                                val needsSenderPackageFilter = block.sender != null && block.sender != block.target
+                                if (!identity.canWriteSystemFiles) return@failureOf WakeBlockFailure.NeedsRoot
+                                val needsSenderPackageFilter = block.sender != block.target
                                 if (needsSenderPackageFilter && peerFilterSupported == null) {
                                     peerFilterSupported = managedRules.supportsPeerFilter()
                                 }
@@ -142,30 +141,20 @@ internal class LocalWakeBlockRepository @Inject constructor(
     }
 
     private suspend fun buildFirewallBlock(path: WakePath): WakeBlockEntity? {
+        val component = path.component ?: return null
         val app = AppKey(path.target, UserId.SYSTEM)
         if (!isWakePackageName(path.target) || components.isProtectedFromBlocking(app)) return null
         val sender = when {
-            path.trigger == ReviveTrigger.SYSTEM_BROADCAST -> null
-
             path.trigger == ReviveTrigger.SELF_PROCESS -> path.target
 
-            path.trigger == ReviveTrigger.PEER_SERVICE || path.trigger == ReviveTrigger.PEER_BROADCAST ||
-                path.hold == HoldCause.BOUND_BY_PEER -> path.actor?.takeIf(::isWakePackageName) ?: return null
+            path.trigger == ReviveTrigger.PEER_SERVICE || path.hold == HoldCause.BOUND_BY_PEER ->
+                path.actor?.takeIf(::isWakePackageName) ?: return null
 
             else -> return null
         }
+        if (declaration(app, component)?.type != ComponentType.SERVICE) return null
         val action = path.action?.takeIf(String::isNotBlank)
-        val component = path.component
-        val type = if (component == null) {
-            if (action == null) return null
-            ComponentType.RECEIVER
-        } else {
-            when (val type = declaration(app, component)?.type) {
-                ComponentType.SERVICE, ComponentType.RECEIVER -> type
-                else -> return null
-            }
-        }
-        return WakeBlockEntity(path.pathKey, path.target, WakeBlockMethod.FIREWALL_RULE.name, type.name, sender, component, action, System.currentTimeMillis())
+        return WakeBlockEntity(path.pathKey, path.target, WakeBlockMethod.FIREWALL_RULE.name, ComponentType.SERVICE.name, sender, component, action, System.currentTimeMillis())
     }
 
     private suspend fun blockComponent(path: WakePath, current: MutableMap<String, WakeBlockEntity>): WakeBlockFailure? {

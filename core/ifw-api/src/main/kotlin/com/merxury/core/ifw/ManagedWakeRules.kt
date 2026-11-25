@@ -80,8 +80,7 @@ internal fun renderWakeRules(paths: Collection<WakeServiceFilter>, forcePackageF
     return if (rules.isEmpty()) null else IfwXmlSerializer().serialize(IfwRules(rules))
 }
 
-internal fun wakeSenderFilters(sender: String?, target: String, forcePackageFilter: Boolean = false): List<IfwFilter> = when {
-    sender == null -> emptyList()
+internal fun wakeSenderFilters(sender: String, target: String, forcePackageFilter: Boolean = false): List<IfwFilter> = when {
     sender == target && !forcePackageFilter -> listOf(IfwFilter.Sender(SenderType.USER_ID), IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM)))
     else -> listOf(IfwFilter.SenderPackage(sender))
 }
@@ -126,11 +125,7 @@ internal fun withoutWakePackage(xml: String, target: String): String? {
     val original = IfwXmlDeserializer().deserialize(xml)
     val remaining = original.rules.filterNot { rule ->
         rule.filters.any { filter ->
-            when (filter) {
-                is IfwFilter.ComponentFilter -> filter.name.substringBefore('/') == target
-                is IfwFilter.ComponentPackage -> filter.matcher == StringMatcher.Equals(target)
-                else -> false
-            }
+            filter is IfwFilter.ComponentFilter && filter.name.substringBefore('/') == target
         }
     }
     if (remaining.size == original.rules.size) return xml

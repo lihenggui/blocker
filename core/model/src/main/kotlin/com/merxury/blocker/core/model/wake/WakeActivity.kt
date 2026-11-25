@@ -7,7 +7,7 @@ import com.merxury.blocker.core.model.ComponentType
 
 /** How Blocker could cut one wake path. */
 enum class WakeBlockMethod {
-    /** An Intent Firewall rule for one sender and one service, or one sender and one broadcast action to this package. */
+    /** An Intent Firewall rule for one sender and one service. */
     FIREWALL_RULE,
 
     /** Disabling the component stops it for every caller. */

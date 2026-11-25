@@ -3,10 +3,7 @@
 
 package com.merxury.blocker.core.privileged.wake
 
-import android.app.Activity
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -30,15 +27,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.lsposed.hiddenapibypass.HiddenApiBypass
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.TimeUnit
-
-private const val WAKE_ACTION = "com.merxury.blocker.test.USER_WAKE"
-private const val OTHER_ACTION = "com.merxury.blocker.test.OTHER_WAKE"
 
 class UserWakeFixtureService : Service() {
     override fun onBind(intent: Intent?) = null
@@ -46,12 +37,6 @@ class UserWakeFixtureService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         stopSelf(startId)
         return START_NOT_STICKY
-    }
-}
-
-class UserWakeFixtureReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        resultCode = Activity.RESULT_OK
     }
 }
 
@@ -69,7 +54,7 @@ class UserWakeFirewallDeviceTest {
             assertEquals("The selected sender can start the service before the rule", "", serviceStartError(shellStart))
             assertNotNull(context.startService(service))
 
-            val rule = UserWakeRule(UserWakeRule.Type.SERVICE, "com.android.shell", context.packageName, UserWakeFixtureService::class.java.name, null)
+            val rule = UserWakeRule("com.android.shell", context.packageName, UserWakeFixtureService::class.java.name)
             writer.write(WakeRuleFileKind.USER, renderUserWakeRules(listOf(rule)))
 
             waitUntil("The selected sender can still start the service") { "blocked by firewall" in serviceStartError(shellStart) }
@@ -77,28 +62,6 @@ class UserWakeFirewallDeviceTest {
 
             writer.write(WakeRuleFileKind.USER, null)
             waitUntil("The selected sender did not recover") { serviceStartError(shellStart).isEmpty() }
-        }
-    }
-
-    @Test fun givenUserActionRule_whenBroadcastNamesReceiver_thenOnlyTheMatchingActionIsBlocked() = runTest {
-        withUserRules { writer ->
-            val matching = Intent(context, UserWakeFixtureReceiver::class.java).setAction(WAKE_ACTION)
-            val unmatched = Intent(context, UserWakeFixtureReceiver::class.java).setAction(OTHER_ACTION)
-            val packageOnly = Intent(WAKE_ACTION).setPackage(context.packageName)
-            assertTrue(delivered(matching))
-            assertTrue(delivered(unmatched))
-            assertTrue(delivered(packageOnly))
-
-            val rule = UserWakeRule(UserWakeRule.Type.BROADCAST, null, context.packageName, null, WAKE_ACTION)
-            writer.write(WakeRuleFileKind.USER, renderUserWakeRules(listOf(rule)))
-
-            waitUntil("The action rule did not stop the explicit broadcast") { !delivered(matching) }
-            assertTrue(delivered(unmatched))
-            // AOSP derives component-package from Intent.getComponent(), which is null here.
-            assertTrue(delivered(packageOnly))
-
-            writer.write(WakeRuleFileKind.USER, null)
-            waitUntil("The matching action did not recover") { delivered(matching) }
         }
     }
 
@@ -122,19 +85,6 @@ class UserWakeFirewallDeviceTest {
         } finally {
             withContext(NonCancellable) { writer.write(WakeRuleFileKind.USER, null) }
         }
-    }
-
-    private fun delivered(intent: Intent): Boolean {
-        val result = ArrayBlockingQueue<Int>(1)
-        val acknowledgement = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                result.add(resultCode)
-            }
-        }
-        context.sendOrderedBroadcast(intent, null, acknowledgement, null, Activity.RESULT_CANCELED, null, null)
-        val code = result.poll(5, TimeUnit.SECONDS)
-        assertNotNull("The ordered broadcast did not finish", code)
-        return code == Activity.RESULT_OK
     }
 
     private fun shell(command: String): String = ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(command))

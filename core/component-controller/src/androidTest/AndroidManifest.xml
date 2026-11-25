@@ -9,13 +9,6 @@
             android:name="com.merxury.blocker.core.privileged.wake.UserWakeFixtureService"
             android:exported="true"
             tools:ignore="ExportedService" />
-        <receiver
-            android:name="com.merxury.blocker.core.privileged.wake.UserWakeFixtureReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.merxury.blocker.test.USER_WAKE" />
-            </intent-filter>
-        </receiver>
         <activity
             android:name="com.merxury.blocker.core.privileged.IfwFixtureActivity"
             android:exported="true" />

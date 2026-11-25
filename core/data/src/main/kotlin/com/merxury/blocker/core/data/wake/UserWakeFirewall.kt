@@ -31,9 +31,12 @@ class UserWakeFirewall @Inject constructor(
     ) {
         val replaced = removed.toSet() + added.map { it.pathKey }
         val desired = current.filterNot { it.pathKey in replaced } + added
-        val rules = desired.filter { it.isFirewallBlock }.map { it.toUserWakeRule() }
+        val (services, obsolete) = desired.filter { it.isFirewallBlock }.partition {
+            it.componentType == ComponentType.SERVICE.name && it.component != null && it.sender != null
+        }
+        val rules = services.map { UserWakeRule(requireNotNull(it.sender), it.target, requireNotNull(it.component)) }
         writer.write(WakeRuleFileKind.USER, renderUserWakeRules(rules))
-        dao.update(added, removed)
+        dao.update(added, removed + obsolete.map { it.pathKey })
     }
 
     internal suspend fun sync() {
@@ -55,12 +58,3 @@ class UserWakeFirewall @Inject constructor(
 }
 
 internal val WakeBlockEntity.isFirewallBlock: Boolean get() = method == WakeBlockMethod.FIREWALL_RULE.name
-
-private fun WakeBlockEntity.toUserWakeRule(): UserWakeRule {
-    val ruleType = when (componentType) {
-        ComponentType.SERVICE.name -> UserWakeRule.Type.SERVICE
-        ComponentType.RECEIVER.name -> UserWakeRule.Type.BROADCAST
-        else -> error("Invalid firewall type for wake path $pathKey: $componentType")
-    }
-    return UserWakeRule(ruleType, sender, target, component, action)
-}

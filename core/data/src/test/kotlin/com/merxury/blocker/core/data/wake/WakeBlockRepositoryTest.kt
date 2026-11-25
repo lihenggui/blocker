@@ -65,6 +65,7 @@ import java.io.IOException
 private const val TARGET = "target.pkg"
 private const val PEER = "peer.pkg"
 private const val SERVICE = "$TARGET.Service"
+private const val OTHER_SERVICE = "$TARGET.OtherService"
 private const val RECEIVER = "$TARGET.Receiver"
 private const val PROVIDER = "$TARGET.Provider"
 private const val ACTIVITY = "$TARGET.Activity"
@@ -96,6 +97,7 @@ class WakeBlockRepositoryTest {
             UserId.SYSTEM,
             listOf(
                 declaration(SERVICE, ComponentType.SERVICE),
+                declaration(OTHER_SERVICE, ComponentType.SERVICE),
                 declaration(RECEIVER, ComponentType.RECEIVER),
                 declaration(PROVIDER, ComponentType.PROVIDER),
                 declaration(ACTIVITY, ComponentType.ACTIVITY),
@@ -108,11 +110,9 @@ class WakeBlockRepositoryTest {
         val repository = repository()
         val paths = listOf(
             path("service"),
-            path("broadcast", trigger = ReviveTrigger.PEER_BROADCAST, component = RECEIVER, action = ACTION),
             path("peer-bind", trigger = null, hold = HoldCause.BOUND_BY_PEER),
             path("own-bind", trigger = null, hold = HoldCause.BOUND_BY_PEER, actor = TARGET),
             path("self", trigger = ReviveTrigger.SELF_PROCESS, actor = null),
-            path("system", trigger = ReviveTrigger.SYSTEM_BROADCAST, actor = "android", component = null, action = ACTION),
         )
         repository.blocks.test {
             assertThat(awaitItem()).isEmpty()
@@ -120,17 +120,24 @@ class WakeBlockRepositoryTest {
             assertThat(outcome.done).containsExactlyElementsIn(paths.map(WakePath::pathKey))
             assertThat(outcome.failure).isNull()
             assertThat(awaitItem().associate { it.pathKey to it.sender }).containsExactly(
-                "service", PEER, "broadcast", PEER, "peer-bind", PEER, "own-bind", TARGET, "self", TARGET, "system", null,
+                "service",
+                PEER,
+                "peer-bind",
+                PEER,
+                "own-bind",
+                TARGET,
+                "self",
+                TARGET,
             )
         }
         assertThat(writer.userWrites).hasSize(1)
-        assertThat(writer.firewallRules()).hasSize(4)
+        assertThat(writer.firewallRules()).hasSize(2)
         assertThat(channel.connectCount).isEqualTo(1)
     }
 
     @Test fun givenOtherTriggersAndHolds_whenRequestingFirewall_thenNoRuleIsBroadenedToAnySender() = runTest {
         val repository = repository()
-        val triggers = ReviveTrigger.entries - setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.PEER_BROADCAST, ReviveTrigger.SELF_PROCESS, ReviveTrigger.SYSTEM_BROADCAST)
+        val triggers = ReviveTrigger.entries - setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.SELF_PROCESS)
         val holds = HoldCause.entries - HoldCause.BOUND_BY_PEER
         val paths = triggers.map { path("trigger-${it.name}", trigger = it) } +
             holds.map { path("hold-${it.name}", trigger = null, hold = it) } +
@@ -141,7 +148,7 @@ class WakeBlockRepositoryTest {
         assertThat(writer.userWrites).isEmpty()
     }
 
-    @Test fun givenManifestTypesAndConflictingHints_whenBlocking_thenManifestDeterminesTheRuleType() = runTest {
+    @Test fun givenManifestTypesAndConflictingHints_whenBlockingWithFirewall_thenOnlyDeclaredServicesAreAccepted() = runTest {
         val repository = repository()
         val requested = listOf(
             path("no-type", component = "target.pkg.Missing"),
@@ -150,13 +157,17 @@ class WakeBlockRepositoryTest {
             path("provider", component = PROVIDER),
             path("activity", component = ACTIVITY),
             path("no-selector", component = null),
+            path("self-action", component = null, trigger = ReviveTrigger.SELF_PROCESS, action = ACTION),
+            path("self-receiver", component = RECEIVER, trigger = ReviveTrigger.SELF_PROCESS),
             path("unsupported", method = WakeBlockMethod.NONE),
         )
         val outcome = repository.block(requested.map { it to FIREWALL })
-        assertThat(outcome.failure).isEqualTo(WakeBlockFailure.NotBlockable(listOf("no-type", "provider", "activity", "no-selector", "unsupported")))
-        assertThat(outcome.done).containsExactly("service", "receiver")
+        assertThat(outcome.failure).isEqualTo(
+            WakeBlockFailure.NotBlockable(listOf("no-type", "receiver", "provider", "activity", "no-selector", "self-action", "self-receiver", "unsupported")),
+        )
+        assertThat(outcome.done).containsExactly("service")
         assertThat(repository.blocks.first().associate { it.pathKey to it.componentType })
-            .containsExactly("receiver", ComponentType.RECEIVER, "service", ComponentType.SERVICE)
+            .containsExactly("service", ComponentType.SERVICE)
         assertThat(components.refreshedApps.toSet()).containsExactly(AppKey(TARGET, UserId.SYSTEM))
     }
 
@@ -179,7 +190,7 @@ class WakeBlockRepositoryTest {
     @Test fun givenUnsupportedPackageFilter_whenBlockingPeersAndOwnUid_thenOnlyOwnUidRuleIsApplied() = runTest {
         val repository = repository(peerFilter = false)
         val outcome = repository.block(
-            listOf(path("p1"), path("self", trigger = ReviveTrigger.SELF_PROCESS), path("p2", component = RECEIVER)).map { it to FIREWALL },
+            listOf(path("p1"), path("self", trigger = ReviveTrigger.SELF_PROCESS), path("p2", component = OTHER_SERVICE)).map { it to FIREWALL },
         )
         assertThat(outcome.failure).isEqualTo(WakeBlockFailure.SenderFilterUnsupported(listOf("p1", "p2")))
         assertThat(outcome.done).containsExactly("self")
@@ -236,7 +247,7 @@ class WakeBlockRepositoryTest {
 
     @Test fun givenTwoFirewallBlocks_whenUnblocking_thenFileIsRebuiltAndRemovedAfterLastPath() = runTest {
         val repository = repository()
-        repository.block(listOf(path("first") to FIREWALL, path("second", component = RECEIVER) to FIREWALL))
+        repository.block(listOf(path("first") to FIREWALL, path("second", component = OTHER_SERVICE) to FIREWALL))
         assertThat(repository.unblock(listOf("first", "absent", "first")).done).containsExactly("first")
         assertThat(dao.all().single().pathKey).isEqualTo("second")
         assertThat(writer.firewallRules()).hasSize(1)
@@ -278,6 +289,19 @@ class WakeBlockRepositoryTest {
         assertThat(writer.userWrites.last()).isNull()
     }
 
+    @Test fun givenBroadcastRowsFromAnEarlierBuild_whenSyncing_thenOnlySupportedServiceRulesRemain() = runTest {
+        val service = firewallRow("service", TARGET)
+        val action = service.copy(pathKey = "action", componentType = ComponentType.RECEIVER.name, component = null, action = ACTION)
+        val receiver = action.copy(pathKey = "receiver", component = RECEIVER)
+        dao.upsert(listOf(service, action, receiver))
+        whenever(packages.isInstalled(AppKey(TARGET, UserId.SYSTEM))).thenReturn(ReadResult.Success(true))
+
+        lock.withLock { firewall.sync() }
+
+        assertThat(dao.all()).containsExactly(service)
+        assertThat(writer.firewallRules()).hasSize(1)
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenFirewallWriteInFlight_whenAnotherBlockArrives_thenBatchUsesCommittedRows() = runTest {
@@ -286,7 +310,7 @@ class WakeBlockRepositoryTest {
         writer.beforeWrite = { releaseWrite.await() }
         val first = async { repository.block(listOf(path("first") to FIREWALL)) }
         runCurrent()
-        val second = async { repository.block(listOf(path("second", component = RECEIVER) to FIREWALL)) }
+        val second = async { repository.block(listOf(path("second", component = OTHER_SERVICE) to FIREWALL)) }
         runCurrent()
         assertThat(writer.userWrites).isEmpty()
         assertThat(dao.all()).isEmpty()
@@ -309,7 +333,7 @@ class WakeBlockRepositoryTest {
 
     private fun declaration(name: String, type: ComponentType) = ComponentDeclaration(ComponentId(TARGET, name), type, exported = true, enabledInManifest = true)
 
-    private fun firewallRow(key: String, target: String) = WakeBlockEntity(key, target, FIREWALL.name, ComponentType.SERVICE.name, null, "$target.Service", null, 1)
+    private fun firewallRow(key: String, target: String) = WakeBlockEntity(key, target, FIREWALL.name, ComponentType.SERVICE.name, "sender.pkg", "$target.Service", null, 1)
 }
 
 private class FakeWakeBlockDao : WakeBlockDao {
