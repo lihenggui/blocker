@@ -1,4 +1,10 @@
 <full-backup-content>
+    <exclude domain="database" path="installed_app" />
+    <exclude domain="database" path="installed_app-shm" />
+    <exclude domain="database" path="installed_app-wal" />
+    <exclude domain="database" path="installed_app-journal" />
+    <exclude domain="file" path="datastore/app_properties.pb" />
+    <exclude domain="file" path="datastore/app_properties.pb.tmp" />
     <exclude domain="database" path="wake_history" />
     <exclude domain="database" path="wake_history-shm" />
     <exclude domain="database" path="wake_history-wal" />
