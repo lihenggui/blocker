@@ -28,7 +28,7 @@
     <string name="core_rule_error_msg_folder_not_defined">Папка резервного копирования не указана. Перейдите в настройки, чтоб ее назначить.</string>
     <string name="core_rule_error_msg_missing_root_permission">Отсутствуют root-права. Предоставьте root-права Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Неожиданное исключение, сообщите об этом разработчику.</string>
-    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Приложению Blocker не удалось прочитать список компонентов, которые оно отключило до обновления. Ваши заблокированные компоненты остались без изменений.</string>
+    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Приложению Blocker не удалось прочитать список компонентов, которые оно отключило до обновления. Ни один компонент не был изменён.</string>
     <string name="core_rule_task_cancelled">Задача отменена</string>
     <string name="core_rule_copying_rules_to_internal_storage">Копирование правил во внутреннее хранилище…</string>
     <plurals name="core_rule_result_changed">

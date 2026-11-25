@@ -4,7 +4,7 @@
     <string name="core_ui_profile_work">Công việc</string>
     <string name="core_ui_profile_user">Người dùng %1$d</string>
     <string name="core_ui_profile_not_running">Không chạy</string>
-    <string name="core_ui_uninstall_for_profile_confirm">Bạn có muốn gỡ cài đặt ứng dụng này khỏi %1$s không? Những người dùng và hồ sơ khác có ứng dụng này vẫn giữ nó. Ứng dụng chỉ bị xóa khỏi thiết bị khi không còn người dùng nào có nó.</string>
+    <string name="core_ui_uninstall_for_profile_confirm">Bạn có muốn gỡ cài đặt ứng dụng này khỏi %1$s không? Ứng dụng vẫn được cài đặt cho những người dùng và hồ sơ khác đã cài đặt ứng dụng, và chỉ bị xóa khỏi thiết bị khi không còn được cài đặt cho bất kỳ người dùng nào.</string>
     <string name="core_ui_enable_app_failed">Không thể bật %1$s</string>
     <string name="core_ui_disable_app_failed">Không thể tắt %1$s</string>
     <string name="core_ui_force_stop_app_failed">Không thể buộc dừng %1$s</string>

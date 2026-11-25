@@ -76,12 +76,12 @@
     <string name="core_ui_enabling_components">جارٍ تفعيل المكونات، يرجى الانتظار…</string>
     <string name="core_ui_operation_completed">اكتملت العملية</string>
     <plurals name="core_ui_operation_completed_with_failures">
-        <item quantity="zero">اكتملت العملية. تعذّر تغيير %1$d مكون</item>
-        <item quantity="one">اكتملت العملية. تعذّر تغيير مكون واحد (%1$d)</item>
-        <item quantity="two">اكتملت العملية. تعذّر تغيير مكونين (%1$d)</item>
-        <item quantity="few">اكتملت العملية. تعذّر تغيير %1$d مكونات</item>
-        <item quantity="many">اكتملت العملية. تعذّر تغيير %1$d مكونًا</item>
-        <item quantity="other">اكتملت العملية. تعذّر تغيير %1$d مكون</item>
+        <item quantity="zero">اكتملت العملية. تعذّر تغيير %1$d مكون.</item>
+        <item quantity="one">اكتملت العملية. تعذّر تغيير مكون واحد (%1$d).</item>
+        <item quantity="two">اكتملت العملية. تعذّر تغيير مكونين (%1$d).</item>
+        <item quantity="few">اكتملت العملية. تعذّر تغيير %1$d مكونات.</item>
+        <item quantity="many">اكتملت العملية. تعذّر تغيير %1$d مكونًا.</item>
+        <item quantity="other">اكتملت العملية. تعذّر تغيير %1$d مكون.</item>
     </plurals>
     <string name="core_ui_edit_ifw_rule">قاعدة اعتراض مخصصة</string>
     <string name="core_ui_ifw_add_condition">إضافة شرط</string>
@@ -156,7 +156,7 @@
     <string name="core_ui_profile_work">العمل</string>
     <string name="core_ui_profile_user">المستخدم %1$d</string>
     <string name="core_ui_profile_not_running">متوقف</string>
-    <string name="core_ui_uninstall_for_profile_confirm">هل تريد إلغاء تثبيت هذا التطبيق من %1$s؟ يحتفظ به المستخدمون والملفات الشخصية الأخرى التي لديها التطبيق. يُزال التطبيق من الجهاز عندما لا يبقى لدى أي مستخدم.</string>
+    <string name="core_ui_uninstall_for_profile_confirm">هل تريد إلغاء تثبيت هذا التطبيق من %1$s؟ يظل التطبيق مثبّتًا لدى المستخدمين الآخرين وفي الملفات الشخصية الأخرى التي ثُبّت فيها، ولا يُزال من الجهاز إلا عندما لا يكون مثبّتًا لدى أي مستخدم.</string>
     <string name="core_ui_enable_app_failed">تعذّر تفعيل %1$s</string>
     <string name="core_ui_disable_app_failed">تعذّر تعطيل %1$s</string>
     <string name="core_ui_force_stop_app_failed">تعذّر فرض إيقاف %1$s</string>

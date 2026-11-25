@@ -47,13 +47,13 @@
     <string name="feature_appdetail_api_enabled_first">Habilitado primeiro</string>
     <string name="feature_appdetail_api_none">Nenhum</string>
     <string name="feature_appdetail_api_ascending">Crescente</string>
-    <string name="feature_appdetail_api_refresh_failed">Não foi possível atualizar os componentes. Mostrando o último estado salvo.</string>
+    <string name="feature_appdetail_api_refresh_failed">Não foi possível atualizar os componentes. O último estado salvo é exibido.</string>
     <string name="feature_appdetail_api_not_installed">Este app não está instalado para este usuário.</string>
-    <string name="feature_appdetail_api_read_user_not_reachable">Os apps deste usuário não podem ser lidos agora. Conceda acesso root ou Shizuku.</string>
+    <string name="feature_appdetail_api_read_user_not_reachable">Não é possível ler os apps deste usuário. Conceda acesso root ou Shizuku.</string>
     <string name="feature_appdetail_api_read_manifest_unreadable">Não foi possível ler a lista de componentes do app.</string>
     <string name="feature_appdetail_api_read_no_answer">O serviço do sistema não respondeu. Tente novamente.</string>
     <string name="feature_appdetail_api_read_rules_unreadable">O arquivo de regras do Intent Firewall do app não pode ser lido. Ele pode estar danificado.</string>
-    <string name="feature_appdetail_api_access_not_checked">O Blocker não conseguiu verificar o acesso root ou Shizuku, então não pode ler este app. Conceda acesso para tentar novamente.</string>
+    <string name="feature_appdetail_api_access_not_checked">O Blocker não pôde verificar seu acesso root ou Shizuku e não pode ler este app. Conceda acesso para tentar novamente.</string>
     <string name="feature_appdetail_api_profile_personal">Perfil pessoal</string>
     <string name="feature_appdetail_api_profile_work">Perfil de trabalho</string>
     <string name="feature_appdetail_api_profile_user">Usuário %1$d</string>

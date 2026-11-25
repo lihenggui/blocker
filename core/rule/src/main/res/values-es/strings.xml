@@ -28,7 +28,7 @@
     <string name="core_rule_error_msg_folder_not_defined">No se ha definido una carpeta para Backups, por favor seleccioneuna en configuración.</string>
     <string name="core_rule_error_msg_missing_root_permission">Sin permisos root, por favor conceda permisos a Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Error inesperado, por favor informe al programador.</string>
-    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Blocker no pudo leer la lista de componentes que deshabilitó antes de la actualización. Tus componentes bloqueados no se modificaron.</string>
+    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Blocker no pudo leer la lista de componentes que deshabilitó antes de la actualización. No se modificó ningún componente.</string>
     <string name="core_rule_task_cancelled">Proceso cancelado</string>
     <string name="core_rule_copying_rules_to_internal_storage">Copiando reglas en el almacenamiento interno…</string>
     <plurals name="core_rule_result_changed">
@@ -43,7 +43,7 @@
         <item quantity="one">\u0020%1$d falló.</item>
         <item quantity="other">\u0020%1$d fallaron.</item>
     </plurals>
-    <string name="core_rule_result_firewall_unavailable">\u0020No se pudieron leer las reglas de Intent Firewall, así que se omitieron.</string>
+    <string name="core_rule_result_firewall_unavailable">\u0020No se pudieron leer las reglas de Intent Firewall y no se incluyeron.</string>
     <string name="core_rule_error_msg_folder_unreachable">No se puede acceder a la carpeta de copia de seguridad. Vuelve a elegirla en los ajustes.</string>
     <string name="core_rule_error_msg_mat_file_unreadable">No se puede leer el archivo seleccionado. Vuelve a elegirlo.</string>
 </resources>

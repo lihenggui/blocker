@@ -103,7 +103,7 @@ class SettingsRuleWorkTest {
     }
 
     @Test
-    fun givenExportWithoutTheFirewall_whenItFinishes_thenTheMessageSaysTheRulesWereLeftOut() = runTest {
+    fun givenExportWithoutTheFirewall_whenItFinishes_thenTheMessageSaysTheRulesWereNotIncluded() = runTest {
         whenever(workManager.getWorkInfosForUniqueWorkLiveData("ExportBlockerRule")) doReturn
             ended(WorkInfo.State.SUCCEEDED, RuleWorkResult.PARAM_CHANGED_COUNT to 7, RuleWorkResult.PARAM_FIREWALL_UNAVAILABLE to true)
         val events = mutableListOf<RuleWorkEvent>()
@@ -112,7 +112,7 @@ class SettingsRuleWorkTest {
         viewModel.exportBlockerRules()
 
         assertThat(events.single().resultMessage(application.resources))
-            .isEqualTo("Done. 7 items changed. Intent Firewall rules could not be read, so they were left out.")
+            .isEqualTo("Done. 7 items changed. The Intent Firewall rules could not be read and were not included.")
     }
 
     @Test

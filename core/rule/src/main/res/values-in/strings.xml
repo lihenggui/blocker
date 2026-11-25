@@ -15,7 +15,7 @@
     <string name="core_rule_import_app_rules_please_wait">Impor pengaturan apl, harap tunggu…</string>
     <string name="core_rule_backing_up_apps_please_wait">Cadangkan pengaturan apl, harap tunggu…</string>
     <string name="core_rule_error_msg_unexpected_exception">Pengecualian baru, laporkan ke pengembang.</string>
-    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Blocker tidak dapat membaca daftar komponen yang dinonaktifkannya sebelum pembaruan. Komponen Anda yang diblokir tetap seperti semula.</string>
+    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Blocker tidak dapat membaca daftar komponen yang dinonaktifkannya sebelum pembaruan. Tidak ada komponen yang diubah.</string>
     <string name="core_rule_task_cancelled">Batalkan Tugas</string>
     <plurals name="core_rule_result_changed">
         <item quantity="other">Selesai. %1$d item diubah.</item>
@@ -26,7 +26,7 @@
     <plurals name="core_rule_result_failed">
         <item quantity="other">\u0020%1$d gagal.</item>
     </plurals>
-    <string name="core_rule_result_firewall_unavailable">\u0020Aturan Intent Firewall tidak dapat dibaca, jadi tidak disertakan.</string>
+    <string name="core_rule_result_firewall_unavailable">\u0020Aturan Intent Firewall tidak dapat dibaca sehingga tidak disertakan.</string>
     <string name="core_rule_error_msg_folder_unreachable">Folder cadangan tidak dapat diakses. Pilih lagi di pengaturan.</string>
     <string name="core_rule_error_msg_mat_file_unreadable">File yang dipilih tidak dapat dibaca. Pilih lagi.</string>
 </resources>

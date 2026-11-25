@@ -244,7 +244,7 @@ class RuleWorkDataTest {
         assertThat(code).isEqualTo(RuleWorkResult.LEGACY_PM_RECORDS_UNREADABLE)
         val resources = ApplicationProvider.getApplicationContext<Context>().resources
         assertThat(RuleWorkEvent(RuleWorkType.RESET_PM, code).resultMessage(resources))
-            .isEqualTo("Blocker could not read the list of components it disabled before the update. Your blocked components were not changed.")
+            .isEqualTo("Blocker could not read the list of components it disabled before the update. No components were changed.")
     }
 
     private fun resetPmWorker(components: FakeComponentStatusRepository, seeder: PmBlockRecordSeeder): ResetPmWorker {

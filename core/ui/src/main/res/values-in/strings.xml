@@ -58,7 +58,7 @@
     <string name="core_ui_enabling_components">Mengaktifkan komponen, harap tunggu…</string>
     <string name="core_ui_operation_completed">Operasi selesai</string>
     <plurals name="core_ui_operation_completed_with_failures">
-        <item quantity="other">Operasi selesai. %1$d komponen tidak dapat diubah</item>
+        <item quantity="other">Operasi selesai. %1$d komponen tidak dapat diubah.</item>
     </plurals>
     <string name="core_ui_do_you_want_to_uninstall_this_app">Hapus apl?</string>
     <string name="core_ui_not_found">Tidak ditemukan</string>
@@ -136,7 +136,7 @@
     <string name="core_ui_profile_work">Kerja</string>
     <string name="core_ui_profile_user">Pengguna %1$d</string>
     <string name="core_ui_profile_not_running">Tidak berjalan</string>
-    <string name="core_ui_uninstall_for_profile_confirm">Copot pemasangan aplikasi ini dari %1$s? Pengguna dan profil lain yang memiliki aplikasi ini tetap menyimpannya. Aplikasi baru keluar dari perangkat saat tidak ada pengguna yang memilikinya.</string>
+    <string name="core_ui_uninstall_for_profile_confirm">Apakah Anda ingin mencopot pemasangan aplikasi ini dari %1$s? Aplikasi ini tetap terpasang bagi pengguna dan profil lain yang telah memasangnya dan hanya dihapus dari perangkat apabila tidak lagi terpasang bagi pengguna mana pun.</string>
     <string name="core_ui_enable_app_failed">Tidak dapat mengaktifkan %1$s</string>
     <string name="core_ui_disable_app_failed">Tidak dapat menonaktifkan %1$s</string>
     <string name="core_ui_force_stop_app_failed">Tidak dapat menghentikan paksa %1$s</string>
