@@ -63,9 +63,8 @@ import timber.log.Timber
  * Nothing here changes what a row shows: the repository stores the state read back after each
  * change and its flow updates the rows. This only tracks which components are in flight and turns
  * the outcomes into messages. A block uses the layers of the controller type chosen in the
- * settings. Turning one switch on enables the component through every layer, so it can run
- * whatever blocked it; a batch only removes the blocks of every layer, and leaves components the
- * app ships disabled as they are.
+ * settings. Turning a switch on and enabling a batch both enable components through every layer,
+ * including components disabled in the manifest.
  *
  * Batches run in [batches], so they end even when the screen goes away; only the view model that
  * started one tells its summary.

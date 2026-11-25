@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import kotlinx.coroutines.CompletableDeferred
@@ -231,6 +232,47 @@ class ComponentIndexTest {
         val completed = index.state(owner).first() as IndexState.Indexed
         assertThat(completed.run).isEqualTo(1)
         assertThat(completed.hasAllApps).isTrue()
+    }
+
+    @Test
+    fun givenNotIndexed_whenReading_thenStartsIndexingAndWaitsForIt() = runTest {
+        val index = index()
+
+        val read = async { index.readWhenIndexed(owner) { "matches" } }
+        runCurrent()
+
+        assertThat(components.refreshedUsers).containsExactly(owner)
+        assertThat(read.isCompleted).isFalse()
+        finish(owner)
+        assertThat(read.await()).isEqualTo("matches")
+    }
+
+    @Test
+    fun givenFailedIndex_whenReading_thenThrowsTheIndexFailureWithoutReading() = runTest {
+        val failure = IllegalStateException("Index failed")
+        components.refreshAllProgress = { flow { throw failure } }
+        val index = index()
+        index.ensureIndexed(owner)
+        runCurrent()
+
+        val result = runCatching { index.readWhenIndexed<String>(owner) { error("The read must be skipped") } }
+
+        assertThat(result.exceptionOrNull()).isSameInstanceAs(failure)
+        assertThat(components.refreshedUsers).containsExactly(owner)
+    }
+
+    @Test
+    fun givenAppListCouldNotBeRead_whenReading_thenReturnsNullWithoutReading() = runTest {
+        components.refreshAllProgress = {
+            flowOf(RefreshProgress.Finished(total = 0, failed = 0, appListFailure = ReadFailure.ChannelUnavailable))
+        }
+        val index = index()
+        index.ensureIndexed(owner)
+        runCurrent()
+
+        val matches = index.readWhenIndexed<String>(owner) { error("The read must be skipped") }
+
+        assertThat(matches).isNull()
     }
 
     @Test

@@ -35,9 +35,9 @@ import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
-import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -93,8 +93,8 @@ import java.io.File
  *
  * Turning one switch on enables the component through every layer; turning it off blocks it
  * through the layers of the controller type. The block and enable actions of an app or of the
- * whole page run as one batch, see [ComponentBatchRunner], which removes every block of the
- * components when enabling, as a batch in the app detail does.
+ * whole page run as one batch, see [ComponentBatchRunner]. Batch enable uses the same goal as
+ * turning a switch on, including for components disabled in the manifest.
  */
 @HiltViewModel(assistedFactory = RuleDetailViewModel.Factory::class)
 class RuleDetailViewModel @AssistedInject constructor(
@@ -154,7 +154,6 @@ class RuleDetailViewModel @AssistedInject constructor(
                 rule,
                 matched,
                 seedIcon = rule.iconUrl?.takeIf { useDynamicColor }?.let(::File),
-                batchActionsEnabled = index is IndexState.Indexed && matched is MatchedAppsUiState.Loaded,
             )
         }
     }.retryWhen { e, _ ->
@@ -251,8 +250,9 @@ class RuleDetailViewModel @AssistedInject constructor(
         }
         analyticsHelper.logControlAllInPageClicked(newState = enable)
         val user = apps.first().app.userId
-        startBatch(user, apps.flatMap { app -> app.rows.map { it.id } }, enable) {
-            componentIndex.readWhenIndexed(user) { currentMatches(user) }.orEmpty()
+        val shown = apps.flatMap { it.declarations }
+        startBatch(user, shown.map { it.id }, enable) {
+            componentIndex.readWhenIndexed(user) { currentMatches(user) } ?: shown
         }
     }
 
@@ -289,23 +289,24 @@ class RuleDetailViewModel @AssistedInject constructor(
         user: UserId,
         components: List<ComponentId>,
         enable: Boolean,
-        matches: suspend () -> List<ComponentStatus> = { currentMatches(user) },
+        matches: suspend () -> List<ComponentDeclaration> = { currentMatches(user) },
     ) {
         val batchKey = BatchKey.Rule(id, user)
         if (batches.current(batchKey) != null) return
         val goal = if (enable) ControlGoal.ENABLE else ControlGoal.BLOCK
-        val ids = components.distinct().filterNot { isInFlight(ComponentKey(it, user)) }
-        if (ids.isEmpty()) {
-            tell(if (components.isEmpty()) ControlMessage.NoComponents else ControlMessage.BatchDone(notChanged = components.distinct().size))
+        if (components.isEmpty()) {
+            tell(ControlMessage.NoComponents)
             return
         }
+        val ids = components.distinct().filterNot { isInFlight(ComponentKey(it, user)) }
+        if (ids.isEmpty()) return
         val run = batches.reserve(batchKey, goal, ids) ?: return
         viewModelScope.launch {
             var started = false
             try {
                 val layers = layersFor(goal)
-                val cached = matches().associateBy { it.declaration.id }
-                val declarations = ids.mapNotNull { cached[it]?.declaration }
+                val cached = matches().associateBy { it.id }
+                val declarations = ids.mapNotNull { cached[it] }
                 val vanished = (ids - declarations.mapTo(mutableSetOf()) { it.id }).map { ComponentKey(it, user) }
                 if (vanished.isNotEmpty()) Timber.w("${vanished.size} components of rule $ruleId are no longer matched, tell them as not changed")
                 batches.start(run, declarations, layers)
@@ -322,7 +323,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun currentMatches(user: UserId): List<ComponentStatus> = ruleMatcher.matches(user, id).first()
+    private suspend fun currentMatches(user: UserId): List<ComponentDeclaration> = ruleMatcher.matches(user, id).first().map { it.declaration }
 
     private fun isInFlight(component: ComponentKey): Boolean = component in singles.value || batches.isInFlight(component)
 

@@ -35,6 +35,7 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ControlMessage
@@ -42,6 +43,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -239,7 +241,7 @@ class RuleDetailControlTest {
 
         viewModel.uiState.test {
             settle()
-            assertThat((expectMostRecentItem().ruleInfo as RuleInfoUiState.Success).batchActionsEnabled).isFalse()
+            assertThat((expectMostRecentItem().ruleInfo as RuleInfoUiState.Success).batchActionsEnabled).isTrue()
 
             viewModel.controlAllComponentsInPage(enable = false)
             settle()
@@ -259,6 +261,24 @@ class RuleDetailControlTest {
             assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(openA, pmA, openB)
             assertThat(completed.messages.single().message).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
         }
+    }
+
+    @Test
+    fun givenAppListCouldNotBeRead_whenEnablingThePage_thenSendsShownMatchesAndOffersAccess() = runTest {
+        fixture.components.refreshAllProgress = {
+            flowOf(RefreshProgress.Finished(total = 0, failed = 0, appListFailure = ReadFailure.ChannelUnavailable))
+        }
+        fixture.components.controlEvents = failingWith(ControlFailure.ChannelUnavailable)
+        show()
+        assertThat((viewModel.uiState.value.ruleInfo as RuleInfoUiState.Success).batchActionsEnabled).isTrue()
+
+        viewModel.controlAllComponentsInPage(enable = true)
+        settle()
+
+        val request = fixture.components.requests.single()
+        assertThat(request.goal).isEqualTo(ControlGoal.ENABLE)
+        assertThat(request.components.map { it.id }).containsExactly(openA, pmA, openB)
+        assertThat(viewModel.uiState.value.messages.single().message).isEqualTo(ControlMessage.BatchDone(notChanged = 3, needsAccess = true))
     }
 
     @Test
@@ -302,6 +322,33 @@ class RuleDetailControlTest {
         assertThat(viewModel.uiState.value.inFlight).containsExactly(openB)
         assertThat(viewModel.uiState.value.batch).isNull()
         fixture.batches.release(run)
+    }
+
+    @Test
+    fun givenEveryShownMatchInFlightElsewhere_whenBlockAll_thenNothingIsSentOrReported() = runTest {
+        show()
+        val search = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.ENABLE, listOf(openA, pmA, openB))!!
+
+        viewModel.controlAllComponentsInPage(enable = false)
+        settle()
+
+        assertThat(fixture.batches.current(BatchKey.Search(OWNER))).isSameInstanceAs(search)
+        assertThat(fixture.components.requests).isEmpty()
+        assertThat(viewModel.uiState.value.messages).isEmpty()
+        fixture.batches.release(search)
+    }
+
+    @Test
+    fun givenOneShownMatchInFlightElsewhere_whenBlockAll_thenItIsExcludedFromTheRequestAndSummary() = runTest {
+        show()
+        val search = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.ENABLE, listOf(openB))!!
+
+        viewModel.controlAllComponentsInPage(enable = false)
+        settle()
+
+        assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(openA, pmA)
+        assertThat(viewModel.uiState.value.messages.single().message).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
+        fixture.batches.release(search)
     }
 
     @Test

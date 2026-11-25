@@ -36,7 +36,7 @@ import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
-import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
@@ -170,18 +170,20 @@ class GeneralRulesViewModel @AssistedInject constructor(
         val user = selectedUsers.selectedUser.value
         if (gathering.value != null || batches.current(BatchKey.GeneralRules(user)) != null) return
         val shown = (uiState.value.rules as? GeneralRuleUiState.Success)?.matchedComponents.orEmpty()
-        val ids = shown.filter { it.userId == user }.mapTo(mutableSetOf()) { it.id }
-        if (ids.isEmpty()) {
+        val selected = shown.filterKeys { it.userId == user }
+        if (selected.isEmpty()) {
             tell(ControlMessage.NoComponents)
             return
         }
+        val targets = selected.filterKeys { !batches.isInFlight(it) }
+        if (targets.isEmpty()) return
         val goal = if (enable) ControlGoal.ENABLE else ControlGoal.BLOCK
         gathering.value = goal
         viewModelScope.launch {
             try {
                 val started = try {
                     analyticsHelper.logControlAllSdksClicked(newState = enable)
-                    startBatch(user, goal, ids)
+                    startBatch(user, goal, targets)
                 } finally {
                     gathering.value = null
                 }
@@ -205,16 +207,24 @@ class GeneralRulesViewModel @AssistedInject constructor(
     }
 
     /** Sends the matches shown at confirmation, leaving any changes already in flight alone. */
-    private suspend fun startBatch(user: UserId, goal: ControlGoal, ids: Set<ComponentId>): StartedBatch? {
+    private suspend fun startBatch(
+        user: UserId,
+        goal: ControlGoal,
+        shown: Map<ComponentKey, ComponentDeclaration>,
+    ): StartedBatch? {
         val layers = layersFor(goal)
-        val current = componentIndex.readWhenIndexed(user) { ruleMatcher.matches(user).first().allComponents }
-        val targets = ids.filterNot { batches.isInFlight(ComponentKey(it, user)) }.toSet()
-        val declarations = current.orEmpty().map { it.declaration }.filter { it.id in targets }
+        val current = componentIndex.readWhenIndexed(user) {
+            ruleMatcher.matches(user).first().allComponents.map { it.declaration }
+        } ?: shown.values
+        val targets = shown.keys.filterNot(batches::isInFlight).toSet()
+        if (targets.isEmpty()) return null
+        val declarations = current.filter { ComponentKey(it.id, user) in targets }
+        val sent = declarations.mapTo(mutableSetOf()) { ComponentKey(it.id, user) }
+        val vanished = targets.filterNot { it in sent }
         if (declarations.isEmpty()) {
-            tell(ControlMessage.BatchDone(notChanged = ids.size))
+            tell(batchSummary(emptyList(), vanished))
             return null
         }
-        val vanished = (targets - declarations.mapTo(mutableSetOf()) { it.id }).map { ComponentKey(it, user) }
         val run = batches.reserve(BatchKey.GeneralRules(user), goal, declarations.map { it.id }) ?: return null
         try {
             batches.start(run, declarations, layers)
@@ -232,8 +242,10 @@ class GeneralRulesViewModel @AssistedInject constructor(
      */
     private fun rulesOf(user: UserId): Flow<GeneralRuleUiState> = combine(
         searchRule(user).map { results ->
-            val components = results.rules.flatMapTo(mutableSetOf()) { rule ->
-                results.matches.componentsOf(rule.id).map { ComponentKey(it.declaration.id, user) }
+            val components = buildMap {
+                results.rules.forEach { rule ->
+                    results.matches.componentsOf(rule.id).forEach { put(ComponentKey(it.declaration.id, user), it.declaration) }
+                }
             }
             results.rules to components
         },
@@ -351,7 +363,7 @@ sealed interface GeneralRuleUiState {
         val matchProgress: Float = 0F,
         val selectedRuleId: String? = null,
         val batchActionsEnabled: Boolean = matchProgress == 1F,
-        internal val matchedComponents: Set<ComponentKey> = emptySet(),
+        internal val matchedComponents: Map<ComponentKey, ComponentDeclaration> = emptyMap(),
     ) : GeneralRuleUiState
 
     data class Error(val error: UiMessage) : GeneralRuleUiState

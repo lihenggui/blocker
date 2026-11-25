@@ -102,6 +102,21 @@ class GeneralRuleBatchTest {
 
     private fun summary(): ControlMessage = viewModel.uiState.value.messages.single().message
 
+    private fun unavailableChannel() {
+        fixture.components.controlEvents = { request ->
+            val outcomes = request.components.map { declaration ->
+                ComponentOutcome(
+                    key = ComponentKey(declaration.id, request.user),
+                    state = ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
+                    result = ControlResult.FAILED,
+                    failures = mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable),
+                )
+            }
+            outcomes.groupBy { it.key.id.packageName }.map { (packageName, done) -> ControlEvent.PackageDone(packageName, done) } +
+                ControlEvent.Finished(achieved = 0, partial = 0, failed = outcomes.size)
+        }
+    }
+
     @Test
     fun givenMatches_whenBlockAll_thenOneBatchOfEveryMatchedComponentThroughTheControllerLayers() = runTest {
         fixture.userData.sendUserData(defaultUserData.copy(controllerType = ControllerType.IFW_PLUS_PM))
@@ -184,23 +199,27 @@ class GeneralRuleBatchTest {
         settle()
 
         assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(trackerA, adsA)
+        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
+        fixture.batches.release(search)
+    }
+
+    @Test
+    fun givenAllMatchesInFlightElsewhere_whenBlockAll_thenNothingIsSentOrReported() = runTest {
+        show()
+        val search = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.ENABLE, listOf(trackerA, adsA, trackerB))!!
+
+        viewModel.controlAllComponents(enable = false)
+        settle()
+
+        assertThat(fixture.batches.current(BatchKey.Search(OWNER))).isSameInstanceAs(search)
+        assertThat(fixture.components.requests).isEmpty()
+        assertThat(viewModel.uiState.value.messages).isEmpty()
         fixture.batches.release(search)
     }
 
     @Test
     fun givenNoAccess_whenBlockAllFails_thenTheSummaryCountsThemAndOffersAccess() = runTest {
-        fixture.components.controlEvents = { request ->
-            val outcomes = request.components.map { declaration ->
-                ComponentOutcome(
-                    key = ComponentKey(declaration.id, request.user),
-                    state = ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
-                    result = ControlResult.FAILED,
-                    failures = mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable),
-                )
-            }
-            outcomes.groupBy { it.key.id.packageName }.map { (packageName, done) -> ControlEvent.PackageDone(packageName, done) } +
-                ControlEvent.Finished(achieved = 0, partial = 0, failed = outcomes.size)
-        }
+        unavailableChannel()
         show()
 
         viewModel.controlAllComponents(enable = false)
@@ -262,6 +281,27 @@ class GeneralRuleBatchTest {
     }
 
     @Test
+    fun givenAShownMatchVanishesDuringRebuild_whenBlockAllRuns_thenTheSummaryCountsItAsNotChanged() = runTest {
+        val progress = MutableSharedFlow<RefreshProgress>()
+        fixture.components.refreshAllProgress = { progress }
+        show()
+        val search = fixture.batches.reserve(BatchKey.Search(OWNER), ControlGoal.BLOCK, listOf(trackerB))!!
+
+        viewModel.controlAllComponents(enable = false)
+        settle()
+        assertThat(fixture.components.requests).isEmpty()
+
+        fixture.rules.sendRuleList(listOf(rule(1, "com.tracker.")))
+        settle()
+        progress.emit(RefreshProgress.Finished(total = 3, failed = 0, appListFailure = null))
+        settle()
+
+        assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(trackerA)
+        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 1))
+        fixture.batches.release(search)
+    }
+
+    @Test
     fun givenPartialMatchesAndFailedIndex_whenBlockAll_thenShowTheErrorAndSendNothing() = runTest {
         fixture.components.refreshAllProgress = {
             flow {
@@ -281,17 +321,19 @@ class GeneralRuleBatchTest {
     }
 
     @Test
-    fun givenAppListCouldNotBeRead_whenBlockAll_thenReportsTheMatchesWereNotChanged() = runTest {
+    fun givenAppListCouldNotBeRead_whenBlockAll_thenSendsShownMatchesAndOffersAccess() = runTest {
         fixture.components.refreshAllProgress = {
             flowOf(RefreshProgress.Finished(total = 0, failed = 0, appListFailure = ReadFailure.ChannelUnavailable))
         }
+        unavailableChannel()
         show()
+        assertThat((viewModel.uiState.value.rules as GeneralRuleUiState.Success).batchActionsEnabled).isTrue()
 
         viewModel.controlAllComponents(enable = false)
         settle()
 
-        assertThat(fixture.components.requests).isEmpty()
+        assertThat(fixture.components.requests.single().components.map { it.id }).containsExactly(trackerA, adsA, trackerB)
         assertThat(viewModel.uiState.value.batch).isNull()
-        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 3))
+        assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 3, needsAccess = true))
     }
 }
