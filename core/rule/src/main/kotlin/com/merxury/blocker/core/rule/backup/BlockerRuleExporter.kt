@@ -80,7 +80,7 @@ class BlockerRuleExporter @Inject constructor(
     ): RuleRunResult {
         // A backup of the user Blocker runs in works without privilege, with PM entries only.
         channel.connect()
-        // Older controllers write the rule files behind the store's back.
+        // Invalidate cached rules for apps outside this backup as well as those refreshed below.
         ifwStore.clearCache()
         val summary = SummaryBuilder()
         val apps = when (val listed = appsToExport(user, packageName, includeSystemApps, summary)) {

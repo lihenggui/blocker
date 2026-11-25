@@ -157,11 +157,6 @@ class IntentFirewallStore(
         return IfwResult.Success(all)
     }
 
-    override suspend fun packagesWithRuleFiles(): IfwResult<List<String>> = when (val listed = ruleFileNames()) {
-        is IfwResult.Success -> IfwResult.Success(listed.value.filter(::isPackageRuleFileName))
-        is IfwResult.Failure -> listed
-    }
-
     override suspend fun ruleFileNames(): IfwResult<List<String>> = try {
         IfwResult.Success(fileSystem.listRuleFiles().filter(::isRuleFileName))
     } catch (e: CancellationException) {

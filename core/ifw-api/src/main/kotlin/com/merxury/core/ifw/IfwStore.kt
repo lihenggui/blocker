@@ -145,12 +145,6 @@ interface IfwStore {
     suspend fun ruleFileNames(): IfwResult<List<String>>
 
     /**
-     * The [ruleFileNames] that are package names, as [isPackageRuleFileName] decides: the
-     * packages that have a rule file of their own.
-     */
-    suspend fun packagesWithRuleFiles(): IfwResult<List<String>>
-
-    /**
      * Deletes the rule file `<name>.xml` under its lock without reading it, so a file that cannot
      * be read or parsed goes too. Returns whether there was a file; deleting a missing one
      * succeeds with false and changes nothing, so it is safe to repeat. Drops what [blocks]
