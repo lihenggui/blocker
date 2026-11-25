@@ -32,8 +32,10 @@ import com.merxury.blocker.core.privileged.calls.ComponentEnabledSettings
 import com.merxury.blocker.core.privileged.calls.GetPackageInfo
 import com.merxury.blocker.core.privileged.calls.InstalledPackages
 import com.merxury.blocker.core.privileged.calls.ListUsers
+import com.merxury.blocker.core.privileged.calls.ReadWakeJournal
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.privileged.root.RootCallCommand
+import com.merxury.blocker.core.privileged.wake.WakeJournalRead
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -87,6 +89,26 @@ class CallOutcomeTest {
 
         assertThat(roundTrip(ComponentEnabledSettings(PKG, listOf("$PKG.Main", "$PKG.Gone"), WORK)))
             .isEqualTo(CallResult.Success(listOf(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, null)))
+    }
+
+    @Test
+    fun givenWakeJournalResults_whenMarshalled_thenEveryResultCanBeRead() {
+        val call = ReadWakeJournal(PKG)
+        val results = listOf(WakeJournalRead.Missing, WakeJournalRead.Found("journal"), WakeJournalRead.Unreadable("access denied"))
+
+        results.forEach { result ->
+            val parcel = Parcel.obtain()
+            try {
+                call.writeResult(result, parcel)
+                val bytes = parcel.marshall()
+                parcel.unmarshall(bytes, 0, bytes.size)
+                parcel.setDataPosition(0)
+
+                assertThat(call.readResult(parcel)).isEqualTo(result)
+            } finally {
+                parcel.recycle()
+            }
+        }
     }
 
     @Test

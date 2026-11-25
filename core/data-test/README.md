@@ -21,8 +21,6 @@ graph TB
     :core:database[database]:::android-library
     :core:datastore[datastore]:::android-library
     :core:datastore-proto[datastore-proto]:::jvm-library
-    :core:designsystem[designsystem]:::android-library
-    :core:domain[domain]:::android-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
     :core:network[network]:::android-library
@@ -51,12 +49,6 @@ graph TB
   :core:datastore -.-> :core:common
   :core:datastore --> :core:datastore-proto
   :core:datastore --> :core:model
-  :core:domain -.-> :core:common
-  :core:domain -.-> :core:component-controller
-  :core:domain --> :core:data
-  :core:domain -.-> :core:ifw-api
-  :core:domain --> :core:model
-  :core:domain -.-> :core:rule
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
@@ -71,8 +63,6 @@ graph TB
   :core:testing -.-> :core:common
   :core:testing -.-> :core:component-controller
   :core:testing --> :core:data
-  :core:testing -.-> :core:designsystem
-  :core:testing -.-> :core:domain
   :core:testing -.-> :core:ifw-api
   :core:testing --> :core:model
   :core:testing -.-> :core:rule

@@ -5,15 +5,7 @@ package com.merxury.blocker.core.data.wake
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Process
-import android.os.UserHandle
 import androidx.core.content.edit
-import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO_SOURCE
-import com.merxury.blocker.core.controllers.wake.WakeCapture
-import com.merxury.blocker.core.controllers.wake.WakeCollector
-import com.merxury.blocker.core.controllers.wake.WakeExemptionSnapshot
-import com.merxury.blocker.core.controllers.wake.WakeProcStatsPeriod
-import com.merxury.blocker.core.controllers.wake.WakeResume
 import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeDetectionDao
 import com.merxury.blocker.core.database.wake.WakeExemption
@@ -29,10 +21,18 @@ import com.merxury.blocker.core.database.wake.WakeRelation
 import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.database.wake.WakeStartInfoSeen
 import com.merxury.blocker.core.database.wake.WakeVerdictDay
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.wake.WakeBatch
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO_SOURCE
+import com.merxury.blocker.core.privileged.wake.WakeCapture
+import com.merxury.blocker.core.privileged.wake.WakeCollector
+import com.merxury.blocker.core.privileged.wake.WakeExemptionSnapshot
+import com.merxury.blocker.core.privileged.wake.WakeProcStatsPeriod
+import com.merxury.blocker.core.privileged.wake.WakeResume
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
@@ -86,7 +86,7 @@ class WakeRepository @Inject constructor(
         // Read access comes from the privileged channel now; drop the old root checker's flag once.
         if (contains(LEGACY_ROOT_GRANT)) edit { remove(LEGACY_ROOT_GRANT) }
     }
-    val isOwnerProfile get() = Process.myUserHandle() == UserHandle.getUserHandleForUid(0)
+    val isOwnerProfile get() = currentUserId() == UserId.SYSTEM
 
     // A fresh local journal can coexist with a managed firewall file from a previous install.
     val rulesPending get() = preferences.getBoolean("rules_pending", true)

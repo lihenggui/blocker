@@ -17,7 +17,7 @@
 package com.merxury.blocker.sync.workers
 
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.test.InMemoryDataStore

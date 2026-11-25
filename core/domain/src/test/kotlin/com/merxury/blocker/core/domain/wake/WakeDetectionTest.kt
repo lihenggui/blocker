@@ -10,6 +10,7 @@ import com.merxury.blocker.core.database.wake.WakeHoldPeriod
 import com.merxury.blocker.core.database.wake.WakeHoldProcess
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.database.wake.WakeRelation
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.Justification
@@ -74,7 +75,7 @@ class WakeDetectionTest {
         periods: List<WakeHoldPeriod> = emptyList(),
         processes: List<WakeHoldProcess> = emptyList(),
         associations: List<WakeHoldAssociation> = emptyList(),
-    ) = WakeDetectionEvidence(records, relations, emptyList(), periods, processes, associations, mapOf(TARGET_UID to setOf(TARGET), TARGET_UID + 100_000 to setOf(TARGET), PEER_UID to setOf(PEER)))
+    ) = WakeDetectionEvidence(records, relations, emptyList(), periods, processes, associations, mapOf(TARGET_UID to setOf(TARGET), TARGET_UID + UIDS_PER_USER to setOf(TARGET), PEER_UID to setOf(PEER)))
 
     private fun revive(vararg records: WakeRecord, relations: List<WakeRelation> = emptyList()): WakeFinding = WakeDetection.findings(evidence(records.toList(), relations)).single { it.trigger != null }
 
@@ -608,7 +609,7 @@ class WakeDetectionTest {
                 associations = listOf(
                     WakeHoldAssociation("p", TARGET, TARGET_UID, ".Ime", "system", 1000, 4_000, 5),
                     WakeHoldAssociation("p", TARGET, TARGET_UID, ".Data", PEER, PEER_UID, 9_999, 3_000),
-                    WakeHoldAssociation("p", TARGET, TARGET_UID, ".Self", TARGET, TARGET_UID + 100_000, 3_000, 3_000),
+                    WakeHoldAssociation("p", TARGET, TARGET_UID, ".Self", TARGET, TARGET_UID + UIDS_PER_USER, 3_000, 3_000),
                 ),
             ),
         ).associateBy { it.finding.hold }

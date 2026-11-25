@@ -29,12 +29,10 @@ graph TB
     :core:datastore[datastore]:::android-library
     :core:datastore-proto[datastore-proto]:::jvm-library
     :core:designsystem[designsystem]:::android-library
-    :core:domain[domain]:::android-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
     :core:navigation[navigation]:::android-library
     :core:network[network]:::android-library
-    :core:rule[rule]:::android-library
     :core:system[system]:::android-library
     :core:ui[ui]:::android-library
   end
@@ -57,25 +55,15 @@ graph TB
   :core:datastore -.-> :core:common
   :core:datastore --> :core:datastore-proto
   :core:datastore --> :core:model
-  :core:domain -.-> :core:common
-  :core:domain -.-> :core:component-controller
-  :core:domain --> :core:data
-  :core:domain -.-> :core:ifw-api
-  :core:domain --> :core:model
-  :core:domain -.-> :core:rule
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
   :core:network --> :core:model
-  :core:rule -.-> :core:common
-  :core:rule -.-> :core:component-controller
-  :core:rule -.-> :core:data
-  :core:rule -.-> :core:ifw-api
   :core:system -.-> :core:common
   :core:system --> :core:model
   :core:ui --> :core:analytics
+  :core:ui -.-> :core:common
   :core:ui --> :core:designsystem
-  :core:ui -.-> :core:domain
   :core:ui --> :core:ifw-api
   :core:ui --> :core:model
   :feature:globalifwrule:api --> :core:navigation

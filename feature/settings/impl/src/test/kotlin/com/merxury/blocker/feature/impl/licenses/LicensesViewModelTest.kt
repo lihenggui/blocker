@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
+import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
 import com.merxury.blocker.core.model.data.LicenseGroup
 import com.merxury.blocker.core.model.licenses.LicenseItem
 import com.merxury.blocker.core.model.licenses.Scm

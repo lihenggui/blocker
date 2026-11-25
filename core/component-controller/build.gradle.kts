@@ -37,7 +37,6 @@ dependencies {
     implementation(projects.core.ifwApi)
     implementation(projects.core.system)
 
-    implementation(libs.hiddenapibypass)
     implementation(libs.librootkotlinx)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
@@ -46,6 +45,7 @@ dependencies {
     testImplementation(projects.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.hiddenapibypass)
     androidTestImplementation(libs.kotlin.test.junit)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.truth)

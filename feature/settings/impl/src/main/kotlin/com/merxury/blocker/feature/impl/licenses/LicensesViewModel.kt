@@ -18,7 +18,7 @@ package com.merxury.blocker.feature.impl.licenses
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
+import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
 import com.merxury.blocker.core.model.data.LicenseGroup
 import com.merxury.blocker.feature.impl.licenses.LicensesUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel

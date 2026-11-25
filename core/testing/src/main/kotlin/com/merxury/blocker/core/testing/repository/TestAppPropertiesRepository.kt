@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.testing.repository
 
-import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
+import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.model.preference.AppPropertiesData
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.MutableSharedFlow

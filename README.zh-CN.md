@@ -104,10 +104,10 @@ Blocker app的默认字符串资源在工程以下几个位置：
 
 ## 常见问题
 
-1. 在Shizuku模式下点击按钮，组件状态无法控制，弹出SecurityException: Shell cannot change component
-   state for 'xx' to state 'xx'。
+1. 为什么在 Shizuku 模式下无法更改应用的组件状态？
 
-* Shizuku的Shell权限无法禁用未修改的应用组件，请用Root身份重启Shizuku，或者修改APK之后尝试。
+* 通过 ADB 启动的 Shizuku 只能更改标记为 Test-Only 的应用的组件状态。更改正常应用的组件状态需要以 Root 身份启动 Shizuku。
+  如果 Android 拒绝在 ADB 权限下更改组件状态，Blocker 会提示您以 Root 身份启动 Shizuku 后重试。
 
 2. `foss`版本和`market`版本有什么区别？
 

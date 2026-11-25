@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.BlockerRuleExporter
 import com.merxury.blocker.core.rule.entity.RuleWorkType
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -48,7 +49,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
             is BackupFolder.Ready -> folder.storage
             is BackupFolder.Unusable -> return failureOf(folder.code)
         }
-        val user = inputData.userOr(PARAM_TARGET_USER, ownUser())
+        val user = inputData.userOr(PARAM_TARGET_USER, currentUserId())
         Timber.i("Back up Blocker rules of user ${user.value}")
         setForeground(updateNotification("", 0, 0))
         val result = exporter.export(

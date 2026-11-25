@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.search.impl
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.applist.CountServicesUseCase
@@ -34,6 +35,7 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlRequest
@@ -80,7 +82,7 @@ internal fun installedApp(
     isSystem: Boolean = false,
 ) = InstalledApp(
     key = AppKey(packageName, user),
-    uid = 10_000 + user.value * 100_000,
+    uid = 10_000 + user.value * UIDS_PER_USER,
     label = label,
     versionName = "1.0",
     versionCode = 1,
@@ -150,7 +152,7 @@ internal class SearchFixture(dispatcher: CoroutineDispatcher) {
         searchRules = SearchGeneralRuleUseCase(rules, ruleMatcher, File("/files"), "rules"),
         performAppAction = PerformAppActionUseCase(installedApps, appControl, channel),
         readRunningPackages = ReadRunningPackagesUseCase(appControl, channel),
-        countAppServices = CountServicesUseCase(components, serviceControl, channel),
+        countAppServices = CountServicesUseCase(components, LocalComponentActions(appControl, serviceControl), channel),
         channel = channel,
         userDataRepository = userData,
         analyticsHelper = analytics,

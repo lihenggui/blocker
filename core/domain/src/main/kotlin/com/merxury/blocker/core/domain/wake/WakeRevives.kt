@@ -3,17 +3,19 @@
 
 package com.merxury.blocker.core.domain.wake
 
-import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO
-import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO_CLOCK
-import com.merxury.blocker.core.controllers.wake.WAKE_START_INFO_SLEEP
 import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.component.isRegularAppUid
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.Justification
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.WakeFinding
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
+import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO
+import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO_CLOCK
+import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO_SLEEP
 
 /**
  * A finding, the part of its duration that fell while the screen was off, and for a chained revive
@@ -101,17 +103,21 @@ internal object WakeRevives {
         val events = kind("am_proc_start").filter { it.source == SYSTEM_WAKE_EVENTS }
         // The event log names each start with its exact time, pid and process.
         for (record in events) {
-            val uid = record.targetUid?.takeIf(::isRegularApp) ?: continue
+            val uid = record.targetUid?.takeIf(::isRegularAppUid) ?: continue
             starts.getOrPut(record.boot to uid) { mutableListOf() } += ColdStart(record.boot, uid, record.processName, record.elapsedNanos).apply {
                 event = record
                 component = componentKey(record.component)
             }
         }
         // ProcessStartTime logs isolated processes under the host uid; the event log under their own.
-        val isolatedPids = events.filter { it.targetUid != null && !isRegularApp(it.targetUid) && it.pid != null }
+        val isolatedPids = events
+            .filter { event ->
+                val uid = event.targetUid
+                uid != null && !isRegularAppUid(uid) && event.pid != null
+            }
             .groupBy({ it.boot to it.pid }, { it.elapsedNanos })
         for (record in kind("ProcessStartTime").filter { it.source == "statsd" && it.startType != 1 && it.startType != 2 }) {
-            val uid = record.targetUid?.takeIf(::isRegularApp) ?: continue
+            val uid = record.targetUid?.takeIf(::isRegularAppUid) ?: continue
             if (record.number("hosting_type_id") == ZYGOTE_HOSTING_TYPE_ID) continue
             val actual = record.number("process_start_time_millis")?.takeIf { it >= 0 }?.times(1_000_000) ?: record.elapsedNanos
             fun near(time: Long) = kotlin.math.abs(time - actual) <= MERGE_WINDOW
@@ -128,7 +134,7 @@ internal object WakeRevives {
         // so it fits the starts within that span. It also writes one record per component started while
         // the process comes up; the earliest describes it.
         for (record in kind(WAKE_START_INFO).filter { it.startType == 3 }.sortedBy { it.elapsedNanos }) {
-            val uid = record.targetUid?.takeIf(::isRegularApp) ?: continue
+            val uid = record.targetUid?.takeIf(::isRegularAppUid) ?: continue
             val sleep = if (record.attr(WAKE_START_INFO_CLOCK) == "elapsed") 0 else record.number(WAKE_START_INFO_SLEEP)
             val span = (record.elapsedNanos - MERGE_WINDOW)..(record.elapsedNanos + (sleep ?: 0) + MERGE_WINDOW)
             val candidates = starts[record.boot to uid].orEmpty().filter { start ->
@@ -353,7 +359,7 @@ internal object WakeRevives {
             val killWindow = (start.elapsed - KILL_WINDOW) until start.elapsed
             // Only a kill meaning the user or the system wanted the app gone makes the restart notable.
             val killed = start.process?.let { process ->
-                kills[Triple(start.boot, start.uid / 100_000, process)].orEmpty().lastOrNull { kill ->
+                kills[Triple(start.boot, userOfUid(start.uid), process)].orEmpty().lastOrNull { kill ->
                     kill.elapsedNanos in killWindow && kill.attr("reason")?.let(WakeKillReasons::qualifies) == true
                 }?.attr("reason") ?: deaths[Triple(start.boot, start.uid, process)].orEmpty().map { died ->
                     died to (died.number("reason")?.toInt() to died.number("sub_reason")?.toInt())

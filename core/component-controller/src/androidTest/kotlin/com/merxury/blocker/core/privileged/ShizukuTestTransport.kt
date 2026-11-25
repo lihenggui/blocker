@@ -19,12 +19,12 @@ package com.merxury.blocker.core.privileged
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Process
-import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
-import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
-import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.privileged.shizuku.DefaultShizukuApi
+import com.merxury.blocker.core.privileged.shizuku.DefaultShizukuInitializer
+import com.merxury.blocker.core.privileged.shizuku.RegisterShizukuResult
+import com.merxury.blocker.core.privileged.shizuku.ShizukuApi
 import com.merxury.blocker.core.privileged.shizuku.ShizukuSystemServices
 import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
 import com.merxury.blocker.core.privileged.shizuku.ShizukuUserService
@@ -55,7 +55,7 @@ private val SHIZUKU_BINDER_WAIT = 2.minutes
  */
 internal fun connectedShizukuTransport(context: Context, expected: PrivilegedIdentity): ShizukuTransport {
     val api = DefaultShizukuApi()
-    val initializer = ShizukuInitializer(api)
+    val initializer = DefaultShizukuInitializer(api)
     awaitShizukuBinder(initializer)
     // The binder arrives with the server's answer for this uid, so this reads no stale state.
     if (runBlocking { initializer.registerShizukuIfGranted() } !is RegisterShizukuResult.Granted) {
@@ -72,13 +72,13 @@ internal fun connectedShizukuTransport(context: Context, expected: PrivilegedIde
 }
 
 /** Waits for the binder Shizuku sends to this process, failing the test if none arrives. */
-internal fun awaitShizukuBinder(initializer: ShizukuInitializer = ShizukuInitializer(DefaultShizukuApi())) {
+internal fun awaitShizukuBinder(initializer: DefaultShizukuInitializer = DefaultShizukuInitializer(DefaultShizukuApi())) {
     runBlocking { withTimeout(SHIZUKU_BINDER_WAIT) { initializer.awaitBinder() } }
 }
 
 /** A [ShizukuTransport] over [api] that nothing has connected yet. */
 internal fun shizukuTransport(context: Context, api: ShizukuApi = DefaultShizukuApi()): ShizukuTransport = ShizukuTransport(
-    ShizukuInitializer(api),
+    DefaultShizukuInitializer(api),
     api,
     ShizukuSystemServices(context),
     ShizukuUserService(ShizukuUserServiceConnector(context), attachTimeout = 15.seconds, scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)),

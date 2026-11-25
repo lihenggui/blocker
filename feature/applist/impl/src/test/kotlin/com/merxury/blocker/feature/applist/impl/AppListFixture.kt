@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.applist.impl
 
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.domain.applist.CountServicesUseCase
 import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
@@ -28,6 +29,7 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
@@ -69,7 +71,7 @@ internal fun installedApp(
     lastUpdateTime: Long = 2_000,
 ) = InstalledApp(
     key = AppKey(packageName, user),
-    uid = 10_000 + user.value * 100_000,
+    uid = 10_000 + user.value * UIDS_PER_USER,
     label = label,
     versionName = "1.0",
     versionCode = 1,
@@ -120,7 +122,7 @@ internal class AppListFixture(private val dispatcher: CoroutineDispatcher) {
         installedApps = installedApps,
         performAppAction = PerformAppActionUseCase(installedApps, appControl, channel),
         readRunningPackages = ReadRunningPackagesUseCase(appControl, channel),
-        countAppServices = CountServicesUseCase(components, serviceControl, channel),
+        countAppServices = CountServicesUseCase(components, LocalComponentActions(appControl, serviceControl), channel),
         channel = channel,
         userDataRepository = userData,
         analyticsHelper = analytics,

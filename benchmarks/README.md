@@ -159,8 +159,8 @@ graph TB
   :core:system -.-> :core:common
   :core:system --> :core:model
   :core:ui --> :core:analytics
+  :core:ui -.-> :core:common
   :core:ui --> :core:designsystem
-  :core:ui -.-> :core:domain
   :core:ui --> :core:ifw-api
   :core:ui --> :core:model
   :feature:appdetail:api --> :core:navigation
@@ -209,7 +209,6 @@ graph TB
   :feature:globalifwrule:impl -.-> :feature:globalifwrule:api
   :feature:ifwrule:api --> :core:navigation
   :feature:ifwrule:api -.-> :core:ui
-  :feature:ifwrule:impl -.-> :core:data
   :feature:ifwrule:impl -.-> :core:designsystem
   :feature:ifwrule:impl -.-> :core:ifw-api
   :feature:ifwrule:impl -.-> :core:ui

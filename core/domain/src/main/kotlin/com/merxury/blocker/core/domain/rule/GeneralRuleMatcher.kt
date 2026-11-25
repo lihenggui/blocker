@@ -19,8 +19,8 @@ package com.merxury.blocker.core.domain.rule
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT

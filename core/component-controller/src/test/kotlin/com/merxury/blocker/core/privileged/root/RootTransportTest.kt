@@ -20,7 +20,6 @@ import android.os.RemoteException
 import be.mygod.librootkotlinx.NoShellException
 import be.mygod.librootkotlinx.RootServer
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.controllers.wake.WakeCommand
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -36,6 +35,7 @@ import com.merxury.blocker.core.privileged.calls.ForceStop
 import com.merxury.blocker.core.privileged.calls.ReadWakeSource
 import com.merxury.blocker.core.privileged.encodeOutcome
 import com.merxury.blocker.core.privileged.unmarshallCall
+import com.merxury.blocker.core.privileged.wake.WakeCommand
 import com.merxury.blocker.core.privileged.withoutPermissionPrompts
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi

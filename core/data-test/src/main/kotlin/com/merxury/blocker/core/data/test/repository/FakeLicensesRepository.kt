@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.data.test.repository
 
-import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
+import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
 import com.merxury.blocker.core.model.licenses.LicenseItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf

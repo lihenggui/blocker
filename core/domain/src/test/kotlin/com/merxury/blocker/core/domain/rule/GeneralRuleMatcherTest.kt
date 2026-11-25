@@ -18,7 +18,7 @@ package com.merxury.blocker.core.domain.rule
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -105,6 +105,22 @@ class GeneralRuleMatcherTest {
         components.sendComponents(OWNER, listOf(status("com.alpha", "com.tracker.A"), status("com.gone", "com.tracker.B")))
 
         assertThat(matcher().matches(OWNER).first().allComponents.map { it.declaration.id.packageName }).containsExactly("com.alpha")
+    }
+
+    @Test
+    fun givenRuleObserved_whenAnAppIsInstalledAndUpdated_thenMatchCountsFollowTheCache() = runTest {
+        val packageName = "com.alpha"
+
+        matcher().matches(OWNER).test {
+            assertThat(awaitItem().appCountOf(TRACKER.id)).isEqualTo(0)
+
+            apps.sendApps(listOf(installedApp(packageName)))
+            components.sendComponents(OWNER, listOf(status(packageName, "com.tracker.Replacement")))
+            assertThat(awaitItem().appCountOf(TRACKER.id)).isEqualTo(1)
+
+            components.sendComponents(OWNER, listOf(status(packageName, "com.alpha.Main")))
+            assertThat(awaitItem().appCountOf(TRACKER.id)).isEqualTo(0)
+        }
     }
 
     @Test

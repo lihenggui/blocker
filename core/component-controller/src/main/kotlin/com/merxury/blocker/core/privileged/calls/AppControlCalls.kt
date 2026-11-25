@@ -33,6 +33,7 @@ import android.os.IBinder
 import android.os.Parcel
 import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.privileged.PrivilegedAction
 import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.SystemServices
@@ -372,8 +373,3 @@ private fun requireService(system: SystemServices, component: ComponentName, use
         throw NameNotFoundException("${component.packageName} does not declare the service ${component.className}")
     }
 }
-
-// UserHandle.PER_USER_RANGE: a uid is the user times this plus the app id.
-private const val PER_USER_RANGE = 100_000
-
-private fun userOfUid(uid: Int): Int = uid / PER_USER_RANGE

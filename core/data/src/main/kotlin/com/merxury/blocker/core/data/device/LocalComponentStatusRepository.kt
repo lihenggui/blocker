@@ -54,6 +54,7 @@ import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.withLocalPackageReads
 import com.merxury.blocker.core.system.SystemPackageReader
+import com.merxury.blocker.core.utils.ownAppKey
 import com.merxury.core.ifw.IfwStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -134,7 +135,7 @@ internal class LocalComponentStatusRepository(
         wakeOwnership: WakeComponentOwnership,
         wakeCatalog: ReviewedWakePaths,
     ) : this(
-        dao, installedApps, packages, componentControl, pmBlocks, channel, ifwStore, appScope, AppKey(appPackageName, ownUser()), reader, controlActivity, packageLocks,
+        dao, installedApps, packages, componentControl, pmBlocks, channel, ifwStore, appScope, ownAppKey(appPackageName), reader, controlActivity, packageLocks,
         { user, candidates -> wakeOwnership.claimedBlocks(user, candidates, wakeCatalog) },
     )
 

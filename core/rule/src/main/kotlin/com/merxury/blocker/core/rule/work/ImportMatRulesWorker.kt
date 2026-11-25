@@ -31,6 +31,7 @@ import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.backup.MatRuleImporter
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkType
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -54,7 +55,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val lines = readLines(inputData.getString(PARAM_FILE_URI)) ?: return failureOf(MISSING_STORAGE_PERMISSION)
-        val target = inputData.userOr(PARAM_TARGET_USER, ownUser())
+        val target = inputData.userOr(PARAM_TARGET_USER, currentUserId())
         Timber.i("Import ${lines.size} MAT lines into user ${target.value}")
         val result = importer.import(
             lines = lines,

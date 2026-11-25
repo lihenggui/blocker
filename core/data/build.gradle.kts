@@ -41,7 +41,6 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlinx.serialization.json)
-    testImplementation(projects.core.domain)
     testImplementation(projects.core.testing)
     testImplementation(projects.core.datastoreTest)
     testImplementation(libs.mockito.kotlin)

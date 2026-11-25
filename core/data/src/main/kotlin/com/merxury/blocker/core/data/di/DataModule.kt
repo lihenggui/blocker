@@ -16,12 +16,14 @@
 
 package com.merxury.blocker.core.data.di
 
+import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InMemorySelectedUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppDbPmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.LocalComponentStatusRepository
 import com.merxury.blocker.core.data.device.LocalDebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.LocalDeviceUserRepository
@@ -30,18 +32,18 @@ import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
-import com.merxury.blocker.core.data.respository.componentdetail.LocalComponentDetailRepository
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSource
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.data.respository.generalrule.LocalGeneralRuleDataSource
-import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
-import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
-import com.merxury.blocker.core.data.respository.licenses.LocalLicensesRepository
-import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
-import com.merxury.blocker.core.data.respository.userdata.LocalAppPropertiesRepository
-import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.repository.componentdetail.LocalComponentDetailRepository
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleDataSource
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.repository.generalrule.LocalGeneralRuleDataSource
+import com.merxury.blocker.core.data.repository.generalrule.OfflineFirstGeneralRuleRepository
+import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
+import com.merxury.blocker.core.data.repository.licenses.LocalLicensesRepository
+import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
+import com.merxury.blocker.core.data.repository.userdata.LocalAppPropertiesRepository
+import com.merxury.blocker.core.data.repository.userdata.LocalUserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.AppPermissionMonitor
 import com.merxury.blocker.core.data.util.ConnectivityManagerNetworkMonitor
 import com.merxury.blocker.core.data.util.NetworkMonitor
@@ -56,6 +58,9 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
+    @Binds
+    internal abstract fun bindComponentActions(impl: LocalComponentActions): ComponentActions
+
     @Binds
     internal abstract fun bindUserDataRepository(
         userDataRepository: LocalUserDataRepository,

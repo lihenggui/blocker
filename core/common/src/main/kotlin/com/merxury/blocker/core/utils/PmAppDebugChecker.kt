@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.utils
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,5 +26,8 @@ import javax.inject.Singleton
 class PmAppDebugChecker @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : AppDebugChecker {
-    override fun isDebugMode(): Boolean = ApplicationUtil.isDebugMode(context)
+    override fun isDebugMode(): Boolean {
+        val appInfo = context.packageManager.getApplicationInfo(context.packageName, 0)
+        return 0 != appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
+    }
 }

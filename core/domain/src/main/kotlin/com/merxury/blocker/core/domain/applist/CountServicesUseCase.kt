@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.domain.applist
 
-import com.merxury.blocker.core.appcontrol.ServiceControl
+import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -35,7 +35,7 @@ import javax.inject.Inject
 /** Counts the services of one app for its user, for the service line of a list of apps. */
 class CountServicesUseCase @Inject constructor(
     private val components: ComponentStatusRepository,
-    private val serviceControl: ServiceControl,
+    private val componentActions: ComponentActions,
     private val channel: PrivilegedChannel,
 ) {
     // A few apps at a time, so a screen of rows does not queue a burst of system calls.
@@ -58,7 +58,7 @@ class CountServicesUseCase @Inject constructor(
                 // An unreadable rule file still leaves the declarations and PackageManager state.
                 if (refreshed.reason !is ReadFailure.RulesUnreadable) return@withPermit null
             }
-            val running = when (val result = serviceControl.runningServices(app)) {
+            val running = when (val result = componentActions.runningServices(app)) {
                 is CallResult.Success -> result.value
 
                 is CallResult.Failure -> {

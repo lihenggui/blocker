@@ -148,7 +148,7 @@ class IntentFirewallStoreClearTest {
         fileSystem.noAccess = true
 
         assertThat(store.clear(PKG)).isEqualTo(IfwResult.Failure(IfwFailure.NoAccess))
-        assertThat(store.packagesWithRuleFiles()).isEqualTo(IfwResult.Failure(IfwFailure.NoAccess))
+        assertThat(store.ruleFileNames()).isEqualTo(IfwResult.Failure(IfwFailure.NoAccess))
         assertThat(fileSystem.fileContent(PKG)).isEqualTo(LEGACY_XML)
     }
 
@@ -199,25 +199,6 @@ class IntentFirewallStoreClearTest {
 
         assertThat(fileSystem.operations).containsExactly("read $PKG", "write $PKG", "delete $PKG", "read $PKG").inOrder()
         assertThat(fileSystem.fileContent(PKG)).isNull()
-    }
-
-    @Test
-    fun givenDamagedWakeAndCustomFiles_whenPackagesWithRuleFiles_thenEveryPackageWithoutReadingAndNoOtherFile() = runTest {
-        fileSystem.putFile(PKG, LEGACY_XML)
-        fileSystem.putFile("com.broken", DAMAGED_XML)
-        fileSystem.putFile("com.locked", "<rules />")
-        fileSystem.unreadablePackages += "com.locked"
-        fileSystem.putFile(WAKE_FILE, CONDITIONAL_MAIN_XML)
-        fileSystem.putFile("blocker-wake-capability-probe", CONDITIONAL_MAIN_XML)
-        fileSystem.putFile("android", LEGACY_XML)
-        fileSystem.putFile("my-rules", LEGACY_XML)
-        fileSystem.putFile("my rules", LEGACY_XML)
-        fileSystem.putFile("1app", LEGACY_XML)
-
-        val packages = store.packagesWithRuleFiles()
-
-        assertThat((packages as IfwResult.Success).value).containsExactly(PKG, "com.broken", "com.locked", "android")
-        assertThat(fileSystem.operations).containsExactly("list")
     }
 
     @Test

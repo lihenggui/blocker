@@ -16,19 +16,21 @@
 
 package com.merxury.blocker.core.data.test
 
+import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DebloaterApk
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.DataModule
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
-import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
+import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.test.repository.FakeAppPropertiesRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
@@ -57,6 +59,9 @@ import dagger.hilt.testing.TestInstallIn
     replaces = [DataModule::class],
 )
 internal interface TestDataModule {
+    @Binds
+    fun bindComponentActions(impl: LocalComponentActions): ComponentActions
+
     @Binds
     fun bindUserDataRepository(
         userDataRepository: FakeUserDataRepository,

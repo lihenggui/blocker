@@ -31,7 +31,7 @@ import coil3.SingletonImageLoader
 import com.merxury.blocker.core.data.device.DeviceUserMonitor
 import com.merxury.blocker.core.data.device.PackageChangeMonitor
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher

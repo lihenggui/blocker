@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.ServiceConnection
 import android.os.DeadObjectException
 import android.os.IBinder
-import android.os.Process
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -33,6 +32,7 @@ import com.merxury.blocker.core.privileged.PrivilegedCall
 import com.merxury.blocker.core.privileged.PrivilegedProcessUnavailableException
 import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.marshallCall
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -63,8 +63,10 @@ private const val MIN_SHIZUKU_VERSION = 13
 // Starting the service is a new app_process, which takes a few seconds on a slow device.
 private val ATTACH_TIMEOUT = 15.seconds
 
-// Raise when the AIDL interface changes, so Shizuku replaces a service an older app started.
-private const val SERVICE_VERSION = 1
+// Bump when AIDL or serialized class names change. Wake requests and replies carry class names,
+// so moving wake parcelables between packages affects compatibility with an older service.
+// This is defensive because the service is non-daemon and an APK update kills the app process.
+private const val SERVICE_VERSION = 2
 
 // A service is a full app_process: after a background collection it held about 160 MB of PSS.
 // Short, because a process left in the background is cached and soon frozen, and a frozen
@@ -100,15 +102,13 @@ internal interface UserServiceConnector {
     fun unbind(connection: ServiceConnection, stop: Boolean)
 }
 
-private const val UIDS_PER_USER = 100_000
-
 internal class ShizukuUserServiceConnector @Inject constructor(
     @ApplicationContext context: Context,
 ) : UserServiceConnector {
     // Shizuku keeps one service per package and tag for the whole device, and the service serves
     // only the uid it was started for. A tag per Android user gives Blocker in a work profile its
     // own service instead of the owner's, which would refuse it.
-    private val userId = Process.myUid() / UIDS_PER_USER
+    private val userId = currentUserId().value
     private val args = Shizuku.UserServiceArgs(ComponentName(context, ShizukuPrivilegedService::class.java))
         .daemon(false)
         .processNameSuffix("privileged_u$userId")

@@ -18,9 +18,6 @@ package com.merxury.blocker.core.privileged.shizuku
 
 import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
-import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
-import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
@@ -412,7 +409,7 @@ class ShizukuTransportTest {
 }
 
 /** Answers both registrations with [result]; the one that may ask counts as asking. */
-private class FakeShizukuInitializer : IShizukuInitializer {
+private class FakeShizukuInitializer : ShizukuInitializer {
     var result: RegisterShizukuResult = RegisterShizukuResult.Granted(2000)
     var quietGate: CompletableDeferred<Unit>? = null
     var asked = 0

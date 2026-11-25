@@ -20,6 +20,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.system.AppEnabledSetting
 import com.merxury.blocker.core.model.system.UserKind
 import org.junit.After
@@ -65,7 +66,7 @@ internal fun app(
 ) = AppEntity(
     packageName = packageName,
     userId = userId,
-    uid = 10_000 + userId * 100_000,
+    uid = 10_000 + userId * UIDS_PER_USER,
     label = label,
     versionName = "1.0",
     versionCode = 1,

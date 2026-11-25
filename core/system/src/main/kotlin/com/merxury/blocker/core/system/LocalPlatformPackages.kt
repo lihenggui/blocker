@@ -23,11 +23,11 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Process
 import android.os.UserManager
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
+import com.merxury.blocker.core.utils.currentUserId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -42,8 +42,7 @@ class LocalPlatformPackages @Inject constructor(
 
     private val pm: PackageManager = context.packageManager
 
-    // A uid is userId * 100000 + appId on every Android version.
-    private val ownUser = UserId(Process.myUid() / UIDS_PER_USER)
+    private val ownUser = currentUserId()
 
     override suspend fun users(): List<DeviceUser> = listOf(
         DeviceUser(
@@ -141,8 +140,6 @@ class LocalPlatformPackages @Inject constructor(
     }
 
     private companion object {
-        const val UIDS_PER_USER = 100_000
-
         // The only values PackageManager stores for a component.
         val COMPONENT_SETTINGS = setOf(
             PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,

@@ -21,7 +21,6 @@ import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.controllers.wake.WakeFixtureService
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
@@ -35,6 +34,7 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.privileged.calls.ListIfwRuleFiles
 import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootTransport
+import com.merxury.blocker.core.privileged.wake.WakeFixtureService
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.di.IfwModule
 import com.merxury.core.ifw.model.IfwComponentType

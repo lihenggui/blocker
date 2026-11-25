@@ -22,14 +22,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
-import app.cash.turbine.test
+import app.cash.turbine.turbineScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.cache.asEntity
-import com.merxury.blocker.core.domain.control.BatchKey
-import com.merxury.blocker.core.domain.control.ComponentBatchRunner
-import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
-import com.merxury.blocker.core.domain.search.ComponentIndex
-import com.merxury.blocker.core.domain.search.IndexState
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
@@ -41,21 +36,17 @@ import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.AppEnabledSetting
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
-import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
-import com.merxury.blocker.core.testing.repository.TestUserDataRepository
-import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
@@ -93,31 +84,27 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
     }
 
     @Test
-    fun givenRuleMatcherObserving_whenPackagesAreInstalledAndUpdated_thenMatchCountsFollowTheCache() = runTest {
+    fun givenCacheObserved_whenPackageIsInstalledAndUpdated_thenComponentListFollowsBroadcasts() = runTest {
         val fixture = startMonitor()
-        val rule = GeneralRule(id = 1, name = "Example", searchKeyword = listOf("Replacement"))
-        val rules = TestGeneralRuleRepository().apply { sendRuleList(listOf(rule)) }
-        val preferences = TestUserDataRepository().apply { sendUserData(defaultUserData) }
-        val matcher = GeneralRuleMatcher(
-            fixture.cache,
-            apps,
-            rules,
-            preferences,
-            FakeSelectedUserRepository(OWNER),
-            SELF_PKG,
-            StandardTestDispatcher(testScheduler),
-            backgroundScope,
-        )
 
-        matcher.matches(OWNER).test {
-            assertThat(awaitItem().appCountOf(rule.id)).isEqualTo(0)
+        turbineScope {
+            val packageComponents = fixture.cache.components(app.key).testIn(backgroundScope)
+            val allComponents = fixture.cache.allComponents(OWNER).testIn(backgroundScope)
+            assertThat(packageComponents.awaitItem()).isEmpty()
+            assertThat(allComponents.awaitItem()).isEmpty()
+
             system.install(app, replacement)
             announce(Intent.ACTION_PACKAGE_ADDED)
-            assertThat(awaitItem().appCountOf(rule.id)).isEqualTo(1)
+            assertThat(packageComponents.awaitItem().map { it.declaration }).containsExactly(replacement)
+            assertThat(allComponents.awaitItem().map { it.declaration }).containsExactly(replacement)
 
             system.install(installedApp(PKG, lastUpdateTime = 3_000), main)
             announce(Intent.ACTION_PACKAGE_REPLACED)
-            assertThat(awaitItem().appCountOf(rule.id)).isEqualTo(0)
+            assertThat(packageComponents.awaitItem().map { it.declaration }).containsExactly(main)
+            assertThat(allComponents.awaitItem().map { it.declaration }).containsExactly(main)
+
+            packageComponents.cancelAndIgnoreRemainingEvents()
+            allComponents.cancelAndIgnoreRemainingEvents()
         }
     }
 
@@ -239,7 +226,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
 
     @Test
     fun givenBlockerBatchSpansSeveralChunks_whenEveryChunkBroadcasts_thenRefreshOnceAfterAllChunks() = runTest {
-        val declarations = List(2 * ComponentBatchRunner.BATCH_LIMIT + 1) { declaration("Part$it") }
+        val declarations = List(5) { declaration("Part$it") }
         system.install(app, *declarations.toTypedArray())
         val fixture = startMonitor()
         var chunks = 0
@@ -257,20 +244,14 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
                 emit(ControlEvent.Finished(achieved = outcomes.size, partial = 0, failed = 0))
             }
         }
-        val repository = object : ComponentStatusRepository by fixture.cache {
-            override fun control(request: ControlRequest) = flow {
-                // Leave time between requests, when only the batch itself marks the package active.
-                if (chunks > 0) {
-                    delay(800)
-                    assertThat(system.reads("app ")).isEqualTo(1)
-                }
-                emitAll(fixture.cache.control(request))
+        controlActivity.duringControl(setOf(PKG)) {
+            declarations.chunked(2).forEach { chunk ->
+                fixture.cache.control(ControlRequest(OWNER, chunk, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER))).toList()
+                // Leave time between requests, when only the outer control marks the package active.
+                delay(800)
+                assertThat(system.reads("app ")).isEqualTo(1)
             }
         }
-        val runner = ComponentBatchRunner(repository, backgroundScope, controlActivity)
-        val run = checkNotNull(runner.reserve(BatchKey.App(app.key), ControlGoal.BLOCK, declarations.map { it.id }))
-        runner.start(run, declarations, setOf(ControlLayer.PACKAGE_MANAGER))
-        run.outcomes.await()
         settle()
 
         assertThat(chunks).isEqualTo(3)
@@ -397,8 +378,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
             reading.complete(Unit)
             release.await()
         }
-        val index = ComponentIndex(cache, channel, backgroundScope)
-        index.ensureIndexed(OWNER)
+        val index = backgroundScope.async { cache.refreshAll(OWNER).first { it is RefreshProgress.Finished } }
         reading.await()
 
         val monitor = createMonitor(cache)
@@ -408,7 +388,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
         assertThat(system.reads("revisions ")).isEqualTo(0)
 
         release.complete(Unit)
-        index.state(OWNER).first { it is IndexState.Indexed }
+        index.await()
         settle()
         assertThat(system.reads("revisions ")).isEqualTo(1)
         assertThat(system.reads("pm ")).isEqualTo(1)
@@ -428,15 +408,14 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
         val monitor = createMonitor(cache)
         monitor.start()
         reading.await()
-        val index = ComponentIndex(cache, channel, backgroundScope)
-        index.ensureIndexed(OWNER)
+        val index = backgroundScope.async { cache.refreshAll(OWNER).first { it is RefreshProgress.Finished } }
         monitor.onForeground()
         settle()
         assertThat(system.reads("revisions ")).isEqualTo(1)
         assertThat(system.reads("apps ")).isEqualTo(0)
 
         release.complete(Unit)
-        index.state(OWNER).first { it is IndexState.Indexed }
+        index.await()
         settle()
         assertThat(system.reads("revisions ")).isEqualTo(1)
         assertThat(system.reads("apps ")).isEqualTo(1)

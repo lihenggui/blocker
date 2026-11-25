@@ -6,10 +6,12 @@ package com.merxury.blocker.core.data.wake
 import android.os.Build
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.core.ifw.IfwStore
+import com.merxury.core.ifw.ManagedWakeReset
+import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
@@ -26,8 +28,8 @@ private const val TAG = "FirewallResetDeviceTest"
 
 /**
  * Runs the reset [ResetIfwWorker][com.merxury.blocker.core.rule.work.ResetIfwWorker] uses, with the
- * app's bindings, against the real rule directory. The device is set up and checked from outside:
- * the rule files are placed in `/data/system/ifw` before the run and listed after it.
+ * production IFW store and privileged channel, and records requests to reset wake rules. The rule
+ * files are placed in `/data/system/ifw` before the run and listed after it.
  *
  * Argument `firewallReset=<case>`: `root` (su allows this package; the controller type is root),
  * `shizuku-root` (Shizuku runs as root and allows this package, su does not) or `shizuku-shell`
@@ -49,6 +51,14 @@ class FirewallResetDeviceTest {
     lateinit var store: IfwStore
 
     private val case: String? = InstrumentationRegistry.getArguments().getString("firewallReset")
+    private val wakeResetTargets = mutableListOf<String?>()
+
+    @BindValue
+    @JvmField
+    val managedWakeReset = ManagedWakeReset { target ->
+        wakeResetTargets += target
+        case != "shizuku-shell"
+    }
 
     @Before
     fun allowHiddenApis() {
@@ -77,6 +87,7 @@ class FirewallResetDeviceTest {
         Log.i(TAG, "$case: files before $before, removed $removed, reported $reported")
         assertEquals(before.size, removed)
         assertEquals(IfwResult.Success(emptyList()), store.ruleFileNames())
+        assertEquals(listOf<String?>(null), wakeResetTargets)
     }
 
     /**
@@ -97,6 +108,7 @@ class FirewallResetDeviceTest {
         Log.i(TAG, "$case: files before $before, removed $removed for $target, after $after")
         assertEquals(1, removed)
         assertEquals(before - target, after)
+        assertEquals(listOf(target), wakeResetTargets)
     }
 
     @Test
@@ -108,5 +120,6 @@ class FirewallResetDeviceTest {
 
         Log.i(TAG, "$case: removed $removed")
         assertNull(removed)
+        assertEquals(listOf<String?>(null), wakeResetTargets)
     }
 }

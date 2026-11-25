@@ -24,6 +24,7 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.blocker.core.utils.currentUserId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,7 +71,7 @@ class InMemorySelectedUserRepository @VisibleForTesting constructor(
         deviceUsers: DeviceUserRepository,
         channel: PrivilegedChannel,
         @ApplicationScope scope: CoroutineScope,
-    ) : this(ownUser(), deviceUsers, channel, scope)
+    ) : this(currentUserId(), deviceUsers, channel, scope)
 
     private val ownFallback = DeviceUser(
         id = ownUser,

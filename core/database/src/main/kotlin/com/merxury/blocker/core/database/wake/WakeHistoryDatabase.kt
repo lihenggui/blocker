@@ -17,6 +17,7 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import dagger.Module
 import dagger.Provides
@@ -253,8 +254,8 @@ abstract class WakeHistoryDao {
           FROM WakeRecord e JOIN WakeRelation r ON r.requestId=e.id
           WHERE e.kind IN ('ServiceRequestEventReported','ProviderAcquisitionEventReported','BroadcastDeliveryEventReported')
             AND e.startType=3 AND e.callerPackage IS NOT NULL AND e.targetPackage IS NOT NULL
-            AND e.callerUid % 100000 >= 10000 AND e.targetUid % 100000 >= 10000
-            AND e.callerUid / 100000 = e.targetUid / 100000 AND e.callerUid != e.targetUid
+            AND e.callerUid % $UIDS_PER_USER >= 10000 AND e.targetUid % $UIDS_PER_USER >= 10000
+            AND e.callerUid / $UIDS_PER_USER = e.targetUid / $UIDS_PER_USER AND e.callerUid != e.targetUid
           GROUP BY e.callerUid,e.targetUid,e.callerPackage,e.targetPackage HAVING COUNT(DISTINCT r.processId)>=2
         )
         SELECT a.callerPackage AS firstPackage, a.targetPackage AS secondPackage, a.launches AS forward, b.launches AS reverse

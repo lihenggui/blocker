@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.system.ReadResult
+import com.merxury.blocker.core.utils.currentUserId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -46,7 +47,7 @@ private val DATA = declaration("Data", ComponentType.PROVIDER)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
 class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
-    private val own = ownUser()
+    private val own = currentUserId()
     private val legacyDb = applicationContext.getDatabasePath("installed_app")
     private val schemas = File("../database/schemas/com.merxury.blocker.core.database.app.InstalledAppDatabase")
 

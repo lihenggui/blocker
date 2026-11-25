@@ -43,7 +43,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -74,6 +76,39 @@ class ComponentBatchRunnerTest {
             runner.release(search)
             assertThat(awaitItem()).isEmpty()
         }
+    }
+
+    @Test
+    fun givenBatchSpansThreeChunks_whenRunning_thenPackageStaysActiveUntilAllChunksFinish() = runTest {
+        val activity = PackageControlActivity()
+        val chunkLimit = ComponentBatchRunner.BATCH_LIMIT
+        val components = List(2 * chunkLimit + 1) { index ->
+            val id = ComponentId(receiver.packageName, "${receiver.packageName}.Receiver$index")
+            ComponentDeclaration(id, ComponentType.RECEIVER, exported = false, enabledInManifest = true)
+        }
+        val chunkSizes = mutableListOf<Int>()
+        val chunksFinishedAtIdle = CompletableDeferred<Int>()
+        val repository = object : ComponentStatusRepository by FakeComponentStatusRepository() {
+            override fun control(request: ControlRequest) = flow {
+                if (chunkSizes.isEmpty()) {
+                    // Observe an idle transition before the next chunk can mark the package active again.
+                    backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                        activity.awaitIdle(receiver.packageName)
+                        chunksFinishedAtIdle.complete(chunkSizes.size)
+                    }
+                }
+                emit(ControlEvent.Finished(achieved = request.components.size, partial = 0, failed = 0))
+                chunkSizes += request.components.size
+            }
+        }
+        val runner = ComponentBatchRunner(repository, backgroundScope, activity)
+        val run = runner.reserve(BatchKey.Search(owner), ControlGoal.BLOCK, components.map { it.id })!!
+        runner.start(run, components, setOf(ControlLayer.PACKAGE_MANAGER))
+        run.outcomes.await()
+
+        assertThat(chunkSizes).containsExactly(chunkLimit, chunkLimit, 1).inOrder()
+        assertThat(chunksFinishedAtIdle.isCompleted).isTrue()
+        assertThat(chunksFinishedAtIdle.await()).isEqualTo(3)
     }
 
     @Test

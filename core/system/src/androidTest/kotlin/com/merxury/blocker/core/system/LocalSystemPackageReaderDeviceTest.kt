@@ -29,8 +29,8 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.model.system.getOrNull
+import com.merxury.blocker.core.utils.ownAppKey
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
@@ -49,8 +49,8 @@ class LocalSystemPackageReaderDeviceTest {
     private val context: Context = InstrumentationRegistry.getInstrumentation().context
     private val platform = LocalPlatformPackages(context)
     private val reader = PlatformSystemPackageReader(platform, Dispatchers.IO)
-    private val ownUser = runBlocking { platform.users() }.single().id
-    private val self = AppKey(context.packageName, ownUser)
+    private val self = ownAppKey(context.packageName)
+    private val ownUser = self.userId
     private val disabledService = ComponentId(self.packageName, "$FIXTURE.DisabledByResourceService")
 
     @After

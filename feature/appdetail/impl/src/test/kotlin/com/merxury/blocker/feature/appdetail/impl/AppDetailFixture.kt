@@ -20,6 +20,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.work.WorkManager
 import com.merxury.blocker.core.appcontrol.ServiceControl
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ControlComponentUseCase
@@ -32,6 +33,7 @@ import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -70,7 +72,7 @@ internal val workUser = DeviceUser(WORK, name = "Work", kind = UserKind.WORK_PRO
 
 internal fun installedApp(key: AppKey, label: String = "Example") = InstalledApp(
     key = key,
-    uid = 10_100 + key.userId.value * 100_000,
+    uid = 10_100 + key.userId.value * UIDS_PER_USER,
     label = label,
     versionName = "1.0",
     versionCode = 1,
@@ -144,8 +146,7 @@ internal class AppDetailFixture(
         ComponentListViewModel(
             selectedUsers = selectedUsers,
             componentStatuses = components,
-            serviceControl = services ?: serviceControl,
-            appControl = appControl,
+            componentActions = LocalComponentActions(appControl, services ?: serviceControl),
             channel = channel,
             componentDetails = details,
             generalRules = rules,

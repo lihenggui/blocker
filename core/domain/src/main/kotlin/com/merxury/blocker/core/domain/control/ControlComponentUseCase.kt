@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.domain.control
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.control.ComponentOutcome
