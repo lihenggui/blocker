@@ -135,11 +135,11 @@ class WakeRepository @Inject constructor(
 
     suspend fun saveDetection(from: Long, through: Long, findings: List<WakeFindingDay>, verdicts: List<WakeVerdictDay>, firstKeptDay: Long) = detection.replaceDetection(from, through, findings, verdicts, firstKeptDay)
 
-    /** Daily verdicts, newest day first. */
-    fun verdicts(): Flow<List<WakeVerdictDay>> = detection.verdicts()
+    fun findingsInvolving(packageName: String, fromDay: Long): Flow<List<WakeFindingDay>> = detection.findingsInvolving(packageName, fromDay)
 
-    /** Daily findings of one package, newest day first. */
-    fun findings(target: String): Flow<List<WakeFindingDay>> = detection.findings(target)
+    fun findingsSince(fromDay: Long): Flow<List<WakeFindingDay>> = detection.findingsSince(fromDay)
+
+    fun verdictsSince(fromDay: Long): Flow<List<WakeVerdictDay>> = detection.verdictsSince(fromDay)
 
     /** Collects and stores evidence read as [identity]; sources that cannot be read record why and the rest is stored. */
     suspend fun collect(diagnostic: Boolean, identity: PrivilegedIdentity): WakeImport {
