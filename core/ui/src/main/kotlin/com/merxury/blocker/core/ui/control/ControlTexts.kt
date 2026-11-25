@@ -52,8 +52,8 @@ fun ControlMessage.text(): String {
 @Composable
 private fun ControlMessage.BatchDone.batchText(): String {
     val summary = when {
-        partlyChanged > 0 && notChanged > 0 -> stringResource(string.core_ui_batch_partly_changed_with_failures, partlyChanged, notChanged)
-        partlyChanged > 0 -> stringResource(string.core_ui_batch_partly_changed, partlyChanged)
+        partlyChanged > 0 && notChanged > 0 -> pluralStringResource(plurals.core_ui_batch_partly_changed_with_failures, partlyChanged, partlyChanged, notChanged)
+        partlyChanged > 0 -> pluralStringResource(plurals.core_ui_batch_partly_changed, partlyChanged, partlyChanged)
         notChanged > 0 -> pluralStringResource(plurals.core_ui_operation_completed_with_failures, notChanged, notChanged)
         firewallSelfBlockRefused -> ""
         else -> stringResource(string.core_ui_operation_completed)

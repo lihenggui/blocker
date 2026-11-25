@@ -21,8 +21,12 @@
     <string name="core_ui_grant_failed">Blocker vẫn chưa có quyền root hoặc Shizuku.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Bạn có muốn xóa dữ liệu của ứng dụng này không?</string>
     <string name="core_ui_component_partly_changed">Thay đổi đối với %1$s chỉ được áp dụng một phần.</string>
-    <string name="core_ui_batch_partly_changed">Đã áp dụng một phần thay đổi cho %1$d trong số các thành phần đã chọn.</string>
-    <string name="core_ui_batch_partly_changed_with_failures">Trong số các thành phần đã chọn, thay đổi được áp dụng một phần cho %1$d thành phần và không thể áp dụng cho %2$d thành phần.</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="other">Thao tác đã hoàn tất. Thay đổi chỉ được áp dụng một phần cho %1$d thành phần.</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="other">Thao tác đã hoàn tất. Thay đổi chỉ được áp dụng một phần cho %1$d thành phần và không thể thay đổi %2$d thành phần khác.</item>
+    </plurals>
     <string name="core_ui_reason_shizuku_shell">Shizuku đang chạy với quyền ADB. Hãy khởi chạy Shizuku với quyền root rồi thử lại.</string>
-    <string name="core_ui_firewall_self_block_refused">Blocker không thể chặn các thành phần của chính mình qua Tường lửa ý định vì các quy tắc cũng sẽ áp dụng cho bản Blocker đang sử dụng.</string>
+    <string name="core_ui_firewall_self_block_refused">Blocker không thể chặn các thành phần của chính mình qua IFW vì quy tắc IFW áp dụng cho mọi người dùng, bao gồm cả phiên bản Blocker đang được sử dụng.</string>
 </resources>

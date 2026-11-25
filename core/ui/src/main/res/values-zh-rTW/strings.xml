@@ -112,8 +112,12 @@
     <string name="core_ui_grant_failed">Blocker 尚未取得 Root 或 Shizuku 權限。</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">您想要清除此應用的數據嗎？</string>
     <string name="core_ui_component_partly_changed">對 %1$s 的變更僅部分生效。</string>
-    <string name="core_ui_batch_partly_changed">已對所選元件中的 %1$d 個套用部分變更。</string>
-    <string name="core_ui_batch_partly_changed_with_failures">在所選元件中，有 %1$d 個僅部分套用了變更，另有 %2$d 個無法變更。</string>
-    <string name="core_ui_reason_shizuku_shell">Shizuku 正以 ADB 權限執行。請以 root 權限啟動 Shizuku，然後重試。</string>
-    <string name="core_ui_firewall_self_block_refused">Blocker 無法透過 Intent 防火牆封鎖自身元件，因為相關規則也會套用至正在使用的 Blocker。</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="other">操作已完成。%1$d 個元件的變更僅部分生效。</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="other">操作已完成。%1$d 個元件的變更僅部分生效，另有 %2$d 個元件無法變更。</item>
+    </plurals>
+    <string name="core_ui_reason_shizuku_shell">Shizuku 正以 ADB 權限執行。請以 Root 權限啟動 Shizuku，然後重試。</string>
+    <string name="core_ui_firewall_self_block_refused">Blocker 無法透過 IFW 封鎖自身元件，因為 IFW 規則對所有使用者生效，也會影響正在使用的 Blocker。</string>
 </resources>

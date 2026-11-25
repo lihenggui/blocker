@@ -175,8 +175,16 @@
     <string name="core_ui_grant_failed">Blocker n\'a toujours pas d\'accès root ni Shizuku.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Voulez-vous effacer les données de cette application ?</string>
     <string name="core_ui_component_partly_changed">La modification de %1$s a été appliquée partiellement.</string>
-    <string name="core_ui_batch_partly_changed">Les modifications ont été appliquées partiellement à %1$d des composants sélectionnés.</string>
-    <string name="core_ui_batch_partly_changed_with_failures">Parmi les composants sélectionnés, les modifications ont été appliquées partiellement à %1$d et ont échoué pour %2$d.</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="one">Opération terminée. La modification de %1$d composant n’a été que partiellement appliquée.</item>
+        <item quantity="many">Opération terminée. Les modifications de %1$d composants n’ont été que partiellement appliquées.</item>
+        <item quantity="other">Opération terminée. Les modifications de %1$d composants n’ont été que partiellement appliquées.</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="one">Opération terminée. La modification de %1$d composant n’a été que partiellement appliquée et la modification a échoué pour %2$d.</item>
+        <item quantity="many">Opération terminée. Les modifications de %1$d composants n’ont été que partiellement appliquées et la modification a échoué pour %2$d.</item>
+        <item quantity="other">Opération terminée. Les modifications de %1$d composants n’ont été que partiellement appliquées et la modification a échoué pour %2$d.</item>
+    </plurals>
     <string name="core_ui_reason_shizuku_shell">Shizuku fonctionne avec les autorisations ADB. Démarrez Shizuku avec l’accès root, puis réessayez.</string>
-    <string name="core_ui_firewall_self_block_refused">Blocker ne peut pas bloquer ses propres composants via le pare-feu d’intentions, car les règles s’appliqueraient aussi à l’instance de Blocker en cours d’utilisation.</string>
+    <string name="core_ui_firewall_self_block_refused">Blocker ne peut pas bloquer ses propres composants via IFW, car les règles IFW s’appliquent à tous les utilisateurs, y compris à l’instance de Blocker en cours d’utilisation.</string>
 </resources>

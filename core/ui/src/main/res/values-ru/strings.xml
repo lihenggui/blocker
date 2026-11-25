@@ -179,8 +179,18 @@
     <string name="core_ui_grant_failed">У Blocker по-прежнему нет доступа root или Shizuku.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
     <string name="core_ui_component_partly_changed">Изменение компонента %1$s применено лишь частично.</string>
-    <string name="core_ui_batch_partly_changed">Изменения частично применены к %1$d из выбранных компонентов.</string>
-    <string name="core_ui_batch_partly_changed_with_failures">Изменения частично применены к %1$d из выбранных компонентов, а к %2$d применить их не удалось.</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="one">Операция завершена. %1$d компонент изменён лишь частично.</item>
+        <item quantity="few">Операция завершена. %1$d компонента изменены лишь частично.</item>
+        <item quantity="many">Операция завершена. %1$d компонентов изменены лишь частично.</item>
+        <item quantity="other">Операция завершена. %1$d компонентов изменены лишь частично.</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="one">Операция завершена. %1$d компонент изменён лишь частично, а для других (%2$d) изменения не удалось применить.</item>
+        <item quantity="few">Операция завершена. %1$d компонента изменены лишь частично, а для других (%2$d) изменения не удалось применить.</item>
+        <item quantity="many">Операция завершена. %1$d компонентов изменены лишь частично, а для других (%2$d) изменения не удалось применить.</item>
+        <item quantity="other">Операция завершена. %1$d компонентов изменены лишь частично, а для других (%2$d) изменения не удалось применить.</item>
+    </plurals>
     <string name="core_ui_reason_shizuku_shell">Shizuku работает с разрешениями ADB. Запустите Shizuku с правами root и повторите попытку.</string>
-    <string name="core_ui_firewall_self_block_refused">Blocker не может блокировать собственные компоненты через Intent Firewall, поскольку правила также действовали бы на используемую копию Blocker.</string>
+    <string name="core_ui_firewall_self_block_refused">Blocker не может блокировать собственные компоненты через IFW, поскольку правила IFW действуют для всех пользователей, в том числе для используемого экземпляра Blocker.</string>
 </resources>

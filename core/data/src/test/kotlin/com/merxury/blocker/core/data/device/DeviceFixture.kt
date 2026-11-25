@@ -146,7 +146,11 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
     internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks, controlActivity, packageLocks)
 
     /** Starts collecting the rule store's changes in [scope], as the app scope would. */
-    internal fun components(scope: CoroutineScope, claimedWakeBlocks: suspend (UserId, Set<ComponentId>) -> List<ComponentId> = { _, _ -> emptyList() }) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel, apps), componentControl, pmBlocks, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity, packageLocks, claimedWakeBlocks)
+    internal fun components(
+        scope: CoroutineScope,
+        control: ComponentControl = componentControl,
+        claimedWakeBlocks: suspend (UserId, Set<ComponentId>) -> List<ComponentId> = { _, _ -> emptyList() },
+    ) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel, apps), control, pmBlocks, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity, packageLocks, claimedWakeBlocks)
 
     @After
     fun closeDatabase() {

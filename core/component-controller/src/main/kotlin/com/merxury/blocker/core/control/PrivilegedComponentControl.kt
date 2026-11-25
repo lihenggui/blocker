@@ -243,19 +243,19 @@ internal class PrivilegedComponentControl @Inject constructor(
         fun refuseAll(failure: ControlFailure) = ids.forEach { failures.addIfAbsent(it, ControlLayer.PACKAGE_MANAGER, failure) }
         if (ids.size > 1 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val batch = sendPm(app, setting, ids, onWrite)
-            val failure = (batch as? CallResult.Failure)?.reason
+            val failure = (batch as? CallResult.Failure)?.reason?.toControlFailure(identity)
             when {
                 batch is CallResult.Success -> return
 
-                failure == CallFailure.ChannelUnavailable -> {
+                failure == ControlFailure.ChannelUnavailable -> {
                     Timber.w("Channel lost while setting ${ids.size} components of $app to $setting")
                     refuseAll(ControlFailure.ChannelUnavailable)
                     return
                 }
 
-                failure is CallFailure.NotPermitted && (failure.identity ?: identity) == PrivilegedIdentity.SHELL -> {
+                failure is ControlFailure.NotPermitted && failure.identity == PrivilegedIdentity.SHELL -> {
                     Timber.w("The shell may not change components of $app: $failure")
-                    refuseAll(failure.toControlFailure())
+                    refuseAll(failure)
                     return
                 }
 
@@ -267,8 +267,8 @@ internal class PrivilegedComponentControl @Inject constructor(
             if (result is CallResult.Failure) {
                 val reason = result.reason
                 Timber.w("Cannot set $id of user ${app.userId.value} to $setting: $reason")
-                val failure = reason.toControlFailure()
-                if (reason is CallFailure.NotPermitted && (reason.identity ?: identity) == PrivilegedIdentity.SHELL) {
+                val failure = reason.toControlFailure(identity)
+                if (failure is ControlFailure.NotPermitted && failure.identity == PrivilegedIdentity.SHELL) {
                     refuseAll(failure)
                     return
                 }
@@ -385,9 +385,9 @@ private fun PmSetting.toComponentState(): Int = when (this) {
     PmSetting.UNKNOWN -> error("Not a setting to send")
 }
 
-private fun CallFailure.toControlFailure(): ControlFailure = when (this) {
+private fun CallFailure.toControlFailure(channelIdentity: PrivilegedIdentity): ControlFailure = when (this) {
     CallFailure.ChannelUnavailable -> ControlFailure.ChannelUnavailable
-    is CallFailure.NotPermitted -> ControlFailure.NotPermitted(message, identity)
+    is CallFailure.NotPermitted -> ControlFailure.NotPermitted(message, identity ?: channelIdentity)
     is CallFailure.TargetNotFound -> ControlFailure.TargetNotFound(message)
     is CallFailure.SystemError -> ControlFailure.SystemError(message)
 }
