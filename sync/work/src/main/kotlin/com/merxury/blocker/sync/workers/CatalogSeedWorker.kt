@@ -20,12 +20,13 @@ class CatalogSeedWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val repository: CatalogRepository,
+    private val legacyRuleCacheCleanup: LegacyRuleCacheCleanup,
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val start = Monotonic.markNow()
         val result = repository.installBundled()
         val duration = start.elapsedNow()
-        return when (result) {
+        val seedResult = when (result) {
             is CatalogInstallResult.Installed -> {
                 Timber.i("Installed bundled catalog sequence %d in %s", result.state.sequence, duration)
                 Result.success()
@@ -41,6 +42,7 @@ class CatalogSeedWorker @AssistedInject constructor(
                 Result.failure()
             }
         }
+        return if (legacyRuleCacheCleanup.run()) seedResult else Result.retry()
     }
 
     internal companion object {

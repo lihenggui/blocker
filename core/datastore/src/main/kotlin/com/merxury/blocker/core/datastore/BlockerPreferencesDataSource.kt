@@ -309,6 +309,10 @@ class BlockerPreferencesDataSource @Inject constructor(
         }
     }
 
+    suspend fun clearLegacyRuleCursor() {
+        userPreferences.updateData { it.withoutLegacyRuleCursor() }
+    }
+
     suspend fun setAppDisplayLanguage(language: String) {
         userPreferences.updateData {
             it.copy { this.appDisplayLanguage = language }
