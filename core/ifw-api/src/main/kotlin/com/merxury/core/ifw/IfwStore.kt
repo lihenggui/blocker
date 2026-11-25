@@ -81,8 +81,8 @@ interface IfwStore {
     /** Whether an explicit component block can target [packageName]. */
     fun allowsBlocking(packageName: String): Boolean
 
-    /** Prepares an incoming rule for scope and comparison, or returns null if it is protected. */
-    fun prepareRule(rule: IfwRule): IfwRule?
+    /** Whether [rule] explicitly blocks a component of the running app. */
+    fun blocksOwnComponent(rule: IfwRule): Boolean
 
     /**
      * IFW state of each given component of one package. Never throws for expected failures: when
@@ -121,7 +121,8 @@ interface IfwStore {
     /**
      * The one read-modify-write path for editor saves. [transform] gets the current rules and
      * runs only when they could be read; rules for which [IfwRules.isEmpty] holds delete the
-     * file. Returns the rules now in effect.
+     * file. A write that would leave an explicit block of Blocker in the file fails with
+     * [IfwFailure.ProtectedComponent]. Returns the rules now in effect.
      *
      * @param name a rule file name as [isRuleFileName] decides
      */
@@ -170,10 +171,11 @@ interface IfwStore {
     suspend fun ruleFileText(name: String): IfwResult<String?>
 
     /**
-     * Restores [content] from a backup only when no file of that name exists. Preserves the original
-     * XML except where an intent selector needs to exclude Blocker. Explicit blocks of Blocker
-     * fail with [IfwFailure.ProtectedComponent]. Returns whether it wrote and emits on [changes]
-     * after a restore.
+     * Restores the rule file `<name>.xml` from a backup with [content] as it is, only when no file
+     * of that name exists; an existing file is never overwritten or merged with. Explicit blocks
+     * of Blocker fail with [IfwFailure.ProtectedComponent]. Returns whether it wrote. For files a
+     * restore does not merge, such as one the global rule editor stored or the file of an app no
+     * longer installed; it emits on [changes] when it wrote.
      *
      * @param name a rule file name as [isRuleFileName] decides
      */

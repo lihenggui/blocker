@@ -7,8 +7,6 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
-import com.merxury.core.ifw.model.IfwFilter
-import com.merxury.core.ifw.model.StringMatcher
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.test.runTest
@@ -16,7 +14,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
@@ -47,39 +44,46 @@ class IfwRuleProtectionTest {
     }
 
     @Test
-    fun givenIntentSelector_whenEditingAndRestoring_thenBothWritesExcludeOwnAndUnresolvedTargets() = runTest {
+    fun givenIntentSelector_whenSavingInEditor_thenTheOriginalRuleIsWritten() = runTest {
         val raw = """<rules><broadcast block="true">
             <intent-filter><action name="android.intent.action.BOOT_COMPLETED"/></intent-filter>
             </broadcast></rules>"""
         val rule = xml.deserialize(raw)
-        assertThat(store.update("com.example") { rule }).isInstanceOf(IfwResult.Success::class.java)
-        assertThat(store.restoreRuleFile("custom", raw)).isEqualTo(IfwResult.Success(true))
 
-        val expected = IfwFilter.And(
-            listOf(
-                IfwFilter.ComponentPackage(StringMatcher.IsNull(false)),
-                IfwFilter.Not(IfwFilter.ComponentPackage(StringMatcher.Equals(own))),
-            ),
-        )
-        listOf("com.example", "custom").forEach { name ->
-            val saved = xml.deserialize(requireNotNull(fs.fileContent(name))).rules.single()
-            assertThat(saved.intentFilters).hasSize(1)
-            assertThat(saved.filters).containsExactly(expected)
-        }
+        assertThat(store.update("com.example") { rule }).isEqualTo(IfwResult.Success(rule))
+        assertThat(fs.fileContent("com.example")).isEqualTo(IfwXmlSerializer().serialize(rule))
     }
 
     @Test
-    fun givenOwnComponentInRawWakeRules_whenWriting_thenTheManagedFileIsNeverCreated() {
-        val directory = java.nio.file.Files.createTempDirectory("wake-rules").toFile()
-        try {
-            val result = runCatching { writeWakeRuleFile(own, WakeRuleFileKind.MANAGED, ownComponentBlock, directory) }
+    fun givenBroadBlockAndLogOnlySelfSelector_whenRestoring_thenXmlIsWrittenVerbatim() = runTest {
+        val raw = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <rules>
+              <!-- Keep this comment and the original formatting. -->
+              <broadcast block="true">
+                <intent-filter><action name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
+                <action />
+              </broadcast>
+              <activity block="false" log="true"><component-filter name="$own/.MainActivity" /></activity>
+              <service block="true"><component-filter name="$own.other/.Service" /></service>
+            </rules>
+        """.trimIndent().replace("\n", "\r\n") + "\r\n"
 
-            assertThat(result.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
-            val file = File(directory, "${wakeRuleFileName(own, WakeRuleFileKind.MANAGED)}.xml")
-            assertThat(file.exists()).isFalse()
-        } finally {
-            directory.deleteRecursively()
-        }
+        assertThat(store.restoreRuleFile("custom", raw)).isEqualTo(IfwResult.Success(true))
+        assertThat(fs.fileContent("custom")).isEqualTo(raw)
+    }
+
+    @Test
+    fun givenExistingOwnComponentBlock_whenRemovingIt_thenTheSafeRulesAreSaved() = runTest {
+        fs.putFile("custom", ownComponentBlock)
+        val safeRules = xml.deserialize(
+            """<rules><service block="true">
+            <component-filter name="com.other/.Service" />
+            </service></rules>""",
+        )
+
+        assertThat(store.update("custom") { safeRules }).isEqualTo(IfwResult.Success(safeRules))
+        assertThat(store.rules("custom")).isEqualTo(IfwResult.Success(safeRules))
     }
 
     private val ownComponentBlock = """<rules><activity block="true">

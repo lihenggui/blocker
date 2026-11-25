@@ -61,8 +61,8 @@ private val PRIVILEGED_UIDS = setOf(0, 1000, 2000)
  *
  * @param appUid Blocker's uid, which with [boot] names Blocker's statsd config
  * @param boot the boot count, the other part of the config id
- * @param argument the resume point of [WakeCommand.EVENTS] or [WakeCommand.IFW_PROBE] in epoch
- * milliseconds, or the index of [WakeCommand.PROCSTATS_LAST]; ignored by the other commands
+ * @param argument the resume point of [WakeCommand.EVENTS] in epoch milliseconds, or the index of
+ * [WakeCommand.PROCSTATS_LAST]; ignored by the other commands
  * @param owner the uid the privileged process must run as: the statsd config owner the caller
  * expects. A process that runs as another uid, because the channel changed while a collection ran,
  * refuses the command, so a drain never deletes another owner's report.

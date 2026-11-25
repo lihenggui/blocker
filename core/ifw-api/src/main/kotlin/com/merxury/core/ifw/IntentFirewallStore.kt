@@ -22,7 +22,6 @@ import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
-import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
@@ -60,7 +59,7 @@ class IntentFirewallStore(
 
     override fun allowsBlocking(packageName: String): Boolean = protection.allowsBlocking(packageName)
 
-    override fun prepareRule(rule: IfwRule): IfwRule? = protection.protect(rule)
+    override fun blocksOwnComponent(rule: IfwRule): Boolean = protection.blocksOwnComponent(rule)
 
     /** What a package's rule file held when it was read, and whether there was one. */
     private data class StoredRules(val rules: IfwRules, val exists: Boolean)
@@ -207,29 +206,23 @@ class IntentFirewallStore(
                 is IfwResult.Success -> if (existing.value != null) {
                     IfwResult.Success(false)
                 } else {
-                    val protected = when (val checked = protection.protectXml(content, name)) {
-                        is IfwResult.Success -> checked.value
-                        is IfwResult.Failure -> return@withLock checked
-                    }
+                    val checked = protection.checkXml(content, name)
+                    if (checked is IfwResult.Failure) return@withLock checked
                     // Runs to its end once started, as a save does.
-                    withContext(NonCancellable) {
-                        restoreFile(name, protected)
+                    when (val written = withContext(NonCancellable) { changeFile(name) { fileSystem.writeRules(name, content) } }) {
+                        is IfwResult.Success -> {
+                            Timber.i("Restored the IFW rule file $name.xml")
+                            // The cache may hold "no file" for it from an earlier read.
+                            cache.remove(name)
+                            mutableChanges.emit(name)
+                            IfwResult.Success(true)
+                        }
+
+                        is IfwResult.Failure -> written
                     }
                 }
             }
         }
-    }
-
-    private suspend fun restoreFile(name: String, content: String): IfwResult<Boolean> = when (val written = changeFile(name) { fileSystem.writeRules(name, content) }) {
-        is IfwResult.Success -> {
-            Timber.i("Restored the IFW rule file $name.xml")
-            // The cache may hold "no file" for it from an earlier read.
-            cache.remove(name)
-            mutableChanges.emit(name)
-            IfwResult.Success(true)
-        }
-
-        is IfwResult.Failure -> written
     }
 
     /** The text of `<name>.xml` as stored, or null when there is none; call it under the name's lock. */
@@ -266,19 +259,10 @@ class IntentFirewallStore(
                 return@withLock read
             }
         }
-        val proposed = transform(current.rules)
-        if (proposed == current.rules) return@withLock IfwResult.Success(proposed)
-        val updated = IfwRules(
-            proposed.rules.map { rule ->
-                if (current.rules.rules.any { rule.isUnchangedOrNarrowerThan(it) }) {
-                    rule
-                } else {
-                    prepareRule(rule) ?: return@withLock IfwResult.Failure(IfwFailure.ProtectedComponent)
-                }
-            },
-        )
+        val updated = transform(current.rules)
         when {
             updated == current.rules -> IfwResult.Success(updated)
+            updated.rules.any(::blocksOwnComponent) -> IfwResult.Failure(IfwFailure.ProtectedComponent)
             updated.isEmpty() && !current.exists -> IfwResult.Success(IfwRules.empty())
             else -> withContext(NonCancellable) { save(packageName, updated) }
         }
@@ -370,14 +354,4 @@ class IntentFirewallStore(
     private fun requireRuleFileName(name: String) {
         require(isRuleFileName(name)) { "Not a rule file name: $name" }
     }
-}
-
-/** Removing explicit selectors can only narrow an existing rule. */
-private fun IfwRule.isUnchangedOrNarrowerThan(previous: IfwRule): Boolean {
-    if (this == previous) return true
-    val selectors = filters.filterIsInstance<IfwFilter.ComponentFilter>()
-    val previousSelectors = previous.filters.filterIsInstance<IfwFilter.ComponentFilter>()
-    return selectors.size < previousSelectors.size && previousSelectors.containsAll(selectors) &&
-        copy(filters = filters.filterNot { it is IfwFilter.ComponentFilter }) ==
-        previous.copy(filters = previous.filters.filterNot { it is IfwFilter.ComponentFilter })
 }

@@ -4,12 +4,10 @@
 package com.merxury.blocker.core.controllers.wake
 
 import android.content.Context
-import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.privileged.PrivilegedExecutor
 import com.merxury.blocker.core.privileged.calls.DeleteWakeRuleFile
 import com.merxury.blocker.core.privileged.calls.RemoveWakeRuleTarget
 import com.merxury.blocker.core.privileged.calls.ReplaceWakeRuleFile
-import com.merxury.blocker.core.privileged.uid
 import com.merxury.core.ifw.WakeRuleFileKind
 import com.merxury.core.ifw.WakeRuleWriter
 import com.merxury.core.ifw.isWakePackageName
@@ -34,15 +32,6 @@ internal class AuthorizedWakeRuleWriter @Inject constructor(
     override suspend fun write(kind: WakeRuleFileKind, xml: String?) {
         val call = if (xml == null) DeleteWakeRuleFile(owner, kind) else ReplaceWakeRuleFile(owner, kind, xml)
         executor.executeIfReady(call).orThrow("write the wake $kind rules")
-    }
-
-    override suspend fun matchedProbeActions(sinceMillis: Long, actions: Set<String>): Set<String> {
-        val identity = (executor.checkedState() as? ChannelState.Ready)?.identity
-            ?: throw WakeSourceUnavailableException(CHANNEL_UNAVAILABLE)
-        val log = WakeReads(executor, identity.uid, generation = 0).text(WakeCommand.IFW_PROBE, argument = sinceMillis)
-        return actions.filterTo(mutableSetOf()) { action ->
-            log.lineSequence().any { "ifw_intent_matched" in it && ",$action," in it }
-        }
     }
 
     override suspend fun reset(packageName: String?) {

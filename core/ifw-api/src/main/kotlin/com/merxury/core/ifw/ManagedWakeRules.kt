@@ -7,7 +7,6 @@ import android.content.Context
 import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
-import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -40,9 +39,6 @@ interface WakeRuleWriter {
     /** Replaces the [kind] file with [xml], or deletes it when [xml] is null. */
     suspend fun write(kind: WakeRuleFileKind, xml: String?)
 
-    /** Matches from the framework’s IFW event log, limited to this probe’s actions. */
-    suspend fun matchedProbeActions(sinceMillis: Long, actions: Set<String>): Set<String>
-
     /** Removes the rules for [packageName] from the managed file, or both files when null. */
     suspend fun reset(packageName: String?)
 }
@@ -56,20 +52,19 @@ class ManagedWakeRules @Inject constructor(
     suspend fun supportsPeerFilter(): Boolean = testPeerFilter(context, writer)
 
     suspend fun replace(paths: Collection<WakeServiceFilter>) {
-        writer.write(WakeRuleFileKind.MANAGED, renderWakeRules(paths.filter { it.target != context.packageName }))
+        writer.write(WakeRuleFileKind.MANAGED, renderWakeRules(paths))
         writer.write(WakeRuleFileKind.PROBE, null)
     }
 }
 
 fun renderWakeRules(paths: Collection<WakeServiceFilter>): String? = renderWakeRules(paths, forcePackageFilter = false)
 
-internal fun renderWakeRules(paths: Collection<WakeServiceFilter>, forcePackageFilter: Boolean, block: Boolean = true): String? {
+internal fun renderWakeRules(paths: Collection<WakeServiceFilter>, forcePackageFilter: Boolean): String? {
     val rules = paths.distinct().sortedWith(compareBy({ it.caller }, { it.target }, { it.service }, { it.action })).map {
         require(it.caller.isNotBlank() && it.target.isNotBlank() && it.service.isNotBlank())
         IfwRule(
             IfwComponentType.SERVICE,
-            block = block,
-            log = !block,
+            log = false,
             filters = listOf(
                 IfwFilter.ComponentFilter("${it.target}/${it.service}"),
                 IfwFilter.Action(if (it.action.isEmpty()) StringMatcher.IsNull(true) else StringMatcher.Equals(it.action)),
@@ -133,15 +128,10 @@ fun writeWakeRuleFile(owner: String, kind: WakeRuleFileKind, xml: String?, direc
     val target = File(directory, "${wakeRuleFileName(owner, kind)}.xml")
     if (xml == null) {
         if (target.exists()) check(target.delete())
-    } else {
-        val checked = IfwRuleProtection(owner).protectXml(xml, target.name)
-        check(checked is IfwResult.Success) { "Cannot write wake rules: ${(checked as IfwResult.Failure).reason}" }
-        val content = checked.value
-        if (!target.exists() || target.readText() != content) {
-            check(directory.isDirectory || directory.mkdirs())
-            replaceIfwFile(target, content)
-            check(target.readText() == content)
-        }
+    } else if (!target.exists() || target.readText() != xml) {
+        check(directory.isDirectory || directory.mkdirs())
+        replaceIfwFile(target, xml)
+        check(target.readText() == xml)
     }
 }
 

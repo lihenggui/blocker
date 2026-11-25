@@ -90,6 +90,29 @@ class IfwRuleBackupTest {
     }
 
     @Test
+    fun givenInstalledAppBackupWithProtectedAndBroadRules_whenImporting_thenOnlyTheBroadRuleIsMerged() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        val own = "com.merxury.blocker.test"
+        val broadRule = """<broadcast block="true" log="false">
+            <intent-filter><action name="android.intent.action.BOOT_COMPLETED"/></intent-filter>
+            </broadcast>"""
+        storage.putFile(
+            "ifw/$APP.xml",
+            """<rules>
+                <activity block="true"><component-filter name="$own/$own.MainActivity"/></activity>
+                $broadRule
+                </rules>""",
+        )
+
+        val result = importer.import(storage)
+
+        assertThat(rulesOn(APP)).isEqualTo(IfwXmlDeserializer().deserialize("<rules>$broadRule</rules>"))
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(result.summary.skipped).containsExactly(SkipReason.PROTECTED_COMPONENT, 1)
+        assertThat(result.summary.failed).isEmpty()
+    }
+
+    @Test
     fun givenRuleFiles_whenExporting_thenEachIsCopiedAsStoredWithoutTheWakeFeatures() = runTest {
         fileSystem.putFile(APP, BLOCKER_RULE)
         fileSystem.putFile("com.broken", DAMAGED_RULE)

@@ -35,8 +35,6 @@ class WakeFilterProbeTest {
                 if (xml != null) throw IOException("Cannot write the wake PROBE rules: ChannelUnavailable")
             }
 
-            override suspend fun matchedProbeActions(sinceMillis: Long, actions: Set<String>): Set<String> = error("Unexpected read")
-
             override suspend fun reset(packageName: String?) = error("Unexpected reset")
         }
 
@@ -44,11 +42,7 @@ class WakeFilterProbeTest {
 
         assertThat(thrown).isInstanceOf(IOException::class.java)
         assertThat(writes.map { it.first }).containsExactly(WakeRuleFileKind.PROBE, WakeRuleFileKind.PROBE).inOrder()
-        val xml = requireNotNull(writes.first().second)
-        assertThat(xml).contains("PRIVATE_IFW_PROBE")
-        val rules = com.merxury.core.ifw.xml.IfwXmlDeserializer().deserialize(xml).rules
-        assertThat(rules).hasSize(2)
-        assertThat(rules.all { !it.block && it.log }).isTrue()
+        assertThat(writes.first().second).contains("PRIVATE_IFW_PROBE")
         assertThat(writes.last().second).isNull()
     }
 }

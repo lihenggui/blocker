@@ -48,7 +48,7 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                 }
                 (observed + previous.filter { it.component == component && it.proof == review }.map { it.target }).toSet()
             }
-            for (target in identities.filter { it.packageName in targets && it.packageName != context.packageName }) {
+            for (target in identities.filter { it.packageName in targets }) {
                 if (byUid[target.uid]?.size != 1 || target.uid < 10000 || target.signatures.isBlank() || review.isBlank()) continue
                 if (fixedPackage.isNotEmpty()) {
                     if (target.versionCode != proof.getLong("version") || target.signatures != proof.getString("signers") ||

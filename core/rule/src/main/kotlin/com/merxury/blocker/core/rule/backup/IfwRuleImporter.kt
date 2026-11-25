@@ -116,9 +116,9 @@ class IfwRuleImporter @Inject constructor(
         } else {
             read
         }
-        val safe = IfwRules(backup.rules.mapNotNull(ifwStore::prepareRule))
+        val safe = IfwRules(backup.rules.filterNot(ifwStore::blocksOwnComponent))
         summary.skip(SkipReason.PROTECTED_COMPONENT, backup.rules.size - safe.rules.size)
-        if (safe.rules.isEmpty()) return
+        if (safe.isEmpty() && !backup.isEmpty()) return
         var merged: MergedIfwRules? = null
         when (val result = ifwStore.update(packageName) { current -> merge.merge(current, safe).also { merged = it }.rules }) {
             is IfwResult.Failure -> {
@@ -138,7 +138,7 @@ class IfwRuleImporter @Inject constructor(
     }
 
     /**
-     * Restores the backup `<name>.xml` of a file that is not an installed app's, only
+     * Restores the backup `<name>.xml` of a file that is not an installed app's byte for byte, only
      * when no file of that name is on the device and only when it is a well-formed XML document
      * whose root is `<rules>`; such a file is never merged or overwritten, and a truncated or
      * damaged one is never written. Its filters are not checked against Blocker's rule model,

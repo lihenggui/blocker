@@ -18,9 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import timber.log.Timber
-import java.io.IOException
-import java.util.UUID
 
 class WakeFilterProbeService : Service() {
     override fun onBind(intent: Intent): IBinder = Binder()
@@ -30,11 +27,11 @@ class WakeFilterProbeService : Service() {
 internal suspend fun testPeerFilter(context: Context, writer: WakeRuleWriter): Boolean {
     val prefs = context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE)
     val generation = Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT, -1)
-    val fingerprint = "${Build.FINGERPRINT}/$generation/log"
+    val fingerprint = "${Build.FINGERPRINT}/$generation"
     if (generation >= 0 && prefs.getString("peer_probe_build", null) == fingerprint) return prefs.getBoolean("peer_probe_ok", false)
     val service = WakeFilterProbeService::class.java
     val pkg = context.packageName
-    val action = "$pkg.PRIVATE_IFW_PROBE.${UUID.randomUUID()}"
+    val action = "$pkg.PRIVATE_IFW_PROBE"
     fun bind(candidate: String): Boolean {
         val connection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName, service: IBinder) = Unit
@@ -55,30 +52,16 @@ internal suspend fun testPeerFilter(context: Context, writer: WakeRuleWriter): B
     var supported = false
     try {
         val self = WakeServiceFilter(pkg, pkg, service.name, action)
-        val differentSender = "blocker.probe.p" + UUID.randomUUID().toString().replace("-", "")
+        val differentSender = "blocker.probe.p" + java.util.UUID.randomUUID().toString().replace("-", "")
         val alternate = self.copy(caller = differentSender, action = "$action.OTHER_SENDER")
-        val actions = setOf(self.action, alternate.action)
-        val since = System.currentTimeMillis()
-        writer.write(WakeRuleFileKind.PROBE, renderWakeRules(listOf(self, alternate), forcePackageFilter = true, block = false))
+        val xml = renderWakeRules(listOf(self, alternate), forcePackageFilter = true)
+        writer.write(WakeRuleFileKind.PROBE, xml)
         val deadline = SystemClock.elapsedRealtime() + 8000
         while (SystemClock.elapsedRealtime() < deadline) {
             delay(250)
-            if (!bind(alternate.action) || !bind(self.action)) break
-            try {
-                val matched = writer.matchedProbeActions(since, actions)
-                if (alternate.action in matched) {
-                    conclusive = true
-                    break
-                }
-                if (self.action !in matched) continue
-                // The positive match proves the rules are active. Try the negative control again
-                // in case the firewall loaded the file between the two initial calls.
-                if (!bind(alternate.action)) break
-                supported = alternate.action !in writer.matchedProbeActions(since, actions)
+            if (!bind(action)) {
+                supported = bind("$action.PASS") && bind(alternate.action)
                 conclusive = true
-                break
-            } catch (e: IOException) {
-                Timber.w(e, "Cannot read the Intent Firewall probe matches")
                 break
             }
         }
