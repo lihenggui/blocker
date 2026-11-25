@@ -19,6 +19,7 @@ package com.merxury.blocker.core.domain.wake
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
@@ -53,7 +54,7 @@ class WakeUserBlockTest {
     private val userBlocks = FakePmBlockRecordDao()
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, system, FakePrivilegedChannel(), userBlocks),
+        WakeProtectionRepository(repository, ownership, catalogue, rules, system, FakePrivilegedChannel(), PmBlockRecords(userBlocks)),
         StandardTestDispatcher(testScheduler),
     )
 
@@ -153,6 +154,21 @@ class WakeUserBlockTest {
 
         assertThat(system.setting("target", "target.Wake")).isEqualTo(COMPONENT_ENABLED_STATE_DEFAULT)
         assertThat(system.changes).containsExactly("target/target.Wake 0 0->2", "target/target.Wake 0 2->0").inOrder()
+    }
+
+    @Test
+    fun givenUserBlocksBetweenWakeReadAndLock_whenApplyingWakeProtection_thenTheUserRecordStays() = runTest {
+        reconcileWith(previous = emptyList(), qualifying = listOf(candidate))
+        system.beforeTakingLock = {
+            system.put(candidate.target, candidate.component, COMPONENT_ENABLED_STATE_DISABLED)
+            userBlocks.userBlocked(candidate.target, candidate.component)
+        }
+
+        assertThat(manager.reconcile()).isTrue()
+
+        assertThat(system.changes).isEmpty()
+        assertThat(userBlocks.getByPackage(candidate.target, 0).map { it.className }).containsExactly(candidate.component)
+        verify(ownership).save(claimed.copy(configured = false, disabledByUser = true))
     }
 
     @Test fun givenSecondUser_whenWakeRetiresItsClaim_thenUsersBlockStays() = runTest {

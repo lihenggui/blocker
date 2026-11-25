@@ -38,6 +38,7 @@ fun <T> IfwResult<T>.getOrThrow(): T = when (this) {
 
     is IfwResult.Failure -> throw IOException(
         when (val failure = reason) {
+            IfwFailure.ProtectedComponent -> "Cannot block a protected component"
             IfwFailure.NoAccess -> "Root unavailable"
             is IfwFailure.Unreadable -> "Cannot read IFW rules for ${failure.packageName}"
             is IfwFailure.WriteFailed -> failure.message ?: "Cannot save IFW rules for ${failure.packageName}"

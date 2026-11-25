@@ -29,6 +29,7 @@ import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
+import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.storage.FakeBackupStorage
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -41,7 +42,7 @@ class BlockerRuleExporterTest {
     private val components = FakeComponentStatusRepository()
     private val channel = FakePrivilegedChannel()
     private val storage = FakeBackupStorage()
-    private val exporter = BlockerRuleExporter(installedApps, components, channel, storeOver(FakeIfwFileSystem()), backupJson)
+    private val exporter = BlockerRuleExporter(installedApps, components, channel, storeOver(FakeIfwFileSystem()), backupJson, "com.merxury.blocker.test", FakeSelectedUserRepository())
 
     // One component of each type, each in a different state of both layers.
     private val ownerState = listOf(
@@ -52,6 +53,38 @@ class BlockerRuleExporterTest {
     )
 
     private fun decode(path: String): BlockerRule = backupJson.decodeFromString(BlockerRule.serializer(), checkNotNull(storage.fileContent(path)))
+
+    @Test
+    fun givenBlockerInstalledForBothUsers_whenExporting_thenOnlyTheOtherUsersCopyIsBackedUp() = runTest {
+        val ownPackage = "com.merxury.blocker.test"
+        installedApps.sendApps(listOf(installedApp(), installedApp(ownPackage, user = OWNER), installedApp(ownPackage, user = WORK)))
+        val main = declaration("Main", BOOT.type, packageName = ownPackage)
+        components.sendComponents(OWNER, listOf(status(BOOT), status(main)))
+        components.sendComponents(WORK, listOf(status(main)))
+
+        val progress = mutableListOf<Triple<String, Int, Int>>()
+        val owner = exporter.export(storage, OWNER) { name, done, total -> progress += Triple(name, done, total) }
+        val work = exporter.export(storage, WORK)
+
+        assertThat(owner.summary.skipped).isEmpty()
+        assertThat(owner.summary.apps).isEqualTo(1)
+        assertThat(progress).containsExactly(Triple(APP, 0, 1))
+        assertThat(storage.read(BackupSet(OWNER).fileOf(ownPackage))).isNull()
+        assertThat(work.summary.apps).isEqualTo(1)
+        assertThat(storage.read(BackupSet(WORK).fileOf(ownPackage))).isNotNull()
+    }
+
+    @Test
+    fun givenBlockerIsASystemApp_whenExportingThirdPartyApps_thenOnlyOtherSystemAppsAreCounted() = runTest {
+        installedApps.sendApps(
+            listOf(installedApp("com.merxury.blocker.test", isSystem = true), installedApp("com.other.system", isSystem = true)),
+        )
+
+        val result = exporter.export(storage, OWNER)
+
+        assertThat(result.summary.skipped).containsExactly(SkipReason.SYSTEM_APP, 1)
+        assertThat(storage.allFiles).isEmpty()
+    }
 
     @Test
     fun givenOwnerState_whenExporting_thenTheFileEqualsTheGoldenText() = runTest {

@@ -135,7 +135,7 @@ class ComponentControlDeviceTest {
             connectedShizukuTransport(context, PrivilegedIdentity.SHELL)
         }
         reader = PlatformSystemPackageReader(PrivilegedPlatformPackages(transport, LocalPlatformPackages(context)), Dispatchers.IO)
-        store = IfwModule.providesIfwStore(ChannelIfwFileSystem(transport), IfwXmlSerializer(), IfwXmlDeserializer())
+        store = IfwModule.providesIfwStore(ChannelIfwFileSystem(transport), IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.owner")
         control = PrivilegedComponentControl(transport, transport, reader, store, PackageLocks())
         val declared = checkNotNull(reader.declarations(AppKey(self, target)).getOrNull()) { "$self is not installed for user ${target.value}" }
         fun declaration(className: String) = declared.single { it.id.className == className }

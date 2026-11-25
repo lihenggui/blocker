@@ -119,7 +119,7 @@ class IfwRuleEditorViewModelTest {
         assertTrue(filters.any { filter -> filter is IfwFilter.ComponentFilter })
     }
 
-    private fun store() = IntentFirewallStore(FakeIfwFileSystem(), IfwXmlSerializer(), IfwXmlDeserializer())
+    private fun store() = IntentFirewallStore(FakeIfwFileSystem(), IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test")
 
     private fun createViewModel(
         ifw: IntentFirewallStore = store(),

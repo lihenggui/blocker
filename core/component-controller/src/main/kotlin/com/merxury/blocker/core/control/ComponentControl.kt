@@ -60,11 +60,13 @@ import kotlinx.coroutines.flow.Flow
  * Each package's state is read first. PackageManager calls are sent only for components whose
  * setting does not already meet the goal: one call per package and target setting where the
  * platform can change many components in one call (Android 13 and later). A refused batch call is
- * repeated one component at a time, so a protected component fails alone. Every component whose
- * goal involves the Intent Firewall goes to the rule store in one change per package; the store
- * re-reads the file under its lock and writes nothing when the rules stay as they are, so it alone
- * decides whether the firewall needs a change. The outcome comes from the state read back
- * afterwards, never from what a call answered. A block is [ControlResult.ACHIEVED] when every
+ * repeated one component at a time, so a protected system component fails alone. Eligible
+ * firewall changes go to the rule store in one batch per package. The store
+ * re-reads the file under its lock and writes nothing when the rules stay as they are. The
+ * controller excludes the firewall layer when blocking Blocker itself. A request with only
+ * that layer is [ControlResult.SKIPPED] with [ControlFailure.ProtectedComponent]. A protection
+ * refusal from the rule store counts as a failed layer. Other outcomes are judged by the state
+ * read back afterwards. A block is [ControlResult.ACHIEVED] when every
  * layer it uses shows the component blocked, [ControlResult.PARTIAL] when some do, and
  * [ControlResult.FAILED] when none does. An unblock is achieved when no layer it uses blocks the
  * component any more: the setting is not [PmSetting.DISABLED] and no unconditional rule names it,
@@ -74,10 +76,12 @@ import kotlinx.coroutines.flow.Flow
  * [Availability.Runnable] or [Availability.Conditional]. An unblock or enable is partial when a
  * layer that did not meet the goal before does now but another requested layer does not or
  * cannot be read, and failed when no requested layer moved toward the goal. A layer counts as moved
- * only when it was read before the change and nothing failed for it: a setting that could not be
+ * only when it was read before the change and now meets the goal: a setting that could not be
  * read may have met the goal already, so one that reads differently afterwards proves no progress.
- * A layer whose call succeeded but whose state does not show it fails with
- * [ControlFailure.StateNotConfirmed]. A partial result is kept, not rolled back.
+ * A PackageManager disable requires a known starting setting so Blocker can journal its own
+ * writes. When the starting setting cannot be confirmed or the read-back does not show the goal,
+ * a layer without a more specific failure gets [ControlFailure.StateNotConfirmed]. A partial
+ * result is kept and no change is rolled back.
  *
  * Without a ready channel nothing is sent and the layers fail with
  * [ControlFailure.ChannelUnavailable]. Shizuku running as the shell may change the components of
@@ -89,15 +93,14 @@ import kotlinx.coroutines.flow.Flow
  * reported still shows the firewall as [IfwBlock.UNKNOWN]; a block, or a request for the firewall
  * layer alone, gets [ControlFailure.NotPermitted] for it without a call.
  *
- * A failure is reported for a layer whose change was attempted and did not complete; a step that
- * throws unexpectedly fails only the layer and components it was changing, with
+ * A step that throws unexpectedly fails only the layer and components it was changing, with
  * [ControlFailure.SystemError].
  *
  * ## Order and cancellation
  * The work on one package holds that package's lock, shared by every request in the process,
- * from its first read to its read-back, so requests touching the same package never interleave.
+ * from its first read through persistence of its read-back, so requests touching the same package never interleave.
  * A request locks one package at a time, in its own order. A package whose changes have been sent
- * runs to its read-back even when the collector cancels; no further package is started.
+ * runs through persistence even when the collector cancels; no further package is started.
  *
  * The Intent Firewall state reported comes from the rule store, which answers from rules it read
  * earlier and may miss a change another writer made to a file it has not written itself; after a
@@ -120,12 +123,28 @@ interface ComponentControl {
      * first when it is not ready, which may show the su or Shizuku prompt. It works package by
      * package, emits [ControlEvent.PackageDone] for each package, also when its changes failed,
      * and finally [ControlEvent.Finished]. Every requested component appears in exactly one
-     * outcome, including those that needed no change. A failure never stops the remaining
-     * packages, and the flow never throws except for cancellation.
+     * outcome, including those that needed no change. A failed system change leaves the remaining
+     * packages eligible. Cancellation and errors from [persistence] propagate.
      *
      * The [ControlLayer]s to set or clear come from the request for every goal; see [ComponentControl].
      * [writeObserver] can decline to start a package's writes and receives acknowledgments
      * as writes complete, before read-back.
      */
-    fun apply(request: ControlRequest, writeObserver: ComponentWriteObserver? = null): Flow<ControlEvent>
+    fun apply(
+        request: ControlRequest,
+        writeObserver: ComponentWriteObserver? = null,
+        persistence: ComponentControlPersistence? = null,
+    ): Flow<ControlEvent>
+}
+
+/** Persists each package under its control lock, before progress reaches the collector. */
+interface ComponentControlPersistence {
+    /** Journals PM disables before the system call, so a process restart can verify them. */
+    suspend fun beforePmBlock(app: AppKey, components: Collection<ComponentId>)
+
+    /**
+     * Stores read-back and reconciles the journal. Runs to completion once writes begin.
+     * [alreadyDisabled] holds requested PM blocks that already existed before this request.
+     */
+    suspend fun afterPackage(event: ControlEvent.PackageDone, alreadyDisabled: Set<ComponentId>)
 }

@@ -37,9 +37,9 @@ import javax.inject.Inject
  *
  * Every count is of components: cleared ones are applied; recorded ones of apps no longer installed
  * are skipped as [SkipReason.APP_NOT_INSTALLED], and those the app no longer declares as
- * [SkipReason.NOT_DECLARED]; a component the system refuses fails alone. An app whose settings cannot
- * be read counts once as [FailureReason.STATE_UNREADABLE] and keeps its records; the others are
- * still cleared.
+ * [SkipReason.NOT_DECLARED]; a component the system refuses fails alone. An app whose settings or
+ * installation cannot be verified counts once as [FailureReason.STATE_UNREADABLE] and keeps its
+ * records. Hidden apps confirmed to be installed keep their records and are left out of the counts.
  */
 class PackageManagerReset @Inject constructor(
     private val components: ComponentStatusRepository,

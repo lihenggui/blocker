@@ -230,7 +230,8 @@ class ComponentProvider internal constructor(
         val declarations = cachedComponents(app).associate { it.declaration.id.className to it.declaration }
         val known = changes.filterKeys { it in declarations }
         if (known.isEmpty()) return if (failure == null) emptyList() else null
-        if (access == null) return null
+        // The repository can refuse a protected block without access. Enabling still requires it.
+        if (access == null && (!componentStatuses().isProtectedFromBlocking(app) || known.containsValue(false))) return null
 
         return listOf(ControlGoal.BLOCK, ControlGoal.ENABLE).mapNotNull { goal ->
             val components = known.filterValues { it == (goal == ControlGoal.BLOCK) }.keys.map(declarations::getValue)
@@ -243,7 +244,7 @@ class ComponentProvider internal constructor(
         val task = startQuietly {
             val requests = prepareControl(packageName, changes) ?: return@startQuietly false
             if (requests.isEmpty()) return@startQuietly true
-            progress.beginControl() && applyControl(packageName, requests, progress)
+            progress.beginControl() && applyControl(requests, progress)
         }
         return try {
             withTimeoutOrNull(writeTimeoutMillis) { task.await() } ?: progress.onTimeout()
@@ -253,23 +254,21 @@ class ComponentProvider internal constructor(
         }
     }
 
-    private suspend fun ProviderEntryPoint.applyControl(packageName: String, requests: List<ControlRequest>, progress: WriteProgress): Boolean {
+    private suspend fun ProviderEntryPoint.applyControl(requests: List<ControlRequest>, progress: WriteProgress): Boolean {
         for (request in requests) {
             if (!progress.canStart()) return false
-            val ownBlock = request.goal == ControlGoal.BLOCK && packageName == context?.packageName
             val failed = componentStatuses().control(request, keepKnownState = true, writeObserver = progress)
                 .filterIsInstance<ControlEvent.PackageDone>()
-                .fold(false) { failed, event -> failed || event.outcomes.any { it.failures.isControlException(ownBlock) } }
+                .fold(false) { failed, event -> failed || event.outcomes.any { it.failures.isControlException() } }
             if (failed) return false
         }
         return true
     }
 
     // A failed read-back or IFW write could return false in the old controller. PM exceptions
-    // and missing access returned null. Blocking our own components is now an explicit refusal.
-    private fun Map<ControlLayer, ControlFailure>.isControlException(ownBlock: Boolean): Boolean = ControlFailure.ChannelUnavailable in values || when (get(ControlLayer.PACKAGE_MANAGER)) {
-        is ControlFailure.NotPermitted -> !ownBlock
-        is ControlFailure.SystemError, is ControlFailure.TargetNotFound -> true
+    // and missing access returned null. A protected block is an explicit refusal without an exception.
+    private fun Map<ControlLayer, ControlFailure>.isControlException(): Boolean = ControlFailure.ChannelUnavailable in values || when (get(ControlLayer.PACKAGE_MANAGER)) {
+        is ControlFailure.NotPermitted, is ControlFailure.SystemError, is ControlFailure.TargetNotFound -> true
         else -> false
     }
 

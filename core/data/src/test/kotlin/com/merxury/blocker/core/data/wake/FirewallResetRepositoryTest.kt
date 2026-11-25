@@ -34,7 +34,7 @@ class FirewallResetRepositoryTest {
     }
     private val repository = FirewallResetRepository(
         managed,
-        IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer()),
+        IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test"),
     )
 
     @Test

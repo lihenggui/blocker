@@ -22,6 +22,7 @@ import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.isFilteredByIntentFirewall
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
+import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
@@ -51,7 +52,14 @@ class IntentFirewallStore(
     private val fileSystem: IfwFileSystem,
     private val serializer: IfwXmlSerializer,
     private val deserializer: IfwXmlDeserializer,
+    appPackageName: String,
 ) : IfwStore {
+
+    private val protection = IfwRuleProtection(appPackageName)
+
+    override fun allowsBlocking(packageName: String): Boolean = protection.allowsBlocking(packageName)
+
+    override fun blocksOwnComponent(rule: IfwRule): Boolean = protection.blocksOwnComponent(rule)
 
     /** What a package's rule file held when it was read, and whether there was one. */
     private data class StoredRules(val rules: IfwRules, val exists: Boolean)
@@ -97,11 +105,15 @@ class IntentFirewallStore(
         val providers = changes.keys.filterNot { it.type.isFilteredByIntentFirewall }.associate { it.id to IfwBlock.NOT_BLOCKED }
         val filtered = changes.filterKeys { it.type.isFilteredByIntentFirewall }
         if (filtered.isEmpty()) return IfwResult.Success(providers)
+        if (!allowsBlocking(packageName) && filtered.containsValue(true)) {
+            return IfwResult.Failure(IfwFailure.ProtectedComponent)
+        }
         Timber.i("Set IFW block of ${filtered.size} components of $packageName")
         val written = if (onWrite != null) mutableSetOf<ComponentId>() else null
         val result = modify(packageName) { current ->
             filtered.entries.fold(current) { rules, (component, blocked) ->
-                rules.withBlocked(component, blocked).also { if (it !== rules) written?.add(component.id) }
+                rules.withBlocked(component, blocked, canExtend = { !blocksOwnComponent(it) })
+                    .also { if (it !== rules) written?.add(component.id) }
             }.also { if (written != null && it == current) written.clear() }
         }
         return when (result) {
@@ -195,6 +207,8 @@ class IntentFirewallStore(
                 is IfwResult.Success -> if (existing.value != null) {
                     IfwResult.Success(false)
                 } else {
+                    val checked = protection.checkXml(content, name)
+                    if (checked is IfwResult.Failure) return@withLock checked
                     // Runs to its end once started, as a save does.
                     when (val written = withContext(NonCancellable) { changeFile(name) { fileSystem.writeRules(name, content) } }) {
                         is IfwResult.Success -> {
@@ -249,7 +263,12 @@ class IntentFirewallStore(
         val updated = transform(current.rules)
         when {
             updated == current.rules -> IfwResult.Success(updated)
+
+            updated.rules.any { rule -> blocksOwnComponent(rule) && current.rules.rules.none { serializer.sameRule(rule, it) } } ->
+                IfwResult.Failure(IfwFailure.ProtectedComponent)
+
             updated.isEmpty() && !current.exists -> IfwResult.Success(IfwRules.empty())
+
             else -> withContext(NonCancellable) { save(packageName, updated) }
         }
     }

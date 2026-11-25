@@ -92,6 +92,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * | getComponents, failed read, cancellation, or overall deadline | Same bundle from cache |
  * | getComponents, blank, confirmed absent, or no cached package during fallback | Same bundle with an empty array |
  * | blocks, successful control, no matched requests, or controller refusal without an exception | The original extras |
+ * | blocks, no access and all matched requests are protected blocks | The original extras |
  * | blocks, malformed extras, unavailable access for a known component, control exception, cancellation, or deadline | null |
  * | Either method missing an argument, unsupported method, or direct main-thread call | null |
  * | Any method from an untrusted UID | Throws SecurityException |
@@ -450,27 +451,71 @@ class ComponentProviderContractTest {
 
     @Test
     fun givenBlockersOwnComponent_whenBlocks_thenReturnsInputForRepositoryRefusal() = runTest {
+        val own = status("Own", packageName = application.packageName)
+        seed(own)
+        val key = refuseProtectedBlock(own)
+        val input = input("Own" to true, packageName = own.declaration.id.packageName)
+
+        assertThat(call("blocks", own.declaration.id.packageName, input)).isSameInstanceAs(input)
+
+        assertThat(repository.requests.single().components).containsExactly(own.declaration)
+        assertThat(repository.component(key).first()).isEqualTo(own)
+    }
+
+    @Test
+    fun givenNoAccessAndColdCache_whenBlockingOwnComponent_thenRefreshesLocallyAndReturnsInput() = runTest {
+        channel.setState(DENIED)
+        val ownPackage = application.packageName
+        val own = status("Own", packageName = ownPackage, ifw = IfwBlock.UNKNOWN)
+        val key = refuseProtectedBlock(own)
+        refresh = { app, firewall ->
+            assertThat(firewall).isEqualTo(FirewallRead.KEEP_CACHED)
+            seed(own)
+            repository.refreshIfReadable(app, firewall)
+        }
+        val input = input("Own" to true, packageName = ownPackage)
+
+        assertThat(call("blocks", ownPackage, input)).isSameInstanceAs(input)
+
+        assertQuietConnect()
+        assertThat(repository.refreshedApps).containsExactly(AppKey(ownPackage, OWN_USER))
+        assertThat(repository.requests.single().components).containsExactly(own.declaration)
+        assertThat(repository.component(key).first()).isEqualTo(own)
+        assertThat(repository.recorded).isEmpty()
+    }
+
+    @Test
+    fun givenNoAccess_whenBlockingAndEnablingOwnComponents_thenReturnsNullWithoutWriting() = runTest {
+        channel.setState(DENIED)
         val ownPackage = application.packageName
         val own = status("Own", packageName = ownPackage)
-        seed(own)
+        val disabled = status("Disabled", packageName = ownPackage, pm = PmSetting.DISABLED)
+        seed(own, disabled)
+        refuseProtectedBlock(own)
+        val input = input("Own" to true, "Disabled" to false, packageName = ownPackage)
+
+        assertThat(call("blocks", ownPackage, input)).isNull()
+
+        assertQuietConnect()
+        assertThat(repository.refreshedApps).containsExactly(AppKey(ownPackage, OWN_USER))
+        assertThat(repository.requests).isEmpty()
+        assertThat(repository.component(ComponentKey(disabled.declaration.id, OWN_USER)).first()).isEqualTo(disabled)
+    }
+
+    private fun refuseProtectedBlock(own: ComponentStatus): ComponentKey {
+        val ownPackage = own.declaration.id.packageName
+        repository.protectedApp = AppKey(ownPackage, OWN_USER)
         val key = ComponentKey(own.declaration.id, OWN_USER)
         repository.controlEvents = {
             listOf(
                 ControlEvent.PackageDone(
                     ownPackage,
-                    listOf(ComponentOutcome(key, own.state, ControlResult.FAILED, mapOf(PACKAGE_MANAGER to ControlFailure.NotPermitted(null)))),
+                    listOf(ComponentOutcome(key, own.state, ControlResult.SKIPPED, mapOf(PACKAGE_MANAGER to ControlFailure.ProtectedComponent))),
                 ),
-                ControlEvent.Finished(achieved = 0, partial = 0, failed = 1),
+                ControlEvent.Finished(achieved = 0, partial = 0, failed = 0, skipped = 1),
             )
         }
-        val input = Bundle().apply {
-            putString("cmp_list", """{"pkg":"ignored","components":[{"type":"ignored","name":"$ownPackage.Own","block":true}]}""")
-        }
-
-        assertThat(call("blocks", ownPackage, input)).isSameInstanceAs(input)
-
-        assertThat(repository.requests.single().components).containsExactly(own.declaration)
-        assertThat(repository.component(key).first()).isEqualTo(own)
+        return key
     }
 
     @Test
@@ -737,9 +782,9 @@ class ComponentProviderContractTest {
         ControlState(pm, ifw),
     )
 
-    private fun input(vararg components: Pair<String, Boolean>): Bundle {
+    private fun input(vararg components: Pair<String, Boolean>, packageName: String = PACKAGE_NAME): Bundle {
         val entries = components.joinToString(",") { (name, block) ->
-            val className = if (name.isEmpty()) "" else "$PACKAGE_NAME.$name"
+            val className = if (name.isEmpty()) "" else "$packageName.$name"
             """{"type":"ignored","name":"$className","block":$block}"""
         }
         return Bundle().apply { putString("cmp_list", """{"pkg":"com.example.other","components":[$entries]}""") }

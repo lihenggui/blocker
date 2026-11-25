@@ -8,6 +8,8 @@ import com.merxury.blocker.core.controllers.wake.WakeComponentJournal
 import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeProtection
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.UserId
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
@@ -29,6 +31,17 @@ class WakeComponentOwnership @Inject constructor(
      */
     suspend fun probeJournal() {
         journal.read()
+    }
+
+    /** Blocks already made by wake protection that the user can take over under the package lock. */
+    internal suspend fun claimedBlocks(user: UserId, candidates: Set<ComponentId>, catalog: ReviewedWakePaths): List<ComponentId> {
+        if (user != UserId.SYSTEM || candidates.isEmpty()) return emptyList()
+        return history.readProtections()
+            .filter { it.method == "PM" && it.configured }
+            .mapNotNull { path ->
+                candidates.firstOrNull { it.packageName == path.target && it.className == path.component }
+                    ?.takeIf { catalog.sameInstallation(path) }
+            }
     }
 
     suspend fun recover() {

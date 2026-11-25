@@ -39,20 +39,24 @@ internal class FakeComponentStates : ManagedComponentState {
         settings[Triple(packageName, className, user)] = setting
     }
 
+    var beforeTakingLock: suspend () -> Unit = {}
+
     override suspend fun compareAndSet(
         packageName: String,
         className: String,
         user: UserId,
         expected: Int,
         newState: Int,
+        afterConfirmed: suspend () -> Unit,
         proceed: suspend () -> Boolean,
     ): Boolean {
+        beforeTakingLock()
         if (!proceed()) return false
         changes += "$packageName/$className ${user.value} $expected->$newState"
         val current = setting(packageName, className, user)
-        if (current == newState) return true
-        if (current != expected) return false
-        put(packageName, className, newState, user)
+        if (current != expected && current != newState) return false
+        if (current == expected) put(packageName, className, newState, user)
+        afterConfirmed()
         return true
     }
 }

@@ -51,6 +51,36 @@ class MatAndResetTest {
     private val reset = PackageManagerReset(components, channel, FakePmBlockRecordSeeder())
 
     @Test
+    fun givenProtectedComponent_whenImportingMat_thenItCountsAsSkippedAndWorkSucceeds() = runTest {
+        userData.setControllerType(ControllerType.PM)
+        installedApps.sendApps(listOf(installedApp()))
+        components.sendComponents(OWNER, listOf(status(BOOT)))
+        components.controlEvents = { request ->
+            val key = ComponentKey(BOOT.id, request.user)
+            listOf(
+                ControlEvent.PackageDone(
+                    APP,
+                    listOf(
+                        ComponentOutcome(
+                            key,
+                            status(BOOT).state,
+                            ControlResult.SKIPPED,
+                            mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.ProtectedComponent),
+                        ),
+                    ),
+                ),
+                ControlEvent.Finished(0, 0, 0, skipped = 1),
+            )
+        }
+
+        val result = mat.import(listOf(BOOT.id.flatten()), OWNER)
+
+        assertThat(result.summary.skipped).containsExactly(SkipReason.PROTECTED_COMPONENT, 1)
+        assertThat(result.summary.failed).isEmpty()
+        assertThat(result.summary.changedPackages).isEmpty()
+    }
+
+    @Test
     fun givenMatLines_whenImporting_thenDeclaredComponentsAreBlockedAndTheRestCounted() = runTest {
         userData.setControllerType(ControllerType.IFW_PLUS_PM)
         installedApps.sendApps(listOf(installedApp(), installedApp("com.system", isSystem = true)))

@@ -66,6 +66,6 @@ internal val CONDITIONAL_MAIN_XML = """
     </rules>
 """.trimIndent()
 
-internal fun storeOver(fileSystem: FakeIfwFileSystem) = IntentFirewallStore(fileSystem, IfwXmlSerializer(), IfwXmlDeserializer())
+internal fun storeOver(fileSystem: FakeIfwFileSystem) = IntentFirewallStore(fileSystem, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test")
 
 internal fun FakeIfwFileSystem.rulesOf(packageName: String = PKG): IfwRules? = fileContent(packageName)?.let { IfwXmlDeserializer().deserialize(it) }

@@ -21,6 +21,7 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
+import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -50,8 +51,8 @@ import kotlinx.coroutines.flow.SharedFlow
  *
  * ## Writes
  * Blocking adds the component-filter to the first unconditional rule of the type that has no
- * intent-filter, or appends such a rule. Unblocking removes the component-filter from every
- * unconditional rule of the type and drops a rule left with neither component-filters nor
+ * intent-filter and does not explicitly block Blocker, or appends such a rule. Unblocking removes
+ * the component-filter from every unconditional rule of the type and drops a rule left with neither component-filters nor
  * intent-filters. Neither touches a rule with further conditions, so an unblocked component can
  * stay [IfwBlock.CONDITIONAL]. Every change to a package runs as one read-modify-write under that
  * package's lock: a file that cannot be read is never written, a change that leaves the rules as
@@ -77,6 +78,12 @@ import kotlinx.coroutines.flow.SharedFlow
  * until that package is written through this store or [clearCache] runs. Every other read, and the read of every read-modify-write, goes to the file.
  */
 interface IfwStore {
+    /** Whether an explicit component block can target [packageName]. */
+    fun allowsBlocking(packageName: String): Boolean
+
+    /** Whether [rule] explicitly blocks a component of the running app. */
+    fun blocksOwnComponent(rule: IfwRule): Boolean
+
     /**
      * IFW state of each given component of one package. Never throws for expected failures: when
      * the file cannot be read or the rules cannot be reached, every filtered component is
@@ -114,7 +121,9 @@ interface IfwStore {
     /**
      * The one read-modify-write path for editor saves. [transform] gets the current rules and
      * runs only when they could be read; rules for which [IfwRules.isEmpty] holds delete the
-     * file. Returns the rules now in effect.
+     * file. A rule that explicitly blocks Blocker may stay in the file or be removed. Adding a
+     * rule that explicitly blocks Blocker fails with [IfwFailure.ProtectedComponent]. Returns the
+     * rules now in effect.
      *
      * @param name a rule file name as [isRuleFileName] decides
      */
@@ -164,9 +173,10 @@ interface IfwStore {
 
     /**
      * Restores the rule file `<name>.xml` from a backup with [content] as it is, only when no file
-     * of that name exists; an existing file is never overwritten or merged with. Returns whether it
-     * wrote. For files a restore does not merge, such as one the global rule editor stored or the
-     * file of an app no longer installed; it emits on [changes] when it wrote.
+     * of that name exists; an existing file is never overwritten or merged with. Explicit blocks
+     * of Blocker fail with [IfwFailure.ProtectedComponent]. Returns whether it wrote. For files a
+     * restore does not merge, such as one the global rule editor stored or the file of an app no
+     * longer installed; it emits on [changes] when it wrote.
      *
      * @param name a rule file name as [isRuleFileName] decides
      */

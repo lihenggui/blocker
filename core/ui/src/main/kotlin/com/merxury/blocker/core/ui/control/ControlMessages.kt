@@ -47,7 +47,7 @@ sealed interface ControlMessage {
         override val needsAccess = false
     }
 
-    /** A batch ended; [notChanged] components did not reach its goal, none when all did. */
+    /** A batch ended. [notChanged] counts failed or partial outcomes and vanished components. */
     data class BatchDone(
         val notChanged: Int,
         override val needsAccess: Boolean = false,
@@ -55,11 +55,11 @@ sealed interface ControlMessage {
 }
 
 /**
- * The message for one component's outcome, including when the component was no longer available.
- * Returns null when the component reached its goal through every requested layer.
+ * The message for a failed, partial, or vanished component. Achieved and protected skipped
+ * outcomes return null.
  */
 fun ComponentOutcome?.toMessage(component: ComponentId, goal: ControlGoal): ControlMessage? {
-    if (this?.result == ControlResult.ACHIEVED) return null
+    if (this?.needsMessage() == false) return null
     return ControlMessage.ComponentNotChanged(name = component.simpleName, goal = goal, needsAccess = this?.needsAccess() == true)
 }
 
@@ -70,8 +70,10 @@ fun ComponentOutcome?.toMessage(component: ComponentId, goal: ControlGoal): Cont
  * nothing was sent for them; they count as not changed
  */
 fun batchSummary(outcomes: List<ComponentOutcome>, vanished: Collection<ComponentKey> = emptyList()): ControlMessage.BatchDone {
-    val notChanged = outcomes.filter { it.result != ControlResult.ACHIEVED }
+    val notChanged = outcomes.filter { it.needsMessage() }
     return ControlMessage.BatchDone(notChanged = notChanged.size + vanished.size, needsAccess = notChanged.any { it.needsAccess() })
 }
 
 private fun ComponentOutcome.needsAccess(): Boolean = failures.values.any { it == ControlFailure.ChannelUnavailable }
+
+private fun ComponentOutcome.needsMessage(): Boolean = result == ControlResult.FAILED || result == ControlResult.PARTIAL

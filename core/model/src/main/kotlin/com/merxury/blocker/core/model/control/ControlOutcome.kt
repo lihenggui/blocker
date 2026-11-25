@@ -33,6 +33,9 @@ sealed interface ControlFailure {
         val isSystemRefusal: Boolean get() = identity == PrivilegedIdentity.ROOT || identity == PrivilegedIdentity.SYSTEM
     }
 
+    /** Blocker protects its own components. */
+    data object ProtectedComponent : ControlFailure
+
     /** The package, component or user is not known to the system. */
     data class TargetNotFound(val message: String?) : ControlFailure
 
@@ -45,7 +48,7 @@ sealed interface ControlFailure {
     /** The system failed in another way. */
     data class SystemError(val message: String?) : ControlFailure
 
-    /** The change reported success, but the state read back afterwards does not show it. */
+    /** The starting state could not be verified, or the state read back did not confirm the goal. */
     data object StateNotConfirmed : ControlFailure
 }
 
@@ -56,14 +59,17 @@ enum class ControlResult {
     /** Some layers show the goal and others do not. Nothing is rolled back. */
     PARTIAL,
     FAILED,
+
+    /** Blocker skipped the requested change to protect its own components. */
+    SKIPPED,
 }
 
 /**
  * What a request did to one component.
  *
  * @property state as read back after the change, or before it when nothing had to change
- * @property failures why each layer that does not show the goal does not; empty exactly when
- * [result] is [ControlResult.ACHIEVED]
+ * @property failures why each reported layer failed or was skipped. Empty exactly when [result]
+ * is [ControlResult.ACHIEVED].
  */
 data class ComponentOutcome(
     val key: ComponentKey,
@@ -102,5 +108,6 @@ sealed interface ControlEvent {
         val achieved: Int,
         val partial: Int,
         val failed: Int,
+        val skipped: Int = 0,
     ) : ControlEvent
 }

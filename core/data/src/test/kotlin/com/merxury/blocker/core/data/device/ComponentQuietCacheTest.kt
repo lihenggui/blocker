@@ -20,6 +20,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer.INTENT_FIREWALL
+import com.merxury.blocker.core.model.component.ControlLayer.PACKAGE_MANAGER
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
@@ -33,7 +34,11 @@ import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestScope
@@ -90,6 +95,49 @@ class ComponentQuietCacheTest : DeviceRepositoryTestBase() {
 
         assertThat(repository.refreshIfReadable(installed.key, FirewallRead.KEEP_CACHED)).isEqualTo(ReadResult.Success(Unit))
         assertThat(repository.components(installed.key).first().single().state).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED))
+    }
+
+    @Test
+    fun givenQuietBlockPersisting_whenLocalRefreshStarts_thenItWaitsForReadBackAndKeepsTheRecord() = runTest {
+        val persisting = CompletableDeferred<Unit>()
+        val allowPersistence = CompletableDeferred<Unit>()
+        val repository = components(backgroundScope) { _, _ ->
+            persisting.complete(Unit)
+            allowPersistence.await()
+            emptyList()
+        }
+        system.install(installed, tracker)
+        store.setBlocked(PKG, mapOf(tracker to true))
+        assertThat(repository.refresh(installed.key)).isEqualTo(ReadResult.Success(Unit))
+        val key = ComponentKey(tracker.id, OWNER)
+        componentControl.apply = {
+            flow {
+                system.put(OWNER, tracker, PmSetting.DISABLED)
+                val outcome = ComponentOutcome(key, ControlState(PmSetting.DISABLED, IfwBlock.UNKNOWN), ControlResult.ACHIEVED, emptyMap())
+                emit(ControlEvent.PackageDone(PKG, listOf(outcome), pmWrites = setOf(tracker.id)))
+            }
+        }
+        val request = ControlRequest(OWNER, listOf(tracker), ControlGoal.BLOCK, setOf(PACKAGE_MANAGER))
+        val control = async { repository.control(request, keepKnownState = true).first() }
+        try {
+            persisting.await()
+            channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+            val reads = system.log.toList()
+            val refresh = async(start = CoroutineStart.UNDISPATCHED) { repository.refreshIfReadable(installed.key, FirewallRead.KEEP_CACHED) }
+
+            assertThat(refresh.isCompleted).isFalse()
+            assertThat(control.isCompleted).isFalse()
+            assertThat(system.log).containsExactlyElementsIn(reads).inOrder()
+            assertThat(pmBlocks.of(OWNER)).containsExactly(key)
+            allowPersistence.complete(Unit)
+
+            assertThat(control.await()).isInstanceOf(ControlEvent.PackageDone::class.java)
+            assertThat(refresh.await()).isEqualTo(ReadResult.Success(Unit))
+            assertThat(repository.component(key).first()?.state).isEqualTo(ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED))
+            assertThat(pmBlocks.of(OWNER)).containsExactly(key)
+        } finally {
+            allowPersistence.complete(Unit)
+        }
     }
 
     @Test

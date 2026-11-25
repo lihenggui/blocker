@@ -44,6 +44,9 @@ interface SystemPackageReader {
 
     suspend fun app(key: AppKey): ReadResult<InstalledApp>
 
+    /** Whether the package is installed for this user, including when it is hidden. */
+    suspend fun isInstalled(key: AppKey): ReadResult<Boolean>
+
     /**
      * The components [app] declares in its manifest, including those it ships disabled. The answer
      * is the same for every user that has the app; the user only says where to look it up.

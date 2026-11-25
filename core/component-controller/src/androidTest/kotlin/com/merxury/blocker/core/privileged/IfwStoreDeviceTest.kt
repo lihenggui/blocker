@@ -93,7 +93,7 @@ class IfwStoreDeviceTest {
 
             else -> connectedShizukuTransport(context, PrivilegedIdentity.ROOT)
         }
-        store = IfwModule.providesIfwStore(ChannelIfwFileSystem(transport), IfwXmlSerializer(), IfwXmlDeserializer())
+        store = IfwModule.providesIfwStore(ChannelIfwFileSystem(transport), IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.owner")
     }
 
     @After

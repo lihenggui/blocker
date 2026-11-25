@@ -114,7 +114,7 @@ class GlobalIfwRuleViewModelTest {
         assertEquals("com.new", viewModel.editorState.value.simpleDraft?.storagePackageName)
     }
 
-    private fun store(fs: FakeIfwFileSystem) = IntentFirewallStore(fs, IfwXmlSerializer(), IfwXmlDeserializer())
+    private fun store(fs: FakeIfwFileSystem) = IntentFirewallStore(fs, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test")
 
     private fun createViewModel(intentFirewall: IfwStore): GlobalIfwRuleViewModel {
         val componentRepository = FakeComponentStatusRepository().apply {

@@ -71,8 +71,9 @@ internal suspend fun ComponentStatusRepository.freshComponents(app: AppKey): Rea
 /**
  * Counts each requested component once in [summary]: unchanged when
  * the goal was met and the state read back equals [states], applied when it was met by a change,
- * failed with its first layer's reason otherwise. [states] is updated with the state read back, so
- * a later request for the same components compares with it.
+ * skipped when the controller protects the component, or failed with the first failing layer's
+ * reason otherwise. [states] is updated with the state read back for attempted changes, so a
+ * later request for the same components compares with it.
  */
 internal suspend fun Flow<ControlEvent>.countControlOutcomes(
     goal: ControlGoal,
@@ -83,6 +84,10 @@ internal suspend fun Flow<ControlEvent>.countControlOutcomes(
     collect { event ->
         if (event !is ControlEvent.PackageDone) return@collect
         event.outcomes.forEach { outcome ->
+            if (outcome.result == ControlResult.SKIPPED) {
+                summary.skip(SkipReason.PROTECTED_COMPONENT)
+                return@forEach
+            }
             val id = outcome.key.id
             val before = states[id]
             if (outcome.state != before) summary.changed(id.packageName)

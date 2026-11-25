@@ -62,7 +62,7 @@ class IfwRuleImporter @Inject constructor(
     private val deserializer: IfwXmlDeserializer,
     serializer: IfwXmlSerializer,
 ) {
-    private val merge = IfwRuleMerge(serializer)
+    private val merge = IfwRuleMerge(serializer, canExtend = { !ifwStore.blocksOwnComponent(it) })
 
     /**
      * Restores every backed-up file, merging those of installed apps, third-party apps only unless
@@ -116,11 +116,14 @@ class IfwRuleImporter @Inject constructor(
         } else {
             read
         }
+        val safe = IfwRules(backup.rules.filterNot(ifwStore::blocksOwnComponent))
+        summary.skip(SkipReason.PROTECTED_COMPONENT, backup.rules.size - safe.rules.size)
+        if (safe.isEmpty() && !backup.isEmpty()) return
         var merged: MergedIfwRules? = null
-        when (val result = ifwStore.update(packageName) { current -> merge.merge(current, backup).also { merged = it }.rules }) {
+        when (val result = ifwStore.update(packageName) { current -> merge.merge(current, safe).also { merged = it }.rules }) {
             is IfwResult.Failure -> {
                 Timber.w("Cannot restore the IFW rules of $packageName: ${result.reason}")
-                summary.fail(result.reason.reason)
+                result.reason.reason?.let { summary.fail(it) } ?: summary.skip(SkipReason.PROTECTED_COMPONENT)
             }
 
             is IfwResult.Success -> merged?.let {
@@ -167,7 +170,7 @@ class IfwRuleImporter @Inject constructor(
             return
         }
         when (val result = ifwStore.restoreRuleFile(name, text)) {
-            is IfwResult.Failure -> summary.fail(result.reason.reason)
+            is IfwResult.Failure -> result.reason.reason?.let { summary.fail(it) } ?: summary.skip(SkipReason.PROTECTED_COMPONENT)
 
             is IfwResult.Success -> if (result.value) {
                 summary.apps++

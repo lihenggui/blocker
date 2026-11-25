@@ -166,6 +166,17 @@ class ComponentControlViewModelTest {
     }
 
     @Test
+    fun givenProtectedComponent_whenSwitchedOff_thenNoMessage() = runTest {
+        fixture.sendComponents(component("Protected"))
+        answerWith(outcome("Protected", ControlResult.SKIPPED, ControlLayer.PACKAGE_MANAGER to ControlFailure.ProtectedComponent))
+        collectState()
+
+        viewModel.setEnabled(id("Protected"), enabled = false)
+
+        assertThat(messages()).isEmpty()
+    }
+
+    @Test
     fun givenComponentVanished_whenSwitchedOff_thenTellsItCouldNotBeBlocked() = runTest {
         collectState()
 
@@ -298,6 +309,20 @@ class ComponentControlViewModelTest {
         collectState()
 
         viewModel.blockAll(listOf(id("A"), id("B")))
+
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 0))
+    }
+
+    @Test
+    fun givenBatchWithProtectedComponent_whenDone_thenItDoesNotCountAsNotChanged() = runTest {
+        fixture.sendComponents(component("Protected"), component("Other"))
+        answerWith(
+            outcome("Protected", ControlResult.SKIPPED, ControlLayer.PACKAGE_MANAGER to ControlFailure.ProtectedComponent),
+            outcome("Other", ControlResult.ACHIEVED),
+        )
+        collectState()
+
+        viewModel.blockAll(listOf(id("Protected"), id("Other")))
 
         assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 0))
     }

@@ -59,7 +59,7 @@ class IfwRuleExporter @Inject constructor(
         } else {
             when (val all = ifwStore.ruleFileNames()) {
                 is IfwResult.Success -> all.value.sorted()
-                is IfwResult.Failure -> return RuleRunResult.Failed(all.reason.reason)
+                is IfwResult.Failure -> return RuleRunResult.Failed(all.reason.reason ?: FailureReason.STATE_UNREADABLE)
             }
         }
         val summary = SummaryBuilder()
@@ -69,7 +69,7 @@ class IfwRuleExporter @Inject constructor(
                 is IfwResult.Success -> read.value ?: return@forEachIndexed
 
                 is IfwResult.Failure -> {
-                    summary.fail(read.reason.reason)
+                    summary.fail(read.reason.reason ?: FailureReason.STATE_UNREADABLE)
                     return@forEachIndexed
                 }
             }

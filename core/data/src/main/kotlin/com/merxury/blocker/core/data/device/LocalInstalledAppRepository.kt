@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.device
 
 import com.merxury.blocker.core.appcontrol.AppControl
+import com.merxury.blocker.core.control.PackageLocks
 import com.merxury.blocker.core.database.cache.AppEntity
 import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.ComponentDeclarationEntity
@@ -53,6 +54,7 @@ internal class LocalInstalledAppRepository @Inject constructor(
     private val appControl: AppControl,
     private val pmBlocks: PmBlockRecords,
     private val controlActivity: PackageControlActivity,
+    private val packageLocks: PackageLocks,
 ) : InstalledAppRepository {
     // Keep one-app writes from being overwritten by an older bulk list of the same user.
     private val appListLocks = ConcurrentHashMap<UserId, Mutex>()
@@ -63,14 +65,21 @@ internal class LocalInstalledAppRepository @Inject constructor(
 
     override fun search(user: UserId, keyword: String): Flow<List<InstalledApp>> = dao.searchApps(user.value, keyword).map(List<AppEntity>::asApps)
 
-    override suspend fun refresh(user: UserId): ReadResult<Unit> = lockOf(user).withLock {
-        ensureUserCached(user)?.let { return@withLock ReadResult.Failure(it) }
-        when (val read = reader.apps(user)) {
+    override suspend fun refresh(user: UserId): ReadResult<Unit> {
+        val read = lockOf(user).withLock {
+            ensureUserCached(user)?.let { return@withLock ReadResult.Failure(it) }
+            reader.apps(user).also { result ->
+                if (result is ReadResult.Success) {
+                    dao.replaceApps(user.value, result.value.map { it.asEntity() })
+                }
+            }
+        }
+        return when (read) {
             is ReadResult.Success -> {
-                withContext(NonCancellable) {
-                    // Use the live list to forget records left behind by earlier removals too.
-                    pmBlocks.forgetUninstalled(user, read.value.mapTo(mutableSetOf()) { it.key.packageName })
-                    dao.replaceApps(user.value, read.value.map { it.asEntity() })
+                val visible = read.value.mapTo(mutableSetOf()) { it.key.packageName }
+                val missing = pmBlocks.of(user).map { it.id.packageName }.toSet() - visible
+                for (packageName in missing) {
+                    packageLocks.withLock(packageName) { forgetIfUninstalled(AppKey(packageName, user)) }
                 }
                 ReadResult.Success(Unit)
             }
@@ -82,16 +91,19 @@ internal class LocalInstalledAppRepository @Inject constructor(
         }
     }
 
-    override suspend fun refreshApp(key: AppKey): ReadResult<InstalledApp?> = lockOf(key.userId).withLock {
+    override suspend fun refreshApp(key: AppKey): ReadResult<InstalledApp?> = packageLocks.withLock(key.packageName) {
+        refreshAppLocked(key)
+    }
+
+    suspend fun refreshAppLocked(key: AppKey): ReadResult<InstalledApp?> = lockOf(key.userId).withLock {
         ensureUserCached(key.userId)?.let { return@withLock ReadResult.Failure(it) }
-        when (val read = reader.app(key)) {
+        when (val read = readVisibleAppLocked(key)) {
             is ReadResult.Success -> {
                 dao.upsertApp(read.value.asEntity())
                 read
             }
 
             is ReadResult.Failure -> if (read.reason is ReadFailure.PackageNotFound) {
-                removeLocked(key)
                 ReadResult.Success(null)
             } else {
                 Timber.w("Cannot read $key, keep the cached app: ${read.reason}")
@@ -101,17 +113,30 @@ internal class LocalInstalledAppRepository @Inject constructor(
     }
 
     suspend fun readForRefresh(key: AppKey): ReadResult<InstalledApp> = lockOf(key.userId).withLock {
-        val read = reader.app(key)
-        if (read is ReadResult.Failure && read.reason is ReadFailure.PackageNotFound) removeLocked(key)
-        read
+        readVisibleAppLocked(key)
     }
 
+    private suspend fun readVisibleAppLocked(key: AppKey): ReadResult<InstalledApp> = reader.app(key).also { read ->
+        if (read is ReadResult.Failure && read.reason is ReadFailure.PackageNotFound) removeLocked(key)
+    }
+
+    /** Removes an app that is no longer visible. The caller holds the package lock. */
     suspend fun remove(key: AppKey) = lockOf(key.userId).withLock { removeLocked(key) }
 
-    private suspend fun removeLocked(key: AppKey) = withContext(NonCancellable) {
-        Timber.i("$key is not installed, remove it from the cache")
-        pmBlocks.forgetApp(key)
+    private suspend fun removeLocked(key: AppKey) {
+        val uninstalled = forgetIfUninstalled(key)
+        Timber.i("Remove $key from the visible app cache, uninstalled=$uninstalled")
         dao.deleteApp(key.packageName, key.userId.value)
+    }
+
+    /** Requires the package lock. Only a confirmed uninstall discards its PM records. */
+    suspend fun forgetIfUninstalled(key: AppKey): ReadResult<Boolean> = when (val read = reader.isInstalled(key)) {
+        is ReadResult.Success -> ReadResult.Success(!read.value).also { if (it.value) pmBlocks.forgetApp(key) }
+
+        is ReadResult.Failure -> {
+            Timber.w("Cannot verify installation of $key, keep its PM records: ${read.reason}")
+            read
+        }
     }
 
     suspend fun cachedUsers(): List<DeviceUser> = users.users.first()

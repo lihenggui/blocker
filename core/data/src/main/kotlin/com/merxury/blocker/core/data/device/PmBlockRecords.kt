@@ -27,9 +27,6 @@ import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
-import com.merxury.blocker.core.model.control.ControlGoal
-import com.merxury.blocker.core.model.control.ControlRequest
-import com.merxury.blocker.core.model.control.layersFor
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -45,25 +42,27 @@ internal fun ownUser(): UserId = UserId(Process.myUid() / UIDS_PER_USER)
  * the app itself or of the system, and what a reset of the PackageManager settings undoes.
  *
  * ## Who writes
- * - [afterControl], for each package a control finishes, under that package's lock right after its
- *   read-back is stored: a block through PackageManager records what reads back DISABLED, and any
- *   request drops what reads back as not disabled. A reset also drops blocks the system refuses
- *   to clear even under root or the system UID.
+ * - Component control journals each intended PM disable before sending it under the package lock.
+ * - [afterControl] prunes the journal from read-back under the same lock. A reset also drops
+ *   blocks the system refuses to clear even under root or the system UID.
+ * - Component control can take over an existing block verified as belonging to wake protection.
+ * - Wake protection checks records and drops stale ones under the same lock before it changes PM.
  * - [afterRefresh], for each package refresh under the same lock: drops what reads back as not
  *   disabled, which the user or the app changed elsewhere, and what the app no longer declares.
- * - [forgetApp] and [forgetUninstalled] when a live read confirms the app is gone for the user,
+ * - [forgetApp] when a live read confirms the app is gone for the user,
  *   including records left behind by earlier removals.
+ * - [forgetUser] removes the records of a removed user.
  * - [PmBlockRecordSeeder] records blocks from the legacy component list once during upgrade.
  *
  * An unreadable setting alone never drops a record.
  */
-internal class PmBlockRecords @Inject constructor(
+class PmBlockRecords @Inject constructor(
     private val dao: PmBlockRecordDao,
 ) {
     /** The recorded components of [user], by package and class name. */
     suspend fun of(user: UserId): List<ComponentKey> = dao.getByUser(user.value).map { it.asKey() }
 
-    /** Records [keys] as disabled by Blocker now; a key recorded already keeps its time. */
+    /** Journals [keys] as Blocker claims the PM block; a recorded key keeps its time. */
     suspend fun record(keys: Collection<ComponentKey>) {
         if (keys.isEmpty()) return
         val now = System.currentTimeMillis()
@@ -81,24 +80,12 @@ internal class PmBlockRecords @Inject constructor(
 
     suspend fun forgetUser(user: UserId) = dao.deleteByUser(user.value)
 
-    suspend fun forgetUninstalled(user: UserId, installed: Set<String>) {
-        forget(of(user).filter { it.id.packageName !in installed })
-    }
+    /** Checks whether Blocker owns this block. Call under the package lock. */
+    suspend fun contains(key: ComponentKey): Boolean = dao.getByPackage(key.id.packageName, key.userId.value).any { it.className == key.id.className }
 
-    /**
-     * Updates the record from the state [request] read back for one package: under a
-     * [ControlGoal.BLOCK] whose layers for a component include PackageManager, a component that
-     * reads back DISABLED is recorded; under any goal, one that reads back DEFAULT or ENABLED is
-     * dropped. A provider blocked with the firewall layer only is blocked through PackageManager,
-     * so it is recorded too.
-     */
-    suspend fun afterControl(request: ControlRequest, event: ControlEvent.PackageDone, forgetRefusedPmBlocks: Boolean) {
-        val declarations = request.components.associateBy { it.id }
-        val (disabled, cleared) = event.outcomes.filter { it.state.pm != PmSetting.UNKNOWN }.partition { it.state.pm == PmSetting.DISABLED }
-        val recorded = disabled.filter { outcome ->
-            request.goal == ControlGoal.BLOCK && declarations[outcome.key.id]?.layersFor(request.layers)?.contains(ControlLayer.PACKAGE_MANAGER) == true
-        }
-        record(recorded.map { it.key })
+    /** Drops confirmed clears, and permanently refused clears during Reset PM. */
+    suspend fun afterControl(event: ControlEvent.PackageDone, forgetRefusedPmBlocks: Boolean) {
+        val cleared = event.outcomes.filter { it.state.pm == PmSetting.DEFAULT || it.state.pm == PmSetting.ENABLED }
         val refused = if (forgetRefusedPmBlocks) {
             event.outcomes.filter { outcome ->
                 val failure = outcome.failures[ControlLayer.PACKAGE_MANAGER]
@@ -116,14 +103,9 @@ internal class PmBlockRecords @Inject constructor(
     /**
      * Updates the record of [app] from what one refresh read: drops the components whose setting
      * read DEFAULT or ENABLED and, when the declarations are current, those the app does not
-     * declare. Nothing is dropped when the settings could not be read; an app removed meanwhile
-     * loses all its records.
+     * declare. Nothing is dropped when the settings could not be read.
      */
-    suspend fun afterRefresh(app: AppKey, refresh: PackageRefresh) {
-        if (refresh.removed) {
-            forgetApp(app)
-            return
-        }
+    internal suspend fun afterRefresh(app: AppKey, refresh: PackageRefresh) {
         val settings = refresh.pmSettings ?: return
         if (refresh.pmFailure != null) return
         val gone = dao.getByPackage(app.packageName, app.userId.value).map { it.asKey() }.filter { key ->

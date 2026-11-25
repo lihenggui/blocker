@@ -31,6 +31,7 @@ graph TB
   :core:datastore -.-> :core:common
   :core:datastore --> :core:datastore-proto
   :core:datastore --> :core:model
+  :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:system -.-> :core:common
   :core:system --> :core:model

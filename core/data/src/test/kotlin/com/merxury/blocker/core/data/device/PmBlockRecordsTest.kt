@@ -111,7 +111,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
     private suspend fun recorded(user: UserId = OWNER) = pmBlocks.of(user)
 
     /** Installs [PKG] with [MAIN], [SYNC], [SELF_OFF] and [DATA] and [OTHER_PKG] with its two, for [users], and reads them. */
-    private suspend fun installed(scope: CoroutineScope, users: List<UserId> = listOf(OWNER)): ComponentStatusRepository {
+    private suspend fun installed(scope: CoroutineScope, users: List<UserId> = listOf(OWNER)): LocalComponentStatusRepository {
         users.forEach { user ->
             system.install(installedApp(PKG, user), MAIN, SYNC, SELF_OFF, DATA)
             system.install(installedApp(OTHER_PKG, user), OTHER_SELF_OFF, OTHER_TRACKER)
@@ -145,6 +145,91 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL), MAIN, SYNC, DATA)
 
         assertThat(recorded()).containsExactly(DATA.key())
+    }
+
+    @Test
+    fun givenComponentAlreadyDisabledElsewhere_whenBlockingAndResetting_thenItStaysDisabled() = runTest {
+        val repository = installed(backgroundScope)
+        system.put(OWNER, SYNC, PmSetting.DISABLED)
+
+        repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN, SYNC)
+        val found = repository.disabledByBlocker(OWNER) as ReadResult.Success
+        repository.resetPmBlocks(OWNER, listOf(MAIN)).toList()
+
+        assertThat(found.value.components).containsExactly(MAIN.key())
+        assertThat(recorded()).isEmpty()
+        assertThat(system.settings[OWNER to SYNC.id]).isEqualTo(PmSetting.DISABLED)
+    }
+
+    @Test
+    fun givenVerifiedWakeBlockAndExternalBlock_whenManuallyBlocking_thenOnlyWakeBlockTransfers() = runTest {
+        system.install(installedApp(PKG), MAIN, SYNC)
+        system.put(OWNER, MAIN, PmSetting.DISABLED)
+        system.put(OWNER, SYNC, PmSetting.DISABLED)
+        controlThroughSystem()
+        val repository = components(backgroundScope) { user, candidates ->
+            assertThat(user).isEqualTo(OWNER)
+            candidates.filter { it == MAIN.id }
+        }
+
+        repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN, SYNC)
+
+        assertThat(recorded()).containsExactly(MAIN.key())
+    }
+
+    @Test
+    fun givenHiddenWorkApp_whenReconcilingListingAndResetting_thenItsRecordSurvivesUntilUnfrozen() = runTest {
+        val app = AppKey(PKG, WORK)
+        val repository = installed(backgroundScope, listOf(OWNER, WORK))
+        repository.run(WORK, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN)
+
+        system.hidden += app
+        repository.reconcile(WORK, deviceUser(WORK))
+        assertThat(apps.app(app).first()).isNull()
+        assertThat(recorded(WORK)).containsExactly(MAIN.key(WORK))
+        apps.refresh(WORK)
+        val frozen = repository.disabledByBlocker(WORK) as ReadResult.Success
+        assertThat(frozen.value.components).isEmpty()
+        assertThat(frozen.value.unreadableApps).isEmpty()
+        assertThat(frozen.value.notInstalled).isEqualTo(0)
+        assertThat(recorded(WORK)).containsExactly(MAIN.key(WORK))
+        assertThat(system.settings[WORK to MAIN.id]).isEqualTo(PmSetting.DISABLED)
+
+        system.hidden -= app
+        val unfrozen = repository.disabledByBlocker(WORK) as ReadResult.Success
+        assertThat(unfrozen.value.components).containsExactly(MAIN.key(WORK))
+        repository.resetPmBlocks(WORK, listOf(MAIN)).toList()
+
+        assertThat(system.settings[WORK to MAIN.id]).isEqualTo(PmSetting.DEFAULT)
+        assertThat(recorded(WORK)).isEmpty()
+    }
+
+    @Test
+    fun givenAnAppMissingFromTheList_whenItsInstallationCannotBeVerified_thenResetReportsItAsUnreadable() = runTest {
+        val repository = installed(backgroundScope)
+        val app = AppKey(PKG, OWNER)
+        repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN)
+        system.hidden += app
+        system.installationFailures[app] = ReadFailure.ChannelUnavailable
+
+        val found = repository.disabledByBlocker(OWNER) as ReadResult.Success
+
+        assertThat(found.value.unreadableApps).containsExactly(app)
+        assertThat(found.value.notInstalled).isEqualTo(0)
+        assertThat(found.value.components).isEmpty()
+        assertThat(recorded()).containsExactly(MAIN.key())
+    }
+
+    @Test
+    fun givenInterruptedPmBlockJournal_whenResetReadsSystem_thenUnsentBlockIsPruned() = runTest {
+        val repository = installed(backgroundScope)
+        pmBlocks.record(listOf(MAIN.key(), SYNC.key()))
+        system.put(OWNER, MAIN, PmSetting.DISABLED)
+
+        val found = repository.disabledByBlocker(OWNER) as ReadResult.Success
+
+        assertThat(found.value.components).containsExactly(MAIN.key())
+        assertThat(recorded()).containsExactly(MAIN.key())
     }
 
     @Test
@@ -296,7 +381,9 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
     fun givenAppRemovedWhileIndexReadsSettings_whenPackageDisappears_thenForgetRecords() = runTest {
         val repository = installed(backgroundScope)
         pmBlocks.record(listOf(MAIN.key(OWNER)))
-        system.pmFailures[PKG] = ReadFailure.PackageNotFound(AppKey(PKG, OWNER))
+        system.beforePmRead = { key ->
+            if (key == AppKey(PKG, OWNER)) system.apps.remove(key)
+        }
 
         repository.refreshAll(OWNER).toList()
 

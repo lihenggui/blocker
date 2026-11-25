@@ -92,7 +92,7 @@ internal class ControlFixture(
     val channel = FakeChannel(initialChannel)
     val executor = FakeExecutor(system, channel)
     val files = FakeIfwFileSystem()
-    val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())
+    val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test")
     val locks = PackageLocks()
     val control = PrivilegedComponentControl(channel, executor, FakeReader(system), storeSeenByControl(store), locks)
 
@@ -219,6 +219,8 @@ internal class FakeExecutor(private val system: FakePmSystem, private val channe
 }
 
 internal class FakeReader(private val system: FakePmSystem) : SystemPackageReader {
+    override suspend fun isInstalled(key: AppKey): ReadResult<Boolean> = error("Not used")
+
     override suspend fun packageRevisions(user: UserId): ReadResult<Map<String, PackageRevision>> = error("Not used")
     override suspend fun pmSettings(app: AppKey, components: Collection<ComponentId>): ReadResult<Map<ComponentId, PmSetting>> {
         system.log += "read ${app.packageName}"

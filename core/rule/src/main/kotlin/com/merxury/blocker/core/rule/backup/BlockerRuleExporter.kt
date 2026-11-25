@@ -18,6 +18,8 @@ package com.merxury.blocker.core.rule.backup
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
+import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentStatus
@@ -60,11 +62,14 @@ class BlockerRuleExporter @Inject constructor(
     private val channel: PrivilegedChannel,
     private val ifwStore: IfwStore,
     private val json: Json,
+    @AppPackageName private val appPackageName: String,
+    private val selectedUsers: SelectedUserRepository,
 ) {
     /**
      * Writes the backup of [user]'s apps into [user]'s set in [storage]: every app, or third-party
      * apps only unless [includeSystemApps], or only [packageName] when given, whatever kind of
-     * app it is. Connects the privileged channel first, which may show the su or Shizuku prompt.
+     * app it is. Blocker's own copy in the running user is omitted from the backup and its
+     * counts. Connects the privileged channel first, which may show the su or Shizuku prompt.
      */
     suspend fun export(
         storage: BackupStorage,
@@ -98,15 +103,18 @@ class BlockerRuleExporter @Inject constructor(
         includeSystemApps: Boolean,
         summary: SummaryBuilder,
     ): ReadResult<List<InstalledApp>> {
+        val ownApp = AppKey(appPackageName, selectedUsers.ownUser)
         if (packageName != null) {
-            return when (val read = installedApps.refreshApp(AppKey(packageName, user))) {
+            val key = AppKey(packageName, user)
+            if (key == ownApp) return ReadResult.Success(emptyList())
+            return when (val read = installedApps.refreshApp(key)) {
                 is ReadResult.Success -> ReadResult.Success(listOfNotNull(read.value)).also { if (read.value == null) summary.skip(SkipReason.APP_NOT_INSTALLED) }
                 is ReadResult.Failure -> read
             }
         }
         return when (val read = installedApps.installedApps(user)) {
             is ReadResult.Success -> {
-                val (system, others) = read.value.values.partition { it.isSystem }
+                val (system, others) = read.value.values.filterNot { it.key == ownApp }.partition { it.isSystem }
                 if (!includeSystemApps) summary.skip(SkipReason.SYSTEM_APP, system.size)
                 ReadResult.Success((if (includeSystemApps) system + others else others).sortedBy { it.key.packageName })
             }
