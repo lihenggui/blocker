@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.testing.repository
 
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
@@ -39,8 +40,8 @@ class TestComponentDetailRepository : ComponentDetailRepository {
     private val componentDetail: MutableSharedFlow<List<ComponentDetail>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
-    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flow {
-        emit(current().any { it.name.startsWith("$packageName.") })
+    override fun hasUserGeneratedDetail(app: AppKey): Flow<Boolean> = flow {
+        emit(current().any { it.name.startsWith("${app.packageName}.") })
     }
 
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = componentDetail.map {

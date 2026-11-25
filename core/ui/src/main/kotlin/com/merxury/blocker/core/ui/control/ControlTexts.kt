@@ -32,21 +32,48 @@ fun ControlMessage.text(): String {
             name,
         )
 
+        is ControlMessage.ComponentPartlyChanged -> stringResource(string.core_ui_component_partly_changed, name)
+
+        ControlMessage.FirewallSelfBlockRefused -> stringResource(string.core_ui_firewall_self_block_refused)
+
         ControlMessage.NoComponents -> stringResource(string.core_ui_no_components)
 
-        is ControlMessage.BatchDone -> if (notChanged == 0) {
-            stringResource(string.core_ui_operation_completed)
-        } else {
-            pluralStringResource(plurals.core_ui_operation_completed_with_failures, notChanged, notChanged)
-        }
+        is ControlMessage.BatchDone -> batchText()
     }
-    return withAccessHint(title, needsAccess)
+    val needsRoot = when (this) {
+        is ControlMessage.ComponentNotChanged -> needsRoot
+        is ControlMessage.ComponentPartlyChanged -> needsRoot
+        is ControlMessage.BatchDone -> needsRoot
+        else -> false
+    }
+    return withAccessHint(withShizukuShellHint(title, needsRoot), needsAccess)
+}
+
+@Composable
+private fun ControlMessage.BatchDone.batchText(): String {
+    val summary = when {
+        partlyChanged > 0 && notChanged > 0 -> pluralStringResource(plurals.core_ui_batch_partly_changed_with_failures, partlyChanged, partlyChanged, notChanged)
+        partlyChanged > 0 -> pluralStringResource(plurals.core_ui_batch_partly_changed, partlyChanged, partlyChanged)
+        notChanged > 0 -> pluralStringResource(plurals.core_ui_operation_completed_with_failures, notChanged, notChanged)
+        firewallSelfBlockRefused -> ""
+        else -> stringResource(string.core_ui_operation_completed)
+    }
+    if (!firewallSelfBlockRefused) return summary
+    val refusal = stringResource(string.core_ui_firewall_self_block_refused)
+    return if (summary.isEmpty()) refusal else "$summary\n$refusal"
 }
 
 /** [title] and, when missing access caused it, the line that says how to get it. */
 @Composable
 fun withAccessHint(title: String, needsAccess: Boolean): String = if (needsAccess) {
     "$title\n${stringResource(string.core_ui_reason_no_access)}"
+} else {
+    title
+}
+
+@Composable
+internal fun withShizukuShellHint(title: String, needsRoot: Boolean): String = if (needsRoot) {
+    "$title\n${stringResource(string.core_ui_reason_shizuku_shell)}"
 } else {
     title
 }

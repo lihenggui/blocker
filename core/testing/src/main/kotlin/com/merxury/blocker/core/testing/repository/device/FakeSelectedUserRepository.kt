@@ -26,8 +26,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * In-memory [SelectedUserRepository]. Tests set the reachable users with [sendUsers]; as in the
- * real one, the selection falls back to [ownUser] when the selected user is no longer reachable.
+ * In-memory [SelectedUserRepository]. Use [sendUsers] to change the cached users and
+ * [setAccessAvailable] to simulate temporarily losing or regaining the privileged channel.
  */
 @Singleton
 class FakeSelectedUserRepository(
@@ -36,20 +36,39 @@ class FakeSelectedUserRepository(
 
     @Inject constructor() : this(UserId.SYSTEM)
 
-    private val reachable = MutableStateFlow(listOf(ownDeviceUser(ownUser)))
+    private val ownFallback = ownDeviceUser(ownUser)
+    private var cached = listOf(ownFallback)
+    private var accessAvailable = true
+    private val reachable = MutableStateFlow(cached)
     override val users: StateFlow<List<DeviceUser>> = reachable
 
+    private var choice = ownUser
     private val selected = MutableStateFlow(ownUser)
     override val selectedUser: StateFlow<UserId> = selected
 
     override fun select(user: UserId) {
-        if (reachable.value.any { it.id == user }) selected.value = user
+        if (reachable.value.any { it.id == user }) {
+            choice = user
+            selected.value = user
+        }
     }
 
-    /** Sets the reachable users, as a refresh or a change of the privileged channel would. */
+    /** Replaces the cached users as a refresh would. */
     fun sendUsers(users: List<DeviceUser>) {
-        reachable.value = users.sortedBy { it.id.value }
-        if (users.none { it.id == selected.value }) selected.value = ownUser
+        val own = users.find { it.id == ownUser } ?: ownFallback
+        cached = (users.filter { it.id != ownUser } + own).sortedBy { it.id.value }
+        updateSelection()
+    }
+
+    fun setAccessAvailable(available: Boolean) {
+        accessAvailable = available
+        updateSelection()
+    }
+
+    private fun updateSelection() {
+        if (accessAvailable && cached.none { it.id == choice }) choice = ownUser
+        reachable.value = if (accessAvailable) cached else listOf(cached.first { it.id == ownUser })
+        selected.value = choice.takeIf { id -> reachable.value.any { it.id == id } } ?: ownUser
     }
 
     private companion object {

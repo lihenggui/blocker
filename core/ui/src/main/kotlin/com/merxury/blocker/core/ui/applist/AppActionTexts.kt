@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.system.AppAction
 import com.merxury.blocker.core.model.system.AppActionFailure
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.control.withAccessHint
+import com.merxury.blocker.core.ui.control.withShizukuShellHint
 import com.merxury.blocker.core.ui.profile.ProfileTab
 import com.merxury.blocker.core.ui.profile.text
 
@@ -69,10 +70,13 @@ val AppActionFailed.needsAccess: Boolean get() = reason == AppActionFailure.NoAc
 
 /**
  * What a snackbar says about [this] failure: which action failed, and how to get access when its
- * lack was the cause. Other causes are not told, as the user cannot act on them.
+ * lack was the cause. A Shizuku shell refusal explains how to start Shizuku with root.
  */
 @Composable
-fun AppActionFailed.text(): String = withAccessHint(stringResource(action.failureTitle(), appLabel), needsAccess)
+fun AppActionFailed.text(): String = withAccessHint(
+    withShizukuShellHint(stringResource(action.failureTitle(), appLabel), reason == AppActionFailure.NeedsRoot),
+    needsAccess,
+)
 
 private fun AppAction.failureTitle(): Int = when (this) {
     AppAction.ENABLE -> string.core_ui_enable_app_failed

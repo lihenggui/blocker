@@ -20,6 +20,7 @@ import com.merxury.blocker.core.data.respository.componentdetail.datasource.Loca
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -38,7 +39,7 @@ internal class LocalComponentDetailRepository @Inject constructor(
     override val updatedComponent: Flow<ComponentDetail>
         get() = userGeneratedDataSource.eventFlow
 
-    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = userGeneratedDataSource.getByPackageName(packageName)
+    override fun hasUserGeneratedDetail(app: AppKey): Flow<Boolean> = userGeneratedDataSource.getByApp(app)
         .map { it.isNotEmpty() }
 
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = userGeneratedDataSource.getByComponentName(name)

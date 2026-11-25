@@ -187,14 +187,37 @@ class ComponentControlViewModelTest {
     }
 
     @Test
-    fun givenPartialOutcome_whenSwitched_thenToldAsNotChanged() = runTest {
+    fun givenPartialOutcome_whenSwitched_thenTheMessageNamesThePartlyChangedComponent() = runTest {
         fixture.sendComponents(component("Main"))
         answerWith(outcome("Main", ControlResult.PARTIAL, ControlLayer.INTENT_FIREWALL to ControlFailure.RulesUnreadable))
         collectState()
 
         viewModel.setEnabled(id("Main"), enabled = false)
 
-        assertThat(messages()).containsExactly(ControlMessage.ComponentNotChanged("Main", ControlGoal.BLOCK))
+        assertThat(messages()).containsExactly(ControlMessage.ComponentPartlyChanged("Main", needsAccess = false, needsRoot = false))
+    }
+
+    @Test
+    fun givenAdbShellRefusal_whenSwitchIsTapped_thenTheMessageExplainsThatRootIsNeeded() = runTest {
+        fixture.sendComponents(component("Main"))
+        answerWith(outcome("Main", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("shell", PrivilegedIdentity.SHELL)))
+        collectState()
+
+        viewModel.setEnabled(id("Main"), enabled = false)
+
+        assertThat(fixture.components.requests).hasSize(1)
+        assertThat(messages()).containsExactly(ControlMessage.ComponentNotChanged("Main", ControlGoal.BLOCK, needsRoot = true))
+    }
+
+    @Test
+    fun givenFirewallSelfProtection_whenSwitchIsTapped_thenOneRefusalIsQueued() = runTest {
+        fixture.sendComponents(component("Main"))
+        answerWith(outcome("Main", ControlResult.SKIPPED, ControlLayer.INTENT_FIREWALL to ControlFailure.FirewallProtectedComponent))
+        collectState()
+
+        viewModel.setEnabled(id("Main"), enabled = false)
+
+        assertThat(messages()).containsExactly(ControlMessage.FirewallSelfBlockRefused)
     }
 
     @Test
@@ -328,11 +351,25 @@ class ComponentControlViewModelTest {
     }
 
     @Test
-    fun givenBatchWithPartialAndFailedOutcomes_whenDone_thenEveryOneNotAchievedCountsAsNotChanged() = runTest {
+    fun givenTwoFirewallSelfRefusals_whenBatchFinishes_thenOneRefusalIsQueued() = runTest {
+        fixture.sendComponents(component("First"), component("Second"))
+        answerWith(
+            outcome("First", ControlResult.SKIPPED, ControlLayer.INTENT_FIREWALL to ControlFailure.FirewallProtectedComponent),
+            outcome("Second", ControlResult.SKIPPED, ControlLayer.INTENT_FIREWALL to ControlFailure.FirewallProtectedComponent),
+        )
+        collectState()
+
+        viewModel.blockAll(listOf(id("First"), id("Second")))
+
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 0, firewallSelfBlockRefused = true))
+    }
+
+    @Test
+    fun givenBatchWithPartialAndFailedOutcomes_whenDone_thenTheyAreCountedSeparately() = runTest {
         fixture.sendComponents(component("A", pm = PmSetting.DISABLED), component("B"), component("C"), component("D"), component("E"))
         answerWith(
             outcome("A", ControlResult.ACHIEVED),
-            outcome("B", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("shell")),
+            outcome("B", ControlResult.FAILED, ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("shell", PrivilegedIdentity.SHELL)),
             outcome("C", ControlResult.PARTIAL, ControlLayer.INTENT_FIREWALL to ControlFailure.WriteFailed("first"), state = ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED)),
             outcome("D", ControlResult.FAILED, ControlLayer.INTENT_FIREWALL to ControlFailure.WriteFailed("second")),
             outcome("E", ControlResult.ACHIEVED),
@@ -341,7 +378,7 @@ class ComponentControlViewModelTest {
 
         viewModel.enableAll(listOf(id("A"), id("B"), id("C"), id("D"), id("E")))
 
-        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 3))
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 2, partlyChanged = 1, needsRoot = true))
         assertThat(fixture.components.requests.single().layers).containsExactlyElementsIn(ControlLayer.entries)
     }
 

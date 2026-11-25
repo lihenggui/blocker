@@ -254,7 +254,7 @@ class DebloaterViewModel @Inject constructor(
                 val reported = outcomes.mapTo(mutableSetOf()) { it.key.id }
                 val missing = (ids - reported).map { ComponentKey(it, app.userId) }
                 val summary = batchSummary(outcomes, missing)
-                if (summary.notChanged > 0) tell(summary, app.userId)
+                if (summary.hasIssues) tell(summary, app.userId)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

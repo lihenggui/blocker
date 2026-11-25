@@ -144,15 +144,16 @@ class ComponentControlFailureTest {
     }
 
     @Test
-    fun givenShellIdentityAndOrdinaryApp_whenBlockWithPm_thenOneRefusedCallForThePackage() = runTest {
+    fun givenShellBatchRefusalWithoutIdentity_whenBlocking_thenAllOutcomesCarryShellIdentity() = runTest {
         val fixture = ControlFixture(SHELL)
+        fixture.system.callFailure = CallFailure.NotPermitted("Shell cannot change components")
 
         val events = fixture.run(block(PM_ONLY, MAIN, SYNC, BOOT))
 
         events.outcomes().forEach { outcome ->
             assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
             assertThat(outcome.state.pm).isEqualTo(PmSetting.DEFAULT)
-            assertThat(outcome.failures.getValue(ControlLayer.PACKAGE_MANAGER)).isInstanceOf(ControlFailure.NotPermitted::class.java)
+            assertThat(outcome.failures).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlFailure.NotPermitted("Shell cannot change components", PrivilegedIdentity.SHELL))
         }
         // Android decides; its refusal of the batch stands for every component without a retry each.
         assertThat(fixture.executor.calls.map { it.components.size }).containsExactly(3)
@@ -161,12 +162,16 @@ class ComponentControlFailureTest {
 
     @Test
     @Config(sdk = [32])
-    fun givenShellIdentityWithoutBatchCall_whenBlockWithPm_thenTheFirstRefusalStandsForThePackage() = runTest {
+    fun givenShellSingleRefusalWithoutIdentity_whenBlocking_thenAllOutcomesCarryShellIdentity() = runTest {
         val fixture = ControlFixture(SHELL)
+        fixture.system.callFailure = CallFailure.NotPermitted("Shell cannot change components")
 
         val events = fixture.run(block(PM_ONLY, MAIN, SYNC))
 
         assertThat(events.outcomes().map { it.result }).containsExactly(ControlResult.FAILED, ControlResult.FAILED)
+        events.outcomes().forEach { outcome ->
+            assertThat(outcome.failures).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlFailure.NotPermitted("Shell cannot change components", PrivilegedIdentity.SHELL))
+        }
         assertThat(fixture.executor.calls).hasSize(1)
     }
 

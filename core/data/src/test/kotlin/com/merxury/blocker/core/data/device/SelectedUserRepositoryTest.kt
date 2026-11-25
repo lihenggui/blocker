@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -24,11 +25,14 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SelectedUserRepositoryTest {
     private val deviceUsers = FakeDeviceUserRepository()
     private val channel = FakePrivilegedChannel(ChannelState.Ready(PrivilegedIdentity.SHELL))
@@ -82,12 +86,18 @@ class SelectedUserRepositoryTest {
     }
 
     @Test
-    fun givenReachableUser_whenSelected_thenSelected() = runTest(UnconfinedTestDispatcher()) {
+    fun givenReachableUser_whenSelected_thenSelectionChangesBeforeCollectorsRun() = runTest {
         val repository = repository()
         deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
+        runCurrent()
+        assertThat(repository.users.value.map { it.id }).containsExactly(OWNER, WORK)
 
+        deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK).copy(running = false)))
         repository.select(WORK)
 
+        assertThat(repository.selectedUser.value).isEqualTo(WORK)
+        runCurrent()
+        assertThat(repository.users.value.single { it.id == WORK }.running).isFalse()
         assertThat(repository.selectedUser.value).isEqualTo(WORK)
     }
 
@@ -101,27 +111,48 @@ class SelectedUserRepositoryTest {
     }
 
     @Test
-    fun givenWorkSelected_whenChannelLost_thenOwnUserSelectedAndStaysAfterChannelReturns() = runTest(UnconfinedTestDispatcher()) {
+    fun givenWorkSelected_whenChannelDropsAndReturns_thenWorkIsRestored() = runTest(UnconfinedTestDispatcher()) {
         val repository = repository()
         deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
-        repository.select(WORK)
+        repository.selectedUser.test {
+            assertThat(awaitItem()).isEqualTo(OWNER)
+            repository.select(WORK)
+            assertThat(awaitItem()).isEqualTo(WORK)
 
-        channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
-        assertThat(repository.selectedUser.value).isEqualTo(OWNER)
+            channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
+            assertThat(awaitItem()).isEqualTo(OWNER)
 
-        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
-        assertThat(repository.selectedUser.value).isEqualTo(OWNER)
-        assertThat(repository.users.value.map { it.id }).containsExactly(OWNER, WORK)
+            channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+            assertThat(awaitItem()).isEqualTo(WORK)
+        }
     }
 
     @Test
-    fun givenWorkSelected_whenProfileRemoved_thenOwnUserSelected() = runTest(UnconfinedTestDispatcher()) {
+    fun givenWorkTemporarilyUnavailable_whenOwnerIsChosen_thenWorkDoesNotReclaimSelection() = runTest(UnconfinedTestDispatcher()) {
+        val repository = repository()
+        deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
+        repository.select(WORK)
+        channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
+
+        repository.select(OWNER)
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+
+        assertThat(repository.selectedUser.value).isEqualTo(OWNER)
+    }
+
+    @Test
+    fun givenWorkSelected_whenProfileRemovedAndIdReused_thenOwnUserStaysSelected() = runTest(UnconfinedTestDispatcher()) {
         val repository = repository()
         deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
         repository.select(WORK)
 
         deviceUsers.sendUsers(listOf(deviceUser(OWNER)))
 
+        assertThat(repository.selectedUser.value).isEqualTo(OWNER)
+
+        deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK).copy(name = "New work profile")))
+
+        assertThat(repository.users.value.map { it.id }).containsExactly(OWNER, WORK)
         assertThat(repository.selectedUser.value).isEqualTo(OWNER)
     }
 }

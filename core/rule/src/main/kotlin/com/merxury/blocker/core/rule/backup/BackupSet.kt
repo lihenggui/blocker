@@ -67,6 +67,14 @@ data class BackupSet(val user: UserId) {
 suspend fun listBackupSets(storage: BackupStorage): List<BackupSet> {
     val others = storage.listFolders("").mapNotNull(BackupSet::fromFolderName).sortedBy { it.user.value }
     return (listOf(BackupSet.OWNER) + others).filter { set ->
-        storage.listFiles(set.folder).any { it.endsWith(BLOCKER_RULE_EXTENSION) }
+        storage.hasBlockerRules(set)
     }
 }
+
+/** Other sets to offer when the target's own set contains no Blocker rules. */
+internal suspend fun BackupStorage.alternativeBackupSets(target: UserId): List<BackupSet> {
+    val ownSet = BackupSet(target)
+    return if (hasBlockerRules(ownSet)) emptyList() else listBackupSets(this).filterNot { it == ownSet }
+}
+
+private suspend fun BackupStorage.hasBlockerRules(set: BackupSet): Boolean = listFiles(set.folder).any { it.endsWith(BLOCKER_RULE_EXTENSION) }

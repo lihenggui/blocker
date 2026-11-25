@@ -186,4 +186,15 @@
     <string name="core_ui_enable_component_failed">Could not enable %1$s</string>
     <string name="core_ui_grant_failed">Blocker still does not have root or Shizuku access.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Do you want to clear data of this app?</string>
+    <string name="core_ui_component_partly_changed">The change to %1$s was only partly applied.</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="one">Operation completed. %1$d component was only partly changed.</item>
+        <item quantity="other">Operation completed. %1$d components were only partly changed.</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="one">Operation completed. %1$d component was only partly changed, and %2$d could not be changed.</item>
+        <item quantity="other">Operation completed. %1$d components were only partly changed, and %2$d could not be changed.</item>
+    </plurals>
+    <string name="core_ui_reason_shizuku_shell">Shizuku is running with ADB permissions. Start Shizuku with root and try again.</string>
+    <string name="core_ui_firewall_self_block_refused">Blocker cannot block its own components through IFW, because IFW rules apply to all users, including the Blocker you are using.</string>
 </resources>

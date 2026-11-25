@@ -283,7 +283,7 @@ class ComponentControlOrderTest {
         fixture.control.apply(block(IFW_ONLY, own, user = WORK)).test {
             val event = awaitItem() as ControlEvent.PackageDone
             assertThat(event.outcomes.single().result).isEqualTo(ControlResult.SKIPPED)
-            assertThat(event.outcomes.single().failures.values).containsExactly(ControlFailure.ProtectedComponent)
+            assertThat(event.outcomes.single().failures.values).containsExactly(ControlFailure.FirewallProtectedComponent)
             assertThat((awaitItem() as ControlEvent.Finished).skipped).isEqualTo(1)
             awaitComplete()
         }

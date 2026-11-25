@@ -160,4 +160,17 @@
     <string name="core_ui_enable_component_failed">Não foi possível ativar %1$s</string>
     <string name="core_ui_grant_failed">O Blocker ainda não tem acesso root nem Shizuku.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Deseja limpar os dados deste app?</string>
+    <string name="core_ui_component_partly_changed">A alteração em %1$s foi aplicada apenas parcialmente.</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="one">Operação concluída. A alteração de %1$d componente foi aplicada apenas parcialmente.</item>
+        <item quantity="many">Operação concluída. As alterações de %1$d componentes foram aplicadas apenas parcialmente.</item>
+        <item quantity="other">Operação concluída. As alterações de %1$d componentes foram aplicadas apenas parcialmente.</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="one">Operação concluída. A alteração de %1$d componente foi aplicada apenas parcialmente e não foi possível alterar outros %2$d.</item>
+        <item quantity="many">Operação concluída. As alterações de %1$d componentes foram aplicadas apenas parcialmente e não foi possível alterar outros %2$d.</item>
+        <item quantity="other">Operação concluída. As alterações de %1$d componentes foram aplicadas apenas parcialmente e não foi possível alterar outros %2$d.</item>
+    </plurals>
+    <string name="core_ui_reason_shizuku_shell">O Shizuku está em execução com permissões ADB. Inicie o Shizuku com acesso root e tente novamente.</string>
+    <string name="core_ui_firewall_self_block_refused">O Blocker não pode bloquear os próprios componentes através de IFW porque as regras de IFW se aplicam a todos os utilizadores, incluindo a instância do Blocker em uso.</string>
 </resources>

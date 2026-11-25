@@ -33,6 +33,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
+import com.merxury.core.ifw.isPackageRuleFileName
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -49,9 +50,10 @@ import javax.inject.Inject
  * the installed app declares, never from the file; entries for components it does not declare are
  * skipped. A component already in the state an entry asks for counts as unchanged.
  *
- * A file is for the app it is named after, `<package>.json`, and is applied to that app only: a
- * file whose `packageName` differs is skipped whole, and an entry naming another package is
- * skipped, both as [SkipReason.OTHER_APP].
+ * A single-app restore tries `<package>.json` first, then uses the first renamed backup whose
+ * contents name the app. In a whole-user restore, a filename that names an installed app must
+ * agree with the contents. Other files are matched by the package inside. Only apps installed
+ * for the target user receive rules, and entries that name another package are skipped.
  *
  * Counts are of components, one per entry: a file skipped whole counts its entries. Only a file
  * that cannot be read counts once, as a file, and an app whose state cannot be read once, as an app.
@@ -64,10 +66,10 @@ class BlockerRuleImporter @Inject constructor(
 ) {
     /**
      * Restores the files of [source] in [storage] into [target]: every file whose app is
-     * installed for [target], third-party apps only unless [includeSystemApps], or only the file
-     * of [packageName] when given, whatever kind of app it is. A file that cannot be read or
-     * names an unknown value fails alone. Connects the privileged channel first, which may show
-     * the su or Shizuku prompt, and fails for privilege when it is not ready.
+     * installed for [target], third-party apps only unless [includeSystemApps], or the backup
+     * matching [packageName] when given, whatever kind of app it is. An unreadable backup fails
+     * individually. Connects the privileged channel first, which may show the su or Shizuku
+     * prompt, and fails for privilege when it is not ready.
      */
     suspend fun import(
         storage: BackupStorage,
@@ -78,51 +80,83 @@ class BlockerRuleImporter @Inject constructor(
         onProgress: RuleRunProgress = { _, _, _ -> },
     ): RuleRunResult {
         if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
-        val files = try {
-            if (packageName != null) {
-                listOf(source.fileOf(packageName))
-            } else {
-                storage.listFiles(source.folder).filter { it.endsWith(BLOCKER_RULE_EXTENSION) }.sorted().map { pathOf(source.folder, it) }
-            }
-        } catch (e: BackupStorageException) {
-            Timber.e(e, "Cannot list the backup set ${source.folder}")
-            return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
-        }
         val apps = when (val read = installedApps.installedApps(target)) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
+        }
+        if (packageName != null) return importSingle(storage, source, packageName, apps[packageName], onProgress)
+        val files = try {
+            storage.ruleFiles(source)
+        } catch (e: BackupStorageException) {
+            Timber.e(e, "Cannot list the backup set ${source.folder}")
+            return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
         }
         val summary = SummaryBuilder()
         files.forEachIndexed { index, path ->
             onProgress(path.substringAfterLast('/'), index, files.size)
             val rule = readRule(storage, path, summary) ?: return@forEachIndexed
-            // The file is for the package it is named after, which is the selected app for one.
-            val filePackage = path.substringAfterLast('/').removeSuffix(BLOCKER_RULE_EXTENSION)
+            val filePackage = path.ruleFilePackage()
+            val app = apps[rule.packageName]
             val entries = rule.components.size
-            if (rule.packageName != filePackage) {
+            if (rule.packageName != filePackage && (filePackage in apps || app == null)) {
                 Timber.w("The backup $path names ${rule.packageName}, leave it")
                 summary.skip(SkipReason.OTHER_APP, entries)
                 return@forEachIndexed
             }
-            val app = apps[filePackage]
             when {
-                app == null -> summary.skip(SkipReason.APP_NOT_INSTALLED, entries)
-                packageName == null && app.isSystem && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP, entries)
+                app?.isSystem == true && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP, entries)
                 else -> importRule(rule, app, summary)
             }
         }
         return RuleRunResult.Completed(summary.build())
     }
 
+    private suspend fun importSingle(
+        storage: BackupStorage,
+        source: BackupSet,
+        packageName: String,
+        app: InstalledApp?,
+        onProgress: RuleRunProgress,
+    ): RuleRunResult {
+        val summary = SummaryBuilder()
+        val expected = source.fileOf(packageName)
+        val named = readRule(storage, expected, summary)
+        if (named?.packageName == packageName) {
+            onProgress(expected.substringAfterLast('/'), 0, 1)
+            importRule(named, app, summary)
+            return RuleRunResult.Completed(summary.build())
+        }
+
+        val files = try {
+            if (app == null) emptyList() else storage.ruleFiles(source).filterNot { it == expected || isPackageRuleFileName(it.ruleFilePackage()) }
+        } catch (e: BackupStorageException) {
+            Timber.e(e, "Cannot list the backup set ${source.folder}")
+            return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
+        }
+        for ((index, path) in files.withIndex()) {
+            val rule = readRule(storage, path) ?: continue
+            if (rule.packageName != packageName) continue
+            onProgress(path.substringAfterLast('/'), index, files.size)
+            importRule(rule, app, summary)
+            return RuleRunResult.Completed(summary.build())
+        }
+        if (named != null) summary.skip(SkipReason.OTHER_APP, named.components.size)
+        return RuleRunResult.Completed(summary.build())
+    }
+
+    private fun String.ruleFilePackage(): String = substringAfterLast('/').removeSuffix(BLOCKER_RULE_EXTENSION)
+
+    private suspend fun BackupStorage.ruleFiles(source: BackupSet): List<String> = listFiles(source.folder).filter { it.endsWith(BLOCKER_RULE_EXTENSION) }.sorted().map { pathOf(source.folder, it) }
+
     /** The rule in the file at [path], or null when the file is missing or cannot be used. */
-    private suspend fun readRule(storage: BackupStorage, path: String, summary: SummaryBuilder): BlockerRule? {
+    private suspend fun readRule(storage: BackupStorage, path: String, summary: SummaryBuilder? = null): BlockerRule? {
         val text = try {
             storage.read(path)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Timber.e(e, "Cannot read the backup $path")
-            summary.fail(FailureReason.BACKUP_UNREADABLE)
+            summary?.fail(FailureReason.BACKUP_UNREADABLE)
             return null
         }
         // Only a file asked for by package can be missing; there is nothing to restore then.
@@ -132,18 +166,22 @@ class BlockerRuleImporter @Inject constructor(
         } catch (e: IllegalArgumentException) {
             // SerializationException, raised for unknown enum names too, is an IllegalArgumentException.
             Timber.e(e, "Cannot parse the backup $path")
-            summary.fail(FailureReason.BACKUP_UNREADABLE)
+            summary?.fail(FailureReason.BACKUP_UNREADABLE)
             return null
         }
         if (rule.packageName.isNullOrBlank()) {
             Timber.e("The backup $path names no package")
-            summary.fail(FailureReason.BACKUP_UNREADABLE)
+            summary?.fail(FailureReason.BACKUP_UNREADABLE)
             return null
         }
         return rule
     }
 
-    private suspend fun importRule(rule: BlockerRule, app: InstalledApp, summary: SummaryBuilder) {
+    private suspend fun importRule(rule: BlockerRule, app: InstalledApp?, summary: SummaryBuilder) {
+        if (app == null) {
+            summary.skip(SkipReason.APP_NOT_INSTALLED, rule.components.size)
+            return
+        }
         val statuses = when (val read = components.freshComponents(app.key)) {
             is ReadResult.Success -> read.value
 

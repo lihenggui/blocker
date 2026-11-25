@@ -166,4 +166,13 @@
     <string name="core_ui_enable_component_failed">无法启用 %1$s</string>
     <string name="core_ui_grant_failed">Blocker 尚未获得 Root 或 Shizuku 权限。</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">您想要清除此应用的数据吗？</string>
+    <string name="core_ui_component_partly_changed">对 %1$s 的更改仅部分生效。</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="other">操作已完成。%1$d 个组件的更改仅部分生效。</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="other">操作已完成。%1$d 个组件的更改仅部分生效，另有 %2$d 个组件无法更改。</item>
+    </plurals>
+    <string name="core_ui_reason_shizuku_shell">Shizuku 正以 ADB 权限运行。请以 Root 权限启动 Shizuku，然后重试。</string>
+    <string name="core_ui_firewall_self_block_refused">Blocker 无法通过 IFW 阻止自身组件，因为 IFW 规则对所有用户生效，也会影响正在使用的 Blocker。</string>
 </resources>

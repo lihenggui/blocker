@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import androidx.annotation.VisibleForTesting
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -25,14 +26,10 @@ import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,22 +51,22 @@ interface SelectedUserRepository {
      */
     val users: StateFlow<List<DeviceUser>>
 
-    /** The selected user: [ownUser] until another is selected, and again once it leaves [users]. */
+    /** The chosen user when listed in [users], otherwise [ownUser]. */
     val selectedUser: StateFlow<UserId>
 
-    /** Selects [user]; a user not in [users] is ignored. */
+    /** Updates [selectedUser] synchronously if [user] is listed in [users]. */
     fun select(user: UserId)
 }
 
 @Singleton
-internal class InMemorySelectedUserRepository(
+class InMemorySelectedUserRepository @VisibleForTesting constructor(
     override val ownUser: UserId,
     deviceUsers: DeviceUserRepository,
     channel: PrivilegedChannel,
     scope: CoroutineScope,
 ) : SelectedUserRepository {
 
-    @Inject constructor(
+    @Inject internal constructor(
         deviceUsers: DeviceUserRepository,
         channel: PrivilegedChannel,
         @ApplicationScope scope: CoroutineScope,
@@ -83,37 +80,44 @@ internal class InMemorySelectedUserRepository(
         running = true,
     )
 
-    override val users: StateFlow<List<DeviceUser>> = combine(deviceUsers.users, channel.state) { cached, state ->
-        val own = cached.find { it.id == ownUser } ?: ownFallback
-        if (state is ChannelState.Ready || state == NOT_CHECKED) {
-            (cached.filter { it.id != ownUser } + own).sortedBy { it.id.value }
-        } else {
-            listOf(own)
-        }
-    }.stateIn(scope, SharingStarted.Eagerly, listOf(ownFallback))
+    private val selectionLock = Any()
+    private var choice = ownUser
+
+    private val reachable = MutableStateFlow(listOf(ownFallback))
+    override val users = reachable.asStateFlow()
 
     private val selected = MutableStateFlow(ownUser)
-    override val selectedUser: StateFlow<UserId> = selected.asStateFlow()
+    override val selectedUser = selected.asStateFlow()
 
     init {
-        users.onEach { reachable ->
-            selected.update { current ->
-                if (reachable.any { it.id == current }) {
-                    current
-                } else {
-                    Timber.i("User ${current.value} is no longer reachable, select user ${ownUser.value}")
-                    ownUser
+        scope.launch {
+            combine(deviceUsers.users, channel.state) { cached, _ -> cached }.collect { cached ->
+                synchronized(selectionLock) {
+                    val state = channel.state.value
+                    if (state is ChannelState.Ready && cached.none { it.id == choice }) {
+                        choice = ownUser
+                    }
+                    val own = cached.find { it.id == ownUser } ?: ownFallback
+                    reachable.value = if (state is ChannelState.Ready || state == NOT_CHECKED) {
+                        (cached.filter { it.id != ownUser } + own).sortedBy { it.id.value }
+                    } else {
+                        listOf(own)
+                    }
+                    selected.value = choice.takeIf { id -> reachable.value.any { it.id == id } } ?: ownUser
                 }
             }
-        }.launchIn(scope)
+        }
     }
 
     override fun select(user: UserId) {
-        if (users.value.none { it.id == user }) {
-            Timber.w("Cannot select user ${user.value}: not reachable")
-            return
+        synchronized(selectionLock) {
+            if (reachable.value.none { it.id == user }) {
+                Timber.w("Cannot select user ${user.value}: not reachable")
+                return
+            }
+            choice = user
+            selected.value = user
         }
-        selected.value = user
     }
 
     private companion object {

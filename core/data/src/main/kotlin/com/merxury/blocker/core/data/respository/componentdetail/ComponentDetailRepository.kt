@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail
 
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
 
@@ -23,7 +24,7 @@ interface ComponentDetailRepository {
 
     val updatedComponent: Flow<ComponentDetail>
 
-    fun hasUserGeneratedDetail(packageName: String): Flow<Boolean>
+    fun hasUserGeneratedDetail(app: AppKey): Flow<Boolean>
 
     fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
 

@@ -172,4 +172,23 @@
     <string name="core_ui_enable_component_failed">تعذّر تفعيل %1$s</string>
     <string name="core_ui_grant_failed">لا يزال Blocker بلا صلاحية الروت أو Shizuku.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">هل تريد مسح بيانات هذا التطبيق؟</string>
+    <string name="core_ui_component_partly_changed">طُبّق التغيير على %1$s جزئيًا فقط.</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="zero">اكتملت العملية. تغيّر %1$d مكوّن جزئيًا فقط.</item>
+        <item quantity="one">اكتملت العملية. تغيّر مكوّن واحد (%1$d) جزئيًا فقط.</item>
+        <item quantity="two">اكتملت العملية. تغيّر مكوّنان (%1$d) جزئيًا فقط.</item>
+        <item quantity="few">اكتملت العملية. تغيّرت %1$d مكوّنات جزئيًا فقط.</item>
+        <item quantity="many">اكتملت العملية. تغيّر %1$d مكوّنًا جزئيًا فقط.</item>
+        <item quantity="other">اكتملت العملية. تغيّر %1$d مكوّن جزئيًا فقط.</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="zero">اكتملت العملية. تغيّر %1$d مكوّن جزئيًا فقط، وتعذّر تطبيق التغييرات على مكوّنات أخرى (%2$d).</item>
+        <item quantity="one">اكتملت العملية. تغيّر مكوّن واحد (%1$d) جزئيًا فقط، وتعذّر تطبيق التغييرات على مكوّنات أخرى (%2$d).</item>
+        <item quantity="two">اكتملت العملية. تغيّر مكوّنان (%1$d) جزئيًا فقط، وتعذّر تطبيق التغييرات على مكوّنات أخرى (%2$d).</item>
+        <item quantity="few">اكتملت العملية. تغيّرت %1$d مكوّنات جزئيًا فقط، وتعذّر تطبيق التغييرات على مكوّنات أخرى (%2$d).</item>
+        <item quantity="many">اكتملت العملية. تغيّر %1$d مكوّنًا جزئيًا فقط، وتعذّر تطبيق التغييرات على مكوّنات أخرى (%2$d).</item>
+        <item quantity="other">اكتملت العملية. تغيّر %1$d مكوّن جزئيًا فقط، وتعذّر تطبيق التغييرات على مكوّنات أخرى (%2$d).</item>
+    </plurals>
+    <string name="core_ui_reason_shizuku_shell">يعمل Shizuku بصلاحيات ADB. شغّل Shizuku بصلاحيات الروت ثم أعد المحاولة.</string>
+    <string name="core_ui_firewall_self_block_refused">لا يمكن لـ Blocker حظر مكوّناته عبر IFW لأن قواعد IFW تسري على جميع المستخدمين، بما في ذلك نسخة Blocker قيد الاستخدام.</string>
 </resources>

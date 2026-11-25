@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.respository.componentdetail.datasource
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentStatus
@@ -27,7 +28,6 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
-import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -41,12 +41,11 @@ class UserGeneratedComponentDetailDataSourceTest {
     val folder = TemporaryFolder()
 
     @Test
-    fun givenSavedDescriptions_whenDeclarationsArrive_thenOnlyThePackagesOwnDescriptionsAreListed() = runTest {
+    fun givenWorkAppWithSavedDescriptions_whenItsDeclarationsArrive_thenOnlyThatAppsDescriptionsAreListed() = runTest {
         val cache = FakeComponentStatusRepository()
         val source = UserGeneratedComponentDetailDataSource(
             TestUserDataRepository(),
             cache,
-            FakeSelectedUserRepository(),
             folder.root,
             "generated",
             Json,
@@ -56,11 +55,11 @@ class UserGeneratedComponentDetailDataSourceTest {
         val other = ComponentDetail("com.other.Sync", description = "Other")
         source.saveComponentData(ours).first()
         source.saveComponentData(other).first()
-        cache.sendComponents(UserId(10), listOf(status("com.example", ours.name)))
+        cache.sendComponents(UserId.SYSTEM, listOf(status("com.example", ours.name)))
 
-        source.getByPackageName("com.example").test {
+        source.getByApp(AppKey("com.example", UserId(10))).test {
             assertThat(awaitItem()).isEmpty()
-            cache.sendComponents(UserId.SYSTEM, listOf(status("com.example", ours.name), status("com.other", other.name)))
+            cache.sendComponents(UserId(10), listOf(status("com.example", ours.name), status("com.other", other.name)))
             assertThat(awaitItem()).containsExactly(ours)
         }
         assertThat(source.getByComponentName(other.name).first()).isEqualTo(other)

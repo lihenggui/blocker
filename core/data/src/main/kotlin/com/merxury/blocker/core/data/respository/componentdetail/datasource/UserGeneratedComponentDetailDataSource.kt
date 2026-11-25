@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
-import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.FilesDir
@@ -50,19 +49,17 @@ private const val EXTENSION = "json"
 internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val components: ComponentStatusRepository,
-    selectedUsers: SelectedUserRepository,
     @FilesDir private val filesDir: File,
     @GeneratedRuleBaseFolder private val generatedRuleBaseFolder: String,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
 
-    private val ownUser = selectedUsers.ownUser
     private val _eventFlow =
         MutableSharedFlow<ComponentDetail>(replay = 1, onBufferOverflow = DROP_OLDEST)
     val eventFlow = _eventFlow.asSharedFlow()
 
-    override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = components.components(AppKey(packageName, ownUser))
+    fun getByApp(app: AppKey): Flow<List<ComponentDetail>> = components.components(app)
         .map { statuses -> statuses.map { it.declaration.id.className }.toSet() }
         .distinctUntilChanged()
         .map { names ->

@@ -56,7 +56,13 @@
     <string name="feature_settings_api_anonymous_statistics_summary">Blocker işlevselliğini geliştirmek için en sık kullanılan işlevler ve kullanıcı davranışları hakkında veri toplamak ve analiz etmek için Firebase Analytics\'i kullanıyoruz.</string>
     <string name="feature_settings_api_pm_rules">PM</string>
     <string name="feature_settings_api_reset_pm">PM değişikliklerini geri al</string>
-    <string name="feature_settings_api_reset_pm_summary">PM ile devre dışı bırakılan tüm bileşenleri uygulamanın varsayılan durumuna geri yükle</string>
+    <string name="feature_settings_api_reset_pm_summary">Blocker\'ın PM ile devre dışı bıraktığı bileşenleri varsayılan durumlarına geri yükleyin</string>
     <string name="feature_settings_api_reset_pm_dialog_title">PM değişiklikleri geri alınsın mı?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Blocker\'ın PM ile devre dışı bıraktığı tüm bileşenleri varsayılan durumuna geri yükle. IFW kuralları etkilenmez. Devam edilsin mi?</string>
+    <string name="feature_settings_api_confirm_user_export">%1$s için kurallar dışa aktarılsın mı?</string>
+    <string name="feature_settings_api_confirm_user_import">%1$s için kurallar içe aktarılsın mı?</string>
+    <string name="feature_settings_api_confirm_user_reset_pm">%1$s için PM değişiklikleri geri alınsın mı?</string>
+    <string name="feature_settings_api_confirm_user_mat_import">%1$s için MyAndroidTools kuralları içe aktarılsın mı?</string>
+    <string name="feature_settings_api_choose_rule_backup">%1$s kullanıcısına aktarılacak kural yedeğini seçin</string>
+    <string name="feature_settings_api_user_rule_result">%1$s\nKullanıcı: %2$s</string>
 </resources>

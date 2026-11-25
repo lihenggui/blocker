@@ -49,12 +49,12 @@ data class ProfileTab(
 fun DeviceUser.toProfileTab() = ProfileTab(
     user = id,
     label = profileLabel(),
-    running = running,
+    running = running && unlocked != false,
 )
 
 /**
  * Switches a screen between the users in [profiles], whose apps it shows one user at a time; a
- * stopped user says it is not running.
+ * stopped or locked user says it is not running.
  */
 @Composable
 fun ProfileSwitcher(

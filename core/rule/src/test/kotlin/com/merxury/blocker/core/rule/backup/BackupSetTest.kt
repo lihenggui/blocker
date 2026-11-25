@@ -58,4 +58,25 @@ class BackupSetTest {
 
         assertThat(listBackupSets(storage)).containsExactly(BackupSet(UserId(10)))
     }
+
+    @Test
+    fun givenASetForTheTarget_whenLookingForAlternatives_thenNoneAreOffered() = runTest {
+        val storage = FakeBackupStorage().apply {
+            putFile("$APP.json", "{}")
+            putFile("user-10/$APP.json", "{}")
+        }
+
+        assertThat(storage.alternativeBackupSets(UserId(10))).isEmpty()
+    }
+
+    @Test
+    fun givenOnlyOtherSets_whenLookingForAlternatives_thenTheyAreOfferedOwnerFirst() = runTest {
+        val storage = FakeBackupStorage().apply {
+            putFile("$APP.json", "{}")
+            putFile("user-11/$APP.json", "{}")
+            putFile("user-10/notes.txt", "")
+        }
+
+        assertThat(storage.alternativeBackupSets(UserId(10))).containsExactly(BackupSet.OWNER, BackupSet(UserId(11))).inOrder()
+    }
 }

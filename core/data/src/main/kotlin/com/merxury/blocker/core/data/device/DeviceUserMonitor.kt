@@ -25,9 +25,13 @@ import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,8 +40,9 @@ import javax.inject.Singleton
  * Keeps the cached users current while Blocker runs, so a work profile added or removed meanwhile
  * shows in every profile switcher without a restart: reads the users again when the app comes to
  * the foreground, see [onForeground], and when the system announces that a work profile was added,
- * removed, turned on or turned off. Those announcements need no permission. Requests that arrive
- * while a read runs collapse into one more read.
+ * removed, turned on, turned off, unlocked or stopped. These announcements need no receiver
+ * permission. Reads resume when the privileged channel becomes ready. Requests that arrive
+ * during a read collapse into one more read.
  *
  * Reads only while the privileged channel is ready: without it the system shows only the user
  * Blocker runs in, and storing that would drop the other users' cached apps.
@@ -71,7 +76,18 @@ class DeviceUserMonitor @Inject constructor(
         scope.launch {
             for (request in requests) {
                 if (channel.state.value !is ChannelState.Ready) continue
-                deviceUsers.refresh()
+                try {
+                    deviceUsers.refresh()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "Cannot refresh device users")
+                }
+            }
+        }
+        scope.launch {
+            channel.state.map { it is ChannelState.Ready }.distinctUntilChanged().collect { ready ->
+                if (ready) requests.trySend(Unit)
             }
         }
     }
@@ -82,11 +98,17 @@ class DeviceUserMonitor @Inject constructor(
     }
 
     private companion object {
+        // Hidden in the SDK. Android sends this protected broadcast to all running users
+        // after the user has stopped, without a receiver permission.
+        const val ACTION_USER_STOPPED = "android.intent.action.USER_STOPPED"
+
         val PROFILE_CHANGES = listOf(
             Intent.ACTION_MANAGED_PROFILE_ADDED,
             Intent.ACTION_MANAGED_PROFILE_REMOVED,
             Intent.ACTION_MANAGED_PROFILE_AVAILABLE,
             Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE,
+            Intent.ACTION_MANAGED_PROFILE_UNLOCKED,
+            ACTION_USER_STOPPED,
         )
     }
 }

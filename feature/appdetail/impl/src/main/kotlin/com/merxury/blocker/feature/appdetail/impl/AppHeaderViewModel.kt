@@ -101,7 +101,7 @@ class AppHeaderViewModel @AssistedInject constructor(
     private val hasCustomizedRules = componentDetails.updatedComponent
         .map { }
         .onStart { emit(Unit) }
-        .flatMapLatest { componentDetails.hasUserGeneratedDetail(packageName) }
+        .flatMapLatest { componentDetails.hasUserGeneratedDetail(app) }
         .distinctUntilChanged()
 
     private val messages = combine(ruleWork, sharedRules, ::Pair)

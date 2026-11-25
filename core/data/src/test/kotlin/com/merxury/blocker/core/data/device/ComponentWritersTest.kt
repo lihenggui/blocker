@@ -34,6 +34,8 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.core.ifw.getOrThrow
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.withIfwEditorAccess
@@ -74,6 +76,22 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
                 emit(ControlEvent.Finished(achieved = 1, partial = 0, failed = 0))
             }
         }
+    }
+
+    @Test
+    fun givenShellRefusalWithoutIdentity_whenBlocking_thenRepositoryReportsTheShellFailure() = runTest {
+        system.install(installedApp(PKG), MAIN)
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+        val controller = ShellRefusingComponentControl.create(channel, system, store, packageLocks)
+        val repository = components(backgroundScope, control = controller)
+
+        val events = repository.control(blockRequest(MAIN)).toList()
+
+        val outcome = events.filterIsInstance<ControlEvent.PackageDone>().single().outcomes.single()
+        assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
+        assertThat(outcome.state.pm).isEqualTo(PmSetting.DEFAULT)
+        val refusal = outcome.failures.getValue(ControlLayer.PACKAGE_MANAGER) as ControlFailure.NotPermitted
+        assertThat(refusal.identity).isEqualTo(PrivilegedIdentity.SHELL)
     }
 
     @Test

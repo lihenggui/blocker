@@ -152,4 +152,13 @@
     <string name="core_ui_enable_component_failed">Tidak dapat mengaktifkan %1$s</string>
     <string name="core_ui_grant_failed">Blocker masih belum memiliki akses root atau Shizuku.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Hapus data apl ini?</string>
+    <string name="core_ui_component_partly_changed">Perubahan pada %1$s hanya diterapkan sebagian.</string>
+    <plurals name="core_ui_batch_partly_changed">
+        <item quantity="other">Operasi selesai. Perubahan pada %1$d komponen hanya diterapkan sebagian.</item>
+    </plurals>
+    <plurals name="core_ui_batch_partly_changed_with_failures">
+        <item quantity="other">Operasi selesai. Perubahan pada %1$d komponen hanya diterapkan sebagian, dan %2$d komponen lainnya tidak dapat diubah.</item>
+    </plurals>
+    <string name="core_ui_reason_shizuku_shell">Shizuku berjalan dengan izin ADB. Jalankan Shizuku dengan akses root, lalu coba lagi.</string>
+    <string name="core_ui_firewall_self_block_refused">Blocker tidak dapat memblokir komponennya sendiri melalui IFW karena aturan IFW berlaku untuk semua pengguna, termasuk instans Blocker yang sedang digunakan.</string>
 </resources>

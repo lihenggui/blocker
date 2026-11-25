@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.applist.impl
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.device.InMemorySelectedUserRepository
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -151,6 +152,29 @@ class AppListViewModelTest {
     }
 
     @Test
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun givenAnUncachedWorkProfile_whenSelected_thenItsAppsAreRefreshedAndLoadingEnds() = runTest {
+        val selectedUsers = InMemorySelectedUserRepository(OWNER, fixture.deviceUsers, fixture.channel, backgroundScope)
+        val model = fixture.createViewModel(selectedUsers)
+        fixture.deviceUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.installedApps.sendApps(listOf(installedApp("com.a")))
+
+        model.uiState.test {
+            runCurrent()
+            assertThat(expectMostRecentItem().profiles.map { it.user }).containsExactly(OWNER, WORK)
+            assertThat(fixture.installedApps.calls).isEmpty()
+
+            model.selectUser(WORK)
+            runCurrent()
+
+            assertThat(fixture.installedApps.calls).containsExactly("refresh 10")
+            val state = expectMostRecentItem()
+            assertThat(state.selectedUser).isEqualTo(WORK)
+            assertThat(state.apps).isEqualTo(AppsUiState.Loaded(emptyList()))
+        }
+    }
+
+    @Test
     fun givenWorkReadBefore_whenListRefreshed_thenWorkReadAgainWhenNextSelected() = runTest {
         fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
         collectState()
@@ -176,6 +200,22 @@ class AppListViewModelTest {
         assertThat(state.selectedUser).isEqualTo(OWNER)
         assertThat(state.showProfileSwitcher).isFalse()
         assertThat(fixture.rows().map { it.label }).containsExactly("A")
+    }
+
+    @Test
+    fun givenWorkSelected_whenAccessDropsAndReturns_thenTheListFollowsTheRememberedSelection() = runTest {
+        fixture.selectedUsers.sendUsers(listOf(ownerUser, workUser))
+        fixture.installedApps.sendApps(listOf(installedApp("com.a"), installedApp("com.b", WORK)))
+        collectState()
+        viewModel.selectUser(WORK)
+
+        fixture.selectedUsers.setAccessAvailable(false)
+        assertThat(viewModel.uiState.value.selectedUser).isEqualTo(OWNER)
+        assertThat(fixture.rows().map { it.key }).containsExactly(AppKey("com.a", OWNER))
+
+        fixture.selectedUsers.setAccessAvailable(true)
+        assertThat(viewModel.uiState.value.selectedUser).isEqualTo(WORK)
+        assertThat(fixture.rows().map { it.key }).containsExactly(AppKey("com.b", WORK))
     }
 
     @Test

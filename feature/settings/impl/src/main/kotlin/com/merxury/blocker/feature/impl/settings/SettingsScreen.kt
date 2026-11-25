@@ -38,10 +38,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -74,6 +74,7 @@ import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.PreviewDevices
+import com.merxury.blocker.core.ui.profile.text
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
@@ -86,6 +87,7 @@ import com.merxury.blocker.feature.impl.settings.item.PmRulesSettings
 import com.merxury.blocker.feature.impl.settings.item.SwitchSettingItem
 import com.merxury.blocker.feature.impl.settings.item.ThemeSettings
 import com.merxury.blocker.feature.settings.api.R.string
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import com.merxury.blocker.core.rule.R.string as CoreRuleR
@@ -98,8 +100,30 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
-    val event by viewModel.eventFlow.collectAsState(initial = null)
+    val events = remember(viewModel) { viewModel.eventFlow.withIndex() }
+    val event by events.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
+    val getMatFileResult = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), viewModel::importMyAndroidToolsRules)
+    val fileManagerRequired = stringResource(string.feature_settings_api_file_manager_required)
+    val pickMatFile: () -> Unit = {
+        try {
+            getMatFileResult.launch(arrayOf("*/*"))
+        } catch (e: ActivityNotFoundException) {
+            Timber.e(e, "No activity found to handle the OpenDocument() intent")
+            viewModel.importMyAndroidToolsRules(null)
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(fileManagerRequired, duration = SnackbarDuration.Short)
+            }
+        }
+    }
+    (settingsUiState as? Success)?.ruleDialog?.let { dialog ->
+        SettingsRuleDialog(
+            dialog = dialog,
+            onConfirm = { viewModel.confirmRuleAction(pickMatFile) },
+            onChooseBackup = viewModel::chooseBackup,
+            onDismiss = viewModel::dismissRuleDialog,
+        )
+    }
     SettingsScreen(
         onNavigationClick = onNavigationClick,
         uiState = settingsUiState,
@@ -116,13 +140,13 @@ fun SettingsScreen(
         onChangeRestoreSystemApp = viewModel::updateRestoreSystemApp,
         onChangeRuleBackupFolder = viewModel::updateRuleBackupFolder,
         onChangeCheckedStatistics = viewModel::updateCheckedStatistics,
-        importRules = viewModel::importBlockerRules,
-        exportRules = viewModel::exportBlockerRules,
+        importRules = { viewModel.startRuleAction(SettingsRuleAction.IMPORT) },
+        exportRules = { viewModel.startRuleAction(SettingsRuleAction.EXPORT) },
         importIfwRules = viewModel::importIfwRules,
         exportIfwRules = viewModel::exportIfwRules,
         resetIfwRules = viewModel::resetIfwRules,
-        resetPmRules = viewModel::resetPmRules,
-        importMatRules = viewModel::importMyAndroidToolsRules,
+        resetPmRules = { viewModel.startRuleAction(SettingsRuleAction.RESET_PM) },
+        importMatRules = { viewModel.startRuleAction(SettingsRuleAction.IMPORT_MAT, pickMatFile) },
     )
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val notificationPermissionState = rememberPermissionState(permission.POST_NOTIFICATIONS)
@@ -132,9 +156,9 @@ fun SettingsScreen(
             }
         }
     }
-    event?.let {
-        val work = it.type
-        val result = it.result
+    event?.let { (delivery, it) ->
+        val work = it.work.type
+        val result = it.work.result
         val startedRes = when (work) {
             IMPORT_BLOCKER_RULES -> CoreRuleR.core_rule_import_app_rules_please_wait
             EXPORT_BLOCKER_RULES -> CoreRuleR.core_rule_backing_up_apps_please_wait
@@ -144,21 +168,25 @@ fun SettingsScreen(
             RESET_PM -> CoreRuleR.core_rule_reset_pm_please_wait
             IMPORT_MAT_RULES -> CoreRuleR.core_rule_import_mat_rule_please_wait
         }
-        val message = it.resultMessage(LocalResources.current) ?: stringResource(id = startedRes)
+        val target = it.target
+        val resultText = it.work.resultMessage(LocalResources.current)
+        val message = when {
+            resultText == null -> stringResource(startedRes)
+            target == null -> resultText
+            else -> stringResource(string.feature_settings_api_user_rule_result, resultText, target.text())
+        }
         val duration = if (result == RuleWorkResult.STARTED) {
             SnackbarDuration.Long
         } else {
             SnackbarDuration.Short
         }
-        LaunchedEffect(message) {
-            coroutineScope.launch {
-                snackbarHostState.currentSnackbarData?.dismiss()
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = duration,
-                    withDismissAction = true,
-                )
-            }
+        LaunchedEffect(delivery) {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = duration,
+                withDismissAction = true,
+            )
         }
     }
 }
@@ -187,7 +215,7 @@ fun SettingsScreen(
     importIfwRules: () -> Unit = { },
     resetIfwRules: () -> Unit = { },
     resetPmRules: () -> Unit = { },
-    importMatRules: (Uri?) -> Unit = { },
+    importMatRules: () -> Unit = { },
 ) {
     Column(
         modifier = modifier,
@@ -260,16 +288,8 @@ fun SettingsContent(
     importIfwRules: () -> Unit = { },
     resetIfwRules: () -> Unit = { },
     resetPmRules: () -> Unit = { },
-    importMatRules: (Uri?) -> Unit = { },
+    importMatRules: () -> Unit = { },
 ) {
-    LocalContext.current
-    val scope = rememberCoroutineScope()
-    val getMatFileResult = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument(),
-        onResult = { importMatRules(it) },
-    )
-    val fileManagerRequiredMsg =
-        stringResource(id = string.feature_settings_api_file_manager_required)
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -323,19 +343,7 @@ fun SettingsContent(
         )
         BlockerSettingItem(
             title = stringResource(id = string.feature_settings_api_import_mat_rules),
-            onItemClick = {
-                try {
-                    getMatFileResult.launch(arrayOf("*/*"))
-                } catch (e: ActivityNotFoundException) {
-                    Timber.e(e, "No activity found to handle the OpenDocument() intent")
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = fileManagerRequiredMsg,
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                }
-            },
+            onItemClick = importMatRules,
             extraIconPadding = true,
         )
 

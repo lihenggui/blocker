@@ -64,7 +64,7 @@ import kotlinx.coroutines.flow.Flow
  * firewall changes go to the rule store in one batch per package. The store
  * re-reads the file under its lock and writes nothing when the rules stay as they are. The
  * controller excludes the firewall layer when blocking Blocker itself. A request with only
- * that layer is [ControlResult.SKIPPED] with [ControlFailure.ProtectedComponent]. A protection
+ * that layer is [ControlResult.SKIPPED] with [ControlFailure.FirewallProtectedComponent]. A protection
  * refusal from the rule store counts as a failed layer. Other outcomes are judged by the state
  * read back afterwards. A block is [ControlResult.ACHIEVED] when every
  * layer it uses shows the component blocked, [ControlResult.PARTIAL] when some do, and
