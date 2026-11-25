@@ -35,6 +35,8 @@ class WakeFilterProbeTest {
                 if (xml != null) throw IOException("Cannot write the wake PROBE rules: ChannelUnavailable")
             }
 
+            override suspend fun removeTarget(kind: WakeRuleFileKind, packageName: String) = error("Unexpected target removal")
+
             override suspend fun reset(packageName: String?) = error("Unexpected reset")
         }
 

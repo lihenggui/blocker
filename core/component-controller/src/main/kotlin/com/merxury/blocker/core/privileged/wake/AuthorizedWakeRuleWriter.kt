@@ -19,9 +19,9 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Inject
 
 /**
- * Replaces or deletes this installation's managed service rules and temporary sender-filter probe
+ * Replaces or deletes this installation's managed rules, user rules and temporary sender-filter probe
  * in `/data/system/ifw/`. Reconciliation applies or revokes managed rules and runs the probe when
- * needed. A reset removes one package's managed rules or deletes both files.
+ * needed. A reset removes one package's rules or deletes all wake files.
  *
  * The caller must hold the same mutex across reconciliation and resets, including the
  * probe and its cleanup. The writer relies on that mutex for serialization. It uses the
@@ -41,11 +41,17 @@ internal class AuthorizedWakeRuleWriter @Inject constructor(
     override suspend fun reset(packageName: String?) {
         if (packageName == null) {
             WakeRuleFileKind.entries.forEach { write(it, null) }
-        } else if (isWakePackageName(packageName)) {
-            executor.executeIfReady(RemoveWakeRuleTarget(owner, WakeRuleFileKind.MANAGED, packageName))
-                .orThrow("remove the wake rules of $packageName")
+        } else {
+            removeTarget(WakeRuleFileKind.MANAGED, packageName)
+            removeTarget(WakeRuleFileKind.USER, packageName)
         }
-        // Any other name cannot be in a wake rule, which names packages only.
+    }
+
+    override suspend fun removeTarget(kind: WakeRuleFileKind, packageName: String) {
+        // Any other name cannot be in a wake rule.
+        if (!isWakePackageName(packageName)) return
+        executor.executeIfReady(RemoveWakeRuleTarget(owner, kind, packageName))
+            .orThrow("remove the wake $kind rules of $packageName")
     }
 }
 

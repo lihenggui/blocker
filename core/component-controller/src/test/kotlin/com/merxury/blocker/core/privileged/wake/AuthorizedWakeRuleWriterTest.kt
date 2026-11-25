@@ -39,19 +39,23 @@ class AuthorizedWakeRuleWriterTest {
         ).inOrder()
     }
 
-    @Test fun whenResettingEverything_thenBothFilesDeleted() = runTest {
+    @Test fun whenResettingEverything_thenAllWakeFilesDeleted() = runTest {
         writer.reset(null)
 
         assertThat(executor.runs).containsExactly(
             DeleteWakeRuleFile(owner, WakeRuleFileKind.MANAGED) to false,
             DeleteWakeRuleFile(owner, WakeRuleFileKind.PROBE) to false,
+            DeleteWakeRuleFile(owner, WakeRuleFileKind.USER) to false,
         ).inOrder()
     }
 
-    @Test fun whenResettingOnePackage_thenOnlyItsManagedRulesRemoved() = runTest {
+    @Test fun whenResettingOnePackage_thenItsManagedAndUserRulesRemoved() = runTest {
         writer.reset("target.pkg")
 
-        assertThat(executor.runs).containsExactly(RemoveWakeRuleTarget(owner, WakeRuleFileKind.MANAGED, "target.pkg") to false)
+        assertThat(executor.runs).containsExactly(
+            RemoveWakeRuleTarget(owner, WakeRuleFileKind.MANAGED, "target.pkg") to false,
+            RemoveWakeRuleTarget(owner, WakeRuleFileKind.USER, "target.pkg") to false,
+        ).inOrder()
     }
 
     @Test fun givenNameNoWakeRuleHolds_whenResetting_thenNothingSent() = runTest {

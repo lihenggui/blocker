@@ -49,8 +49,10 @@ class IfwRuleFileNameTest {
     fun givenWakeFeatureFiles_whenChecked_thenRejectedByBoth() {
         listOf(
             "blocker-managed-wake",
+            "blocker-user-wake",
             "blocker-wake-capability-probe",
             "blocker-managed-wake-com.merxury.blocker.debug",
+            "blocker-user-wake-com.merxury.blocker.debug",
             "blocker-wake-capability-probe-com.merxury.blocker.debug",
         ).forEach {
             assertWithMessage(it).that(isPackageRuleFileName(it)).isFalse()
