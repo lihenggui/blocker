@@ -57,7 +57,7 @@ internal class WorkManagerSyncManager @Inject constructor(
         workManager.enqueueUniqueWork(
             SYNC_WORK_NAME,
             ExistingWorkPolicy.REPLACE,
-            SyncWorker.startUpSyncWork(),
+            SyncWorker.startUpSyncWork(forceCheck = true),
         )
     }
 }

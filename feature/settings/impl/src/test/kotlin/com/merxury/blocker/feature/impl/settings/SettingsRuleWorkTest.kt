@@ -31,7 +31,6 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
-import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
@@ -93,7 +92,6 @@ class SettingsRuleWorkTest {
     private fun createViewModel(state: SavedStateHandle) = SettingsViewModel(
         appContext = application,
         userDataRepository = userDataRepository,
-        blockerPreferences = mock<BlockerPreferencesDataSource>(),
         syncManager = TestSyncManager(),
         analyticsHelper = NoOpAnalyticsHelper(),
         workManager = workManager,

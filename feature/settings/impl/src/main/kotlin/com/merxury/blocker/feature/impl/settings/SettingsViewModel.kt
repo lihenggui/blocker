@@ -46,7 +46,6 @@ import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.SyncManager
-import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.UserId
@@ -108,7 +107,6 @@ private const val MAT_TARGET_USER = "matTargetUser"
 class SettingsViewModel @Inject constructor(
     appContext: Application,
     private val userDataRepository: UserDataRepository,
-    private val blockerPreferences: BlockerPreferencesDataSource,
     private val syncManager: SyncManager,
     private val analyticsHelper: AnalyticsHelper,
     private val workManager: WorkManager,
@@ -198,7 +196,6 @@ class SettingsViewModel @Inject constructor(
             if (currentProvider == provider) return@launch
             userDataRepository.setRuleServerProvider(provider)
             withContext(ioDispatcher) {
-                blockerPreferences.resetRuleCommitId()
                 clearLastSyncTime()
             }
             syncManager.requestSyncImmediately()

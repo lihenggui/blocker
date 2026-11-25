@@ -34,7 +34,6 @@ import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import java.io.IOException
@@ -307,43 +306,6 @@ class BlockerPreferencesDataSource @Inject constructor(
     suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {
         userPreferences.updateData {
             it.copy { this.isFirstTimeInitializationCompleted = completed }
-        }
-    }
-
-    suspend fun resetRuleCommitId() {
-        try {
-            userPreferences.updateData { it.copy { ruleCommitId = "" } }
-        } catch (ioException: IOException) {
-            Timber.e(ioException, "Failed to reset rule commit id")
-        }
-    }
-
-    suspend fun getChangeListVersions() = userPreferences.data
-        .map {
-            ChangeListVersions(
-                ruleCommitId = it.ruleCommitId,
-            )
-        }
-        .firstOrNull() ?: ChangeListVersions()
-
-    /**
-     * Update the [ChangeListVersions] using [update].
-     */
-    suspend fun updateChangeListVersion(update: ChangeListVersions.() -> ChangeListVersions) {
-        try {
-            userPreferences.updateData { currentPreferences ->
-                val updatedChangeListVersions = update(
-                    ChangeListVersions(
-                        ruleCommitId = currentPreferences.ruleCommitId,
-                    ),
-                )
-
-                currentPreferences.copy {
-                    ruleCommitId = updatedChangeListVersions.ruleCommitId
-                }
-            }
-        } catch (ioException: IOException) {
-            Timber.e(ioException, "Failed to update user preferences")
         }
     }
 

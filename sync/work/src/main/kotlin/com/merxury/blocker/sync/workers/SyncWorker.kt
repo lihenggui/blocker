@@ -22,20 +22,18 @@ import androidx.core.content.edit
 import androidx.hilt.work.HiltWorker
 import androidx.tracing.traceAsync
 import androidx.work.CoroutineWorker
+import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.Synchronizer
+import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
+import com.merxury.blocker.core.data.repository.catalog.CatalogUpdateResult
+import com.merxury.blocker.core.data.repository.catalog.CatalogUpdateResult.Reason
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
-import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
-import com.merxury.blocker.core.datastore.ChangeListVersions
-import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.git.GitClient
-import com.merxury.blocker.core.git.RepositoryInfo
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.SyncConstraints
 import com.merxury.blocker.sync.initializers.syncForegroundInfo
@@ -43,13 +41,13 @@ import com.merxury.blocker.sync.status.ISyncSubscriber
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Instant
 
+private const val FORCE_CHECK = "force_catalog_check"
 private const val PREF_SYNC_RULE = "sync_rule"
 private const val PREF_LAST_SYNCED_TIME = "last_synced_time"
 
@@ -63,20 +61,17 @@ internal class SyncWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val userDataRepository: UserDataRepository,
-    @FilesDir private val filesDir: File,
-    private val blockerPreferences: BlockerPreferencesDataSource,
+    private val catalogRepository: CatalogRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
     private val syncSubscriber: ISyncSubscriber,
     private val appDebugChecker: AppDebugChecker,
-    private val gitClientFactory: GitClient.Factory,
-) : CoroutineWorker(appContext, workerParams),
-    Synchronizer {
+) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo = appContext.syncForegroundInfo()
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        if (!shouldRunTask()) {
+        if (!inputData.getBoolean(FORCE_CHECK, false) && !shouldRunTask()) {
             Timber.v("No need to sync rule")
             return@withContext Result.success()
         }
@@ -85,72 +80,23 @@ internal class SyncWorker @AssistedInject constructor(
 
             syncSubscriber.subscribe()
 
-            val syncedSuccessfully = syncRule()
+            val provider = userDataRepository.userData.first().ruleServerProvider
+            val result = catalogRepository.update(provider)
+            ensureActive()
+            analyticsHelper.logSyncFinished(result !is CatalogUpdateResult.Failed)
 
-            analyticsHelper.logSyncFinished(syncedSuccessfully)
+            when (result) {
+                is CatalogUpdateResult.Updated, CatalogUpdateResult.UpToDate -> {
+                    markLastRunTime()
+                    Result.success()
+                }
 
-            if (syncedSuccessfully) {
-                markLastRunTime()
-                Result.success()
-            } else {
-                Result.retry()
+                is CatalogUpdateResult.Failed -> when (result.reason) {
+                    Reason.NETWORK -> Result.retry()
+                    Reason.INVALID_DATA, Reason.LOCAL_STORAGE -> Result.failure()
+                }
             }
         }
-    }
-
-    override suspend fun getChangeListVersions(): ChangeListVersions = blockerPreferences.getChangeListVersions()
-
-    override suspend fun updateChangeListVersions(
-        update: ChangeListVersions.() -> ChangeListVersions,
-    ) = blockerPreferences.updateChangeListVersion(update)
-
-    internal suspend fun syncRule(): Boolean {
-        Timber.d("Syncing rule...")
-        val provider = userDataRepository.userData.first().ruleServerProvider
-        val mainBranchName = "main"
-        val repoInfo = RepositoryInfo(
-            remoteName = provider.name,
-            url = provider.url,
-            repoName = provider.projectName,
-            branch = mainBranchName,
-        )
-        val gitClient = gitClientFactory.create(repoInfo, filesDir)
-        val projectFolder = filesDir.resolve(repoInfo.repoName)
-        val gitFolder = projectFolder.resolve(".git")
-        try {
-            if (!gitFolder.exists()) {
-                Timber.i("Cloning the rules cache")
-                if (!projectFolder.deleteRecursively() || !gitClient.cloneRepository()) {
-                    return false
-                }
-            } else {
-                // The checkout is a read-only cache, so discard local changes instead of merging.
-                val resetSuccessfully = try {
-                    if (!gitClient.setRemote(repoInfo.url, provider.name)) return false
-                    gitClient.resetToRemote(provider.name, mainBranchName)
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Timber.w(e, "Failed to reset the rules cache, deleting and cloning once")
-                    projectFolder.deleteRecursively() && gitClient.cloneRepository()
-                }
-                if (!resetSuccessfully) return false
-            }
-            val headCommitId = gitClient.getHeadCommitId()
-            if (headCommitId == null) {
-                Timber.e("The rules cache has no HEAD commit")
-                return false
-            }
-            updateChangeListVersions {
-                copy(ruleCommitId = headCommitId)
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to sync rules from remote")
-            return false
-        }
-        return true
     }
 
     // Only run this worker in the first run in a day
@@ -187,10 +133,15 @@ internal class SyncWorker @AssistedInject constructor(
         /**
          * Expedited one time work to sync data on app startup
          */
-        fun startUpSyncWork() = OneTimeWorkRequestBuilder<DelegatingWorker>()
+        fun startUpSyncWork(forceCheck: Boolean = false) = OneTimeWorkRequestBuilder<DelegatingWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .setConstraints(SyncConstraints)
-            .setInputData(SyncWorker::class.delegatedData())
+            .setInputData(
+                Data.Builder()
+                    .putAll(SyncWorker::class.delegatedData())
+                    .putBoolean(FORCE_CHECK, forceCheck)
+                    .build(),
+            )
             .build()
     }
 }
