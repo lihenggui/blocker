@@ -44,6 +44,7 @@ internal fun matchedApps(matched: List<ComponentStatus>, apps: List<InstalledApp
                 icon = ApkIcon(packageName, app.apkPath, app.versionCode, app.uid),
                 rows = statuses.map { it.toRow() },
                 firstInstallTime = app.firstInstallTime,
+                declarations = statuses.map { it.declaration },
             )
         }
 }

@@ -166,6 +166,16 @@ class ComponentControlViewModelTest {
     }
 
     @Test
+    fun givenComponentVanished_whenSwitchedOff_thenTellsItCouldNotBeBlocked() = runTest {
+        collectState()
+
+        viewModel.setEnabled(id("Gone"), enabled = false)
+
+        assertThat(fixture.components.requests).isEmpty()
+        assertThat(viewModel.uiState.value.messages.single().message).isEqualTo(ControlMessage.ComponentNotChanged("Gone", ControlGoal.BLOCK))
+    }
+
+    @Test
     fun givenPartialOutcome_whenSwitched_thenToldAsNotChanged() = runTest {
         fixture.sendComponents(component("Main"))
         answerWith(outcome("Main", ControlResult.PARTIAL, ControlLayer.INTENT_FIREWALL to ControlFailure.RulesUnreadable))
@@ -241,24 +251,24 @@ class ComponentControlViewModelTest {
     }
 
     @Test
-    fun givenMoreThan200Components_whenAllUnblocked_thenStepsOf200WithProgressAndOneSummary() = runTest {
+    fun givenMoreThan200Components_whenAllEnabled_thenStepsOf200WithProgressAndOneSummary() = runTest {
         val gated = gate()
         val names = (1..450).map { "Receiver$it" }
         fixture.sendComponents(*names.map { component(it, type = ComponentType.RECEIVER, pm = PmSetting.DISABLED) }.toTypedArray())
         collectState()
 
-        viewModel.unblockAll(names.map(::id))
-        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.UNBLOCK, done = 0, total = 450))
+        viewModel.enableAll(names.map(::id))
+        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.ENABLE, done = 0, total = 450))
 
         gated.permits.send(Unit)
         runCurrent()
-        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.UNBLOCK, done = 200, total = 450))
+        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.ENABLE, done = 200, total = 450))
         assertThat(viewModel.uiState.value.inFlight).hasSize(250)
         assertThat(viewModel.uiState.value.messages).isEmpty()
 
         gated.permits.send(Unit)
         runCurrent()
-        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.UNBLOCK, done = 400, total = 450))
+        assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.ENABLE, done = 400, total = 450))
 
         gated.permits.send(Unit)
         runCurrent()
@@ -304,25 +314,25 @@ class ComponentControlViewModelTest {
         )
         collectState()
 
-        viewModel.unblockAll(listOf(id("A"), id("B"), id("C"), id("D"), id("E")))
+        viewModel.enableAll(listOf(id("A"), id("B"), id("C"), id("D"), id("E")))
 
         assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 3))
         assertThat(fixture.components.requests.single().layers).containsExactlyElementsIn(ControlLayer.entries)
     }
 
     @Test
-    fun givenComponentTheAppShipsDisabled_whenAllUnblocked_thenItStaysAsTheAppShipsIt() = runTest {
+    fun givenManifestDisabledComponent_whenAllEnabled_thenPackageManagerEnablesIt() = runTest {
         fixture.sendComponents(component("Off", enabledInManifest = false), component("Blocked", pm = PmSetting.DISABLED, ifw = IfwBlock.BLOCKED))
         collectState()
 
-        viewModel.unblockAll(listOf(id("Off"), id("Blocked")))
+        viewModel.enableAll(listOf(id("Off"), id("Blocked")))
 
         val request = fixture.components.requests.single()
-        assertThat(request.goal to request.layers).isEqualTo(ControlGoal.UNBLOCK to ControlLayer.entries.toSet())
+        assertThat(request.goal to request.layers).isEqualTo(ControlGoal.ENABLE to ControlLayer.entries.toSet())
         val states = fixture.components.components(OWN_APP).first().associate { it.declaration.id.simpleName to it.state }
         assertThat(states).containsExactly(
             "Off",
-            ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
+            ControlState(PmSetting.ENABLED, IfwBlock.NOT_BLOCKED),
             "Blocked",
             ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED),
         )
@@ -349,7 +359,7 @@ class ComponentControlViewModelTest {
         collectState()
 
         viewModel.blockAll(listOf(id("A")))
-        viewModel.unblockAll(listOf(id("B")))
+        viewModel.enableAll(listOf(id("B")))
         viewModel.blockAll(listOf(id("B")))
         assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.BLOCK, done = null, total = 1))
         gated.releaseAll()
@@ -394,7 +404,7 @@ class ComponentControlViewModelTest {
         fixture.sendComponents(*names.map { component(it, type = ComponentType.RECEIVER, pm = PmSetting.DISABLED) }.toTypedArray())
         collectState()
 
-        viewModel.unblockAll(names.map(::id))
+        viewModel.enableAll(names.map(::id))
 
         assertThat(throwing.requests).isEqualTo(2)
         assertThat(fixture.batches.current(BatchKey.App(OWN_APP))).isNull()
@@ -426,7 +436,7 @@ class ComponentControlViewModelTest {
         assertThat(viewModel.uiState.value.batch).isEqualTo(BatchProgress(ControlGoal.BLOCK, done = null, total = 2))
         assertThat(viewModel.uiState.value.inFlight).containsExactly(id("A"), id("B"))
         viewModel.setEnabled(id("A"), enabled = false)
-        viewModel.unblockAll(listOf(id("A"), id("B")))
+        viewModel.enableAll(listOf(id("A"), id("B")))
 
         slowCache.reads.send(Unit)
         runCurrent()

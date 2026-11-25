@@ -217,8 +217,7 @@ class DebloaterViewModel @Inject constructor(
                     isLauncherEntry = ComponentClassification.LAUNCHER in item.kinds,
                     isDeeplinkEntry = ComponentClassification.DEEPLINK in item.kinds,
                 )
-                val outcome = controlComponent(key, goal)
-                if (outcome == null) tellFailure(key, goal) else outcome.toMessage(goal)?.let { tell(it, key) }
+                controlComponent(key, goal).toMessage(key.id, goal)?.let { tell(it, key) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
