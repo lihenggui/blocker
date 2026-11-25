@@ -16,23 +16,32 @@
 
 package com.merxury.blocker.feature.ifwrule.impl
 
-import com.merxury.blocker.core.testing.controller.FakeIntentFirewall
+import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
+import com.merxury.core.ifw.IntentFirewallStore
 import com.merxury.core.ifw.editor.IfwEditorConditionKind
 import com.merxury.core.ifw.editor.IfwEditorNode
 import com.merxury.core.ifw.editor.IfwEditorStringMatcherMode
+import com.merxury.core.ifw.getOrThrow
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.StringMatcher
+import com.merxury.core.ifw.xml.IfwXmlDeserializer
+import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35], manifest = Config.NONE)
 class IfwRuleEditorViewModelTest {
 
     @get:Rule
@@ -52,8 +61,8 @@ class IfwRuleEditorViewModelTest {
 
     @Test
     fun givenExistingConditionalRule_whenLoaded_thenShowsNestedRootGroup() = runTest {
-        val ifw = FakeIntentFirewall()
-        ifw.rules[packageName] = IfwRules(
+        val ifw = store()
+        val rules = IfwRules(
             listOf(
                 IfwRule(
                     componentType = IfwComponentType.BROADCAST,
@@ -69,6 +78,7 @@ class IfwRuleEditorViewModelTest {
             ),
         )
 
+        ifw.update(packageName) { rules }.getOrThrow()
         val viewModel = createViewModel(ifw)
 
         val state = assertIs<RuleEditorScreenUiState.Success>(viewModel.uiState.value)
@@ -98,21 +108,23 @@ class IfwRuleEditorViewModelTest {
 
     @Test
     fun givenUserSavesBlockAll_whenSave_thenRulesWritten() = runTest {
-        val ifw = FakeIntentFirewall()
+        val ifw = store()
         val viewModel = createViewModel(ifw)
 
         viewModel.save()
 
-        val filters = ifw.getRules(packageName)
+        val filters = ifw.rules(packageName).getOrThrow()
             .rulesFor(IfwComponentType.BROADCAST)
             .flatMap { rule -> rule.filters }
         assertTrue(filters.any { filter -> filter is IfwFilter.ComponentFilter })
     }
 
+    private fun store() = IntentFirewallStore(FakeIfwFileSystem(), IfwXmlSerializer(), IfwXmlDeserializer())
+
     private fun createViewModel(
-        ifw: FakeIntentFirewall = FakeIntentFirewall(),
+        ifw: IntentFirewallStore = store(),
     ) = IfwRuleEditorViewModel(
-        intentFirewall = ifw,
+        ifwStore = ifw,
         packageName = packageName,
         componentName = componentName,
         componentTypeTag = "broadcast",

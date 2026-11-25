@@ -21,7 +21,7 @@ import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
-import com.merxury.blocker.core.controllers.utils.setComponentsEnabled
+import androidx.annotation.RequiresApi
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.privileged.PrivilegedAction
 import com.merxury.blocker.core.privileged.PrivilegedCall
@@ -89,6 +89,21 @@ internal data class SetComponentEnabledSettings(
         } else {
             components.forEach { pm.setComponentEnabledSetting(it, newState, 0, user.value) }
         }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+private fun IPackageManager.setComponentsEnabled(
+    components: List<ComponentName>,
+    state: Int,
+    userId: Int,
+    callingPackage: String,
+) {
+    val settings = components.map { PackageManager.ComponentEnabledSetting(it, state, 0) }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        setComponentEnabledSettings(settings, userId, callingPackage)
+    } else {
+        setComponentEnabledSettings(settings, userId)
     }
 }
 

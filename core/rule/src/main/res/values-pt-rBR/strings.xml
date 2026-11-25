@@ -12,6 +12,7 @@
     <string name="core_rule_error_msg_folder_not_defined">A pasta de backup não está definida, por favor vá para configurações para atribuir um.</string>
     <string name="core_rule_error_msg_missing_root_permission">Permissão de root ausente, por favor, conceda permissão ao Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Exceção inesperada, por favor informe o desenvolvedor.</string>
+    <string name="core_rule_error_msg_legacy_pm_records_unreadable">O Blocker não conseguiu ler a lista de componentes que desativou antes da atualização. Seus componentes bloqueados não foram alterados.</string>
     <string name="core_rule_task_cancelled">Tarefa cancelada</string>
     <string name="core_rule_copying_rules_to_internal_storage">Copiando regras para o armazenamento interno…</string>
     <string name="core_rule_processing_progress_indicator">Indicador de Progresso de Processamento</string>

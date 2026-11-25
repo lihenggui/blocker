@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.device
 
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.ControlLayer
@@ -152,12 +153,17 @@ interface ComponentStatusRepository {
     fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver? = null): Flow<ControlEvent>
 
     /**
+     * Clears PackageManager blocks found by [disabledByBlocker]. Like [control], stores the
+     * read-back and updates the records before emitting the result. Also drops records for
+     * changes the system refused even under root or the system UID.
+     */
+    fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent>
+
+    /**
      * The components Blocker disabled through PackageManager for [user] that are still
-     * [PmSetting.DISABLED]. Seeds the record of Blocker's blocks first when it has not been seeded,
-     * see [PmBlockRecordSeeder], then refreshes the user's app list and each app that has recorded
-     * components, as [refresh] does, which drops the records of components no longer disabled or
-     * declared. Components disabled by anything else are never listed. An app whose settings cannot
-     * be read does not stop the others; it is listed in [DisabledComponents.unreadableApps].
+     * [PmSetting.DISABLED]. Refreshes the user's app list and each app that has recorded components,
+     * as [refresh] does, dropping records of components no longer disabled or declared. An app
+     * whose settings cannot be read is listed in [DisabledComponents.unreadableApps].
      *
      * @return what was found, or the failure that kept the user's app list from being read
      */

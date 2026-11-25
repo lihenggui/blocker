@@ -35,8 +35,4 @@ interface IShizukuInitializer {
      * is already there. Leaves no Shizuku listener behind, also when cancelled.
      */
     suspend fun awaitBinder()
-
-    fun hasPermission(): Boolean
-
-    fun getUid(): Int
 }

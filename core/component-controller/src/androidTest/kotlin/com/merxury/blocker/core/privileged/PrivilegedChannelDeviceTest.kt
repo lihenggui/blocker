@@ -42,9 +42,9 @@ import com.merxury.blocker.core.privileged.calls.InstalledPackages
 import com.merxury.blocker.core.privileged.calls.ListUsers
 import com.merxury.blocker.core.privileged.calls.SetApplicationEnabledSetting
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
+import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootTransport
 import com.merxury.blocker.core.privileged.shizuku.ShizukuTransport
-import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformSystemPackageReader
 import kotlinx.coroutines.Dispatchers

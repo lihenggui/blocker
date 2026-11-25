@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.control.layersFor
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.CoroutineScope
@@ -68,21 +69,28 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
      * Makes control change the fake system as ComponentControl would and read it back: components
      * in [refused] are left as they are and fail, and those in [unreadable] read back UNKNOWN.
      */
-    private fun controlThroughSystem(refused: Set<ComponentId> = emptySet(), unreadable: Set<ComponentId> = emptySet()) {
+    private fun controlThroughSystem(
+        refused: Set<ComponentId> = emptySet(),
+        unreadable: Set<ComponentId> = emptySet(),
+        identity: PrivilegedIdentity = PrivilegedIdentity.ROOT,
+    ) {
         componentControl.apply = { request ->
             flow {
-                val outcomes = request.components.map { declaration -> apply(request, declaration, declaration.id in refused, declaration.id in unreadable) }
+                val outcomes = request.components.map { declaration ->
+                    val refusal = if (declaration.id in refused) ControlFailure.NotPermitted("protected", identity) else null
+                    apply(request, declaration, refusal, declaration.id in unreadable)
+                }
                 outcomes.groupBy { it.key.id.packageName }.forEach { (packageName, done) -> emit(ControlEvent.PackageDone(packageName, done)) }
                 emit(ControlEvent.Finished(outcomes.count { it.result == ControlResult.ACHIEVED }, 0, outcomes.count { it.result != ControlResult.ACHIEVED }))
             }
         }
     }
 
-    private fun apply(request: ControlRequest, declaration: ComponentDeclaration, refused: Boolean, unreadable: Boolean): ComponentOutcome {
+    private fun apply(request: ControlRequest, declaration: ComponentDeclaration, refusal: ControlFailure.NotPermitted?, unreadable: Boolean): ComponentOutcome {
         val key = ComponentKey(declaration.id, request.user)
         val throughPm = ControlLayer.PACKAGE_MANAGER in declaration.layersFor(request.layers)
         val before = system.settings[request.user to declaration.id] ?: PmSetting.DEFAULT
-        if (throughPm && !refused) {
+        if (throughPm && refusal == null) {
             val after = when (request.goal) {
                 ControlGoal.BLOCK -> PmSetting.DISABLED
                 ControlGoal.UNBLOCK -> if (before == PmSetting.DISABLED) PmSetting.DEFAULT else before
@@ -93,7 +101,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         val ifw = if (ControlLayer.INTENT_FIREWALL in declaration.layersFor(request.layers) && request.goal == ControlGoal.BLOCK) IfwBlock.BLOCKED else IfwBlock.NOT_BLOCKED
         return when {
             unreadable -> ComponentOutcome(key, ControlState(PmSetting.UNKNOWN, ifw), ControlResult.FAILED, mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.StateNotConfirmed))
-            refused && throughPm -> ComponentOutcome(key, ControlState(before, ifw), ControlResult.FAILED, mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("protected")))
+            refusal != null && throughPm -> ComponentOutcome(key, ControlState(before, ifw), ControlResult.FAILED, mapOf(ControlLayer.PACKAGE_MANAGER to refusal))
             else -> ComponentOutcome(key, ControlState(system.settings[request.user to declaration.id] ?: PmSetting.DEFAULT, ifw), ControlResult.ACHIEVED, emptyMap())
         }
     }
@@ -356,7 +364,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
     }
 
     @Test
-    fun givenPartRefusedReset_whenTheUnblockComesBack_thenTheRefusedComponentKeepsItsRecord() = runTest {
+    fun givenPrivilegedRefusalOutsideReset_whenUnblocking_thenTheRecordIsKept() = runTest {
         val repository = installed(backgroundScope)
         repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN, SYNC)
         controlThroughSystem(refused = setOf(SYNC.id))
@@ -365,5 +373,35 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
 
         assertThat(recorded()).containsExactly(SYNC.key())
         assertThat(system.settings[OWNER to SYNC.id]).isEqualTo(PmSetting.DISABLED)
+    }
+
+    @Test
+    fun givenRootRefusal_whenResetting_thenTheRefusedRecordIsForgotten() = runTest {
+        assertResetRecords(backgroundScope, PrivilegedIdentity.ROOT, DATA)
+    }
+
+    @Test
+    fun givenSystemRefusal_whenResetting_thenTheRefusedRecordIsForgotten() = runTest {
+        assertResetRecords(backgroundScope, PrivilegedIdentity.SYSTEM, DATA)
+    }
+
+    @Test
+    fun givenShellRefusal_whenResetting_thenTheRefusedRecordIsKept() = runTest {
+        assertResetRecords(backgroundScope, PrivilegedIdentity.SHELL, DATA, SYNC)
+    }
+
+    private suspend fun assertResetRecords(scope: CoroutineScope, identity: PrivilegedIdentity, vararg remaining: ComponentDeclaration) {
+        val repository = installed(scope, listOf(OWNER, WORK))
+        repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN, SYNC, DATA)
+        repository.run(WORK, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), SYNC)
+        controlThroughSystem(refused = setOf(SYNC.id, DATA.id), unreadable = setOf(DATA.id), identity = identity)
+
+        repository.resetPmBlocks(OWNER, listOf(MAIN, SYNC, DATA)).toList()
+
+        assertThat(recorded()).containsExactlyElementsIn(remaining.map { it.key() })
+        assertThat(recorded(WORK)).containsExactly(SYNC.key(WORK))
+        assertThat(system.settings[OWNER to SYNC.id]).isEqualTo(PmSetting.DISABLED)
+        val next = repository.disabledByBlocker(OWNER) as ReadResult.Success
+        assertThat(next.value.components).containsExactlyElementsIn(remaining.map { it.key() })
     }
 }

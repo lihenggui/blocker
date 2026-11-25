@@ -28,9 +28,5 @@ class FakeAppPropertiesRepository @Inject constructor(
     override val appProperties: Flow<AppPropertiesData>
         get() = appPropertiesDataSource.appPropertiesData
 
-    override suspend fun markComponentDatabaseInitialized() = appPropertiesDataSource.markComponentDatabaseInitialized()
-
-    override suspend fun markGeneralRuleDatabaseInitialized() = appPropertiesDataSource.markGeneralRuleDatabaseInitialized()
-
     override suspend fun updateLastOpenedRuleHash(hash: String) = appPropertiesDataSource.updateLastOpenedRuleHash(hash)
 }

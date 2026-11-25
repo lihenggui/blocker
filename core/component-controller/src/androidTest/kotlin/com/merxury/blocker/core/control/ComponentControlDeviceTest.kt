@@ -52,8 +52,8 @@ import com.merxury.blocker.core.privileged.InMemoryRootGrantMemory
 import com.merxury.blocker.core.privileged.PrivilegedPlatformPackages
 import com.merxury.blocker.core.privileged.calls.SetComponentEnabledSettings
 import com.merxury.blocker.core.privileged.connectedShizukuTransport
+import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootTransport
-import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.blocker.core.system.LocalPlatformPackages
 import com.merxury.blocker.core.system.PlatformSystemPackageReader
 import com.merxury.core.ifw.IfwStore

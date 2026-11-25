@@ -93,6 +93,6 @@ class MatRuleImporter @Inject constructor(
         if (known.isEmpty()) return
         val request = ControlRequest(app.key.userId, known.map { declared.getValue(it).declaration }, ControlGoal.BLOCK, layers)
         val states = statuses.associate { it.declaration.id to it.state }.toMutableMap()
-        if (components.controlAndCount(request, states, summary) > 0) summary.apps++
+        if (components.control(request).countControlOutcomes(request.goal, states, summary) > 0) summary.apps++
     }
 }

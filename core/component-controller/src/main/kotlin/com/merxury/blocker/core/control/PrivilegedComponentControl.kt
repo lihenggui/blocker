@@ -181,18 +181,19 @@ internal class PrivilegedComponentControl @Inject constructor(
         fun refuseAll(failure: ControlFailure) = ids.forEach { failures.addIfAbsent(it, ControlLayer.PACKAGE_MANAGER, failure) }
         if (ids.size > 1 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val batch = sendPm(app, setting, ids, onWrite)
+            val failure = (batch as? CallResult.Failure)?.reason
             when {
                 batch is CallResult.Success -> return
 
-                batch is CallResult.Failure && batch.reason == CallFailure.ChannelUnavailable -> {
+                failure == CallFailure.ChannelUnavailable -> {
                     Timber.w("Channel lost while setting ${ids.size} components of $app to $setting")
                     refuseAll(ControlFailure.ChannelUnavailable)
                     return
                 }
 
-                batch is CallResult.Failure && batch.reason is CallFailure.NotPermitted && identity == PrivilegedIdentity.SHELL -> {
-                    Timber.w("The shell may not change components of $app: ${batch.reason}")
-                    refuseAll(batch.reason.toControlFailure())
+                failure is CallFailure.NotPermitted && (failure.identity ?: identity) == PrivilegedIdentity.SHELL -> {
+                    Timber.w("The shell may not change components of $app: $failure")
+                    refuseAll(failure.toControlFailure())
                     return
                 }
 
@@ -202,9 +203,10 @@ internal class PrivilegedComponentControl @Inject constructor(
         for (id in ids) {
             val result = sendPm(app, setting, listOf(id), onWrite)
             if (result is CallResult.Failure) {
-                Timber.w("Cannot set $id of user ${app.userId.value} to $setting: ${result.reason}")
-                val failure = result.reason.toControlFailure()
-                if (result.reason is CallFailure.NotPermitted && identity == PrivilegedIdentity.SHELL) {
+                val reason = result.reason
+                Timber.w("Cannot set $id of user ${app.userId.value} to $setting: $reason")
+                val failure = reason.toControlFailure()
+                if (reason is CallFailure.NotPermitted && (reason.identity ?: identity) == PrivilegedIdentity.SHELL) {
                     refuseAll(failure)
                     return
                 }
@@ -243,7 +245,7 @@ internal class PrivilegedComponentControl @Inject constructor(
         val failure = when {
             identity == null -> ControlFailure.ChannelUnavailable
 
-            !identity.canWriteSystemFiles -> ControlFailure.NotPermitted("$identity may not write the Intent Firewall rules")
+            !identity.canWriteSystemFiles -> ControlFailure.NotPermitted("$identity may not write the Intent Firewall rules", identity)
 
             else -> try {
                 when (val result = ifwStore.setBlocked(packageName, changes, onWrite)) {
@@ -318,7 +320,7 @@ private fun PmSetting.toComponentState(): Int = when (this) {
 
 private fun CallFailure.toControlFailure(): ControlFailure = when (this) {
     CallFailure.ChannelUnavailable -> ControlFailure.ChannelUnavailable
-    is CallFailure.NotPermitted -> ControlFailure.NotPermitted(message)
+    is CallFailure.NotPermitted -> ControlFailure.NotPermitted(message, identity)
     is CallFailure.TargetNotFound -> ControlFailure.TargetNotFound(message)
     is CallFailure.SystemError -> ControlFailure.SystemError(message)
 }

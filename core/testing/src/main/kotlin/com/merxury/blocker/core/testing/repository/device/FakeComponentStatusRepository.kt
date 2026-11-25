@@ -31,6 +31,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -154,6 +156,15 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         record(request, outcomes)
         outcomes.groupBy { it.key.id.packageName }.forEach { (packageName, done) -> emit(ControlEvent.PackageDone(packageName, done)) }
         emit(ControlEvent.Finished(achieved = outcomes.size, partial = 0, failed = 0))
+    }
+
+    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent> = control(ControlRequest(user, components, ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER))).onEach { event ->
+        if (event is ControlEvent.PackageDone) {
+            event.outcomes.forEach { outcome ->
+                val failure = outcome.failures[ControlLayer.PACKAGE_MANAGER]
+                if (failure is ControlFailure.NotPermitted && failure.isSystemRefusal) recorded -= outcome.key
+            }
+        }
     }
 
     override suspend fun disabledByBlocker(user: UserId): ReadResult<DisabledComponents> {

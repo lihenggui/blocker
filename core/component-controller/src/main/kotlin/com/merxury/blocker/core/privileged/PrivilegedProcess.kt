@@ -26,7 +26,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.os.Process
 import be.mygod.librootkotlinx.systemContext
-import com.merxury.blocker.core.controllers.root.api.SystemServiceHelper
 
 /**
  * The system services as seen from a process that itself runs as root, system or the shell: the root

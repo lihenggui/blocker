@@ -69,7 +69,7 @@ class ComponentControlFailureTest {
         val refused = events.outcomeOf(SYNC)
         assertThat(refused.result).isEqualTo(ControlResult.FAILED)
         assertThat(refused.state.pm).isEqualTo(PmSetting.DEFAULT)
-        assertThat(refused.failures).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlFailure.NotPermitted("Protected component"))
+        assertThat(refused.failures).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlFailure.NotPermitted("Protected component", PrivilegedIdentity.ROOT))
     }
 
     @Test

@@ -24,17 +24,13 @@ import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.DataModule
-import com.merxury.blocker.core.data.respository.app.AppRepository
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.test.repository.FakeAppPropertiesRepository
-import com.merxury.blocker.core.data.test.repository.FakeAppRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentDetailRepository
-import com.merxury.blocker.core.data.test.repository.FakeComponentRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.test.repository.FakeLicensesRepository
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
@@ -82,11 +78,6 @@ internal interface TestDataModule {
     ): ComponentDetailRepository
 
     @Binds
-    fun bindsComponentRepository(
-        componentRepository: FakeComponentRepository,
-    ): ComponentRepository
-
-    @Binds
     fun bindsNetworkMonitor(
         networkMonitor: AlwaysOnlineNetworkMonitor,
     ): NetworkMonitor
@@ -95,11 +86,6 @@ internal interface TestDataModule {
     fun bindsPermissionMonitor(
         permissionMonitor: AlwaysGrantedPermissionMonitor,
     ): PermissionMonitor
-
-    @Binds
-    fun bindsAppRepository(
-        appRepository: FakeAppRepository,
-    ): AppRepository
 
     @Binds
     fun bindsTimeZoneMonitor(impl: DefaultZoneIdTimeZoneMonitor): TimeZoneMonitor

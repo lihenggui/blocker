@@ -154,7 +154,7 @@ class BlockerRuleImporter @Inject constructor(
         }
         val requests = restoreRequests(rule, app.key, statuses, summary)
         val states = statuses.associate { it.declaration.id to it.state }.toMutableMap()
-        val applied = requests.sumOf { components.controlAndCount(it, states, summary) }
+        val applied = requests.sumOf { components.control(it).countControlOutcomes(it.goal, states, summary) }
         if (applied > 0) summary.apps++
     }
 }

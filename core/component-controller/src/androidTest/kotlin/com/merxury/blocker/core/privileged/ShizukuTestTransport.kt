@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Process
 import com.merxury.blocker.core.controllers.shizuku.DefaultShizukuApi
+import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
 import com.merxury.blocker.core.controllers.shizuku.ShizukuApi
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -55,7 +56,7 @@ internal fun connectedShizukuTransport(context: Context, expected: PrivilegedIde
     val initializer = ShizukuInitializer(api)
     awaitShizukuBinder(initializer)
     // The binder arrives with the server's answer for this uid, so this reads no stale state.
-    if (!initializer.hasPermission()) {
+    if (runBlocking { initializer.registerShizukuIfGranted() } !is RegisterShizukuResult.Granted) {
         val granted = context.checkSelfPermission(SHIZUKU_PERMISSION) == PackageManager.PERMISSION_GRANTED
         fail(
             "The Shizuku server does not allow ${context.packageName} (uid ${Process.myUid()}, $SHIZUKU_PERMISSION granted: $granted). " +

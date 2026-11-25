@@ -73,9 +73,8 @@ import kotlinx.coroutines.flow.SharedFlow
  * rules or a user's file under another name, is not reflected in the answer.
  *
  * ## Cache
- * [blocks] answers from rules parsed earlier, so it may miss a change another writer made, such as
- * the older `IIntentFirewall`, until that package is written through this store or
- * [clearCache] runs. Every other read, and the read of every read-modify-write, goes to the file.
+ * [blocks] answers from rules parsed earlier, so it may miss a change another writer made
+ * until that package is written through this store or [clearCache] runs. Every other read, and the read of every read-modify-write, goes to the file.
  */
 interface IfwStore {
     /**

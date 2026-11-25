@@ -36,7 +36,6 @@ graph TB
   :core:common -.-> :core:model
   :core:component-controller -.-> :core:common
   :core:component-controller -.-> :core:datastore
-  :core:component-controller -.-> :core:datastore-proto
   :core:component-controller -.-> :core:ifw-api
   :core:component-controller -.-> :core:model
   :core:component-controller -.-> :core:system
@@ -58,7 +57,6 @@ graph TB
   :core:domain -.-> :core:ifw-api
   :core:domain --> :core:model
   :core:domain -.-> :core:rule
-  :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
   :core:network --> :core:model

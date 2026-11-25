@@ -47,7 +47,6 @@ class ImportMatRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     private val importer: MatRuleImporter,
-    private val legacyCache: LegacyComponentCache,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -63,7 +62,6 @@ class ImportMatRulesWorker @AssistedInject constructor(
             includeSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false),
         ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Imported MAT rules: $result")
-        legacyCache.refreshAfter(result, target)
         return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_MAT_RULES) }
     }
 

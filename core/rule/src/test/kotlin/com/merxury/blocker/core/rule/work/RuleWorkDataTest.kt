@@ -27,6 +27,7 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.testing.WorkManagerTestInitHelper
 import androidx.work.workDataOf
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
@@ -46,10 +47,9 @@ import com.merxury.blocker.core.rule.entity.RuleWorkEvent
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.resultMessage
-import com.merxury.blocker.core.testing.controller.FakeIntentFirewall
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
-import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -177,8 +177,7 @@ class RuleWorkDataTest {
                     override fun createWorker(appContext: Context, workerClassName: String, workerParameters: WorkerParameters) = ResetPmWorker(
                         appContext,
                         workerParameters,
-                        PackageManagerReset(FakeComponentStatusRepository(), FakePrivilegedChannel()),
-                        LegacyComponentCache(TestComponentRepository(), FakeIntentFirewall()),
+                        PackageManagerReset(FakeComponentStatusRepository(), FakePrivilegedChannel(), FakePmBlockRecordSeeder()),
                     )
                 },
             )
@@ -217,25 +216,51 @@ class RuleWorkDataTest {
         components.sendComponents(ownUser(), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
         components.sendComponents(UserId(10), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
         components.recorded += listOf(ComponentKey(boot.id, ownUser()), ComponentKey(boot.id, UserId(10)))
+        val seeder = FakePmBlockRecordSeeder()
+        val worker = resetPmWorker(components, seeder)
+
+        val result = worker.doWork()
+
+        assertThat(seeder.calls).isEqualTo(1)
+        assertThat(components.requests.map { it.user }).containsExactly(ownUser())
+        assertThat(result.output().getInt(ResetPmWorker.PARAM_RESTORED_COUNT, -1)).isEqualTo(1)
+    }
+
+    @Test
+    fun givenLegacySeedFails_whenResetPmWorkRuns_thenItExplainsTheUnreadableListWithoutResetting() = runTest {
+        val components = FakeComponentStatusRepository()
+        val boot = ComponentDeclaration(ComponentId("com.example", "com.example.Boot"), ComponentType.RECEIVER, exported = true, enabledInManifest = true)
+        components.sendComponents(ownUser(), listOf(ComponentStatus(boot, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))))
+        val blocked = ComponentKey(boot.id, ownUser())
+        components.recorded += blocked
+        val worker = resetPmWorker(components, FakePmBlockRecordSeeder().apply { seeded = false })
+
+        val result = worker.doWork()
+
+        assertThat(components.requests).isEmpty()
+        assertThat(components.recorded).containsExactly(blocked)
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Failure::class.java)
+        val code = result.output().getInt(RuleWorkResult.PARAM_WORK_RESULT, -1)
+        assertThat(code).isEqualTo(RuleWorkResult.LEGACY_PM_RECORDS_UNREADABLE)
+        val resources = ApplicationProvider.getApplicationContext<Context>().resources
+        assertThat(RuleWorkEvent(RuleWorkType.RESET_PM, code).resultMessage(resources))
+            .isEqualTo("Blocker could not read the list of components it disabled before the update. Your blocked components were not changed.")
+    }
+
+    private fun resetPmWorker(components: FakeComponentStatusRepository, seeder: PmBlockRecordSeeder): ResetPmWorker {
         val context = ApplicationProvider.getApplicationContext<Context>()
         // The notification's cancel action asks WorkManager for an intent.
         WorkManagerTestInitHelper.initializeTestWorkManager(context)
-        val worker = TestListenableWorkerBuilder<ResetPmWorker>(context, inputData = ResetPmWorker.resetPmWork().workSpec.input)
+        return TestListenableWorkerBuilder<ResetPmWorker>(context, inputData = ResetPmWorker.resetPmWork().workSpec.input)
             .setWorkerFactory(
                 object : WorkerFactory() {
                     override fun createWorker(appContext: Context, workerClassName: String, workerParameters: WorkerParameters) = ResetPmWorker(
                         appContext,
                         workerParameters,
-                        PackageManagerReset(components, FakePrivilegedChannel()),
-                        LegacyComponentCache(TestComponentRepository(), FakeIntentFirewall()),
+                        PackageManagerReset(components, FakePrivilegedChannel(), seeder),
                     )
                 },
             )
             .build()
-
-        val result = worker.doWork()
-
-        assertThat(components.requests.map { it.user }).containsExactly(ownUser())
-        assertThat(result.output().getInt(ResetPmWorker.PARAM_RESTORED_COUNT, -1)).isEqualTo(1)
     }
 }

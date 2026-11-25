@@ -28,8 +28,8 @@ import kotlinx.coroutines.flow.map
 /**
  * In-memory [ComponentDetailRepository]. Tests set the details with [sendComponentDetail];
  * [saveComponentDetail] stores one and reports it on [updatedComponent], as a save in the
- * description dialog does. [hasUserGeneratedDetail] reads once, as the real repository does, and
- * counts the details whose name starts with the package name.
+ * description dialog does. [hasUserGeneratedDetail] checks the current snapshot for a detail in
+ * the package. The production repository observes changes to those details.
  */
 class TestComponentDetailRepository : ComponentDetailRepository {
     private val updates = MutableSharedFlow<ComponentDetail>(extraBufferCapacity = 16)

@@ -30,12 +30,14 @@ import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
+import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -46,7 +48,7 @@ class MatAndResetTest {
     private val userData = TestUserDataRepository()
     private val channel = FakePrivilegedChannel()
     private val mat = MatRuleImporter(installedApps, components, channel, userData)
-    private val reset = PackageManagerReset(components, channel)
+    private val reset = PackageManagerReset(components, channel, FakePmBlockRecordSeeder())
 
     @Test
     fun givenMatLines_whenImporting_thenDeclaredComponentsAreBlockedAndTheRestCounted() = runTest {
@@ -97,7 +99,36 @@ class MatAndResetTest {
     }
 
     @Test
-    fun givenTwoPackagesAndOneRefusedComponent_whenResettingPm_thenTheOthersAreRestored() = runTest {
+    fun givenPmBlocksWrittenByMat_whenResetting_thenTheRecordedComponentsReturnToDefault() = runTest {
+        userData.setControllerType(ControllerType.PM)
+        installedApps.sendApps(listOf(installedApp()))
+        components.sendComponents(OWNER, listOf(status(BOOT)))
+        val key = ComponentKey(BOOT.id, OWNER)
+
+        assertThat((mat.import(listOf(BOOT.id.flatten()), OWNER) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+        assertThat(components.component(key).first()?.state?.pm).isEqualTo(PmSetting.DISABLED)
+        assertThat((reset.reset(OWNER) as RuleRunResult.Completed).summary.applied).isEqualTo(1)
+        assertThat(components.component(key).first()?.state?.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(components.recorded).isEmpty()
+    }
+
+    @Test
+    fun givenShellRefusal_whenResettingPm_thenItCountsAsMissingPrivilegeAndTheRecordStays() = runTest {
+        assertRefusedReset(PrivilegedIdentity.SHELL, FailureReason.NO_PRIVILEGE, keepRefusedRecord = true)
+    }
+
+    @Test
+    fun givenRootRefusal_whenResettingPm_thenItCountsAsSystemErrorAndTheRecordIsForgotten() = runTest {
+        assertRefusedReset(PrivilegedIdentity.ROOT, FailureReason.SYSTEM_ERROR, keepRefusedRecord = false)
+    }
+
+    @Test
+    fun givenSystemRefusal_whenResettingPm_thenItCountsAsSystemErrorAndTheRecordIsForgotten() = runTest {
+        assertRefusedReset(PrivilegedIdentity.SYSTEM, FailureReason.SYSTEM_ERROR, keepRefusedRecord = false)
+    }
+
+    private suspend fun assertRefusedReset(identity: PrivilegedIdentity, reason: FailureReason, keepRefusedRecord: Boolean) {
+        channel.connectResult = ChannelState.Ready(identity)
         val other = declaration("Tracker", SYNC.type, "com.other")
         val locked = declaration("Locked", SYNC.type, "com.other")
         components.sendComponents(
@@ -110,7 +141,7 @@ class MatAndResetTest {
             val outcomes = request.components.map { declaration ->
                 val key = ComponentKey(declaration.id, request.user)
                 if (declaration == locked) {
-                    ComponentOutcome(key, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED), ControlResult.FAILED, mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("protected")))
+                    ComponentOutcome(key, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED), ControlResult.FAILED, mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.NotPermitted("protected", identity)))
                 } else {
                     ComponentOutcome(key, ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED), ControlResult.ACHIEVED, emptyMap())
                 }
@@ -125,9 +156,10 @@ class MatAndResetTest {
             ControlRequest(OWNER, listOf(locked, other), ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER)),
         ).inOrder()
         assertThat(result.summary.applied).isEqualTo(2)
-        assertThat(result.summary.failed).containsExactly(FailureReason.NO_PRIVILEGE, 1)
+        assertThat(result.summary.failed).containsExactly(reason, 1)
         assertThat(result.summary.changedPackages).containsExactly(APP, "com.other")
-        assertThat(components.recorded).containsExactly(ComponentKey(locked.id, OWNER), ComponentKey(BOOT.id, WORK))
+        val remaining = listOfNotNull(ComponentKey(BOOT.id, WORK), ComponentKey(locked.id, OWNER).takeIf { keepRefusedRecord })
+        assertThat(components.recorded).containsExactlyElementsIn(remaining)
     }
 
     @Test

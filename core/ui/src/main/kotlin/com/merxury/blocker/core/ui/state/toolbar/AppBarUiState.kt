@@ -16,12 +16,6 @@
 
 package com.merxury.blocker.core.ui.state.toolbar
 
-import com.merxury.blocker.core.model.data.ComponentInfo
-
 data class AppBarUiState(
-    val keyword: String = "",
-    val isSearchMode: Boolean = false,
-    val isSelectedMode: Boolean = false,
     val actions: List<AppBarAction> = listOf(),
-    val selectedComponentList: List<ComponentInfo> = listOf(),
 )

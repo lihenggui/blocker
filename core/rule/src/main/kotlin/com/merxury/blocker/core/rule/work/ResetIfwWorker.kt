@@ -25,7 +25,6 @@ import androidx.work.workDataOf
 import com.merxury.blocker.core.data.wake.FirewallResetRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
@@ -62,7 +61,7 @@ class ResetIfwWorker @AssistedInject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to clear IFW rules")
             val reason = when (e) {
-                is RootUnavailableException, is SecurityException -> MISSING_ROOT_PERMISSION
+                is SecurityException -> MISSING_ROOT_PERMISSION
                 else -> UNEXPECTED_EXCEPTION
             }
             return@withContext Result.failure(workDataOf(PARAM_WORK_RESULT to reason))

@@ -87,7 +87,11 @@ internal class ActivePrivilegedChannel(
         scope.launch { selected.filterNotNull().collectLatest { it.connectIfGranted() } }
     }
 
-    override suspend fun connect(): ChannelState = current()?.connect() ?: ChannelState.Unavailable(UnavailableReason.FAILED)
+    override suspend fun connect(): ChannelState {
+        // A foreground observer may receive the new preference before the selected flow does.
+        val transport = readTransport() ?: return ChannelState.Unavailable(UnavailableReason.FAILED)
+        return (transport.state.value as? ChannelState.Ready) ?: transport.connect()
+    }
 
     override suspend fun connectIfGranted(): ChannelState = current()?.connectIfGranted() ?: ChannelState.Unavailable(UnavailableReason.FAILED)
 
@@ -99,7 +103,9 @@ internal class ActivePrivilegedChannel(
     override suspend fun checkedState(): ChannelState = current()?.checkedState() ?: ChannelState.Unavailable(UnavailableReason.FAILED)
 
     /** The chosen transport, waiting for the first read of the choice. Null when it cannot be read. */
-    private suspend fun current(): PrivilegedTransport? = selected.value ?: try {
+    private suspend fun current(): PrivilegedTransport? = selected.value ?: readTransport()
+
+    private suspend fun readTransport(): PrivilegedTransport? = try {
         transports.first()
     } catch (e: CancellationException) {
         throw e

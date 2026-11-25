@@ -405,8 +405,6 @@ private class FakeShizukuInitializer : IShizukuInitializer {
         return result
     }
     override suspend fun awaitBinder() = Unit
-    override fun hasPermission(): Boolean = result is RegisterShizukuResult.Granted
-    override fun getUid(): Int = (result as? RegisterShizukuResult.Granted)?.uid ?: -1
 }
 
 /**

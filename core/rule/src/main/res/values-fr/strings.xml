@@ -14,6 +14,7 @@
     <string name="core_rule_cancel">Annuler</string>
     <string name="core_rule_copying_rules_to_internal_storage">Copie des règles vers le stockage interne…</string>
     <string name="core_rule_error_msg_unexpected_exception">Exception inattendue, veuillez la signaler au développeur.</string>
+    <string name="core_rule_error_msg_legacy_pm_records_unreadable">Blocker n’a pas pu lire la liste des composants qu’il avait désactivés avant la mise à jour. Vos composants bloqués n’ont pas été modifiés.</string>
     <string name="core_rule_error_msg_folder_not_defined">Le dossier de sauvegarde n\'est pas défini, veuillez accéder aux paramètres pour en attribuer un.</string>
     <string name="core_rule_import_mat_rule_please_wait">Importation des règles MAT, veuillez patienter…</string>
     <plurals name="core_rule_result_changed">

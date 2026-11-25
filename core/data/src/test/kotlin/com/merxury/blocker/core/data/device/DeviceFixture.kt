@@ -54,6 +54,7 @@ import com.merxury.core.ifw.di.IfwModule
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import org.junit.After
 import java.util.Collections
@@ -114,12 +115,12 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
         .build()
     internal val recordDao = recordsDb.pmBlockRecordDao()
     internal val pmBlocks = PmBlockRecords(recordDao)
-    internal val legacyComponents = FakeAppComponentDao()
+    internal val applicationContext: Context = ApplicationProvider.getApplicationContext()
     internal val appProperties = InMemoryDataStore(AppProperties.getDefaultInstance())
     internal val wakeDb: WakeHistoryDatabase = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), WakeHistoryDatabase::class.java)
         .allowMainThreadQueries()
         .build()
-    internal val seeder = LegacyListPmBlockRecordSeeder(legacyComponents, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
+    internal val seeder = InstalledAppDbPmBlockRecordSeeder(applicationContext, Dispatchers.IO, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
     internal val system = FakeSystem()
     internal val files = FakeIfwFileSystem()
     internal val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())
@@ -132,12 +133,13 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
     internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks, controlActivity)
 
     /** Starts collecting the rule store's changes in [scope], as the app scope would. */
-    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel, apps), componentControl, pmBlocks, seeder, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity)
+    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel, apps), componentControl, pmBlocks, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity)
 
     @After
     fun closeDatabase() {
         db.close()
         recordsDb.close()
+        wakeDb.close()
     }
 }
 

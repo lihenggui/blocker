@@ -16,156 +16,60 @@
 
 package com.merxury.blocker.core.data.util
 
-import com.merxury.blocker.core.controllers.IAppController
-import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.di.RootApiAppControl
-import com.merxury.blocker.core.controllers.di.RootApiControl
-import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
-import com.merxury.blocker.core.controllers.shizuku.RegisterShizukuResult
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
-import com.merxury.blocker.core.data.util.PermissionStatus.ROOT_USER
-import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
-import com.merxury.blocker.core.data.util.PermissionStatus.SYSTEM_USER
 import com.merxury.blocker.core.di.ApplicationScope
-import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.privileged.PrivilegedChannel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val SHELL_UID = 2000
-private const val SYSTEM_UID = 1000
-private const val ROOT_UID = 0
-
-/**
- * Asks for the privilege of the chosen controller type when the app's screens first observe
- * [permissionStatus], which happens in the foreground only: it initialises the old controllers,
- * which may show the su or Shizuku prompt, and once they have the privilege connects the
- * [PrivilegedChannel] too. The root manager or Shizuku then has its answer stored, so the channel
- * gets it without a second prompt and remembers it, and background work can later acquire the
- * channel without one.
+/** Requests access when a screen first observes [permissionStatus]. Background work uses the
+ * channel's separate connection check, which only uses a previously granted permission.
  */
 @Singleton
 class AppPermissionMonitor @Inject constructor(
     userDataRepository: UserDataRepository,
     private val shizukuInitializer: IShizukuInitializer,
-    @RootApiControl private val rootApiController: IController,
-    @RootApiAppControl private val rootApiAppController: IAppController,
-    @RootApiServiceControl private val rootApiServiceController: IServiceController,
     private val channel: PrivilegedChannel,
-    @ApplicationScope private val appScope: CoroutineScope,
+    @ApplicationScope appScope: CoroutineScope,
 ) : PermissionMonitor {
-    private val controllerStatus = mutableMapOf<ControllerType, PermissionStatus>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val permissionStatus: Flow<PermissionStatus> = userDataRepository.userData
         .map { it.controllerType }
         .distinctUntilChanged()
-        // A new controller type cancels an unfinished initialization, such as a Shizuku
-        // permission dialog, so its status is never held back by the previous type.
         .transformLatest { type ->
-            // In IFW mode, we will still use root apis
-            // Make sure that we initialize once
-            val controllerType = if (type == SHIZUKU) SHIZUKU else PM
-            // If Shizuku is not running, report that, then register again once the user starts
-            // it. NotRunning only comes after the binder wait has timed out, so a Shizuku that
-            // keeps restarting cannot spin this loop.
-            while (initController(type) == RegisterShizukuResult.NotRunning) {
-                emit(NO_PERMISSION)
+            var state = channel.connect()
+            while (type == SHIZUKU && state == ChannelState.Unavailable(UnavailableReason.NOT_RUNNING)) {
+                emit(PermissionStatus.NO_PERMISSION)
                 shizukuInitializer.awaitBinder()
+                state = channel.connect()
             }
-            val status = controllerStatus[controllerType] ?: NO_PERMISSION
-            emit(status)
-            // Only after a grant: asking again right after a refusal would show a second prompt.
-            if (status != NO_PERMISSION) connectChannel()
+            emitAll(channel.state.map { it.toPermissionStatus() })
         }
-        .shareIn(
-            scope = appScope,
-            started = SharingStarted.Lazily,
-            replay = 1,
-        )
+        .distinctUntilChanged()
+        .shareIn(appScope, SharingStarted.Lazily, replay = 1)
 
-    /** Returns the Shizuku registration result, or null if no registration was needed. */
-    private suspend fun initController(type: ControllerType): RegisterShizukuResult? {
-        Timber.d("Initialize controller: $type")
-        if (type == SHIZUKU) {
-            when (controllerStatus[SHIZUKU]) {
-                ROOT_USER,
-                SYSTEM_USER,
-                SHELL_USER,
-                -> {
-                    Timber.i("No need to re-initialize shizuku controller")
-                    return null
-                }
+    private fun ChannelState.toPermissionStatus(): PermissionStatus = when (this) {
+        is ChannelState.Unavailable -> PermissionStatus.NO_PERMISSION
 
-                NO_PERMISSION,
-                null,
-                -> Unit
-            }
-            if (!shizukuInitializer.hasPermission()) {
-                val result = shizukuInitializer.registerShizuku()
-                Timber.i("Shizuku register result: $result")
-                if (result is RegisterShizukuResult.Granted) {
-                    updatePermissionStatusFromUid(result.uid)
-                } else {
-                    controllerStatus[SHIZUKU] = NO_PERMISSION
-                }
-                return result
-            } else {
-                val uid = shizukuInitializer.getUid()
-                Timber.d("Shizuku permission granted: true, uid: $uid")
-                updatePermissionStatusFromUid(uid)
-            }
-        } else {
-            val apiPermissionStatus = controllerStatus[PM]
-            if (apiPermissionStatus == ROOT_USER) {
-                Timber.w("No need to re-initialize root api controller")
-                return null
-            }
-            try {
-                rootApiController.init()
-                rootApiAppController.init()
-                rootApiServiceController.init()
-                controllerStatus[PM] = ROOT_USER
-                Timber.d("Root api controller initialized")
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "Cannot initialize root api controller")
-                controllerStatus[PM] = NO_PERMISSION
-            }
-        }
-        return null
-    }
-
-    /** Connects the channel unless it is ready already, as the quiet connect at start may have made it. */
-    private suspend fun connectChannel() {
-        if (channel.state.value is ChannelState.Ready) return
-        val state = channel.connect()
-        Timber.i("Privileged channel after the controller was initialized: $state")
-    }
-
-    private fun updatePermissionStatusFromUid(uid: Int) {
-        when (uid) {
-            ROOT_UID -> controllerStatus[SHIZUKU] = ROOT_USER
-            SYSTEM_UID -> controllerStatus[SHIZUKU] = SYSTEM_USER
-            SHELL_UID -> controllerStatus[SHIZUKU] = SHELL_USER
-            else -> controllerStatus[SHIZUKU] = NO_PERMISSION
+        is ChannelState.Ready -> when (identity) {
+            PrivilegedIdentity.ROOT -> PermissionStatus.ROOT_USER
+            PrivilegedIdentity.SYSTEM -> PermissionStatus.SYSTEM_USER
+            PrivilegedIdentity.SHELL -> PermissionStatus.SHELL_USER
         }
     }
 }

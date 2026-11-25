@@ -24,6 +24,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class)
@@ -34,12 +35,15 @@ class LegacyDebloaterDatabaseTest {
         val legacy = "share_target"
         val current = "blocker"
         context.openOrCreateDatabase(legacy, Context.MODE_PRIVATE, null).close()
+        val oldFile = context.getDatabasePath(legacy)
+        val journal = File(oldFile.path + "-journal").apply { createNewFile() }
         context.openOrCreateDatabase(current, Context.MODE_PRIVATE, null).close()
 
         removeLegacyDebloaterDatabase(context)
         removeLegacyDebloaterDatabase(context)
 
-        assertThat(context.getDatabasePath(legacy).exists()).isFalse()
+        assertThat(oldFile.exists()).isFalse()
+        assertThat(journal.exists()).isFalse()
         assertThat(context.getDatabasePath(current).exists()).isTrue()
     }
 }

@@ -88,6 +88,8 @@ fun RuleWorkEvent.resultMessage(resources: Resources): String? = when (result) {
 
     RuleWorkResult.MISSING_ROOT_PERMISSION -> resources.getString(R.string.core_rule_error_msg_missing_root_permission)
 
+    RuleWorkResult.LEGACY_PM_RECORDS_UNREADABLE -> resources.getString(R.string.core_rule_error_msg_legacy_pm_records_unreadable)
+
     RuleWorkResult.CANCELLED -> resources.getString(R.string.core_rule_task_cancelled)
 
     else -> resources.getString(R.string.core_rule_error_msg_unexpected_exception)

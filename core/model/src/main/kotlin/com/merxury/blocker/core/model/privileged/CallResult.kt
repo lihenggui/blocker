@@ -31,8 +31,8 @@ sealed interface CallFailure {
     /** No root, Shizuku not running or not granted, or the privileged process died. */
     data object ChannelUnavailable : CallFailure
 
-    /** The system refused: the identity the channel runs as may not do this. */
-    data class NotPermitted(val message: String?) : CallFailure
+    /** The system refused. [identity] is the identity of the process that received the refusal, when known. */
+    data class NotPermitted(val message: String?, val identity: PrivilegedIdentity? = null) : CallFailure
 
     /** The package, component or user is not known to the system. */
     data class TargetNotFound(val message: String?) : CallFailure

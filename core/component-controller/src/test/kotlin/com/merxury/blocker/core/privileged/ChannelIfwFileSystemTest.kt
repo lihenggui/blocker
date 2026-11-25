@@ -24,6 +24,7 @@ import com.merxury.blocker.core.privileged.calls.ListIfwRuleFiles
 import com.merxury.blocker.core.privileged.calls.ReadIfwRuleFile
 import com.merxury.blocker.core.privileged.calls.ReplaceIfwRuleFile
 import com.merxury.core.ifw.IfwAccessException
+import com.merxury.core.ifw.withIfwEditorAccess
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -51,6 +52,19 @@ class ChannelIfwFileSystemTest {
             ReadIfwRuleFile(PKG) to true,
             ReplaceIfwRuleFile(PKG, "<rules />") to true,
         ).inOrder()
+    }
+
+    @Test
+    fun givenRuleEditorAccess_whenWriting_thenUsesRootAndLeavesOrdinaryReadsOnTheSelectedChannel() = runTest {
+        val root = ScriptedExecutor().apply { answer = { CallResult.Success(Unit) } }
+        executor.answer = { CallResult.Success(null) }
+        val fileSystem = ChannelIfwFileSystem(executor, root)
+
+        withIfwEditorAccess { fileSystem.writeRules(PKG, "<rules />") }
+        assertThat(fileSystem.readRulesIfConnected(PKG)).isNull()
+
+        assertThat(root.runs).containsExactly(ReplaceIfwRuleFile(PKG, "<rules />") to true)
+        assertThat(executor.runs).containsExactly(ReadIfwRuleFile(PKG) to false)
     }
 
     @Test

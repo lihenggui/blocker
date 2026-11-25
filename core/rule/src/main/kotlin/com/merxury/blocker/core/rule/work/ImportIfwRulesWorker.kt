@@ -37,7 +37,6 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     private val importer: IfwRuleImporter,
-    private val legacyCache: LegacyComponentCache,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -56,7 +55,6 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
         Timber.i("Restored IFW rules: $result")
         // The rules apply to every user, so the list of the user Blocker runs in changes too.
-        legacyCache.refreshAfter(result, user = null)
         return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_IFW_RULES) }
     }
 

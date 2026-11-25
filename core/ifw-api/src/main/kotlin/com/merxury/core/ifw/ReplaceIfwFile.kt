@@ -4,10 +4,6 @@
 package com.merxury.core.ifw
 
 import android.system.Os
-import be.mygod.librootkotlinx.RootCommandNoResult
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.parcelize.Parcelize
 import java.io.File
 
 // rw-r--r--: system_server reads rule files as the system user.
@@ -31,17 +27,5 @@ fun replaceIfwFile(target: File, content: String) {
         Os.rename(temporary.path, target.path)
     } finally {
         temporary.delete()
-    }
-}
-
-/** Runs [replaceIfwFile] in the root process. */
-@Parcelize
-internal data class ReplaceIfwFileCommand(
-    private val path: String,
-    private val content: String,
-) : RootCommandNoResult {
-    override suspend fun execute() = withContext(Dispatchers.IO) {
-        replaceIfwFile(File(path), content)
-        null
     }
 }

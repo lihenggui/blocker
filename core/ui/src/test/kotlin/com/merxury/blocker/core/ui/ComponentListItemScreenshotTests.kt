@@ -32,7 +32,7 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.component.ComponentListItem
-import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.previewComponentRows
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -50,7 +50,7 @@ class ComponentListItemScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-    private val components = ComponentListPreviewParameterProvider().values.first()
+    private val components = previewComponentRows()
 
     @Test
     fun componentListItem_multipleThemes() {
@@ -69,8 +69,8 @@ class ComponentListItemScreenshotTests {
             BlockerTheme {
                 Surface {
                     ComponentListItem(
-                        simpleName = components[1].simpleName,
-                        name = components[1].name,
+                        simpleName = components[1].id.simpleName,
+                        name = components[1].id.className,
                         description = components[1].description,
                         enabled = false,
                         type = RECEIVER,
@@ -109,8 +109,8 @@ class ComponentListItemScreenshotTests {
         BlockerTheme {
             Surface {
                 ComponentListItem(
-                    simpleName = components[0].simpleName,
-                    name = components[0].name,
+                    simpleName = components[0].id.simpleName,
+                    name = components[0].id.className,
                     description = components[0].description,
                     enabled = true,
                     type = ACTIVITY,

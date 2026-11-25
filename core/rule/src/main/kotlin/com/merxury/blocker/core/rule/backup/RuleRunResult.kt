@@ -85,6 +85,9 @@ enum class FailureReason {
     /** The app's state could not be read from the system. Counts apps. */
     STATE_UNREADABLE,
 
+    /** The pre-update list of PackageManager blocks could not be recovered. Only for [RuleRunResult.Failed]. */
+    LEGACY_PM_RECORDS_UNREADABLE,
+
     /** Writing a backup file or a rule file failed. Counts files. */
     WRITE_FAILED,
 
@@ -158,7 +161,8 @@ internal val ReadFailure.reason: FailureReason
 /** The failure category of one layer of a control request. */
 internal val ControlFailure.reason: FailureReason
     get() = when (this) {
-        ControlFailure.ChannelUnavailable, is ControlFailure.NotPermitted -> FailureReason.NO_PRIVILEGE
+        ControlFailure.ChannelUnavailable -> FailureReason.NO_PRIVILEGE
+        is ControlFailure.NotPermitted -> if (isSystemRefusal) FailureReason.SYSTEM_ERROR else FailureReason.NO_PRIVILEGE
         ControlFailure.RulesUnreadable -> FailureReason.RULES_UNREADABLE
         is ControlFailure.WriteFailed -> FailureReason.WRITE_FAILED
         is ControlFailure.TargetNotFound, is ControlFailure.SystemError, ControlFailure.StateNotConfirmed -> FailureReason.SYSTEM_ERROR

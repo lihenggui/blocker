@@ -33,8 +33,8 @@ import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.privileged.calls.ListIfwRuleFiles
+import com.merxury.blocker.core.privileged.root.BlockerRootSession
 import com.merxury.blocker.core.privileged.root.RootTransport
-import com.merxury.blocker.core.root.BlockerRootSession
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.di.IfwModule
 import com.merxury.core.ifw.model.IfwComponentType

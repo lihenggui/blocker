@@ -137,25 +137,7 @@ internal class ShizukuInitializer @Inject constructor(
         }
     }
 
-    override fun hasPermission(): Boolean {
-        if (shizuku.isPreV11()) {
-            return false
-        }
-        return try {
-            shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Throwable) {
-            if (e is IllegalStateException) {
-                Timber.i("Shizuku is not initialized, no permission granted")
-                return false
-            }
-            Timber.e(e, "Check Shizuku permission failed")
-            false
-        }
-    }
-
-    override fun getUid(): Int = try {
+    private fun getUid(): Int = try {
         shizuku.getUid()
     } catch (e: CancellationException) {
         throw e

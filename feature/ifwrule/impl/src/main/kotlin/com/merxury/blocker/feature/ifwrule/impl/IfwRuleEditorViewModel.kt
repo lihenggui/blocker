@@ -21,13 +21,16 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.feature.ifwrule.impl.model.mergeComponentRule
 import com.merxury.blocker.feature.ifwrule.impl.model.toEditorState
 import com.merxury.blocker.feature.ifwrule.impl.model.toIfwFilters
-import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.editor.IfwEditorNode
+import com.merxury.core.ifw.getOrThrow
 import com.merxury.core.ifw.model.IfwComponentType
+import com.merxury.core.ifw.withIfwEditorAccess
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,7 +39,7 @@ import timber.log.Timber
 
 @HiltViewModel(assistedFactory = IfwRuleEditorViewModel.Factory::class)
 class IfwRuleEditorViewModel @AssistedInject constructor(
-    private val intentFirewall: IIntentFirewall,
+    private val ifwStore: IfwStore,
     @Assisted("packageName") val packageName: String,
     @Assisted("componentName") val componentName: String,
     @Assisted("componentType") componentTypeTag: String,
@@ -100,9 +103,11 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
 
     private suspend fun loadRulesInternal() {
         try {
-            val rules = intentFirewall.getRules(packageName)
+            val rules = withIfwEditorAccess { ifwStore.rules(packageName).getOrThrow() }
             val editorState = rules.toEditorState(componentType, packageName, componentName)
             _uiState.value = RuleEditorScreenUiState.Success(editor = editorState)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to load IFW rules for $packageName")
             _uiState.value = RuleEditorScreenUiState.Error(e.message ?: "Unknown error")
@@ -113,17 +118,20 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
         val state = (_uiState.value as? RuleEditorScreenUiState.Success)?.editor ?: return
         try {
             val newFilters = state.toIfwFilters()
-            val currentRules = intentFirewall.getRules(packageName)
-            val filterName = "$packageName/$componentName"
-            val merged = currentRules.mergeComponentRule(
-                componentType = componentType,
-                componentName = filterName,
-                newFilters = newFilters,
-                block = state.blockEnabled,
-                log = state.log,
-            )
-            intentFirewall.saveRules(packageName, merged)
+            withIfwEditorAccess {
+                ifwStore.update(packageName) { rules ->
+                    rules.mergeComponentRule(
+                        componentType = componentType,
+                        componentName = "$packageName/$componentName",
+                        newFilters = newFilters,
+                        block = state.blockEnabled,
+                        log = state.log,
+                    )
+                }.getOrThrow()
+            }
             _saveComplete.value = true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to save IFW rules for $packageName")
         }
@@ -131,17 +139,20 @@ class IfwRuleEditorViewModel @AssistedInject constructor(
 
     private suspend fun deleteRuleInternal() {
         try {
-            val currentRules = intentFirewall.getRules(packageName)
-            val filterName = "$packageName/$componentName"
-            val merged = currentRules.mergeComponentRule(
-                componentType = componentType,
-                componentName = filterName,
-                newFilters = null,
-                block = true,
-                log = true,
-            )
-            intentFirewall.saveRules(packageName, merged)
+            withIfwEditorAccess {
+                ifwStore.update(packageName) { rules ->
+                    rules.mergeComponentRule(
+                        componentType = componentType,
+                        componentName = "$packageName/$componentName",
+                        newFilters = null,
+                        block = true,
+                        log = true,
+                    )
+                }.getOrThrow()
+            }
             _saveComplete.value = true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to delete IFW rule for $packageName/$componentName")
         }

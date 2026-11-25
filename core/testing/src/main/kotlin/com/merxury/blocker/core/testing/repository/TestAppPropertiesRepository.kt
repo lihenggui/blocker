@@ -29,31 +29,9 @@ class TestAppPropertiesRepository : AppPropertiesRepository {
 
     override val appProperties = appPropertiesFlow
 
-    override suspend fun markComponentDatabaseInitialized() {
-        appPropertiesFlow.tryEmit(
-            AppPropertiesData(
-                componentDatabaseInitialized = true,
-                generalRuleDatabaseInitialized = false,
-                lastOpenedRuleHash = "",
-            ),
-        )
-    }
-
-    override suspend fun markGeneralRuleDatabaseInitialized() {
-        appPropertiesFlow.tryEmit(
-            AppPropertiesData(
-                componentDatabaseInitialized = false,
-                generalRuleDatabaseInitialized = true,
-                lastOpenedRuleHash = "",
-            ),
-        )
-    }
-
     override suspend fun updateLastOpenedRuleHash(hash: String) {
         appPropertiesFlow.tryEmit(
             AppPropertiesData(
-                componentDatabaseInitialized = false,
-                generalRuleDatabaseInitialized = false,
                 lastOpenedRuleHash = hash,
             ),
         )
