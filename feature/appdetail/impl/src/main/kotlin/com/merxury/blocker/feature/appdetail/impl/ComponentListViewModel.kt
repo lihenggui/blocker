@@ -23,11 +23,9 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
-import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
-import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -74,7 +72,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
-import java.io.File
 
 /**
  * The component lists of one app for one user, with search, tabs and selection, and the actions
@@ -91,8 +88,6 @@ class ComponentListViewModel @AssistedInject constructor(
     generalRules: GeneralRuleRepository,
     userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
-    @FilesDir private val filesDir: File,
-    @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Assisted("packageName") packageName: String,
@@ -164,7 +159,7 @@ class ComponentListViewModel @AssistedInject constructor(
     // From the rows alone, so a search or a refresh matches nothing again. Loading until the rules
     // are read and matched, which never holds the rows back.
     private val matchedRules: Flow<MatchedRulesUiState> = combine(rows, generalRules.getGeneralRules(), loading) { rows, rules, loading ->
-        if (loading) MatchedRulesUiState.Loading else MatchedRulesUiState.Loaded(matchedRules(rules, rows) { filesDir.resolve(ruleBaseFolder).resolve(it) })
+        if (loading) MatchedRulesUiState.Loading else MatchedRulesUiState.Loaded(matchedRules(rules, rows))
     }
         .onStart { emit(MatchedRulesUiState.Loading) }
         .distinctUntilChanged()

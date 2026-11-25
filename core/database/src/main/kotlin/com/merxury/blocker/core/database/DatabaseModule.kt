@@ -22,7 +22,6 @@ import com.merxury.blocker.core.database.cache.COMPONENT_CACHE_DATABASE_NAME
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
 import com.merxury.blocker.core.database.catalog.CATALOG_DATABASE_NAME
 import com.merxury.blocker.core.database.catalog.CatalogDatabase
-import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
 import com.merxury.blocker.core.database.record.BLOCKER_RECORDS_DATABASE_NAME
 import com.merxury.blocker.core.database.record.BLOCKER_RECORDS_MIGRATIONS
 import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
@@ -36,12 +35,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 internal object DatabaseModule {
-    @Provides
-    @Singleton
-    fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase = Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
-        .fallbackToDestructiveMigration(true)
-        .build()
-
     @Provides
     @Singleton
     fun provideCatalogDatabase(@ApplicationContext context: Context): CatalogDatabase = Room.databaseBuilder(

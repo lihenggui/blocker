@@ -55,7 +55,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 
 /** Block all and enable all of the rules list change every matched component of the selected user in one batch. */
@@ -64,9 +63,6 @@ import org.junit.runner.RunWith
 class GeneralRuleBatchTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
-
-    @get:Rule
-    val tempFolder: TemporaryFolder = TemporaryFolder.builder().assureDeletion().build()
 
     private lateinit var fixture: GeneralRuleFixture
     private val viewModel get() = fixture.viewModel
@@ -77,7 +73,7 @@ class GeneralRuleBatchTest {
 
     @Before
     fun setUp() {
-        fixture = GeneralRuleFixture(mainDispatcherRule.testDispatcher, tempFolder.newFolder())
+        fixture = GeneralRuleFixture(mainDispatcherRule.testDispatcher)
         fixture.rules.sendRuleList(listOf(rule(1, "com.tracker."), rule(2, "com.ads."), rule(3, "com.tracker.A")))
         fixture.installedApps.sendApps(listOf(installedApp("com.a"), installedApp("com.b"), installedApp(SELF_PACKAGE), installedApp("com.w", WORK)))
         fixture.components.sendComponents(

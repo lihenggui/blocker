@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.repository.userdata
+package com.merxury.blocker.core.data.di
 
-import com.merxury.blocker.core.model.preference.AppPropertiesData
-import kotlinx.coroutines.flow.Flow
+import javax.inject.Qualifier
 
-interface AppPropertiesRepository {
-    val appProperties: Flow<AppPropertiesData>
-
-    suspend fun updateLastOpenedRuleHash(hash: String)
-}
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class GeneratedRuleBaseFolder

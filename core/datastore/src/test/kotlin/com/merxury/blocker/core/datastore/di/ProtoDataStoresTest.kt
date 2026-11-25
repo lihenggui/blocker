@@ -166,7 +166,6 @@ class ProtoDataStoresTest {
     @Test
     fun givenObsoleteCacheFields_whenOpeningTheStore_thenTheyAreRemovedFromDisk() = testScope.runTest {
         val current = appProperties {
-            lastOpenedRuleHash = "rule"
             rootGrantRemembered = true
             pmBlockRecordsSeeded = true
         }

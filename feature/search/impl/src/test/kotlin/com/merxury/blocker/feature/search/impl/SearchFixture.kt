@@ -63,7 +63,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import java.io.File
 import kotlin.time.Instant
 
 internal val OWNER = UserId(0)
@@ -149,7 +148,7 @@ internal class SearchFixture(dispatcher: CoroutineDispatcher) {
         componentIndex = index,
         batches = batches,
         layersFor = GetControlLayersUseCase(userData),
-        searchRules = SearchGeneralRuleUseCase(rules, ruleMatcher, File("/files"), "rules"),
+        searchRules = SearchGeneralRuleUseCase(rules, ruleMatcher),
         performAppAction = PerformAppActionUseCase(installedApps, appControl, channel),
         readRunningPackages = ReadRunningPackagesUseCase(appControl, channel),
         countAppServices = CountServicesUseCase(components, LocalComponentActions(appControl, serviceControl), channel),

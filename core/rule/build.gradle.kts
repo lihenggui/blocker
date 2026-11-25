@@ -28,11 +28,10 @@ android {
     // The device tests run the app's Hilt graph.
     defaultConfig.testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
     androidResources {
-        // Preserve aapt defaults while excluding rule-repository tooling and
-        // per-file component details from packaged assets.
+        // The catalog seed replaces the legacy rule checkout in the APK.
         ignoreAssetsPattern =
             "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:" +
-                "<dir>src:<dir>scripts:<dir>upstream:README.md:<dir>components"
+                "<dir>blocker-general-rules"
     }
 }
 

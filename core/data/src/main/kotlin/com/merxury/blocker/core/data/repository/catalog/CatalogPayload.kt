@@ -29,6 +29,7 @@ internal fun readCatalogRules(stream: InputStream, files: Set<String>): List<Cat
 private fun readRule(value: JsonObject, files: Set<String>): CatalogRuleWithText {
     value.fields("id", "icon", "website", "keywords", "safeToBlock", "contributors", "i18n")
     val id = value.positiveInteger("id")
+    verifyCatalog(id <= Int.MAX_VALUE) { "Rule ID $id exceeds the app's supported range" }
     val icon = value.optionalString("icon")
     verifyCatalog(icon == null || (isIconPath(icon) && icon in files)) { "Rule $id references an unlisted icon $icon" }
     val rule = CatalogRuleEntity(

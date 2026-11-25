@@ -22,6 +22,29 @@ abstract class CatalogDao {
     abstract suspend fun readRules(): List<CatalogRuleWithText>
 
     @Transaction
+    @Query("SELECT * FROM catalog_rule WHERE id = :id")
+    abstract suspend fun readRule(id: Long): CatalogRuleWithText?
+
+    @Transaction
+    @Query(
+        """
+        SELECT rule.* FROM catalog_rule AS rule
+        LEFT JOIN catalog_rule_text AS localized ON localized.rule_id = rule.id AND localized.language = :language
+        JOIN catalog_rule_text AS english ON english.rule_id = rule.id AND english.language = 'en'
+        WHERE COALESCE(localized.name, english.name) LIKE '%' || :keyword || '%'
+        ORDER BY rule.id
+        """,
+    )
+    abstract suspend fun searchRules(language: String, keyword: String): List<CatalogRuleWithText>
+
+    /** Reads rule rows with the sequence that owns their icon files. */
+    @Transaction
+    open suspend fun <T> readRuleSnapshot(read: suspend () -> T): Pair<Long, T>? {
+        val sequence = readState()?.sequence ?: return null
+        return sequence to read()
+    }
+
+    @Transaction
     open suspend fun findComponents(names: Collection<String>): List<CatalogComponentWithText> = names.distinct()
         .chunked(NAME_CHUNK_SIZE)
         .flatMap { findComponentBatch(it) }

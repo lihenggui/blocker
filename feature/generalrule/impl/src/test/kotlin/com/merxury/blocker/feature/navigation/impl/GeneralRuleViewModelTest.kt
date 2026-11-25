@@ -32,7 +32,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 
 /** The rules list counts the apps of the selected user each rule matches, from the component cache. */
@@ -41,15 +40,12 @@ class GeneralRuleViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    @get:Rule
-    val tempFolder: TemporaryFolder = TemporaryFolder.builder().assureDeletion().build()
-
     private lateinit var fixture: GeneralRuleFixture
     private val viewModel get() = fixture.viewModel
 
     @Before
     fun setUp() {
-        fixture = GeneralRuleFixture(mainDispatcherRule.testDispatcher, tempFolder.newFolder())
+        fixture = GeneralRuleFixture(mainDispatcherRule.testDispatcher)
         fixture.rules.sendRuleList(listOf(rule(1, "com.tracker."), rule(2, "com.ads."), rule(3, "com.absent.")))
         fixture.installedApps.sendApps(
             listOf(
@@ -86,10 +82,15 @@ class GeneralRuleViewModelTest {
     }
 
     @Test
-    fun givenKeepFreshNotRunning_whenObserved_thenStaysLoading() = runTest {
+    fun givenNoCatalog_whenInstalled_thenTheRulesReplaceLoading() = runTest {
+        fixture.catalog.clear()
         show(keepFresh = false)
-
         assertThat(viewModel.uiState.value.rules).isEqualTo(GeneralRuleUiState.Loading)
+
+        fixture.catalog.installBundled()
+        settle()
+
+        assertThat(success().matchedRules.map { it.id }).containsExactly(1, 2).inOrder()
     }
 
     @Test

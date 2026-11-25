@@ -25,8 +25,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.Synchronizer
@@ -38,7 +36,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.git.GitClient
 import com.merxury.blocker.core.git.RepositoryInfo
-import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.SyncConstraints
 import com.merxury.blocker.sync.initializers.syncForegroundInfo
@@ -46,9 +43,7 @@ import com.merxury.blocker.sync.status.ISyncSubscriber
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -90,7 +85,6 @@ internal class SyncWorker @AssistedInject constructor(
 
             syncSubscriber.subscribe()
 
-            waitForCopyTaskFinish()
             val syncedSuccessfully = syncRule()
 
             analyticsHelper.logSyncFinished(syncedSuccessfully)
@@ -187,22 +181,6 @@ internal class SyncWorker @AssistedInject constructor(
         val currentTime = System.currentTimeMillis()
         sharedPreferences.edit { putLong(PREF_LAST_SYNCED_TIME, currentTime) }
         Timber.d("Mark rule sync time: ${Instant.fromEpochMilliseconds(currentTime)}")
-    }
-
-    private suspend fun waitForCopyTaskFinish() {
-        val workManager = WorkManager.getInstance(appContext)
-        workManager.getWorkInfosForUniqueWorkFlow(CopyRulesToStorageWorker.WORK_NAME)
-            .takeWhile {
-                val workInfo = it.firstOrNull()
-                val isRunning = workInfo?.state == WorkInfo.State.RUNNING
-                if (isRunning) {
-                    Timber.v("Copy asset task is running, waiting...")
-                } else {
-                    Timber.v("Copy asset task is not running, continue syncing rules.")
-                }
-                isRunning
-            }
-            .collect()
     }
 
     companion object {

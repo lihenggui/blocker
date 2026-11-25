@@ -26,10 +26,6 @@ import dagger.hilt.components.SingletonComponent
 internal object AppResourceModule {
 
     @Provides
-    @RuleBaseFolder
-    fun provideRuleBaseFolder(): String = "blocker-general-rules"
-
-    @Provides
     @GeneratedRuleBaseFolder
     fun provideGeneratedRuleBaseFolder(): String = "user-generated-rules"
 }

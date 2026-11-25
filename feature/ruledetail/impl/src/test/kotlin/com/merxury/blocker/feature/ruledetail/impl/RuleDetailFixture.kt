@@ -64,7 +64,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
-import java.io.File
 import kotlin.time.Instant
 
 internal val OWNER = UserId(0)
@@ -77,7 +76,7 @@ internal val ownerUser = DeviceUser(OWNER, name = "Owner", kind = UserKind.OWNER
 internal val workUser = DeviceUser(WORK, name = "Work profile", kind = UserKind.WORK_PROFILE, parent = OWNER, running = true)
 
 /** The rule the screen shows. */
-internal val TRACKER = GeneralRule(id = 7, name = "Tracker", company = "Example", searchKeyword = listOf("com.tracker."), iconUrl = "icon/tracker.svg")
+internal val TRACKER = GeneralRule(id = 7, name = "Tracker", company = "Example", searchKeyword = listOf("com.tracker."), iconUrl = "/files/catalog/icon-1/icon/tracker.svg")
 
 internal fun installedApp(packageName: String, user: UserId = OWNER, label: String = packageName, installedAt: Long = 1_000) = InstalledApp(
     key = AppKey(packageName, user),
@@ -162,8 +161,6 @@ internal class RuleDetailFixture(dispatcher: CoroutineDispatcher) {
         channel = channel,
         userDataRepository = userData,
         analyticsHelper = analytics,
-        filesDir = File("/files"),
-        ruleBaseFolder = "rules",
         cpuDispatcher = dispatcher,
         ruleId = TRACKER.id.toString(),
         tab = "applicable_app",

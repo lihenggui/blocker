@@ -71,13 +71,11 @@ internal fun AppComponents.matching(keywords: List<String>): AppComponents {
 /**
  * The general rules that match components of the app, in the rules' order, each with the rows
  * whose class name contains one of its keywords, ignoring case.
- *
- * @param iconOf the file a rule's icon path points to
  */
-internal fun matchedRules(rules: List<GeneralRule>, rows: List<ComponentRow>, iconOf: (String) -> File): List<MatchedRule> = rules.mapNotNull { rule ->
+internal fun matchedRules(rules: List<GeneralRule>, rows: List<ComponentRow>): List<MatchedRule> = rules.mapNotNull { rule ->
     val matched = rows.filter { row -> rule.searchKeyword.any { row.id.className.contains(it, ignoreCase = true) } }
     if (matched.isEmpty()) return@mapNotNull null
-    MatchedRule(id = rule.id, title = rule.name, icon = rule.iconUrl?.let(iconOf), rows = matched)
+    MatchedRule(id = rule.id, title = rule.name, icon = rule.iconUrl?.let(::File), rows = matched)
 }
 
 /** Whether [this] tab lists rows that can be searched, sorted and selected. */

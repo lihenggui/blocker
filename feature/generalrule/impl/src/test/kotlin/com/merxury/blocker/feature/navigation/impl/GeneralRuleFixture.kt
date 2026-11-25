@@ -17,10 +17,8 @@
 package com.merxury.blocker.feature.navigation.impl
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.work.WorkManager
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.PackageControlActivity
-import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
@@ -39,7 +37,6 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.preference.AppPropertiesData
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.AppEnabledSetting
@@ -47,7 +44,7 @@ import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
-import com.merxury.blocker.core.testing.repository.TestAppPropertiesRepository
+import com.merxury.blocker.core.testing.repository.TestCatalogRepository
 import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
@@ -67,8 +64,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
-import org.mockito.kotlin.mock
-import java.io.File
 import kotlin.time.Instant
 
 internal val OWNER = UserId(0)
@@ -130,16 +125,15 @@ internal class GatedControl(private val delegate: FakeComponentStatusRepository)
 }
 
 /**
- * The fakes behind a [GeneralRulesViewModel], with root ready and the rule storage prepared in
- * [filesDir].
+ * The fakes behind a [GeneralRulesViewModel], with root ready and the catalog installed.
  */
-internal class GeneralRuleFixture(dispatcher: CoroutineDispatcher, filesDir: File) {
+internal class GeneralRuleFixture(dispatcher: CoroutineDispatcher) {
+    val catalog = TestCatalogRepository()
     val selectedUsers = FakeSelectedUserRepository(OWNER)
     val installedApps = FakeInstalledAppRepository()
     val components = FakeComponentStatusRepository()
     val channel = FakePrivilegedChannel(ChannelState.Ready(PrivilegedIdentity.ROOT))
     val rules = TestGeneralRuleRepository().apply { sendRuleList(emptyList()) }
-    val appProperties = TestAppPropertiesRepository().apply { sendAppProperties(AppPropertiesData()) }
     val userData = TestUserDataRepository().apply { sendUserData(defaultUserData) }
     val analytics = TestAnalyticsHelper()
 
@@ -150,17 +144,10 @@ internal class GeneralRuleFixture(dispatcher: CoroutineDispatcher, filesDir: Fil
     val index = ComponentIndex(components, channel, applicationScope)
     private val matcher = GeneralRuleMatcher(components, installedApps, rules, userData, selectedUsers, SELF_PACKAGE, dispatcher, applicationScope)
 
-    init {
-        filesDir.resolve(RULE_FOLDER).apply { mkdirs() }.resolve("general.json").writeText("[]")
-    }
-
     val viewModel = GeneralRulesViewModel(
         selectedUsers = selectedUsers,
-        generalRuleRepository = rules,
-        appPropertiesRepository = appProperties,
-        // The rules are in storage already, so nothing is copied and no work is enqueued.
-        initGeneralRuleUseCase = InitializeRuleStorageUseCase(mock<WorkManager>(), filesDir, RULE_FOLDER, userData, dispatcher),
-        searchRule = SearchGeneralRuleUseCase(rules, matcher, filesDir, RULE_FOLDER),
+        catalog = catalog,
+        searchRule = SearchGeneralRuleUseCase(rules, matcher),
         ruleMatcher = matcher,
         componentIndex = index,
         batches = batches,
@@ -168,12 +155,7 @@ internal class GeneralRuleFixture(dispatcher: CoroutineDispatcher, filesDir: Fil
         channel = channel,
         analyticsHelper = analytics,
         savedStateHandle = SavedStateHandle(),
-        ioDispatcher = dispatcher,
         cpuDispatcher = dispatcher,
         initialRuleId = "",
     )
-
-    private companion object {
-        const val RULE_FOLDER = "rules"
-    }
 }

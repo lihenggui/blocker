@@ -31,8 +31,7 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
 - [`core/analytics`](core/analytics), [`core/git`](core/git), and
   [`core/provider`](core/provider) handle analytics, Git-backed rule sync, and
   content providers. General rule matching lives in [`core/domain`](core/domain).
-- [`core/rule`](core/rule) bundles the default rules and component descriptions.
-  It also owns Blocker backups, Intent Firewall XML import and export, My Android
+- [`core/rule`](core/rule) owns Blocker backups, Intent Firewall XML import and export, My Android
   Tools import, PackageManager reset, and the workers for rule operations.
 - [`core/common`](core/common) holds shared infrastructure and extensions.
   [`core/designsystem`](core/designsystem) holds Material 3 wrappers and styling.
@@ -88,8 +87,8 @@ device tests, coverage, graphs, release builds, and baseline profiles.
   cached apps on foreground entry and when privileged access becomes ready.
   `DeviceUserMonitor` handles profile lifecycle broadcasts and refreshes the
   cached users while the privileged channel is ready.
-- Observe persisted data through the repository. `OfflineFirstGeneralRuleRepository`
-  owns the general rule cache and sync updates.
+- Observe persisted data through the repository. `CatalogGeneralRuleRepository` reads the
+  installed catalog. The bundled catalog seed lives in `core/data/src/main/assets/catalog`.
 - Use `<Verb><Noun>UseCase` and `operator fun invoke` in `core:domain`.
   `PerformAppActionUseCase` shows the naming and Hilt constructor injection.
 - Collect flows with `collectAsStateWithLifecycle` at the screen boundary.

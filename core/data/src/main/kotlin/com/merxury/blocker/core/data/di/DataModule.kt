@@ -36,14 +36,10 @@ import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
 import com.merxury.blocker.core.data.repository.catalog.LocalCatalogRepository
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.repository.componentdetail.LocalComponentDetailRepository
-import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleDataSource
+import com.merxury.blocker.core.data.repository.generalrule.CatalogGeneralRuleRepository
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.data.repository.generalrule.LocalGeneralRuleDataSource
-import com.merxury.blocker.core.data.repository.generalrule.OfflineFirstGeneralRuleRepository
 import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
 import com.merxury.blocker.core.data.repository.licenses.LocalLicensesRepository
-import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
-import com.merxury.blocker.core.data.repository.userdata.LocalAppPropertiesRepository
 import com.merxury.blocker.core.data.repository.userdata.LocalUserDataRepository
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.AppPermissionMonitor
@@ -72,13 +68,8 @@ abstract class DataModule {
     ): UserDataRepository
 
     @Binds
-    internal abstract fun bindAppPropertiesRepository(
-        appPropertiesRepository: LocalAppPropertiesRepository,
-    ): AppPropertiesRepository
-
-    @Binds
     internal abstract fun bindsGeneralRuleRepository(
-        generalRuleRepository: OfflineFirstGeneralRuleRepository,
+        generalRuleRepository: CatalogGeneralRuleRepository,
     ): GeneralRuleRepository
 
     @Binds
@@ -90,11 +81,6 @@ abstract class DataModule {
     internal abstract fun bindsNetworkMonitor(
         networkMonitor: ConnectivityManagerNetworkMonitor,
     ): NetworkMonitor
-
-    @Binds
-    internal abstract fun bindLocalGeneralRuleDataSource(
-        localGeneralRuleDataSource: LocalGeneralRuleDataSource,
-    ): GeneralRuleDataSource
 
     @Binds
     internal abstract fun bindPermissionMonitor(
