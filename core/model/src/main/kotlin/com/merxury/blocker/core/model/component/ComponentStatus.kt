@@ -26,4 +26,16 @@ data class ComponentStatus(
 ) {
     /** Whether the component can start, as [ComponentDeclaration.availability] decides. */
     val availability: Availability get() = declaration.availability(state)
+
+    /**
+     * Whether the component's switch is on. Unreadable PackageManager settings count as the
+     * manifest default, unreadable firewall rules count as absent and conditional rules leave
+     * the switch on unless PackageManager or the manifest disables the component.
+     */
+    val isSwitchOn: Boolean
+        get() {
+            val pm = if (state.pm == PmSetting.UNKNOWN) PmSetting.DEFAULT else state.pm
+            val ifw = if (state.ifw == IfwBlock.UNKNOWN) IfwBlock.NOT_BLOCKED else state.ifw
+            return declaration.availability(ControlState(pm, ifw)) !is Availability.Blocked
+        }
 }

@@ -276,6 +276,7 @@ fun RuleDetailContent(
                         onSortTypeChange = onSortTypeChange,
                         blockAllComponents = onBlockAllInPageClick,
                         enableAllComponents = onEnableAllInPageClick,
+                        batchActionsEnabled = ruleInfoUiState.batchActionsEnabled,
                     )
                 },
                 modifier = Modifier

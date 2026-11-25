@@ -165,7 +165,7 @@ class SearchSelectionTest {
     }
 
     @Test
-    fun givenBlockedSelection_whenEnabled_thenEveryLayerIsUnblocked() = runTest {
+    fun givenManifestDisabledSelection_whenEnabled_thenEverySwitchIsOn() = runTest {
         fixture.components.sendComponents(
             OWNER,
             listOf(
@@ -181,8 +181,9 @@ class SearchSelectionTest {
         runCurrent()
 
         val request = fixture.components.requests.single()
-        assertThat(request.goal).isEqualTo(ControlGoal.UNBLOCK)
+        assertThat(request.goal).isEqualTo(ControlGoal.ENABLE)
         assertThat(request.layers).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlLayer.INTENT_FIREWALL)
+        assertThat(fixture.components.allComponents(OWNER).first().map { it.isSwitchOn }).containsExactly(true, true)
         assertThat(summary()).isEqualTo(ControlMessage.BatchDone(notChanged = 0))
     }
 
