@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.applist.impl
 
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.domain.applist.CountServicesUseCase
 import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
 import com.merxury.blocker.core.domain.applist.ReadRunningPackagesUseCase
@@ -100,7 +101,7 @@ internal fun service(
 )
 
 /** The fakes behind an [AppListViewModel], with Shizuku ready as root unless set otherwise. */
-internal class AppListFixture(dispatcher: CoroutineDispatcher) {
+internal class AppListFixture(private val dispatcher: CoroutineDispatcher) {
     val selectedUsers = FakeSelectedUserRepository(OWNER)
     val deviceUsers = FakeDeviceUserRepository()
     val installedApps = FakeInstalledAppRepository()
@@ -111,7 +112,9 @@ internal class AppListFixture(dispatcher: CoroutineDispatcher) {
     val userData = TestUserDataRepository().apply { sendUserData(defaultUserData) }
     val analytics = TestAnalyticsHelper()
 
-    val viewModel = AppListViewModel(
+    val viewModel by lazy { createViewModel(selectedUsers) }
+
+    fun createViewModel(selectedUsers: SelectedUserRepository) = AppListViewModel(
         selectedUsers = selectedUsers,
         deviceUsers = deviceUsers,
         installedApps = installedApps,

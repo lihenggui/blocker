@@ -28,6 +28,7 @@ import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserReposito
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -85,12 +86,18 @@ class SelectedUserRepositoryTest {
     }
 
     @Test
-    fun givenReachableUser_whenSelected_thenSelected() = runTest(UnconfinedTestDispatcher()) {
+    fun givenReachableUser_whenSelected_thenSelectionChangesBeforeCollectorsRun() = runTest {
         val repository = repository()
         deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
+        runCurrent()
+        assertThat(repository.users.value.map { it.id }).containsExactly(OWNER, WORK)
 
+        deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK).copy(running = false)))
         repository.select(WORK)
 
+        assertThat(repository.selectedUser.value).isEqualTo(WORK)
+        runCurrent()
+        assertThat(repository.users.value.single { it.id == WORK }.running).isFalse()
         assertThat(repository.selectedUser.value).isEqualTo(WORK)
     }
 
