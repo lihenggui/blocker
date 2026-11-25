@@ -17,8 +17,11 @@
 package com.merxury.blocker.core.control
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.ContentProvider
 import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
@@ -27,6 +30,7 @@ import android.util.Log
 
 internal const val FIXTURE_TAG = "ControlFixture"
 internal const val NONCE_EXTRA = "nonce"
+internal const val FIXTURE_BROADCAST = "com.merxury.blocker.core.control.FIXTURE_BROADCAST"
 
 /**
  * An activity the device test blocks. It may run in another user's process, so it reports each
@@ -42,6 +46,13 @@ open class ControlFixtureActivity : Activity() {
 
 /** The same activity, shipped with `android:enabled="false"`. */
 class ControlFixtureDisabledActivity : ControlFixtureActivity()
+
+/** Signals delivery through the result of an ordered broadcast. */
+class ControlFixtureReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == FIXTURE_BROADCAST && isOrderedBroadcast) resultCode = Activity.RESULT_OK
+    }
+}
 
 /** A provider, which the Intent Firewall does not filter. */
 class ControlFixtureProvider : ContentProvider() {
