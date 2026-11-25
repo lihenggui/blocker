@@ -63,8 +63,9 @@ private const val MIN_SHIZUKU_VERSION = 13
 // Starting the service is a new app_process, which takes a few seconds on a slow device.
 private val ATTACH_TIMEOUT = 15.seconds
 
-// Raise when the AIDL interface changes, so Shizuku replaces a service an older app started.
-// Wake journal replies carry Parcelable class names. Recreate a service from the previous APK.
+// Bump when AIDL or serialized class names change. Wake requests and replies carry class names,
+// so moving wake parcelables between packages affects compatibility with an older service.
+// This is defensive because the service is non-daemon and an APK update kills the app process.
 private const val SERVICE_VERSION = 2
 
 // A service is a full app_process: after a background collection it held about 160 MB of PSS.

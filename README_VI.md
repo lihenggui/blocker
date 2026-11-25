@@ -102,9 +102,11 @@ Bạn có thể dùng [Weblate](https://weblate.sanmer.app/projects/blocker/) đ
 
 ## Top những câu hỏi hỏi nhiều nhất
 
-1.  Khi mà bấm nút ở chế độ Shizuku, thành phần không thể điều chỉnh được và bám lỗi: SecurityException: Shell cannot change component state for 'xx' to state 'xx'.
+1. Vì sao không thể thay đổi trạng thái thành phần của ứng dụng trong chế độ Shizuku?
 
-* Shizuku mà chạy dưới dạng shell không có tác dụng. Vui lòng chạy Shizuku dưới quyền root hoặc chỉnh sửa lại ứng dụng.
+* Khi được khởi chạy qua ADB, Shizuku chỉ có thể thay đổi trạng thái thành phần của các ứng dụng được đánh dấu Test-Only.
+  Để thay đổi trạng thái thành phần của ứng dụng thông thường, cần khởi chạy Shizuku với quyền Root.
+  Nếu Android từ chối thay đổi trạng thái thành phần bằng quyền ADB, Blocker sẽ yêu cầu bạn khởi chạy Shizuku với quyền Root rồi thử lại.
 
 2. Sự khác biệt giữa bản `foss` và bản `market` ?
 

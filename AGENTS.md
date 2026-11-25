@@ -140,8 +140,9 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 
 ## Wake protection
 
-- Blocker collects Android wake evidence from the owner profile, stores local
-  history, and identifies how apps restart or keep one another running.
+- When running in the owner profile, Blocker collects Android wake evidence
+  across available profiles, stores local history, and identifies how apps
+  restart or keep one another running.
   Protection applies approved service rules through Intent Firewall when the
   selected privileged channel can write them.
 - Collection and privileged calls live in

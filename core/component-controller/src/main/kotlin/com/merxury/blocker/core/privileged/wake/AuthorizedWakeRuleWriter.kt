@@ -23,8 +23,8 @@ import javax.inject.Inject
  * in `/data/system/ifw/`. Reconciliation applies or revokes managed rules and runs the probe when
  * needed. A reset removes one package's managed rules or deletes both files.
  *
- * The caller holds the mutex in `WakeProtectionManager` across production reconciliation and
- * resets, including the probe and its cleanup. The writer acquires no lock itself. It uses the
+ * The caller must hold the same mutex across reconciliation and resets, including the
+ * probe and its cleanup. The writer relies on that mutex for serialization. It uses the
  * selected privileged channel only while it is ready and throws if the operation cannot run.
  */
 internal class AuthorizedWakeRuleWriter @Inject constructor(
