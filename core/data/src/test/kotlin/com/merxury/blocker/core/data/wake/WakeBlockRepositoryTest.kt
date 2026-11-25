@@ -8,6 +8,7 @@ import android.os.Build
 import android.provider.Settings
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.database.wake.WakeBlockDao
 import com.merxury.blocker.core.database.wake.WakeBlockEntity
 import com.merxury.blocker.core.model.ComponentType
@@ -22,6 +23,7 @@ import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
@@ -36,7 +38,9 @@ import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
+import com.merxury.blocker.core.model.wake.WakeBlockOutcome
 import com.merxury.blocker.core.model.wake.WakePath
+import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
@@ -49,6 +53,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -90,7 +95,11 @@ class WakeBlockRepositoryTest {
     private val firewall = UserWakeFirewall(dao, writer, packages)
     private val rules = ManagedWakeRules(writer, context)
 
-    private fun TestScope.repository(peerFilter: Boolean = true): WakeBlockRepository {
+    private fun TestScope.repository(
+        peerFilter: Boolean = true,
+        privilegedChannel: PrivilegedChannel = channel,
+        componentRepository: ComponentStatusRepository = components,
+    ): WakeBlockRepository {
         val resolver = context.contentResolver
         Settings.Global.putInt(resolver, Settings.Global.BOOT_COUNT, 5)
         check(
@@ -108,7 +117,7 @@ class WakeBlockRepositoryTest {
                 declaration(ACTIVITY, ComponentType.ACTIVITY),
             ).map { ComponentStatus(it, ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)) },
         )
-        return LocalWakeBlockRepository(dao, firewall, rules, components, receivers, channel, lock, StandardTestDispatcher(testScheduler))
+        return LocalWakeBlockRepository(dao, firewall, rules, componentRepository, receivers, privilegedChannel, lock, StandardTestDispatcher(testScheduler))
     }
 
     @Test fun givenKnownTriggersAndHolds_whenBlocking_thenStoredSendersMatchTheWakePaths() = runTest {
@@ -233,6 +242,69 @@ class WakeBlockRepositoryTest {
         assertThat(components.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK, ControlGoal.BLOCK, ControlGoal.UNBLOCK).inOrder()
         assertThat(components.requests.all { it.layers == setOf(ControlLayer.PACKAGE_MANAGER) && it.user == UserId.SYSTEM }).isTrue()
         assertThat(writer.userWrites).isEmpty()
+    }
+
+    @Test fun givenComponentRemovedFromManifest_whenUnblocking_thenItsRowIsDeletedWithoutAControlRequest() = runTest {
+        val repository = repository()
+        val path = path("removed", component = PROVIDER, method = COMPONENT)
+        assertThat(repository.block(listOf(path to COMPONENT)).done).containsExactly(path.pathKey)
+        val remaining = components.components(AppKey(TARGET, UserId.SYSTEM)).first().filterNot { it.declaration.id.className == PROVIDER }
+        components.sendComponents(UserId.SYSTEM, remaining)
+
+        assertThat(repository.unblock(listOf(path.pathKey))).isEqualTo(WakeBlockOutcome(setOf(path.pathKey), null))
+        assertThat(dao.all()).isEmpty()
+        assertThat(components.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK)
+    }
+
+    @Test fun givenPackageMissingForOwner_whenUnblocking_thenItsRowIsDeletedWithoutAControlRequest() = runTest {
+        val repository = repository()
+        val path = path("uninstalled", component = PROVIDER, method = COMPONENT)
+        assertThat(repository.block(listOf(path to COMPONENT)).done).containsExactly(path.pathKey)
+        components.refreshFailure = ReadFailure.PackageNotFound(AppKey(TARGET, UserId.SYSTEM))
+
+        assertThat(repository.unblock(listOf(path.pathKey))).isEqualTo(WakeBlockOutcome(setOf(path.pathKey), null))
+        assertThat(dao.all()).isEmpty()
+        assertThat(components.requests.map { it.goal }).containsExactly(ControlGoal.BLOCK)
+    }
+
+    @Test fun givenComponentWriteInPackageResult_whenBlockingFails_thenFailureAndUndoAreBothAvailable() = runTest {
+        assertUnconfirmedWriteCanBeUndone(acknowledgeBeforeReadBack = false)
+    }
+
+    @Test fun givenComponentWriteAcknowledgedWithoutReadBack_whenBlockingFails_thenFailureAndUndoAreBothAvailable() = runTest {
+        assertUnconfirmedWriteCanBeUndone(acknowledgeBeforeReadBack = true)
+    }
+
+    private suspend fun TestScope.assertUnconfirmedWriteCanBeUndone(acknowledgeBeforeReadBack: Boolean) {
+        val path = path("component", component = PROVIDER, method = COMPONENT)
+        val provider = declaration(PROVIDER, ComponentType.PROVIDER)
+        val pmWrites = if (acknowledgeBeforeReadBack) emptySet() else setOf(provider.id)
+        val observed = object : ComponentStatusRepository by components {
+            override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?) = components.control(request, keepKnownState, writeObserver).onStart {
+                if (acknowledgeBeforeReadBack && request.goal == ControlGoal.BLOCK) writeObserver?.onWrite(listOf(provider.id))
+            }
+        }
+        val repository = repository(componentRepository = observed)
+        val key = ComponentKey(provider.id, UserId.SYSTEM)
+        components.controlEvents = {
+            val disabled = ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED)
+            components.sendComponents(it.user, listOf(ComponentStatus(provider, disabled)))
+            val outcome = ComponentOutcome(
+                key,
+                disabled.copy(pm = PmSetting.UNKNOWN),
+                ControlResult.FAILED,
+                mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.StateNotConfirmed),
+            )
+            listOf(ControlEvent.PackageDone(TARGET, listOf(outcome), pmWrites))
+        }
+
+        assertThat(repository.block(listOf(path to COMPONENT))).isEqualTo(WakeBlockOutcome(emptySet(), WakeBlockFailure.SystemError(null)))
+        assertThat(dao.all().single().component).isEqualTo(PROVIDER)
+
+        components.controlEvents = null
+        assertThat(repository.unblock(listOf(path.pathKey)).done).containsExactly(path.pathKey)
+        assertThat(components.component(key).first()?.state?.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(dao.all()).isEmpty()
     }
 
     @Test fun givenShellComponentRefusal_whenBlocking_thenNoRowIsStored() = runTest {
@@ -428,6 +500,54 @@ class WakeBlockRepositoryTest {
         assertThat(first.await().done).containsExactly("first")
         assertThat(second.await().done).containsExactly("second")
         assertThat(writer.firewallRules()).hasSize(2)
+    }
+
+    @Test fun givenAccessPrompt_whenBlocking_thenTheLockIsAvailableAndLostAccessPreventsTheWrite() = runTest {
+        assertPromptPrecedesLock { repository -> repository.block(listOf(path("new") to FIREWALL)) }
+    }
+
+    @Test fun givenAccessPrompt_whenUnblocking_thenTheLockIsAvailableAndLostAccessPreventsTheWrite() = runTest {
+        assertPromptPrecedesLock { repository -> repository.unblock(listOf("existing")) }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun TestScope.assertPromptPrecedesLock(change: suspend (WakeBlockRepository) -> WakeBlockOutcome) {
+        val promptOpened = CompletableDeferred<Unit>()
+        val grantAccess = CompletableDeferred<Unit>()
+        val promptingChannel = object : PrivilegedChannel by channel {
+            override suspend fun connect(): ChannelState {
+                promptOpened.complete(Unit)
+                grantAccess.await()
+                return channel.connect()
+            }
+        }
+        val repository = repository(privilegedChannel = promptingChannel)
+        val existing = firewallRow("existing", TARGET)
+        dao.upsert(listOf(existing))
+        val pending = async { change(repository) }
+        promptOpened.await()
+
+        val acquired = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val competingChange = async {
+            lock.withLock {
+                acquired.complete(Unit)
+                release.await()
+            }
+        }
+        runCurrent()
+        assertThat(acquired.isCompleted).isTrue()
+
+        grantAccess.complete(Unit)
+        runCurrent()
+        assertThat(channel.connectCount).isEqualTo(1)
+        channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+        release.complete(Unit)
+        competingChange.await()
+
+        assertThat(pending.await()).isEqualTo(WakeBlockOutcome(emptySet(), WakeBlockFailure.NoAccess))
+        assertThat(writer.userWrites).isEmpty()
+        assertThat(dao.all()).containsExactly(existing)
     }
 
     private fun path(
