@@ -219,15 +219,19 @@ class CatalogInstallerTest {
     }
 
     @Test
-    fun givenAnOlderCatalog_whenInstallingANewerSequence_thenTheIconDirectoryIsSwapped() = runTest {
+    fun givenAnOlderCatalog_whenInstallingANewerSequence_thenOldIconsLastUntilTheNextProcess() = runTest {
         installer.install(fixtureCatalog(1))
         val old = repository.iconFile(FIXTURE_ICON)
 
         val result = installer.install(fixtureCatalog(2, icon = "new icon")) as CatalogInstallResult.Installed
 
         assertThat(result.state.sequence).isEqualTo(2L)
+        assertThat(old?.readText()).isEqualTo("old icon")
+        assertThat(repository.iconFile(FIXTURE_ICON)?.readText()).isEqualTo("new icon")
+
+        val restarted = CatalogInstaller(dao, icons, Dispatchers.IO)
+        assertThat(restarted.install(fixtureCatalog(2, icon = "new icon"))).isEqualTo(CatalogInstallResult.SkippedNotNewer)
         assertThat(old?.exists()).isFalse()
-        assertThat(icons.directory(1).exists()).isFalse()
         assertThat(repository.iconFile(FIXTURE_ICON)?.readText()).isEqualTo("new icon")
     }
 

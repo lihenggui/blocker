@@ -17,7 +17,9 @@ import javax.inject.Inject
 interface CatalogRepository {
     val catalogState: Flow<CatalogState?>
     suspend fun installBundled(): CatalogInstallResult
-    suspend fun iconFile(path: String): File?
+
+    /** Resolves an icon in the given rule snapshot, or in the active catalog when no sequence is supplied. */
+    suspend fun iconFile(path: String, sequence: Long? = null): File?
 }
 
 sealed interface CatalogInstallResult {
@@ -39,7 +41,8 @@ internal class LocalCatalogRepository @Inject constructor(
 
     override suspend fun installBundled(): CatalogInstallResult = installer.install(bundled)
 
-    override suspend fun iconFile(path: String): File? = withContext(ioDispatcher) {
-        dao.readState()?.let { icons.resolve(it.sequence, path) }
+    override suspend fun iconFile(path: String, sequence: Long?): File? = withContext(ioDispatcher) {
+        val installedSequence = sequence ?: dao.readState()?.sequence ?: return@withContext null
+        icons.resolve(installedSequence, path)
     }
 }
