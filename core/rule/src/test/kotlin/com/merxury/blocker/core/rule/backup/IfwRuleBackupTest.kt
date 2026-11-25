@@ -287,19 +287,51 @@ class IfwRuleBackupTest {
     @Test
     fun givenWorkAppsUnreadable_whenImporting_thenKnownAppsAreRestoredAndUnknownFilesAreSkipped() = runTest {
         installedApps.sendApps(listOf(installedApp()))
-        val apps = object : InstalledAppRepository by installedApps {
-            override suspend fun refresh(user: UserId): ReadResult<Unit> = if (user == WORK) ReadResult.Failure(ReadFailure.UserNotReachable(WORK)) else installedApps.refresh(user)
-        }
         storage.putFile("ifw/$APP.xml", BLOCKER_RULE)
         storage.putFile("ifw/com.unknown.xml", BLOCKER_RULE)
 
-        val result = IfwRuleImporter(store, deviceUsers, apps, channel, IfwXmlDeserializer(), IfwXmlSerializer()).import(storage)
+        val result = importerWithUnreadableWorkApps().import(storage)
 
         assertThat(result.summary.applied).isEqualTo(1)
         assertThat(result.summary.skipped).containsExactly(SkipReason.USER_APPS_UNREADABLE, 1, SkipReason.FILE_NOT_RESTORED, 1)
         assertThat(result.summary.failed).isEmpty()
         assertThat(fileSystem.fileContent(APP)).isNotNull()
         assertThat(fileSystem.fileContent("com.unknown")).isNull()
+    }
+
+    @Test
+    fun givenWorkAppsUnreadable_whenImportingOneKnownApp_thenTheUnreadableUserIsNotCounted() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        storage.putFile("ifw/$APP.xml", BLOCKER_RULE)
+        storage.putFile("ifw/com.unknown.xml", BLOCKER_RULE)
+
+        val result = importerWithUnreadableWorkApps().import(storage, packageName = APP)
+
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(result.summary.skipped).isEmpty()
+        assertThat(result.summary.failed).isEmpty()
+        assertThat(fileSystem.fileContent("com.unknown")).isNull()
+    }
+
+    @Test
+    fun givenWorkAppsUnreadable_whenEveryFileCanBeClassified_thenTheUnreadableUserIsNotCounted() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        storage.putFile("ifw/$APP.xml", BLOCKER_RULE)
+        storage.putFile("ifw/custom-rules.xml", CONDITIONAL_RULE)
+
+        val result = importerWithUnreadableWorkApps().import(storage)
+
+        assertThat(result.summary.applied).isEqualTo(2)
+        assertThat(result.summary.skipped).isEmpty()
+        assertThat(result.summary.failed).isEmpty()
+        assertThat(fileSystem.fileContent("custom-rules")).isNotNull()
+    }
+
+    private fun importerWithUnreadableWorkApps(): IfwRuleImporter {
+        val apps = object : InstalledAppRepository by installedApps {
+            override suspend fun refresh(user: UserId): ReadResult<Unit> = if (user == WORK) ReadResult.Failure(ReadFailure.UserNotReachable(WORK)) else installedApps.refresh(user)
+        }
+        return IfwRuleImporter(store, deviceUsers, apps, channel, IfwXmlDeserializer(), IfwXmlSerializer())
     }
 
     @Test

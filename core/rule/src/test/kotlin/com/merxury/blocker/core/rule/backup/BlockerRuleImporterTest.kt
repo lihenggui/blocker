@@ -122,16 +122,61 @@ class BlockerRuleImporterTest {
     }
 
     @Test
-    fun givenRenamedBackupInTargetSet_whenImportingOneApp_thenItsContentsIdentifyTheApp() = runTest {
+    fun givenRenamedBackupsInTargetSet_whenImportingOneApp_thenOnlyTheFirstMatchIsUsed() = runTest {
         installedApps.sendApps(listOf(installedApp(user = WORK)))
         components.sendComponents(WORK, listOf(status(BOOT)))
-        storage.putFile("user-10/renamed.json", rule(entry(BOOT, false, "PM")))
+        storage.putFile("user-10/01-renamed.json", rule(entry(BOOT, false, "PM")))
+        storage.putFile("user-10/02-renamed.json", rule(entry(BOOT, true, "PM")))
+        storage.putFile("user-10/com.other.json", rule(entry(BOOT, true, "PM")))
+        val reads = mutableListOf<String>()
+        val trackedStorage = object : BackupStorage by storage {
+            override suspend fun read(path: String): String? {
+                reads += path
+                return storage.read(path)
+            }
+        }
 
-        val result = importer.import(storage, BackupSet(WORK), WORK, packageName = APP)
+        val result = importer.import(trackedStorage, BackupSet(WORK), WORK, packageName = APP)
+
+        assertThat(reads).containsExactly("user-10/$APP.json", "user-10/01-renamed.json").inOrder()
 
         assertThat(result.summary.applied).isEqualTo(1)
         assertThat(stateOf(WORK, BOOT)?.pm).isEqualTo(PmSetting.DISABLED)
         assertThat(components.requests.map { it.user }).containsExactly(WORK)
+    }
+
+    @Test
+    fun givenOnlyOtherPackageFiles_whenImportingOneApp_thenTheirContentsAreNotScanned() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        storage.putFile("com.other.json", rule(entry(BOOT, false, "PM")))
+        storage.putFile("android.json", rule(entry(BOOT, false, "PM")))
+        val reads = mutableListOf<String>()
+        val trackedStorage = object : BackupStorage by storage {
+            override suspend fun read(path: String): String? {
+                reads += path
+                return storage.read(path)
+            }
+        }
+
+        val result = importer.import(trackedStorage, BackupSet.OWNER, OWNER, packageName = APP)
+
+        assertThat(reads).containsExactly("$APP.json")
+        assertThat(result.summary.applied).isEqualTo(0)
+        assertThat(components.requests).isEmpty()
+    }
+
+    @Test
+    fun givenPackageNotInstalledForTarget_whenImportingOneApp_thenTheBackupSetIsNotScanned() = runTest {
+        installedApps.sendApps(listOf(installedApp(user = OWNER)))
+        storage.putFile("user-10/$APP.json", rule(entry(BOOT, false, "PM")))
+        val canonicalOnly = object : BackupStorage by storage {
+            override suspend fun listFiles(folder: String): List<String> = error("The app is absent for the target user")
+        }
+
+        val result = importer.import(canonicalOnly, BackupSet(WORK), WORK, packageName = APP)
+
+        assertThat(result.summary.skipped).containsExactly(SkipReason.APP_NOT_INSTALLED, 1)
+        assertThat(components.requests).isEmpty()
     }
 
     @Test
@@ -231,12 +276,30 @@ class BlockerRuleImporterTest {
     }
 
     @Test
+    fun givenRenamedBackups_whenRestoringAUser_thenContentsMatchOnlyAppsInstalledForThatUser() = runTest {
+        val ownerOnly = declaration("OwnerOnly", SYNC.type, "com.owneronly")
+        installedApps.sendApps(listOf(installedApp(user = WORK), installedApp("com.owneronly", user = OWNER)))
+        components.sendComponents(WORK, listOf(status(BOOT)))
+        components.sendComponents(OWNER, listOf(status(ownerOnly)))
+        storage.putFile("user-10/com.former.json", rule(entry(BOOT, false, "PM")))
+        storage.putFile("user-10/owner-backup.json", rule(entry(ownerOnly, false, "PM"), packageName = "com.owneronly"))
+
+        val result = importer.import(storage, BackupSet(WORK), WORK)
+
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(result.summary.skipped).containsExactly(SkipReason.OTHER_APP, 1)
+        assertThat(components.requests.map { it.user }).containsExactly(WORK)
+        assertThat(stateOf(WORK, BOOT)?.pm).isEqualTo(PmSetting.DISABLED)
+        assertThat(stateOf(OWNER, ownerOnly)?.pm).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test
     fun givenFourComponentsOfOneAppAndFilesSkippedWhole_whenImporting_thenComponentsAreCounted() = runTest {
         installedApps.sendApps(listOf(installedApp()))
         components.sendComponents(OWNER, allRunnable)
         storage.putFile("$APP.json", rule(entry(BOOT, false, "PM"), entry(SYNC, false, "PM"), entry(MAIN, false, "IFW"), entry(DATA, false, "PM")))
         storage.putFile("com.gone.json", rule(entry(declaration("A", SYNC.type, "com.gone"), false, "PM"), entry(declaration("B", SYNC.type, "com.gone"), false, "PM"), packageName = "com.gone"))
-        storage.putFile("com.named.json", rule(entry(BOOT, false, "PM"), entry(SYNC, false, "PM"), entry(MAIN, false, "PM")))
+        storage.putFile("com.named.json", rule(entry(BOOT, false, "PM"), entry(SYNC, false, "PM"), entry(MAIN, false, "PM"), packageName = "com.absent"))
 
         val result = importer.import(storage, BackupSet.OWNER, OWNER)
 

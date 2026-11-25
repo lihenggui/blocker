@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.core.ifw.IfwStore
+import com.merxury.core.ifw.isPackageRuleFileName
 import com.merxury.core.ifw.isRuleFileName
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
@@ -85,10 +86,11 @@ class IfwRuleImporter @Inject constructor(
             return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
         }.filter { packageName == null || it == packageName + IFW_RULE_EXTENSION }
         val summary = SummaryBuilder()
-        val (installed, complete) = when (val read = installedOnDevice(summary)) {
+        val (installed, unreadableUsers) = when (val read = installedOnDevice()) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
         }
+        var unclassified = false
         files.forEachIndexed { index, file ->
             onProgress(file, index, files.size)
             val name = file.removeSuffix(IFW_RULE_EXTENSION)
@@ -100,7 +102,10 @@ class IfwRuleImporter @Inject constructor(
 
                 // An unknown package may be installed only for an unreadable user. It cannot
                 // be treated as a custom file and restored outside the installed-app merge.
-                isSystem == null && !complete -> summary.skip(SkipReason.FILE_NOT_RESTORED)
+                isSystem == null && unreadableUsers > 0 && isPackageRuleFileName(name) -> {
+                    unclassified = true
+                    summary.skip(SkipReason.FILE_NOT_RESTORED)
+                }
 
                 isSystem == null -> restoreWholeFile(storage, name, summary)
 
@@ -109,6 +114,7 @@ class IfwRuleImporter @Inject constructor(
                 else -> importFile(storage, name, onlyThisApp = packageName != null, summary)
             }
         }
+        if (unclassified) summary.skip(SkipReason.USER_APPS_UNREADABLE, unreadableUsers)
         return RuleRunResult.Completed(summary.build())
     }
 
@@ -204,14 +210,14 @@ class IfwRuleImporter @Inject constructor(
         }
     }
 
-    /** Returns the readable packages and whether every user's apps were read. */
-    private suspend fun installedOnDevice(summary: SummaryBuilder): ReadResult<Pair<Map<String, Boolean>, Boolean>> {
+    /** Returns the readable packages and the number of users whose apps could not be read. */
+    private suspend fun installedOnDevice(): ReadResult<Pair<Map<String, Boolean>, Int>> {
         val users = when (val read = deviceUsers.refresh()) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return read
         }
         val installed = mutableMapOf<String, Boolean>()
-        var complete = true
+        var unreadableUsers = 0
         for (user in users) {
             val read = try {
                 installedApps.installedApps(user.id)
@@ -225,11 +231,10 @@ class IfwRuleImporter @Inject constructor(
                 read.value.values.forEach { installed.merge(it.key.packageName, it.isSystem, Boolean::or) }
             } else {
                 if (read is ReadResult.Failure) Timber.w("Cannot read the apps of user ${user.id.value}: ${read.reason}")
-                complete = false
-                summary.skip(SkipReason.USER_APPS_UNREADABLE)
+                unreadableUsers++
             }
         }
-        return ReadResult.Success(installed to complete)
+        return ReadResult.Success(installed to unreadableUsers)
     }
 }
 
