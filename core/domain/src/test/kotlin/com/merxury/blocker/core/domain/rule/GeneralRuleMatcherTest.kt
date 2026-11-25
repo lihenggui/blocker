@@ -108,6 +108,22 @@ class GeneralRuleMatcherTest {
     }
 
     @Test
+    fun givenRuleObserved_whenAnAppIsInstalledAndUpdated_thenMatchCountsFollowTheCache() = runTest {
+        val packageName = "com.alpha"
+
+        matcher().matches(OWNER).test {
+            assertThat(awaitItem().appCountOf(TRACKER.id)).isEqualTo(0)
+
+            apps.sendApps(listOf(installedApp(packageName)))
+            components.sendComponents(OWNER, listOf(status(packageName, "com.tracker.Replacement")))
+            assertThat(awaitItem().appCountOf(TRACKER.id)).isEqualTo(1)
+
+            components.sendComponents(OWNER, listOf(status(packageName, "com.alpha.Main")))
+            assertThat(awaitItem().appCountOf(TRACKER.id)).isEqualTo(0)
+        }
+    }
+
+    @Test
     fun givenMatches_whenTheCacheStateChanges_thenEmitsTheNewState() = runTest {
         apps.sendApps(listOf(installedApp("com.alpha")))
         components.sendComponents(OWNER, listOf(status("com.alpha", "com.tracker.A")))

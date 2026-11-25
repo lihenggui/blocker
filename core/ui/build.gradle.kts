@@ -34,7 +34,7 @@ dependencies {
     api(libs.androidx.metrics)
     api(libs.appiconloader)
 
-    implementation(projects.core.domain)
+    implementation(projects.core.common)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
     implementation(libs.kotlinx.datetime)

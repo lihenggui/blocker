@@ -28,8 +28,8 @@ android {
 dependencies {
     implementation(projects.feature.ifwrule.api)
     implementation(projects.core.ifwApi)
-    implementation(projects.core.data)
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
+    implementation(libs.timber)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)

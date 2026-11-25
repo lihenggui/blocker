@@ -82,8 +82,8 @@ graph TB
   :core:system -.-> :core:common
   :core:system --> :core:model
   :core:ui --> :core:analytics
+  :core:ui -.-> :core:common
   :core:ui --> :core:designsystem
-  :core:ui -.-> :core:domain
   :core:ui --> :core:ifw-api
   :core:ui --> :core:model
   :feature:appdetail:api --> :core:navigation
