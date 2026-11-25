@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.search.impl
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.applist.CountServicesUseCase
@@ -151,7 +152,7 @@ internal class SearchFixture(dispatcher: CoroutineDispatcher) {
         searchRules = SearchGeneralRuleUseCase(rules, ruleMatcher, File("/files"), "rules"),
         performAppAction = PerformAppActionUseCase(installedApps, appControl, channel),
         readRunningPackages = ReadRunningPackagesUseCase(appControl, channel),
-        countAppServices = CountServicesUseCase(components, serviceControl, channel),
+        countAppServices = CountServicesUseCase(components, LocalComponentActions(appControl, serviceControl), channel),
         channel = channel,
         userDataRepository = userData,
         analyticsHelper = analytics,

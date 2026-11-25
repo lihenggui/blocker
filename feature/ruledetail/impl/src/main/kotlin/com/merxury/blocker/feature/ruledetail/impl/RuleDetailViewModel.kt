@@ -19,7 +19,7 @@ package com.merxury.blocker.feature.ruledetail.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.appcontrol.AppControl
+import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.RuleBaseFolder
@@ -106,7 +106,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val batches: ComponentBatchRunner,
     private val controlComponent: ControlComponentUseCase,
     private val layersFor: GetControlLayersUseCase,
-    private val appControl: AppControl,
+    private val componentActions: ComponentActions,
     private val channel: PrivilegedChannel,
     userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
@@ -259,7 +259,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     /** Starts [activity], for the user of its row; a blocked one stays blocked, as its switch shows. */
     fun launchActivity(activity: ComponentKey) = viewModelScope.launch {
         analyticsHelper.logLaunchActivityClicked()
-        val result = appControl.startActivity(activity)
+        val result = componentActions.startActivity(activity)
         if (result is CallResult.Failure) {
             Timber.w("Cannot launch $activity: ${result.reason}")
             actionFailure.value = ActivityLaunchFailed.of(activity.id.simpleName, result.reason)

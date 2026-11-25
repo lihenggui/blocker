@@ -20,6 +20,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.work.WorkManager
 import com.merxury.blocker.core.appcontrol.ServiceControl
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ControlComponentUseCase
@@ -145,8 +146,7 @@ internal class AppDetailFixture(
         ComponentListViewModel(
             selectedUsers = selectedUsers,
             componentStatuses = components,
-            serviceControl = services ?: serviceControl,
-            appControl = appControl,
+            componentActions = LocalComponentActions(appControl, services ?: serviceControl),
             channel = channel,
             componentDetails = details,
             generalRules = rules,

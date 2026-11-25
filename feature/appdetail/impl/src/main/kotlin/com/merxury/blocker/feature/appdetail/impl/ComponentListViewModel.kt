@@ -20,8 +20,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.appcontrol.AppControl
-import com.merxury.blocker.core.appcontrol.ServiceControl
+import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.RuleBaseFolder
@@ -88,8 +87,7 @@ import java.io.File
 class ComponentListViewModel @AssistedInject constructor(
     selectedUsers: SelectedUserRepository,
     private val componentStatuses: ComponentStatusRepository,
-    private val serviceControl: ServiceControl,
-    private val appControl: AppControl,
+    private val componentActions: ComponentActions,
     private val channel: PrivilegedChannel,
     private val componentDetails: ComponentDetailRepository,
     generalRules: GeneralRuleRepository,
@@ -300,7 +298,7 @@ class ComponentListViewModel @AssistedInject constructor(
     /** Starts [activity]; a blocked one stays blocked, as its switch shows. */
     fun launchActivity(activity: ComponentId) = viewModelScope.launch {
         analyticsHelper.logStartActivityClicked()
-        val result = appControl.startActivity(ComponentKey(activity, app.userId))
+        val result = componentActions.startActivity(ComponentKey(activity, app.userId))
         if (result is CallResult.Failure) {
             Timber.w("Cannot launch $activity: ${result.reason}")
             message.value = ListMessage.LaunchFailed(activity.simpleName, result.reason.toActionFailure())
@@ -309,7 +307,7 @@ class ComponentListViewModel @AssistedInject constructor(
 
     fun stopService(service: ComponentId) = viewModelScope.launch {
         analyticsHelper.logStopServiceClicked()
-        val result = serviceControl.stop(ComponentKey(service, app.userId))
+        val result = componentActions.stopService(ComponentKey(service, app.userId))
         if (result is CallResult.Failure) {
             Timber.w("Cannot stop $service: ${result.reason}")
             message.value = ListMessage.StopFailed(service.simpleName, result.reason.toActionFailure())
@@ -360,7 +358,7 @@ class ComponentListViewModel @AssistedInject constructor(
 
     private suspend fun readRunning() {
         // Reading connects the channel, which may prompt; showing a list never asks.
-        val result = if (channel.state.value is ChannelState.Ready) serviceControl.runningServices(app) else null
+        val result = if (channel.state.value is ChannelState.Ready) componentActions.runningServices(app) else null
         if (result is CallResult.Failure) Timber.d("No running services of $app: ${result.reason}")
         running.value = (result as? CallResult.Success)?.value
     }

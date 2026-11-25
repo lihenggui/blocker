@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.applist.impl
 
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.domain.applist.CountServicesUseCase
 import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
@@ -121,7 +122,7 @@ internal class AppListFixture(private val dispatcher: CoroutineDispatcher) {
         installedApps = installedApps,
         performAppAction = PerformAppActionUseCase(installedApps, appControl, channel),
         readRunningPackages = ReadRunningPackagesUseCase(appControl, channel),
-        countAppServices = CountServicesUseCase(components, serviceControl, channel),
+        countAppServices = CountServicesUseCase(components, LocalComponentActions(appControl, serviceControl), channel),
         channel = channel,
         userDataRepository = userData,
         analyticsHelper = analytics,

@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.ruledetail.impl
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PackageControlActivity
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.ControlComponentUseCase
@@ -44,6 +45,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.controller.FakeAppControl
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
+import com.merxury.blocker.core.testing.controller.FakeServiceControl
 import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
@@ -156,7 +158,7 @@ internal class RuleDetailFixture(dispatcher: CoroutineDispatcher) {
         batches = batches,
         controlComponent = ControlComponentUseCase(control, layers),
         layersFor = layers,
-        appControl = appControl,
+        componentActions = LocalComponentActions(appControl, FakeServiceControl()),
         channel = channel,
         userDataRepository = userData,
         analyticsHelper = analytics,

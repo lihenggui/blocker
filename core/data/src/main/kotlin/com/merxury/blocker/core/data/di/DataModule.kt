@@ -16,12 +16,14 @@
 
 package com.merxury.blocker.core.data.di
 
+import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InMemorySelectedUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppDbPmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.LocalComponentStatusRepository
 import com.merxury.blocker.core.data.device.LocalDebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.LocalDeviceUserRepository
@@ -56,6 +58,9 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
+    @Binds
+    internal abstract fun bindComponentActions(impl: LocalComponentActions): ComponentActions
+
     @Binds
     internal abstract fun bindUserDataRepository(
         userDataRepository: LocalUserDataRepository,
