@@ -14,13 +14,6 @@ import kotlinx.serialization.json.JsonPrimitive
 
 internal fun isApp(uid: Int?) = uid != null && appIdOfUid(uid) >= 10_000
 
-/**
- * android.os.Process FIRST_APPLICATION_UID..LAST_APPLICATION_UID. SDK sandbox (20000-29999), app
- * zygote (90000-98999) and isolated (99000-99999) uids run code on behalf of a host app and are not
- * revives of it.
- */
-internal fun isRegularApp(uid: Int?) = uid != null && appIdOfUid(uid) in 10_000..19_999
-
 /** Push services whose deliveries wake their clients. GMS also performs other requests, so only its c2dm delivery counts. */
 internal object WakePushTransports {
     // Google Play services delivers FCM with the c2dm receive action. The vendor entries are the

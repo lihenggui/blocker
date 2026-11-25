@@ -42,7 +42,6 @@ import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.applist.AppActionFailed
 import com.merxury.blocker.core.ui.applist.appRows
 import com.merxury.blocker.core.ui.profile.toProfileTab
-import com.merxury.blocker.core.utils.ownAppKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -82,7 +81,7 @@ class AppListViewModel @Inject internal constructor(
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @AppPackageName appPackageName: String,
 ) : ViewModel() {
-    private val self = ownAppKey(appPackageName, selectedUsers.ownUser)
+    private val self = AppKey(appPackageName, selectedUsers.ownUser)
     private val refreshes = MutableStateFlow<Map<UserId, RefreshStatus>>(emptyMap())
 
     // What the system last answered for each user; absent when it could not be read.

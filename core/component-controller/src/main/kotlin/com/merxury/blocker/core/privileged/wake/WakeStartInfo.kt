@@ -3,7 +3,7 @@
 
 package com.merxury.blocker.core.privileged.wake
 
-import com.merxury.blocker.core.model.component.appIdOfUid
+import com.merxury.blocker.core.model.component.isRegularAppUid
 import com.merxury.blocker.core.model.wake.WakeObservation
 import java.security.MessageDigest
 
@@ -71,7 +71,7 @@ internal object WakeStartInfo {
             val fields = record.fields?.groupValues ?: return
             val uid = record.uid ?: return
             // An isolated or sandbox process of a running app is not a start of the app.
-            if (record.realUid?.let { appIdOfUid(it) !in 10_000..19_999 } == true) return
+            if (record.realUid?.let { !isRegularAppUid(it) } == true) return
             // Created before this boot: the tracker reloaded it from disk without its package name.
             if (fields[1] == "null") return
             val reason = fields[4]

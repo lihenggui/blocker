@@ -5,6 +5,7 @@ package com.merxury.blocker.core.domain.wake
 
 import com.merxury.blocker.core.database.wake.WakeContinuation
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.component.isRegularAppUid
 import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.Justification
@@ -102,17 +103,21 @@ internal object WakeRevives {
         val events = kind("am_proc_start").filter { it.source == SYSTEM_WAKE_EVENTS }
         // The event log names each start with its exact time, pid and process.
         for (record in events) {
-            val uid = record.targetUid?.takeIf(::isRegularApp) ?: continue
+            val uid = record.targetUid?.takeIf(::isRegularAppUid) ?: continue
             starts.getOrPut(record.boot to uid) { mutableListOf() } += ColdStart(record.boot, uid, record.processName, record.elapsedNanos).apply {
                 event = record
                 component = componentKey(record.component)
             }
         }
         // ProcessStartTime logs isolated processes under the host uid; the event log under their own.
-        val isolatedPids = events.filter { it.targetUid != null && !isRegularApp(it.targetUid) && it.pid != null }
+        val isolatedPids = events
+            .filter { event ->
+                val uid = event.targetUid
+                uid != null && !isRegularAppUid(uid) && event.pid != null
+            }
             .groupBy({ it.boot to it.pid }, { it.elapsedNanos })
         for (record in kind("ProcessStartTime").filter { it.source == "statsd" && it.startType != 1 && it.startType != 2 }) {
-            val uid = record.targetUid?.takeIf(::isRegularApp) ?: continue
+            val uid = record.targetUid?.takeIf(::isRegularAppUid) ?: continue
             if (record.number("hosting_type_id") == ZYGOTE_HOSTING_TYPE_ID) continue
             val actual = record.number("process_start_time_millis")?.takeIf { it >= 0 }?.times(1_000_000) ?: record.elapsedNanos
             fun near(time: Long) = kotlin.math.abs(time - actual) <= MERGE_WINDOW
@@ -129,7 +134,7 @@ internal object WakeRevives {
         // so it fits the starts within that span. It also writes one record per component started while
         // the process comes up; the earliest describes it.
         for (record in kind(WAKE_START_INFO).filter { it.startType == 3 }.sortedBy { it.elapsedNanos }) {
-            val uid = record.targetUid?.takeIf(::isRegularApp) ?: continue
+            val uid = record.targetUid?.takeIf(::isRegularAppUid) ?: continue
             val sleep = if (record.attr(WAKE_START_INFO_CLOCK) == "elapsed") 0 else record.number(WAKE_START_INFO_SLEEP)
             val span = (record.elapsedNanos - MERGE_WINDOW)..(record.elapsedNanos + (sleep ?: 0) + MERGE_WINDOW)
             val candidates = starts[record.boot to uid].orEmpty().filter { start ->

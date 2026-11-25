@@ -56,7 +56,6 @@ import com.merxury.blocker.core.ui.applist.appRows
 import com.merxury.blocker.core.ui.control.batchSummary
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.profile.toProfileTab
-import com.merxury.blocker.core.utils.ownAppKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -112,7 +111,7 @@ class SearchViewModel @Inject internal constructor(
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @AppPackageName appPackageName: String,
 ) : ViewModel() {
-    private val self = ownAppKey(appPackageName, selectedUsers.ownUser)
+    private val self = AppKey(appPackageName, selectedUsers.ownUser)
     private val typed = MutableStateFlow("")
     private val tab = MutableStateFlow(SearchTab.APPS)
     private val selection = MutableStateFlow(Selection())

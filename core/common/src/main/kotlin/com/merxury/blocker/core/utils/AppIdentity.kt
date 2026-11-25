@@ -24,5 +24,5 @@ import com.merxury.blocker.core.model.component.userOfUid
 /** The Android user in which the current process runs. */
 fun currentUserId(): UserId = UserId(userOfUid(Process.myUid()))
 
-/** The installed copy of Blocker in [user]. */
-fun ownAppKey(packageName: String, user: UserId = currentUserId()): AppKey = AppKey(packageName, user)
+/** The installed copy of Blocker in the current process user. */
+fun ownAppKey(packageName: String): AppKey = AppKey(packageName, currentUserId())

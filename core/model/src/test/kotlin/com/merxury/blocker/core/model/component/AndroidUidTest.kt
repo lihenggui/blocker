@@ -21,6 +21,18 @@ import org.junit.Test
 
 class AndroidUidTest {
     @Test
+    fun givenUidsAcrossProfiles_whenCheckingAppRange_thenOnlyRegularAppIdsAreAccepted() {
+        listOf(0, 10).forEach { user ->
+            val offset = user * UIDS_PER_USER
+            assertThat(isRegularAppUid(offset + 9_999)).isFalse()
+            assertThat(isRegularAppUid(offset + 10_000)).isTrue()
+            assertThat(isRegularAppUid(offset + 19_999)).isTrue()
+            assertThat(isRegularAppUid(offset + 20_000)).isFalse()
+        }
+        assertThat(isRegularAppUid(-10_000)).isFalse()
+    }
+
+    @Test
     fun givenSameAppInTwoProfiles_whenDecodingUids_thenAppIdMatchesAndUserIdsDiffer() {
         val ownerUid = 10_456
         val workUid = 1_010_456

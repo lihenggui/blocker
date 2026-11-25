@@ -3,7 +3,7 @@
 
 package com.merxury.blocker.core.privileged.wake
 
-import com.merxury.blocker.core.model.component.appIdOfUid
+import com.merxury.blocker.core.model.component.isRegularAppUid
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -132,18 +132,19 @@ internal object WakeProcStats {
                     screen = totals
                 }
 
-                // The process itself, once, however many packages it hosts.
+                // The process itself, once, however many packages it hosts. Procstats files isolated
+                // processes under their host app UID. SDK sandbox processes keep their own UID.
                 "proc" -> {
                     if (fields.size < 3) continue
                     val uid = fields[2].toIntOrNull() ?: continue
-                    if (!isRegularApp(uid)) continue
+                    if (!isRegularAppUid(uid)) continue
                     accumulate(states, sdk, fields.drop(3), processes.getOrPut(uid to fields[1]) { LongArray(4) })
                 }
 
                 "pkgproc" -> {
                     if (fields.size < 5) continue
                     val uid = fields[2].toIntOrNull() ?: continue
-                    if (!isRegularApp(uid)) continue
+                    if (!isRegularAppUid(uid)) continue
                     val pkg = fields[1]
                     val process = expand(pkg, fields[4])
                     accumulate(states, sdk, fields.drop(5), held.getOrPut(Triple(pkg, uid, process)) { LongArray(4) })
@@ -154,7 +155,7 @@ internal object WakeProcStats {
                     val uid = fields[2].toIntOrNull() ?: continue
                     val sourceUid = fields[6].toIntOrNull() ?: continue
                     // An app's own processes holding each other count too.
-                    if (!isRegularApp(uid)) continue
+                    if (!isRegularAppUid(uid)) continue
                     // count, bound duration and active count precede the active time per client state.
                     val bound = fields[8].toLongOrNull()?.coerceAtLeast(0) ?: 0
                     val active = fields.drop(10).sumOf { it.substringAfter(':', "").toLongOrNull()?.coerceAtLeast(0) ?: 0 }
@@ -233,10 +234,6 @@ internal object WakeProcStats {
         val foreground = process[2] + process[3]
         return longArrayOf(offPart(held), held - offPart(held), offPart(foreground), foreground - offPart(foreground))
     }
-
-    // ProcessProfileRecord.getUidForAttribution files isolated processes under the host app uid, so
-    // they are already part of its rows. SDK sandbox processes keep their own uid and are skipped.
-    private fun isRegularApp(uid: Int) = appIdOfUid(uid) in 10_000..19_999
 
     // DumpUtils.collapseString drops the package prefix of names inside the package.
     private fun expand(pkg: String, name: String) = when {

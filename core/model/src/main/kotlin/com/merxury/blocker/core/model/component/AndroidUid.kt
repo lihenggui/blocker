@@ -22,3 +22,6 @@ const val UIDS_PER_USER = 100_000
 fun userOfUid(uid: Int): Int = uid / UIDS_PER_USER
 
 fun appIdOfUid(uid: Int): Int = uid % UIDS_PER_USER
+
+/** Whether the app ID is in Android's inclusive FIRST_APPLICATION_UID to LAST_APPLICATION_UID range. */
+fun isRegularAppUid(uid: Int): Boolean = appIdOfUid(uid) in 10_000..19_999

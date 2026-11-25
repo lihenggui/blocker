@@ -6,6 +6,7 @@ package com.merxury.blocker.core.domain.wake
 import com.merxury.blocker.core.database.wake.WakeHoldAssociation
 import com.merxury.blocker.core.database.wake.WakeHoldPeriod
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.component.isRegularAppUid
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.Justification
@@ -125,7 +126,7 @@ internal object WakeHolds {
         for ((key, processes) in evidence.processes.groupBy { Triple(it.periodId, it.target, it.uid) }) {
             val (periodId, target, uid) = key
             // procstats files isolated processes under their host uid. Other non-regular uids are not the app's own time.
-            if (!isRegularApp(uid)) continue
+            if (!isRegularAppUid(uid)) continue
             val period = periods[periodId] ?: continue
             val hidden = notificationsOff(target, uid, period.startMillis, period.endMillis)
             val off = processes.sumOf { it.screenOffMillis }
