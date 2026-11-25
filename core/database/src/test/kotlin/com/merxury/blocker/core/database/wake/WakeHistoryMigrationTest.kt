@@ -57,8 +57,8 @@ class WakeHistoryMigrationTest {
             assertThat(room.history().recent().first().map { it.id }).containsExactly("kept")
             val detection = room.detection()
             detection.replaceDetection(5, 5, listOf(finding), listOf(verdict), 0)
-            assertThat(detection.findings("pkg").first()).containsExactly(finding)
-            assertThat(detection.verdicts().first()).containsExactly(verdict)
+            assertThat(detection.findingsInvolving("pkg", 0).first()).containsExactly(finding)
+            assertThat(detection.verdictsSince(0).first()).containsExactly(verdict)
             assertThat(room.openHelper.readableDatabase.version).isEqualTo(2)
         } finally {
             room.close()

@@ -6,6 +6,7 @@ package com.merxury.blocker.core.database.wake
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import kotlinx.coroutines.flow.first
@@ -54,13 +55,44 @@ class WakeDetectionDaoTest {
     }
 
     @Test fun givenRecomputedDays_whenReplacingDetection_thenOnlyThoseDaysChangeAndOldDaysExpire() = runTest {
-        fun finding(day: Long, id: String = "f$day") = WakeFindingDay(id, day, "pkg", "UNKNOWN||pkg|", "UNKNOWN", null, null, null, null, null, "NONE", "DIRECT", null, 0, 1, 0, 0, day, 0)
-        fun verdict(day: Long) = WakeVerdictDay(day, "pkg", "NORMAL", 1, 1, 0, 0, 0, 0, 0, 0)
         dao.replaceDetection(1, 3, (1L..3L).map { finding(it) }, (1L..3L).map(::verdict), 1)
         dao.replaceDetection(3, 4, listOf(finding(3, "new"), finding(4), finding(9)), listOf(verdict(4)), 2)
-        assertThat(dao.findings("pkg").first().map { it.id }).containsExactly("f4", "new", "f2").inOrder()
-        assertThat(dao.verdicts().first().map { it.day }).containsExactly(4L, 2L).inOrder()
-        assertThat(dao.findings("other").first()).isEmpty()
+        assertThat(dao.findingsInvolving("pkg", 0).first().map { it.id }).containsExactly("f4", "new", "f2").inOrder()
+        assertThat(dao.verdictsSince(0).first().map { it.day }).containsExactly(4L, 2L).inOrder()
+        assertThat(dao.findingsInvolving("other", 0).first()).isEmpty()
+    }
+
+    @Test fun givenFindingsOnBothSidesOfTheCutoff_whenObservingAnApp_thenEitherRoleInTheWindowMatches() = runTest {
+        val inbound = finding(2, "in", actor = "peer")
+        val outbound = finding(3, "out", target = "peer", actor = "pkg")
+        val self = finding(3, "self", actor = "pkg")
+        val oldOutbound = outbound.copy(day = 1, id = "oldOut")
+        val unrelated = finding(3, "other", target = "unrelated", actor = "peer")
+        dao.findingsInvolving("pkg", 2).test {
+            assertThat(awaitItem()).isEmpty()
+            dao.replaceDetection(1, 3, listOf(finding(1), oldOutbound, inbound, outbound, self, unrelated), emptyList(), 0)
+            assertThat(awaitItem()).containsExactly(inbound, outbound, self)
+        }
+    }
+
+    @Test fun givenFindingsForSeveralApps_whenObservingSinceTheCutoff_thenAllInWindowMatch() = runTest {
+        val atCutoff = finding(2)
+        val later = finding(3, target = "other")
+        dao.findingsSince(2).test {
+            assertThat(awaitItem()).isEmpty()
+            dao.replaceDetection(1, 3, listOf(finding(1), atCutoff, later), emptyList(), 0)
+            assertThat(awaitItem()).containsExactly(later, atCutoff).inOrder()
+        }
+    }
+
+    @Test fun givenVerdictsForSeveralApps_whenObservingSinceTheCutoff_thenAllInWindowMatch() = runTest {
+        val atCutoff = verdict(2)
+        val later = verdict(3).copy(target = "other")
+        dao.verdictsSince(2).test {
+            assertThat(awaitItem()).isEmpty()
+            dao.replaceDetection(1, 3, emptyList(), listOf(verdict(1), atCutoff, later), 0)
+            assertThat(awaitItem()).containsExactly(later, atCutoff).inOrder()
+        }
     }
 
     @Test fun givenEventsAndHistory_whenResuming_thenTheNewestEventOfThisBootAndTheOldestImportAreFound() = runTest {
@@ -75,4 +107,8 @@ class WakeDetectionDaoTest {
         assertThat(dao.oldestImported()).isEqualTo(5_000)
         assertThat(dao.detectionRecords(0).map { it.id }).containsExactly("e2", "o", "s")
     }
+
+    private fun finding(day: Long, id: String = "f$day", target: String = "pkg", actor: String? = null) = WakeFindingDay(id, day, target, "UNKNOWN|${actor.orEmpty()}|$target|", "UNKNOWN", null, actor, null, null, null, "NONE", "DIRECT", null, 0, 1, 0, 0, day, 0)
+
+    private fun verdict(day: Long) = WakeVerdictDay(day, "pkg", "NORMAL", 1, 1, 0, 0, 0, 0, 0, 0)
 }
