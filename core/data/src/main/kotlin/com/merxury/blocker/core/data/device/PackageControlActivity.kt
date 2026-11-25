@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import androidx.annotation.VisibleForTesting
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
@@ -62,7 +63,8 @@ class PackageControlActivity internal constructor(private val elapsedRealtime: (
 
     internal fun isActive(packageName: String): Boolean = packageName in active.value
 
-    internal suspend fun awaitIdle(packageName: String) {
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    suspend fun awaitIdle(packageName: String) {
         active.first { packageName !in it }
     }
 

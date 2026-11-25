@@ -22,7 +22,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
-import app.cash.turbine.test
+import app.cash.turbine.turbineScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.cache.asEntity
 import com.merxury.blocker.core.model.component.AppKey
@@ -87,15 +87,24 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
     fun givenCacheObserved_whenPackageIsInstalledAndUpdated_thenComponentListFollowsBroadcasts() = runTest {
         val fixture = startMonitor()
 
-        fixture.cache.components(app.key).test {
-            assertThat(awaitItem()).isEmpty()
+        turbineScope {
+            val packageComponents = fixture.cache.components(app.key).testIn(backgroundScope)
+            val allComponents = fixture.cache.allComponents(OWNER).testIn(backgroundScope)
+            assertThat(packageComponents.awaitItem()).isEmpty()
+            assertThat(allComponents.awaitItem()).isEmpty()
+
             system.install(app, replacement)
             announce(Intent.ACTION_PACKAGE_ADDED)
-            assertThat(awaitItem().map { it.declaration }).containsExactly(replacement)
+            assertThat(packageComponents.awaitItem().map { it.declaration }).containsExactly(replacement)
+            assertThat(allComponents.awaitItem().map { it.declaration }).containsExactly(replacement)
 
             system.install(installedApp(PKG, lastUpdateTime = 3_000), main)
             announce(Intent.ACTION_PACKAGE_REPLACED)
-            assertThat(awaitItem().map { it.declaration }).containsExactly(main)
+            assertThat(packageComponents.awaitItem().map { it.declaration }).containsExactly(main)
+            assertThat(allComponents.awaitItem().map { it.declaration }).containsExactly(main)
+
+            packageComponents.cancelAndIgnoreRemainingEvents()
+            allComponents.cancelAndIgnoreRemainingEvents()
         }
     }
 
