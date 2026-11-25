@@ -79,7 +79,13 @@ internal class InMemorySelectedUserRepository(
         running = true,
     )
 
+    private val choice = MutableStateFlow(ownUser)
+
     override val users: StateFlow<List<DeviceUser>> = combine(deviceUsers.users, channel.state) { cached, state ->
+        if (state is ChannelState.Ready) {
+            val chosen = choice.value
+            if (cached.none { it.id == chosen }) choice.compareAndSet(chosen, ownUser)
+        }
         val own = cached.find { it.id == ownUser } ?: ownFallback
         if (state is ChannelState.Ready || state == NOT_CHECKED) {
             (cached.filter { it.id != ownUser } + own).sortedBy { it.id.value }
@@ -88,7 +94,6 @@ internal class InMemorySelectedUserRepository(
         }
     }.stateIn(scope, SharingStarted.Eagerly, listOf(ownFallback))
 
-    private val choice = MutableStateFlow(ownUser)
     override val selectedUser: StateFlow<UserId> = combine(users, choice) { reachable, chosen ->
         if (reachable.any { it.id == chosen }) chosen else ownUser
     }.stateIn(scope, SharingStarted.Eagerly, ownUser)

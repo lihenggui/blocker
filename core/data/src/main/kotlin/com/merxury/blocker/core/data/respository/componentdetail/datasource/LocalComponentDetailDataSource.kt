@@ -22,7 +22,6 @@ import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
-import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -59,47 +58,6 @@ internal class LocalComponentDetailDataSource @Inject constructor(
         filesDir.resolve(ruleBaseFolder)
             .resolve(COMPONENT_FOLDER)
     }
-
-    fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
-        val language = userDataRepository.getLibDisplayLanguage()
-        val bundle = getBundle(language)
-        if (bundle != null) {
-            val prefix = "$packageName."
-            emit(bundle.tailMap(prefix).values.takeWhile { it.name.startsWith(prefix) })
-            return@flow
-        }
-        val path = packageName.replace(".", File.separator)
-            .plus(File.separator)
-        val folder = workingDir
-            .resolve(language)
-            .resolve(path)
-        if (!folder.exists()) {
-            Timber.v("Component folder for $packageName does not exist")
-            emit(emptyList())
-            return@flow
-        }
-        // Check if folder contains any json file
-        val files = folder.listFilesRecursively()
-            .filter { it.extension == EXTENSION }
-        if (files.isEmpty()) {
-            Timber.v("No component info for $packageName found")
-            emit(emptyList())
-            return@flow
-        }
-        val componentDetails = mutableListOf<ComponentDetail>()
-        files.forEach { file ->
-            try {
-                val componentDetail = json.decodeFromString<ComponentDetail>(file.readText())
-                componentDetails.add(componentDetail)
-            } catch (e: SerializationException) {
-                Timber.e(e, "given JSON string is not a valid JSON input for the type")
-            } catch (e: IllegalArgumentException) {
-                Timber.e(e, "decoded input cannot be represented as a valid instance of type")
-            }
-        }
-        emit(componentDetails)
-    }
-        .flowOn(ioDispatcher)
 
     override fun getByComponentName(name: String): Flow<ComponentDetail?> = flow {
         val language = userDataRepository.getLibDisplayLanguage()

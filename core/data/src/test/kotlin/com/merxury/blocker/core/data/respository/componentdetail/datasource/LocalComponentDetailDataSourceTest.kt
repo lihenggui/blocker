@@ -82,26 +82,10 @@ class LocalComponentDetailDataSourceTest {
     }
 
     @Test
-    fun given_bundle_when_get_by_package_name_then_includes_subpackages_and_excludes_sibling_prefix() = runTest {
-        val nested = component.copy(name = "com.foo.sub.Service")
-        writeBundle(
-            listOf(component, nested, component.copy(name = "com.foobar.Activity"), component.copy(name = "com.foo")),
-        )
-
-        assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(component, nested).inOrder()
-        assertThat(dataSource.getByPackageName("com.foo.sub").first()).containsExactly(nested)
-        assertThat(dataSource.getByPackageName("com.missing").first()).isEmpty()
-    }
-
-    @Test
     fun given_missing_bundle_when_queries_run_then_falls_back_to_per_file_details() = runTest {
-        val nested = component.copy(name = "com.foo.sub.Service")
         writeLegacy(component)
-        writeLegacy(nested)
-        writeLegacy(component.copy(name = "com.foobar.Activity"))
 
         assertThat(dataSource.getByComponentName(component.name).first()).isEqualTo(component)
-        assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(component, nested)
         assertThat(dataSource.getByComponentName("com.foo.Missing").first()).isNull()
     }
 
@@ -114,7 +98,6 @@ class LocalComponentDetailDataSourceTest {
         writeBundle(listOf(updated))
         assertThat(file.setLastModified(originalTimestamp + 2_000)).isTrue()
 
-        assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(updated)
         assertThat(dataSource.getByComponentName(updated.name).first()).isEqualTo(updated)
         assertThat(dataSource.getByComponentName(component.name).first()).isNull()
     }
@@ -122,7 +105,6 @@ class LocalComponentDetailDataSourceTest {
     @Test
     fun given_cached_bundle_when_only_length_changes_then_reloads() = runTest {
         val file = writeBundle(listOf(component))
-        assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(component)
         val originalTimestamp = file.lastModified()
         val originalLength = file.length()
         val updated = component.copy(description = "A different length")
@@ -144,7 +126,7 @@ class LocalComponentDetailDataSourceTest {
         assertThat(file.setLastModified(originalTimestamp + 2_000)).isTrue()
         assertThat(file.length()).isEqualTo(originalLength)
 
-        assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(updated)
+        assertThat(dataSource.getByComponentName(component.name).first()).isEqualTo(updated)
     }
 
     @Test
@@ -160,7 +142,6 @@ class LocalComponentDetailDataSourceTest {
         preferences.setLibDisplayLanguage("zh-CN")
 
         assertThat(dataSource.getByComponentName(component.name).first()).isEqualTo(chinese)
-        assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(chinese)
     }
 
     @Test
@@ -181,8 +162,8 @@ class LocalComponentDetailDataSourceTest {
         }
         Timber.plant(tree)
         try {
-            assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(component, nested)
             assertThat(dataSource.getByComponentName(nested.name).first()).isEqualTo(nested)
+            assertThat(dataSource.getByComponentName(component.name).first()).isEqualTo(component)
             assertThat(errors).hasSize(3)
         } finally {
             Timber.uproot(tree)
@@ -195,7 +176,6 @@ class LocalComponentDetailDataSourceTest {
         writeLegacy(component)
 
         assertThat(dataSource.getByComponentName(component.name).first()).isEqualTo(component)
-        assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(component)
     }
 
     @Test
@@ -205,7 +185,6 @@ class LocalComponentDetailDataSourceTest {
         writeLegacy(legacy)
 
         assertThat(dataSource.getByComponentName(component.name).first()).isEqualTo(legacy)
-        assertThat(dataSource.getByPackageName("com.foo").first()).containsExactly(legacy)
     }
 
     @Test
@@ -214,7 +193,6 @@ class LocalComponentDetailDataSourceTest {
         writeLegacy(component)
 
         assertThat(dataSource.getByComponentName(component.name).first()).isNull()
-        assertThat(dataSource.getByPackageName("com.foo").first()).isEmpty()
     }
 
     @Test

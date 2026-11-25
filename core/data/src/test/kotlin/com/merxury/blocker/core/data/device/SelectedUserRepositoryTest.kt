@@ -134,13 +134,18 @@ class SelectedUserRepositoryTest {
     }
 
     @Test
-    fun givenWorkSelected_whenProfileRemoved_thenOwnUserSelected() = runTest(UnconfinedTestDispatcher()) {
+    fun givenWorkSelected_whenProfileRemovedAndIdReused_thenOwnUserStaysSelected() = runTest(UnconfinedTestDispatcher()) {
         val repository = repository()
         deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
         repository.select(WORK)
 
         deviceUsers.sendUsers(listOf(deviceUser(OWNER)))
 
+        assertThat(repository.selectedUser.value).isEqualTo(OWNER)
+
+        deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK).copy(name = "New work profile")))
+
+        assertThat(repository.users.value.map { it.id }).containsExactly(OWNER, WORK)
         assertThat(repository.selectedUser.value).isEqualTo(OWNER)
     }
 }

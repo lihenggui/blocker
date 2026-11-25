@@ -104,7 +104,7 @@ class DeviceUserMonitorTest {
     }
 
     @Test
-    fun givenStartedTwice_whenAProfileBecomesAvailable_thenTheEventCausesOneRefresh() = runTest(UnconfinedTestDispatcher()) {
+    fun givenStartedTwice_whenAProfileBecomesAvailable_thenThereIsOneStartupAndOneEventRefresh() = runTest(UnconfinedTestDispatcher()) {
         monitor().start()
 
         announce(Intent.ACTION_MANAGED_PROFILE_AVAILABLE)
