@@ -50,6 +50,8 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneBroadcastMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
+import com.merxury.blocker.core.data.wake.LocalWakeBlockRepository
+import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -63,6 +65,9 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindBackgroundUsageRepository(repository: LocalBackgroundUsageRepository): BackgroundUsageRepository
+
+    @Binds
+    internal abstract fun bindWakeBlockRepository(repository: LocalWakeBlockRepository): WakeBlockRepository
 
     @Binds
     internal abstract fun bindComponentActions(impl: LocalComponentActions): ComponentActions

@@ -221,11 +221,11 @@ private fun WakeFindingDay.toWakePath(): WakePath {
 private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?, component: String?, action: String?): WakeBlockMethod = when {
     trigger == ReviveTrigger.PEER_SERVICE && component != null -> WakeBlockMethod.FIREWALL_RULE
 
-    hold == HoldCause.BOUND_BY_PEER && actor != target && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
+    hold == HoldCause.BOUND_BY_PEER && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
     trigger == ReviveTrigger.PEER_BROADCAST && (action != null || component != null) -> WakeBlockMethod.FIREWALL_RULE
 
-    trigger == ReviveTrigger.SYSTEM_BROADCAST && action != null -> WakeBlockMethod.FIREWALL_RULE
+    trigger == ReviveTrigger.SYSTEM_BROADCAST && (component != null || action != null) -> WakeBlockMethod.FIREWALL_RULE
 
     trigger == ReviveTrigger.SELF_PROCESS && (component != null || action != null) -> WakeBlockMethod.FIREWALL_RULE
 

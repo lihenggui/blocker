@@ -143,7 +143,7 @@ class WakeReadModelTest {
             revive(ReviveTrigger.PEER_BROADCAST, actor = PEER) to none,
             revive(ReviveTrigger.PEER_PROVIDER, actor = PEER) to none,
             revive(ReviveTrigger.STICKY_RESTART) to none,
-            revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "$APP/.Receiver") to none,
+            revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "$APP/.Receiver") to firewall,
             revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android") to none,
             revive(ReviveTrigger.SELF_PROCESS, actor = APP) to none,
             revive(ReviveTrigger.UNKNOWN, afterKill = "empty") to none,
@@ -155,7 +155,7 @@ class WakeReadModelTest {
             hold(HoldCause.FOREGROUND_SERVICE, screenOff = 2) to background,
             hold(HoldCause.WAKELOCK, screenOff = 2) to background,
             hold(HoldCause.RUNNING_JOB, screenOff = 2) to background,
-            hold(HoldCause.BOUND_BY_PEER, actor = APP, detail = ".Service", screenOff = 2) to none,
+            hold(HoldCause.BOUND_BY_PEER, actor = APP, detail = ".Service", screenOff = 2) to firewall,
             hold(HoldCause.BOUND_BY_PEER, actor = PEER) to none,
             hold(HoldCause.PROVIDER_CLIENT, actor = PEER) to none,
         )

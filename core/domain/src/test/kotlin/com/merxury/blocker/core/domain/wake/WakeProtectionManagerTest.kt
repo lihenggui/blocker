@@ -7,11 +7,13 @@ import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
+import com.merxury.blocker.core.data.wake.UserWakeFirewall
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.data.wake.WakeImport
 import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
+import com.merxury.blocker.core.data.wake.WakeRuleLock
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -48,9 +50,12 @@ class WakeProtectionManagerTest {
     private val components = mock<ManagedComponentState>()
     private val channel = FakePrivilegedChannel()
     private val userBlocks = FakePmBlockRecordDao()
+    private val lock = WakeRuleLock()
+    private val userFirewall = mock<UserWakeFirewall>()
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, PmBlockRecords(userBlocks)),
+        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, PmBlockRecords(userBlocks), userFirewall, lock),
+        lock,
         StandardTestDispatcher(testScheduler),
     )
     private val path = WakeProtection(
@@ -360,8 +365,8 @@ class WakeProtectionManagerTest {
 
         assertThat(manager.reconcile()).isFalse()
 
-        verify(rules).reset(stale.target)
-        verify(rules, never()).reset(current.target)
+        verify(rules).removeTarget(stale.target)
+        verify(rules, never()).removeTarget(current.target)
         verify(repository).saveProtections(listOf(stale.copy(configured = false)))
         verify(repository, never()).resetFirewall(any())
     }

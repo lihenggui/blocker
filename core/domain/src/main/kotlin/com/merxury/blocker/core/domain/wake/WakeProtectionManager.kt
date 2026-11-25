@@ -5,6 +5,7 @@ package com.merxury.blocker.core.domain.wake
 
 import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
+import com.merxury.blocker.core.data.wake.WakeRuleLock
 import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -15,8 +16,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
 import javax.inject.Inject
@@ -26,15 +25,12 @@ import javax.inject.Singleton
 class WakeProtectionManager @Inject constructor(
     private val repository: WakeRepository,
     private val protection: WakeProtectionRepository,
+    private val lock: WakeRuleLock,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
-    private val lock = Mutex()
-
     /** Resets the wake rules of [packageName], or all; false when the channel cannot write them. */
     suspend fun resetFirewall(packageName: String?): Boolean = withContext(ioDispatcher) {
-        lock.withLock {
-            protection.resetFirewall(packageName)
-        }
+        protection.resetFirewall(packageName)
     }
 
     suspend fun reconcile(): Boolean = withContext(ioDispatcher) {
@@ -53,6 +49,7 @@ class WakeProtectionManager @Inject constructor(
                 }
                 val writes = protection.writeAccess()
                 protection.revokeStaleFirewallRules(writes)
+                protection.syncUserFirewallRules(writes)
                 val capture = repository.collect(now - repository.lastDiagnostic >= 86_400_000, identity)
                 val records = repository.attributionRecords(capture.boot)
                 val relations = WakeAttribution.relationships(records)

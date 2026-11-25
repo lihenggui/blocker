@@ -17,6 +17,8 @@ import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
 import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
 import com.merxury.core.ifw.ManagedWakeRules
 import com.merxury.core.ifw.WakeServiceFilter
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -48,6 +50,8 @@ class WakeProtectionRepository @Inject constructor(
     private val components: ManagedComponentState,
     private val channel: PrivilegedChannel,
     private val userBlocks: PmBlockRecords,
+    private val userFirewall: UserWakeFirewall,
+    private val lock: WakeRuleLock,
 ) {
     /**
      * What this run may change, from the channel acquired without a prompt: background work must
@@ -71,14 +75,22 @@ class WakeProtectionRepository @Inject constructor(
      * The reset touches only the rule files and the firewall paths; the component journal holds
      * PackageManager changes only, so a journal this identity cannot read does not stop it.
      */
-    suspend fun resetFirewall(packageName: String?): Boolean {
-        if (!channel.connectIfGranted().mayEnforce || journalAccess() == JournalAccess.CALLS_REFUSED) return false
-        val alreadyPending = repository.rulesPending
-        repository.markRulesPending(true)
-        repository.resetFirewall(packageName)
-        rules.reset(packageName)
-        repository.markRulesPending(packageName != null && alreadyPending)
-        return true
+    suspend fun resetFirewall(packageName: String?): Boolean = lock.withLock {
+        if (!repository.isOwnerProfile || !channel.connectIfGranted().mayEnforce || journalAccess() == JournalAccess.CALLS_REFUSED) return@withLock false
+        withContext(NonCancellable) {
+            val alreadyPending = repository.rulesPending
+            repository.markRulesPending(true)
+            repository.resetFirewall(packageName)
+            rules.reset(packageName)
+            userFirewall.forgetFirewallBlocks(packageName)
+            repository.markRulesPending(packageName != null && alreadyPending)
+        }
+        true
+    }
+
+    /** Rebuilds the user's firewall file from the database while reconciliation holds the lock. */
+    suspend fun syncUserFirewallRules(writes: WakeWrites) {
+        if (writes == WakeWrites.Enforce) userFirewall.sync()
     }
 
     /**
@@ -110,7 +122,7 @@ class WakeProtectionRepository @Inject constructor(
 
         // Drop old revisions even when the following evidence collection fails.
         repository.markRulesPending(true)
-        for (target in staleTargets) rules.reset(target)
+        for (target in staleTargets) rules.removeTarget(target)
         repository.saveProtections(installed.filter { it.target in staleTargets }.map { it.copy(configured = false) })
     }
 
