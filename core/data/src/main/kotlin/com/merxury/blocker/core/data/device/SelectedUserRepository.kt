@@ -27,12 +27,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,7 +50,7 @@ interface SelectedUserRepository {
      */
     val users: StateFlow<List<DeviceUser>>
 
-    /** The selected user: [ownUser] until another is selected, and again once it leaves [users]. */
+    /** The chosen user when listed in [users], otherwise [ownUser]. */
     val selectedUser: StateFlow<UserId>
 
     /** Selects [user]; a user not in [users] is ignored. */
@@ -92,28 +88,17 @@ internal class InMemorySelectedUserRepository(
         }
     }.stateIn(scope, SharingStarted.Eagerly, listOf(ownFallback))
 
-    private val selected = MutableStateFlow(ownUser)
-    override val selectedUser: StateFlow<UserId> = selected.asStateFlow()
-
-    init {
-        users.onEach { reachable ->
-            selected.update { current ->
-                if (reachable.any { it.id == current }) {
-                    current
-                } else {
-                    Timber.i("User ${current.value} is no longer reachable, select user ${ownUser.value}")
-                    ownUser
-                }
-            }
-        }.launchIn(scope)
-    }
+    private val choice = MutableStateFlow(ownUser)
+    override val selectedUser: StateFlow<UserId> = combine(users, choice) { reachable, chosen ->
+        if (reachable.any { it.id == chosen }) chosen else ownUser
+    }.stateIn(scope, SharingStarted.Eagerly, ownUser)
 
     override fun select(user: UserId) {
         if (users.value.none { it.id == user }) {
             Timber.w("Cannot select user ${user.value}: not reachable")
             return
         }
-        selected.value = user
+        choice.value = user
     }
 
     private companion object {

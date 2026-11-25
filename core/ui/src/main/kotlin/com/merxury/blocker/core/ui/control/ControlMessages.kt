@@ -22,6 +22,7 @@ import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 
 /**
  * How a change of components ended, as the user is told: whether it worked, and missing access
@@ -40,27 +41,50 @@ sealed interface ControlMessage {
         val name: String,
         val goal: ControlGoal,
         override val needsAccess: Boolean = false,
+        val needsRoot: Boolean = false,
     ) : ControlMessage
+
+    data class ComponentPartlyChanged(
+        val name: String,
+        override val needsAccess: Boolean,
+        val needsRoot: Boolean,
+    ) : ControlMessage
+
+    data object FirewallSelfBlockRefused : ControlMessage {
+        override val needsAccess = false
+    }
 
     /** No components are available for a batch. */
     data object NoComponents : ControlMessage {
         override val needsAccess = false
     }
 
-    /** A batch ended. [notChanged] counts failed or partial outcomes and vanished components. */
+    /** A batch ended. [notChanged] counts failures and vanished components. */
     data class BatchDone(
         val notChanged: Int,
         override val needsAccess: Boolean = false,
-    ) : ControlMessage
+        val partlyChanged: Int = 0,
+        val needsRoot: Boolean = false,
+        val firewallSelfBlockRefused: Boolean = false,
+    ) : ControlMessage {
+        val hasIssues: Boolean get() = notChanged > 0 || partlyChanged > 0 || firewallSelfBlockRefused
+    }
 }
 
-/**
- * The message for a failed, partial, or vanished component. Achieved and protected skipped
- * outcomes return null.
- */
-fun ComponentOutcome?.toMessage(component: ComponentId, goal: ControlGoal): ControlMessage? {
-    if (this?.needsMessage() == false) return null
-    return ControlMessage.ComponentNotChanged(name = component.simpleName, goal = goal, needsAccess = this?.needsAccess() == true)
+/** The message for a component that did not fully reach its goal, or null if none is needed. */
+fun ComponentOutcome?.toMessage(component: ComponentId, goal: ControlGoal): ControlMessage? = when (this?.result) {
+    ControlResult.ACHIEVED -> null
+
+    ControlResult.SKIPPED -> if (firewallSelfBlockRefused()) ControlMessage.FirewallSelfBlockRefused else null
+
+    ControlResult.PARTIAL -> ControlMessage.ComponentPartlyChanged(component.simpleName, needsAccess(), needsRoot())
+
+    ControlResult.FAILED, null -> ControlMessage.ComponentNotChanged(
+        name = component.simpleName,
+        goal = goal,
+        needsAccess = this?.needsAccess() == true,
+        needsRoot = this?.needsRoot() == true,
+    )
 }
 
 /**
@@ -69,11 +93,16 @@ fun ComponentOutcome?.toMessage(component: ComponentId, goal: ControlGoal): Cont
  * @param vanished components chosen for the batch that were no longer cached when it was sent, so
  * nothing was sent for them; they count as not changed
  */
-fun batchSummary(outcomes: List<ComponentOutcome>, vanished: Collection<ComponentKey> = emptyList()): ControlMessage.BatchDone {
-    val notChanged = outcomes.filter { it.needsMessage() }
-    return ControlMessage.BatchDone(notChanged = notChanged.size + vanished.size, needsAccess = notChanged.any { it.needsAccess() })
-}
+fun batchSummary(outcomes: List<ComponentOutcome>, vanished: Collection<ComponentKey> = emptyList()): ControlMessage.BatchDone = ControlMessage.BatchDone(
+    notChanged = outcomes.count { it.result == ControlResult.FAILED } + vanished.size,
+    needsAccess = outcomes.any { it.needsAccess() },
+    partlyChanged = outcomes.count { it.result == ControlResult.PARTIAL },
+    needsRoot = outcomes.any { it.needsRoot() },
+    firewallSelfBlockRefused = outcomes.any { it.firewallSelfBlockRefused() },
+)
 
 private fun ComponentOutcome.needsAccess(): Boolean = failures.values.any { it == ControlFailure.ChannelUnavailable }
 
-private fun ComponentOutcome.needsMessage(): Boolean = result == ControlResult.FAILED || result == ControlResult.PARTIAL
+private fun ComponentOutcome.needsRoot(): Boolean = failures.values.any { it is ControlFailure.NotPermitted && it.identity == PrivilegedIdentity.SHELL }
+
+private fun ComponentOutcome.firewallSelfBlockRefused(): Boolean = failures.values.any { it == ControlFailure.FirewallProtectedComponent }

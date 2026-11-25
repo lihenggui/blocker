@@ -78,25 +78,22 @@ class BlockerRuleImporter @Inject constructor(
         onProgress: RuleRunProgress = { _, _, _ -> },
     ): RuleRunResult {
         if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
-        val files = try {
-            if (packageName != null) {
-                listOf(source.fileOf(packageName))
-            } else {
-                storage.listFiles(source.folder).filter { it.endsWith(BLOCKER_RULE_EXTENSION) }.sorted().map { pathOf(source.folder, it) }
-            }
-        } catch (e: BackupStorageException) {
-            Timber.e(e, "Cannot list the backup set ${source.folder}")
-            return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
-        }
         val apps = when (val read = installedApps.installedApps(target)) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
+        }
+        if (packageName != null) return importSingle(storage, source, packageName, apps[packageName], onProgress)
+        val files = try {
+            storage.ruleFiles(source)
+        } catch (e: BackupStorageException) {
+            Timber.e(e, "Cannot list the backup set ${source.folder}")
+            return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
         }
         val summary = SummaryBuilder()
         files.forEachIndexed { index, path ->
             onProgress(path.substringAfterLast('/'), index, files.size)
             val rule = readRule(storage, path, summary) ?: return@forEachIndexed
-            // The file is for the package it is named after, which is the selected app for one.
+            // A bulk restore assigns each file to the package it is named after.
             val filePackage = path.substringAfterLast('/').removeSuffix(BLOCKER_RULE_EXTENSION)
             val entries = rule.components.size
             if (rule.packageName != filePackage) {
@@ -106,23 +103,58 @@ class BlockerRuleImporter @Inject constructor(
             }
             val app = apps[filePackage]
             when {
-                app == null -> summary.skip(SkipReason.APP_NOT_INSTALLED, entries)
-                packageName == null && app.isSystem && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP, entries)
+                app?.isSystem == true && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP, entries)
                 else -> importRule(rule, app, summary)
             }
         }
         return RuleRunResult.Completed(summary.build())
     }
 
+    private suspend fun importSingle(
+        storage: BackupStorage,
+        source: BackupSet,
+        packageName: String,
+        app: InstalledApp?,
+        onProgress: RuleRunProgress,
+    ): RuleRunResult {
+        val summary = SummaryBuilder()
+        val expected = source.fileOf(packageName)
+        val named = readRule(storage, expected, summary)
+        if (named?.packageName == packageName) {
+            onProgress(expected.substringAfterLast('/'), 0, 1)
+            importRule(named, app, summary)
+            return RuleRunResult.Completed(summary.build())
+        }
+
+        val files = try {
+            storage.ruleFiles(source).filterNot { it == expected }
+        } catch (e: BackupStorageException) {
+            Timber.e(e, "Cannot list the backup set ${source.folder}")
+            return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
+        }
+        var matched = false
+        for ((index, path) in files.withIndex()) {
+            val rule = readRule(storage, path) ?: continue
+            if (rule.packageName != packageName) continue
+            matched = true
+            onProgress(path.substringAfterLast('/'), index, files.size)
+            importRule(rule, app, summary)
+        }
+        if (!matched && named != null) summary.skip(SkipReason.OTHER_APP, named.components.size)
+        return RuleRunResult.Completed(summary.build())
+    }
+
+    private suspend fun BackupStorage.ruleFiles(source: BackupSet): List<String> = listFiles(source.folder).filter { it.endsWith(BLOCKER_RULE_EXTENSION) }.sorted().map { pathOf(source.folder, it) }
+
     /** The rule in the file at [path], or null when the file is missing or cannot be used. */
-    private suspend fun readRule(storage: BackupStorage, path: String, summary: SummaryBuilder): BlockerRule? {
+    private suspend fun readRule(storage: BackupStorage, path: String, summary: SummaryBuilder? = null): BlockerRule? {
         val text = try {
             storage.read(path)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Timber.e(e, "Cannot read the backup $path")
-            summary.fail(FailureReason.BACKUP_UNREADABLE)
+            summary?.fail(FailureReason.BACKUP_UNREADABLE)
             return null
         }
         // Only a file asked for by package can be missing; there is nothing to restore then.
@@ -132,18 +164,22 @@ class BlockerRuleImporter @Inject constructor(
         } catch (e: IllegalArgumentException) {
             // SerializationException, raised for unknown enum names too, is an IllegalArgumentException.
             Timber.e(e, "Cannot parse the backup $path")
-            summary.fail(FailureReason.BACKUP_UNREADABLE)
+            summary?.fail(FailureReason.BACKUP_UNREADABLE)
             return null
         }
         if (rule.packageName.isNullOrBlank()) {
             Timber.e("The backup $path names no package")
-            summary.fail(FailureReason.BACKUP_UNREADABLE)
+            summary?.fail(FailureReason.BACKUP_UNREADABLE)
             return null
         }
         return rule
     }
 
-    private suspend fun importRule(rule: BlockerRule, app: InstalledApp, summary: SummaryBuilder) {
+    private suspend fun importRule(rule: BlockerRule, app: InstalledApp?, summary: SummaryBuilder) {
+        if (app == null) {
+            summary.skip(SkipReason.APP_NOT_INSTALLED, rule.components.size)
+            return
+        }
         val statuses = when (val read = components.freshComponents(app.key)) {
             is ReadResult.Success -> read.value
 

@@ -68,7 +68,7 @@ class IfwRuleImporter @Inject constructor(
      * Restores every backed-up file, merging those of installed apps, third-party apps only unless
      * [includeSystemApps], or only the rules of the installed app [packageName] when given.
      * Connects the privileged channel first, which may show the su or Shizuku prompt, and fails for
-     * privilege when it cannot reach the rule directory or another user's apps.
+     * privilege when it cannot reach the rule directory. Unreadable app lists are skipped.
      */
     suspend fun import(
         storage: BackupStorage,
@@ -84,20 +84,28 @@ class IfwRuleImporter @Inject constructor(
             Timber.e(e, "Cannot list the IFW backups")
             return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
         }.filter { packageName == null || it == packageName + IFW_RULE_EXTENSION }
-        val installed = when (val read = installedOnDevice()) {
+        val summary = SummaryBuilder()
+        val (installed, complete) = when (val read = installedOnDevice(summary)) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
         }
-        val summary = SummaryBuilder()
         files.forEachIndexed { index, file ->
             onProgress(file, index, files.size)
             val name = file.removeSuffix(IFW_RULE_EXTENSION)
             val isSystem = installed[name]
             when {
                 !isRuleFileName(name) -> summary.skip(SkipReason.FILE_NOT_RESTORED)
+
                 isSystem == null && packageName != null -> summary.skip(SkipReason.APP_NOT_INSTALLED)
+
+                // An unknown package may be installed only for an unreadable user. It cannot
+                // be treated as a custom file and restored outside the installed-app merge.
+                isSystem == null && !complete -> summary.skip(SkipReason.FILE_NOT_RESTORED)
+
                 isSystem == null -> restoreWholeFile(storage, name, summary)
+
                 isSystem && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP)
+
                 else -> importFile(storage, name, onlyThisApp = packageName != null, summary)
             }
         }
@@ -196,28 +204,32 @@ class IfwRuleImporter @Inject constructor(
         }
     }
 
-    /**
-     * Whether each package installed for at least one user is a system app, by package name. Fails
-     * when any user's apps cannot be read, since a package installed only there would be taken
-     * for one that is not installed.
-     */
-    private suspend fun installedOnDevice(): ReadResult<Map<String, Boolean>> {
+    /** Returns the readable packages and whether every user's apps were read. */
+    private suspend fun installedOnDevice(summary: SummaryBuilder): ReadResult<Pair<Map<String, Boolean>, Boolean>> {
         val users = when (val read = deviceUsers.refresh()) {
             is ReadResult.Success -> read.value
             is ReadResult.Failure -> return read
         }
         val installed = mutableMapOf<String, Boolean>()
+        var complete = true
         for (user in users) {
-            when (val read = installedApps.installedApps(user.id)) {
-                is ReadResult.Success -> read.value.values.forEach { installed.merge(it.key.packageName, it.isSystem, Boolean::or) }
-
-                is ReadResult.Failure -> {
-                    Timber.w("Cannot read the apps of user ${user.id.value}: ${read.reason}")
-                    return read
-                }
+            val read = try {
+                installedApps.installedApps(user.id)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "Cannot read the apps of user ${user.id.value}")
+                null
+            }
+            if (read is ReadResult.Success) {
+                read.value.values.forEach { installed.merge(it.key.packageName, it.isSystem, Boolean::or) }
+            } else {
+                if (read is ReadResult.Failure) Timber.w("Cannot read the apps of user ${user.id.value}: ${read.reason}")
+                complete = false
+                summary.skip(SkipReason.USER_APPS_UNREADABLE)
             }
         }
-        return ReadResult.Success(installed)
+        return ReadResult.Success(installed to complete)
     }
 }
 

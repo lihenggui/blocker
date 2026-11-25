@@ -21,28 +21,44 @@ import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.OneTimeWorkRequest
+import androidx.work.Operation
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.Futures
 import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.model.system.UserKind
+import com.merxury.blocker.core.rule.backup.BackupSet
+import com.merxury.blocker.core.rule.backup.BlockerBackupSets
 import com.merxury.blocker.core.rule.entity.RuleWorkEvent
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
+import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
+import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestSyncManager
+import com.merxury.blocker.core.ui.profile.ProfileLabel
+import com.merxury.blocker.feature.settings.api.R
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -52,6 +68,7 @@ import java.util.UUID
 
 /** The rule work the settings screen starts, and the events it shows for it. */
 @RunWith(RobolectricTestRunner::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class SettingsRuleWorkTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -59,59 +76,88 @@ class SettingsRuleWorkTest {
     private val application = ApplicationProvider.getApplicationContext<Application>()
     private val userDataRepository = TestUserDataRepository().apply { sendUserData(defaultUserData) }
     private val workManager = mock<WorkManager>()
+    private val backupSets = mock<BlockerBackupSets>()
+    private val selected = FakeSelectedUserRepository()
+    private val deviceUsers = FakeDeviceUserRepository()
+    private val owner = DeviceUser(UserId.SYSTEM, "Device Owner", UserKind.OWNER, null, running = true)
+    private val work = DeviceUser(UserId(10), "Work", UserKind.WORK_PROFILE, UserId.SYSTEM, running = true)
 
-    private val viewModel = SettingsViewModel(
-        appContext = application,
-        userDataRepository = userDataRepository,
-        blockerPreferences = mock<BlockerPreferencesDataSource>(),
-        syncManager = TestSyncManager(),
-        analyticsHelper = NoOpAnalyticsHelper(),
-        workManager = workManager,
-        ioDispatcher = mainDispatcherRule.testDispatcher,
-    )
+    private val viewModel by lazy {
+        SettingsViewModel(
+            appContext = application,
+            userDataRepository = userDataRepository,
+            blockerPreferences = mock<BlockerPreferencesDataSource>(),
+            syncManager = TestSyncManager(),
+            analyticsHelper = NoOpAnalyticsHelper(),
+            workManager = workManager,
+            selectedUsers = selected,
+            deviceUsers = deviceUsers,
+            backupSets = backupSets,
+            ioDispatcher = mainDispatcherRule.testDispatcher,
+        )
+    }
 
     private fun ended(state: WorkInfo.State, vararg output: Pair<String, Any>) = MutableLiveData(listOf(WorkInfo(UUID.randomUUID(), state, emptySet(), workDataOf(*output))))
 
+    private fun finishUserWork(vararg output: Pair<String, Any>) {
+        val operation = mock<Operation>()
+        whenever(operation.result) doReturn Futures.immediateFuture(Operation.SUCCESS)
+        whenever(workManager.enqueueUniqueWork(any<String>(), any(), any<OneTimeWorkRequest>())) doReturn operation
+        whenever(workManager.getWorkInfoByIdFlow(any())).thenAnswer {
+            flowOf(WorkInfo(it.getArgument(0), WorkInfo.State.SUCCEEDED, emptySet(), workDataOf(*output)))
+        }
+    }
+
+    private fun request() = argumentCaptor<OneTimeWorkRequest>().run {
+        verify(workManager).enqueueUniqueWork(any<String>(), any(), capture())
+        firstValue
+    }
+
+    private fun selectWork() {
+        selected.sendUsers(listOf(owner, work))
+        selected.select(work.id)
+    }
+
     @Test
     fun givenMatImport_whenItFinishes_thenTheScreenGetsItsResult() = runTest {
-        whenever(workManager.getWorkInfosForUniqueWorkLiveData("ImportMatRule")) doReturn
-            ended(WorkInfo.State.SUCCEEDED, RuleWorkResult.PARAM_CHANGED_COUNT to 3, RuleWorkResult.PARAM_SKIPPED_COUNT to 1)
-        val events = mutableListOf<RuleWorkEvent>()
+        finishUserWork(RuleWorkResult.PARAM_CHANGED_COUNT to 3, RuleWorkResult.PARAM_SKIPPED_COUNT to 1)
+        val events = mutableListOf<SettingsRuleEvent>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.eventFlow.toList(events) }
 
-        viewModel.importMyAndroidToolsRules(Uri.parse("content://docs/mat.txt"))
+        viewModel.startRuleAction(SettingsRuleAction.IMPORT_MAT) {
+            viewModel.importMyAndroidToolsRules(Uri.parse("content://docs/mat.txt"))
+        }
 
         verify(workManager).enqueueUniqueWork(any<String>(), any(), any<OneTimeWorkRequest>())
-        assertThat(events).containsExactly(RuleWorkEvent(RuleWorkType.IMPORT_MAT_RULES, RuleWorkResult.FINISHED, changed = 3, skipped = 1))
-        assertThat(events.single().resultMessage(application.resources)).isEqualTo("Done. 3 items changed. 1 item skipped.")
+        assertThat(events).containsExactly(SettingsRuleEvent(RuleWorkEvent(RuleWorkType.IMPORT_MAT_RULES, RuleWorkResult.FINISHED, changed = 3, skipped = 1)))
+        assertThat(events.single().work.resultMessage(application.resources)).isEqualTo("Done. 3 items changed. 1 item skipped.")
     }
 
     @Test
     fun givenImportWithAnUnreadableFile_whenItFinishes_thenTheMessageCountsTheFailureInsteadOfAnError() = runTest {
-        whenever(workManager.getWorkInfosForUniqueWorkLiveData("ImportBlockerRule")) doReturn ended(
-            WorkInfo.State.SUCCEEDED,
+        whenever(backupSets.alternatives(defaultUserData.ruleBackupFolder, UserId.SYSTEM)) doReturn emptyList()
+        finishUserWork(
             RuleWorkResult.PARAM_CHANGED_COUNT to 0,
             RuleWorkResult.PARAM_UNCHANGED_COUNT to 145,
             RuleWorkResult.PARAM_FAILED_COUNT to 1,
         )
-        val events = mutableListOf<RuleWorkEvent>()
+        val events = mutableListOf<SettingsRuleEvent>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.eventFlow.toList(events) }
 
-        viewModel.importBlockerRules()
+        viewModel.startRuleAction(SettingsRuleAction.IMPORT)
 
-        assertThat(events.single().resultMessage(application.resources)).isEqualTo("Done. 0 items changed. 1 item failed.")
+        assertThat(events.single().work.resultMessage(application.resources)).isEqualTo("Done. 0 items changed. 1 item failed.")
     }
 
     @Test
     fun givenExportWithoutTheFirewall_whenItFinishes_thenTheMessageSaysTheRulesWereNotIncluded() = runTest {
-        whenever(workManager.getWorkInfosForUniqueWorkLiveData("ExportBlockerRule")) doReturn
-            ended(WorkInfo.State.SUCCEEDED, RuleWorkResult.PARAM_CHANGED_COUNT to 7, RuleWorkResult.PARAM_FIREWALL_UNAVAILABLE to true)
-        val events = mutableListOf<RuleWorkEvent>()
+        finishUserWork(RuleWorkResult.PARAM_CHANGED_COUNT to 7, RuleWorkResult.PARAM_FIREWALL_UNAVAILABLE to true)
+        val events = mutableListOf<SettingsRuleEvent>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.eventFlow.toList(events) }
 
-        viewModel.exportBlockerRules()
+        viewModel.startRuleAction(SettingsRuleAction.EXPORT)
 
-        assertThat(events.single().resultMessage(application.resources))
+        assertThat(events.single().work.resultMessage(application.resources))
             .isEqualTo("Done. 7 items changed. The Intent Firewall rules could not be read and were not included.")
     }
 
@@ -119,11 +165,104 @@ class SettingsRuleWorkTest {
     fun givenUnreachableFolder_whenImportFails_thenTheMessageSaysTheFolderCannotBeAccessed() = runTest {
         whenever(workManager.getWorkInfosForUniqueWorkLiveData("ImportIfwRule")) doReturn
             ended(WorkInfo.State.FAILED, RuleWorkResult.PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION)
-        val events = mutableListOf<RuleWorkEvent>()
+        val events = mutableListOf<SettingsRuleEvent>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.eventFlow.toList(events) }
 
         viewModel.importIfwRules()
 
-        assertThat(events.single().resultMessage(application.resources)).isEqualTo("Cannot access the backup folder. Please choose it again in settings.")
+        assertThat(events.single().work.resultMessage(application.resources)).isEqualTo("Cannot access the backup folder. Please choose it again in settings.")
+    }
+
+    @Test
+    fun givenWorkSelected_whenExportIsConfirmedAfterChannelLoss_thenWorkRemainsTheTarget() = runTest {
+        selectWork()
+        finishUserWork(RuleWorkResult.PARAM_CHANGED_COUNT to 2)
+
+        viewModel.eventFlow.test {
+            viewModel.startRuleAction(SettingsRuleAction.EXPORT)
+            selected.sendUsers(listOf(owner))
+            viewModel.confirmRuleAction { error("Export does not open a file picker") }
+
+            assertThat(request().workSpec.input.getInt("param_target_user", -1)).isEqualTo(work.id.value)
+            assertThat(awaitItem().target).isEqualTo(ProfileLabel.Named("Work"))
+        }
+    }
+
+    @Test
+    fun givenWorkSelected_whenResetIsConfirmed_thenOnlyTheWorkUserIsPassedToTheWorker() = runTest {
+        selectWork()
+        finishUserWork()
+
+        viewModel.startRuleAction(SettingsRuleAction.RESET_PM)
+        viewModel.confirmRuleAction { error("Reset does not open a file picker") }
+
+        assertThat(request().workSpec.input.getInt("param_target_user", -1)).isEqualTo(work.id.value)
+    }
+
+    @Test
+    fun givenWorkSelected_whenMatPickerReturnsAfterSelectionChanges_thenWorkRemainsTheTarget() = runTest {
+        selectWork()
+        finishUserWork()
+        var opened = false
+
+        viewModel.startRuleAction(SettingsRuleAction.IMPORT_MAT) { error("The user must confirm first") }
+        viewModel.confirmRuleAction { opened = true }
+        selected.select(owner.id)
+        viewModel.importMyAndroidToolsRules(Uri.parse("content://docs/mat.txt"))
+
+        assertThat(opened).isTrue()
+        assertThat(request().workSpec.input.getInt("param_target_user", -1)).isEqualTo(work.id.value)
+    }
+
+    @Test
+    fun givenOtherBackupSets_whenASetIsChosen_thenItIsImportedIntoTheOriginalSelectedUser() = runTest {
+        selectWork()
+        val known = DeviceUser(UserId(11), "Archive", UserKind.SECONDARY, null, running = false)
+        deviceUsers.sendUsers(listOf(owner, work, known))
+        val absent = BackupSet(UserId(12))
+        whenever(backupSets.alternatives(defaultUserData.ruleBackupFolder, work.id)) doReturn listOf(BackupSet.OWNER, BackupSet(known.id), absent)
+        finishUserWork()
+
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.settingsUiState.collect { } }
+        runCurrent()
+        assertThat((viewModel.settingsUiState.value as SettingsUiState.Success).ruleDialog).isNull()
+
+        viewModel.startRuleAction(SettingsRuleAction.IMPORT)
+        selected.select(owner.id)
+        runCurrent()
+
+        val dialog = (viewModel.settingsUiState.value as SettingsUiState.Success).ruleDialog as SettingsRuleDialog.ChooseBackup
+        assertThat(dialog.sets).containsExactly(
+            BackupSet.OWNER,
+            ProfileLabel.Named("Device Owner"),
+            BackupSet(known.id),
+            ProfileLabel.Named("Archive"),
+            absent,
+            ProfileLabel.Numbered(12),
+        )
+        viewModel.chooseBackup(absent)
+        val input = request().workSpec.input
+        assertThat(input.getInt("param_source_set_user", -1)).isEqualTo(12)
+        assertThat(input.getInt("param_target_user", -1)).isEqualTo(work.id.value)
+    }
+
+    @Test
+    fun givenNoAlternativeSet_whenWorkImportIsConfirmed_thenTheWorkerUsesTheTargetsOwnSet() = runTest {
+        selectWork()
+        whenever(backupSets.alternatives(defaultUserData.ruleBackupFolder, work.id)) doReturn emptyList()
+        finishUserWork()
+
+        viewModel.startRuleAction(SettingsRuleAction.IMPORT)
+        viewModel.confirmRuleAction { error("Blocker import does not open a file picker") }
+
+        val input = request().workSpec.input
+        assertThat(input.getInt("param_source_set_user", -1)).isEqualTo(-1)
+        assertThat(input.getInt("param_target_user", -1)).isEqualTo(work.id.value)
+    }
+
+    @Test
+    fun givenResetPmSetting_whenSummaryIsRead_thenItDescribesTheComponentsBlockerDisabled() {
+        assertThat(application.getString(R.string.feature_settings_api_reset_pm_summary))
+            .isEqualTo("Restore the components that Blocker disabled through PackageManager to their default state")
     }
 }

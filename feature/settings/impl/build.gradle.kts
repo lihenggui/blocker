@@ -41,6 +41,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
     testImplementation(libs.truth)
+    testImplementation(libs.turbine)
     testImplementation(projects.core.testing)
     testImplementation(projects.core.screenshotTesting)
 

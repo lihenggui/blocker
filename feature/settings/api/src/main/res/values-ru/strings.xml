@@ -70,7 +70,13 @@
     <string name="feature_settings_api_anonymous_statistics_summary">Мы используем Firebase Analytics для сбора и анализа данных о наиболее часто используемых функциях и поведении пользователей с целью улучшения функциональности Blocker.</string>
     <string name="feature_settings_api_pm_rules">PM</string>
     <string name="feature_settings_api_reset_pm">Восстановить изменения PM</string>
-    <string name="feature_settings_api_reset_pm_summary">Вернуть все компоненты, отключённые через PM, к состоянию по умолчанию, заданному приложением</string>
+    <string name="feature_settings_api_reset_pm_summary">Вернуть к состоянию по умолчанию компоненты, которые Blocker отключил через PackageManager</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Восстановить изменения PM?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Вернуть все компоненты, отключённые Blocker через PM, к состоянию по умолчанию. Правила IFW не затрагиваются. Продолжить?</string>
+    <string name="feature_settings_api_confirm_user_export">Экспортировать правила для %1$s?</string>
+    <string name="feature_settings_api_confirm_user_import">Импортировать правила для %1$s?</string>
+    <string name="feature_settings_api_confirm_user_reset_pm">Отменить изменения PackageManager для %1$s?</string>
+    <string name="feature_settings_api_confirm_user_mat_import">Импортировать правила MyAndroidTools для %1$s?</string>
+    <string name="feature_settings_api_choose_rule_backup">Выберите резервную копию правил для импорта в профиль %1$s</string>
+    <string name="feature_settings_api_user_rule_result">%1$s\nПользователь: %2$s</string>
 </resources>

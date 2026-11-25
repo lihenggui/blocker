@@ -55,9 +55,13 @@ enum class SkipReason {
     /**
      * A backed-up rule file that is not an installed app's, such as a user's own `my-rules.xml`,
      * and is not restored because a file of that name is on the device, which is never
-     * overwritten, or because Blocker may not write a file of that name. Counts files.
+     * overwritten, because Blocker may not write a file of that name, or because Blocker cannot
+     * tell whether the file belongs to an app of an unreadable user. Counts files.
      */
     FILE_NOT_RESTORED,
+
+    /** A user whose installed apps could not be read for an Intent Firewall import. Counts users. */
+    USER_APPS_UNREADABLE,
 
     /**
      * A file, entry or rule that would act on another app than the one it is restored for: a
@@ -167,7 +171,7 @@ internal val ControlFailure.reason: FailureReason
         ControlFailure.ChannelUnavailable -> FailureReason.NO_PRIVILEGE
         is ControlFailure.NotPermitted -> if (isSystemRefusal) FailureReason.SYSTEM_ERROR else FailureReason.NO_PRIVILEGE
         ControlFailure.RulesUnreadable -> FailureReason.RULES_UNREADABLE
-        is ControlFailure.WriteFailed, ControlFailure.ProtectedComponent -> FailureReason.WRITE_FAILED
+        is ControlFailure.WriteFailed, ControlFailure.ProtectedComponent, ControlFailure.FirewallProtectedComponent -> FailureReason.WRITE_FAILED
         is ControlFailure.TargetNotFound, is ControlFailure.SystemError, ControlFailure.StateNotConfirmed -> FailureReason.SYSTEM_ERROR
     }
 

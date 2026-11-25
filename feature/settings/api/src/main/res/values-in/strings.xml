@@ -57,7 +57,13 @@
     <string name="feature_settings_api_anonymous_statistics_summary">Untuk meningkatkan fungsi dari Blocker, kami menggunakan Firebase Analytics untuk mengelola data perilaku pengguna dan fitur yang digunakan.</string>
     <string name="feature_settings_api_pm_rules">PM</string>
     <string name="feature_settings_api_reset_pm">Pulihkan modifikasi PM</string>
-    <string name="feature_settings_api_reset_pm_summary">Kembalikan semua komponen yang dinonaktifkan melalui PM ke status default aplikasi</string>
+    <string name="feature_settings_api_reset_pm_summary">Pulihkan komponen yang dinonaktifkan oleh Blocker melalui PackageManager ke status default</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Pulihkan modifikasi PM?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Kembalikan semua komponen yang dinonaktifkan Blocker melalui PM ke status default-nya. Aturan IFW tidak terpengaruh. Lanjutkan?</string>
+    <string name="feature_settings_api_confirm_user_export">Ekspor pengaturan untuk %1$s?</string>
+    <string name="feature_settings_api_confirm_user_import">Impor pengaturan untuk %1$s?</string>
+    <string name="feature_settings_api_confirm_user_reset_pm">Pulihkan perubahan PackageManager untuk %1$s?</string>
+    <string name="feature_settings_api_confirm_user_mat_import">Impor pengaturan MyAndroidTools untuk %1$s?</string>
+    <string name="feature_settings_api_choose_rule_backup">Pilih cadangan pengaturan untuk diimpor ke %1$s</string>
+    <string name="feature_settings_api_user_rule_result">%1$s\nPengguna: %2$s</string>
 </resources>

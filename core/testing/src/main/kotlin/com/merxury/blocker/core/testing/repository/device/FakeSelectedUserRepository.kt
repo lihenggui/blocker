@@ -39,17 +39,21 @@ class FakeSelectedUserRepository(
     private val reachable = MutableStateFlow(listOf(ownDeviceUser(ownUser)))
     override val users: StateFlow<List<DeviceUser>> = reachable
 
+    private var choice = ownUser
     private val selected = MutableStateFlow(ownUser)
     override val selectedUser: StateFlow<UserId> = selected
 
     override fun select(user: UserId) {
-        if (reachable.value.any { it.id == user }) selected.value = user
+        if (reachable.value.any { it.id == user }) {
+            choice = user
+            selected.value = user
+        }
     }
 
     /** Sets the reachable users, as a refresh or a change of the privileged channel would. */
     fun sendUsers(users: List<DeviceUser>) {
         reachable.value = users.sortedBy { it.id.value }
-        if (users.none { it.id == selected.value }) selected.value = ownUser
+        selected.value = choice.takeIf { id -> users.any { it.id == id } } ?: ownUser
     }
 
     private companion object {

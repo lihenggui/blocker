@@ -122,6 +122,38 @@ class BlockerRuleImporterTest {
     }
 
     @Test
+    fun givenRenamedBackupInTargetSet_whenImportingOneApp_thenItsContentsIdentifyTheApp() = runTest {
+        installedApps.sendApps(listOf(installedApp(user = WORK)))
+        components.sendComponents(WORK, listOf(status(BOOT)))
+        storage.putFile("user-10/renamed.json", rule(entry(BOOT, false, "PM")))
+
+        val result = importer.import(storage, BackupSet(WORK), WORK, packageName = APP)
+
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(stateOf(WORK, BOOT)?.pm).isEqualTo(PmSetting.DISABLED)
+        assertThat(components.requests.map { it.user }).containsExactly(WORK)
+    }
+
+    @Test
+    fun givenMatchingCanonicalBackup_whenImportingOneApp_thenNoOtherFilesAreListedOrRead() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        components.sendComponents(OWNER, listOf(status(BOOT)))
+        storage.putFile("$APP.json", rule(entry(BOOT, false, "PM")))
+        val canonicalOnly = object : BackupStorage by storage {
+            override suspend fun listFiles(folder: String): List<String> = error("The backup should be read directly")
+            override suspend fun read(path: String): String? {
+                check(path == "$APP.json")
+                return storage.read(path)
+            }
+        }
+
+        val result = importer.import(canonicalOnly, BackupSet.OWNER, OWNER, packageName = APP)
+
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(stateOf(OWNER, BOOT)?.pm).isEqualTo(PmSetting.DISABLED)
+    }
+
+    @Test
     fun givenEntriesAlreadyInTheirState_whenImporting_thenTheyCountAsUnchanged() = runTest {
         installedApps.sendApps(listOf(installedApp()))
         components.sendComponents(OWNER, listOf(status(BOOT, pm = PmSetting.DISABLED), status(SYNC)))

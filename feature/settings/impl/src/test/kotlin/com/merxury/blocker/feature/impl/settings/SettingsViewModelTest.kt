@@ -25,8 +25,11 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.UserPreferenceData
+import com.merxury.blocker.core.rule.backup.BlockerBackupSets
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
+import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
+import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestSyncManager
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading
@@ -71,6 +74,9 @@ class SettingsViewModelTest {
             appContext = appContext,
             analyticsHelper = analyticsHelper,
             workManager = mock<WorkManager>(),
+            selectedUsers = FakeSelectedUserRepository(),
+            deviceUsers = FakeDeviceUserRepository(),
+            backupSets = mock<BlockerBackupSets>(),
         )
     }
 

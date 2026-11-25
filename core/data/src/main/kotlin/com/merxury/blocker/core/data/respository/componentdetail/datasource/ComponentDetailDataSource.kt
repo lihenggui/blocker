@@ -21,8 +21,6 @@ import kotlinx.coroutines.flow.Flow
 
 internal interface ComponentDetailDataSource {
 
-    fun getByPackageName(packageName: String): Flow<List<ComponentDetail>>
-
     fun getByComponentName(name: String): Flow<ComponentDetail?>
 
     fun saveComponentData(component: ComponentDetail): Flow<Boolean>

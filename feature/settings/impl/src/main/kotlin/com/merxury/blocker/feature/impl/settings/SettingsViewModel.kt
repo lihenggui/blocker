@@ -35,20 +35,29 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.await
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.StubAnalyticsHelper
+import com.merxury.blocker.core.data.device.DeviceUserRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.SyncManager
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.rule.backup.BackupSet
+import com.merxury.blocker.core.rule.backup.BlockerBackupSets
 import com.merxury.blocker.core.rule.entity.RuleWorkEvent
+import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_IFW_RULES
@@ -65,17 +74,25 @@ import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.core.rule.work.ResetPmWorker
+import com.merxury.blocker.core.ui.profile.ProfileLabel
+import com.merxury.blocker.core.ui.profile.profileLabel
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -90,8 +107,15 @@ class SettingsViewModel @Inject constructor(
     private val syncManager: SyncManager,
     private val analyticsHelper: AnalyticsHelper,
     private val workManager: WorkManager,
+    private val selectedUsers: SelectedUserRepository,
+    private val deviceUsers: DeviceUserRepository,
+    private val backupSets: BlockerBackupSets,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(appContext) {
+    private val ruleDialog = MutableStateFlow<SettingsRuleDialog?>(null)
+    private var backupLookup: Job? = null
+    private var matTarget: SettingsRuleTarget? = null
+
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
             .map { userData ->
@@ -113,14 +137,15 @@ class SettingsViewModel @Inject constructor(
                     allowStatistics = isAllowStatistics(),
                 )
             }
+            .combine(ruleDialog) { state, dialog -> state.copy(ruleDialog = dialog) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = Loading,
             )
 
-    private val _eventFlow = MutableSharedFlow<RuleWorkEvent>()
-    val eventFlow = _eventFlow.asSharedFlow()
+    private val ruleEvents = MutableSharedFlow<SettingsRuleEvent>()
+    internal val eventFlow = ruleEvents.asSharedFlow()
 
     private suspend fun getPathFromUriString(path: String): String = withContext(ioDispatcher) {
         if (path.isEmpty()) return@withContext path
@@ -235,50 +260,137 @@ class SettingsViewModel @Inject constructor(
 
     private suspend fun listenWorkInfo(ruleWorkType: RuleWorkType, workInfo: WorkInfo) {
         // Nothing is emitted while the work is running or blocked.
-        ruleWorkEventOf(ruleWorkType, workInfo)?.let { _eventFlow.emit(it) }
+        ruleWorkEventOf(ruleWorkType, workInfo)?.let { ruleEvents.emit(SettingsRuleEvent(it)) }
     }
 
-    fun importBlockerRules() = viewModelScope.launch {
-        val taskName = "ImportBlockerRule"
-        val userData = userDataRepository.userData.first()
-        workManager.apply {
-            enqueueUniqueWork(
-                taskName,
-                ExistingWorkPolicy.REPLACE,
-                ImportBlockerRuleWorker.importWork(
-                    backupPath = userData.ruleBackupFolder,
-                    restoreSystemApps = userData.restoreSystemApp,
-                ),
-            )
-            getWorkInfosForUniqueWorkLiveData(taskName)
-                .asFlow()
-                .collect { workInfoList ->
-                    if (workInfoList.isEmpty()) return@collect
-                    val workInfo = workInfoList.first()
-                    listenWorkInfo(IMPORT_BLOCKER_RULES, workInfo)
+    internal fun startRuleAction(action: SettingsRuleAction, pickMatFile: () -> Unit = {}) {
+        val selected = selectedUsers.selectedUser.value
+        val users = selectedUsers.users.value
+        val target = SettingsRuleTarget(selected, if (selected == selectedUsers.ownUser) null else ruleUserLabel(selected, users))
+        backupLookup?.cancel()
+        ruleDialog.value = null
+        if (action == SettingsRuleAction.IMPORT) {
+            backupLookup = viewModelScope.launch {
+                val prefs = userDataRepository.userData.first()
+                val import = SettingsRuleImport(target, prefs.ruleBackupFolder, prefs.restoreSystemApp)
+                val alternatives = backupSets.alternatives(import.path, target.user)
+                if (alternatives.isNotEmpty()) {
+                    val names = (users + cachedUsersForBackupNames()).distinctBy { it.id }
+                    ruleDialog.value = SettingsRuleDialog.ChooseBackup(
+                        import,
+                        ruleUserLabel(target.user, names),
+                        alternatives.associateWith { ruleUserLabel(it.user, names) },
+                    )
+                } else if (target.label != null) {
+                    ruleDialog.value = SettingsRuleDialog.Confirm(action, target, import)
+                } else {
+                    importBlockerRules(import)
                 }
+            }
+        } else if (target.label != null || action == SettingsRuleAction.RESET_PM) {
+            ruleDialog.value = SettingsRuleDialog.Confirm(action, target)
+        } else {
+            runRuleAction(action, target, pickMatFile)
         }
     }
 
-    fun exportBlockerRules() = viewModelScope.launch {
-        val taskName = "ExportBlockerRule"
-        val userData = userDataRepository.userData.first()
-        workManager.apply {
-            enqueueUniqueWork(
-                taskName,
-                ExistingWorkPolicy.REPLACE,
-                ExportBlockerRulesWorker.exportWork(
-                    folderPath = userData.ruleBackupFolder,
-                    backupSystemApps = userData.backupSystemApp,
-                ),
-            )
-            getWorkInfosForUniqueWorkLiveData(taskName)
-                .asFlow()
-                .collect { workInfoList ->
-                    if (workInfoList.isEmpty()) return@collect
-                    val workInfo = workInfoList.first()
-                    listenWorkInfo(EXPORT_BLOCKER_RULES, workInfo)
+    private suspend fun cachedUsersForBackupNames(): List<DeviceUser> = try {
+        deviceUsers.users.first()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.w(e, "Cannot read cached user names for backup sets")
+        emptyList()
+    }
+
+    internal fun confirmRuleAction(pickMatFile: () -> Unit) {
+        val confirmation = ruleDialog.value as? SettingsRuleDialog.Confirm ?: return
+        dismissRuleDialog()
+        val import = confirmation.import
+        if (import != null) {
+            importBlockerRules(import)
+        } else {
+            runRuleAction(confirmation.action, confirmation.target, pickMatFile)
+        }
+    }
+
+    internal fun chooseBackup(source: BackupSet) {
+        val choice = ruleDialog.value as? SettingsRuleDialog.ChooseBackup ?: return
+        if (source !in choice.sets) return
+        dismissRuleDialog()
+        importBlockerRules(choice.import, source)
+    }
+
+    internal fun dismissRuleDialog() {
+        ruleDialog.value = null
+    }
+
+    private fun runRuleAction(action: SettingsRuleAction, target: SettingsRuleTarget, pickMatFile: () -> Unit) {
+        when (action) {
+            SettingsRuleAction.EXPORT -> exportBlockerRules(target)
+
+            SettingsRuleAction.RESET_PM -> enqueueUserWork(RESET_PM, "ResetPm", ExistingWorkPolicy.KEEP, target) {
+                ResetPmWorker.resetPmWork(target.user)
+            }
+
+            SettingsRuleAction.IMPORT_MAT -> {
+                matTarget = target
+                pickMatFile()
+            }
+
+            SettingsRuleAction.IMPORT -> error("Blocker rule imports require backup settings")
+        }
+    }
+
+    private fun importBlockerRules(import: SettingsRuleImport, source: BackupSet? = null) = enqueueUserWork(
+        IMPORT_BLOCKER_RULES,
+        "ImportBlockerRule",
+        ExistingWorkPolicy.REPLACE,
+        import.target,
+    ) {
+        ImportBlockerRuleWorker.importWork(
+            backupPath = import.path,
+            restoreSystemApps = import.restoreSystemApps,
+            targetUser = import.target.user,
+            sourceSet = source,
+        )
+    }
+
+    private fun exportBlockerRules(target: SettingsRuleTarget) = enqueueUserWork(
+        EXPORT_BLOCKER_RULES,
+        "ExportBlockerRule",
+        ExistingWorkPolicy.REPLACE,
+        target,
+    ) {
+        val prefs = userDataRepository.userData.first()
+        ExportBlockerRulesWorker.exportWork(prefs.ruleBackupFolder, prefs.backupSystemApp, user = target.user)
+    }
+
+    private fun enqueueUserWork(
+        type: RuleWorkType,
+        name: String,
+        policy: ExistingWorkPolicy,
+        target: SettingsRuleTarget,
+        buildRequest: suspend () -> OneTimeWorkRequest,
+    ) = viewModelScope.launch {
+        try {
+            val request = buildRequest()
+            val taskName = if (target.label == null) name else "$name-user-${target.user.value}"
+            workManager.enqueueUniqueWork(taskName, policy, request).await()
+            workManager.getWorkInfoByIdFlow(request.id)
+                .transformWhile { info ->
+                    // KEEP can leave this request out when the same user's work is still active.
+                    if (info == null) return@transformWhile false
+                    ruleWorkEventOf(type, info)?.let { emit(SettingsRuleEvent(it, target.label)) }
+                    !info.state.isFinished
                 }
+                .distinctUntilChanged()
+                .collect { ruleEvents.emit(it) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot run $type for user ${target.user.value}")
+            ruleEvents.emit(SettingsRuleEvent(RuleWorkEvent(type, RuleWorkResult.UNEXPECTED_EXCEPTION), target.label))
         }
     }
 
@@ -341,45 +453,13 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun resetPmRules() = viewModelScope.launch {
-        val taskName = "ResetPm"
-        workManager.apply {
-            enqueueUniqueWork(
-                taskName,
-                ExistingWorkPolicy.KEEP,
-                ResetPmWorker.resetPmWork(),
-            )
-            getWorkInfosForUniqueWorkLiveData(taskName)
-                .asFlow()
-                .collect { workInfoList ->
-                    if (workInfoList.isEmpty()) return@collect
-                    val workInfo = workInfoList.first()
-                    listenWorkInfo(RESET_PM, workInfo)
-                }
-        }
-    }
-
-    fun importMyAndroidToolsRules(fileUri: Uri?) = viewModelScope.launch {
-        if (fileUri == null) {
-            Timber.e("Can't get MAT backup file from URI.")
-            return@launch
-        }
-        val userData = userDataRepository.userData.first()
-        workManager.apply {
-            enqueueUniqueWork(
-                "ImportMatRule",
-                ExistingWorkPolicy.KEEP,
-                ImportMatRulesWorker.importWork(
-                    fileUri = fileUri,
-                    restoreSystemApps = userData.restoreSystemApp,
-                ),
-            )
-            getWorkInfosForUniqueWorkLiveData("ImportMatRule")
-                .asFlow()
-                .collect { workInfoList ->
-                    if (workInfoList.isEmpty()) return@collect
-                    listenWorkInfo(IMPORT_MAT_RULES, workInfoList.first())
-                }
+    fun importMyAndroidToolsRules(fileUri: Uri?) {
+        val target = matTarget ?: return
+        matTarget = null
+        if (fileUri == null) return
+        enqueueUserWork(IMPORT_MAT_RULES, "ImportMatRule", ExistingWorkPolicy.KEEP, target) {
+            val prefs = userDataRepository.userData.first()
+            ImportMatRulesWorker.importWork(fileUri, prefs.restoreSystemApp, targetUser = target.user)
         }
     }
 
@@ -406,5 +486,13 @@ sealed interface SettingsUiState {
     data class Success(
         val settings: UserEditableSettings,
         val allowStatistics: Boolean = false,
+        val ruleDialog: SettingsRuleDialog? = null,
     ) : SettingsUiState
+}
+
+private fun ruleUserLabel(user: UserId, users: List<DeviceUser>): ProfileLabel {
+    val deviceUser = users.find { it.id == user }
+    return deviceUser?.name?.takeIf { it.isNotBlank() }?.let { ProfileLabel.Named(it) }
+        ?: deviceUser?.profileLabel()
+        ?: if (user == UserId.SYSTEM) ProfileLabel.Personal else ProfileLabel.Numbered(user.value)
 }

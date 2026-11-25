@@ -71,7 +71,13 @@
     <string name="feature_settings_api_anonymous_statistics_summary">Chúng tôi sử dụng Firebase Analytics của Google để thu thập và xử lý dữ liệu về những tính năng được dùng nhiều nhất và phản hồi của người dùng giúp tôi có thể cải thiện Blocker.</string>
     <string name="feature_settings_api_pm_rules">PM</string>
     <string name="feature_settings_api_reset_pm">Khôi phục thay đổi PM</string>
-    <string name="feature_settings_api_reset_pm_summary">Khôi phục tất cả thành phần đã bị tắt qua PM về trạng thái mặc định của ứng dụng</string>
+    <string name="feature_settings_api_reset_pm_summary">Khôi phục các thành phần mà Blocker đã tắt qua PackageManager về trạng thái mặc định</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Khôi phục thay đổi PM?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Khôi phục tất cả thành phần mà Blocker đã tắt qua PM về trạng thái mặc định. Luật IFW không bị ảnh hưởng. Tiếp tục?</string>
+    <string name="feature_settings_api_confirm_user_export">Xuất luật cho %1$s?</string>
+    <string name="feature_settings_api_confirm_user_import">Nhập luật cho %1$s?</string>
+    <string name="feature_settings_api_confirm_user_reset_pm">Hoàn tác các thay đổi qua PackageManager cho %1$s?</string>
+    <string name="feature_settings_api_confirm_user_mat_import">Nhập luật từ MyAndroidTools cho %1$s?</string>
+    <string name="feature_settings_api_choose_rule_backup">Chọn bản sao lưu luật để nhập vào %1$s</string>
+    <string name="feature_settings_api_user_rule_result">%1$s\nNgười dùng: %2$s</string>
 </resources>

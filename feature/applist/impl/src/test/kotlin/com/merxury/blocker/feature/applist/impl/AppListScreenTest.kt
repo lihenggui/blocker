@@ -32,9 +32,12 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.AppAction
+import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.core.ui.profile.ProfileTab
+import com.merxury.blocker.core.ui.profile.toProfileTab
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.Test
@@ -109,6 +112,16 @@ class AppListScreenTest {
         composeTestRule.onNodeWithText(text(uiString.core_ui_profile_work)).performClick()
 
         assertThat(selected).containsExactly(WORK)
+    }
+
+    @Test
+    fun givenRunningButLockedProfile_whenSwitcherIsShown_thenItsNameHasTheNotRunningMarker() {
+        val locked = DeviceUser(WORK, "Work", UserKind.WORK_PROFILE, OWNER, running = true, unlocked = false)
+        val tabs = listOf(profiles.first(), locked.toProfileTab())
+        show(AppListUiState(OWNER, OWNER, profiles = tabs, apps = AppsUiState.Loaded(previewAppRows(OWNER))))
+
+        composeTestRule.onNodeWithText(text(uiString.core_ui_profile_not_running)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(uiString.core_ui_profile_personal)).assertIsDisplayed()
     }
 
     @Test

@@ -60,7 +60,7 @@ internal class LocalComponentDetailDataSource @Inject constructor(
             .resolve(COMPONENT_FOLDER)
     }
 
-    override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
+    fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
         val language = userDataRepository.getLibDisplayLanguage()
         val bundle = getBundle(language)
         if (bundle != null) {

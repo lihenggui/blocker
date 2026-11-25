@@ -124,7 +124,7 @@ internal class PrivilegedComponentControl @Inject constructor(
         val layers = components.associate { component ->
             val requested = component.layersFor(request.layers).reachableBy(request.goal, identity)
             if (blockingFirewallProtected && ControlLayer.INTENT_FIREWALL in requested) {
-                failures.addIfAbsent(component.id, ControlLayer.INTENT_FIREWALL, ControlFailure.ProtectedComponent)
+                failures.addIfAbsent(component.id, ControlLayer.INTENT_FIREWALL, ControlFailure.FirewallProtectedComponent)
             }
             component.id to requested
         }

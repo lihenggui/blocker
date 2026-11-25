@@ -160,4 +160,9 @@
     <string name="core_ui_enable_component_failed">Não foi possível ativar %1$s</string>
     <string name="core_ui_grant_failed">O Blocker ainda não tem acesso root nem Shizuku.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">Deseja limpar os dados deste app?</string>
+    <string name="core_ui_component_partly_changed">A alteração em %1$s foi aplicada apenas parcialmente.</string>
+    <string name="core_ui_batch_partly_changed">As alterações foram aplicadas parcialmente a %1$d dos componentes selecionados.</string>
+    <string name="core_ui_batch_partly_changed_with_failures">Dos componentes selecionados, as alterações foram aplicadas parcialmente a %1$d e não puderam ser aplicadas a %2$d.</string>
+    <string name="core_ui_reason_shizuku_shell">O Shizuku está em execução com permissões ADB. Inicie o Shizuku com acesso root e tente novamente.</string>
+    <string name="core_ui_firewall_self_block_refused">O Blocker não pode bloquear os próprios componentes através da Firewall de Intenções porque as regras também se aplicariam à cópia do Blocker em uso.</string>
 </resources>

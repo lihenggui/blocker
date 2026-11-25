@@ -36,6 +36,9 @@ sealed interface ControlFailure {
     /** Blocker protects its own components. */
     data object ProtectedComponent : ControlFailure
 
+    /** An Intent Firewall block would also block the copy of Blocker in use. */
+    data object FirewallProtectedComponent : ControlFailure
+
     /** The package, component or user is not known to the system. */
     data class TargetNotFound(val message: String?) : ControlFailure
 

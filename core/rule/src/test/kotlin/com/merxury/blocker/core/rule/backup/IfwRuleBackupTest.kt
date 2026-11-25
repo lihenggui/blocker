@@ -285,18 +285,21 @@ class IfwRuleBackupTest {
     }
 
     @Test
-    fun givenAUsersAppsUnreadable_whenImporting_thenTheRunFailsInsteadOfMissingItsApps() = runTest {
-        installedApps.sendApps(listOf(installedApp(user = WORK)))
-        val users = object : DeviceUserRepository by deviceUsers {}
+    fun givenWorkAppsUnreadable_whenImporting_thenKnownAppsAreRestoredAndUnknownFilesAreSkipped() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
         val apps = object : InstalledAppRepository by installedApps {
             override suspend fun refresh(user: UserId): ReadResult<Unit> = if (user == WORK) ReadResult.Failure(ReadFailure.UserNotReachable(WORK)) else installedApps.refresh(user)
         }
         storage.putFile("ifw/$APP.xml", BLOCKER_RULE)
+        storage.putFile("ifw/com.unknown.xml", BLOCKER_RULE)
 
-        val result = IfwRuleImporter(store, users, apps, channel, IfwXmlDeserializer(), IfwXmlSerializer()).import(storage)
+        val result = IfwRuleImporter(store, deviceUsers, apps, channel, IfwXmlDeserializer(), IfwXmlSerializer()).import(storage)
 
-        assertThat(result).isEqualTo(RuleRunResult.Failed(FailureReason.NO_PRIVILEGE))
-        assertThat(fileSystem.fileContent(APP)).isNull()
+        assertThat(result.summary.applied).isEqualTo(1)
+        assertThat(result.summary.skipped).containsExactly(SkipReason.USER_APPS_UNREADABLE, 1, SkipReason.FILE_NOT_RESTORED, 1)
+        assertThat(result.summary.failed).isEmpty()
+        assertThat(fileSystem.fileContent(APP)).isNotNull()
+        assertThat(fileSystem.fileContent("com.unknown")).isNull()
     }
 
     @Test

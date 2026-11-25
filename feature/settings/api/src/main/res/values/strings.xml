@@ -29,7 +29,7 @@
     <string name="feature_settings_api_reset_ifw">Reset IFW</string>
     <string name="feature_settings_api_pm_rules">PM</string>
     <string name="feature_settings_api_reset_pm">Restore PM modifications</string>
-    <string name="feature_settings_api_reset_pm_summary">Revert all components disabled via PM back to the app\'s default state</string>
+    <string name="feature_settings_api_reset_pm_summary">Restore the components that Blocker disabled through PackageManager to their default state</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Restore PM modifications?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Restore every component Blocker has disabled via PM back to its default state. IFW rules are not affected. Continue?</string>
     <string name="feature_settings_api_file_manager_required">You need to install a file manager from store first.</string>
@@ -78,4 +78,10 @@
     <string name="feature_settings_api_others">Others</string>
     <string name="feature_settings_api_anonymous_statistics">Anonymous statistics</string>
     <string name="feature_settings_api_anonymous_statistics_summary">We utilize Firebase Analytics to gather and analyze data on the most frequently used features and user behavior in order to enhance the functionality of Blocker.</string>
+    <string name="feature_settings_api_confirm_user_export">Export rules for %1$s?</string>
+    <string name="feature_settings_api_confirm_user_import">Import rules for %1$s?</string>
+    <string name="feature_settings_api_confirm_user_reset_pm">Restore PackageManager changes for %1$s?</string>
+    <string name="feature_settings_api_confirm_user_mat_import">Import MyAndroidTools rules for %1$s?</string>
+    <string name="feature_settings_api_choose_rule_backup">Choose a rule backup to import into %1$s</string>
+    <string name="feature_settings_api_user_rule_result">%1$s\nUser: %2$s</string>
 </resources>

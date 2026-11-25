@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -24,11 +25,13 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SelectedUserRepositoryTest {
     private val deviceUsers = FakeDeviceUserRepository()
     private val channel = FakePrivilegedChannel(ChannelState.Ready(PrivilegedIdentity.SHELL))
@@ -101,17 +104,33 @@ class SelectedUserRepositoryTest {
     }
 
     @Test
-    fun givenWorkSelected_whenChannelLost_thenOwnUserSelectedAndStaysAfterChannelReturns() = runTest(UnconfinedTestDispatcher()) {
+    fun givenWorkSelected_whenChannelDropsAndReturns_thenWorkIsRestored() = runTest(UnconfinedTestDispatcher()) {
+        val repository = repository()
+        deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
+        repository.selectedUser.test {
+            assertThat(awaitItem()).isEqualTo(OWNER)
+            repository.select(WORK)
+            assertThat(awaitItem()).isEqualTo(WORK)
+
+            channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
+            assertThat(awaitItem()).isEqualTo(OWNER)
+
+            channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+            assertThat(awaitItem()).isEqualTo(WORK)
+        }
+    }
+
+    @Test
+    fun givenWorkTemporarilyUnavailable_whenOwnerIsChosen_thenWorkDoesNotReclaimSelection() = runTest(UnconfinedTestDispatcher()) {
         val repository = repository()
         deviceUsers.sendUsers(listOf(deviceUser(OWNER), deviceUser(WORK)))
         repository.select(WORK)
-
         channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_RUNNING))
-        assertThat(repository.selectedUser.value).isEqualTo(OWNER)
 
+        repository.select(OWNER)
         channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+
         assertThat(repository.selectedUser.value).isEqualTo(OWNER)
-        assertThat(repository.users.value.map { it.id }).containsExactly(OWNER, WORK)
     }
 
     @Test

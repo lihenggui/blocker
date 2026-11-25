@@ -22,8 +22,11 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.DeviceUser
+import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -37,12 +40,13 @@ import org.robolectric.annotation.Config
 /** The cached users follow work profiles added or removed while Blocker runs. */
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
+@OptIn(ExperimentalCoroutinesApi::class)
 class DeviceUserMonitorTest {
     private val context = RuntimeEnvironment.getApplication()
     private val deviceUsers = FakeDeviceUserRepository().apply { sendUsers(listOf(deviceUser(OWNER))) }
     private val channel = FakePrivilegedChannel(ChannelState.Ready(PrivilegedIdentity.ROOT))
 
-    private fun TestScope.monitor() = DeviceUserMonitor(context, deviceUsers, channel, backgroundScope).apply { start() }
+    private fun TestScope.monitor(users: DeviceUserRepository = deviceUsers) = DeviceUserMonitor(context, users, channel, backgroundScope).apply { start() }
 
     private fun TestScope.selectedUsers() = InMemorySelectedUserRepository(ownUser = OWNER, deviceUsers = deviceUsers, channel = channel, scope = backgroundScope)
 
@@ -59,7 +63,7 @@ class DeviceUserMonitorTest {
 
         announce(Intent.ACTION_MANAGED_PROFILE_ADDED)
 
-        assertThat(deviceUsers.refreshCount).isEqualTo(1)
+        assertThat(deviceUsers.refreshCount).isEqualTo(2)
         // The app list, the search and both rule screens list the users of this repository.
         assertThat(switcher.users.value.map { it.id }).containsExactly(OWNER, WORK).inOrder()
     }
@@ -83,7 +87,7 @@ class DeviceUserMonitorTest {
 
         monitor.onForeground()
 
-        assertThat(deviceUsers.refreshCount).isEqualTo(1)
+        assertThat(deviceUsers.refreshCount).isEqualTo(2)
         assertThat(selectedUsers().users.value.map { it.id }).containsExactly(OWNER, WORK).inOrder()
     }
 
@@ -100,12 +104,12 @@ class DeviceUserMonitorTest {
     }
 
     @Test
-    fun givenStartedTwice_whenAProfileBecomesAvailable_thenTheUsersAreReadOnce() = runTest(UnconfinedTestDispatcher()) {
+    fun givenStartedTwice_whenAProfileBecomesAvailable_thenTheEventCausesOneRefresh() = runTest(UnconfinedTestDispatcher()) {
         monitor().start()
 
         announce(Intent.ACTION_MANAGED_PROFILE_AVAILABLE)
 
-        assertThat(deviceUsers.refreshCount).isEqualTo(1)
+        assertThat(deviceUsers.refreshCount).isEqualTo(2)
     }
 
     @Test
@@ -114,6 +118,57 @@ class DeviceUserMonitorTest {
 
         announce(Intent.ACTION_TIMEZONE_CHANGED)
 
+        assertThat(deviceUsers.refreshCount).isEqualTo(1)
+    }
+
+    @Test
+    fun givenAWorkProfileIsLocked_whenItUnlocks_thenTheCachedStateIsRefreshed() = runTest(UnconfinedTestDispatcher()) {
+        val owner = deviceUser(OWNER)
+        val work = deviceUser(WORK).copy(running = true)
+        deviceUsers.systemUsers = listOf(owner, work.copy(unlocked = false))
+        monitor()
+        val switcher = selectedUsers()
+        assertThat(switcher.users.value.single { it.id == WORK }.unlocked).isFalse()
+        deviceUsers.systemUsers = listOf(owner, work.copy(unlocked = true))
+
+        announce(Intent.ACTION_MANAGED_PROFILE_UNLOCKED)
+
+        assertThat(switcher.users.value.single { it.id == WORK }.unlocked).isTrue()
+    }
+
+    @Test
+    fun givenChannelStillBeingChecked_whenItBecomesReady_thenUsersRefreshWithoutAnotherEvent() = runTest(UnconfinedTestDispatcher()) {
+        channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
+        deviceUsers.systemUsers = listOf(deviceUser(OWNER), deviceUser(WORK))
+        val monitor = monitor()
+        monitor.onForeground()
         assertThat(deviceUsers.refreshCount).isEqualTo(0)
+
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
+
+        assertThat(deviceUsers.refreshCount).isEqualTo(1)
+        assertThat(selectedUsers().users.value.map { it.id }).containsExactly(OWNER, WORK)
+    }
+
+    @Test
+    fun givenStartupRefreshThrows_whenAProfileEventArrives_thenMonitoringContinues() = runTest(UnconfinedTestDispatcher()) {
+        val repository = object : DeviceUserRepository by deviceUsers {
+            private var fail = true
+
+            override suspend fun refresh(): ReadResult<List<DeviceUser>> {
+                if (fail) {
+                    fail = false
+                    error("Database is temporarily unavailable")
+                }
+                return deviceUsers.refresh()
+            }
+        }
+        monitor(repository)
+        deviceUsers.systemUsers = listOf(deviceUser(OWNER), deviceUser(WORK))
+
+        announce(Intent.ACTION_MANAGED_PROFILE_ADDED)
+
+        assertThat(deviceUsers.refreshCount).isEqualTo(1)
+        assertThat(selectedUsers().users.value.map { it.id }).containsExactly(OWNER, WORK)
     }
 }

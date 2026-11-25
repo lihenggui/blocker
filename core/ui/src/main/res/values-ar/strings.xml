@@ -172,4 +172,9 @@
     <string name="core_ui_enable_component_failed">تعذّر تفعيل %1$s</string>
     <string name="core_ui_grant_failed">لا يزال Blocker بلا صلاحية الروت أو Shizuku.</string>
     <string name="core_ui_do_you_want_to_clear_data_of_this_app">هل تريد مسح بيانات هذا التطبيق؟</string>
+    <string name="core_ui_component_partly_changed">طُبّق التغيير على %1$s جزئيًا فقط.</string>
+    <string name="core_ui_batch_partly_changed">طُبّقت التغييرات جزئيًا على %1$d من المكوّنات المحددة.</string>
+    <string name="core_ui_batch_partly_changed_with_failures">طُبّقت التغييرات جزئيًا على %1$d من المكوّنات المحددة وتعذّر تطبيقها على %2$d منها.</string>
+    <string name="core_ui_reason_shizuku_shell">يعمل Shizuku بصلاحيات ADB. شغّل Shizuku بصلاحيات الجذر ثم أعد المحاولة.</string>
+    <string name="core_ui_firewall_self_block_refused">لا يمكن لـ Blocker حظر مكوّناته عبر جدار حماية النوايا لأن القواعد ستُطبّق أيضًا على نسخة Blocker قيد الاستخدام.</string>
 </resources>
