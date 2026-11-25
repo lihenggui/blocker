@@ -125,6 +125,9 @@ class SearchViewModel @Inject internal constructor(
     // Users whose apps this screen has read from the system.
     private val refreshedUsers = mutableSetOf<UserId>()
 
+    // Rule search failures that have yet to recover, even when the keyword changes.
+    private val ruleSearchFailures = mutableSetOf<UserId>()
+
     /** The keyword searched for: the typed one once typing pauses, trimmed; at once when cleared. */
     @OptIn(FlowPreview::class)
     private val query: Flow<String> = typed
@@ -376,10 +379,13 @@ class SearchViewModel @Inject internal constructor(
      * first time takes longer than the apps and components need, so they do not wait for it.
      */
     private fun ruleResults(user: UserId, keyword: String): Flow<List<GeneralRule>?> = searchRules(user, keyword)
-        .map { it.rules }
+        .map {
+            ruleSearchFailures.remove(user)
+            it.rules
+        }
         .retryWhen { error, _ ->
             if (error is CancellationException) return@retryWhen false
-            Timber.e(error, "Cannot load rule search results for user ${user.value}")
+            if (ruleSearchFailures.add(user)) Timber.w(error, "Cannot load rule search results for user ${user.value}")
             emit(emptyList())
             delay(RULE_RETRY_MILLIS)
             true

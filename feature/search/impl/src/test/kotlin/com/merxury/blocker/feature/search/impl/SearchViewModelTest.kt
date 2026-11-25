@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search.impl
 
+import android.util.Log
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
@@ -49,6 +50,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import timber.log.Timber
 
 /** What the search finds for the selected user, as the repositories hold it. */
 class SearchViewModelTest {
@@ -277,6 +279,52 @@ class SearchViewModelTest {
 
             val recovered = expectMostRecentItem().results as SearchResults.Loaded
             assertThat(recovered.matchedRules.map { it.id }).containsExactly(1)
+        }
+    }
+
+    @Test
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun givenRuleSearchKeepsFailing_whenRetried_thenWarnsOnceUntilItRecovers() = runTest {
+        val failure = IllegalStateException("Rule catalog unavailable")
+        fixture.rules.readFailure = failure
+        fixture.rules.sendRuleList(listOf(rule(1, "Push SDK", keywords = listOf("com.push."))))
+        fixture.installedApps.sendApps(listOf(installedApp("com.push")))
+        fixture.components.sendComponents(OWNER, listOf(component("com.push", "PushA")))
+        val priorities = mutableListOf<Int>()
+        val tree = object : Timber.Tree() {
+            override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                if (message.startsWith("Cannot load rule search results")) priorities += priority
+            }
+        }
+        Timber.plant(tree)
+        try {
+            viewModel.uiState.test {
+                searchNow("push")
+                assertThat(priorities).containsExactly(Log.WARN)
+
+                advanceTimeBy(15_001)
+                searchNow("other")
+                assertThat(fixture.rules.catalogReads).isAtLeast(3)
+                assertThat(priorities).containsExactly(Log.WARN)
+
+                fixture.rules.readFailure = null
+                searchNow("push")
+                advanceTimeBy(10_001)
+                runCurrent()
+                val recovered = expectMostRecentItem().results as SearchResults.Loaded
+                assertThat(recovered.matchedRules.map { it.id }).containsExactly(1)
+
+                viewModel.search("")
+                advanceTimeBy(5_001)
+                runCurrent()
+                fixture.rules.readFailure = failure
+                searchNow("other")
+                val failedAgain = expectMostRecentItem().results as SearchResults.Loaded
+                assertThat(failedAgain.rulesLoading).isFalse()
+                assertThat(priorities).containsExactly(Log.WARN, Log.WARN)
+            }
+        } finally {
+            Timber.uproot(tree)
         }
     }
 
