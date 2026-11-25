@@ -55,7 +55,7 @@ class BlockerAppPropertiesDataStore @Inject constructor(
         appProperties.updateData {
             it.copy {
                 pmBlockRecordsSeeded = true
-                if (rememberLegacyRootGrant) rootGrantRemembered = true
+                if (rememberLegacyRootGrant && !hasRootGrantRemembered()) rootGrantRemembered = true
             }
         }
     }

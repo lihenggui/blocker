@@ -107,7 +107,7 @@ internal class InstalledAppDbPmBlockRecordSeeder @Inject constructor(
                     ControllerType.PM, ControllerType.IFW, ControllerType.IFW_PLUS_PM -> true
                     ControllerType.SHIZUKU -> false
                 }
-                // Save the legacy grant with the migration marker so a retry cannot regrant it.
+                // Save any inferred grant with the migration marker, preserving a recorded decision.
                 properties.markPmBlockRecordsSeeded(rememberRoot)
             }
             seeded = true

@@ -102,6 +102,30 @@ class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
     }
 
     @Test
+    fun givenRootDeniedBeforeMigrationSucceeds_whenSeedingRetries_thenGrantStaysDenied() = runTest {
+        preferences.setControllerType(ControllerType.PM)
+        SQLiteDatabase.openOrCreateDatabase(legacyDb, null).use { it.execSQL("CREATE TABLE app_component (name TEXT)") }
+        val memory = DataStoreRootGrantMemory(properties, seeder)
+        assertThat(memory.isRemembered()).isFalse()
+        assertThat(appProperties.data.value.pmBlockRecordsSeeded).isFalse()
+        assertThat(appProperties.data.value.hasRootGrantRemembered()).isFalse()
+        memory.remember(false)
+        assertThat(appProperties.data.value.hasRootGrantRemembered()).isTrue()
+        val denied = AppProperties.parseFrom(appProperties.data.value.toByteArray())
+        appProperties.updateData { denied }
+
+        SQLiteDatabase.openDatabase(legacyDb.path, null, SQLiteDatabase.OPEN_READWRITE).use { it.execSQL("DROP TABLE app_component") }
+        createDatabase(2, TRACKER to true)
+        val restarted = DataStoreRootGrantMemory(properties, restartSeeder())
+
+        assertThat(restarted.isRemembered()).isFalse()
+        assertThat(appProperties.data.value.hasRootGrantRemembered()).isTrue()
+        assertThat(appProperties.data.value.pmBlockRecordsSeeded).isTrue()
+        assertThat(pmBlocks.of(own)).containsExactly(TRACKER.key())
+        assertThat(legacyDb.exists()).isFalse()
+    }
+
+    @Test
     fun givenLegacyDatabaseAndShizuku_whenSeeded_thenRootGrantStaysUnset() = runTest {
         preferences.setControllerType(ControllerType.SHIZUKU)
         createDatabase(2, TRACKER to true)
