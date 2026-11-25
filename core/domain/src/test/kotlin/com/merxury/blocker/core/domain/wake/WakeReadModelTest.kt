@@ -190,6 +190,21 @@ class WakeReadModelTest {
         assertThat(provider.component).isEqualTo("external.pkg.Provider")
     }
 
+    @Test fun givenDigestedTagsWithDots_whenBuildingActivity_thenTheyNeverBecomeComponents() {
+        val rows = listOf(
+            revive(ReviveTrigger.ALARM, detail = "com.example.sync.alarm"),
+            revive(ReviveTrigger.JOB, detail = "abc123def"),
+            hold(HoldCause.WAKELOCK, detail = "com.example:lock", screenOff = 3),
+            hold(HoldCause.RUNNING_JOB, detail = "job.name", screenOff = 4),
+        )
+
+        val paths = activity(rows).own.flatMap { it.paths }
+
+        assertThat(paths).hasSize(4)
+        assertThat(paths.map { it.component }).containsExactly(null, null, null, null)
+        assertThat(paths.map { it.componentType }).containsExactly(null, null, null, null)
+    }
+
     @Test fun givenJustifiedStartsAndPush_whenBuildingActivity_thenOnlyRevivesOfThisAppCountAndPushTakesPrecedence() {
         val result = activity(
             listOf(
@@ -205,7 +220,8 @@ class WakeReadModelTest {
             ),
         )
 
-        assertThat(result.backgroundStarts).isEqualTo(20)
+        // The two starts the user initiated are not background starts.
+        assertThat(result.backgroundStarts).isEqualTo(18)
         assertThat(result.justified).isEqualTo(JustifiedStarts(userInitiated = 2, notification = 3, push = 11, grantedRole = 4))
         assertThat(result.own).isEmpty()
         assertThat(result.peers).isEmpty()

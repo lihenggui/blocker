@@ -26,6 +26,18 @@ private val peerTriggers = setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.PEER_
 private val peerHolds = setOf(HoldCause.BOUND_BY_PEER, HoldCause.PROVIDER_CLIENT)
 private val timedTriggers = setOf(ReviveTrigger.ALARM, ReviveTrigger.JOB, ReviveTrigger.SYNC, ReviveTrigger.PENDING_INTENT)
 
+// Triggers and holds whose detail names a component. Alarm tags, job names and wakelock tags are
+// digested at capture, so they never name one even when they contain a dot.
+private val componentTriggers = setOf(
+    ReviveTrigger.PEER_SERVICE,
+    ReviveTrigger.PEER_PROVIDER,
+    ReviveTrigger.PEER_ACTIVITY,
+    ReviveTrigger.STICKY_RESTART,
+    ReviveTrigger.SELF_PROCESS,
+    ReviveTrigger.SYSTEM_BIND,
+)
+private val componentHolds = setOf(HoldCause.FOREGROUND_SERVICE, HoldCause.BOUND_BY_PEER, HoldCause.BOUND_BY_SYSTEM, HoldCause.PROVIDER_CLIENT)
+
 internal fun buildAppWakeActivity(
     packageName: String,
     fromDay: Long,
@@ -42,7 +54,7 @@ internal fun buildAppWakeActivity(
             .filter { it.target == packageName && it.day in fromDay..throughDay }
             .map { WakeVerdict.valueOf(it.verdict) }
             .maxOrNull() ?: WakeVerdict.NORMAL,
-        backgroundStarts = revives.sumOf { it.count },
+        backgroundStarts = revives.filter { it.justification != Justification.USER_INITIATED.name }.sumOf { it.count },
         peers = buildPeerLinks(packageName, unjustified),
         own = buildOwnWakeMethods(unjustified.filter { it.target == packageName }),
         justified = countJustifiedStarts(revives),
@@ -174,7 +186,8 @@ private fun WakeFindingDay.toWakePath(): WakePath {
     val trigger = trigger?.let(ReviveTrigger::valueOf)
     val hold = hold?.let(HoldCause::valueOf)
     val broadcast = trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST
-    val component = detail?.takeIf { !broadcast || '/' in it }?.let { qualifiedWakeComponent(target, it) }
+    val namesComponent = trigger in componentTriggers || hold in componentHolds
+    val component = detail?.takeIf { if (broadcast) '/' in it else namesComponent }?.let { qualifiedWakeComponent(target, it) }
     val action = detail?.takeIf { component == null && it.isNotBlank() && (broadcast || trigger == ReviveTrigger.SELF_PROCESS) }
     val componentType = when {
         broadcast || (trigger == ReviveTrigger.SELF_PROCESS && action != null) -> ComponentType.RECEIVER

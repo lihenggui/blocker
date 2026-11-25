@@ -67,7 +67,7 @@ data class AppWakeActivity(
     val packageName: String,
     /** The worst daily verdict in the window, or [WakeVerdict.NORMAL] when there is none. */
     val verdict: WakeVerdict,
-    /** Revives of the app in the window, justified or otherwise. */
+    /** Revives of the app in the window that the user did not start. */
     val backgroundStarts: Long,
     val peers: List<WakePeerLink>,
     val own: List<OwnWakeMethod>,
