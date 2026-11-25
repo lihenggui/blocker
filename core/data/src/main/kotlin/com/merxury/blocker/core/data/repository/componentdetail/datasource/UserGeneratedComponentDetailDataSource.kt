@@ -24,9 +24,10 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.data.ComponentDetail
-import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -34,7 +35,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -53,7 +53,7 @@ internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     @GeneratedRuleBaseFolder private val generatedRuleBaseFolder: String,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) : ComponentDetailDataSource {
+) {
 
     private val _eventFlow =
         MutableSharedFlow<ComponentDetail>(replay = 1, onBufferOverflow = DROP_OLDEST)
@@ -62,70 +62,35 @@ internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     fun getByApp(app: AppKey): Flow<List<ComponentDetail>> = components.components(app)
         .map { statuses -> statuses.map { it.declaration.id.className }.toSet() }
         .distinctUntilChanged()
-        .map { names ->
-            if (names.isEmpty()) return@map emptyList()
-            val workingDir = getWorkingDirWithLang()
-            workingDir.listFilesRecursively()
-                .map { file ->
-                    file.relativeTo(workingDir).path
-                        .replace(File.separator, ".")
-                        .removeSuffix(".$EXTENSION")
-                }
-                .filter { it in names }
-                .mapNotNull { componentName ->
-                    val path = componentName.replace(".", File.separator)
-                        .plus(".$EXTENSION")
-                    val file = workingDir.resolve(path)
-                    if (!file.exists()) {
-                        return@mapNotNull null
-                    }
-                    return@mapNotNull try {
-                        json.decodeFromString<ComponentDetail>(file.readText())
-                    } catch (e: SerializationException) {
-                        Timber.e(
-                            e,
-                            "Error in decoding contents in ${file.absolutePath} " +
-                                "for the ComponentDetail",
-                        )
-                        null
-                    } catch (e: IllegalArgumentException) {
-                        Timber.e(
-                            e,
-                            "File ${file.absolutePath} " +
-                                "is not valid for a ComponentDetail class",
-                        )
-                        null
-                    }
-                }
-        }
+        .map { names -> findByNames(names, userDataRepository.getLibDisplayLanguage()).values.toList() }
         .flowOn(ioDispatcher)
 
-    override fun getByComponentName(name: String): Flow<ComponentDetail?> = flow {
-        val workingDir = getWorkingDirWithLang()
-        val path = name.replace(".", File.separator)
-            .plus(".$EXTENSION")
-        if (!workingDir.exists()) {
-            workingDir.mkdirs()
-        }
-        val file = workingDir.resolve(path)
-        if (file.exists()) {
-            try {
-                val componentDetail = json.decodeFromString<ComponentDetail>(file.readText())
-                emit(componentDetail)
-            } catch (e: SerializationException) {
-                Timber.e(e, "given JSON string is not a valid JSON input for the type")
-                emit(null)
-            } catch (e: IllegalArgumentException) {
-                Timber.e(e, "decoded input cannot be represented as a valid instance of type")
-                emit(null)
+    suspend fun findByNames(names: Set<String>, language: String): Map<String, ComponentDetail> {
+        val workingDir = filesDir.resolve(generatedRuleBaseFolder).resolve(language)
+        if (!workingDir.isDirectory) return emptyMap()
+        return buildMap {
+            for (name in names) {
+                currentCoroutineContext().ensureActive()
+                readDetail(workingDir, name)?.let { put(name, it) }
             }
-        } else {
-            emit(null)
         }
     }
-        .flowOn(ioDispatcher)
 
-    override fun saveComponentData(component: ComponentDetail): Flow<Boolean> = flow {
+    private fun readDetail(workingDir: File, name: String): ComponentDetail? {
+        val file = workingDir.resolve(name.replace(".", File.separator) + ".$EXTENSION")
+        if (!file.isFile) return null
+        return try {
+            json.decodeFromString<ComponentDetail>(file.readText())
+        } catch (e: IllegalArgumentException) {
+            Timber.w(e, "Cannot decode user component detail %s", file)
+            null
+        } catch (e: IOException) {
+            Timber.w(e, "Cannot read user component detail %s", file)
+            null
+        }
+    }
+
+    fun saveComponentData(component: ComponentDetail): Flow<Boolean> = flow {
         val workingDir = getWorkingDirWithLang()
         val name = component.name
         val path = name.replace(".", File.separator)

@@ -22,10 +22,8 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
-import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
-import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.control.BatchKey
@@ -40,7 +38,6 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.privileged.PrivilegedChannel
@@ -110,8 +107,6 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val channel: PrivilegedChannel,
     userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
-    @FilesDir private val filesDir: File,
-    @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @Assisted("ruleId") val ruleId: String,
     @Assisted("tab") val tab: String = Applicable.name,
@@ -123,10 +118,6 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val messages = MutableStateFlow<List<QueuedControlMessage>>(emptyList())
     private val actionFailure = MutableStateFlow<ActivityLaunchFailed?>(null)
     private var nextMessageId = 0L
-
-    private val rule: Flow<GeneralRule> = ruleRepository.getGeneralRule(id).map { rule ->
-        rule.copy(iconUrl = rule.iconUrl?.let { File(filesDir, ruleBaseFolder).resolve(it).absolutePath })
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val matched: Flow<MatchedAppsUiState> = selectedUsers.selectedUser.flatMapLatest { user ->
@@ -142,7 +133,7 @@ class RuleDetailViewModel @AssistedInject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val ruleInfo: Flow<RuleInfoUiState> = combine(
-        rule,
+        ruleRepository.getGeneralRule(id),
         matched,
         userDataRepository.userData.map { it.useDynamicColor }.distinctUntilChanged(),
         selectedUsers.selectedUser.flatMapLatest { componentIndex.state(it) },

@@ -18,19 +18,18 @@ package com.merxury.blocker.core.testing.repository
 
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 
 /**
  * Rules held in memory and set with [sendRuleList]. While [readFailure] is set, reading the rules
- * fails with it, as a damaged rule file would; [catalogReads] counts the reads of every rule and
+ * fails with it, as a damaged catalog would. [catalogReads] counts the reads of every rule and
  * [catalogGate] holds them back.
  */
 class TestGeneralRuleRepository : GeneralRuleRepository {
@@ -58,24 +57,11 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
 
     override fun getGeneralRule(id: Int): Flow<GeneralRule> = flow {
         readFailure?.let { throw it }
-        emitAll(rulesFlow.map { rules -> rules.find { it.id == id }!! })
-    }
-
-    override fun updateGeneralRule(): Flow<Result<Unit>> = flowOf(Result.Success(Unit))
-
-    override fun getRuleHash(): Flow<String> = flowOf("")
-
-    override suspend fun saveGeneralRule(rule: GeneralRule) {
-        // no-op
+        emitAll(rulesFlow.mapNotNull { rules -> rules.find { it.id == id } })
     }
 
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> = rulesFlow.map { rules ->
-        rules.filter { rule ->
-            rule.name.contains(keyword, ignoreCase = true) ||
-                rule.searchKeyword.contains(
-                    keyword,
-                )
-        }
+        rules.filter { it.name.contains(keyword, ignoreCase = true) }
     }
 
     fun sendRuleList(ruleList: List<GeneralRule>) {

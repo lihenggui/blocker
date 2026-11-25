@@ -24,8 +24,6 @@ import android.os.Build
 import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import androidx.work.ExistingWorkPolicy.KEEP
-import androidx.work.WorkManager
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import com.merxury.blocker.core.data.device.DeviceUserMonitor
@@ -38,7 +36,6 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.logging.ReleaseTree
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
-import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.Sync
 import com.merxury.blocker.sync.workers.WakeWork
@@ -140,25 +137,16 @@ class BlockerApplication :
         deviceUserMonitor.start()
         applicationScope.launch(ioDispatcher) {
             removeLegacyDebloaterDatabase(this@BlockerApplication)
+            removeLegacyGeneralRuleDatabase(this@BlockerApplication)
             pmBlockRecordSeeder.seedOnce()
         }
         applicationScope.launch {
             val userData = userDataRepository.userData.first()
             if (!userData.isFirstTimeInitializationCompleted) {
                 setDefaultRuleProvider()
-                copyRulesToInternalStorage()
                 userDataRepository.setIsFirstTimeInitializationCompleted(true)
             }
         }
-    }
-
-    private fun copyRulesToInternalStorage() {
-        WorkManager.getInstance(this@BlockerApplication)
-            .enqueueUniqueWork(
-                CopyRulesToStorageWorker.WORK_NAME,
-                KEEP,
-                CopyRulesToStorageWorker.copyWork(),
-            )
     }
 
     private suspend fun setDefaultRuleProvider() {
@@ -187,4 +175,12 @@ internal fun removeLegacyDebloaterDatabase(context: Context) {
     val file = context.getDatabasePath("share_target")
     SQLiteDatabase.deleteDatabase(file)
     if (file.exists()) Timber.w("Cannot delete the old debloater database")
+}
+
+/** Deletes the obsolete rule cache after the app switches to catalog storage. */
+internal fun removeLegacyGeneralRuleDatabase(context: Context) {
+    val database = "general_rule"
+    if (!context.deleteDatabase(database) && context.getDatabasePath(database).exists()) {
+        Timber.w("Cannot delete the old general rule database")
+    }
 }

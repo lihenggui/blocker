@@ -23,11 +23,9 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
-import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
-import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -64,9 +62,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -76,7 +72,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
-import java.io.File
 
 /**
  * The component lists of one app for one user, with search, tabs and selection, and the actions
@@ -93,8 +88,6 @@ class ComponentListViewModel @AssistedInject constructor(
     generalRules: GeneralRuleRepository,
     userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
-    @FilesDir private val filesDir: File,
-    @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Assisted("packageName") packageName: String,
@@ -132,7 +125,8 @@ class ComponentListViewModel @AssistedInject constructor(
     private val descriptions: Flow<Map<String, String>> = statuses
         .map { list -> list.mapTo(mutableSetOf()) { it.declaration.id.className } }
         .distinctUntilChanged()
-        .flatMapLatest(::descriptionsOf)
+        .flatMapLatest(componentDetails::getLocalComponentDetails)
+        .map { details -> details.mapNotNull { (name, detail) -> detail.description?.takeIf(String::isNotBlank)?.let { name to it } }.toMap() }
         .onStart { emit(emptyMap()) }
         .flowOn(ioDispatcher)
 
@@ -165,7 +159,7 @@ class ComponentListViewModel @AssistedInject constructor(
     // From the rows alone, so a search or a refresh matches nothing again. Loading until the rules
     // are read and matched, which never holds the rows back.
     private val matchedRules: Flow<MatchedRulesUiState> = combine(rows, generalRules.getGeneralRules(), loading) { rows, rules, loading ->
-        if (loading) MatchedRulesUiState.Loading else MatchedRulesUiState.Loaded(matchedRules(rules, rows) { filesDir.resolve(ruleBaseFolder).resolve(it) })
+        if (loading) MatchedRulesUiState.Loading else MatchedRulesUiState.Loaded(matchedRules(rules, rows))
     }
         .onStart { emit(MatchedRulesUiState.Loading) }
         .distinctUntilChanged()
@@ -361,20 +355,6 @@ class ComponentListViewModel @AssistedInject constructor(
         val result = if (channel.state.value is ChannelState.Ready) componentActions.runningServices(app) else null
         if (result is CallResult.Failure) Timber.d("No running services of $app: ${result.reason}")
         running.value = (result as? CallResult.Success)?.value
-    }
-
-    private fun descriptionsOf(names: Set<String>): Flow<Map<String, String>> = flow {
-        var descriptions = buildMap {
-            names.forEach { name -> componentDetails.getLocalComponentDetail(name).first()?.description?.takeIf { it.isNotBlank() }?.let { put(name, it) } }
-        }
-        emit(descriptions)
-        // Edits the user saves in the description dialog.
-        componentDetails.updatedComponent.collect { detail ->
-            if (detail.name !in names) return@collect
-            val description = detail.description?.takeIf { it.isNotBlank() }
-            descriptions = if (description == null) descriptions - detail.name else descriptions + (detail.name to description)
-            emit(descriptions)
-        }
     }
 
     private data class Selection(val active: Boolean = false, val ids: Set<ComponentId> = emptySet())

@@ -62,7 +62,7 @@ class UserGeneratedComponentDetailDataSourceTest {
             cache.sendComponents(UserId(10), listOf(status("com.example", ours.name), status("com.other", other.name)))
             assertThat(awaitItem()).containsExactly(ours)
         }
-        assertThat(source.getByComponentName(other.name).first()).isEqualTo(other)
+        assertThat(source.findByNames(setOf(other.name), "en-US")).containsExactly(other.name, other)
     }
 
     private fun status(packageName: String, className: String) = ComponentStatus(

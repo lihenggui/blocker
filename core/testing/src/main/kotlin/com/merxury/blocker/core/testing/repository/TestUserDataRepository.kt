@@ -134,7 +134,7 @@ class TestUserDataRepository : UserDataRepository {
         _userData.tryEmit(currentUserData.copy(libDisplayLanguage = language))
     }
 
-    override suspend fun getLibDisplayLanguage(): String = "en-US"
+    override suspend fun getLibDisplayLanguage(): String = currentUserData.libDisplayLanguage.ifBlank { "en" }
 
     fun sendUserData(userData: UserPreferenceData) {
         _userData.tryEmit(userData)

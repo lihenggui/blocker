@@ -570,14 +570,14 @@ class ComponentListViewModelTest {
 
     @Test
     fun givenMatchingGeneralRule_whenShown_thenItsComponentsAreGrouped() = runTest {
-        fixture.rules.sendRuleList(listOf(GeneralRule(id = 7, name = "Firebase", iconUrl = "icon/firebase.png", searchKeyword = listOf("firebase"))))
+        fixture.rules.sendRuleList(listOf(GeneralRule(id = 7, name = "Firebase", iconUrl = "/files/catalog/icon-1/icon/firebase.png", searchKeyword = listOf("firebase"))))
         fixture.sendComponents(component("firebase.Messaging", type = ComponentType.SERVICE, ifw = IfwBlock.BLOCKED), component("Main"))
 
         show()
 
         val rule = (viewModel.uiState.value.matchedRules as MatchedRulesUiState.Loaded).rules.single()
         assertThat(rule.title).isEqualTo("Firebase")
-        assertThat(rule.icon).isEqualTo(File("/files/rules/icon/firebase.png"))
+        assertThat(rule.icon).isEqualTo(File("/files/catalog/icon-1/icon/firebase.png"))
         assertThat(rule.rows.map { it.id to it.enabled }).containsExactly(id("firebase.Messaging") to false)
         assertThat(viewModel.uiState.value.tabs.items).contains(AppDetailTabs.Sdk)
     }

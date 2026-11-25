@@ -31,6 +31,7 @@ internal class CatalogInstaller @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
     private val mutex = Mutex()
+    private var cleanedRetiredIcons = false
 
     suspend fun install(source: CatalogSource): CatalogInstallResult = withContext(ioDispatcher) {
         mutex.withLock {
@@ -41,10 +42,13 @@ internal class CatalogInstaller @Inject constructor(
                 sequence = manifest.state.sequence
 
                 val active = dao.readState()
-                existingInstall(manifest, active)?.let { result ->
-                    if (active != null) icons.deleteOlderThan(active.sequence)
-                    return@withLock result
+                // Screens can still hold an icon path after a newer sequence commits. Only
+                // remove directories retired before this process started installing catalogs.
+                if (!cleanedRetiredIcons && active != null) {
+                    icons.deleteOlderThan(active.sequence)
                 }
+                cleanedRetiredIcons = true
+                existingInstall(manifest, active)?.let { return@withLock it }
                 manifest.verifyPaths(source.paths())
                 val rules = source.readVerified(manifest.files.getValue(CATALOG_RULES)) {
                     readCatalogRules(it, manifest.files.keys)
@@ -149,7 +153,7 @@ internal class CatalogInstaller @Inject constructor(
             Timber.w(e, "Cannot read catalog state while cleaning up sequence %d", sequence)
             return
         }
-        if (active == sequence) icons.deleteOlderThan(sequence) else icons.delete(directory)
+        if (active != sequence) icons.delete(directory)
     }
 
     private fun reject(sequence: Long?, e: Exception): CatalogInstallResult.Rejected {

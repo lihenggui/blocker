@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.repository.componentdetail
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 interface ComponentDetailRepository {
 
@@ -26,9 +27,10 @@ interface ComponentDetailRepository {
 
     fun hasUserGeneratedDetail(app: AppKey): Flow<Boolean>
 
-    fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
+    fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = getLocalComponentDetails(setOf(name)).map { it[name] }
 
-    fun getLocalComponentDetail(name: String): Flow<ComponentDetail?>
+    /** Details keyed by exact component name, with saved user descriptions taking precedence. */
+    fun getLocalComponentDetails(names: Set<String>): Flow<Map<String, ComponentDetail>>
 
     fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
 }

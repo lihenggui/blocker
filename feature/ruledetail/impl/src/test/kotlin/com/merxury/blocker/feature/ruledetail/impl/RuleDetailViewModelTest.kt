@@ -143,7 +143,7 @@ class RuleDetailViewModelTest {
     @Test
     fun givenTheRule_whenShown_thenItsIconIsAFileAndThemesTheScreenOnlyWithDynamicColour() = runTest {
         show()
-        val icon = File("/files/rules", "icon/tracker.svg")
+        val icon = File("/files/catalog/icon-1/icon/tracker.svg")
 
         val info = viewModel.uiState.value.ruleInfo as RuleInfoUiState.Success
         assertThat(info.ruleInfo.iconUrl).isEqualTo(icon.absolutePath)

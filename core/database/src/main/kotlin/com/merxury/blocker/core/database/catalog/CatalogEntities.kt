@@ -74,6 +74,7 @@ data class CatalogComponentTextEntity(
 data class CatalogComponentWithText(
     @Embedded val component: CatalogComponentEntity,
     @Relation(parentColumn = "name", entityColumn = "name") val texts: List<CatalogComponentTextEntity>,
+    @Relation(parentColumn = "sdk_rule_id", entityColumn = "rule_id") val sdkTexts: List<CatalogRuleTextEntity> = emptyList(),
 )
 
 @Entity(tableName = "catalog_state")

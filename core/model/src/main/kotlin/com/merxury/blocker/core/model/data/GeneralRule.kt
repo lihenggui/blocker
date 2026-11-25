@@ -19,11 +19,10 @@ package com.merxury.blocker.core.model.data
 data class GeneralRule(
     val id: Int,
     val name: String,
+    /** Absolute path to the installed catalog icon. */
     val iconUrl: String? = null,
     val company: String? = null,
     val searchKeyword: List<String> = listOf(),
-    val networkSignature: List<String> = listOf(),
-    val useRegexSearch: Boolean? = null,
     val description: String? = null,
     val safeToBlock: Boolean? = null,
     val sideEffect: String? = null,

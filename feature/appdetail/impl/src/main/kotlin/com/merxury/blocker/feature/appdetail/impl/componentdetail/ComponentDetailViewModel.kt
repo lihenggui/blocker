@@ -34,8 +34,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -54,19 +52,14 @@ class ComponentDetailViewModel @AssistedInject constructor(
     private val edited = MutableStateFlow<ComponentDetail?>(null)
     val editedDetail: StateFlow<ComponentDetail?> = edited.asStateFlow()
 
-    // What the user saved before wins over the description that came with the rules.
-    private val stored = flow {
-        val detail = componentDetailRepository.getUserGeneratedDetail(componentName).first()
-            ?: componentDetailRepository.getLocalComponentDetail(componentName).first()
-            ?: ComponentDetail(name = componentName)
-        emit(detail)
-    }.flowOn(ioDispatcher)
-
-    val uiState: StateFlow<ComponentDetailUiState> = stored.map(::Success).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = Loading,
-    )
+    val uiState: StateFlow<ComponentDetailUiState> = componentDetailRepository.getLocalComponentDetail(componentName)
+        .map { Success(it ?: ComponentDetail(name = componentName)) }
+        .flowOn(ioDispatcher)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = Loading,
+        )
 
     fun onInfoChanged(change: ComponentDetail.() -> ComponentDetail) {
         val detail = edited.value ?: (uiState.value as? Success)?.detail ?: return

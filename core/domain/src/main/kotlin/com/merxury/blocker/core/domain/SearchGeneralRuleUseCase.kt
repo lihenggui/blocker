@@ -16,16 +16,13 @@
 
 package com.merxury.blocker.core.domain
 
-import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatches
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.GeneralRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -36,22 +33,15 @@ import javax.inject.Inject
 class SearchGeneralRuleUseCase @Inject constructor(
     private val generalRuleRepository: GeneralRuleRepository,
     private val ruleMatcher: GeneralRuleMatcher,
-    @FilesDir private val filesDir: File,
-    @RuleBaseFolder private val ruleBaseFolder: String,
 ) {
     /** The rules whose name contains [keyword], all of them when it is empty, with their matches among the apps of [user]. */
-    operator fun invoke(user: UserId, keyword: String = ""): Flow<GeneralRuleSearchResults> {
-        val filesDir = filesDir.resolve(ruleBaseFolder)
-        return combine(generalRuleRepository.searchGeneralRule(keyword), ruleMatcher.matches(user)) { list, matches ->
-            val rules = list.map { rule ->
-                val iconPath = rule.iconUrl
-                rule.copy(
-                    iconUrl = if (iconPath.isNullOrEmpty()) iconPath else filesDir.resolve(iconPath).absolutePath,
-                    matchedAppCount = matches.appCountOf(rule.id),
-                )
-            }.sortedByDescending { it.matchedAppCount }
-            GeneralRuleSearchResults(rules, matches)
-        }
+    operator fun invoke(user: UserId, keyword: String = ""): Flow<GeneralRuleSearchResults> = combine(generalRuleRepository.searchGeneralRule(keyword), ruleMatcher.matches(user)) { list, matches ->
+        val rules = list.map { rule ->
+            rule.copy(
+                matchedAppCount = matches.appCountOf(rule.id),
+            )
+        }.sortedByDescending { it.matchedAppCount }
+        GeneralRuleSearchResults(rules, matches)
     }
 }
 

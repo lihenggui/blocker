@@ -30,10 +30,7 @@ import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
-import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
-import com.merxury.blocker.core.data.test.repository.FakeAppPropertiesRepository
-import com.merxury.blocker.core.data.test.repository.FakeCatalogRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.test.repository.FakeLicensesRepository
@@ -44,6 +41,7 @@ import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.manifest.AndroidManifest
+import com.merxury.blocker.core.testing.repository.TestCatalogRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
@@ -54,6 +52,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
+import javax.inject.Singleton
 
 @Module
 @TestInstallIn(
@@ -70,17 +69,9 @@ internal interface TestDataModule {
     ): UserDataRepository
 
     @Binds
-    fun bindAppPropertiesRepository(
-        appPropertiesRepository: FakeAppPropertiesRepository,
-    ): AppPropertiesRepository
-
-    @Binds
     fun bindsTestGeneralRuleRepository(
         testGeneralRuleRepository: FakeGeneralRuleRepository,
     ): GeneralRuleRepository
-
-    @Binds
-    fun bindsCatalogRepository(repository: FakeCatalogRepository): CatalogRepository
 
     @Binds
     fun bindsComponentDetailRepository(
@@ -121,6 +112,10 @@ internal interface TestDataModule {
     fun bindsPmBlockRecordSeeder(seeder: FakePmBlockRecordSeeder): PmBlockRecordSeeder
 
     companion object {
+        @Provides
+        @Singleton
+        fun catalogRepository(): CatalogRepository = TestCatalogRepository()
+
         @Provides
         fun debloaterMetadataRepository(): DebloaterMetadataRepository = object : DebloaterMetadataRepository {
             override suspend fun packageOrder(user: UserId): List<String> = emptyList()

@@ -247,7 +247,6 @@ graph TB
   :sync:work -.-> :core:data
   :sync:work -.-> :core:domain
   :sync:work -.-> :core:git
-  :sync:work -.-> :core:rule
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

@@ -36,7 +36,6 @@ dependencies {
     testImplementation(projects.core.screenshotTesting)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext)
-    testImplementation(libs.androidx.work.testing)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)

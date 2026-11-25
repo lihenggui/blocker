@@ -58,7 +58,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.mockito.kotlin.mock
-import java.io.File
 import kotlin.time.Instant
 
 internal val OWNER = UserId(0)
@@ -152,8 +151,6 @@ internal class AppDetailFixture(
             generalRules = rules,
             userDataRepository = userData,
             analyticsHelper = analytics,
-            filesDir = File("/files"),
-            ruleBaseFolder = "rules",
             cpuDispatcher = dispatcher,
             ioDispatcher = dispatcher,
             packageName = PACKAGE,

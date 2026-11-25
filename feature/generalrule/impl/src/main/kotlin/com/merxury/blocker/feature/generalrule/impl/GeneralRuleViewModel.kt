@@ -21,18 +21,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.SelectedUserRepository
-import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
+import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.domain.control.BatchRun
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
 import com.merxury.blocker.core.domain.control.GetControlLayersUseCase
-import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
 import com.merxury.blocker.core.domain.search.ComponentIndex
 import com.merxury.blocker.core.domain.search.IndexState
@@ -43,7 +39,6 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.privileged.PrivilegedChannel
-import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.QueuedControlMessage
@@ -58,14 +53,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -74,7 +68,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -88,9 +81,7 @@ import timber.log.Timber
 @HiltViewModel(assistedFactory = GeneralRulesViewModel.Factory::class)
 class GeneralRulesViewModel @AssistedInject constructor(
     private val selectedUsers: SelectedUserRepository,
-    private val generalRuleRepository: GeneralRuleRepository,
-    private val appPropertiesRepository: AppPropertiesRepository,
-    private val initGeneralRuleUseCase: InitializeRuleStorageUseCase,
+    catalog: CatalogRepository,
     private val searchRule: SearchGeneralRuleUseCase,
     private val ruleMatcher: GeneralRuleMatcher,
     private val componentIndex: ComponentIndex,
@@ -99,18 +90,15 @@ class GeneralRulesViewModel @AssistedInject constructor(
     private val channel: PrivilegedChannel,
     private val analyticsHelper: AnalyticsHelper,
     private val savedStateHandle: SavedStateHandle,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @Assisted val initialRuleId: String,
 ) : ViewModel() {
-    private val rulesReady = MutableStateFlow(false)
     private val alert = MutableStateFlow<UiMessage?>(null)
 
     // The goal of a batch whose components are being gathered, before it runs; null otherwise.
     private val gathering = MutableStateFlow<ControlGoal?>(null)
     private val messages = MutableStateFlow<List<QueuedControlMessage>>(emptyList())
     private var nextMessageId = 0L
-    private var rulesSynced = false
 
     // Key used to save and retrieve the currently selected rule id from saved state.
     private val selectedRuleIdKey = "selectedRuleIdKey"
@@ -120,8 +108,19 @@ class GeneralRulesViewModel @AssistedInject constructor(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val rules: Flow<GeneralRuleUiState> = combine(rulesReady, selectedUsers.selectedUser, ::Pair)
+    private val rules: Flow<GeneralRuleUiState> = combine(
+        catalog.catalogState.map { it != null }.distinctUntilChanged(),
+        selectedUsers.selectedUser,
+        ::Pair,
+    )
         .flatMapLatest { (ready, user) -> if (ready) rulesOf(user) else flowOf(GeneralRuleUiState.Loading) }
+        .retryWhen { e, _ ->
+            if (e is CancellationException) return@retryWhen false
+            Timber.e(e, "Cannot load the general rules")
+            emit(GeneralRuleUiState.Error(e.toErrorMessage()))
+            delay(RETRY_MILLIS)
+            true
+        }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val batch: Flow<ProcessingProgress?> = combine(
@@ -145,14 +144,8 @@ class GeneralRulesViewModel @AssistedInject constructor(
             initialValue = GeneralRulesScreenUiState(),
         )
 
-    /**
-     * Keeps the rules and their matches current while the screen is shown: prepares the rule
-     * storage and updates the rules from it once, and reads the selected user's apps into the
-     * component cache the first time this run shows that user, and again when that ran with less
-     * access than the privileged channel has now. Returns only when cancelled.
-     */
-    suspend fun keepFresh(): Unit = coroutineScope {
-        launch { prepareRules() }
+    /** Reads the selected user's apps into the component cache as privileged access allows. */
+    suspend fun keepFresh() {
         combine(selectedUsers.selectedUser, channel.state) { user, _ -> user }
             .collect(componentIndex::ensureIndexed)
     }
@@ -266,49 +259,6 @@ class GeneralRulesViewModel @AssistedInject constructor(
         }
     }
         .onStart { emit(GeneralRuleUiState.Loading) }
-        .retryWhen { e, _ ->
-            if (e is CancellationException) return@retryWhen false
-            Timber.e(e, "Cannot load the general rules")
-            emit(GeneralRuleUiState.Error(e.toErrorMessage()))
-            delay(RETRY_MILLIS)
-            true
-        }
-
-    /** Copies the rules into storage when missing, then updates the cached rules from it once. */
-    private suspend fun prepareRules() {
-        if (!rulesReady.value) {
-            initGeneralRuleUseCase()
-                .catch { Timber.e(it, "Cannot prepare the rule storage") }
-                .takeWhile { it != InitializeState.Done }
-                .collect { Timber.d("Initialize general rule: $it") }
-            rulesReady.value = true
-        }
-        if (rulesSynced) return
-        rulesSynced = true
-        syncRules()
-    }
-
-    /** Updates the cached rules from storage when the rules there changed since the last update. */
-    private suspend fun syncRules() {
-        try {
-            val ruleHash = generalRuleRepository.getRuleHash().first()
-            if (ruleHash == appPropertiesRepository.appProperties.first().lastOpenedRuleHash) return
-            generalRuleRepository.updateGeneralRule()
-                .flowOn(ioDispatcher)
-                .collect { result ->
-                    when (result) {
-                        is Result.Success -> appPropertiesRepository.updateLastOpenedRuleHash(ruleHash)
-                        is Result.Error -> alert.value = result.exception.toErrorMessage()
-                        Result.Loading -> Unit
-                    }
-                }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Cannot update the general rules")
-            alert.value = e.toErrorMessage()
-        }
-    }
 
     private fun tell(message: ControlMessage) {
         val queued = QueuedControlMessage(nextMessageId++, message)

@@ -36,7 +36,6 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(projects.core.git)
-    implementation(projects.core.rule)
 
     testImplementation(libs.androidx.work.testing)
     testImplementation(libs.robolectric)

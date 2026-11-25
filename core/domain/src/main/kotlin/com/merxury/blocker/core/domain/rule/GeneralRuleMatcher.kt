@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.domain.rule
 
+import android.icu.lang.UCharacter
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
@@ -25,8 +26,6 @@ import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.SqlLikePattern
-import com.merxury.blocker.core.domain.foldSqlLikeCase
 import com.merxury.blocker.core.domain.readAtMostEvery
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -144,7 +143,7 @@ class GeneralRuleMatcher @Inject constructor(
         private var keywords: List<Pair<Int, List<String>>>? = null
 
         // Each distinct keyword with the rules that list it and where each lists it.
-        private var patterns: List<Pair<SqlLikePattern, List<KeywordOf>>> = emptyList()
+        private var foldedKeywords: Map<String, List<KeywordOf>> = emptyMap()
         private val packages = HashMap<String, PackageMatch>()
 
         suspend fun match(input: MatchInput): GeneralRuleMatches {
@@ -152,7 +151,7 @@ class GeneralRuleMatcher @Inject constructor(
             val ruleKeywords = input.rules.map { it.id to it.searchKeyword }
             if (ruleKeywords != keywords) {
                 keywords = ruleKeywords
-                patterns = patternsOf(input.rules)
+                foldedKeywords = foldKeywords(input.rules)
                 packages.clear()
             }
             val shown = input.shownApps.mapTo(HashSet()) { it.key.packageName }
@@ -177,20 +176,20 @@ class GeneralRuleMatcher @Inject constructor(
 
         /** The rules that match [className], each with the position of its first keyword that matches. */
         private fun rulesOf(className: String): Map<Int, Int> {
-            val folded = className.substringBefore('\u0000').foldSqlLikeCase()
+            val folded = className.foldKeywordCase()
             val matched = LinkedHashMap<Int, Int>()
-            patterns.forEach { (pattern, rules) ->
-                if (pattern.matchesFolded(folded)) rules.forEach { matched.merge(it.ruleId, it.position, ::minOf) }
+            foldedKeywords.forEach { (keyword, rules) ->
+                if (folded.contains(keyword)) rules.forEach { matched.merge(it.ruleId, it.position, ::minOf) }
             }
             return matched
         }
 
-        private fun patternsOf(rules: List<GeneralRule>): List<Pair<SqlLikePattern, List<KeywordOf>>> {
+        private fun foldKeywords(rules: List<GeneralRule>): Map<String, List<KeywordOf>> {
             val rulesByKeyword = LinkedHashMap<String, MutableList<KeywordOf>>()
             rules.forEach { rule ->
-                rule.searchKeyword.forEachIndexed { position, keyword -> rulesByKeyword.getOrPut(keyword) { mutableListOf() } += KeywordOf(rule.id, position) }
+                rule.searchKeyword.forEachIndexed { position, keyword -> rulesByKeyword.getOrPut(keyword.foldKeywordCase()) { mutableListOf() } += KeywordOf(rule.id, position) }
             }
-            return rulesByKeyword.map { (keyword, keywordOf) -> SqlLikePattern(keyword) to keywordOf }
+            return rulesByKeyword
         }
     }
 
@@ -245,4 +244,22 @@ data class GeneralRuleMatches(private val byRule: Map<Int, List<ComponentStatus>
     /** Every component a rule matches, each once. */
     val allComponents: List<ComponentStatus>
         get() = byRule.values.flatten().distinctBy { it.declaration.id }
+}
+
+private fun String.foldKeywordCase(): String {
+    if (all { it.code < 128 }) {
+        if (none { it in 'A'..'Z' }) return this
+        return buildString(length) {
+            for (char in this@foldKeywordCase) append(if (char in 'A'..'Z') char + ('a' - 'A') else char)
+        }
+    }
+    // Preserve the simple Unicode case folding used for literal keywords.
+    return buildString(length) {
+        var index = 0
+        while (index < this@foldKeywordCase.length) {
+            val codePoint = this@foldKeywordCase.codePointAt(index)
+            appendCodePoint(UCharacter.foldCase(codePoint, true))
+            index += Character.charCount(codePoint)
+        }
+    }
 }

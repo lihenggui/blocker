@@ -33,11 +33,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/**
- * The matching keeps what the matching over the old component table found for [MatchingData]:
- * these expectations are what the old matcher gave for it, compared with the new one on the same
- * data before the old one was removed.
- */
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
 class GeneralRuleMatchingTest {
@@ -47,23 +42,22 @@ class GeneralRuleMatchingTest {
     private val userData = TestUserDataRepository()
 
     @Test
-    fun givenSystemAppsHidden_whenMatching_thenFindsWhatTheOldMatchingFound() = runTest {
+    fun givenSystemAppsHidden_whenMatching_thenMatchesLiteralKeywordsWithCaseFolding() = runTest {
         userData.sendUserData(defaultUserData.copy(showSystemApps = false))
         val matches = matcher().matches(OWNER).first()
 
         assertThat(MatchingData.rules.associate { it.id to matches.appCountOf(it.id) })
-            .containsExactly(1, 2, 2, 1, 3, 1, 4, 1, 5, 1, 6, 1, 7, 0, 8, 0, 9, 1)
+            .containsExactly(1, 2, 2, 1, 3, 1, 4, 1, 5, 0, 6, 1, 7, 0, 8, 0, 9, 1)
         assertThat(names(matches, 1)).containsExactly("com.alpha/com.tracker.TrackerService", "com.alpha/com.tracker.Other", "com.gamma/com.gamma.MyTrackerService")
         assertThat(names(matches, 2)).containsExactly("com.alpha/com.tracker.TrackerService", "com.alpha/com.tracker.Other")
         assertThat(names(matches, 3)).containsExactly("com.alpha/com.ads.sdk.AdActivity")
-        // `_` matches one character, so not the two of push__kit.
-        assertThat(names(matches, 4)).containsExactly("com.beta/com.huawei.push.kit.Receiver", "com.beta/com.huawei.pushXkit.Receiver")
-        assertThat(names(matches, 5)).containsExactly("com.beta/com.beta.analytics.core.BootReceiver", "com.beta/com.beta.Analytics.Receiver")
+        assertThat(names(matches, 4)).containsExactly("com.beta/com.huawei.PUSH_Kit.Receiver")
+        assertThat(names(matches, 5)).isEmpty()
         assertThat(names(matches, 6)).containsExactly("com.gamma/com.gamma.übersicht.MainActivity")
         assertThat(names(matches, 7)).isEmpty()
         assertThat(names(matches, 8)).isEmpty()
         assertThat(names(matches, 9)).containsExactly("com.alpha/com.alpha.SyncAdapter")
-        assertThat(matches.allComponents).hasSize(10)
+        assertThat(matches.allComponents).hasSize(7)
     }
 
     @Test
@@ -72,9 +66,9 @@ class GeneralRuleMatchingTest {
         val matches = matcher().matches(OWNER).first()
 
         assertThat(MatchingData.rules.associate { it.id to matches.appCountOf(it.id) })
-            .containsExactly(1, 3, 2, 2, 3, 2, 4, 1, 5, 1, 6, 1, 7, 0, 8, 0, 9, 1)
+            .containsExactly(1, 3, 2, 2, 3, 2, 4, 1, 5, 0, 6, 1, 7, 0, 8, 0, 9, 1)
         assertThat(names(matches, 3)).containsExactly("com.alpha/com.ads.sdk.AdActivity", "com.system/com.ads.sdk.SystemAd")
-        assertThat(matches.allComponents).hasSize(12)
+        assertThat(matches.allComponents).hasSize(9)
     }
 
     private fun names(matches: GeneralRuleMatches, ruleId: Int) = matches.componentsOf(ruleId).map { it.declaration.id.flatten() }

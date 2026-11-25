@@ -30,6 +30,19 @@ import java.io.File
 @Config(application = Application::class)
 class LegacyDebloaterDatabaseTest {
     @Test
+    fun givenOldRuleCache_whenStartupCleanupRunsTwice_thenRemoveOnlyTheRetiredCache() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        context.openOrCreateDatabase("general_rule", Context.MODE_PRIVATE, null).close()
+        context.openOrCreateDatabase("catalog.db", Context.MODE_PRIVATE, null).close()
+
+        removeLegacyGeneralRuleDatabase(context)
+        removeLegacyGeneralRuleDatabase(context)
+
+        assertThat(context.getDatabasePath("general_rule").exists()).isFalse()
+        assertThat(context.getDatabasePath("catalog.db").exists()).isTrue()
+    }
+
+    @Test
     fun givenLegacyDatabase_whenStartupCleanupRunsTwice_thenDeleteOnlyTheLegacyDatabase() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val legacy = "share_target"

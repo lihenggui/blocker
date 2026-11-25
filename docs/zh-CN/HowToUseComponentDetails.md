@@ -2,7 +2,7 @@
 组件详情功能于版本v2.0.2842版本之后正式添加进Blocker中。该功能可以帮助用户快速查看组件的详细信息，帮助用户厘清该组件的作用以及确认这个组件对于应用来说是否是必要的。  
 # 组件的类别
 ## Blocker自带规则
-Blocker自带规则存放在[blocker-general-rules](https://github.com/lihenggui/blocker-general-rules)中。APP中会独立存放一份离线版本以供没有网络或者无法拉取更新的时候使用。
+Blocker 内置离线[规则目录](https://github.com/lihenggui/blocker-catalog)，其中包含规则和组件说明，数据来源包括 [blocker-general-rules](https://github.com/lihenggui/blocker-general-rules)。
 仓库中的components文件夹存放的是应用内组件的信息描述。rules文件夹则是通用规则的描述。为了支持多语言，每种不同语言的规则都会单独存放在一个文件夹中。
 应用在每天的第一次启动的时候会检查该仓库是否有更新，如果有更新则会下载到本地存储中。
 如果应用存在匹配的组件规则，那么在展示应用组件的时候，Blocker就会自动添加该组件的介绍。如果用户想要查看详细信息，或是修改对应的组件信息，那么用户可以单击该组件，然后在弹出的对话框中进行操作。

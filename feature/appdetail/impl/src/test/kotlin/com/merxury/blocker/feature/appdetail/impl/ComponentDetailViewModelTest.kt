@@ -55,7 +55,8 @@ class ComponentDetailViewModelTest {
 
             viewModel.save(original)
             runCurrent()
-            assertThat(repository.getUserGeneratedDetail(original.name).first()).isEqualTo(edited)
+            assertThat(awaitItem()).isEqualTo(ComponentDetailUiState.Success(edited))
+            assertThat(repository.getLocalComponentDetail(original.name).first()).isEqualTo(edited)
         }
     }
 }

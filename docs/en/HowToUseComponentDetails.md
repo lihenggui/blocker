@@ -3,7 +3,7 @@ The component details feature was officially added to Blocker after version 2.0.
 
 # Categories of Components
 ## Blocker Built-in Rules
-Blocker's built-in rules are stored in [blocker-general-rules](https://github.com/lihenggui/blocker-general-rules). The app keeps a separate offline version of these rules for use when there is no internet connection or when updates cannot be fetched.
+Blocker ships an offline [catalog](https://github.com/lihenggui/blocker-catalog) of built-in rules and component descriptions. The catalog includes data from [blocker-general-rules](https://github.com/lihenggui/blocker-general-rules).
 
 The components folder in the repository contains information descriptions of in-app components, while the rules folder describes general rules. To support multiple languages, rules for different languages are stored in separate folders.
 

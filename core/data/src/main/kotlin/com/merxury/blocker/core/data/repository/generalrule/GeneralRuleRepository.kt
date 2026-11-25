@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.data.repository.generalrule
 
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
 interface GeneralRuleRepository {
@@ -27,16 +26,6 @@ interface GeneralRuleRepository {
     fun getGeneralRules(): Flow<List<GeneralRule>>
 
     fun getGeneralRule(id: Int): Flow<GeneralRule>
-
-    fun getRuleHash(): Flow<String>
-
-    /**
-     * Update the general rule from the backend API
-     * And emit results in a flow for application to listen
-     */
-    fun updateGeneralRule(): Flow<Result<Unit>>
-
-    suspend fun saveGeneralRule(rule: GeneralRule)
 
     fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>>
 }

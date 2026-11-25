@@ -16,23 +16,31 @@
 
 package com.merxury.blocker.core.data.repository.componentdetail
 
-import com.merxury.blocker.core.data.repository.componentdetail.datasource.LocalComponentDetailDataSource
+import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
+import com.merxury.blocker.core.data.repository.catalog.catalogLanguage
+import com.merxury.blocker.core.data.repository.componentdetail.datasource.CatalogComponentDetailDataSource
 import com.merxury.blocker.core.data.repository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
 internal class LocalComponentDetailRepository @Inject constructor(
-    private val localComponentDetailRepository: LocalComponentDetailDataSource,
+    private val catalogDetails: CatalogComponentDetailDataSource,
     private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
+    private val catalog: CatalogRepository,
+    private val userData: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailRepository {
 
@@ -42,25 +50,15 @@ internal class LocalComponentDetailRepository @Inject constructor(
     override fun hasUserGeneratedDetail(app: AppKey): Flow<Boolean> = userGeneratedDataSource.getByApp(app)
         .map { it.isNotEmpty() }
 
-    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = userGeneratedDataSource.getByComponentName(name)
-
-    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        // Priority: user generated > db
-        val userGeneratedData = userGeneratedDataSource.getByComponentName(name)
-            .first()
-        if (userGeneratedData != null) {
-            emit(userGeneratedData)
-            return@flow
-        }
-        val localData = localComponentDetailRepository.getByComponentName(name)
-            .first()
-        if (localData != null) {
-            emit(localData)
-            return@flow
-        }
-        emit(null)
+    override fun getLocalComponentDetails(names: Set<String>): Flow<Map<String, ComponentDetail>> {
+        if (names.isEmpty()) return flowOf(emptyMap())
+        val edits = updatedComponent.filter { it.name in names }.map { Unit }.onStart { emit(Unit) }
+        return combine(catalog.catalogState, userData.catalogLanguage(), edits) { _, language, _ ->
+            val saved = userGeneratedDataSource.findByNames(names, language)
+            val bundled = catalogDetails.findByNames(names - saved.keys, language)
+            saved + bundled.associateBy(ComponentDetail::name)
+        }.distinctUntilChanged().flowOn(ioDispatcher)
     }
-        .flowOn(ioDispatcher)
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = userGeneratedDataSource.saveComponentData(componentDetail)
 }
