@@ -240,7 +240,7 @@ class ComponentProvider internal constructor(
 
     private suspend fun ProviderEntryPoint.writeBeforeDeadline(packageName: String, requests: List<ControlRequest>): Boolean {
         val progress = WriteProgress(packageName)
-        val task = startQuietly { applyControl(packageName, requests, progress) }
+        val task = startQuietly { applyControl(requests, progress) }
         return try {
             withTimeoutOrNull(writeTimeoutMillis) { task.await() } ?: progress.onTimeout()
         } finally {
@@ -249,13 +249,12 @@ class ComponentProvider internal constructor(
         }
     }
 
-    private suspend fun ProviderEntryPoint.applyControl(packageName: String, requests: List<ControlRequest>, progress: WriteProgress): Boolean {
+    private suspend fun ProviderEntryPoint.applyControl(requests: List<ControlRequest>, progress: WriteProgress): Boolean {
         for (request in requests) {
             if (!progress.canStart()) return false
-            val ownBlock = request.goal == ControlGoal.BLOCK && packageName == context?.packageName
             val failed = componentStatuses().control(request, keepKnownState = true, writeObserver = progress)
                 .filterIsInstance<ControlEvent.PackageDone>()
-                .fold(false) { failed, event -> failed || event.outcomes.any { it.failures.isControlException(ownBlock) } }
+                .fold(false) { failed, event -> failed || event.outcomes.any { it.failures.isControlException() } }
             if (failed) return false
         }
         return true
@@ -263,9 +262,8 @@ class ComponentProvider internal constructor(
 
     // A failed read-back or IFW write could return false in the old controller. PM exceptions
     // and missing access returned null. Blocking our own components is now an explicit refusal.
-    private fun Map<ControlLayer, ControlFailure>.isControlException(ownBlock: Boolean): Boolean = ControlFailure.ChannelUnavailable in values || when (get(ControlLayer.PACKAGE_MANAGER)) {
-        is ControlFailure.NotPermitted -> !ownBlock
-        is ControlFailure.SystemError, is ControlFailure.TargetNotFound -> true
+    private fun Map<ControlLayer, ControlFailure>.isControlException(): Boolean = ControlFailure.ChannelUnavailable in values || when (get(ControlLayer.PACKAGE_MANAGER)) {
+        is ControlFailure.NotPermitted, is ControlFailure.SystemError, is ControlFailure.TargetNotFound -> true
         else -> false
     }
 

@@ -21,6 +21,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.merxury.blocker.core.appcontrol.AppControl
 import com.merxury.blocker.core.control.ComponentControl
+import com.merxury.blocker.core.control.ComponentControlPersistence
+import com.merxury.blocker.core.control.PackageLocks
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
 import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
 import com.merxury.blocker.core.database.wake.WakeHistoryDatabase
@@ -32,12 +34,15 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.control.layersFor
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.system.AppEnabledSetting
@@ -55,7 +60,10 @@ import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import org.junit.After
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -123,17 +131,18 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
     internal val seeder = InstalledAppDbPmBlockRecordSeeder(applicationContext, Dispatchers.IO, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
     internal val system = FakeSystem()
     internal val files = FakeIfwFileSystem()
-    internal val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer())
+    internal val store = IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test")
     internal val channel = FakePrivilegedChannel()
-    internal val componentControl = FakeComponentControl()
+    internal val packageLocks = PackageLocks()
+    internal val componentControl = FakeComponentControl(packageLocks, system)
     internal val appControl = FakeAppControl(system)
     internal val users = LocalDeviceUserRepository(dao, system, channel, pmBlocks)
     internal var elapsedRealtime: () -> Long = { 0L }
     internal val controlActivity = PackageControlActivity { elapsedRealtime() }
-    internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks, controlActivity)
+    internal val apps = LocalInstalledAppRepository(dao, system, users, appControl, pmBlocks, controlActivity, packageLocks)
 
     /** Starts collecting the rule store's changes in [scope], as the app scope would. */
-    internal fun components(scope: CoroutineScope) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel, apps), componentControl, pmBlocks, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity)
+    internal fun components(scope: CoroutineScope, claimedWakeBlocks: suspend (UserId, Set<ComponentId>) -> List<ComponentId> = { _, _ -> emptyList() }) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel, apps), componentControl, pmBlocks, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity, packageLocks, claimedWakeBlocks)
 
     @After
     fun closeDatabase() {
@@ -150,6 +159,7 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
 internal class FakeSystem : SystemPackageReader {
     val users: MutableList<DeviceUser> = Collections.synchronizedList(mutableListOf(deviceUser(OWNER), deviceUser(WORK)))
     internal val apps = ConcurrentHashMap<AppKey, InstalledApp>()
+    val hidden = ConcurrentHashMap.newKeySet<AppKey>()
     val declarations = ConcurrentHashMap<String, List<ComponentDeclaration>>()
     val declarationsByUser = ConcurrentHashMap<AppKey, List<ComponentDeclaration>>()
     val settings = ConcurrentHashMap<Pair<UserId, ComponentId>, PmSetting>()
@@ -161,6 +171,8 @@ internal class FakeSystem : SystemPackageReader {
     val appsFailures = ConcurrentHashMap<UserId, ReadFailure>()
     val declarationFailures = ConcurrentHashMap<String, ReadFailure>()
     val pmFailures = ConcurrentHashMap<String, ReadFailure>()
+
+    var beforePmRead: suspend (AppKey) -> Unit = {}
 
     /** Runs after the settings were read and before they are returned. */
     @Volatile var afterPmRead: suspend (AppKey) -> Unit = {}
@@ -184,7 +196,7 @@ internal class FakeSystem : SystemPackageReader {
     override suspend fun apps(user: UserId): ReadResult<List<InstalledApp>> {
         log += "apps ${user.value}"
         appsFailures[user]?.let { return ReadResult.Failure(it) }
-        return ReadResult.Success(apps.values.filter { it.key.userId == user }.sortedBy { it.key.packageName })
+        return ReadResult.Success(apps.values.filter { it.key.userId == user && it.key !in hidden }.sortedBy { it.key.packageName })
     }
 
     var beforeRevisionsRead: suspend (UserId) -> Unit = {}
@@ -194,14 +206,19 @@ internal class FakeSystem : SystemPackageReader {
         beforeRevisionsRead(user)
         appsFailures[user]?.let { return ReadResult.Failure(it) }
         return ReadResult.Success(
-            apps.values.filter { it.key.userId == user }.associate { it.key.packageName to PackageRevision(it.versionCode, it.lastUpdateTime) },
+            apps.values.filter { it.key.userId == user && it.key !in hidden }.associate { it.key.packageName to PackageRevision(it.versionCode, it.lastUpdateTime) },
         )
     }
 
     override suspend fun app(key: AppKey): ReadResult<InstalledApp> {
         log += "app $key"
         appsFailures[key.userId]?.let { return ReadResult.Failure(it) }
-        return apps[key]?.let { ReadResult.Success(it) } ?: ReadResult.Failure(ReadFailure.PackageNotFound(key))
+        return apps[key]?.takeUnless { key in hidden }?.let { ReadResult.Success(it) } ?: ReadResult.Failure(ReadFailure.PackageNotFound(key))
+    }
+
+    override suspend fun isInstalled(key: AppKey): ReadResult<Boolean> {
+        appsFailures[key.userId]?.let { return ReadResult.Failure(it) }
+        return ReadResult.Success(key in apps.keys)
     }
 
     override suspend fun declarations(app: AppKey): ReadResult<List<ComponentDeclaration>> {
@@ -213,6 +230,7 @@ internal class FakeSystem : SystemPackageReader {
 
     override suspend fun pmSettings(app: AppKey, components: Collection<ComponentId>): ReadResult<Map<ComponentId, PmSetting>> {
         log += "pm $app"
+        beforePmRead(app)
         pmFailures[app.packageName]?.let { return ReadResult.Failure(it) }
         if (!apps.containsKey(app)) return ReadResult.Failure(ReadFailure.PackageNotFound(app))
         val read = components.associateWith { settings[app.userId to it] ?: PmSetting.DEFAULT }
@@ -222,12 +240,48 @@ internal class FakeSystem : SystemPackageReader {
 }
 
 /** Answers each request with [apply]; [state] is not used by the repositories. */
-internal class FakeComponentControl : ComponentControl {
+internal class FakeComponentControl(private val locks: PackageLocks, private val system: FakeSystem) : ComponentControl {
     var apply: (ControlRequest) -> Flow<ControlEvent> = { error("No control expected: $it") }
 
     override suspend fun state(app: AppKey, components: Collection<ComponentDeclaration>): Map<ComponentId, ControlState> = error("Not used")
 
-    override fun apply(request: ControlRequest, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = apply.invoke(request)
+    override fun apply(
+        request: ControlRequest,
+        writeObserver: ComponentWriteObserver?,
+        persistence: ComponentControlPersistence?,
+    ): Flow<ControlEvent> = flow {
+        val before = system.settings.toMap()
+        apply.invoke(request).collect { event ->
+            if (event is ControlEvent.PackageDone && persistence != null) {
+                locks.withLock(event.packageName) {
+                    val app = AppKey(event.packageName, request.user)
+                    val components = request.components.associateBy { it.id }
+                    val intended = event.outcomes.mapNotNull { outcome ->
+                        val id = outcome.key.id
+                        val declaration = components.getValue(id)
+                        id.takeIf {
+                            request.goal == ControlGoal.BLOCK &&
+                                ControlLayer.PACKAGE_MANAGER in declaration.layersFor(request.layers) &&
+                                before[request.user to id] != PmSetting.DISABLED
+                        }
+                    }
+                    withContext(NonCancellable) {
+                        if (intended.isNotEmpty()) persistence.beforePmBlock(app, intended)
+                        val alreadyDisabled = event.outcomes.mapNotNullTo(mutableSetOf()) { outcome ->
+                            val id = outcome.key.id
+                            id.takeIf {
+                                request.goal == ControlGoal.BLOCK &&
+                                    ControlLayer.PACKAGE_MANAGER in components.getValue(id).layersFor(request.layers) &&
+                                    before[request.user to id] == PmSetting.DISABLED
+                            }
+                        }
+                        persistence.afterPackage(event, alreadyDisabled)
+                    }
+                }
+            }
+            emit(event)
+        }
+    }
 }
 
 /**

@@ -65,7 +65,7 @@ class OwnComponentsGuardTest : DeviceRepositoryTestBase() {
     private fun request(user: UserId, goal: ControlGoal, vararg components: ComponentDeclaration) = ControlRequest(user, components.toList(), goal, setOf(ControlLayer.PACKAGE_MANAGER))
 
     @Test
-    fun givenOwnAndOtherComponents_whenBlockedInTheOwnUser_thenOnlyTheOthersAreSentAndTheOwnAreNotPermitted() = runTest {
+    fun givenOwnAndOtherComponents_whenBlockedInTheOwnUser_thenOnlyTheOthersAreSentAndTheOwnAreSkipped() = runTest {
         val repository = components(backgroundScope)
         system.install(installedApp(SELF_PKG), OWN_RECEIVER)
         system.install(installedApp(PKG), OTHER_RECEIVER)
@@ -76,10 +76,10 @@ class OwnComponentsGuardTest : DeviceRepositoryTestBase() {
 
         assertThat(sent.single().components).containsExactly(OTHER_RECEIVER)
         val refused = events.filterIsInstance<ControlEvent.PackageDone>().single { it.packageName == SELF_PKG }.outcomes.single()
-        assertThat(refused.result).isEqualTo(ControlResult.FAILED)
-        assertThat(refused.failures).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlFailure.NotPermitted(message = null))
+        assertThat(refused.result).isEqualTo(ControlResult.SKIPPED)
+        assertThat(refused.failures).containsExactly(ControlLayer.PACKAGE_MANAGER, ControlFailure.ProtectedComponent)
         assertThat(refused.state).isEqualTo(ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
-        assertThat(events.last()).isEqualTo(ControlEvent.Finished(achieved = 1, partial = 0, failed = 1))
+        assertThat(events.last()).isEqualTo(ControlEvent.Finished(achieved = 1, partial = 0, failed = 0, skipped = 1))
         assertThat(repository.components(AppKey(SELF_PKG, OWNER)).first().single().state.pm).isEqualTo(PmSetting.DEFAULT)
     }
 
@@ -91,7 +91,7 @@ class OwnComponentsGuardTest : DeviceRepositoryTestBase() {
         val events = repository.control(request(OWNER, ControlGoal.BLOCK, OWN_RECEIVER)).toList()
 
         assertThat(sent).isEmpty()
-        assertThat(events.last()).isEqualTo(ControlEvent.Finished(achieved = 0, partial = 0, failed = 1))
+        assertThat(events.last()).isEqualTo(ControlEvent.Finished(achieved = 0, partial = 0, failed = 0, skipped = 1))
     }
 
     @Test

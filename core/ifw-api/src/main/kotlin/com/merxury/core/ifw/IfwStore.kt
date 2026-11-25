@@ -21,6 +21,7 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.ifw.IfwFailure
 import com.merxury.blocker.core.model.ifw.IfwResult
+import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -77,6 +78,12 @@ import kotlinx.coroutines.flow.SharedFlow
  * until that package is written through this store or [clearCache] runs. Every other read, and the read of every read-modify-write, goes to the file.
  */
 interface IfwStore {
+    /** Whether an explicit component block can target [packageName]. */
+    fun allowsBlocking(packageName: String): Boolean
+
+    /** Prepares an incoming rule for scope and comparison, or returns null if it is protected. */
+    fun prepareRule(rule: IfwRule): IfwRule?
+
     /**
      * IFW state of each given component of one package. Never throws for expected failures: when
      * the file cannot be read or the rules cannot be reached, every filtered component is
@@ -163,10 +170,10 @@ interface IfwStore {
     suspend fun ruleFileText(name: String): IfwResult<String?>
 
     /**
-     * Restores the rule file `<name>.xml` from a backup with [content] as it is, only when no file
-     * of that name exists; an existing file is never overwritten or merged with. Returns whether it
-     * wrote. For files a restore does not merge, such as one the global rule editor stored or the
-     * file of an app no longer installed; it emits on [changes] when it wrote.
+     * Restores [content] from a backup only when no file of that name exists. Preserves the original
+     * XML except where an intent selector needs to exclude Blocker. Explicit blocks of Blocker
+     * fail with [IfwFailure.ProtectedComponent]. Returns whether it wrote and emits on [changes]
+     * after a restore.
      *
      * @param name a rule file name as [isRuleFileName] decides
      */

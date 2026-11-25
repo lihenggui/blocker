@@ -47,7 +47,7 @@ class WakeFirewallDeviceTest {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) HiddenApiBypass.addHiddenApiExemptions("")
     }
 
-    @Test fun givenManualAndManagedRules_whenRemovingManagedRule_thenOnlyItsActionBecomesAvailable() {
+    @Test fun givenManualRule_whenWakeTargetsBlocker_thenWakeRuleIsRefusedAndManualRuleRemains() {
         val case = InstrumentationRegistry.getArguments().getString("wakeFirewallTest")
         assumeTrue(case == "root" || case == "shizuku-root")
         assumeTrue(Build.VERSION.SDK_INT >= 31)
@@ -69,12 +69,11 @@ class WakeFirewallDeviceTest {
             assertTrue(bind(keepalive))
             val xml = requireNotNull(renderWakeRules(listOf(filter.copy(action = independent))))
             assertEquals(CallResult.Success(Unit), runBlocking { transport.execute(WriteFile(manual, xml)) })
-            runBlocking { writer.write(WakeRuleFileKind.MANAGED, renderWakeRules(listOf(filter))) }
-            assertTrue(waitUntil { !bind(keepalive) && !bind(independent) })
+            val refused = runBlocking { runCatching { writer.write(WakeRuleFileKind.MANAGED, renderWakeRules(listOf(filter))) } }
+            assertTrue(refused.isFailure)
+            assertTrue(waitUntil { !bind(independent) })
+            assertTrue(bind(keepalive))
             assertTrue(bind(unrelated))
-            runBlocking { writer.reset(context.packageName) }
-            assertTrue(waitUntil { bind(keepalive) })
-            assertTrue(!bind(independent))
         } finally {
             try {
                 runBlocking { writer.reset(null) }

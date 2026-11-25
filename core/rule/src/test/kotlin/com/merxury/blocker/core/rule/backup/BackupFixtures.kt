@@ -86,7 +86,7 @@ internal val MAIN = declaration("MainActivity", ComponentType.ACTIVITY)
 internal val DATA = declaration("DataProvider", ComponentType.PROVIDER)
 
 /** A real rule store over [fileSystem], so tests run the rule semantics the app uses. */
-internal fun storeOver(fileSystem: FakeIfwFileSystem) = IntentFirewallStore(fileSystem, IfwXmlSerializer(), IfwXmlDeserializer())
+internal fun storeOver(fileSystem: FakeIfwFileSystem) = IntentFirewallStore(fileSystem, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test")
 
 internal fun resource(name: String): String = checkNotNull(BackupSet::class.java.classLoader?.getResource(name)) {
     "Missing test resource $name"

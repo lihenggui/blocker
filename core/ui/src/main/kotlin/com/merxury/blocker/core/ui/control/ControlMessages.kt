@@ -53,7 +53,7 @@ sealed interface ControlMessage {
  * reached only some layers did not reach the goal either.
  */
 fun ComponentOutcome.toMessage(goal: ControlGoal): ControlMessage? {
-    if (result == ControlResult.ACHIEVED) return null
+    if (!needsMessage()) return null
     return ControlMessage.ComponentNotChanged(name = key.id.simpleName, goal = goal, needsAccess = needsAccess())
 }
 
@@ -64,8 +64,10 @@ fun ComponentOutcome.toMessage(goal: ControlGoal): ControlMessage? {
  * nothing was sent for them; they count as not changed
  */
 fun batchSummary(outcomes: List<ComponentOutcome>, vanished: Collection<ComponentKey> = emptyList()): ControlMessage.BatchDone {
-    val notChanged = outcomes.filter { it.result != ControlResult.ACHIEVED }
+    val notChanged = outcomes.filter { it.needsMessage() }
     return ControlMessage.BatchDone(notChanged = notChanged.size + vanished.size, needsAccess = notChanged.any { it.needsAccess() })
 }
 
 private fun ComponentOutcome.needsAccess(): Boolean = failures.values.any { it == ControlFailure.ChannelUnavailable }
+
+private fun ComponentOutcome.needsMessage(): Boolean = result == ControlResult.FAILED || result == ControlResult.PARTIAL

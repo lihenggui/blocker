@@ -7,9 +7,10 @@ import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.wake.ManagedComponentState
 import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
 import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
-import com.merxury.blocker.core.database.record.PmBlockRecordDao
-import com.merxury.blocker.core.database.record.PmBlockRecordEntity
+import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.database.wake.WakeProtection
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
@@ -46,7 +47,7 @@ class WakeProtectionRepository @Inject constructor(
     private val rules: ManagedWakeRules,
     private val components: ManagedComponentState,
     private val channel: PrivilegedChannel,
-    private val userBlocks: PmBlockRecordDao,
+    private val userBlocks: PmBlockRecords,
 ) {
     /**
      * What this run may change, from the channel acquired without a prompt: background work must
@@ -170,15 +171,27 @@ class WakeProtectionRepository @Inject constructor(
             if (!path.pendingChange && current != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) continue
             val saved = path.copy(previousState = path.previousState ?: current, pendingChange = true)
             ownership.save(saved)
-            check(
-                components.compareAndSet(path.target, path.component, WAKE_USER, requireNotNull(saved.previousState), disabled) {
-                    // The component is not disabled yet, so a record of it is stale. Only a block
-                    // after this change can make it the user's block too.
-                    if (current != disabled) forgetBlock(path)
-                    true
-                },
-            )
-            ownership.save(saved.copy(configured = true, pendingChange = false))
+            val original = requireNotNull(saved.previousState)
+            var superseded = false
+            val confirmed = components.compareAndSet(
+                path.target,
+                path.component,
+                WAKE_USER,
+                original,
+                disabled,
+                afterConfirmed = { ownership.save(saved.copy(configured = true, pendingChange = false)) },
+            ) {
+                val currentUnderLock = catalog.currentState(path)
+                superseded = currentUnderLock != original &&
+                    (!path.pendingChange || currentUnderLock != disabled || isBlockedByUser(path))
+                if (!superseded && currentUnderLock == original) forgetBlock(path)
+                !superseded
+            }
+            if (superseded) {
+                ownership.save(saved.copy(configured = false, pendingChange = false, disabledByUser = true))
+            } else {
+                check(confirmed)
+            }
         }
     }
 
@@ -195,7 +208,7 @@ class WakeProtectionRepository @Inject constructor(
         JournalAccess.UNREADABLE
     }
 
-    private suspend fun forgetBlock(path: WakeProtection) = userBlocks.delete(listOf(PmBlockRecordEntity(path.target, path.component, WAKE_USER.value, 0)))
+    private suspend fun forgetBlock(path: WakeProtection) = userBlocks.forget(listOf(path.componentKey()))
 
     /**
      * Whether the user blocked [path]'s component through Blocker: it is in the record of the
@@ -204,7 +217,9 @@ class WakeProtectionRepository @Inject constructor(
      * from the old component list leaves out what it claims, so a record of a claimed component
      * was made by a block after its change. A component the user disabled first is never claimed.
      */
-    private suspend fun isBlockedByUser(path: WakeProtection): Boolean = userBlocks.getByPackage(path.target, WAKE_USER.value).any { it.className == path.component }
+    private suspend fun isBlockedByUser(path: WakeProtection): Boolean = userBlocks.contains(path.componentKey())
+
+    private fun WakeProtection.componentKey() = ComponentKey(ComponentId(target, component), WAKE_USER)
 }
 
 /** Whether the wake feature may change the system through a channel in this state. */

@@ -95,9 +95,9 @@ import kotlinx.coroutines.flow.Flow
  *
  * ## Order and cancellation
  * The work on one package holds that package's lock, shared by every request in the process,
- * from its first read to its read-back, so requests touching the same package never interleave.
+ * from its first read through persistence of its read-back, so requests touching the same package never interleave.
  * A request locks one package at a time, in its own order. A package whose changes have been sent
- * runs to its read-back even when the collector cancels; no further package is started.
+ * runs through persistence even when the collector cancels; no further package is started.
  *
  * The Intent Firewall state reported comes from the rule store, which answers from rules it read
  * earlier and may miss a change another writer made to a file it has not written itself; after a
@@ -120,12 +120,28 @@ interface ComponentControl {
      * first when it is not ready, which may show the su or Shizuku prompt. It works package by
      * package, emits [ControlEvent.PackageDone] for each package, also when its changes failed,
      * and finally [ControlEvent.Finished]. Every requested component appears in exactly one
-     * outcome, including those that needed no change. A failure never stops the remaining
-     * packages, and the flow never throws except for cancellation.
+     * outcome, including those that needed no change. A failed system change leaves the remaining
+     * packages eligible. Cancellation and errors from [persistence] propagate.
      *
      * The [ControlLayer]s to set or clear come from the request for every goal; see [ComponentControl].
      * [writeObserver] can decline to start a package's writes and receives acknowledgments
      * as writes complete, before read-back.
      */
-    fun apply(request: ControlRequest, writeObserver: ComponentWriteObserver? = null): Flow<ControlEvent>
+    fun apply(
+        request: ControlRequest,
+        writeObserver: ComponentWriteObserver? = null,
+        persistence: ComponentControlPersistence? = null,
+    ): Flow<ControlEvent>
+}
+
+/** Persists each package under its control lock, before progress reaches the collector. */
+interface ComponentControlPersistence {
+    /** Journals PM disables before the system call, so a process restart can verify them. */
+    suspend fun beforePmBlock(app: AppKey, components: Collection<ComponentId>)
+
+    /**
+     * Stores read-back and reconciles the journal. Runs to completion once writes begin.
+     * [alreadyDisabled] holds requested PM blocks that already existed before this request.
+     */
+    suspend fun afterPackage(event: ControlEvent.PackageDone, alreadyDisabled: Set<ComponentId>)
 }

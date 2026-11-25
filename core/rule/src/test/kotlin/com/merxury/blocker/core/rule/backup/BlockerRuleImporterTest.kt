@@ -31,12 +31,16 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.rule.BlockerRule
+import com.merxury.blocker.core.model.rule.ComponentRule
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
+import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.storage.FakeBackupStorage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -55,6 +59,41 @@ class BlockerRuleImporterTest {
     private val allRunnable = listOf(status(BOOT), status(SYNC), status(MAIN), status(DATA))
 
     private suspend fun stateOf(user: UserId, declaration: ComponentDeclaration): ControlState? = components.component(ComponentKey(declaration.id, user)).first()?.state
+
+    @Test
+    fun givenBackupThatBlocksProtectedComponent_whenRestoring_thenItCountsAsSkipped() = runTest {
+        installedApps.sendApps(listOf(installedApp()))
+        components.sendComponents(OWNER, listOf(status(BOOT)))
+        storage.putFile(
+            BackupSet(OWNER).fileOf(APP),
+            backupJson.encodeToString(
+                BlockerRule.serializer(),
+                BlockerRule(APP, components = mutableListOf(ComponentRule(APP, BOOT.id.className, false, BOOT.type, ControllerType.PM))),
+            ),
+        )
+        components.controlEvents = { request ->
+            listOf(
+                ControlEvent.PackageDone(
+                    APP,
+                    listOf(
+                        ComponentOutcome(
+                            ComponentKey(BOOT.id, request.user),
+                            status(BOOT).state,
+                            ControlResult.SKIPPED,
+                            mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.ProtectedComponent),
+                        ),
+                    ),
+                ),
+                ControlEvent.Finished(0, 0, 0, skipped = 1),
+            )
+        }
+
+        val result = importer.import(storage, BackupSet(OWNER), OWNER)
+
+        assertThat(result.summary.skipped).containsExactly(SkipReason.PROTECTED_COMPONENT, 1)
+        assertThat(result.summary.failed).isEmpty()
+        assertThat(result.summary.changedPackages).isEmpty()
+    }
 
     @Test
     fun givenOldFormatOwnerBackup_whenImporting_thenEachEntryGoesToItsLayerWithTheDeclaredType() = runTest {
@@ -260,7 +299,7 @@ class BlockerRuleImporterTest {
     fun givenNewOwnerExport_whenImportedBack_thenNothingChanges() = runTest {
         installedApps.sendApps(listOf(installedApp()))
         components.sendComponents(OWNER, listOf(status(BOOT, pm = PmSetting.DISABLED), status(SYNC, ifw = IfwBlock.BLOCKED)))
-        val exporter = BlockerRuleExporter(installedApps, components, FakePrivilegedChannel(), storeOver(FakeIfwFileSystem()), backupJson)
+        val exporter = BlockerRuleExporter(installedApps, components, FakePrivilegedChannel(), storeOver(FakeIfwFileSystem()), backupJson, "com.merxury.blocker.test", FakeSelectedUserRepository())
         exporter.export(storage, OWNER)
 
         val result = importer.import(storage, BackupSet.OWNER, OWNER)

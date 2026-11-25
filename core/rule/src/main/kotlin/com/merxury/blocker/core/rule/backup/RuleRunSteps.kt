@@ -83,6 +83,10 @@ internal suspend fun Flow<ControlEvent>.countControlOutcomes(
     collect { event ->
         if (event !is ControlEvent.PackageDone) return@collect
         event.outcomes.forEach { outcome ->
+            if (outcome.result == ControlResult.SKIPPED) {
+                summary.skip(SkipReason.PROTECTED_COMPONENT)
+                return@forEach
+            }
             val id = outcome.key.id
             val before = states[id]
             if (outcome.state != before) summary.changed(id.packageName)
@@ -90,7 +94,7 @@ internal suspend fun Flow<ControlEvent>.countControlOutcomes(
             when {
                 outcome.result != ControlResult.ACHIEVED -> {
                     Timber.w("Cannot $goal ${id.flatten()} for user ${outcome.key.userId.value}: ${outcome.failures}")
-                    summary.fail(outcome.failures.values.first().reason)
+                    summary.fail(outcome.failures.values.firstNotNullOf { it.reason })
                 }
 
                 outcome.state == before -> summary.unchanged++

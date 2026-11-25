@@ -25,6 +25,7 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -62,6 +63,26 @@ class PlatformSystemPackageReaderTest {
     private val scope = TestScope()
     private val platform = FakePlatformPackages()
     private val reader = PlatformSystemPackageReader(platform, StandardTestDispatcher(scope.testScheduler))
+
+    @Test
+    fun givenPackageHiddenOrInstalledOnlyForAnotherUser_whenCheckingPresence_thenOnlyInstalledBitCounts() = runTest {
+        val platform = FakePlatformPackages()
+        val key = AppKey("com.example.hidden", UserId(10))
+        val flags = PackageManager.MATCH_UNINSTALLED_PACKAGES or MATCH_ALL_DIRECT_BOOT_COMPONENTS
+        val info = PackageInfo().apply {
+            packageName = key.packageName
+            applicationInfo = ApplicationInfo().apply { this.flags = ApplicationInfo.FLAG_INSTALLED }
+        }
+        val reader = PlatformSystemPackageReader(platform, StandardTestDispatcher(testScheduler))
+
+        platform.install(key.userId, info)
+
+        assertThat(reader.isInstalled(key)).isEqualTo(ReadResult.Success(true))
+        assertThat(platform.flagsRequested).containsExactly(flags)
+        info.applicationInfo!!.flags = 0
+        assertThat(reader.isInstalled(key)).isEqualTo(ReadResult.Success(false))
+        assertThat(reader.isInstalled(key.copy(packageName = "com.example.gone"))).isEqualTo(ReadResult.Success(false))
+    }
 
     @Test
     fun whenReadUsers_thenPlatformUsersReturned() = scope.runTest {
@@ -508,8 +529,8 @@ private class FakePlatformPackages : PlatformPackages {
             PackageManager.GET_RECEIVERS,
             PackageManager.GET_PROVIDERS,
         ).filter { flags and it != 0 }
-        if (types.isEmpty()) return info
         flagsRequested += flags
+        if (types.isEmpty()) return info
         if (types.size > maxTypesPerCall) throw RuntimeException("Package manager has died")
         return PackageInfo().apply {
             this.packageName = packageName

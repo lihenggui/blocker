@@ -25,6 +25,9 @@ sealed interface IfwResult<out T> {
 
 /** Why Intent Firewall rules could not be read or changed. */
 sealed interface IfwFailure {
+    /** The rule would block a component of the running Blocker installation. */
+    data object ProtectedComponent : IfwFailure
+
     /**
      * The rule directory cannot be reached: no privileged channel is available, or its identity,
      * such as Shizuku running as the shell, cannot write system files.

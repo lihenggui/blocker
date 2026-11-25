@@ -20,15 +20,19 @@ import android.content.pm.PackageManager
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
+import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -227,6 +231,69 @@ class ComponentControlOrderTest {
         assertThat(fixture.system.log).containsExactly("read $PKG", "set $PKG 1 DISABLED", "read $PKG").inOrder()
         assertThat(fixture.pm(MAIN)).isEqualTo(PmSetting.DISABLED)
         assertThat(events).isEmpty()
+    }
+
+    @Test
+    fun givenPmWriteCancelledAfterItStarts_whenWakeTakesTheLock_thenJournalAndReadBackAreAlreadyStored() = runTest {
+        val readingBack = CompletableDeferred<Unit>()
+        val reply = CompletableDeferred<Unit>()
+        val persisted = mutableListOf<ControlEvent.PackageDone>()
+        val journal = mutableSetOf<ComponentId>()
+        val persistence = object : ComponentControlPersistence {
+            override suspend fun beforePmBlock(app: AppKey, components: Collection<ComponentId>) {
+                journal += components
+            }
+
+            override suspend fun afterPackage(event: ControlEvent.PackageDone, alreadyDisabled: Set<ComponentId>) {
+                persisted += event
+            }
+        }
+        fixture.system.beforeSet = {
+            assertThat(journal).containsExactly(MAIN.id)
+            assertThat(persisted).isEmpty()
+        }
+        fixture.system.beforeRead = {
+            if (fixture.pm(MAIN, WORK) == PmSetting.DISABLED) {
+                readingBack.complete(Unit)
+                reply.await()
+            }
+        }
+
+        val control = launch { fixture.control.apply(block(PM_ONLY, MAIN, OTHER_MAIN, user = WORK), persistence = persistence).collect() }
+        readingBack.await()
+        control.cancel()
+        val wake = async {
+            fixture.locks.withLock(PKG) {
+                assertThat(journal).containsExactly(MAIN.id)
+                assertThat(persisted.single().pmWrites).containsExactly(MAIN.id)
+                assertThat(persisted.single().outcomes.single().state.pm).isEqualTo(PmSetting.DISABLED)
+            }
+        }
+        runCurrent()
+        assertThat(wake.isCompleted).isFalse()
+        reply.complete(Unit)
+        wake.await()
+        control.join()
+        assertThat(fixture.pm(OTHER_MAIN, WORK)).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test
+    fun givenOwnPackageInAnotherUser_whenBlockingWithFirewallOrBoth_thenOnlyThePmRequestTakesEffect() = runTest {
+        val own = declaration("Main", packageName = "com.merxury.blocker.test")
+        fixture.control.apply(block(IFW_ONLY, own, user = WORK)).test {
+            val event = awaitItem() as ControlEvent.PackageDone
+            assertThat(event.outcomes.single().result).isEqualTo(ControlResult.SKIPPED)
+            assertThat(event.outcomes.single().failures.values).containsExactly(ControlFailure.ProtectedComponent)
+            assertThat((awaitItem() as ControlEvent.Finished).skipped).isEqualTo(1)
+            awaitComplete()
+        }
+
+        val outcome = fixture.run(block(BOTH, own, user = WORK)).outcomeOf(own, WORK)
+
+        assertThat(outcome.result).isEqualTo(ControlResult.ACHIEVED)
+        assertThat(fixture.pm(own, WORK)).isEqualTo(PmSetting.DISABLED)
+        assertThat(fixture.pm(own, OWNER)).isEqualTo(PmSetting.DEFAULT)
+        assertThat(fixture.ifwWrites).isEmpty()
     }
 
     @Test

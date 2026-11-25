@@ -389,9 +389,9 @@ class ComponentProviderContractTest {
             listOf(
                 ControlEvent.PackageDone(
                     ownPackage,
-                    listOf(ComponentOutcome(key, own.state, ControlResult.FAILED, mapOf(PACKAGE_MANAGER to ControlFailure.NotPermitted(null)))),
+                    listOf(ComponentOutcome(key, own.state, ControlResult.SKIPPED, mapOf(PACKAGE_MANAGER to ControlFailure.ProtectedComponent))),
                 ),
-                ControlEvent.Finished(achieved = 0, partial = 0, failed = 1),
+                ControlEvent.Finished(achieved = 0, partial = 0, failed = 0, skipped = 1),
             )
         }
         val input = Bundle().apply {

@@ -85,6 +85,17 @@ class PlatformSystemPackageReader @Inject constructor(
         }
     }
 
+    override suspend fun isInstalled(key: AppKey): ReadResult<Boolean> = read("installation of $key") {
+        try {
+            val flags = PackageManager.MATCH_UNINSTALLED_PACKAGES or MATCH_ALL_DIRECT_BOOT_COMPONENTS
+            val info = platform.packageInfo(key.packageName, flags, key.userId)
+            val application = info.applicationInfo ?: return@read ReadResult.Failure(ReadFailure.ManifestUnreadable(key.packageName))
+            ReadResult.Success(application.flags and ApplicationInfo.FLAG_INSTALLED != 0)
+        } catch (e: NameNotFoundException) {
+            ReadResult.Success(false)
+        }
+    }
+
     override suspend fun declarations(app: AppKey): ReadResult<List<ComponentDeclaration>> = read("components of $app") {
         try {
             val info = componentsInOneCall(app) ?: componentsByType(app) ?: componentsFromApk(app)

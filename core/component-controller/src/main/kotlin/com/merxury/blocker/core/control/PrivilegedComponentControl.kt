@@ -30,6 +30,7 @@ import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
+import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.control.layersFor
@@ -39,6 +40,7 @@ import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.PrivilegedExecutor
@@ -77,7 +79,11 @@ internal class PrivilegedComponentControl @Inject constructor(
 
     override suspend fun state(app: AppKey, components: Collection<ComponentDeclaration>): Map<ComponentId, ControlState> = readState(app, components.distinctBy { it.id })
 
-    override fun apply(request: ControlRequest, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
+    override fun apply(
+        request: ControlRequest,
+        writeObserver: ComponentWriteObserver?,
+        persistence: ComponentControlPersistence?,
+    ): Flow<ControlEvent> = flow {
         val packages = request.components.distinctBy { it.id }.groupBy { it.id.packageName }
         if (packages.isNotEmpty() && channel.state.value !is ChannelState.Ready && permissionPromptsAllowed()) {
             Timber.i("Connect the privileged channel to ${request.goal} components")
@@ -87,7 +93,7 @@ internal class PrivilegedComponentControl @Inject constructor(
         packages.forEach { (packageName, components) ->
             currentCoroutineContext().ensureActive()
             val app = AppKey(packageName, request.user)
-            val event = locks.withLock(packageName) { controlPackage(app, components, request, writeObserver) }
+            val event = locks.withLock(packageName) { controlPackage(app, components, request, writeObserver, persistence) }
             results += event.outcomes.map { it.result }
             emit(event)
         }
@@ -96,6 +102,7 @@ internal class PrivilegedComponentControl @Inject constructor(
                 achieved = results.count { it == ControlResult.ACHIEVED },
                 partial = results.count { it == ControlResult.PARTIAL },
                 failed = results.count { it == ControlResult.FAILED },
+                skipped = results.count { it == ControlResult.SKIPPED },
             ),
         )
     }
@@ -109,38 +116,79 @@ internal class PrivilegedComponentControl @Inject constructor(
         components: List<ComponentDeclaration>,
         request: ControlRequest,
         writeObserver: ComponentWriteObserver?,
+        persistence: ComponentControlPersistence?,
     ): ControlEvent.PackageDone {
         val identity = (executor.checkedState() as? ChannelState.Ready)?.identity
-        val layers = components.associate { it.id to it.layersFor(request.layers).reachableBy(request.goal, identity) }
-        val before = readState(app, components)
-        val pmChanges = components.mapNotNull { component ->
-            component.pmChange(request.goal, layers.getValue(component.id), before.getValue(component.id).pm)?.let { component.id to it }
-        }
-        val ifwChanges = components.mapNotNull { component ->
-            ifwChange(request.goal, layers.getValue(component.id))?.let { component to it }
-        }.toMap()
         val failures: Failures = mutableMapOf()
-        val hasChanges = pmChanges.isNotEmpty() || ifwChanges.isNotEmpty()
-        val identityAtWrite = if (hasChanges) (executor.checkedState() as? ChannelState.Ready)?.identity else null
-        val after = if (!hasChanges || writeObserver?.canStart() == false) {
-            before
-        } else {
-            Timber.i("${request.goal} ${components.size} components of $app: ${pmChanges.size} PM and ${ifwChanges.size} IFW changes")
-            withContext(NonCancellable) {
-                val onWrite = writeObserver?.let { it::onWrite }
-                changePm(app, pmChanges, identityAtWrite, failures, onWrite)
-                changeIfw(app.packageName, ifwChanges, identityAtWrite, failures, onWrite)
-                readState(app, components)
+        val blockingFirewallProtected = request.goal == ControlGoal.BLOCK && !ifwStore.allowsBlocking(app.packageName)
+        val layers = components.associate { component ->
+            val requested = component.layersFor(request.layers).reachableBy(request.goal, identity)
+            if (blockingFirewallProtected && ControlLayer.INTENT_FIREWALL in requested) {
+                failures.addIfAbsent(component.id, ControlLayer.INTENT_FIREWALL, ControlFailure.ProtectedComponent)
+            }
+            component.id to requested
+        }
+        var pmReadFailure: ReadFailure? = null
+        val before = readState(app, components) { pmReadFailure = it }
+        val pmChanges = components.mapNotNull { component ->
+            val id = component.id
+            val current = before.getValue(id).pm
+            val change = component.pmChange(request.goal, layers.getValue(id), current) ?: return@mapNotNull null
+            if (change == PmSetting.DISABLED && current == PmSetting.UNKNOWN) {
+                val failure = when (val readFailure = pmReadFailure) {
+                    is ReadFailure.PackageNotFound -> ControlFailure.TargetNotFound(readFailure.toString())
+                    is ReadFailure.UserNotReachable, ReadFailure.ChannelUnavailable -> ControlFailure.ChannelUnavailable
+                    else -> ControlFailure.StateNotConfirmed
+                }
+                failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, failure)
+                null
+            } else {
+                id to change
             }
         }
-        val outcomes = components.map { component ->
-            val id = component.id
-            judge(component, app.userId, request.goal, layers.getValue(id), before.getValue(id), after.getValue(id), failures[id].orEmpty())
+        val ifwChanges = components.mapNotNull { component ->
+            ifwChange(request.goal, layers.getValue(component.id))?.takeUnless { blockingFirewallProtected }?.let { component to it }
+        }.toMap()
+        val hasChanges = pmChanges.isNotEmpty() || ifwChanges.isNotEmpty()
+        val identityAtWrite = if (hasChanges) (executor.checkedState() as? ChannelState.Ready)?.identity else null
+        val alreadyDisabled = if (request.goal == ControlGoal.BLOCK) {
+            before.keys.filterTo(mutableSetOf()) { id ->
+                ControlLayer.PACKAGE_MANAGER in layers.getValue(id) && before.getValue(id).pm == PmSetting.DISABLED
+            }
+        } else {
+            emptySet()
         }
-        val pmWrites = pmChanges.filter { (id, setting) ->
-            ControlLayer.PACKAGE_MANAGER !in failures[id].orEmpty() && after.getValue(id).pm == setting
-        }.mapTo(mutableSetOf()) { (id, _) -> id }
-        return ControlEvent.PackageDone(app.packageName, outcomes, pmWrites)
+        fun outcome(after: Map<ComponentId, ControlState>, sentPm: Boolean): ControlEvent.PackageDone {
+            val outcomes = components.map { component ->
+                val id = component.id
+                judge(component, app.userId, request.goal, layers.getValue(id), before.getValue(id), after.getValue(id), failures[id].orEmpty())
+            }
+            val pmWrites = if (sentPm) {
+                pmChanges.filter { (id, setting) ->
+                    ControlLayer.PACKAGE_MANAGER !in failures[id].orEmpty() && after.getValue(id).pm == setting
+                }.mapTo(mutableSetOf()) { (id, _) -> id }
+            } else {
+                emptySet()
+            }
+            return ControlEvent.PackageDone(app.packageName, outcomes, pmWrites)
+        }
+        if (writeObserver?.canStart() == false) {
+            return outcome(before, sentPm = false).also { persistence?.afterPackage(it, emptySet()) }
+        }
+        if (!hasChanges) {
+            return outcome(before, sentPm = false).also { persistence?.afterPackage(it, alreadyDisabled) }
+        }
+        currentCoroutineContext().ensureActive()
+        Timber.i("${request.goal} ${components.size} components of $app: ${pmChanges.size} PM and ${ifwChanges.size} IFW changes")
+        return withContext(NonCancellable) {
+            val onWrite = writeObserver?.let { it::onWrite }
+            if (request.goal == ControlGoal.BLOCK && identityAtWrite != null && pmChanges.isNotEmpty()) {
+                persistence?.beforePmBlock(app, pmChanges.map { it.first })
+            }
+            changePm(app, pmChanges, identityAtWrite, failures, onWrite)
+            changeIfw(app.packageName, ifwChanges, identityAtWrite, failures, onWrite)
+            outcome(readState(app, components), sentPm = true).also { persistence?.afterPackage(it, alreadyDisabled) }
+        }
     }
 
     /**
@@ -265,13 +313,17 @@ internal class PrivilegedComponentControl @Inject constructor(
     }
 
     /** The state of [components] of [app]; never throws except for cancellation. */
-    private suspend fun readState(app: AppKey, components: List<ComponentDeclaration>): Map<ComponentId, ControlState> {
-        val pm = readPm(app, components.map { it.id })
+    private suspend fun readState(
+        app: AppKey,
+        components: List<ComponentDeclaration>,
+        onPmFailure: (ReadFailure) -> Unit = {},
+    ): Map<ComponentId, ControlState> {
+        val pm = readPm(app, components.map { it.id }, onPmFailure)
         val ifw = readIfw(app.packageName, components)
         return components.associate { it.id to ControlState(pm[it.id] ?: PmSetting.UNKNOWN, ifw[it.id] ?: IfwBlock.UNKNOWN) }
     }
 
-    private suspend fun readPm(app: AppKey, ids: List<ComponentId>): Map<ComponentId, PmSetting> {
+    private suspend fun readPm(app: AppKey, ids: List<ComponentId>, onFailure: (ReadFailure) -> Unit): Map<ComponentId, PmSetting> {
         if (ids.isEmpty()) return emptyMap()
         val read = try {
             reader.pmSettings(app, ids)
@@ -286,6 +338,7 @@ internal class PrivilegedComponentControl @Inject constructor(
 
             is ReadResult.Failure -> {
                 Timber.w("Cannot read the PM settings of $app: ${read.reason}")
+                onFailure(read.reason)
                 emptyMap()
             }
         }
@@ -327,6 +380,7 @@ private fun CallFailure.toControlFailure(): ControlFailure = when (this) {
 
 /** Called only with an identity that may write the rules, so no access means the channel went away. */
 private fun IfwFailure.toControlFailure(): ControlFailure = when (this) {
+    IfwFailure.ProtectedComponent -> ControlFailure.ProtectedComponent
     IfwFailure.NoAccess -> ControlFailure.ChannelUnavailable
     is IfwFailure.Unreadable -> ControlFailure.RulesUnreadable
     is IfwFailure.WriteFailed -> ControlFailure.WriteFailed(message)

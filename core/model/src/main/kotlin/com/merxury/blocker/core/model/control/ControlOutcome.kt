@@ -33,6 +33,9 @@ sealed interface ControlFailure {
         val isSystemRefusal: Boolean get() = identity == PrivilegedIdentity.ROOT || identity == PrivilegedIdentity.SYSTEM
     }
 
+    /** Blocker protects its own components. */
+    data object ProtectedComponent : ControlFailure
+
     /** The package, component or user is not known to the system. */
     data class TargetNotFound(val message: String?) : ControlFailure
 
@@ -56,6 +59,9 @@ enum class ControlResult {
     /** Some layers show the goal and others do not. Nothing is rolled back. */
     PARTIAL,
     FAILED,
+
+    /** Blocker skipped the requested change to protect its own components. */
+    SKIPPED,
 }
 
 /**
@@ -102,5 +108,6 @@ sealed interface ControlEvent {
         val achieved: Int,
         val partial: Int,
         val failed: Int,
+        val skipped: Int = 0,
     ) : ControlEvent
 }

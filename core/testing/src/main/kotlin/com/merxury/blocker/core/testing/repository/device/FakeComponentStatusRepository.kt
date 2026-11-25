@@ -133,9 +133,10 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
 
     override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
         requests += request
+        val before = cached.value
         controlEvents?.let { events ->
             events(request).forEach {
-                if (it is ControlEvent.PackageDone) record(request, it.outcomes)
+                if (it is ControlEvent.PackageDone) record(request, it.outcomes, before)
                 emit(it)
             }
             return@flow
@@ -153,7 +154,7 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
             if (state != before) writeObserver?.onWrite(listOf(declaration.id))
             ComponentOutcome(key, state, ControlResult.ACHIEVED, emptyMap())
         }
-        record(request, outcomes)
+        record(request, outcomes, before)
         outcomes.groupBy { it.key.id.packageName }.forEach { (packageName, done) -> emit(ControlEvent.PackageDone(packageName, done)) }
         emit(ControlEvent.Finished(achieved = outcomes.size, partial = 0, failed = 0))
     }
@@ -180,13 +181,18 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         return ReadResult.Success(DisabledComponents(disabled, unreadable, notInstalled = gone.size))
     }
 
-    private fun record(request: ControlRequest, outcomes: List<ComponentOutcome>) {
+    private fun record(request: ControlRequest, outcomes: List<ComponentOutcome>, before: Map<ComponentKey, ComponentStatus>) {
         val declarations = request.components.associateBy { it.id }
         outcomes.forEach { outcome ->
+            if (outcome.result == ControlResult.SKIPPED) return@forEach
             val throughPm = declarations[outcome.key.id]?.layersFor(request.layers)?.contains(ControlLayer.PACKAGE_MANAGER) == true
             when (outcome.state.pm) {
-                PmSetting.DISABLED -> if (request.goal == ControlGoal.BLOCK && throughPm) recorded += outcome.key
+                PmSetting.DISABLED -> if (request.goal == ControlGoal.BLOCK && throughPm && before[outcome.key]?.state?.pm != PmSetting.DISABLED) {
+                    recorded += outcome.key
+                }
+
                 PmSetting.DEFAULT, PmSetting.ENABLED -> recorded -= outcome.key
+
                 PmSetting.UNKNOWN -> Unit
             }
         }

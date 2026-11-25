@@ -75,6 +75,21 @@ class IfwRuleBackupTest {
     private fun rulesOn(name: String) = fileSystem.fileContent(name)?.let { IfwXmlDeserializer().deserialize(it) }
 
     @Test
+    fun givenCustomFilenameWithProtectedComponent_whenRestoring_thenFileIsSkipped() = runTest {
+        val own = "com.merxury.blocker.test"
+        storage.putFile(
+            "ifw/custom.xml",
+            """<rules><activity block="true"><component-filter name="$own/.MainActivity"/></activity></rules>""",
+        )
+
+        val result = importer.import(storage)
+
+        assertThat(fileSystem.fileContent("custom")).isNull()
+        assertThat(result.summary.skipped).containsExactly(SkipReason.PROTECTED_COMPONENT, 1)
+        assertThat(result.summary.failed).isEmpty()
+    }
+
+    @Test
     fun givenRuleFiles_whenExporting_thenEachIsCopiedAsStoredWithoutTheWakeFeatures() = runTest {
         fileSystem.putFile(APP, BLOCKER_RULE)
         fileSystem.putFile("com.broken", DAMAGED_RULE)

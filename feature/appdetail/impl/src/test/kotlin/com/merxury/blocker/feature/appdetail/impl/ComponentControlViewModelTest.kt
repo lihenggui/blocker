@@ -293,6 +293,20 @@ class ComponentControlViewModelTest {
     }
 
     @Test
+    fun givenBatchWithProtectedComponent_whenDone_thenItDoesNotCountAsNotChanged() = runTest {
+        fixture.sendComponents(component("Protected"), component("Other"))
+        answerWith(
+            outcome("Protected", ControlResult.SKIPPED, ControlLayer.PACKAGE_MANAGER to ControlFailure.ProtectedComponent),
+            outcome("Other", ControlResult.ACHIEVED),
+        )
+        collectState()
+
+        viewModel.blockAll(listOf(id("Protected"), id("Other")))
+
+        assertThat(messages()).containsExactly(ControlMessage.BatchDone(notChanged = 0))
+    }
+
+    @Test
     fun givenBatchWithPartialAndFailedOutcomes_whenDone_thenEveryOneNotAchievedCountsAsNotChanged() = runTest {
         fixture.sendComponents(component("A", pm = PmSetting.DISABLED), component("B"), component("C"), component("D"), component("E"))
         answerWith(

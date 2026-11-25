@@ -75,14 +75,18 @@ internal fun judge(
 ): ComponentOutcome {
     // Only the requested layers count: an unblock of one layer is achieved when that layer is
     // clear, even if another layer still blocks; the state reported still shows that layer.
-    val missed = layers.filterNot { component.meets(goal, it, after) }
+    val allowed = layers.filterNot { failures[it] == ControlFailure.ProtectedComponent }
+    if (allowed.isEmpty()) {
+        return ComponentOutcome(ComponentKey(component.id, user), after, ControlResult.SKIPPED, failures)
+    }
+    val missed = allowed.filterNot { component.meets(goal, it, after) }
     val result = when {
         missed.isEmpty() -> ControlResult.ACHIEVED
 
-        goal == ControlGoal.BLOCK -> if (missed.size < layers.size) ControlResult.PARTIAL else ControlResult.FAILED
+        goal == ControlGoal.BLOCK -> if (missed.size < allowed.size) ControlResult.PARTIAL else ControlResult.FAILED
 
         // Unblocking or enabling moved a layer to the goal, but another requested one does not meet it or cannot be read.
-        layers.any { component.moved(goal, it, before, after) } -> ControlResult.PARTIAL
+        allowed.any { component.moved(goal, it, before, after) } -> ControlResult.PARTIAL
 
         else -> ControlResult.FAILED
     }

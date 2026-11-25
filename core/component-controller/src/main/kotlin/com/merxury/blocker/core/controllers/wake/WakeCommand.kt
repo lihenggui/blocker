@@ -28,6 +28,8 @@ internal enum class WakeCommand(val args: List<String>) {
         ),
     ),
 
+    IFW_PROBE(listOf("logcat", "-b", "events", "-d", "-T", "{since}", "-v", "brief", "ifw_intent_matched:I", "*:S")),
+
     // The oldest retained entry of the whole buffer shows whether it wrapped past the resume point.
     EVENTS_HEAD(listOf("logcat", "-b", "events", "-d", "-m", "1", "-v", "threadtime", "-v", "epoch", "-v", "uid")),
     PROCSTATS(listOf("dumpsys", "-t", "10", "procstats", "-c", "--current")),
@@ -71,7 +73,7 @@ internal enum class WakeCommand(val args: List<String>) {
 
             RENEW -> args.map { if (it == "{label}") WakeStatsCodec.leaseLabel(id).toString() else it }
 
-            EVENTS -> {
+            EVENTS, IFW_PROBE -> {
                 require(argument >= 0)
                 val since = "${argument / 1000}.${(argument % 1000).toString().padStart(3, '0')}"
                 args.map { if (it == "{since}") since else it }

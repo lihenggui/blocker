@@ -132,6 +132,15 @@ class RuleWorkDataTest {
     }
 
     @Test
+    fun givenOnlyProtectedComponents_whenMappingRestore_thenWorkSucceedsWithSkips() {
+        val result = completed(RuleRunSummary(skipped = mapOf(SkipReason.PROTECTED_COMPONENT to 2)))
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
+        assertThat(result.output().getInt(RuleWorkResult.PARAM_SKIPPED_COUNT, -1)).isEqualTo(2)
+        assertThat(result.output().getInt(RuleWorkResult.PARAM_FAILED_COUNT, -1)).isEqualTo(0)
+    }
+
+    @Test
     fun givenOneUnreadableBackupAndNothingElseToApply_whenMapping_thenDoneWithAFailure() {
         // An unreadable file is a counted failure, never an unexpected exception.
         val result = completed(RuleRunSummary(unchanged = 145, failed = mapOf(FailureReason.BACKUP_UNREADABLE to 1)))

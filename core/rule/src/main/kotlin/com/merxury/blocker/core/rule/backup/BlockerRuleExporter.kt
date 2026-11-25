@@ -18,6 +18,8 @@ package com.merxury.blocker.core.rule.backup
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.SelectedUserRepository
+import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentStatus
@@ -60,6 +62,8 @@ class BlockerRuleExporter @Inject constructor(
     private val channel: PrivilegedChannel,
     private val ifwStore: IfwStore,
     private val json: Json,
+    @AppPackageName private val appPackageName: String,
+    private val selectedUsers: SelectedUserRepository,
 ) {
     /**
      * Writes the backup of [user]'s apps into [user]'s set in [storage]: every app, or third-party
@@ -85,8 +89,10 @@ class BlockerRuleExporter @Inject constructor(
         summary.firewallUnavailable = !components.firewallReadable.first()
         if (summary.firewallUnavailable) Timber.w("IFW rules cannot be reached, leave IFW entries out of the backup")
         val set = BackupSet(user)
-        apps.forEachIndexed { index, app ->
-            onProgress(app.key.packageName, index, apps.size)
+        val (own, exportable) = apps.partition { it.key == AppKey(appPackageName, selectedUsers.ownUser) }
+        summary.skip(SkipReason.PROTECTED_COMPONENT, own.size)
+        exportable.forEachIndexed { index, app ->
+            onProgress(app.key.packageName, index, exportable.size)
             exportApp(storage, set, app, summary)
         }
         return RuleRunResult.Completed(summary.build())

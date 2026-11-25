@@ -116,11 +116,14 @@ class IfwRuleImporter @Inject constructor(
         } else {
             read
         }
+        val safe = IfwRules(backup.rules.mapNotNull(ifwStore::prepareRule))
+        summary.skip(SkipReason.PROTECTED_COMPONENT, backup.rules.size - safe.rules.size)
+        if (safe.rules.isEmpty()) return
         var merged: MergedIfwRules? = null
-        when (val result = ifwStore.update(packageName) { current -> merge.merge(current, backup).also { merged = it }.rules }) {
+        when (val result = ifwStore.update(packageName) { current -> merge.merge(current, safe).also { merged = it }.rules }) {
             is IfwResult.Failure -> {
                 Timber.w("Cannot restore the IFW rules of $packageName: ${result.reason}")
-                summary.fail(result.reason.reason)
+                result.reason.reason?.let { summary.fail(it) } ?: summary.skip(SkipReason.PROTECTED_COMPONENT)
             }
 
             is IfwResult.Success -> merged?.let {
@@ -135,7 +138,7 @@ class IfwRuleImporter @Inject constructor(
     }
 
     /**
-     * Restores the backup `<name>.xml` of a file that is not an installed app's byte for byte, only
+     * Restores the backup `<name>.xml` of a file that is not an installed app's, only
      * when no file of that name is on the device and only when it is a well-formed XML document
      * whose root is `<rules>`; such a file is never merged or overwritten, and a truncated or
      * damaged one is never written. Its filters are not checked against Blocker's rule model,
@@ -167,7 +170,7 @@ class IfwRuleImporter @Inject constructor(
             return
         }
         when (val result = ifwStore.restoreRuleFile(name, text)) {
-            is IfwResult.Failure -> summary.fail(result.reason.reason)
+            is IfwResult.Failure -> result.reason.reason?.let { summary.fail(it) } ?: summary.skip(SkipReason.PROTECTED_COMPONENT)
 
             is IfwResult.Success -> if (result.value) {
                 summary.apps++

@@ -16,6 +16,7 @@
 
 package com.merxury.core.ifw.di
 
+import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.core.ifw.IfwFileSystem
 import com.merxury.core.ifw.IfwStore
 import com.merxury.core.ifw.IntentFirewallStore
@@ -43,5 +44,6 @@ object IfwModule {
         fileSystem: IfwFileSystem,
         serializer: IfwXmlSerializer,
         deserializer: IfwXmlDeserializer,
-    ): IfwStore = IntentFirewallStore(fileSystem, serializer, deserializer)
+        @AppPackageName appPackageName: String,
+    ): IfwStore = IntentFirewallStore(fileSystem, serializer, deserializer, appPackageName)
 }

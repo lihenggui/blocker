@@ -8,6 +8,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.controllers.wake.ManagedComponentState
 import com.merxury.blocker.core.controllers.wake.WakeCallRefusedException
 import com.merxury.blocker.core.controllers.wake.WakeJournalUnreadableException
+import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
@@ -37,6 +38,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import kotlin.coroutines.startCoroutine
 
 class WakeProtectionManagerTest {
     private val repository = mock<WakeRepository>()
@@ -48,7 +50,7 @@ class WakeProtectionManagerTest {
     private val userBlocks = FakePmBlockRecordDao()
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, userBlocks),
+        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, PmBlockRecords(userBlocks)),
         StandardTestDispatcher(testScheduler),
     )
     private val path = WakeProtection(
@@ -236,9 +238,9 @@ class WakeProtectionManagerTest {
         authorizedWith(path)
         whenever(catalogue.sameInstallation(path)).thenReturn(true)
         whenever(catalogue.currentState(path)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
-        whenever(components.compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(2), eq(0), any())).thenReturn(true)
+        whenever(components.compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(2), eq(0), any(), any())).thenReturn(true)
         assertThat(manager.reconcile()).isTrue()
-        verify(components).compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(2), eq(0), any())
+        verify(components).compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(2), eq(0), any(), any())
         verifyNoInteractions(rules)
     }
 
@@ -274,7 +276,12 @@ class WakeProtectionManagerTest {
         val fresh = path.copy(pendingChange = false, previousState = null, targetRevision = "new")
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(fresh))
         whenever(catalogue.currentState(fresh)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
-        whenever(components.compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(0), eq(2), any())).thenReturn(true)
+        whenever(components.compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(0), eq(2), any(), any())).thenAnswer { invocation ->
+            @Suppress("UNCHECKED_CAST")
+            val afterConfirmed = invocation.arguments[5] as suspend () -> Unit
+            afterConfirmed.startCoroutine(kotlin.coroutines.Continuation(kotlin.coroutines.EmptyCoroutineContext) { it.getOrThrow() })
+            true
+        }
         assertThat(manager.reconcile()).isTrue()
         verify(ownership).save(fresh.copy(configured = true, previousState = 0))
     }
@@ -304,7 +311,7 @@ class WakeProtectionManagerTest {
         authorizedWith(path)
         whenever(catalogue.sameInstallation(path)).thenReturn(true)
         whenever(catalogue.currentState(path)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
-        whenever(components.compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(2), eq(0), any())).thenReturn(false)
+        whenever(components.compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(2), eq(0), any(), any())).thenReturn(false)
         assertThat(manager.reconcile()).isFalse()
         verify(repository, never()).saveProtections(any())
     }
