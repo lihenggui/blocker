@@ -130,8 +130,10 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 - PackageManager and privileged Shizuku persist enabled state in each user's
   `package_restrictions.xml` under `/data/system/users/`. Apps can detect that state.
 - `IfwStore` reads and replaces XML in `/data/system/ifw/` and reports changes
-  to the component cache. IFW filters activity, service, and broadcast intents
-  while leaving PackageManager enabled state alone.
+  to the component cache. Intent Firewall mode uses firewall rules for activities
+  and services. It disables broadcast receivers through PackageManager because
+  the firewall cannot stop implicit broadcasts to a single receiver. Unblocking a
+  receiver also clears earlier firewall blocks.
 - Preserve the Shizuku permission distinction. Shell-based component switching is
   limited to eligible test-only targets. Regular targets require root-backed Shizuku.
 - Verify enabled state and matching IFW rules separately when changing combined mode.
