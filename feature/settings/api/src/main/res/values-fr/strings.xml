@@ -56,12 +56,12 @@
     <string name="feature_settings_api_no_sharable_app_found">Aucune application partageable trouvée.</string>
     <string name="feature_settings_api_pm_rules">PM</string>
     <string name="feature_settings_api_reset_pm">Restaurer les modifications PM</string>
-    <string name="feature_settings_api_reset_pm_summary">Rétablir l’état par défaut des composants que Blocker a désactivés via PackageManager</string>
+    <string name="feature_settings_api_reset_pm_summary">Rétablir l’état par défaut des composants que Blocker a désactivés via PM</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Restaurer les modifications PM ?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Rétablir à leur état par défaut tous les composants que Blocker a désactivés via PM. Les règles IFW ne sont pas affectées. Continuer ?</string>
     <string name="feature_settings_api_confirm_user_export">Exporter les règles de %1$s ?</string>
     <string name="feature_settings_api_confirm_user_import">Importer des règles pour %1$s ?</string>
-    <string name="feature_settings_api_confirm_user_reset_pm">Annuler les modifications de PackageManager pour %1$s ?</string>
+    <string name="feature_settings_api_confirm_user_reset_pm">Restaurer les modifications PM pour %1$s ?</string>
     <string name="feature_settings_api_confirm_user_mat_import">Importer les règles MyAndroidTools pour %1$s ?</string>
     <string name="feature_settings_api_choose_rule_backup">Sélectionner une sauvegarde de règles à importer dans %1$s</string>
     <string name="feature_settings_api_user_rule_result">%1$s\nUtilisateur : %2$s</string>

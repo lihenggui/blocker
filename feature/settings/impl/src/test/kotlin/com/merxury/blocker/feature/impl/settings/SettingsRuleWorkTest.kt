@@ -19,7 +19,9 @@ package com.merxury.blocker.feature.impl.settings
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.Operation
 import androidx.work.WorkInfo
@@ -48,6 +50,7 @@ import com.merxury.blocker.core.testing.util.TestSyncManager
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.feature.settings.api.R
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -60,7 +63,9 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
@@ -80,31 +85,43 @@ class SettingsRuleWorkTest {
     private val selected = FakeSelectedUserRepository()
     private val deviceUsers = FakeDeviceUserRepository()
     private val owner = DeviceUser(UserId.SYSTEM, "Device Owner", UserKind.OWNER, null, running = true)
-    private val work = DeviceUser(UserId(10), "Work", UserKind.WORK_PROFILE, UserId.SYSTEM, running = true)
+    private val work = DeviceUser(UserId(10), "Managed by Example", UserKind.WORK_PROFILE, UserId.SYSTEM, running = true)
 
-    private val viewModel by lazy {
-        SettingsViewModel(
-            appContext = application,
-            userDataRepository = userDataRepository,
-            blockerPreferences = mock<BlockerPreferencesDataSource>(),
-            syncManager = TestSyncManager(),
-            analyticsHelper = NoOpAnalyticsHelper(),
-            workManager = workManager,
-            selectedUsers = selected,
-            deviceUsers = deviceUsers,
-            backupSets = backupSets,
-            ioDispatcher = mainDispatcherRule.testDispatcher,
-        )
-    }
+    private val savedStateHandle = SavedStateHandle()
+    private val viewModel by lazy { createViewModel(savedStateHandle) }
+
+    private fun createViewModel(state: SavedStateHandle) = SettingsViewModel(
+        appContext = application,
+        userDataRepository = userDataRepository,
+        blockerPreferences = mock<BlockerPreferencesDataSource>(),
+        syncManager = TestSyncManager(),
+        analyticsHelper = NoOpAnalyticsHelper(),
+        workManager = workManager,
+        savedStateHandle = state,
+        selectedUsers = selected,
+        deviceUsers = deviceUsers,
+        backupSets = backupSets,
+        ioDispatcher = mainDispatcherRule.testDispatcher,
+    )
 
     private fun ended(state: WorkInfo.State, vararg output: Pair<String, Any>) = MutableLiveData(listOf(WorkInfo(UUID.randomUUID(), state, emptySet(), workDataOf(*output))))
 
+    private fun successfulEnqueue() = mock<Operation>().also {
+        whenever(it.result) doReturn Futures.immediateFuture(Operation.SUCCESS)
+    }
+
     private fun finishUserWork(vararg output: Pair<String, Any>) {
-        val operation = mock<Operation>()
-        whenever(operation.result) doReturn Futures.immediateFuture(Operation.SUCCESS)
-        whenever(workManager.enqueueUniqueWork(any<String>(), any(), any<OneTimeWorkRequest>())) doReturn operation
+        val requests = mutableMapOf<String, UUID>()
+        val operation = successfulEnqueue()
+        whenever(workManager.enqueueUniqueWork(any<String>(), any(), any<OneTimeWorkRequest>())).thenAnswer {
+            requests[it.getArgument(0)] = it.getArgument<OneTimeWorkRequest>(2).id
+            operation
+        }
         whenever(workManager.getWorkInfoByIdFlow(any())).thenAnswer {
             flowOf(WorkInfo(it.getArgument(0), WorkInfo.State.SUCCEEDED, emptySet(), workDataOf(*output)))
+        }
+        whenever(workManager.getWorkInfosForUniqueWorkFlow(any())).thenAnswer {
+            flowOf(listOf(WorkInfo(requests.getValue(it.getArgument(0)), WorkInfo.State.SUCCEEDED, emptySet(), workDataOf(*output))))
         }
     }
 
@@ -184,7 +201,7 @@ class SettingsRuleWorkTest {
             viewModel.confirmRuleAction { error("Export does not open a file picker") }
 
             assertThat(request().workSpec.input.getInt("param_target_user", -1)).isEqualTo(work.id.value)
-            assertThat(awaitItem().target).isEqualTo(ProfileLabel.Named("Work"))
+            assertThat(awaitItem().target).isEqualTo(ProfileLabel.Work)
         }
     }
 
@@ -215,6 +232,51 @@ class SettingsRuleWorkTest {
     }
 
     @Test
+    fun givenWorkMatPickerOpen_whenViewModelIsRecreated_thenTheFileStillImportsForWork() = runTest {
+        selectWork()
+        deviceUsers.sendUsers(listOf(owner, work))
+        finishUserWork()
+        viewModel.startRuleAction(SettingsRuleAction.IMPORT_MAT)
+        viewModel.confirmRuleAction {}
+        val recreated = createViewModel(SavedStateHandle(savedStateHandle.keys().associateWith { savedStateHandle.get<Any>(it) }))
+        selected.sendUsers(listOf(owner))
+        val file = Uri.parse("content://docs/mat.txt")
+
+        recreated.eventFlow.test {
+            recreated.importMyAndroidToolsRules(file)
+
+            assertThat(awaitItem().target).isEqualTo(ProfileLabel.Work)
+            assertThat(request().workSpec.input.getInt("param_target_user", -1)).isEqualTo(work.id.value)
+            recreated.importMyAndroidToolsRules(file)
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun givenWorkResetAlreadyRunning_whenTappedAgain_thenTheKeptWorkShowsProgressAndOneResult() = runTest {
+        selectWork()
+        val workId = UUID.randomUUID()
+        val workName = "ResetPm-user-${work.id.value}"
+        val keptWork = MutableStateFlow(listOf(WorkInfo(workId, WorkInfo.State.RUNNING, emptySet())))
+        val operation = successfulEnqueue()
+        whenever(workManager.enqueueUniqueWork(eq(workName), eq(ExistingWorkPolicy.KEEP), any<OneTimeWorkRequest>())) doReturn operation
+        whenever(workManager.getWorkInfosForUniqueWorkFlow(workName)) doReturn keptWork
+
+        viewModel.eventFlow.test {
+            repeat(2) {
+                viewModel.startRuleAction(SettingsRuleAction.RESET_PM)
+                viewModel.confirmRuleAction {}
+                assertThat(awaitItem()).isEqualTo(SettingsRuleEvent(RuleWorkEvent(RuleWorkType.RESET_PM, RuleWorkResult.STARTED), ProfileLabel.Work))
+            }
+            verify(workManager, times(2)).enqueueUniqueWork(eq(workName), eq(ExistingWorkPolicy.KEEP), any<OneTimeWorkRequest>())
+            keptWork.value = listOf(WorkInfo(workId, WorkInfo.State.SUCCEEDED, emptySet(), workDataOf(RuleWorkResult.PARAM_CHANGED_COUNT to 2)))
+
+            assertThat(awaitItem()).isEqualTo(SettingsRuleEvent(RuleWorkEvent(RuleWorkType.RESET_PM, RuleWorkResult.FINISHED, changed = 2), ProfileLabel.Work))
+            expectNoEvents()
+        }
+    }
+
+    @Test
     fun givenOtherBackupSets_whenASetIsChosen_thenItIsImportedIntoTheOriginalSelectedUser() = runTest {
         selectWork()
         val known = DeviceUser(UserId(11), "Archive", UserKind.SECONDARY, null, running = false)
@@ -232,9 +294,10 @@ class SettingsRuleWorkTest {
         runCurrent()
 
         val dialog = (viewModel.settingsUiState.value as SettingsUiState.Success).ruleDialog as SettingsRuleDialog.ChooseBackup
+        assertThat(dialog.target).isEqualTo(ProfileLabel.Work)
         assertThat(dialog.sets).containsExactly(
             BackupSet.OWNER,
-            ProfileLabel.Named("Device Owner"),
+            ProfileLabel.Personal,
             BackupSet(known.id),
             ProfileLabel.Named("Archive"),
             absent,
@@ -263,6 +326,6 @@ class SettingsRuleWorkTest {
     @Test
     fun givenResetPmSetting_whenSummaryIsRead_thenItDescribesTheComponentsBlockerDisabled() {
         assertThat(application.getString(R.string.feature_settings_api_reset_pm_summary))
-            .isEqualTo("Restore the components that Blocker disabled through PackageManager to their default state")
+            .isEqualTo("Restore the components that Blocker disabled through PM to their default state")
     }
 }

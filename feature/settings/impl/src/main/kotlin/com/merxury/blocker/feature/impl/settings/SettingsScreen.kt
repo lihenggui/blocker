@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -86,6 +87,7 @@ import com.merxury.blocker.feature.impl.settings.item.PmRulesSettings
 import com.merxury.blocker.feature.impl.settings.item.SwitchSettingItem
 import com.merxury.blocker.feature.impl.settings.item.ThemeSettings
 import com.merxury.blocker.feature.settings.api.R.string
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import com.merxury.blocker.core.rule.R.string as CoreRuleR
@@ -98,7 +100,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
-    val event by viewModel.eventFlow.collectAsState(initial = null)
+    val events = remember(viewModel) { viewModel.eventFlow.withIndex() }
+    val event by events.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
     val getMatFileResult = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), viewModel::importMyAndroidToolsRules)
     val fileManagerRequired = stringResource(string.feature_settings_api_file_manager_required)
@@ -153,7 +156,7 @@ fun SettingsScreen(
             }
         }
     }
-    event?.let {
+    event?.let { (delivery, it) ->
         val work = it.work.type
         val result = it.work.result
         val startedRes = when (work) {
@@ -177,15 +180,13 @@ fun SettingsScreen(
         } else {
             SnackbarDuration.Short
         }
-        LaunchedEffect(message) {
-            coroutineScope.launch {
-                snackbarHostState.currentSnackbarData?.dismiss()
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = duration,
-                    withDismissAction = true,
-                )
-            }
+        LaunchedEffect(delivery) {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = duration,
+                withDismissAction = true,
+            )
         }
     }
 }

@@ -32,6 +32,7 @@ import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
@@ -81,6 +82,7 @@ import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,11 +95,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformWhile
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
+
+private const val MAT_TARGET_USER = "matTargetUser"
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -107,6 +112,7 @@ class SettingsViewModel @Inject constructor(
     private val syncManager: SyncManager,
     private val analyticsHelper: AnalyticsHelper,
     private val workManager: WorkManager,
+    private val savedStateHandle: SavedStateHandle,
     private val selectedUsers: SelectedUserRepository,
     private val deviceUsers: DeviceUserRepository,
     private val backupSets: BlockerBackupSets,
@@ -114,7 +120,7 @@ class SettingsViewModel @Inject constructor(
 ) : AndroidViewModel(appContext) {
     private val ruleDialog = MutableStateFlow<SettingsRuleDialog?>(null)
     private var backupLookup: Job? = null
-    private var matTarget: SettingsRuleTarget? = null
+    private val keepWorkObservers = mutableMapOf<String, Job>()
 
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
@@ -266,7 +272,7 @@ class SettingsViewModel @Inject constructor(
     internal fun startRuleAction(action: SettingsRuleAction, pickMatFile: () -> Unit = {}) {
         val selected = selectedUsers.selectedUser.value
         val users = selectedUsers.users.value
-        val target = SettingsRuleTarget(selected, if (selected == selectedUsers.ownUser) null else ruleUserLabel(selected, users))
+        val target = ruleTarget(selected, users)
         backupLookup?.cancel()
         ruleDialog.value = null
         if (action == SettingsRuleAction.IMPORT) {
@@ -275,7 +281,7 @@ class SettingsViewModel @Inject constructor(
                 val import = SettingsRuleImport(target, prefs.ruleBackupFolder, prefs.restoreSystemApp)
                 val alternatives = backupSets.alternatives(import.path, target.user)
                 if (alternatives.isNotEmpty()) {
-                    val names = (users + cachedUsersForBackupNames()).distinctBy { it.id }
+                    val names = (users + cachedUsers()).distinctBy { it.id }
                     ruleDialog.value = SettingsRuleDialog.ChooseBackup(
                         import,
                         ruleUserLabel(target.user, names),
@@ -294,12 +300,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun cachedUsersForBackupNames(): List<DeviceUser> = try {
+    private suspend fun cachedUsers(): List<DeviceUser> = try {
         deviceUsers.users.first()
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        Timber.w(e, "Cannot read cached user names for backup sets")
+        Timber.w(e, "Cannot read cached users for rule operations")
         emptyList()
     }
 
@@ -334,7 +340,7 @@ class SettingsViewModel @Inject constructor(
             }
 
             SettingsRuleAction.IMPORT_MAT -> {
-                matTarget = target
+                savedStateHandle[MAT_TARGET_USER] = target.user.value
                 pickMatFile()
             }
 
@@ -372,26 +378,44 @@ class SettingsViewModel @Inject constructor(
         policy: ExistingWorkPolicy,
         target: SettingsRuleTarget,
         buildRequest: suspend () -> OneTimeWorkRequest,
-    ) = viewModelScope.launch {
-        try {
-            val request = buildRequest()
-            val taskName = if (target.label == null) name else "$name-user-${target.user.value}"
-            workManager.enqueueUniqueWork(taskName, policy, request).await()
-            workManager.getWorkInfoByIdFlow(request.id)
-                .transformWhile { info ->
-                    // KEEP can leave this request out when the same user's work is still active.
-                    if (info == null) return@transformWhile false
-                    ruleWorkEventOf(type, info)?.let { emit(SettingsRuleEvent(it, target.label)) }
+    ) {
+        val taskName = if (target.user == selectedUsers.ownUser) name else "$name-user-${target.user.value}"
+        val keep = policy == ExistingWorkPolicy.KEEP
+        if (keep) keepWorkObservers.remove(taskName)?.cancel()
+        val observer = viewModelScope.launch(start = CoroutineStart.LAZY) {
+            try {
+                val request = buildRequest()
+                workManager.enqueueUniqueWork(taskName, policy, request).await()
+                val infos = if (keep) {
+                    workManager.getWorkInfosForUniqueWorkFlow(taskName).map { work ->
+                        work.firstOrNull { it.id == request.id } ?: work.firstOrNull { !it.state.isFinished } ?: work.firstOrNull()
+                    }
+                } else {
+                    workManager.getWorkInfoByIdFlow(request.id)
+                }
+                infos.transformWhile { info ->
+                    if (info == null) return@transformWhile keep
+                    val event = if (keep && info.state == WorkInfo.State.RUNNING) {
+                        RuleWorkEvent(type, RuleWorkResult.STARTED)
+                    } else {
+                        ruleWorkEventOf(type, info)
+                    }
+                    event?.let { emit(SettingsRuleEvent(it, target.label)) }
                     !info.state.isFinished
                 }
-                .distinctUntilChanged()
-                .collect { ruleEvents.emit(it) }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Cannot run $type for user ${target.user.value}")
-            ruleEvents.emit(SettingsRuleEvent(RuleWorkEvent(type, RuleWorkResult.UNEXPECTED_EXCEPTION), target.label))
+                    .distinctUntilChanged()
+                    .collect { ruleEvents.emit(it) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Cannot run $type for user ${target.user.value}")
+                ruleEvents.emit(SettingsRuleEvent(RuleWorkEvent(type, RuleWorkResult.UNEXPECTED_EXCEPTION), target.label))
+            } finally {
+                if (keep) keepWorkObservers.remove(taskName, coroutineContext.job)
+            }
         }
+        if (keep) keepWorkObservers[taskName] = observer
+        observer.start()
     }
 
     fun exportIfwRules() = viewModelScope.launch {
@@ -454,14 +478,18 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun importMyAndroidToolsRules(fileUri: Uri?) {
-        val target = matTarget ?: return
-        matTarget = null
+        val user = savedStateHandle.remove<Int>(MAT_TARGET_USER)?.let(::UserId) ?: return
         if (fileUri == null) return
-        enqueueUserWork(IMPORT_MAT_RULES, "ImportMatRule", ExistingWorkPolicy.KEEP, target) {
-            val prefs = userDataRepository.userData.first()
-            ImportMatRulesWorker.importWork(fileUri, prefs.restoreSystemApp, targetUser = target.user)
+        viewModelScope.launch {
+            val target = ruleTarget(user, if (user == selectedUsers.ownUser) emptyList() else selectedUsers.users.value + cachedUsers())
+            enqueueUserWork(IMPORT_MAT_RULES, "ImportMatRule", ExistingWorkPolicy.KEEP, target) {
+                val prefs = userDataRepository.userData.first()
+                ImportMatRulesWorker.importWork(fileUri, prefs.restoreSystemApp, targetUser = user)
+            }
         }
     }
+
+    private fun ruleTarget(user: UserId, users: List<DeviceUser>): SettingsRuleTarget = SettingsRuleTarget(user, if (user == selectedUsers.ownUser) null else ruleUserLabel(user, users))
 
     fun updateDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         viewModelScope.launch {
@@ -490,9 +518,5 @@ sealed interface SettingsUiState {
     ) : SettingsUiState
 }
 
-private fun ruleUserLabel(user: UserId, users: List<DeviceUser>): ProfileLabel {
-    val deviceUser = users.find { it.id == user }
-    return deviceUser?.name?.takeIf { it.isNotBlank() }?.let { ProfileLabel.Named(it) }
-        ?: deviceUser?.profileLabel()
-        ?: if (user == UserId.SYSTEM) ProfileLabel.Personal else ProfileLabel.Numbered(user.value)
-}
+private fun ruleUserLabel(user: UserId, users: List<DeviceUser>): ProfileLabel = users.find { it.id == user }?.profileLabel()
+    ?: if (user == UserId.SYSTEM) ProfileLabel.Personal else ProfileLabel.Numbered(user.value)

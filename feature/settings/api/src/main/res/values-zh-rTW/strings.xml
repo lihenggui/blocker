@@ -64,12 +64,12 @@
     <string name="feature_settings_api_anonymous_statistics_summary">我們利用 Firebase Analytics 收集和分析有關最常用功能和使用者行為的數據，以增強 Blocker 的功能。</string>
     <string name="feature_settings_api_pm_rules">PM</string>
     <string name="feature_settings_api_reset_pm">還原 PM 修改</string>
-    <string name="feature_settings_api_reset_pm_summary">將 Blocker 透過 PackageManager 停用的元件還原為預設狀態</string>
+    <string name="feature_settings_api_reset_pm_summary">將 Blocker 透過 PM 停用的元件還原為預設狀態</string>
     <string name="feature_settings_api_reset_pm_dialog_title">還原 PM 修改？</string>
     <string name="feature_settings_api_reset_pm_dialog_message">將 Blocker 透過 PM 停用過的所有元件還原為預設狀態。IFW 規則不受影響。要繼續嗎？</string>
     <string name="feature_settings_api_confirm_user_export">是否為 %1$s 匯出規則？</string>
     <string name="feature_settings_api_confirm_user_import">是否為 %1$s 匯入規則？</string>
-    <string name="feature_settings_api_confirm_user_reset_pm">是否為 %1$s 還原透過 PackageManager 所做的變更？</string>
+    <string name="feature_settings_api_confirm_user_reset_pm">是否為 %1$s 還原 PM 修改？</string>
     <string name="feature_settings_api_confirm_user_mat_import">是否為 %1$s 匯入 MyAndroidTools 規則？</string>
     <string name="feature_settings_api_choose_rule_backup">請選擇要匯入至 %1$s 的規則備份</string>
     <string name="feature_settings_api_user_rule_result">%1$s\n使用者：%2$s</string>

@@ -20,11 +20,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.merxury.blocker.core.designsystem.component.BlockerButtonAlertDialog
+import com.merxury.blocker.core.designsystem.component.BlockerConfirmAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.model.component.UserId
@@ -71,24 +72,24 @@ internal fun SettingsRuleDialog(
     when (dialog) {
         is SettingsRuleDialog.Confirm -> ConfirmRuleAction(dialog, onConfirm, onDismiss)
 
-        is SettingsRuleDialog.ChooseBackup -> AlertDialog(
+        is SettingsRuleDialog.ChooseBackup -> BlockerButtonAlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text(stringResource(string.feature_settings_api_choose_rule_backup, dialog.target.text())) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    dialog.sets.forEach { (set, label) ->
-                        BlockerTextButton(
-                            onClick = { onChooseBackup(set) },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(label.text())
+            title = stringResource(string.feature_settings_api_choose_rule_backup, dialog.target.text()),
+            buttons = {
+                Column {
+                    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+                        dialog.sets.forEach { (set, label) ->
+                            BlockerTextButton(
+                                onClick = { onChooseBackup(set) },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(label.text())
+                            }
                         }
                     }
-                }
-            },
-            confirmButton = {
-                BlockerTextButton(onClick = onDismiss) {
-                    Text(stringResource(android.R.string.cancel))
+                    BlockerTextButton(onClick = onDismiss) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
                 }
             },
         )
@@ -121,19 +122,10 @@ private fun ConfirmRuleAction(
             onConfirmRequest = onConfirm,
         )
     } else {
-        AlertDialog(
+        BlockerConfirmAlertDialog(
+            text = title,
             onDismissRequest = onDismiss,
-            title = { Text(title) },
-            confirmButton = {
-                BlockerTextButton(onClick = onConfirm) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                BlockerTextButton(onClick = onDismiss) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
+            onConfirmRequest = onConfirm,
         )
     }
 }

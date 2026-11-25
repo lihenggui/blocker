@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.impl.settings
 
 import android.app.Application
 import android.content.SharedPreferences
+import androidx.lifecycle.SavedStateHandle
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
@@ -74,6 +75,7 @@ class SettingsViewModelTest {
             appContext = appContext,
             analyticsHelper = analyticsHelper,
             workManager = mock<WorkManager>(),
+            savedStateHandle = SavedStateHandle(),
             selectedUsers = FakeSelectedUserRepository(),
             deviceUsers = FakeDeviceUserRepository(),
             backupSets = mock<BlockerBackupSets>(),
