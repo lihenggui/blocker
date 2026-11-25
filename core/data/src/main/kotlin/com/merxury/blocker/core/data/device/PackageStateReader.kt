@@ -153,20 +153,16 @@ internal class PackageStateReader @Inject constructor(
         val declarations = fresh ?: cached
         val declarationsCurrent = app != null && failures.isEmpty()
         var pmFailure: ReadFailure? = if (declarations.isEmpty()) failures.lastOrNull() else null
-        val pm = if (declarations.isEmpty()) {
-            emptyMap()
-        } else {
-            when (val read = reader.pmSettings(key, declarations.map { it.id })) {
-                is ReadResult.Success -> read.value
+        val pm = when (val read = readPmSettings(key, declarations)) {
+            is ReadResult.Success -> read.value
 
-                is ReadResult.Failure -> {
-                    if (read.reason is ReadFailure.PackageNotFound) return remove(key)
-                    if (automatic) return aborted(read.reason)
-                    Timber.w("Cannot read the PM settings of $key, store them as unknown: ${read.reason}")
-                    failures += read.reason
-                    pmFailure = read.reason
-                    null
-                }
+            is ReadResult.Failure -> {
+                if (read.reason is ReadFailure.PackageNotFound) return remove(key)
+                if (automatic) return aborted(read.reason)
+                Timber.w("Cannot read the PM settings of $key, store them as unknown: ${read.reason}")
+                failures += read.reason
+                pmFailure = read.reason
+                null
             }
         }
         if (automatic && declarations.any { pm?.get(it.id).let { setting -> setting == null || setting == PmSetting.UNKNOWN } }) {
@@ -185,9 +181,30 @@ internal class PackageStateReader @Inject constructor(
             }
             ifwBlocksOf(declarations, ifw).filterValues { !automatic || it != IfwBlock.UNKNOWN }
         }
-        val pmSettings = declarations.associate { it.id.className to (pm?.get(it.id) ?: PmSetting.UNKNOWN) }
+        val result = PackageRefresh(failures, pm, pmFailure, declarationsCurrent)
+        return storeRefresh(key, app, previous, automatic, declarations, fresh, ifwBlocks, verifiedDeclarations, result)
+    }
+
+    private suspend fun readPmSettings(key: AppKey, declarations: List<ComponentDeclaration>): ReadResult<Map<ComponentId, PmSetting>> {
+        if (declarations.isEmpty()) return ReadResult.Success(emptyMap())
+        return reader.pmSettings(key, declarations.map { it.id })
+    }
+
+    private suspend fun storeRefresh(
+        key: AppKey,
+        app: InstalledApp?,
+        previous: AppEntity?,
+        automatic: Boolean,
+        declarations: List<ComponentDeclaration>,
+        fresh: List<ComponentDeclaration>?,
+        ifwBlocks: Map<String, IfwBlock>,
+        verifiedDeclarations: Boolean,
+        result: PackageRefresh,
+    ): PackageRefresh {
+        val packageName = key.packageName
+        val pmSettings = declarations.associate { it.id.className to (result.pmSettings?.get(it.id) ?: PmSetting.UNKNOWN) }
         val entities = fresh?.map { it.asEntity() }
-        val stored = withContext(NonCancellable) {
+        return withContext(NonCancellable) {
             if (automatic) {
                 val failure = installedApps.storeRefresh(checkNotNull(app), previous, entities, pmSettings, ifwBlocks)
                 if (failure != null) return@withContext aborted(failure)
@@ -197,9 +214,8 @@ internal class PackageStateReader @Inject constructor(
                 return@withContext PackageRefresh.removed(key)
             }
             if (verifiedDeclarations) declarationRetries -= packageName
-            PackageRefresh(failures, pm, pmFailure, declarationsCurrent)
+            result
         }
-        return stored
     }
 
     private suspend fun isRunningAndUnlocked(user: UserId): Boolean = when (val read = reader.users()) {
