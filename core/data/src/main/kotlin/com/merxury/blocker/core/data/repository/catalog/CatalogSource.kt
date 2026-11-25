@@ -5,6 +5,7 @@ package com.merxury.blocker.core.data.repository.catalog
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import java.io.InputStream
 import javax.inject.Inject
 
@@ -29,4 +30,13 @@ internal class BundledCatalogSource @Inject constructor(
     }
 
     override fun open(path: String): InputStream = assets.open("catalog/$path")
+}
+
+internal class DirectoryCatalogSource(private val directory: File) : CatalogSource {
+    override fun paths(): Set<String> = directory.walkTopDown()
+        .filter { it.isFile }
+        .map { it.relativeTo(directory).invariantSeparatorsPath }
+        .toSet()
+
+    override fun open(path: String): InputStream = directory.resolve(path).inputStream()
 }

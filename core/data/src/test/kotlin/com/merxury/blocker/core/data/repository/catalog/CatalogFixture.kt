@@ -40,11 +40,12 @@ internal fun fixtureCatalog(
     components: String = "$FIXTURE_COMPONENT\n",
     icon: String = "old icon",
     sourceCommit: String = "fixture",
+    iconPath: String = FIXTURE_ICON,
 ): CatalogFixture {
     val files = mutableMapOf(
-        CATALOG_RULES to "$rules\n".encodeToByteArray(),
+        CATALOG_RULES to "${rules.replace(FIXTURE_ICON, iconPath)}\n".encodeToByteArray(),
         CATALOG_COMPONENTS to components.encodeToByteArray(),
-        FIXTURE_ICON to icon.encodeToByteArray(),
+        iconPath to icon.encodeToByteArray(),
     )
     val manifest = buildJsonObject {
         put("format", format)

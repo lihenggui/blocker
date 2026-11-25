@@ -38,6 +38,7 @@ dependencies {
     implementation(projects.core.system)
     implementation(libs.smali.dexlib)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.okhttp)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlinx.serialization.json)

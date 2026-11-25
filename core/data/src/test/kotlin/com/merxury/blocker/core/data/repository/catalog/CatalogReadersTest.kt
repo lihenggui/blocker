@@ -53,7 +53,16 @@ class CatalogReadersTest {
         val dao = database.catalogDao()
         val icons = CatalogIcons(folder.root)
         installer = CatalogInstaller(dao, icons, Dispatchers.IO)
-        val catalog = LocalCatalogRepository(dao, installer, BundledCatalogSource(context), icons, Dispatchers.IO)
+        val catalog = LocalCatalogRepository(
+            dao,
+            installer,
+            BundledCatalogSource(context),
+            icons,
+            Dispatchers.IO,
+            CatalogDownloader(folder.root, dao, installer, Dispatchers.IO) { _, _ ->
+                error("Unexpected catalog download")
+            },
+        )
         rules = CatalogGeneralRuleRepository(dao, catalog, userData)
         val userDetails = UserGeneratedComponentDetailDataSource(
             userData,

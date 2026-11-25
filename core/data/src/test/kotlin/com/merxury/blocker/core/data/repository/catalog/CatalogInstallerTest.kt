@@ -54,7 +54,16 @@ class CatalogInstallerTest {
         icons = CatalogIcons(temporaryFolder.root)
         installer = CatalogInstaller(dao, icons, Dispatchers.IO)
         bundled = BundledCatalogSource(context)
-        repository = LocalCatalogRepository(dao, installer, bundled, icons, Dispatchers.IO)
+        repository = LocalCatalogRepository(
+            dao,
+            installer,
+            bundled,
+            icons,
+            Dispatchers.IO,
+            CatalogDownloader(temporaryFolder.root, dao, installer, Dispatchers.IO) { _, _ ->
+                error("Unexpected catalog download")
+            },
+        )
     }
 
     @After

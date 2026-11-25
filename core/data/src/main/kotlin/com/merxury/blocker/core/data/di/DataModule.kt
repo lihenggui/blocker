@@ -34,8 +34,10 @@ import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
+import com.merxury.blocker.core.data.repository.catalog.CatalogHttpFetcher
 import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
 import com.merxury.blocker.core.data.repository.catalog.LocalCatalogRepository
+import com.merxury.blocker.core.data.repository.catalog.OkHttpCatalogFetcher
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.repository.componentdetail.LocalComponentDetailRepository
 import com.merxury.blocker.core.data.repository.generalrule.CatalogGeneralRuleRepository
@@ -73,6 +75,9 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindWakeReceiverResolver(resolver: PackageManagerWakeReceiverResolver): WakeReceiverResolver
+
+    @Binds
+    internal abstract fun bindCatalogHttpFetcher(fetcher: OkHttpCatalogFetcher): CatalogHttpFetcher
 
     @Binds
     internal abstract fun bindComponentActions(impl: LocalComponentActions): ComponentActions
