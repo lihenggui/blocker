@@ -167,6 +167,14 @@ class WakeReadModelTest {
         }
     }
 
+    @Test fun givenNamedPeerServiceAndNonAppActor_whenMappingWakePath_thenNoBlockMethodIsOffered() {
+        val actorsWithoutAPackage = listOf(null, "android", "10035")
+        val paths = actorsWithoutAPackage.map { actor -> revive(ReviveTrigger.PEER_SERVICE, actor = actor, detail = ".Service").toWakePath() }
+
+        assertThat(paths.map { it.component }).containsExactlyElementsIn(actorsWithoutAPackage.map { "$APP.Service" })
+        assertThat(paths.map { it.blockMethod }.toSet()).containsExactly(WakeBlockMethod.NONE)
+    }
+
     @Test fun givenComponentAndBroadcastDetails_whenBuildingActivity_thenTheyRetainTheirTypesAndIdentities() {
         val rows = listOf(
             revive(ReviveTrigger.PEER_BROADCAST, actor = PEER, detail = "$APP/.Receiver"),

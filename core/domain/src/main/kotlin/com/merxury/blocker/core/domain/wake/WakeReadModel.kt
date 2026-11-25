@@ -182,7 +182,8 @@ private fun String?.isAppPackage(): Boolean = this != null && isNotBlank() && th
 private val WakePath.isPeerPath get() =
     (trigger in peerTriggers || hold in peerHolds) && actor != target && actor.isAppPackage() && target.isAppPackage()
 
-private fun WakeFindingDay.toWakePath(): WakePath {
+/** Maps a stored detection finding to a wake path and its available block method. */
+internal fun WakeFindingDay.toWakePath(): WakePath {
     val trigger = trigger?.let(ReviveTrigger::valueOf)
     val hold = hold?.let(HoldCause::valueOf)
     val broadcast = trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST
@@ -219,7 +220,7 @@ private fun WakeFindingDay.toWakePath(): WakePath {
 }
 
 private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?, component: String?, action: String?): WakeBlockMethod = when {
-    trigger == ReviveTrigger.PEER_SERVICE && component != null -> WakeBlockMethod.FIREWALL_RULE
+    trigger == ReviveTrigger.PEER_SERVICE && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
     hold == HoldCause.BOUND_BY_PEER && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
