@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.componentdetail.datasource
+package com.merxury.blocker.core.data.repository.componentdetail.datasource
 
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule

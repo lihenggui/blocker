@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.licenses
+package com.merxury.blocker.core.data.repository.licenses
 
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO

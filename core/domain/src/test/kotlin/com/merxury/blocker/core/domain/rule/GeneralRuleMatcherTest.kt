@@ -18,7 +18,7 @@ package com.merxury.blocker.core.domain.rule
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.data.GeneralRule

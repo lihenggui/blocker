@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.componentdetail
+package com.merxury.blocker.core.data.repository.componentdetail
 
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
+import com.merxury.blocker.core.data.repository.componentdetail.datasource.LocalComponentDetailDataSource
+import com.merxury.blocker.core.data.repository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.AppKey

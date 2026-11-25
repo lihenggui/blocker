@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.generalrule
+package com.merxury.blocker.core.data.repository.generalrule
 
 import android.content.res.AssetManager
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import com.merxury.blocker.core.data.di.RuleBaseFolder
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher

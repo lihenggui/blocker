@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.userdata
+package com.merxury.blocker.core.data.repository.userdata
 
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.data.respository.logAppDisplayLanguageChanged
-import com.merxury.blocker.core.data.respository.logAppSortingChanged
-import com.merxury.blocker.core.data.respository.logAppSortingOrderChanged
-import com.merxury.blocker.core.data.respository.logBackupSystemAppPreferenceChanged
-import com.merxury.blocker.core.data.respository.logComponentShowPriorityPreferenceChanged
-import com.merxury.blocker.core.data.respository.logComponentSortingOrderPreferenceChanged
-import com.merxury.blocker.core.data.respository.logComponentSortingPreferenceChanged
-import com.merxury.blocker.core.data.respository.logControllerTypeChanged
-import com.merxury.blocker.core.data.respository.logDarkThemeConfigChanged
-import com.merxury.blocker.core.data.respository.logDynamicColorPreferenceChanged
-import com.merxury.blocker.core.data.respository.logFirstTimeInitializationCompleted
-import com.merxury.blocker.core.data.respository.logLibDisplayLanguageChanged
-import com.merxury.blocker.core.data.respository.logRestoreSystemAppPreferenceChanged
-import com.merxury.blocker.core.data.respository.logRuleServerProviderChanged
-import com.merxury.blocker.core.data.respository.logShowServiceInfoPreferenceChanged
-import com.merxury.blocker.core.data.respository.logShowSystemAppPreferenceChanged
-import com.merxury.blocker.core.data.respository.logTopAppTypeChanged
+import com.merxury.blocker.core.data.repository.logAppDisplayLanguageChanged
+import com.merxury.blocker.core.data.repository.logAppSortingChanged
+import com.merxury.blocker.core.data.repository.logAppSortingOrderChanged
+import com.merxury.blocker.core.data.repository.logBackupSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.repository.logComponentShowPriorityPreferenceChanged
+import com.merxury.blocker.core.data.repository.logComponentSortingOrderPreferenceChanged
+import com.merxury.blocker.core.data.repository.logComponentSortingPreferenceChanged
+import com.merxury.blocker.core.data.repository.logControllerTypeChanged
+import com.merxury.blocker.core.data.repository.logDarkThemeConfigChanged
+import com.merxury.blocker.core.data.repository.logDynamicColorPreferenceChanged
+import com.merxury.blocker.core.data.repository.logFirstTimeInitializationCompleted
+import com.merxury.blocker.core.data.repository.logLibDisplayLanguageChanged
+import com.merxury.blocker.core.data.repository.logRestoreSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.repository.logRuleServerProviderChanged
+import com.merxury.blocker.core.data.repository.logShowServiceInfoPreferenceChanged
+import com.merxury.blocker.core.data.repository.logShowSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.repository.logTopAppTypeChanged
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting

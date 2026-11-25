@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.componentdetail.datasource
+package com.merxury.blocker.core.data.repository.componentdetail.datasource
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher

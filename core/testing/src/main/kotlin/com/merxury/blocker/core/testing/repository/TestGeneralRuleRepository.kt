@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.testing.repository
 
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.CompletableDeferred

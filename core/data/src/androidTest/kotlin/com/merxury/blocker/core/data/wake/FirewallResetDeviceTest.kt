@@ -6,7 +6,7 @@ package com.merxury.blocker.core.data.wake
 import android.os.Build
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.core.ifw.IfwStore

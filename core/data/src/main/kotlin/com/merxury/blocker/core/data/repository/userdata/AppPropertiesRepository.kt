@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.generalrule
+package com.merxury.blocker.core.data.repository.userdata
 
-import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.preference.AppPropertiesData
 import kotlinx.coroutines.flow.Flow
 
-internal interface GeneralRuleDataSource {
+interface AppPropertiesRepository {
+    val appProperties: Flow<AppPropertiesData>
 
-    fun getGeneralRules(): Flow<List<GeneralRule>>
+    suspend fun updateLastOpenedRuleHash(hash: String)
 }

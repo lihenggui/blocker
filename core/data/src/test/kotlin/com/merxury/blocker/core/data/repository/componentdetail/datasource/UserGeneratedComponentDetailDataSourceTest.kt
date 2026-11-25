@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.componentdetail.datasource
+package com.merxury.blocker.core.data.repository.componentdetail.datasource
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat

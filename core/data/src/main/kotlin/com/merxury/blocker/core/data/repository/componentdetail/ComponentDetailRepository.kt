@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.userdata
+package com.merxury.blocker.core.data.repository.componentdetail
 
-import com.merxury.blocker.core.model.preference.AppPropertiesData
+import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
 
-interface AppPropertiesRepository {
-    val appProperties: Flow<AppPropertiesData>
+interface ComponentDetailRepository {
 
-    suspend fun updateLastOpenedRuleHash(hash: String)
+    val updatedComponent: Flow<ComponentDetail>
+
+    fun hasUserGeneratedDetail(app: AppKey): Flow<Boolean>
+
+    fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
+
+    fun getLocalComponentDetail(name: String): Flow<ComponentDetail?>
+
+    fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
 }

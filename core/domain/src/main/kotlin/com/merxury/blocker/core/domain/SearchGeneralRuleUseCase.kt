@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.domain
 
 import com.merxury.blocker.core.data.di.RuleBaseFolder
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatcher
 import com.merxury.blocker.core.domain.rule.GeneralRuleMatches

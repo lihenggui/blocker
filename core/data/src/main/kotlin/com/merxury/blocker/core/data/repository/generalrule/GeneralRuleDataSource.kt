@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.componentdetail
+package com.merxury.blocker.core.data.repository.generalrule
 
-import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.data.ComponentDetail
+import com.merxury.blocker.core.model.data.GeneralRule
 import kotlinx.coroutines.flow.Flow
 
-interface ComponentDetailRepository {
+internal interface GeneralRuleDataSource {
 
-    val updatedComponent: Flow<ComponentDetail>
-
-    fun hasUserGeneratedDetail(app: AppKey): Flow<Boolean>
-
-    fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
-
-    fun getLocalComponentDetail(name: String): Flow<ComponentDetail?>
-
-    fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
+    fun getGeneralRules(): Flow<List<GeneralRule>>
 }

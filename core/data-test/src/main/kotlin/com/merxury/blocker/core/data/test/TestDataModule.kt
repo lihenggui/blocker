@@ -26,11 +26,11 @@ import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.DataModule
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.data.respository.licenses.LicensesRepository
-import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.repository.licenses.LicensesRepository
+import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
+import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.test.repository.FakeAppPropertiesRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository

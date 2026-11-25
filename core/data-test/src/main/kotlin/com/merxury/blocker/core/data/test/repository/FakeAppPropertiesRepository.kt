@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.data.test.repository
 
-import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
+import com.merxury.blocker.core.data.repository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
 import com.merxury.blocker.core.model.preference.AppPropertiesData
 import kotlinx.coroutines.flow.Flow

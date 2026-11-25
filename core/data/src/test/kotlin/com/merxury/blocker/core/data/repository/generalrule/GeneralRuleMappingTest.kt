@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.generalrule
+package com.merxury.blocker.core.data.repository.generalrule
 
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.generalrule.asExternalModel

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.licenses
+package com.merxury.blocker.core.data.repository.licenses
 
 import com.merxury.blocker.core.model.licenses.LicenseItem
 import kotlinx.coroutines.flow.Flow
