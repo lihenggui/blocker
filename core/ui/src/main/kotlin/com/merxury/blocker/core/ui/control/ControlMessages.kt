@@ -41,7 +41,7 @@ sealed interface ControlMessage {
         override val needsAccess: Boolean = false,
     ) : ControlMessage
 
-    /** A batch ended; [notChanged] components did not reach its goal, none when all did. */
+    /** A batch ended. [notChanged] counts failed or partial outcomes and vanished components. */
     data class BatchDone(
         val notChanged: Int,
         override val needsAccess: Boolean = false,
@@ -49,8 +49,8 @@ sealed interface ControlMessage {
 }
 
 /**
- * The message for one component's [this] outcome, or null when it reached its goal. A change that
- * reached only some layers did not reach the goal either.
+ * The message for a failed or partial outcome. Achieved and protected skipped outcomes return
+ * null.
  */
 fun ComponentOutcome.toMessage(goal: ControlGoal): ControlMessage? {
     if (!needsMessage()) return null
