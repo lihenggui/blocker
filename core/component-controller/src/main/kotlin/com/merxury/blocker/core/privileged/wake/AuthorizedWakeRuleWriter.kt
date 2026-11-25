@@ -19,9 +19,13 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Inject
 
 /**
- * Writes the wake feature's rule files through the privileged channel the user chose. It never
- * connects the channel, so it never shows a prompt: each call runs only when the channel is
- * ready and throws otherwise.
+ * Replaces or deletes this installation's managed service rules and temporary sender-filter probe
+ * in `/data/system/ifw/`. Reconciliation applies or revokes managed rules and runs the probe when
+ * needed. A reset removes one package's managed rules or deletes both files.
+ *
+ * The caller holds the mutex in `WakeProtectionManager` across production reconciliation and
+ * resets, including the probe and its cleanup. The writer acquires no lock itself. It uses the
+ * selected privileged channel only while it is ready and throws if the operation cannot run.
  */
 internal class AuthorizedWakeRuleWriter @Inject constructor(
     private val executor: PrivilegedExecutor,

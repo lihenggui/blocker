@@ -19,7 +19,7 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
   define navigation contracts and `impl` modules own screens and ViewModels.
 - [`core/domain`](core/domain) owns use cases and component batch orchestration.
   [`core/data`](core/data) owns repository interfaces and implementations, including
-  the device repositories and package change monitor. [`core/model`](core/model)
+  the device repositories and their monitors. [`core/model`](core/model)
   contains shared models.
 - [`core/component-controller`](core/component-controller) runs typed privileged
   calls over the root and Shizuku transports. [`core/ifw-api`](core/ifw-api) owns
@@ -28,9 +28,12 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
 - [`core/database`](core/database), [`core/datastore`](core/datastore), and
   [`core/datastore-proto`](core/datastore-proto) own Room and Proto DataStore.
   [`core/network`](core/network) provides Retrofit clients.
-- [`core/analytics`](core/analytics), [`core/git`](core/git),
-  [`core/provider`](core/provider), and [`core/rule`](core/rule) handle analytics,
-  Git-backed rule sync, content providers, and rule matching.
+- [`core/analytics`](core/analytics), [`core/git`](core/git), and
+  [`core/provider`](core/provider) handle analytics, Git-backed rule sync, and
+  content providers. General rule matching lives in [`core/domain`](core/domain).
+- [`core/rule`](core/rule) bundles the default rules and component descriptions.
+  It also owns Blocker backups, Intent Firewall XML import and export, My Android
+  Tools import, PackageManager reset, and the workers for rule operations.
 - [`core/common`](core/common) holds shared infrastructure and extensions.
   [`core/designsystem`](core/designsystem) holds Material 3 wrappers and styling.
   [`core/ui`](core/ui) and [`core/navigation`](core/navigation) hold shared UI and
@@ -81,8 +84,10 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 - Route UI through `core:data` repository interfaces, with `core:domain` use cases
   where needed. Bind repositories with Hilt in `DataModule`.
 - Observe installed apps, users, and component status through the device
-  repositories. `PackageChangeMonitor` refreshes affected cache entries on
-  package and profile events.
+  repositories. `PackageChangeMonitor` handles package broadcasts and reconciles
+  cached apps on foreground entry and when privileged access becomes ready.
+  `DeviceUserMonitor` handles profile lifecycle broadcasts and refreshes the
+  cached users while the privileged channel is ready.
 - Observe persisted data through the repository. `OfflineFirstGeneralRuleRepository`
   owns the general rule cache and sync updates.
 - Use `<Verb><Noun>UseCase` and `operator fun invoke` in `core:domain`.
@@ -133,6 +138,21 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 - Verify enabled state and matching IFW rules separately when changing combined mode.
 - See the [project README](README.md) for the user-facing controller modes.
 
+## Wake protection
+
+- Blocker collects Android wake evidence from the owner profile, stores local
+  history, and identifies how apps restart or keep one another running.
+  Protection applies approved service rules through Intent Firewall when the
+  selected privileged channel can write them.
+- Collection and privileged calls live in
+  [`core/component-controller`](core/component-controller) under `privileged.wake`
+  and `privileged.calls`. The wake repository in [`core/data`](core/data) stores
+  evidence in the wake history database. [`core/domain`](core/domain) owns wake
+  attribution, detection, and protection reconciliation.
+- `WakeWork` in [`sync/work`](sync/work) schedules `WakeHistoryWorker`.
+  [`core/ifw-api`](core/ifw-api) renders and manages the wake feature's separate
+  Intent Firewall files.
+
 ## Tests
 
 - Name new tests `givenX_whenY_thenZ`, or `whenY_thenZ` if setup is implicit.
@@ -141,9 +161,11 @@ device tests, coverage, graphs, release builds, and baseline profiles.
   checks the two- or three-part format in `androidTest` sources.
 - Use JUnit 4 and Truth for JVM tests. Use `runTest` for coroutine tests and
   Turbine for flow emissions. Use `MainDispatcherRule` when substituting Main.
-- Prefer fakes over mocks. Repository fakes live in [`core/data-test`](core/data-test),
-  DataStore doubles in [`core/datastore-test`](core/datastore-test), and shared
-  helpers and privileged-channel fakes in [`core/testing`](core/testing).
+- Prefer fakes over mocks. [`core/data-test`](core/data-test) provides repository
+  fakes and Hilt test bindings. [`core/testing`](core/testing) provides device
+  repository and privileged-channel fakes, additional repository test doubles,
+  and shared helpers. [`core/datastore-test`](core/datastore-test) provides an
+  in-memory DataStore and its Hilt test bindings.
 - Test repositories with fake DAOs or in-memory Room when appropriate.
   Exercise navigation through the affected route and back stack.
 - Use Roborazzi for visual regressions. Record screenshots on Linux using the CI

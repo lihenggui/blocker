@@ -113,11 +113,11 @@ Alternatively, you can use [Weblate](https://weblate.sanmer.app/projects/blocker
 
 ## Frequently Asked Questions
 
-1. When clicking the button in Shizuku mode, the component state cannot be controlled, and an error
-   pops up: SecurityException: Shell cannot change component state for 'xx' to state 'xx'.
+1. Why can I not change an app's component state in Shizuku mode?
 
-* The Shell permission of Shizuku cannot disable unmodified application components. Please restart
-  Shizuku with Root privileges or try modifying the APK.
+* Shizuku started through ADB can change components only in apps marked as test-only.
+  Regular apps require root-backed Shizuku. When Android refuses a component change
+  under ADB permissions, Blocker asks you to start Shizuku with root and try again.
 
 2. What's the difference between the `foss` version and the `market` version?
 
