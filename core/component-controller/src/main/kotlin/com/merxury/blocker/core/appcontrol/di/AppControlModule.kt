@@ -17,7 +17,9 @@
 package com.merxury.blocker.core.appcontrol.di
 
 import com.merxury.blocker.core.appcontrol.AppControl
+import com.merxury.blocker.core.appcontrol.BackgroundUsageControl
 import com.merxury.blocker.core.appcontrol.PrivilegedAppControl
+import com.merxury.blocker.core.appcontrol.PrivilegedBackgroundUsageControl
 import com.merxury.blocker.core.appcontrol.PrivilegedServiceControl
 import com.merxury.blocker.core.appcontrol.ServiceControl
 import dagger.Binds
@@ -30,6 +32,9 @@ import dagger.hilt.components.SingletonComponent
 internal interface AppControlModule {
     @Binds
     fun bindsAppControl(control: PrivilegedAppControl): AppControl
+
+    @Binds
+    fun bindsBackgroundUsageControl(control: PrivilegedBackgroundUsageControl): BackgroundUsageControl
 
     @Binds
     fun bindsServiceControl(control: PrivilegedServiceControl): ServiceControl

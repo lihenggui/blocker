@@ -47,6 +47,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.hiddenapibypass)
     androidTestImplementation(libs.kotlin.test.junit)
+    androidTestImplementation(libs.truth)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.truth)
     testImplementation(libs.turbine)

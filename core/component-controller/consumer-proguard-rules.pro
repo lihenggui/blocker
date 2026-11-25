@@ -4,6 +4,9 @@
 # that extends IIntentSender.Stub, and its calls bound to a class the framework does not have. One
 # rule for the whole namespace keeps stubs added later too.
 -keep class android.** { *; }
+# The app-ops stub uses the framework's internal package.
+-keep class com.android.internal.app.IAppOpsService { *; }
+-keep class com.android.internal.app.IAppOpsService$Stub { *; }
 
 # Shizuku loads its user service by name and looks up both constructors by reflection.
 -keep class com.merxury.blocker.core.privileged.shizuku.ShizukuPrivilegedService { public <init>(...); }
