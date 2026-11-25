@@ -326,6 +326,6 @@ class SettingsRuleWorkTest {
     @Test
     fun givenResetPmSetting_whenSummaryIsRead_thenItDescribesTheComponentsBlockerDisabled() {
         assertThat(application.getString(R.string.feature_settings_api_reset_pm_summary))
-            .isEqualTo("Restore the components that Blocker disabled through PM to their default state")
+            .isEqualTo("Restore the components that Blocker disabled via PM to their default state")
     }
 }
