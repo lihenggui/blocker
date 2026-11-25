@@ -37,8 +37,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -62,7 +64,7 @@ class ShizukuTransportTest {
         initializer,
         shizuku,
         system,
-        ShizukuUserService(connector, attachTimeout = 15.seconds),
+        ShizukuUserService(connector, attachTimeout = 15.seconds, scope = scope.backgroundScope),
         StandardTestDispatcher(scope.testScheduler),
     )
 
@@ -254,6 +256,30 @@ class ShizukuTransportTest {
         val result = transport.execute(EchoInPrivilegedProcess("hi"))
 
         assertThat(result).isEqualTo(CallResult.Success("hi for ${system.callerPackage}"))
+        assertThat(connector.services.single().calls).isEqualTo(1)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenSlowShizukuAttach_whenReadTimesOut_thenNextCallUsesTheSameService() = scope.runTest {
+        initializer.result = RegisterShizukuResult.Granted(0)
+        assertThat(transport.connectIfGranted()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        connector.attaches = false
+        val call = EchoInPrivilegedProcess("hi")
+
+        val read = async { withTimeoutOrNull(5.seconds) { transport.executeIfReady(call) } }
+        advanceTimeBy(6.seconds)
+        assertThat(read.await()).isNull()
+        assertThat(connector.binds).isEqualTo(1)
+        assertThat(connector.unbinds).isEmpty()
+
+        val write = async { withTimeoutOrNull(60.seconds) { transport.executeIfReady(call) } }
+        advanceTimeBy(2.seconds)
+        assertThat(write.isCompleted).isFalse()
+        connector.deliverBinder()
+
+        assertThat(write.await()).isEqualTo(CallResult.Success("hi for ${system.callerPackage}"))
+        assertThat(connector.binds).isEqualTo(1)
         assertThat(connector.services.single().calls).isEqualTo(1)
     }
 

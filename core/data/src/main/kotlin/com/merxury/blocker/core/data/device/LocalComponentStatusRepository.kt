@@ -169,11 +169,14 @@ internal class LocalComponentStatusRepository(
 
             is ReadResult.Failure -> null to read.reason
         }
-        refreshPackageLocked(app, installed, appFailure, previous = previous, forceDeclarations = true).asResult()
+        refreshPackageLocked(app, installed, appFailure, previous = previous, forceDeclarations = true, firewall = FirewallRead.FORCE).asResult()
     }
 
-    override suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit> = lockOf(app.packageName).withLock {
-        readAndStoreAutomatically(app, forceDeclarations = true, requireFirewall = requireFirewall)
+    override suspend fun refreshIfReadable(app: AppKey, firewall: FirewallRead): ReadResult<Unit> = lockOf(app.packageName).withLock {
+        if (firewall == FirewallRead.KEEP_CACHED && app.userId != self.userId) {
+            return@withLock ReadResult.Failure(ReadFailure.ChannelUnavailable)
+        }
+        readAndStoreAutomatically(app, forceDeclarations = true, firewall = firewall)
     }
 
     /**
@@ -253,7 +256,7 @@ internal class LocalComponentStatusRepository(
     private suspend fun readAndStoreAutomatically(
         app: AppKey,
         forceDeclarations: Boolean = false,
-        requireFirewall: Boolean = false,
+        firewall: FirewallRead = FirewallRead.IF_AVAILABLE,
     ): ReadResult<Unit> {
         val previous = dao.getApp(app.packageName, app.userId.value)
         val installed = when (val read = installedApps.readForRefresh(app)) {
@@ -268,7 +271,7 @@ internal class LocalComponentStatusRepository(
             Timber.w("PackageManager did not return the app enabled setting for $app")
             return ReadResult.Failure(ReadFailure.ChannelUnavailable)
         }
-        return refreshPackageLocked(app, installed, appFailure = null, automatic = true, previous = previous, forceDeclarations, requireFirewall).asResult()
+        return refreshPackageLocked(app, installed, appFailure = null, automatic = true, previous = previous, forceDeclarations, firewall).asResult()
     }
 
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {
@@ -429,9 +432,9 @@ internal class LocalComponentStatusRepository(
         automatic: Boolean = false,
         previous: AppEntity? = null,
         forceDeclarations: Boolean = false,
-        requireFirewall: Boolean = false,
+        firewall: FirewallRead = FirewallRead.IF_AVAILABLE,
     ): PackageRefresh {
-        val refresh = packages.refresh(key, app, appFailure, automatic, previous, forceDeclarations, requireFirewall)
+        val refresh = packages.refresh(key, app, appFailure, automatic, previous, forceDeclarations, firewall)
         if (!refresh.removed && (!automatic || refresh.failures.isEmpty())) {
             withContext(NonCancellable) { pmBlocks.afterRefresh(key, refresh) }
         }

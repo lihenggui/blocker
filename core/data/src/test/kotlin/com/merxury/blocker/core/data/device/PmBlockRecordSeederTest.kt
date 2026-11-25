@@ -20,11 +20,12 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteReadOnlyDatabaseException
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.wake.WakeProtection
-import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
+import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.system.ReadResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -73,12 +74,53 @@ class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
         // A separate seeder on the next start keeps the earlier records and finishing cleanup
         // after a crash between setting the flag and deleting the file cannot seed it twice.
         createDatabase(version, DATA to true)
-        val restarted = InstalledAppDbPmBlockRecordSeeder(applicationContext, Dispatchers.IO, BlockerAppPropertiesDataStore(appProperties), pmBlocks, wakeDb.history())
+        val restarted = restartSeeder()
         assertThat(restarted.seedOnce()).isTrue()
 
         assertThat(recordDao.getByUser(own.value)).isEqualTo(first)
         assertThat(legacyDb.exists()).isFalse()
     }
+
+    @Test
+    fun givenLegacyDatabaseAndRootController_whenQuietRootChecksFirst_thenRemembersGrantOnce() = runTest {
+        for (type in listOf(ControllerType.PM, ControllerType.IFW, ControllerType.IFW_PLUS_PM)) {
+            preferences.setControllerType(type)
+            appProperties.updateData { AppProperties.getDefaultInstance() }
+            createDatabase(2, TRACKER to true)
+            val memory = DataStoreRootGrantMemory(properties, restartSeeder())
+
+            assertThat(memory.isRemembered()).isTrue()
+            assertThat(appProperties.data.value.rootGrantRemembered).isTrue()
+            assertThat(appProperties.data.value.pmBlockRecordsSeeded).isTrue()
+
+            memory.remember(false)
+            // Simulate a restart after marking the upgrade but before deleting the old file.
+            createDatabase(2, TRACKER to true)
+            assertThat(DataStoreRootGrantMemory(properties, restartSeeder()).isRemembered()).isFalse()
+            assertThat(legacyDb.exists()).isFalse()
+        }
+    }
+
+    @Test
+    fun givenLegacyDatabaseAndShizuku_whenSeeded_thenRootGrantStaysUnset() = runTest {
+        preferences.setControllerType(ControllerType.SHIZUKU)
+        createDatabase(2, TRACKER to true)
+
+        assertThat(seeder.seedOnce()).isTrue()
+
+        assertThat(appProperties.data.value.rootGrantRemembered).isFalse()
+        assertThat(pmBlocks.of(own)).containsExactly(TRACKER.key())
+    }
+
+    @Test
+    fun givenFreshInstallAndRootController_whenQuietRootChecksFirst_thenRootGrantStaysUnset() = runTest {
+        preferences.setControllerType(ControllerType.PM)
+
+        assertThat(DataStoreRootGrantMemory(properties, seeder).isRemembered()).isFalse()
+        assertThat(appProperties.data.value.pmBlockRecordsSeeded).isTrue()
+    }
+
+    private fun restartSeeder() = InstalledAppDbPmBlockRecordSeeder(applicationContext, Dispatchers.IO, properties, preferences, pmBlocks, wakeDb.history())
 
     @Test
     fun givenHotRollbackJournal_whenSeeded_thenRecoversTheCommittedBlocks() = runTest {

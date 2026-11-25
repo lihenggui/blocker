@@ -49,7 +49,10 @@ internal class FakeUserServiceConnector(private val system: SystemServices) : Us
     override fun bind(connection: ServiceConnection) {
         binds++
         connections += connection
-        if (!attaches) return
+        if (attaches) deliverBinder(connection)
+    }
+
+    fun deliverBinder(connection: ServiceConnection = connections.last()) {
         val service = FakeService(PrivilegedCallRunner(BLOCKER_UID, { callerUid }, system))
         services += service
         connection.onServiceConnected(COMPONENT, service)

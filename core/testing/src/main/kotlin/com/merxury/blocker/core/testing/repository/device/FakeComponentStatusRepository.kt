@@ -18,6 +18,7 @@ package com.merxury.blocker.core.testing.repository.device
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DisabledComponents
+import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.RefreshProgress
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -113,7 +114,7 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         return failure?.let { ReadResult.Failure(it) } ?: ReadResult.Success(Unit)
     }
 
-    override suspend fun refreshIfReadable(app: AppKey, requireFirewall: Boolean): ReadResult<Unit> = refresh(app)
+    override suspend fun refreshIfReadable(app: AppKey, firewall: FirewallRead): ReadResult<Unit> = refresh(app)
 
     override fun refreshAll(user: UserId): Flow<RefreshProgress> = flow {
         refreshedUsers += user

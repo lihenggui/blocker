@@ -24,9 +24,13 @@ import com.merxury.blocker.core.privileged.FailInPrivilegedProcess
 import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.MeasureInPrivilegedProcess
 import com.merxury.blocker.core.privileged.PrivilegedProcessUnavailableException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -38,14 +42,16 @@ private val CALL = EchoInPrivilegedProcess("hello")
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
+@OptIn(ExperimentalCoroutinesApi::class)
 class ShizukuUserServiceTest {
 
     private val system = FakeSystemServices()
     private val connector = FakeUserServiceConnector(system)
-    private val userService = ShizukuUserService(connector, attachTimeout = 15.seconds)
+    private val scope = TestScope()
+    private val userService = ShizukuUserService(connector, attachTimeout = 15.seconds, scope = scope.backgroundScope)
 
     @Test
-    fun givenNotBound_whenRun_thenBindsOnceAndRunsInService() = runTest {
+    fun givenNotBound_whenRun_thenBindsOnceAndRunsInService() = scope.runTest {
         assertThat(userService.run(CALL)).isEqualTo(CallResult.Success("hello for ${system.callerPackage}"))
         assertThat(userService.run(CALL)).isEqualTo(CallResult.Success("hello for ${system.callerPackage}"))
 
@@ -54,20 +60,20 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenCallLargerThanOneTransaction_whenRun_thenRunsInService() = runTest {
+    fun givenCallLargerThanOneTransaction_whenRun_thenRunsInService() = scope.runTest {
         val call = MeasureInPrivilegedProcess("c".repeat(600_000))
 
         assertThat(userService.run(call)).isEqualTo(CallResult.Success(600_000))
     }
 
     @Test
-    fun givenCallFailsInService_whenRun_thenFailureArrives() = runTest {
+    fun givenCallFailsInService_whenRun_thenFailureArrives() = scope.runTest {
         assertThat(userService.run(FailInPrivilegedProcess("denied")))
             .isEqualTo(CallResult.Failure(CallFailure.NotPermitted("denied")))
     }
 
     @Test
-    fun givenShizukuBefore13_whenRun_thenNotPermittedWithoutBind() = runTest {
+    fun givenShizukuBefore13_whenRun_thenNotPermittedWithoutBind() = scope.runTest {
         connector.version = 12
 
         val result = userService.run(CALL)
@@ -77,7 +83,7 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenServiceNeverAttaches_whenRun_thenUnavailableAfterTimeoutAndServiceStopped() = runTest {
+    fun givenServiceNeverAttaches_whenRun_thenUnavailableAfterTimeoutAndServiceStopped() = scope.runTest {
         connector.attaches = false
 
         val run = async { runCatching { userService.run(CALL) } }
@@ -90,7 +96,7 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenAttachTimedOut_whenRunAgain_thenBindsAgain() = runTest {
+    fun givenAttachTimedOut_whenRunAgain_thenBindsAgain() = scope.runTest {
         connector.attaches = false
         val first = async { runCatching { userService.run(CALL) } }
         advanceTimeBy(16.seconds)
@@ -102,7 +108,7 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenServiceDiesDuringCall_whenRun_thenUnavailableAndNextRunRebinds() = runTest {
+    fun givenServiceDiesDuringCall_whenRun_thenUnavailableAndNextRunRebinds() = scope.runTest {
         userService.run(CALL)
         connector.services.single().dead = true
 
@@ -117,7 +123,7 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenServiceDisconnected_whenRun_thenRebinds() = runTest {
+    fun givenServiceDisconnected_whenRun_thenRebinds() = scope.runTest {
         userService.run(CALL)
 
         connector.connections.single().onServiceDisconnected(null)
@@ -127,7 +133,7 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenShizukuStopped_whenReset_thenNextRunRebinds() = runTest {
+    fun givenShizukuStopped_whenReset_thenNextRunRebinds() = scope.runTest {
         userService.run(CALL)
 
         userService.reset()
@@ -137,7 +143,23 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenCallerIsAnotherApp_whenRun_thenRefusedBeforeTheCallRuns() = runTest {
+    fun givenAttachIsPending_whenShizukuResets_thenNextCallBindsAgain() = scope.runTest {
+        connector.attaches = false
+        val first = async { runCatching { userService.run(CALL) } }
+        runCurrent()
+        assertThat(connector.binds).isEqualTo(1)
+
+        userService.reset()
+        connector.attaches = true
+
+        assertThat(userService.run(CALL)).isInstanceOf(CallResult.Success::class.java)
+        assertThat(first.await().exceptionOrNull()).isInstanceOf(PrivilegedProcessUnavailableException::class.java)
+        assertThat(connector.unbinds).containsExactly(true)
+        assertThat(connector.binds).isEqualTo(2)
+    }
+
+    @Test
+    fun givenCallerIsAnotherApp_whenRun_thenRefusedBeforeTheCallRuns() = scope.runTest {
         connector.callerUid = BLOCKER_UID + 1
 
         val thrown = runCatching { userService.run(CALL) }.exceptionOrNull()
@@ -146,8 +168,8 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenNoVisibleScreen_whenIdleForTheStopTime_thenServiceStoppedAndTheNextCallStartsIt() = runTest {
-        val idle = ShizukuUserService(connector, 15.seconds, IdleStop(backgroundScope, 60.seconds) { false })
+    fun givenNoVisibleScreen_whenIdleForTheStopTime_thenServiceStoppedAndTheNextCallStartsIt() = scope.runTest {
+        val idle = ShizukuUserService(connector, 15.seconds, backgroundScope, IdleStop(60.seconds) { false })
         idle.run(CALL)
 
         advanceTimeBy(59.seconds)
@@ -160,8 +182,25 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenCallsKeepComing_whenEachIsWithinTheStopTime_thenServiceKept() = runTest {
-        val idle = ShizukuUserService(connector, 15.seconds, IdleStop(backgroundScope, 60.seconds) { false })
+    fun givenLastWaiterTimesOut_whenServiceAttachesLater_thenIdleStopStartsAtAttachment() = scope.runTest {
+        val idle = ShizukuUserService(connector, 15.seconds, backgroundScope, IdleStop(5.seconds) { false })
+        connector.attaches = false
+
+        val call = async { withTimeoutOrNull(5.seconds) { idle.run(CALL) } }
+        advanceTimeBy(12.seconds)
+        assertThat(call.await()).isNull()
+        assertThat(connector.unbinds).isEmpty()
+        connector.deliverBinder()
+
+        advanceTimeBy(4.seconds)
+        assertThat(connector.unbinds).isEmpty()
+        advanceTimeBy(2.seconds)
+        assertThat(connector.unbinds).containsExactly(true)
+    }
+
+    @Test
+    fun givenCallsKeepComing_whenEachIsWithinTheStopTime_thenServiceKept() = scope.runTest {
+        val idle = ShizukuUserService(connector, 15.seconds, backgroundScope, IdleStop(60.seconds) { false })
         repeat(4) {
             idle.run(CALL)
             advanceTimeBy(40.seconds)
@@ -172,9 +211,9 @@ class ShizukuUserServiceTest {
     }
 
     @Test
-    fun givenVisibleScreen_whenIdle_thenServiceKeptUntilTheScreenGoes() = runTest {
+    fun givenVisibleScreen_whenIdle_thenServiceKeptUntilTheScreenGoes() = scope.runTest {
         var visible = true
-        val idle = ShizukuUserService(connector, 15.seconds, IdleStop(backgroundScope, 60.seconds) { visible })
+        val idle = ShizukuUserService(connector, 15.seconds, backgroundScope, IdleStop(60.seconds) { visible })
         idle.run(CALL)
 
         advanceTimeBy(10.minutes)
