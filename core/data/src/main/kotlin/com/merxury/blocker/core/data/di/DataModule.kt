@@ -32,6 +32,8 @@ import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
+import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
+import com.merxury.blocker.core.data.repository.catalog.LocalCatalogRepository
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.repository.componentdetail.LocalComponentDetailRepository
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleDataSource
@@ -58,6 +60,9 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
+    @Binds
+    internal abstract fun bindCatalogRepository(repository: LocalCatalogRepository): CatalogRepository
+
     @Binds
     internal abstract fun bindComponentActions(impl: LocalComponentActions): ComponentActions
 
