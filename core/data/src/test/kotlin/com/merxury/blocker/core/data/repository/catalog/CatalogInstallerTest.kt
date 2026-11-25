@@ -104,6 +104,17 @@ class CatalogInstallerTest {
     }
 
     @Test
+    fun givenLostIconFiles_whenReinstallingTheSameSequence_thenTheIconsAreRestored() = runTest {
+        installer.install(fixtureCatalog(1))
+        icons.delete(icons.directory(1))
+
+        installer.install(fixtureCatalog(1))
+
+        assertThat(repository.iconFile(FIXTURE_ICON)?.readText()).isEqualTo("old icon")
+        assertThat(dao.readState()?.sequence).isEqualTo(1L)
+    }
+
+    @Test
     fun givenAnInstalledCatalog_whenAnEqualSequenceListsDifferentFiles_thenItIsRejected() = runTest {
         installer.install(fixtureCatalog(1))
 

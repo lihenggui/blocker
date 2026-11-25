@@ -62,8 +62,10 @@ internal class CatalogInstaller @Inject constructor(
         val sequence = manifest.state.sequence
         if (active == null || sequence > active.sequence) return null
         if (sequence == active.sequence) {
-            val previous = icons.directory(sequence).resolve(CATALOG_MANIFEST).readBytes()
-            verifyCatalog(CatalogManifest.parse(previous).files == manifest.files) {
+            val stored = icons.directory(sequence).resolve(CATALOG_MANIFEST)
+            // Without the stored files list the icons may be gone too, so install the files again.
+            if (!stored.isFile) return null
+            verifyCatalog(CatalogManifest.parse(stored.readBytes()).files == manifest.files) {
                 "Sequence $sequence has a different files list"
             }
         }
