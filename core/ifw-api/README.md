@@ -13,10 +13,13 @@ config:
 graph TB
   subgraph :core
     direction TB
+    :core:common[common]:::android-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
   end
 
+  :core:common -.-> :core:model
+  :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;

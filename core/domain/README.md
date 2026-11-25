@@ -52,6 +52,7 @@ graph TB
   :core:domain -.-> :core:ifw-api
   :core:domain --> :core:model
   :core:domain -.-> :core:rule
+  :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
   :core:network --> :core:model
