@@ -266,16 +266,28 @@ internal class LocalWakeBlockRepository @Inject constructor(
         paths: Map<String, WakePath> = emptyMap(),
     ): Pair<WakeBlockOutcome, List<WakeBlock>> {
         if (keys.isEmpty() && target == null) return WakeBlockOutcome(emptySet(), null) to emptyList()
-        fun WakeBlockEntity.selected(): Boolean = pathKey in keys || (target != null && this.target == target)
+        val componentPaths = paths.values.filter {
+            it.blockMethod == WakeBlockMethod.COMPONENT ||
+                (it.blockMethod == WakeBlockMethod.FIREWALL_RULE && it.trigger == ReviveTrigger.PEER_ACTIVITY)
+        }.filter { it.component != null }.groupBy { it.target to it.component }
+        fun WakeBlockEntity.aliases(): List<WakePath> = if (method == WakeBlockMethod.COMPONENT.name && pathKey.startsWith("STATIC|")) {
+            componentPaths[this.target to component].orEmpty()
+        } else {
+            emptyList()
+        }
+        fun WakeBlockEntity.selected(): Boolean = pathKey in keys || (target != null && this.target == target) || aliases().isNotEmpty()
         val changed = mutableSetOf<WakeBlock>()
         val directPaths = paths.values.filter { it.blockMethod == WakeBlockMethod.COMPONENT }
         val outcome = change(hasChanges = { directPaths.isNotEmpty() || dao.all().any { it.selected() } }) { identity ->
             val current = dao.all().associateBy { it.pathKey }.toMutableMap()
             val requested = current.values.filter { it.selected() }
-            val direct = directPaths.filter { it.pathKey !in current }
+            val aliases = requested.associate { it.pathKey to it.aliases().map(WakePath::pathKey) }
+            val aliasedKeys = aliases.values.flatten().toSet()
+            val direct = directPaths.filter { it.pathKey !in current && it.pathKey !in aliasedKeys }
             if (requested.isEmpty() && direct.isEmpty()) return@change WakeBlockOutcome(emptySet(), null)
             if (identity == null) return@change WakeBlockOutcome(emptySet(), WakeBlockFailure.NoAccess)
-            val batch = BlockBatch(requested.map { it.pathKey } + direct.map { it.pathKey })
+            val savedKeys = requested.map { it.pathKey }.filter { it in keys || aliases.getValue(it).isEmpty() }
+            val batch = BlockBatch(savedKeys + aliasedKeys + direct.map { it.pathKey })
             val firewallBlocks = mutableListOf<WakeBlockEntity>()
             for (block in requested) {
                 if (block.isFirewallBlock && identity.canWriteSystemFiles) {
@@ -290,6 +302,7 @@ internal class LocalWakeBlockRepository @Inject constructor(
                         result
                     }
                     batch.record(block.pathKey, failure)
+                    aliases.getValue(block.pathKey).forEach { batch.record(it, failure) }
                     if (failure == null) changed += block.toModel()
                 }
             }

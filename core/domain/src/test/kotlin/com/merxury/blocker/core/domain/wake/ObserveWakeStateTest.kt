@@ -326,6 +326,33 @@ class ObserveWakeStateTest {
         }
     }
 
+    @Test fun givenDifferentSavedBlocks_whenTheirReceiverIsObserved_thenOnlyTheStaticAliasIsClaimed() = runTest {
+        val f = WakeStateTestFixture(this)
+        val receiver = receiver(TEST_APP, "Wake")
+        val live = finding("observed", ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "$TEST_APP/.Wake")
+        val saved = live.toWakePath().copy(pathKey = "STATIC|BOOT_AUTOSTART|$TEST_APP|$TEST_APP.Wake").blockRow(at = 17)
+        val unrelated = live.toWakePath().copy(pathKey = "other-receiver-path").blockRow(at = 23)
+        f.findings.value = listOf(live)
+        f.manual.blocks.value = listOf(unrelated)
+        f.status(receiver, off = true)
+
+        f.state(TEST_APP).test {
+            val unclaimed = awaitItem().paths.getValue("observed")
+            assertThat(unclaimed.blockedAtMillis).isNull()
+
+            f.manual.blocks.value = listOf(unrelated, saved)
+            val blocked = awaitItem().paths.getValue("observed")
+            assertThat(blocked.block).isEqualTo(WakePathBlock.USER)
+            assertThat(blocked.blockedAtMillis).isEqualTo(17L)
+            f.status(receiver, off = false)
+            assertThat(awaitItem().paths.getValue("observed").reEnabledByApp).isTrue()
+
+            f.manual.unblock(listOf(saved.pathKey))
+            assertThat(awaitItem().paths.getValue("observed").reEnabledByApp).isFalse()
+            assertThat(f.manual.blocks.value).containsExactly(unrelated)
+        }
+    }
+
     @Test fun givenAnExistingPeerActivityPmBlock_whenTheAppReEnablesIt_thenTheBlockCanBeReappliedOrRemoved() = runTest {
         val f = WakeStateTestFixture(this)
         val wake = receiver(TEST_APP, "Wake").copy(type = com.merxury.blocker.core.model.ComponentType.ACTIVITY)

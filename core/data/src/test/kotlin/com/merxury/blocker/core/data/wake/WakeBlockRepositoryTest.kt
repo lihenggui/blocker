@@ -870,6 +870,60 @@ class WakeBlockRepositoryTest {
         assertThat(dao.all()).isEmpty()
     }
 
+    @Test fun givenStaticAndUnrelatedBlocks_whenAllowingAnObservedPath_thenOnlyItsStaticAliasIsRemoved() = runTest {
+        val repository = repository()
+        val observed = path("observed", trigger = ReviveTrigger.SYSTEM_BROADCAST, component = RECEIVER, method = COMPONENT)
+        val static = observed.copy(pathKey = "STATIC|BOOT_AUTOSTART|$TARGET|$RECEIVER")
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        assertThat(repository.block(listOf(static to COMPONENT)).done).containsExactly(static.pathKey)
+        assertThat(pm(receiver)).isEqualTo(PmSetting.DISABLED)
+        val unrelated = dao.all().single().copy(pathKey = "unrelated-component-path")
+        dao.upsert(listOf(unrelated))
+
+        assertThat(repository.unblockPaths(listOf(observed))).isEqualTo(WakeBlockOutcome(setOf(observed.pathKey), null))
+        assertThat(dao.all()).containsExactly(unrelated)
+        assertThat(pm(receiver)).isEqualTo(PmSetting.DISABLED)
+
+        assertThat(repository.unblock(listOf(unrelated.pathKey)).done).containsExactly(unrelated.pathKey)
+        assertThat(dao.all()).isEmpty()
+        assertThat(pm(receiver)).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test fun givenAStaticNamedReceiver_whenBlockingAndRestoringTheApp_thenOnlyThatReceiverIsChanged() = runTest {
+        val repository = repository()
+        val bootAction = "android.intent.action.BOOT_COMPLETED"
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        val otherReceiver = declaration(OTHER_RECEIVER, ComponentType.RECEIVER)
+        receivers.matches[TARGET to bootAction] = listOf(receiver, otherReceiver)
+        val unrelated = firewallRow("unrelated", PEER)
+        dao.upsert(listOf(unrelated))
+        val static = path(
+            "STATIC|BOOT_AUTOSTART|$TARGET|$RECEIVER",
+            actor = null,
+            trigger = ReviveTrigger.SYSTEM_BROADCAST,
+            component = RECEIVER,
+            hint = ComponentType.RECEIVER,
+            action = bootAction,
+            method = COMPONENT,
+        ).copy(count = 0L)
+        val expected = WakeBlockOutcome(setOf(static.pathKey), null)
+
+        assertThat(repository.block(listOf(static to COMPONENT))).isEqualTo(expected)
+        assertThat(dao.all().single { it.pathKey == static.pathKey }.component).isEqualTo(RECEIVER)
+        assertThat(pm(receiver)).isEqualTo(PmSetting.DISABLED)
+        assertThat(pm(otherReceiver)).isEqualTo(PmSetting.DEFAULT)
+
+        val (outcome, removed) = repository.removeAppBlocks(TARGET, outboundPathKeys = emptySet())
+
+        assertThat(outcome).isEqualTo(expected)
+        assertThat(removed.single().pathKey).isEqualTo(static.pathKey)
+        assertThat(pm(receiver)).isEqualTo(PmSetting.DEFAULT)
+        assertThat(pm(otherReceiver)).isEqualTo(PmSetting.DEFAULT)
+        assertThat(dao.all()).containsExactly(unrelated)
+        assertThat(components.requests.map { it.components }).containsExactly(listOf(receiver), listOf(receiver)).inOrder()
+        assertThat(writer.userWrites).isEmpty()
+    }
+
     @Test fun givenAppAndCurrentOutboundRows_whenRemovingAndRestoring_thenExactStoredRowsReturn() = runTest {
         val repository = repository()
         val inbound = firewallRow("old-inbound", TARGET)
