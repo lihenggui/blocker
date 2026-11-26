@@ -95,6 +95,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         if (throughPm && refusal == null) {
             val after = when (request.goal) {
                 ControlGoal.BLOCK -> PmSetting.DISABLED
+                ControlGoal.ENABLE_EXPLICIT -> PmSetting.ENABLED
                 ControlGoal.UNBLOCK -> if (before == PmSetting.DISABLED) PmSetting.DEFAULT else before
                 ControlGoal.ENABLE -> if (declaration.enabledInManifest) PmSetting.DEFAULT else PmSetting.ENABLED
             }

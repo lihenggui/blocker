@@ -47,6 +47,9 @@ enum class ControlGoal {
      * runnable, or conditional when only a conditional rule is left.
      */
     ENABLE,
+
+    /** Set an explicit PackageManager ENABLED override, even when the manifest enables it. */
+    ENABLE_EXPLICIT,
 }
 
 /**
@@ -59,15 +62,19 @@ enum class ControlGoal {
  * @property layers the requested layers, which must be nonempty. Component control resolves them
  * with [layersFor] for the component type and goal. Backup restoration uses the recorded layers,
  * with the PackageManager layer for providers.
+ * @property expectedPm for a PackageManager-only request, leave any different known setting alone
+ * and report a failure when the current setting cannot be read
  */
 data class ControlRequest(
     val user: UserId,
     val components: List<ComponentDeclaration>,
     val goal: ControlGoal,
     val layers: Set<ControlLayer>,
+    val expectedPm: PmSetting? = null,
 ) {
     init {
         require(layers.isNotEmpty()) { "A request needs at least one layer" }
+        require(expectedPm == null || (expectedPm != PmSetting.UNKNOWN && layers == setOf(ControlLayer.PACKAGE_MANAGER)))
     }
 }
 
@@ -88,7 +95,7 @@ val ControllerType.blockLayers: Set<ControlLayer>
 fun ComponentDeclaration.layersFor(requested: Set<ControlLayer>, goal: ControlGoal): Set<ControlLayer> = when {
     type == ComponentType.RECEIVER && requested == setOf(ControlLayer.INTENT_FIREWALL) -> when (goal) {
         ControlGoal.BLOCK -> setOf(ControlLayer.PACKAGE_MANAGER)
-        ControlGoal.UNBLOCK, ControlGoal.ENABLE -> requested + ControlLayer.PACKAGE_MANAGER
+        ControlGoal.UNBLOCK, ControlGoal.ENABLE, ControlGoal.ENABLE_EXPLICIT -> requested + ControlLayer.PACKAGE_MANAGER
     }
 
     else -> supportedLayers(requested)
@@ -112,6 +119,11 @@ fun ComponentDeclaration.meets(goal: ControlGoal, layer: ControlLayer, state: Co
 
     ControlGoal.ENABLE -> when (layer) {
         ControlLayer.PACKAGE_MANAGER -> isPmClear(state.pm)
+        ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
+    }
+
+    ControlGoal.ENABLE_EXPLICIT -> when (layer) {
+        ControlLayer.PACKAGE_MANAGER -> state.pm == PmSetting.ENABLED
         ControlLayer.INTENT_FIREWALL -> state.ifw.isClear
     }
 }

@@ -27,6 +27,7 @@ import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
@@ -336,6 +337,8 @@ class ComponentControlGoalTest {
     private fun expectedSetting(goal: ControlGoal, enabledInManifest: Boolean, setting: PmSetting): PmSetting = when (goal) {
         ControlGoal.BLOCK -> PmSetting.DISABLED
 
+        ControlGoal.ENABLE_EXPLICIT -> PmSetting.ENABLED
+
         ControlGoal.UNBLOCK -> if (setting == PmSetting.DISABLED) PmSetting.DEFAULT else setting
 
         ControlGoal.ENABLE -> when {
@@ -343,6 +346,19 @@ class ComponentControlGoalTest {
             enabledInManifest -> PmSetting.DEFAULT
             else -> PmSetting.ENABLED
         }
+    }
+
+    @Test
+    fun givenMatchingAndChangedPmSettings_whenRestoringEnabled_thenOnlyMatchingSettingIsWritten() = runTest {
+        fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
+        val request = ControlRequest(OWNER, listOf(MAIN, BOOT), ControlGoal.ENABLE_EXPLICIT, PM_ONLY, expectedPm = PmSetting.DISABLED)
+
+        val events = fixture.run(request)
+
+        assertThat(events.outcomeOf(MAIN).state.pm).isEqualTo(PmSetting.ENABLED)
+        assertThat(events.outcomeOf(BOOT).state.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(events.outcomes().map { it.result }).containsExactly(ControlResult.ACHIEVED, ControlResult.ACHIEVED)
+        assertThat(events.filterIsInstance<ControlEvent.PackageDone>().single().pmWrites).containsExactly(MAIN.id)
     }
 
     @Test

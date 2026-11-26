@@ -152,6 +152,9 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
     ): Flow<ControlEvent> = flow {
         requests += request
         val before = cached.value
+        writeObserver?.onPmRead(
+            request.components.associate { it.id to (before[ComponentKey(it.id, request.user)]?.state?.pm ?: PmSetting.DEFAULT) },
+        )
         controlEvents?.let { events ->
             events(request).forEach {
                 if (it is ControlEvent.PackageDone) record(request, it.outcomes, before, layersForComponent)
@@ -162,6 +165,16 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         val outcomes = request.components.distinctBy { it.id }.map { declaration ->
             val key = ComponentKey(declaration.id, request.user)
             val before = cached.value[key]?.state ?: ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)
+            val expectedPm = request.expectedPm
+            if (expectedPm != null && before.pm != expectedPm) {
+                val failures = if (before.pm == PmSetting.UNKNOWN) {
+                    mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.StateNotConfirmed)
+                } else {
+                    emptyMap()
+                }
+                val result = if (failures.isEmpty()) ControlResult.ACHIEVED else ControlResult.FAILED
+                return@map ComponentOutcome(key, before, result, failures)
+            }
             val layers = layersForComponent(declaration)
             val block = request.goal == ControlGoal.BLOCK
             val state = ControlState(
@@ -224,6 +237,8 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
     // The setting ComponentControl leaves for each goal.
     private fun pmAfter(goal: ControlGoal, declaration: ComponentDeclaration, before: PmSetting): PmSetting = when (goal) {
         ControlGoal.BLOCK -> PmSetting.DISABLED
+
+        ControlGoal.ENABLE_EXPLICIT -> PmSetting.ENABLED
 
         ControlGoal.UNBLOCK -> if (before == PmSetting.DISABLED || before == PmSetting.UNKNOWN) PmSetting.DEFAULT else before
 

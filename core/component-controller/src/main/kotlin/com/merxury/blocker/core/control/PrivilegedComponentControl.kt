@@ -22,6 +22,7 @@ import android.os.Build
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
@@ -133,9 +134,20 @@ internal class PrivilegedComponentControl @Inject constructor(
         }
         var pmReadFailure: ReadFailure? = null
         val before = readState(app, components) { pmReadFailure = it }
+        writeObserver?.onPmRead(before.mapValues { it.value.pm })
+        val expectedPm = request.expectedPm
+        val differentSetting = mutableSetOf<ComponentId>()
         val pmChanges = components.mapNotNull { component ->
             val id = component.id
             val current = before.getValue(id).pm
+            if (expectedPm != null && current != expectedPm) {
+                if (current == PmSetting.UNKNOWN) {
+                    failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, ControlFailure.StateNotConfirmed)
+                } else {
+                    differentSetting += id
+                }
+                return@mapNotNull null
+            }
             val change = component.pmChange(request.goal, layers.getValue(id), current) ?: return@mapNotNull null
             if (change == PmSetting.DISABLED && current == PmSetting.UNKNOWN) {
                 val failure = when (val readFailure = pmReadFailure) {
@@ -169,6 +181,7 @@ internal class PrivilegedComponentControl @Inject constructor(
         fun outcome(after: Map<ComponentId, ControlState>, sentPm: Boolean): ControlEvent.PackageDone {
             val outcomes = components.map { component ->
                 val id = component.id
+                if (id in differentSetting) return@map ComponentOutcome(ComponentKey(id, app.userId), after.getValue(id), ControlResult.ACHIEVED, emptyMap())
                 judge(
                     component,
                     app.userId,
