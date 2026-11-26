@@ -24,6 +24,7 @@ import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
 import com.merxury.blocker.feature.generalrule.api.navigation.GeneralRuleNavKey
 import com.merxury.blocker.feature.search.api.navigation.SearchNavKey
+import com.merxury.blocker.feature.wake.api.navigation.WakeOverviewNavKey
 
 /**
  * Type for the top level destinations in the application. Each of these destinations
@@ -38,19 +39,25 @@ data class TopLevelNavItem(
 )
 
 val APP = TopLevelNavItem(
-    selectedIcon = Icon.ImageVectorIcon(BlockerIcons.Apps),
+    selectedIcon = Icon.ImageVectorIcon(BlockerIcons.AppsFilled),
     unselectedIcon = Icon.ImageVectorIcon(BlockerIcons.Apps),
     iconTextId = R.string.apps,
     titleTextId = R.string.apps,
 )
+val BACKGROUND = TopLevelNavItem(
+    selectedIcon = Icon.ImageVectorIcon(BlockerIcons.BoltFilled),
+    unselectedIcon = Icon.ImageVectorIcon(BlockerIcons.Bolt),
+    iconTextId = R.string.background,
+    titleTextId = R.string.background,
+)
 val RULE = TopLevelNavItem(
-    selectedIcon = Icon.ImageVectorIcon(BlockerIcons.GeneralRule),
+    selectedIcon = Icon.ImageVectorIcon(BlockerIcons.GeneralRuleFilled),
     unselectedIcon = Icon.ImageVectorIcon(BlockerIcons.GeneralRule),
     iconTextId = R.string.rules,
     titleTextId = R.string.rules,
 )
 val SEARCH = TopLevelNavItem(
-    selectedIcon = Icon.ImageVectorIcon(BlockerIcons.Search),
+    selectedIcon = Icon.ImageVectorIcon(BlockerIcons.SearchFilled),
     unselectedIcon = Icon.ImageVectorIcon(BlockerIcons.Search),
     iconTextId = R.string.search,
     titleTextId = R.string.search,
@@ -58,6 +65,7 @@ val SEARCH = TopLevelNavItem(
 
 val TOP_LEVEL_NAV_ITEMS = mapOf(
     AppListNavKey to APP,
+    WakeOverviewNavKey to BACKGROUND,
     GeneralRuleNavKey() to RULE,
     SearchNavKey to SEARCH,
 )

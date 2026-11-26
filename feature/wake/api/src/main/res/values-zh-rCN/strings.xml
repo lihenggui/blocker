@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">后台活动</string>
+    <string name="feature_wake_api_app_detail_summary">查看哪些应用会启动它，以及它如何保持运行</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="other">%d 个应用存在保活行为</item>
     </plurals>

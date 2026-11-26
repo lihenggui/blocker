@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">Aktivitas latar belakang</string>
+    <string name="feature_wake_api_app_detail_summary">Lihat aplikasi yang memulai aplikasi ini dan cara aplikasi ini tetap berjalan</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="other">%d aplikasi mempertahankan prosesnya tetap berjalan</item>
     </plurals>

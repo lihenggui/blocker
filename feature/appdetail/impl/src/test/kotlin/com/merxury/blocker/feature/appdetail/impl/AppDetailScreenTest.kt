@@ -31,6 +31,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.designsystem.component.COLLAPSING_TOP_APP_BAR_ICON_TAG
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -58,6 +59,7 @@ import com.merxury.blocker.core.ui.R.plurals as uiPlurals
 import com.merxury.blocker.core.ui.R.string as uiString
 import com.merxury.blocker.feature.appdetail.api.R.plurals as plurals
 import com.merxury.blocker.feature.appdetail.api.R.string as string
+import com.merxury.blocker.feature.wake.api.R.string as wakeString
 
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltTestApplication::class)
@@ -195,6 +197,40 @@ class AppDetailScreenTest {
         }
 
         composeTestRule.onNodeWithText(text(string.feature_appdetail_api_data_dir)).assertDoesNotExist()
+    }
+
+    @Test
+    fun givenOwnUserApp_whenBackgroundActivityTapped_thenOpensTheAppActivity() {
+        var openedBackground = false
+        showInfo(LaunchMode.OWN_USER) { openedBackground = true }
+
+        val row = composeTestRule.onNodeWithText(text(wakeString.feature_wake_api_title))
+        row.performScrollTo()
+        composeTestRule.onNodeWithText(text(wakeString.feature_wake_api_app_detail_summary)).assertIsDisplayed()
+        row.performClick()
+
+        composeTestRule.runOnIdle { assertThat(openedBackground).isTrue() }
+    }
+
+    @Test
+    fun givenAnotherUsersApp_whenViewingInfo_thenBackgroundActivityIsHidden() {
+        showInfo(LaunchMode.PROFILE)
+
+        composeTestRule.onNodeWithTag("appDetail:summaryContent").assertExists()
+        composeTestRule.onNodeWithText(text(wakeString.feature_wake_api_title)).assertDoesNotExist()
+    }
+
+    private fun showInfo(launch: LaunchMode, openBackground: () -> Unit = {}) {
+        composeTestRule.setContent {
+            BlockerTheme {
+                AppDetailContent(
+                    header = AppHeaderUiState(app = previewHeaderApp, launch = launch),
+                    list = componentTab().copy(tabs = TabState(listOf(AppDetailTabs.Info), AppDetailTabs.Info)),
+                    control = ControlUiState(),
+                    actions = AppDetailActions(onShowBackgroundActivity = openBackground),
+                )
+            }
+        }
     }
 
     private fun showHeader(launch: LaunchMode, onLaunch: () -> Unit = {}) {

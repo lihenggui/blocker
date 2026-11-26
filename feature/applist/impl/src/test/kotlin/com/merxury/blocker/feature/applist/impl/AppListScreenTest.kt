@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -61,12 +62,13 @@ class AppListScreenTest {
     private val actions = mutableListOf<Pair<AppKey, AppAction>>()
     private val selected = mutableListOf<UserId>()
 
-    private fun show(uiState: AppListUiState) {
+    private fun show(uiState: AppListUiState, openFirewall: () -> Unit = {}) {
         composeTestRule.setContent {
             BlockerTheme {
                 AppListScreen(
                     uiState = uiState,
                     navigateToAppDetail = { packageName, userId -> opened += packageName to userId },
+                    navigateToFirewallRules = openFirewall,
                     onSelectUser = { selected += it },
                     onAction = { app, action -> actions += app to action },
                 )
@@ -75,6 +77,18 @@ class AppListScreenTest {
     }
 
     private fun text(id: Int, vararg args: Any) = composeTestRule.activity.getString(id, *args)
+
+    @Test
+    fun givenAppsOverflow_whenSelectingFirewallRules_thenInvokesNavigation() {
+        var openedFirewall = false
+        show(AppListUiState(OWNER, OWNER, apps = AppsUiState.Loaded(emptyList()))) { openedFirewall = true }
+
+        composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_more_menu)).performClick()
+        composeTestRule.onNodeWithText(text(string.feature_applist_api_app_slimming)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(string.feature_applist_api_firewall_rules)).assertIsDisplayed().performClick()
+
+        composeTestRule.runOnIdle { assertThat(openedFirewall).isTrue() }
+    }
 
     @Test
     fun givenOwnUserApp_whenTapped_thenDetailOpensWithoutAUser() {

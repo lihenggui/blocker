@@ -8,7 +8,7 @@ import com.merxury.blocker.core.navigation.Navigator
 import kotlinx.serialization.Serializable
 
 @Serializable
-object WakeOverviewNavKey : NavKey
+data object WakeOverviewNavKey : NavKey
 
 @Serializable
 data class WakeAppNavKey(val packageName: String) : NavKey

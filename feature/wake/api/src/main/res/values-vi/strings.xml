@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">Hoạt động nền</string>
+    <string name="feature_wake_api_app_detail_summary">Xem những ứng dụng nào khởi chạy ứng dụng này và cách ứng dụng này tiếp tục hoạt động</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="other">%d ứng dụng tự duy trì hoạt động</item>
     </plurals>

@@ -1,5 +1,5 @@
 <resources>
-    <string name="feature_globalifwrule_impl_title">Firewall</string>
+    <string name="feature_globalifwrule_impl_title">Firewall rules</string>
     <string name="feature_globalifwrule_impl_empty">No IFW interception rules</string>
     <string name="feature_globalifwrule_impl_empty_desc">Rules you create will appear here</string>
     <string name="feature_globalifwrule_impl_add_rule">Add rule</string>

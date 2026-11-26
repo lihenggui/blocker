@@ -26,10 +26,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.ForcedSize
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Dp
@@ -48,6 +51,7 @@ import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
+import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -62,6 +66,11 @@ import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.LooperMode
 import java.util.TimeZone
 import javax.inject.Inject
+import com.merxury.blocker.core.designsystem.R.string as designString
+import com.merxury.blocker.core.ui.R.string as uiString
+import com.merxury.blocker.feature.applist.api.R.string as appsString
+import com.merxury.blocker.feature.globalifwrule.impl.R.string as firewallString
+import com.merxury.blocker.feature.wake.api.R.string as wakeString
 
 /**
  * Tests that the navigation UI is rendered correctly on different screen sizes.
@@ -148,6 +157,7 @@ class BlockerAppScreenSizesScreenshotTests {
             }
         }
 
+        TOP_LEVEL_NAV_ITEMS.values.forEach { destination(it.iconTextId).assertIsDisplayed() }
         composeTestRule.onRoot()
             .captureRoboImage(
                 "src/testFoss/screenshots/$screenshotName.png",
@@ -155,8 +165,7 @@ class BlockerAppScreenSizesScreenshotTests {
             )
     }
 
-    @Test
-    fun givenSearchTab_whenPredictiveBackCancelsThenCommits_thenNavigationShowsThePreviewedTab() {
+    private fun showCompactApp() {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 BlockerTheme {
@@ -171,11 +180,23 @@ class BlockerAppScreenSizesScreenshotTests {
                 }
             }
         }
-        val appTab = composeTestRule.onNode(hasTestTag("BlockerNavItem") and hasText(composeTestRule.activity.getString(R.string.apps)))
-        val searchTab = composeTestRule.onNode(hasTestTag("BlockerNavItem") and hasText(composeTestRule.activity.getString(R.string.search)))
+    }
+
+    private fun text(id: Int) = composeTestRule.activity.getString(id)
+
+    private fun destination(label: Int) = composeTestRule.onNode(hasTestTag("BlockerNavItem") and hasText(text(label)))
+
+    @Test
+    fun givenBackgroundTab_whenPredictiveBackCancelsThenCommits_thenNavigationShowsThePreviewedTab() {
+        showCompactApp()
+        val appTab = destination(R.string.apps)
+        val backgroundTab = destination(R.string.background)
+        val searchTab = destination(R.string.search)
         val dispatcher = composeTestRule.activity.onBackPressedDispatcher
-        searchTab.performClick()
-        searchTab.assertIsSelected()
+        backgroundTab.performClick()
+        backgroundTab.assertIsSelected()
+        composeTestRule.onNodeWithText(text(wakeString.feature_wake_api_title)).assertExists()
+        composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back)).assertDoesNotExist()
 
         fun swipeBack() {
             composeTestRule.runOnUiThread {
@@ -185,15 +206,47 @@ class BlockerAppScreenSizesScreenshotTests {
             composeTestRule.waitForIdle()
         }
 
+        searchTab.performClick()
+        searchTab.assertIsSelected()
         swipeBack()
-        appTab.assertIsSelected()
+        backgroundTab.assertIsSelected()
         composeTestRule.runOnUiThread { dispatcher.dispatchOnBackCancelled() }
         searchTab.assertIsSelected()
 
         swipeBack()
         composeTestRule.runOnUiThread { dispatcher.onBackPressed() }
+        backgroundTab.assertIsSelected()
+
+        swipeBack()
+        appTab.assertIsSelected()
+        composeTestRule.runOnUiThread { dispatcher.onBackPressed() }
         appTab.assertIsSelected()
         composeTestRule.runOnIdle { check(!dispatcher.hasEnabledCallbacks()) }
+    }
+
+    @Test
+    fun whenOpeningRules_thenOnlyTheGeneralRulesScreenAppears() {
+        showCompactApp()
+
+        destination(R.string.rules).performClick()
+
+        composeTestRule.onNode(hasText(text(R.string.rules)) and !hasTestTag("BlockerNavItem")).assertExists()
+        composeTestRule.onNodeWithText(text(firewallString.feature_globalifwrule_impl_title)).assertDoesNotExist()
+    }
+
+    @Test
+    fun givenAppsMenu_whenOpeningFirewallAndGoingBack_thenTheAppsListReturns() {
+        showCompactApp()
+        val moreMenu = composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_more_menu))
+        moreMenu.performClick()
+
+        composeTestRule.onNodeWithText(text(appsString.feature_applist_api_firewall_rules)).performClick()
+
+        composeTestRule.onNodeWithText(text(firewallString.feature_globalifwrule_impl_title)).assertExists()
+        destination(R.string.apps).assertIsSelected()
+        composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back)).performClick()
+        moreMenu.assertExists()
+        composeTestRule.onNodeWithText(text(firewallString.feature_globalifwrule_impl_title)).assertDoesNotExist()
     }
 
     @Test

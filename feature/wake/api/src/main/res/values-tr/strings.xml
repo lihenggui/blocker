@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">Arka plan etkinliği</string>
+    <string name="feature_wake_api_app_detail_summary">Bu uygulamayı hangi uygulamaların başlattığını ve uygulamanın nasıl çalışmaya devam ettiğini görün</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="one">%d uygulama çalışmayı sürdürüyor</item>
         <item quantity="other">%d uygulama çalışmayı sürdürüyor</item>

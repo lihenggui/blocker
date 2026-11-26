@@ -31,6 +31,7 @@ import com.merxury.blocker.feature.appdetail.impl.AppHeaderViewModel
 import com.merxury.blocker.feature.appdetail.impl.ComponentControlViewModel
 import com.merxury.blocker.feature.appdetail.impl.ComponentListViewModel
 import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetail
+import com.merxury.blocker.feature.wake.api.navigation.navigateToWakeApp
 
 /**
  * The detail screen of [AppDetailNavKey.packageName] for [AppDetailNavKey.userId]. The view models
@@ -63,6 +64,7 @@ fun EntryProviderScope<NavKey>.appDetailEntry(
             updateIconThemingState = updateIconThemingState,
             onBackClick = { navigator.goBack() },
             navigateToRuleDetail = { ruleId -> navigator.navigateToRuleDetail(ruleId.toString()) },
+            onShowBackgroundActivity = { navigator.navigateToWakeApp(key.packageName) },
             navigateToIfwRuleEditor = { row ->
                 val ifwTag = when (row.type) {
                     ComponentType.RECEIVER -> "broadcast"

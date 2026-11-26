@@ -28,6 +28,7 @@ android {
 dependencies {
     implementation(projects.feature.appdetail.api)
     implementation(projects.feature.ruledetail.api)
+    implementation(projects.feature.wake.api)
     implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)
