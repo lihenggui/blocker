@@ -15,11 +15,13 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.Availability
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.component.availability
 import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AppWakeActivity
 import com.merxury.blocker.core.model.wake.AppWakeState
@@ -200,7 +202,7 @@ internal class WakeStateObserver @Inject constructor(
                 WakeBlockMethod.FIREWALL_RULE -> saved != null
 
                 WakeBlockMethod.COMPONENT -> statuses.isNotEmpty() && statuses.all { status ->
-                    status?.isSwitchOn == false && (status.declaration.id !in owned || status.state.ifw == IfwBlock.BLOCKED)
+                    status?.isUserWakeBlocked(status.declaration.id in owned) == true
                 }
 
                 else -> false
@@ -211,7 +213,7 @@ internal class WakeStateObserver @Inject constructor(
                 else -> WakePathBlock.NONE
             }
             val blockedAt = saved?.blockedAtMillis?.takeIf { userBlocked }
-            val reEnabled = saved != null && !userBlocked && statuses.any { it != null && it.state.pm != PmSetting.UNKNOWN && it.isSwitchOn }
+            val reEnabled = saved != null && !userBlocked && statuses.any { it != null && it.state.pm != PmSetting.UNKNOWN && it.isWakeSwitchOn }
             path.pathKey to WakePathState(
                 if (method == path.blockMethod) path else path.copy(blockMethod = method),
                 block,
@@ -238,6 +240,19 @@ private fun List<AutomaticWakeBlock>.groupByApp(): Map<String, List<AutomaticWak
         if (block.caller != block.target) getOrPut(block.caller, ::mutableListOf) += block
     }
 }
+
+// Wake broadcasts can be implicit. For receivers, the firewall state tells nothing about delivery.
+internal val ComponentStatus.wakeFirewallBlock: IfwBlock
+    get() = if (declaration.type == ComponentType.RECEIVER) IfwBlock.NOT_BLOCKED else state.ifw
+
+internal val ComponentStatus.isWakeSwitchOn: Boolean
+    get() = if (declaration.type == ComponentType.RECEIVER) {
+        declaration.availability(state.copy(ifw = IfwBlock.NOT_BLOCKED)) !is Availability.Blocked
+    } else {
+        isSwitchOn
+    }
+
+internal fun ComponentStatus.isUserWakeBlocked(owned: Boolean) = !isWakeSwitchOn && (!owned || wakeFirewallBlock == IfwBlock.BLOCKED)
 
 internal fun AppWakeActivity.outboundPaths(): Sequence<WakePath> = peers.asSequence().flatMap { it.outbound }
 private fun AppWakeActivity.allPaths(): Sequence<WakePath> = outboundPaths() + peers.asSequence().flatMap { it.inbound } + own.asSequence().flatMap { it.paths }

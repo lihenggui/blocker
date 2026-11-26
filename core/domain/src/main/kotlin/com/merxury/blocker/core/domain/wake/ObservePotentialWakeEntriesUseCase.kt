@@ -73,17 +73,17 @@ private fun StaticWakeDeclaration.toEntry(
     saved: WakeBlock?,
     owned: Boolean,
 ): PotentialWakeEntry? {
-    if (!enabledInManifest && status?.state?.pm == PmSetting.DEFAULT && saved == null && !owned && status.state.ifw != IfwBlock.BLOCKED) {
+    if (!enabledInManifest && status?.state?.pm == PmSetting.DEFAULT && saved == null && !owned && status.wakeFirewallBlock != IfwBlock.BLOCKED) {
         return null
     }
-    val userBlocked = status?.isSwitchOn == false && (!owned || status.state.ifw == IfwBlock.BLOCKED)
-    val automaticBlocked = !userBlocked && owned && status?.isSwitchOn == false
+    val userBlocked = status?.isUserWakeBlocked(owned) == true
+    val automaticBlocked = !userBlocked && owned && status?.isWakeSwitchOn == false
     val block = when {
         userBlocked -> WakePathBlock.USER
         automaticBlocked -> WakePathBlock.AUTOMATIC
         else -> WakePathBlock.NONE
     }
-    val reEnabled = saved != null && !userBlocked && status != null && status.state.pm != PmSetting.UNKNOWN && status.isSwitchOn
+    val reEnabled = saved != null && !userBlocked && status != null && status.state.pm != PmSetting.UNKNOWN && status.isWakeSwitchOn
     return PotentialWakeEntry(
         category,
         WakePathState(path, block, saved?.blockedAtMillis?.takeIf { userBlocked }, seenSinceBlock = false, reEnabledByApp = reEnabled),

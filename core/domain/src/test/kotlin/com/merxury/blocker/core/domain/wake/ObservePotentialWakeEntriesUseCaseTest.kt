@@ -77,6 +77,17 @@ class ObservePotentialWakeEntriesUseCaseTest {
         }
     }
 
+    @Test fun givenDormantReceiverBlockedOnlyInIfw_whenObserving_thenOnlyThePmBlockCutsThePath() = runTest {
+        val f = Fixture(this)
+        f.sendStatus(PmSetting.DEFAULT, IfwBlock.BLOCKED)
+
+        f.observe(TEST_APP).test {
+            assertThat(awaitItem().single().state.block).isEqualTo(WakePathBlock.NONE)
+            f.sendStatus(PmSetting.DISABLED, IfwBlock.BLOCKED)
+            assertThat(awaitItem().single().state.block).isEqualTo(WakePathBlock.USER)
+        }
+    }
+
     @Test fun givenOwnershipAndFirewallState_whenEitherChanges_thenAutomaticAndUserBlocksAreDistinguished() = runTest {
         val f = Fixture(this)
         f.sendStatus(PmSetting.DISABLED)
@@ -86,7 +97,7 @@ class ObservePotentialWakeEntriesUseCaseTest {
             assertThat(awaitItem().single().state.block).isEqualTo(WakePathBlock.AUTOMATIC)
 
             f.sendStatus(PmSetting.DISABLED, IfwBlock.BLOCKED)
-            assertThat(awaitItem().single().state.block).isEqualTo(WakePathBlock.USER)
+            expectNoEvents()
 
             f.sendStatus(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)
             assertThat(awaitItem().single().state.block).isEqualTo(WakePathBlock.NONE)
@@ -151,7 +162,7 @@ class ObservePotentialWakeEntriesUseCaseTest {
             assertThat(awaitItem()).isEmpty()
 
             f.sendStatus(PmSetting.DEFAULT, IfwBlock.BLOCKED)
-            assertThat(awaitItem().single().state.block).isEqualTo(WakePathBlock.USER)
+            expectNoEvents()
         }
     }
 

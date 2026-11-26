@@ -11,6 +11,7 @@ import com.merxury.blocker.core.database.wake.WakeRelation
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
@@ -194,6 +195,19 @@ class ObserveWakeStateTest {
             assertThat(awaitItem().allBlocked).isTrue()
             f.status(incoming, off = false)
             assertThat(awaitItem().paths.getValue("in").block).isEqualTo(WakePathBlock.NONE)
+        }
+    }
+
+    @Test fun givenReceiverBlockedOnlyInIfw_whenObservingBroadcastPaths_thenOnlyThePmBlockCutsThePath() = runTest {
+        val f = WakeStateTestFixture(this)
+        val receiver = receiver(TEST_APP, "Wake")
+        f.findings.value = listOf(finding("broadcast", ReviveTrigger.PEER_BROADCAST, detail = "$TEST_APP/.Wake"))
+        f.status(receiver, off = false, ifw = IfwBlock.BLOCKED)
+
+        f.state(TEST_APP).test {
+            assertThat(awaitItem().paths.getValue("broadcast").block).isEqualTo(WakePathBlock.NONE)
+            f.status(receiver, off = true, ifw = IfwBlock.BLOCKED)
+            assertThat(awaitItem().paths.getValue("broadcast").block).isEqualTo(WakePathBlock.USER)
         }
     }
 
