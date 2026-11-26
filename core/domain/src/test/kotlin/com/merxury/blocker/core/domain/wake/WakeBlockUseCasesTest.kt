@@ -331,9 +331,9 @@ class WakeBlockUseCasesTest {
 
         val result = restore(TEST_APP)
 
-        assertThat(result.outcome.done).containsExactly("no-longer-observed", "outbound", "caller", "target", "background:$TEST_APP")
+        assertThat(result.outcome.done).containsExactly("no-longer-observed", "outbound", "old-outbound", "caller", "target", "background:$TEST_APP")
         assertThat(result.outcome.failure).isEqualTo(WakeBlockFailure.NotBlockable(listOf("failed")))
-        assertThat(f.manual.blocks.value).containsExactly(oldOutgoing, failed)
+        assertThat(f.manual.blocks.value).containsExactly(failed)
         assertThat(f.automatic.allowedIds).containsExactly("caller", "target", "allowed")
         assertThat(background.allowed).isTrue()
 

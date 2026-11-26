@@ -948,6 +948,19 @@ class WakeBlockRepositoryTest {
         assertThat(dao.all()).containsExactly(inbound, toPeer, unrelated, component)
     }
 
+    @Test fun givenAnOldOutboundBlock_whenRestoringTheSender_thenItIsRemovedWithoutAnObservedPath() = runTest {
+        val repository = repository()
+        val old = firewallRow("old-outbound", PEER).copy(sender = TARGET)
+        val unrelated = firewallRow("other-sender", PEER)
+        dao.upsert(listOf(old, unrelated))
+
+        val (outcome, undo) = repository.removeAppBlocks(TARGET, emptySet())
+
+        assertThat(outcome).isEqualTo(WakeBlockOutcome(setOf(old.pathKey), null))
+        assertThat(dao.all()).containsExactly(unrelated)
+        assertThat(undo.map { it.pathKey }).containsExactly(old.pathKey)
+    }
+
     @Test fun givenResetScope_whenResettingProtection_thenOnlyMatchingFirewallRowsAreRemoved() = runTest {
         val history = mock<WakeRepository>()
         whenever(history.isOwnerProfile).thenReturn(true)

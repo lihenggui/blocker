@@ -20,6 +20,7 @@ import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.core.model.wake.WakeSpecialAccess
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -75,6 +76,45 @@ class ObserveWakeStateTest {
                 WakeSpecialAccess.SYNC_ADAPTER,
             )
         }
+    }
+
+    @Test fun givenAWeekOldBlock_whenOpeningEitherApp_thenTheLatestStoredFindingCanBeUnblocked() = runTest {
+        val f = WakeStateTestFixture(this)
+        val key = "PEER_SERVICE|$TEST_PEER|$TEST_APP|$TEST_APP.Wake"
+        val latest = finding(key, seen = 90).let { it.copy(day = it.day - 8) }
+        val older = latest.copy(id = "older", day = latest.day - 1, lastSeenNanos = 0)
+        f.findings.value = listOf(older, latest)
+        val block = latest.toWakePath().blockRow(at = 100)
+        f.manual.blocks.value = listOf(block)
+
+        for (app in listOf(TEST_APP, TEST_PEER)) {
+            val state = f.state(app).first()
+            val link = state.activity.peers.single()
+            assertThat(link.direction).isEqualTo(if (app == TEST_APP) WakeDirection.INBOUND else WakeDirection.OUTBOUND)
+            val path = state.paths.getValue(key)
+            assertThat(path.block).isEqualTo(WakePathBlock.USER)
+            assertThat(path.seenSinceBlock).isFalse()
+            assertThat(path.path.lastSeenMillis).isEqualTo(latest.toWakePath().lastSeenMillis)
+            assertThat(path.path.count).isEqualTo(0)
+        }
+
+        val path = f.state(TEST_PEER).first().paths.getValue(key)
+        val result = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)(listOf(path), blocked = false)
+        assertThat(result.done).containsExactly(key)
+        assertThat(f.state(TEST_APP).first().paths).isEmpty()
+        assertThat(f.state(TEST_PEER).first().paths).isEmpty()
+    }
+
+    @Test fun givenAStoredBlockWithNoFinding_whenOpeningTheSender_thenTheStoredDetailsStillControlThePath() = runTest {
+        val f = WakeStateTestFixture(this)
+        val block = finding("PEER_SERVICE|$TEST_PEER|$TEST_APP|$TEST_APP.Wake").toWakePath().blockRow()
+        f.manual.blocks.value = listOf(block)
+
+        val state = f.state(TEST_PEER).first()
+
+        val outbound = state.activity.peers.single().outbound.single()
+        assertThat(outbound.component).isEqualTo(block.component)
+        assertThat(state.paths.getValue(block.pathKey).block).isEqualTo(WakePathBlock.USER)
     }
 
     @Test fun givenMutualPaths_whenTheOwnerComponentsChange_thenBothDirectionsUseTheirOwnTarget() = runTest {

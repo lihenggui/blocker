@@ -9,6 +9,7 @@ import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository
 import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.data.wake.WakeReceiverResolver
 import com.merxury.blocker.core.data.wake.WakeRepository
+import com.merxury.blocker.core.database.wake.WakeFindingDay
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -32,9 +33,11 @@ import com.merxury.blocker.core.model.wake.WakePathState
 import com.merxury.blocker.core.model.wake.WakeSpecialAccess
 import com.merxury.blocker.core.privileged.wake.WAKE_DEVICE_ADMIN
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -50,6 +53,31 @@ internal class WakeStateObserver @Inject constructor(
     private val history: WakeRepository,
     @Dispatcher(IO) private val io: CoroutineDispatcher,
 ) {
+    /** Keeps saved blocks on the app page after their findings leave the visible window. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeApp(activity: AppWakeActivity): Flow<AppWakeState> {
+        val visibleKeys = activity.allPaths().mapTo(mutableSetOf(), WakePath::pathKey)
+        val app = activity.packageName
+        return user.blocks.map { blocks ->
+            blocks.filter { (it.target == app || it.sender == app) && it.pathKey !in visibleKeys }
+        }.distinctUntilChanged()
+            .flatMapLatest { missing ->
+                val withSavedPaths = if (missing.isEmpty()) {
+                    flowOf(activity)
+                } else {
+                    val keys = missing.mapTo(mutableSetOf(), WakeBlock::pathKey)
+                    history.findingsInvolving(app, Long.MIN_VALUE).map { findings ->
+                        val latest = findings.filter { it.pathKey in keys }.groupBy { it.pathKey }
+                            .mapValues { (_, rows) -> rows.maxBy(WakeFindingDay::lastSeenNanos) }
+                        activity.withSavedPaths(missing, latest)
+                    }.distinctUntilChanged()
+                }
+                withSavedPaths.flatMapLatest { display ->
+                    observe(listOf(display)).map { it.single() }
+                }
+            }.flowOn(io)
+    }
+
     /** Resolves component paths for the supplied activities, then observes all available path blocks. */
     suspend fun observe(activities: List<AppWakeActivity>): Flow<List<AppWakeState>> {
         if (activities.isEmpty()) return flowOf(emptyList())

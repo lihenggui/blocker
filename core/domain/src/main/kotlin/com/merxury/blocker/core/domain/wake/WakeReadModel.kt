@@ -13,7 +13,9 @@ import com.merxury.blocker.core.model.wake.Justification
 import com.merxury.blocker.core.model.wake.JustifiedStarts
 import com.merxury.blocker.core.model.wake.OwnWakeKind
 import com.merxury.blocker.core.model.wake.OwnWakeMethod
+import com.merxury.blocker.core.model.wake.PotentialWakeCategory
 import com.merxury.blocker.core.model.wake.ReviveTrigger
+import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
 import com.merxury.blocker.core.model.wake.WakeHeadline
@@ -67,9 +69,46 @@ internal fun buildAppWakeActivity(
             .map { WakeVerdict.valueOf(it.verdict) }
             .maxOrNull() ?: WakeVerdict.NORMAL,
         backgroundStarts = revives.filter { it.justification != Justification.USER_INITIATED.name }.sumOf { it.count },
-        peers = buildPeerLinks(packageName, unjustified),
+        peers = buildPeerLinks(packageName, unjustified.filter(WakePath::isPeerPath)),
         own = buildOwnWakeMethods(unjustified.filter { it.target == packageName }),
         justified = countJustifiedStarts(revives),
+    )
+}
+
+internal fun AppWakeActivity.withSavedPaths(blocks: List<WakeBlock>, findings: Map<String, WakeFindingDay>): AppWakeActivity {
+    val retained = blocks.map { block ->
+        val path = findings[block.pathKey]?.toWakePath() ?: block.toWakePath()
+        path.copy(
+            actor = block.sender ?: path.actor,
+            component = block.component ?: path.component,
+            componentType = block.componentType ?: path.componentType,
+            action = block.action ?: path.action,
+            blockMethod = block.method,
+        )
+    }
+    val (peerPaths, ownPaths) = retained.partition { path ->
+        path.actor != path.target && (path.isPeerPath || (path.blockMethod == WakeBlockMethod.FIREWALL_RULE && path.actor.isAppPackage()))
+    }
+    val peersWithSaved = buildPeerLinks(packageName, peers.flatMap { it.inbound + it.outbound } + peerPaths.map(WakePath::withoutWindowCounts))
+    val ownWithSaved = buildOwnWakeMethods(own.flatMap { it.paths }, ownPaths.filter { it.target == packageName })
+    return copy(peers = peersWithSaved, own = ownWithSaved)
+}
+
+private fun WakePath.withoutWindowCounts() = copy(count = 0, durationNanos = 0, screenOffNanos = 0)
+
+private fun WakeBlock.toWakePath(): WakePath {
+    val kind = pathKey.substringBefore('|')
+    val staticCategory = pathKey.takeIf { kind == "STATIC" }?.substringAfter('|')?.substringBefore('|')
+    val trigger = ReviveTrigger.entries.firstOrNull { it.name == kind } ?: when (staticCategory) {
+        PotentialWakeCategory.BOOT_AUTOSTART.name, PotentialWakeCategory.SYSTEM_BROADCAST.name -> ReviveTrigger.SYSTEM_BROADCAST
+        PotentialWakeCategory.PUSH_RECEIVER.name -> ReviveTrigger.PUSH_TRANSPORT
+        PotentialWakeCategory.SCHEDULED_JOB.name -> ReviveTrigger.JOB
+        PotentialWakeCategory.ACCOUNT_SYNC.name -> ReviveTrigger.SYNC
+        else -> null
+    }
+    return WakePath(
+        pathKey, target, sender, trigger, HoldCause.entries.firstOrNull { it.name == kind }, component, componentType, action,
+        count = 0, durationNanos = 0, screenOffNanos = 0, lastSeenMillis = 0, afterKill = false, blockMethod = method,
     )
 }
 
@@ -86,8 +125,8 @@ private fun countJustifiedStarts(revives: List<WakeFindingDay>): JustifiedStarts
 }
 
 private fun buildPeerLinks(packageName: String, paths: List<WakePath>): List<WakePeerLink> {
-    val inbound = paths.filter { it.target == packageName && it.isPeerPath }.groupBy { requireNotNull(it.actor) }
-    val outbound = paths.filter { it.actor == packageName && it.isPeerPath }.groupBy { it.target }
+    val inbound = paths.filter { it.target == packageName }.groupBy { requireNotNull(it.actor) }
+    val outbound = paths.filter { it.actor == packageName }.groupBy { it.target }
     return (inbound.keys + outbound.keys).map { peer ->
         val incoming = inbound[peer].orEmpty().sumPaths()
         val outgoing = outbound[peer].orEmpty().sumPaths()
@@ -108,11 +147,16 @@ private fun buildPeerLinks(packageName: String, paths: List<WakePath>): List<Wak
 
 private data class OwnMethodKey(val kind: OwnWakeKind, val component: String? = null, val action: String? = null, val hold: HoldCause? = null)
 
-private fun buildOwnWakeMethods(paths: List<WakePath>): List<OwnWakeMethod> = paths.mapNotNull { path ->
-    path.ownMethodKey()?.let { it to path }
-}.groupBy({ it.first }, { it.second }).map { (method, rows) ->
-    OwnWakeMethod(method.kind, method.component, method.action, rows.sumPaths())
-}.sortedWith(compareBy<OwnWakeMethod> { it.kind }.thenByDescending { it.paths.sumOf(WakePath::count) })
+private fun buildOwnWakeMethods(paths: List<WakePath>, saved: List<WakePath> = emptyList()): List<OwnWakeMethod> {
+    val observed = paths.mapNotNull { path -> path.ownMethodKey()?.let { it to path } }
+    val retained = saved.map { path ->
+        val method = path.ownMethodKey() ?: OwnMethodKey(OwnWakeKind.SELF_START, path.component, path.action)
+        method to path.withoutWindowCounts()
+    }
+    return (observed + retained).groupBy({ it.first }, { it.second }).map { (method, rows) ->
+        OwnWakeMethod(method.kind, method.component, method.action, rows.sumPaths())
+    }.sortedWith(compareBy<OwnWakeMethod> { it.kind }.thenByDescending { it.paths.sumOf(WakePath::count) })
+}
 
 private fun WakePath.ownMethodKey(): OwnMethodKey? = when {
     trigger == ReviveTrigger.PEER_ACTIVITY && actor == target -> OwnMethodKey(OwnWakeKind.SELF_START, component, action)
