@@ -45,7 +45,15 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
 ) : AutomaticWakeBlockRepository {
     override val blocks = history.protections().map { rows ->
         rows.map { row ->
-            AutomaticWakeBlock(row.pathId, row.caller, row.target, row.component, row.action, row.configured && !row.disabledByUser)
+            AutomaticWakeBlock(
+                row.pathId,
+                row.caller,
+                row.target,
+                row.component,
+                row.action,
+                active = row.configured && !row.disabledByUser,
+                allowed = row.disabledByUser,
+            )
         }
     }.distinctUntilChanged()
 

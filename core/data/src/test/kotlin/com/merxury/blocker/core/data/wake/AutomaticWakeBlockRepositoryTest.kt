@@ -43,18 +43,22 @@ class AutomaticWakeBlockRepositoryTest {
     @Test fun givenReviewedAndUnknownIds_whenAllowingAndReblocking_thenKnownFlagsChangeAndRunsAreRequested() = runTest {
         history.putProtections(listOf(reviewed))
         repository.blocks.test {
-            assertThat(awaitItem().single().active).isTrue()
+            val initial = awaitItem().single()
+            assertThat(initial.active).isTrue()
+            assertThat(initial.allowed).isFalse()
             val allowed = repository.setBlocked(setOf("review", "missing"), blocked = false)
             assertThat(allowed.done).containsExactly("review")
             assertThat(allowed.failure).isEqualTo(WakeBlockFailure.NotBlockable(listOf("missing")))
             assertThat(history.readProtections()).containsExactly(reviewed.copy(disabledByUser = true))
             assertThat(runs.requests).isEqualTo(1)
-            assertThat(awaitItem().single().active).isFalse()
+            val allowedRow = awaitItem().single()
+            assertThat(allowedRow.active).isFalse()
+            assertThat(allowedRow.allowed).isTrue()
 
             assertThat(repository.setBlocked(setOf("review"), blocked = true).failure).isNull()
             assertThat(history.readProtections()).containsExactly(reviewed)
             assertThat(runs.requests).isEqualTo(2)
-            assertThat(awaitItem().single().active).isTrue()
+            assertThat(awaitItem().single()).isEqualTo(initial)
         }
     }
 

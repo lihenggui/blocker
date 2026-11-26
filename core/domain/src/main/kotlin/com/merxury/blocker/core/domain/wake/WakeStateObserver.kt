@@ -22,7 +22,6 @@ import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.core.model.wake.WakePathState
-import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -51,7 +50,7 @@ internal class WakeStateObserver @Inject constructor(
             automatic.ownedComponents,
             observeComponents(componentIds.values),
         ) { blocks, automaticBlocks, owned, components ->
-            val byApp = automaticBlocks.groupByApp()
+            val byApp = automaticBlocks.filter { it.active || it.allowed }.groupByApp()
             activities.zip(paths) { activity, blockable ->
                 state(activity, blockable, blocks, byApp[activity.packageName].orEmpty()) { path ->
                     isUserComponentBlock(componentIds.getValue(path), components, owned)
@@ -95,7 +94,8 @@ internal class WakeStateObserver @Inject constructor(
         automatic: List<AutomaticWakeBlock>,
         isUserComponentBlock: (WakePath) -> Boolean,
     ): AppWakeState {
-        val protections = automatic.groupBy { it.identity }
+        val protections = AutomaticWakeBlockIndex(automatic)
+        val matches = activity.allPaths().associateWith(protections::matching)
         val paths = blockable.associate { path ->
             val saved = blocks[path.pathKey to path.blockMethod]
             val userBlocked = when (path.blockMethod) {
@@ -105,14 +105,14 @@ internal class WakeStateObserver @Inject constructor(
             }
             val block = when {
                 userBlocked -> WakePathBlock.USER
-                protections[path.identity].orEmpty().any { it.active } -> WakePathBlock.AUTOMATIC
+                matches.getValue(path).any { it.active } -> WakePathBlock.AUTOMATIC
                 else -> WakePathBlock.NONE
             }
             val blockedAt = saved?.blockedAtMillis?.takeIf { userBlocked }
             path.pathKey to WakePathState(path, block, blockedAt, blockedAt != null && path.lastSeenMillis > blockedAt)
         }
-        val identities = activity.allPaths().mapTo(mutableSetOf()) { it.identity }
-        val unmatched = automatic.filterNot { it.identity in identities }
+        val matchedIds = matches.values.asSequence().flatten().mapTo(mutableSetOf()) { it.pathId }
+        val unmatched = automatic.filterNot { it.pathId in matchedIds }
         val allBlocked = (paths.isNotEmpty() || unmatched.isNotEmpty()) &&
             paths.values.all { it.block != WakePathBlock.NONE } && unmatched.all { it.active }
         return AppWakeState(activity, paths, unmatched, allBlocked)
@@ -139,8 +139,3 @@ internal fun AppWakeActivity.outboundPaths(): Sequence<WakePath> = peers.asSeque
 private fun AppWakeActivity.allPaths(): Sequence<WakePath> = outboundPaths() + peers.asSequence().flatMap { it.inbound } + own.asSequence().flatMap { it.paths }
 
 private val WakePath.isBlockable get() = blockMethod == WakeBlockMethod.FIREWALL_RULE || blockMethod == WakeBlockMethod.COMPONENT
-
-internal data class WakePathIdentity(val caller: String?, val target: String, val component: String?, val action: String)
-
-internal val WakePath.identity get() = WakePathIdentity(actor, target, qualifiedWakeComponent(target, component), action.orEmpty())
-internal val AutomaticWakeBlock.identity get() = WakePathIdentity(caller, target, qualifiedWakeComponent(target, component), action)

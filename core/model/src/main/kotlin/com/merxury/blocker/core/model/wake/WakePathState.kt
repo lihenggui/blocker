@@ -15,21 +15,24 @@ data class WakePathState(
     val seenSinceBlock: Boolean,
 )
 
-/** A reviewed path Blocker blocks, or blocked until the user allowed it again. */
+/** A path reviewed by automatic wake protection and its current state. */
 data class AutomaticWakeBlock(
     val pathId: String,
     val caller: String,
     val target: String,
     val component: String,
     val action: String,
+    /** Whether the rule is configured and automatic blocking remains enabled. */
     val active: Boolean,
+    /** Whether the user has allowed the path. */
+    val allowed: Boolean,
 )
 
 data class AppWakeState(
     val activity: AppWakeActivity,
     /** Every blockable path of [activity] by path key. */
     val paths: Map<String, WakePathState>,
-    /** Automatic blocks involving this app that match no path of [activity]. */
+    /** Active or user-allowed automatic blocks involving this app that match no path of [activity]. */
     val automatic: List<AutomaticWakeBlock>,
     /** Whether every blockable path and every automatic entry is blocked. */
     val allBlocked: Boolean,

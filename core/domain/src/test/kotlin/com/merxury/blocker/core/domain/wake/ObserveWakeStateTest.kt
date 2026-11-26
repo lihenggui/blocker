@@ -135,13 +135,12 @@ class ObserveWakeStateTest {
         }
     }
 
-    @Test fun givenReviewedAndUserFirewallBlocks_whenRowsAndEvidenceChange_thenExactMatchesAndUserPrecedenceApply() = runTest {
+    @Test fun givenReviewedAndUserFirewallBlocks_whenRowsAndEvidenceChange_thenUserBlocksTakePrecedence() = runTest {
         val f = WakeStateTestFixture(this)
         val finding = finding("in")
         val path = finding.toWakePath()
-        val automatic = AutomaticWakeBlock("exact", TEST_PEER, TEST_APP, "$TEST_APP/.Wake", "", true)
+        val automatic = AutomaticWakeBlock("exact", TEST_PEER, TEST_APP, "$TEST_APP/.Wake", "", active = true, allowed = false)
         val other = listOf(
-            automatic.copy(pathId = "action", action = "different.action"),
             automatic.copy(pathId = "component", component = "$TEST_APP.Other"),
             automatic.copy(pathId = "target", caller = TEST_APP, target = TEST_PEER),
             automatic.copy(pathId = "caller", caller = TEST_OTHER),
@@ -165,11 +164,24 @@ class ObserveWakeStateTest {
             f.findings.value = listOf(finding.copy(lastSeenNanos = 101_000_000))
             assertThat(awaitItem().paths.getValue("in").seenSinceBlock).isTrue()
 
-            f.automatic.blocks.value = listOf(automatic.copy(active = false)) + other
+            f.automatic.blocks.value = listOf(automatic.copy(active = false, allowed = true)) + other
             f.manual.blocks.value = emptyList()
             val allowed = awaitItem()
             assertThat(allowed.paths.getValue("in").block).isEqualTo(WakePathBlock.NONE)
             assertThat(allowed.allBlocked).isFalse()
+        }
+    }
+
+    @Test fun givenAServicePathWithoutAnAction_whenProtectionHasAnAction_thenTheRuleMatchesThePath() = runTest {
+        val f = WakeStateTestFixture(this)
+        f.findings.value = listOf(finding("incoming"))
+        f.automatic.blocks.value = listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP/.Wake", "example.BIND", active = true, allowed = false))
+
+        f.state(TEST_APP).test {
+            val state = awaitItem()
+            assertThat(state.paths.getValue("incoming").block).isEqualTo(WakePathBlock.AUTOMATIC)
+            assertThat(state.automatic).isEmpty()
+            assertThat(state.allBlocked).isTrue()
         }
     }
 
@@ -179,7 +191,7 @@ class ObserveWakeStateTest {
         val incoming = finding("in", ReviveTrigger.PEER_BROADCAST, detail = "$TEST_APP/.Wake")
         f.findings.value = listOf(incoming)
         f.status(named, off = true)
-        f.automatic.blocks.value = listOf(AutomaticWakeBlock("pm", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", true))
+        f.automatic.blocks.value = listOf(AutomaticWakeBlock("pm", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false))
         f.automatic.ownedComponents.value = setOf(named.id)
         f.state(TEST_APP).test {
             assertThat(awaitItem().paths.getValue("in").block).isEqualTo(WakePathBlock.AUTOMATIC)
@@ -192,7 +204,7 @@ class ObserveWakeStateTest {
         val f = WakeStateTestFixture(this)
         val away = receiver(TEST_PEER, "Wake")
         val normal = receiver(TEST_OTHER, "Wake")
-        val extra = AutomaticWakeBlock("extra", TEST_PEER, TEST_APP, "$TEST_APP.Extra", "", true)
+        val extra = AutomaticWakeBlock("extra", TEST_PEER, TEST_APP, "$TEST_APP.Extra", "", active = true, allowed = false)
         f.findings.value = listOf(
             finding("out", ReviveTrigger.PEER_BROADCAST, target = TEST_PEER, actor = TEST_APP, detail = "$TEST_PEER/.Wake"),
             finding("normal", ReviveTrigger.SYSTEM_BROADCAST, target = TEST_OTHER, actor = "android", detail = "$TEST_OTHER/.Wake"),
@@ -205,9 +217,23 @@ class ObserveWakeStateTest {
             assertThat(awaitItem().associate { it.packageName to it.allBlocked })
                 .containsExactly(TEST_APP, true, TEST_PEER, true, TEST_OTHER, false)
             assertThat(f.observedApps).containsExactly(AppKey(TEST_PEER, UserId.SYSTEM))
-            f.automatic.blocks.value = listOf(extra.copy(active = false))
+            f.automatic.blocks.value = listOf(extra.copy(active = false, allowed = true))
             assertThat(awaitItem().associate { it.packageName to it.allBlocked })
                 .containsExactly(TEST_APP, false, TEST_PEER, false, TEST_OTHER, false)
+        }
+    }
+
+    @Test fun givenAllPathsAreBlocked_whenAnUnappliedReviewIsUnmatched_thenTheAppIsStillBlocked() = runTest {
+        val f = WakeStateTestFixture(this)
+        val incoming = finding("incoming")
+        f.findings.value = listOf(incoming)
+        f.manual.blocks.value = listOf(incoming.toWakePath().blockRow())
+        f.automatic.blocks.value = listOf(AutomaticWakeBlock("unapplied", TEST_PEER, TEST_APP, "$TEST_APP.Other", "", active = false, allowed = false))
+
+        f.state(TEST_APP).test {
+            val state = awaitItem()
+            assertThat(state.automatic).isEmpty()
+            assertThat(state.allBlocked).isTrue()
         }
     }
 
