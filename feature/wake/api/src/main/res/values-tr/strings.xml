@@ -150,6 +150,7 @@
     </plurals>
     <string name="feature_wake_api_restored">%s için yapılan tüm değişiklikler geri alındı</string>
     <string name="feature_wake_api_undo">Geri al</string>
+    <string name="feature_wake_api_undo_failed">Bazı değişiklikler geri alınamadı</string>
     <string name="feature_wake_api_sender_unsupported">Bu sistem gönderene göre engellemeyi desteklemiyor</string>
     <string name="feature_wake_api_background_not_changeable">Android bu uygulamanın arka plan kullanımının değiştirilmesine izin vermiyor</string>
 </resources>

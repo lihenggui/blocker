@@ -127,6 +127,7 @@
     </plurals>
     <string name="feature_wake_api_restored">Đã khôi phục mọi thay đổi của %s</string>
     <string name="feature_wake_api_undo">Hoàn tác</string>
+    <string name="feature_wake_api_undo_failed">Không thể hoàn tác một số thay đổi</string>
     <string name="feature_wake_api_sender_unsupported">Hệ thống này không hỗ trợ chặn theo nguồn gửi</string>
     <string name="feature_wake_api_background_not_changeable">Android không cho phép thay đổi hoạt động trong nền của ứng dụng này</string>
 </resources>

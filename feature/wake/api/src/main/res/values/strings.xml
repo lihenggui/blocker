@@ -150,6 +150,7 @@
     </plurals>
     <string name="feature_wake_api_restored">Restored all changes to %s</string>
     <string name="feature_wake_api_undo">Undo</string>
+    <string name="feature_wake_api_undo_failed">Some changes could not be undone</string>
     <string name="feature_wake_api_sender_unsupported">This system cannot block a single sender</string>
     <string name="feature_wake_api_background_not_changeable">Android does not allow changing background usage for this app</string>
 </resources>

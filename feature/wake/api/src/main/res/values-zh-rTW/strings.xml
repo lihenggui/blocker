@@ -127,6 +127,7 @@
     </plurals>
     <string name="feature_wake_api_restored">已還原%s的所有變更</string>
     <string name="feature_wake_api_undo">復原</string>
+    <string name="feature_wake_api_undo_failed">部分變更無法復原</string>
     <string name="feature_wake_api_sender_unsupported">此系統不支援依來源封鎖</string>
     <string name="feature_wake_api_background_not_changeable">系統不允許變更此應用程式的背景活動</string>
 </resources>

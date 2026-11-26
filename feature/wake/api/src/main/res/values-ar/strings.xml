@@ -242,6 +242,7 @@
     </plurals>
     <string name="feature_wake_api_restored">استُعيدت جميع التغييرات في %s</string>
     <string name="feature_wake_api_undo">تراجع</string>
+    <string name="feature_wake_api_undo_failed">تعذّر التراجع عن بعض التغييرات</string>
     <string name="feature_wake_api_sender_unsupported">لا يدعم هذا النظام الحظر حسب المُرسِل</string>
     <string name="feature_wake_api_background_not_changeable">لا يسمح Android بتغيير استخدام هذا التطبيق في الخلفية</string>
 </resources>

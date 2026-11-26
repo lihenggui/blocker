@@ -149,6 +149,40 @@ class WakeAppViewModelTest {
     }
 
     @Test
+    fun givenBatchUndoNotice_whenTogglingAnotherPath_thenOldUndoCannotRun() = runTest {
+        observe()
+        viewModel.blockAll(setOf(current.methods.first().key))
+        advanceTimeBy(551)
+        runCurrent()
+        val notice = requireNotNull(current.notice)
+        assertThat(notice.undo).isNotNull()
+
+        viewModel.toggle(current.methods.last().key, allowed = false)
+        viewModel.undo(notice.id)
+        runCurrent()
+
+        assertThat(current.notice).isNull()
+        assertThat(manual.blocks.value.map { it.pathKey }).containsExactly("restart", "self")
+    }
+
+    @Test
+    fun givenBatchUndoNotice_whenUndoFails_thenShowsUndoFailure() = runTest {
+        observe()
+        viewModel.blockAll(current.methods.mapTo(mutableSetOf()) { it.key })
+        advanceTimeBy(661)
+        runCurrent()
+        val notice = requireNotNull(current.notice)
+        manual.excluded = setOf("restart")
+
+        viewModel.undo(notice.id)
+        runCurrent()
+
+        assertThat(current.notice?.text).isEqualTo(WakeText.Resource(string.feature_wake_api_undo_failed))
+        assertThat(current.notice?.undo).isNull()
+        assertThat(manual.blocks.value.map { it.pathKey }).containsExactly("restart")
+    }
+
+    @Test
     fun givenBackgroundPermission_whenChanged_thenReadsBackAndOnlyNotifiesOnFailure() = runTest {
         observe()
         viewModel.setBackgroundAllowed(false)

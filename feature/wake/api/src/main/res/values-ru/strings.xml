@@ -196,6 +196,7 @@
     </plurals>
     <string name="feature_wake_api_restored">Все изменения для %s восстановлены</string>
     <string name="feature_wake_api_undo">Отменить</string>
+    <string name="feature_wake_api_undo_failed">Не удалось отменить некоторые изменения</string>
     <string name="feature_wake_api_sender_unsupported">Эта система не поддерживает блокировку по отправителю</string>
     <string name="feature_wake_api_background_not_changeable">Android не разрешает менять работу этого приложения в фоновом режиме</string>
 </resources>

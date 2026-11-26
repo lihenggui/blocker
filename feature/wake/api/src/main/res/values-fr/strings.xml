@@ -173,6 +173,7 @@
     </plurals>
     <string name="feature_wake_api_restored">Tous les changements de %s ont été rétablis</string>
     <string name="feature_wake_api_undo">Annuler</string>
+    <string name="feature_wake_api_undo_failed">Certaines modifications n’ont pas pu être annulées</string>
     <string name="feature_wake_api_sender_unsupported">Ce système ne permet pas de bloquer par expéditeur</string>
     <string name="feature_wake_api_background_not_changeable">Android ne permet pas de modifier l’utilisation en arrière-plan de cette application</string>
 </resources>

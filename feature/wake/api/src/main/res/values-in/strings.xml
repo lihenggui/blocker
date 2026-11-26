@@ -127,6 +127,7 @@
     </plurals>
     <string name="feature_wake_api_restored">Semua perubahan pada %s dipulihkan</string>
     <string name="feature_wake_api_undo">Urungkan</string>
+    <string name="feature_wake_api_undo_failed">Beberapa perubahan tidak dapat diurungkan</string>
     <string name="feature_wake_api_sender_unsupported">Sistem ini tidak dapat memblokir berdasarkan pengirim</string>
     <string name="feature_wake_api_background_not_changeable">Android tidak mengizinkan perubahan penggunaan latar belakang untuk aplikasi ini</string>
 </resources>

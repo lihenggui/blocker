@@ -158,7 +158,7 @@ internal class WakeAppViewModel @AssistedInject constructor(
         pending.value = Pending(busy = true)
         delay(160)
 
-        val backgroundChanged = backgroundResult?.changed?.isNotEmpty() == true
+        val backgroundChanged = backgroundResult?.done?.isNotEmpty() == true
         val undo = WakeUndo.Block(result.undo, backgroundChanged).takeIf { result.undo.hasChanges || backgroundChanged }
         val failure = result.outcome.failure ?: backgroundResult?.failure
         val failed = remaining.size + if (backgroundResult?.failure != null) 1 else 0
@@ -179,21 +179,21 @@ internal class WakeAppViewModel @AssistedInject constructor(
         show(text, undo)
     }
 
-    fun undo(id: Long) = act {
-        val notice = notices.value?.takeIf { it.id == id } ?: return@act
-        val token = notice.undo ?: return@act
-        notices.value = null
-        val failure = when (token) {
-            is WakeUndo.Block -> {
-                val outcome = setBlocked.undo(token.token)
-                val backgroundFailure = if (token.background) changeBackground(true).failure else null
-                outcome.failure ?: backgroundFailure
-            }
+    fun undo(id: Long) {
+        val token = notices.value?.takeIf { it.id == id }?.undo ?: return
+        act {
+            val failure = when (token) {
+                is WakeUndo.Block -> {
+                    val outcome = setBlocked.undo(token.token)
+                    val backgroundFailure = if (token.background) changeBackground(true).failure else null
+                    outcome.failure ?: backgroundFailure
+                }
 
-            is WakeUndo.Restore -> restore.undo(token.token).failure
+                is WakeUndo.Restore -> restore.undo(token.token).failure
+            }
+            if (token !is WakeUndo.Block || !token.background) refreshBackground()
+            if (failure != null) show(WakeText.Resource(string.feature_wake_api_undo_failed))
         }
-        if (token !is WakeUndo.Block || !token.background) refreshBackground()
-        if (failure != null) show(blockFailureText(failure, 0, 1))
     }
 
     fun dismissNotice(id: Long) {
@@ -202,6 +202,7 @@ internal class WakeAppViewModel @AssistedInject constructor(
 
     private fun act(action: suspend CoroutineScope.() -> Unit) {
         if (pending.value.busy) return
+        notices.value = null
         pending.value = Pending(busy = true)
         viewModelScope.launch {
             try {

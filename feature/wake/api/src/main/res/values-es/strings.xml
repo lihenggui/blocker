@@ -173,6 +173,7 @@
     </plurals>
     <string name="feature_wake_api_restored">Se han restaurado todos los cambios de %s</string>
     <string name="feature_wake_api_undo">Deshacer</string>
+    <string name="feature_wake_api_undo_failed">No se pudieron deshacer algunos cambios</string>
     <string name="feature_wake_api_sender_unsupported">Este sistema no permite bloquear por origen</string>
     <string name="feature_wake_api_background_not_changeable">Android no permite cambiar el uso en segundo plano de esta aplicación</string>
 </resources>
