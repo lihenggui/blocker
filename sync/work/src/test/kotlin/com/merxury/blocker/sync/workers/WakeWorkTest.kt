@@ -10,7 +10,11 @@ import android.net.Uri
 import android.os.Looper
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.work.Configuration
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
 import androidx.work.ListenableWorker
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerFactory
@@ -141,7 +145,7 @@ class WakeWorkTest {
         val backingOff = work.pending("wake-history-update")
         assertThat(backingOff.state).isEqualTo(WorkInfo.State.ENQUEUED)
         assertThat(backingOff.runAttemptCount).isEqualTo(1)
-        assertThat(wakeWork().isRunning.first()).isTrue()
+        assertThat(wakeWork().isRunning.first()).isFalse()
 
         // The quiet connect makes it ready again.
         channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
@@ -198,6 +202,27 @@ class WakeWorkTest {
         assertThat(states.receive()).isTrue()
         runs.last().finish(ListenableWorker.Result.failure())
         assertThat(states.receive()).isFalse()
+    }
+
+    @Test
+    fun givenFirstAttemptWaitingForConstraints_whenItStarts_thenBothStatesCountAsRunning() = runTest {
+        val work = initializeWork()
+        val requester = wakeWork()
+        runs.single().finish(ListenableWorker.Result.success())
+        val request = OneTimeWorkRequestBuilder<DelegatingWorker>()
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .build()
+        work.enqueueUniqueWork("wake-history-requested", ExistingWorkPolicy.REPLACE, request).result.get()
+
+        val enqueued = work.pending("wake-history-requested")
+        assertThat(enqueued.state).isEqualTo(WorkInfo.State.ENQUEUED)
+        assertThat(enqueued.runAttemptCount).isEqualTo(0)
+        assertThat(requester.isRunning.first()).isTrue()
+
+        WorkManagerTestInitHelper.getTestDriver(context)!!.setAllConstraintsMet(request.id)
+
+        assertThat(work.pending("wake-history-requested").state).isEqualTo(WorkInfo.State.RUNNING)
+        assertThat(requester.isRunning.first()).isTrue()
     }
 
     @Test
