@@ -47,6 +47,7 @@ internal class WakeStateTestFixture(scope: TestScope) {
     val automatic = FakeAutomaticWakeBlockRepository()
     val components = FakeComponentStatusRepository()
     val receivers = mutableMapOf<Pair<String, String>, List<ComponentDeclaration>>()
+    val receiverQueries = mutableListOf<Pair<String, String>>()
     val observedApps = mutableListOf<AppKey>()
     private val statuses = mutableMapOf<UserId, MutableMap<ComponentId, ComponentStatus>>()
     private val tracked = object : ComponentStatusRepository by components {
@@ -68,6 +69,7 @@ internal class WakeStateTestFixture(scope: TestScope) {
         automatic,
         tracked,
         WakeReceiverResolver { target, action ->
+            receiverQueries += target to action
             receivers[target to action].orEmpty()
         },
         dispatcher,

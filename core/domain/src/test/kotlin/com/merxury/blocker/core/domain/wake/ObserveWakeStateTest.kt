@@ -6,6 +6,7 @@ package com.merxury.blocker.core.domain.wake
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.ReviveTrigger
@@ -45,6 +46,59 @@ class ObserveWakeStateTest {
         }
     }
 
+    @Test fun givenPathsShareAManifestAction_whenComponentStatesChange_thenReceiversAreResolvedOnce() = runTest {
+        val f = WakeStateTestFixture(this)
+        val action = "example.WAKE"
+        val wake = receiver(TEST_APP, "Wake")
+        f.receivers[TEST_APP to action] = listOf(wake)
+        f.findings.value = listOf(
+            finding("first", ReviveTrigger.PEER_BROADCAST, detail = action),
+            finding("second", ReviveTrigger.PEER_BROADCAST, actor = TEST_OTHER, detail = action),
+        )
+        f.state(TEST_APP).test {
+            assertThat(awaitItem().paths.keys).containsExactly("first", "second")
+
+            f.status(wake, off = true)
+            assertThat(awaitItem().allBlocked).isTrue()
+            assertThat(f.receiverQueries).containsExactly(TEST_APP to action)
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenPathsToTwoTargets_whenAnUnrelatedComponentChanges_thenNeitherPathIsRecomputed() = runTest {
+        val f = WakeStateTestFixture(this)
+        val incoming = receiver(TEST_APP, "Wake")
+        val outgoing = receiver(TEST_PEER, "Wake")
+        f.findings.value = listOf(
+            finding("in", ReviveTrigger.PEER_BROADCAST, detail = "$TEST_APP/.Wake"),
+            finding("out", ReviveTrigger.PEER_BROADCAST, TEST_PEER, TEST_APP, "$TEST_PEER/.Wake"),
+        )
+        f.status(incoming, off = true)
+        f.status(outgoing, off = true)
+        val checked = mutableListOf<ComponentId>()
+        val owned = receiver(TEST_OTHER, "Owned").id
+        f.automatic.ownedComponents.value = object : Set<ComponentId> by setOf(owned) {
+            override fun contains(element: ComponentId): Boolean {
+                checked += element
+                return element == owned
+            }
+        }
+        f.state(TEST_APP).test {
+            assertThat(awaitItem().allBlocked).isTrue()
+            assertThat(checked).containsExactly(incoming.id, outgoing.id)
+            checked.clear()
+
+            f.status(receiver(TEST_APP, "Unrelated"), off = true)
+            runCurrent()
+            expectNoEvents()
+            assertThat(checked).isEmpty()
+
+            f.status(incoming, off = false)
+            assertThat(awaitItem().paths.getValue("in").block).isEqualTo(WakePathBlock.NONE)
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenBroadcastAction_whenZeroSomeOrAllReceiversAreOff_thenOnlyAllOffWithAReceiverBlocks() = runTest {
@@ -56,7 +110,11 @@ class ObserveWakeStateTest {
         f.findings.value = listOf(path, finding("alarm", ReviveTrigger.ALARM, actor = null))
         f.state(TEST_APP).test {
             assertThat(awaitItem().paths.getValue("action").block).isEqualTo(WakePathBlock.NONE)
-            f.receivers[TEST_APP to action] = listOf(first, second)
+        }
+
+        f.receivers[TEST_APP to action] = listOf(first, second)
+        f.state(TEST_APP).test {
+            assertThat(awaitItem().paths.getValue("action").block).isEqualTo(WakePathBlock.NONE)
             f.status(first, off = true)
             f.status(second, off = false)
             f.manual.blocks.value = listOf(path.toWakePath().blockRow(99))

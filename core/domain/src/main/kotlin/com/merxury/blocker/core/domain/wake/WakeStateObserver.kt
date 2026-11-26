@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 internal class WakeStateObserver @Inject constructor(
@@ -39,27 +40,52 @@ internal class WakeStateObserver @Inject constructor(
     private val receivers: WakeReceiverResolver,
     @Dispatcher(IO) private val io: CoroutineDispatcher,
 ) {
-    fun observe(activities: List<AppWakeActivity>): Flow<List<AppWakeState>> {
+    /** Resolves component paths for the supplied activities, then observes their block states. */
+    suspend fun observe(activities: List<AppWakeActivity>): Flow<List<AppWakeState>> {
         if (activities.isEmpty()) return flowOf(emptyList())
         val paths = activities.map { activity -> activity.allPaths().filter(WakePath::isBlockable).distinctBy(WakePath::pathKey).toList() }
-        val targets = paths.flatten().filter { it.blockMethod == WakeBlockMethod.COMPONENT }.map { it.target }.distinct()
-        val statuses = targets.map { target -> components.components(AppKey(target, UserId.SYSTEM)) }
-        val componentsById = if (statuses.isEmpty()) {
-            flowOf(emptyMap())
-        } else {
-            combine(statuses) { lists -> lists.flatMap { it }.associateBy { it.declaration.id } }
-        }
+        val componentIds = withContext(io) { resolveComponentIds(paths.flatten()) }
         return combine(
             user.blocks.map { it.associateBy { block -> block.pathKey to block.method } },
             automatic.blocks,
             automatic.ownedComponents,
-            componentsById,
+            observeComponents(componentIds.values),
         ) { blocks, automaticBlocks, owned, components ->
             val byApp = automaticBlocks.groupByApp()
             activities.zip(paths) { activity, blockable ->
-                state(activity, blockable, blocks, byApp[activity.packageName].orEmpty(), owned, components)
+                state(activity, blockable, blocks, byApp[activity.packageName].orEmpty()) { path ->
+                    isUserComponentBlock(componentIds.getValue(path), components, owned)
+                }
             }
         }.distinctUntilChanged().flowOn(io)
+    }
+
+    private fun resolveComponentIds(paths: List<WakePath>): Map<WakePath, List<ComponentId>> {
+        val byAction = mutableMapOf<Pair<String, String>, List<ComponentId>>()
+        return paths.asSequence().filter { it.blockMethod == WakeBlockMethod.COMPONENT }.distinct().associateWith { path ->
+            val component = path.component
+            val action = path.action
+            when {
+                component != null -> listOf(ComponentId(path.target, component))
+
+                !action.isNullOrBlank() -> byAction.getOrPut(path.target to action) {
+                    receivers.resolve(path.target, action).map { it.id }
+                }
+
+                else -> emptyList()
+            }
+        }
+    }
+
+    private fun observeComponents(ids: Collection<List<ComponentId>>): Flow<Map<ComponentId, ComponentStatus>> {
+        val statuses = ids.flatten().groupBy { it.packageName }.map { (target, targetIds) ->
+            val needed = targetIds.toSet()
+            components.components(AppKey(target, UserId.SYSTEM)).map { components ->
+                components.filter { it.declaration.id in needed }.associateBy { it.declaration.id }
+            }.distinctUntilChanged()
+        }
+        if (statuses.isEmpty()) return flowOf(emptyMap())
+        return combine(statuses) { byTarget -> buildMap { byTarget.forEach { putAll(it) } } }
     }
 
     private fun state(
@@ -67,15 +93,14 @@ internal class WakeStateObserver @Inject constructor(
         blockable: List<WakePath>,
         blocks: Map<Pair<String, WakeBlockMethod>, WakeBlock>,
         automatic: List<AutomaticWakeBlock>,
-        owned: Set<ComponentId>,
-        components: Map<ComponentId, ComponentStatus>,
+        isUserComponentBlock: (WakePath) -> Boolean,
     ): AppWakeState {
         val protections = automatic.groupBy { it.identity }
         val paths = blockable.associate { path ->
             val saved = blocks[path.pathKey to path.blockMethod]
             val userBlocked = when (path.blockMethod) {
                 WakeBlockMethod.FIREWALL_RULE -> saved != null
-                WakeBlockMethod.COMPONENT -> isUserComponentBlock(path, components, owned)
+                WakeBlockMethod.COMPONENT -> isUserComponentBlock(path)
                 else -> false
             }
             val block = when {
@@ -94,21 +119,12 @@ internal class WakeStateObserver @Inject constructor(
     }
 
     private fun isUserComponentBlock(
-        path: WakePath,
+        ids: List<ComponentId>,
         components: Map<ComponentId, ComponentStatus>,
         owned: Set<ComponentId>,
-    ): Boolean {
-        val component = path.component
-        val action = path.action
-        val ids = when {
-            component != null -> listOf(ComponentId(path.target, component))
-            !action.isNullOrBlank() -> receivers.resolve(path.target, action).map { it.id }
-            else -> emptyList()
-        }
-        return ids.isNotEmpty() && ids.all { id ->
-            val status = components[id]
-            status?.isSwitchOn == false && (id !in owned || status.state.ifw == IfwBlock.BLOCKED)
-        }
+    ): Boolean = ids.isNotEmpty() && ids.all { id ->
+        val status = components[id]
+        status?.isSwitchOn == false && (id !in owned || status.state.ifw == IfwBlock.BLOCKED)
     }
 }
 
