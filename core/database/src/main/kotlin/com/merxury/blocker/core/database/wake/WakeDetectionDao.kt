@@ -161,9 +161,10 @@ abstract class WakeDetectionDao {
     @Query(
         """
         SELECT * FROM WakeRecord WHERE wallMillis >= :since AND kind IN (
-          'ApplicationStartInfo','ProcessStartTime','am_proc_start','am_kill','AppProcessDied','am_schedule_service_restart',
+          'ApplicationStartInfo','ProcessStartTime','am_proc_start','am_proc_died','am_kill','AppProcessDied','am_schedule_service_restart',
           'ServiceRequestEventReported','BroadcastDeliveryEventReported','ProviderAcquisitionEventReported','AppStartOccurred',
           'ScheduledJobStateChanged','SyncStateChanged','WakeupAlarmOccurred','AlarmBatchDelivered','NotificationReported',
+          'AppFreezeChanged','AlarmScheduled','PendingAlarm','PendingIntentRegistration',
           'ForegroundServiceStateChanged','LongPartialWakelockStateChanged','BalAllowed','InteractiveStateChanged',
           'SystemBinding','RoleHolder','CompanionAssociation','WallpaperBinding','HeldConnection','NotificationsOff',
           'OverlayWindow','AudioPlayback'

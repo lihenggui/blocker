@@ -10,12 +10,15 @@ import com.merxury.blocker.core.database.wake.WakeHoldPeriod
 import com.merxury.blocker.core.database.wake.WakeHoldProcess
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.database.wake.WakeRelation
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.Justification
+import com.merxury.blocker.core.model.wake.OwnWakeKind
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
+import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeFinding
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import com.merxury.blocker.core.privileged.wake.WAKE_AUDIO_PLAYBACK
@@ -412,11 +415,11 @@ class WakeDetectionTest {
             attributes = mapOf("hosting_type" to "service"),
         )
         val launch = WakeDetection.findings(evidence(listOf(main, helper))).associateBy { it.detail }
-        assertThat(launch.getValue("$TARGET.Helper").justification).isEqualTo(Justification.USER_INITIATED)
+        assertThat(launch.getValue("$TARGET/$TARGET.Helper").justification).isEqualTo(Justification.USER_INITIATED)
         assertThat(WakeDetection.findings(evidence(listOf(helper))).single().justification).isEqualTo(Justification.NONE)
     }
 
-    @Test fun givenBroadcastStartsWithoutCaller_whenDetecting_thenOnlyProtectedActionsAreSystemBroadcasts() {
+    @Test fun givenBroadcastStartsWithoutCaller_whenDetecting_thenProtectedActionsAndNamedReceiversArePreserved() {
         fun broadcast(protected: Boolean) = wakeRecord(
             "info", "ApplicationStartInfo", START, source = "START_INFO", component = "$TARGET/.Receiver", action = "android.intent.action.TIME_SET",
             startType = 3, process = TARGET, attributes = mapOf("reason" to "BROADCAST") + if (protected) mapOf("protected_broadcast" to "true") else emptyMap(),
@@ -425,12 +428,55 @@ class WakeDetectionTest {
         assertThat(system.trigger).isEqualTo(ReviveTrigger.SYSTEM_BROADCAST)
         assertThat(system.actor).isEqualTo("android")
         assertThat(system.detail).isEqualTo("android.intent.action.TIME_SET")
-        // An android.* action that is not protected may come from any app.
-        val unknown = revive(*started(broadcast(false)))
-        assertThat(unknown.trigger).isEqualTo(ReviveTrigger.UNKNOWN)
-        assertThat(unknown.detail).isEqualTo("android.intent.action.TIME_SET")
+        val receiver = revive(*started(broadcast(false)))
+        assertThat(receiver.trigger).isEqualTo(ReviveTrigger.SYSTEM_BROADCAST)
+        assertThat(receiver.confidence).isEqualTo(Confidence.SNAPSHOT)
+        assertThat(receiver.detail).isEqualTo("$TARGET/$TARGET.Receiver")
         val service = wakeRecord("svc", "ApplicationStartInfo", START, source = "START_INFO", component = "$TARGET/.Sync", action = "sync.ACTION", startType = 3, process = TARGET, attributes = mapOf("reason" to "SERVICE"))
         assertThat(revive(*started(service)).detail).isEqualTo("$TARGET.Sync")
+    }
+
+    @Test fun givenOnlyEventLogStarts_whenBuildingActivity_thenHostedComponentsAreBlockable() {
+        val cases = listOf(
+            Triple("broadcast", ReviveTrigger.SYSTEM_BROADCAST, OwnWakeKind.SYSTEM_EVENT),
+            Triple("content provider", ReviveTrigger.PEER_PROVIDER, OwnWakeKind.SELF_START),
+            Triple("service", ReviveTrigger.UNKNOWN, OwnWakeKind.SELF_START),
+        )
+        for ((hosting, trigger, kind) in cases) {
+            val event = wakeRecord(
+                "log-start",
+                "am_proc_start",
+                START,
+                source = SYSTEM_WAKE_EVENTS,
+                component = "{$TARGET/.Wake}",
+                targetPackage = null,
+                process = TARGET,
+                attributes = mapOf("hosting_type" to hosting),
+            )
+            val finding = WakeDetection.detect(evidence(listOf(event)))
+            val rows = WakeDetection.daily(finding, ZoneOffset.UTC)
+            val day = rows.single().day
+            val activity = buildAppWakeActivity(TARGET, day, day, rows, emptyList())
+            val method = activity.own.single()
+            val path = method.paths.single()
+            val type = when (trigger) {
+                ReviveTrigger.SYSTEM_BROADCAST -> ComponentType.RECEIVER
+                ReviveTrigger.PEER_PROVIDER -> ComponentType.PROVIDER
+                else -> null
+            }
+            assertThat(method.kind).isEqualTo(kind)
+            assertThat(activity.peers).isEmpty()
+            assertThat(path.trigger).isEqualTo(trigger)
+            assertThat(path.actor).isEqualTo("android".takeIf { trigger == ReviveTrigger.SYSTEM_BROADCAST })
+            assertThat(path.component).isEqualTo("$TARGET.Wake")
+            assertThat(path.componentType).isEqualTo(type)
+            assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+            assertThat(finding.single().finding.confidence).isEqualTo(if (trigger == ReviveTrigger.UNKNOWN) Confidence.DIRECT else Confidence.SNAPSHOT)
+            if (trigger == ReviveTrigger.SYSTEM_BROADCAST) {
+                assertThat(revive(event.copy(elapsedNanos = 180 * SECOND)).actor).isEqualTo("android")
+                assertThat(revive(event.copy(elapsedNanos = 180 * SECOND + 1)).actor).isNull()
+            }
+        }
     }
 
     @Test fun givenTrimmedApp_whenAProtectedBroadcastRestartsIt_thenItStaysNormal() {
@@ -446,9 +492,9 @@ class WakeDetectionTest {
         assertThat(system.verdict).isEqualTo(WakeVerdict.NORMAL.name)
         assertThat(WakeDetection.findings(evidence(listOf(*started(broadcast(true)), trim))).single().afterKill).isEqualTo("empty #3")
         // The same restart by an action any app may send still counts.
-        val unknown = day(protected = false)
-        assertThat(unknown.afterKillNoneRevives).isEqualTo(1)
-        assertThat(unknown.verdict).isEqualTo(WakeVerdict.SUSPICIOUS.name)
+        val fallback = day(protected = false)
+        assertThat(fallback.afterKillNoneRevives).isEqualTo(1)
+        assertThat(fallback.verdict).isEqualTo(WakeVerdict.SUSPICIOUS.name)
     }
 
     @Test fun givenStartInfoReasons_whenDetecting_thenReasonsNameTheTriggerDirectly() {
@@ -476,7 +522,8 @@ class WakeDetectionTest {
         val action = "target.app.WAKE"
         fun type(value: String, component: String? = coldStart.component) = revive(coldStart.copy(component = component, action = action, attributes = """{"trigger_type":"$value"}"""))
         assertThat(type("1").trigger).isEqualTo(ReviveTrigger.ALARM)
-        assertThat(type("1").detail).isEqualTo(action)
+        assertThat(type("1").detail).isEqualTo("$TARGET/$TARGET.Wake")
+        assertThat(type("1", component = null).detail).isEqualTo(action)
         assertThat(type("2").trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
         assertThat(type("2").detail).isEqualTo(action)
         assertThat(type("3").trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
@@ -591,6 +638,63 @@ class WakeDetectionTest {
         assertThat(unexplained.justification).isEqualTo(Justification.NONE)
         // A stale job outside the join window does not explain the start.
         assertThat(joined(system, job.copy(elapsedNanos = START - 6 * SECOND)).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+    }
+
+    @Test fun givenPendingAlarmHistory_whenAnEmptySnapshotIsNewerOrTheRegistrationIsStale_thenTheAlarmIsUnresolved() {
+        val hour = 60 * 60 * SECOND
+        val start = wakeRecord("start", "am_proc_start", START + hour, source = SYSTEM_WAKE_EVENTS, process = TARGET)
+        val digest = "1234567890abcdef12345678"
+        val delivery = wakeRecord(
+            "delivery",
+            "WakeupAlarmOccurred",
+            start.elapsedNanos,
+            attributes = mapOf("attribution_node" to "$TARGET_UID", "tag" to digest),
+        )
+        val pending = wakeRecord(
+            "pending",
+            "PendingAlarm",
+            START,
+            source = "ALARMS",
+            callerPackage = TARGET,
+            targetUid = null,
+            targetPackage = null,
+            attributes = mapOf("record" to "token", "creator_package" to TARGET),
+        )
+        val intent = wakeRecord(
+            "intent",
+            "PendingIntentRegistration",
+            START,
+            source = "PENDING_INTENTS",
+            callerUid = TARGET_UID,
+            callerPackage = TARGET,
+            component = "$TARGET/.Receiver",
+            attributes = mapOf("record" to "token", "type" to "broadcastIntent"),
+        )
+        val relation = WakeRelation(pending.id, intent.id, "PENDING_INTENT_REGISTRATION")
+        val empty = wakeRecord("empty", "PendingAlarm", START + SECOND, source = "ALARMS", targetUid = null, targetPackage = null)
+
+        assertThat(revive(start, delivery, pending, intent, relations = listOf(relation)).detail).isEqualTo("$TARGET/$TARGET.Receiver")
+        assertThat(revive(start, delivery, pending, intent, empty, relations = listOf(relation)).detail).isEqualTo(digest)
+        assertThat(revive(start.copy(elapsedNanos = start.elapsedNanos + 1), delivery, pending, intent, relations = listOf(relation)).detail)
+            .isEqualTo(digest)
+    }
+
+    @Test fun givenCoarseAlarmBatchAndUnrelatedIdleExemptSchedule_whenDetecting_thenJobsAndSyncsKeepPrecedence() {
+        val start = coldStart.copy(component = null)
+        val batch = wakeRecord("batch", "AlarmBatchDelivered", START, attributes = mapOf("uids" to "$TARGET_UID"))
+        val schedule = wakeRecord(
+            "schedule",
+            "AlarmScheduled",
+            START - SECOND,
+            callerUid = TARGET_UID,
+            attributes = mapOf("is_allow_while_idle" to "1"),
+        )
+        val attributes = mapOf("attribution_node" to "$TARGET_UID", "state" to "1")
+        val job = wakeRecord("job", "ScheduledJobStateChanged", START, attributes = attributes + ("job_name" to "$TARGET/.Worker"))
+        val sync = wakeRecord("sync", "SyncStateChanged", START, attributes = attributes)
+
+        assertThat(revive(start, batch, schedule, job).trigger).isEqualTo(ReviveTrigger.JOB)
+        assertThat(revive(start, batch, schedule, sync).trigger).isEqualTo(ReviveTrigger.SYNC)
     }
 
     @Test fun givenCorrelatedJob_whenDetecting_thenHostedServiceWinsAndJobNameIsTheFallback() {

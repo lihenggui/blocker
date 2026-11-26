@@ -6,6 +6,7 @@ package com.merxury.blocker.core.domain.wake
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.database.wake.WakeFindingDay
 import com.merxury.blocker.core.database.wake.WakeVerdictDay
+import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.Justification
 import com.merxury.blocker.core.model.wake.ReviveTrigger
@@ -31,12 +32,13 @@ internal data class WakeDetectionWindow(val from: Long, val through: Long, val f
 
 internal object WakeDetection {
     private const val SYSTEM_ACTOR = "android"
-    private val platformDeliveries = setOf(ReviveTrigger.SYSTEM_BROADCAST, ReviveTrigger.PUSH_TRANSPORT)
     private val peerTriggers = setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.PEER_BROADCAST, ReviveTrigger.PEER_PROVIDER, ReviveTrigger.PEER_ACTIVITY)
 
     fun detect(evidence: WakeDetectionEvidence, zone: ZoneId = ZoneId.systemDefault()): List<Detected> {
         val index = WakeEvidenceIndex(evidence)
-        return WakeRevives.detect(index) + WakeHolds.detect(index, zone)
+        val coldStarts = WakeRevives.coldStarts(index)
+        val revives = WakeRevives.detect(index, coldStarts)
+        return revives.detected + WakeWarmWakes.detect(index, coldStarts, revives.claimedRequestIds) + WakeHolds.detect(index, zone)
     }
 
     fun findings(evidence: WakeDetectionEvidence): List<WakeFinding> = detect(evidence).map { it.finding }
@@ -59,6 +61,10 @@ internal object WakeDetection {
     }
 
     private val WakeFinding.peerInBackground get() = trigger in peerTriggers && actorInBackground == true && actor != target
+
+    // Event-log fallback identifies the receiver but cannot establish that the platform sent it.
+    private val WakeFinding.platformDelivery get() =
+        trigger == ReviveTrigger.PUSH_TRANSPORT || (trigger == ReviveTrigger.SYSTEM_BROADCAST && confidence != Confidence.SNAPSHOT)
 
     /** Rows also differ by classification so that no column is averaged away. Kill reasons carry pids, so they are normalized. */
     private fun rowKey(finding: WakeFinding, zone: ZoneId): List<Any?> = listOf(
@@ -138,7 +144,7 @@ internal object WakeDetection {
                     revives.count { it.afterKill != null }.toLong(),
                     // A chained revive's kill and restart are the origin's doing, not its own. A protected system
                     // broadcast or a push delivered to a trimmed app is ordinary platform behaviour.
-                    none.count { it.afterKill != null && it.chainRoot == null && it.trigger !in platformDeliveries }.toLong(),
+                    none.count { it.afterKill != null && it.chainRoot == null && !it.platformDelivery }.toLong(),
                     unchainedNone.count { it.peerInBackground }.toLong(),
                     // The system binds a service only for a platform role or feature; that is no keep-alive trick.
                     own.filter { it.finding.hold != null && it.finding.hold != HoldCause.BOUND_BY_SYSTEM && it.finding.justification == Justification.NONE }
