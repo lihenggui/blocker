@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import com.merxury.blocker.feature.wake.api.R.string
 import kotlinx.coroutines.launch
 
@@ -72,13 +74,18 @@ internal fun WakeBlockSheet(
                 style = MaterialTheme.typography.headlineSmall,
             )
             initialChoices.forEach { choice ->
+                // The checkbox list pattern: the whole row toggles, and the row keeps the sheet's color.
                 ListItem(
-                    checked = choice.key in selected,
-                    onCheckedChange = { unchecked = if (it) unchecked - choice.key else unchecked + choice.key },
-                    enabled = !closing,
+                    headlineContent = { Text(choice.title.resolve()) },
+                    modifier = Modifier.toggleable(
+                        value = choice.key in selected,
+                        enabled = !closing,
+                        role = Role.Checkbox,
+                        onValueChange = { unchecked = if (it) unchecked - choice.key else unchecked + choice.key },
+                    ),
                     leadingContent = { Checkbox(choice.key in selected, onCheckedChange = null, enabled = !closing) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                ) { Text(choice.title.resolve()) }
+                )
             }
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = WakeContentSpacing),
