@@ -22,6 +22,10 @@ graph TB
       direction TB
       :feature:ruledetail:api[api]:::android-library
     end
+    subgraph :feature:wake
+      direction TB
+      :feature:wake:api[api]:::android-library
+    end
   end
   subgraph :core
     direction TB
@@ -92,8 +96,11 @@ graph TB
   :feature:appdetail:impl -.-> :core:ui
   :feature:appdetail:impl -.-> :feature:appdetail:api
   :feature:appdetail:impl -.-> :feature:ruledetail:api
+  :feature:appdetail:impl -.-> :feature:wake:api
   :feature:ruledetail:api --> :core:navigation
   :feature:ruledetail:api -.-> :core:ui
+  :feature:wake:api --> :core:navigation
+  :feature:wake:api -.-> :core:ui
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;
