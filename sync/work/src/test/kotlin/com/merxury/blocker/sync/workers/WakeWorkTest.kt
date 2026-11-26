@@ -25,6 +25,9 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -71,10 +74,12 @@ class WakeWorkTest {
             context,
             Configuration.Builder().setExecutor(SynchronousExecutor()).setWorkerFactory(factory).build(),
         )
-        WakeWork(context, WakeAuthorizationRepository(channel), backgroundScope).initialize()
+        wakeWork().initialize()
         runCurrent()
         return WorkManager.getInstance(context)
     }
+
+    private fun TestScope.wakeWork() = WakeWork(context, WakeAuthorizationRepository(channel), backgroundScope)
 
     private fun WorkManager.pending(name: String): WorkInfo = getWorkInfosForUniqueWork(name).get().single { !it.state.isFinished }
 
@@ -127,6 +132,7 @@ class WakeWorkTest {
         val backingOff = work.pending("wake-history-update")
         assertThat(backingOff.state).isEqualTo(WorkInfo.State.ENQUEUED)
         assertThat(backingOff.runAttemptCount).isEqualTo(1)
+        assertThat(wakeWork().isRunning.first()).isTrue()
 
         // The quiet connect makes it ready again.
         channel.setState(ChannelState.Ready(PrivilegedIdentity.ROOT))
@@ -157,7 +163,7 @@ class WakeWorkTest {
     @Test fun givenRunningCollector_whenExplicitlyRequestingWakeRun_thenSeparateWorkIsScheduled() = runTest {
         val work = initializeWork()
         val regular = work.pending("wake-history-update").id
-        val requester = WakeWork(context, WakeAuthorizationRepository(channel), backgroundScope)
+        val requester = wakeWork()
 
         requester.requestRun()
         val first = work.pending("wake-history-requested").id
@@ -165,6 +171,43 @@ class WakeWorkTest {
 
         assertThat(work.pending("wake-history-requested").id).isNotEqualTo(first)
         assertThat(work.pending("wake-history-update").id).isEqualTo(regular)
+    }
+
+    @Test
+    fun givenStartupCollector_whenOneTimeRunsStartAndFinish_thenRunningStateUpdates() = runTest {
+        val work = initializeWork()
+        val requester = wakeWork()
+        val states = Channel<Boolean>(Channel.UNLIMITED)
+        backgroundScope.launch { requester.isRunning.collect { states.send(it) } }
+
+        assertThat(states.receive()).isTrue()
+        runs.single().finish(ListenableWorker.Result.success())
+        assertThat(states.receive()).isFalse()
+
+        requester.requestRun()
+        assertThat(work.pending("wake-history-requested").state).isEqualTo(WorkInfo.State.RUNNING)
+        assertThat(states.receive()).isTrue()
+        runs.last().finish(ListenableWorker.Result.failure())
+        assertThat(states.receive()).isFalse()
+    }
+
+    @Test
+    fun givenPeriodicCollectorRunning_whenPackageChanges_thenOnlyTheOneTimeRefreshCounts() = runTest {
+        val work = initializeWork()
+        val requester = wakeWork()
+        runs.single().finish(ListenableWorker.Result.success())
+        WorkManagerTestInitHelper.getTestDriver(context)!!.setInitialDelayMet(work.pending("wake-history-periodic").id)
+        assertThat(work.pending("wake-history-periodic").state).isEqualTo(WorkInfo.State.RUNNING)
+        assertThat(requester.isRunning.first()).isFalse()
+
+        context.sendBroadcast(Intent(Intent.ACTION_PACKAGE_ADDED, Uri.parse("package:test.target")))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertThat(work.pending("wake-history-package-change").state).isEqualTo(WorkInfo.State.RUNNING)
+        assertThat(requester.isRunning.first()).isTrue()
+
+        work.cancelUniqueWork("wake-history-package-change").result.get()
+        assertThat(work.pending("wake-history-periodic").state).isEqualTo(WorkInfo.State.RUNNING)
+        assertThat(requester.isRunning.first()).isFalse()
     }
 
     @Test fun givenRetryingCollector_whenEitherPeerUpdates_thenASeparateRefreshIsScheduled() = runTest {

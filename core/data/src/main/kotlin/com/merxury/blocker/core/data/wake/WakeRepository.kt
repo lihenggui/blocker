@@ -117,6 +117,8 @@ class WakeRepository @Inject constructor(
 
     suspend fun reportStatus(status: WakeSourceStatus) = history.status(status)
 
+    fun statuses(): Flow<List<WakeSourceStatus>> = history.statuses()
+
     fun retentionStart(now: Long) = now - WAKE_HISTORY_RETENTION_MILLIS
 
     suspend fun oldestRecord() = detection.oldestRecord()

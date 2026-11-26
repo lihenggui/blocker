@@ -3,7 +3,12 @@
 
 package com.merxury.blocker.core.data.wake
 
+import kotlinx.coroutines.flow.Flow
+
 /** Requests a wake collection and reconciliation. */
-fun interface WakeRunRequester {
+interface WakeRunRequester {
+    /** Whether any one-time wake run is enqueued or running. */
+    val isRunning: Flow<Boolean>
+
     fun requestRun()
 }

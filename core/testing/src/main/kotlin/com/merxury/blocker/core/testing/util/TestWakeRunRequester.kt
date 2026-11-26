@@ -4,11 +4,14 @@
 package com.merxury.blocker.core.testing.util
 
 import com.merxury.blocker.core.data.wake.WakeRunRequester
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class TestWakeRunRequester @Inject constructor() : WakeRunRequester {
+    override val isRunning = MutableStateFlow(false)
+
     var requests = 0
         private set
 
