@@ -48,10 +48,6 @@ import com.merxury.blocker.feature.wake.api.R.plurals
 import com.merxury.blocker.feature.wake.api.R.string
 import com.merxury.blocker.core.ui.R.string as coreString
 
-// Compose keeps FabLargeTokens.ContainerWidth and ContainerHeight internal.
-private val HeroGraphicSize = 96.dp
-private val HeroTextSpacing = 4.dp
-
 @Composable
 internal fun WakeOverviewHero(
     state: WakeOverviewUiState,
@@ -73,7 +69,7 @@ internal fun WakeOverviewHero(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         WakeHeroGraphic(variant)
-        Column(verticalArrangement = Arrangement.spacedBy(HeroTextSpacing)) {
+        Column(verticalArrangement = Arrangement.spacedBy(WakeGridUnit)) {
             Text(
                 text = heroTitle(variant, state as? WakeOverviewUiState.Ready),
                 style = MaterialTheme.typography.headlineSmall,
@@ -139,7 +135,7 @@ private fun WakeHeroGraphic(variant: HeroVariant) {
         animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
         contentKey = { it == HeroVariant.Collecting },
     ) { graphic ->
-        Box(Modifier.size(HeroGraphicSize), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(WakeHeroGraphicSize), contentAlignment = Alignment.Center) {
             if (graphic == HeroVariant.Collecting) {
                 LoadingIndicator()
             } else {
@@ -192,35 +188,9 @@ private fun WakeHeroShape(variant: HeroVariant, modifier: Modifier = Modifier) {
 
         HeroVariant.Collecting -> error("Collecting uses a loading indicator")
     }
-    val containerColor by animateColorAsState(container, motion.slowEffectsSpec(), label = "Wake hero container")
     val iconColor by animateColorAsState(tint, motion.slowEffectsSpec(), label = "Wake hero icon")
-    val target by rememberUpdatedState(outline)
-    val spec by rememberUpdatedState(motion.slowSpatialSpec<Float>())
-    val progress = remember { Animatable(MORPH_END) }
-    var morph by remember { mutableStateOf(Morph(outline, outline)) }
-    LaunchedEffect(Unit) {
-        var current = outline
-        // Finish each morph at a Material polygon before taking the latest target.
-        snapshotFlow { target }.collect { next ->
-            if (current != next) {
-                val nextMorph = Morph(current, next)
-                progress.snapTo(MORPH_START)
-                morph = nextMorph
-                progress.animateTo(MORPH_END, spec)
-                current = next
-            }
-        }
-    }
-
     Box(
-        modifier.drawWithCache {
-            val path = Path()
-            val scale = Matrix().apply { scale(size.width, size.height) }
-            onDrawBehind {
-                morph.toPath(progress.value, path).transform(scale)
-                drawPath(path, containerColor)
-            }
-        },
+        modifier.wakeHeroShape(outline, container),
         contentAlignment = Alignment.Center,
     ) {
         BlockerActionIcon(
@@ -231,7 +201,3 @@ private fun WakeHeroShape(variant: HeroVariant, modifier: Modifier = Modifier) {
         )
     }
 }
-
-// Graphics Shapes defines morph progress from the source polygon to the target polygon.
-private const val MORPH_START = 0f
-private const val MORPH_END = 1f

@@ -4,6 +4,8 @@
 package com.merxury.blocker.feature.wake.impl
 
 import android.content.res.Resources
+import android.icu.text.ListFormatter
+import android.os.Build
 import android.text.format.DateUtils
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
@@ -42,6 +44,10 @@ internal fun WakeText.resolve(resources: Resources): String = with(resources) {
 
         is WakeText.Literal -> text.value
 
-        is WakeText.Callers -> text.labels.joinToString("、")
+        is WakeText.Callers -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ListFormatter.getInstance(configuration.locales[0]).format(text.labels)
+        } else {
+            text.labels.reduceOrNull { first, next -> getString(string.feature_wake_api_list_pair, first, next) }.orEmpty()
+        }
     }
 }

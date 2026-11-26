@@ -44,7 +44,7 @@ import com.merxury.blocker.feature.wake.api.R.plurals
 import com.merxury.blocker.feature.wake.api.R.string
 
 // Compose keeps ListTokens.ItemLeadingAvatarSize internal.
-private val AppIconSize = 40.dp
+internal val WakeListAvatarSize = 40.dp
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 internal fun LazyListScope.wakeAppGroup(
@@ -65,7 +65,7 @@ internal fun LazyListScope.wakeAppGroup(
             colors = wakeSegmentedColors(),
             modifier = Modifier.animateWakeItem(this)
                 .padding(top = if (index == 0) 0.dp else ListItemDefaults.SegmentedGap),
-            leadingContent = { AppIcon(app.icon, Modifier.size(AppIconSize)) },
+            leadingContent = { AppIcon(app.icon, Modifier.size(WakeListAvatarSize)) },
             supportingContent = {
                 Text(app.headline.reasonText(), maxLines = 1, overflow = TextOverflow.Ellipsis)
             },
@@ -122,7 +122,7 @@ internal fun WakeFirstRunSection() {
 }
 
 @Composable
-private fun WakeGroupHeader(@StringRes title: Int, modifier: Modifier = Modifier) {
+internal fun WakeGroupHeader(@StringRes title: Int, modifier: Modifier = Modifier) {
     Text(
         text = stringResource(title),
         modifier = modifier.padding(ListItemDefaults.ContentPadding).semantics { heading() },
@@ -184,7 +184,7 @@ private fun animatedSegmentedShapes(index: Int, count: Int): ListItemShapes {
     }
 }
 
-private class AnimatedCorner(
+internal class AnimatedCorner(
     private val inner: CornerSize,
     private val outer: CornerSize,
     private val fraction: State<Float>,

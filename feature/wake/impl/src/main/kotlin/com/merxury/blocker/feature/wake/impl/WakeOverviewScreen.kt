@@ -30,7 +30,9 @@ import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.wake.api.R.string
 import com.merxury.blocker.core.ui.R.string as coreString
 
+// Material layout margins and spacing grid.
 internal val WakeContentSpacing = 16.dp
+internal val WakeGridUnit = 4.dp
 
 @Composable
 internal fun WakeOverviewRoute(

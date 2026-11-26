@@ -56,7 +56,10 @@ internal enum class WakeAppStatus(val halo: WakeHalo) {
     AllBlocked(WakeHalo.Blocked),
 }
 
-internal enum class WakeHalo(val rotation: Float) { KeepAlive(0f), Attention(0f), Blocked(60f) }
+// Turn the blocked halo by one lobe of the six-sided Material polygon.
+private const val BLOCKED_HALO_ROTATION = 60f
+
+internal enum class WakeHalo(val rotation: Float) { KeepAlive(0f), Attention(0f), Blocked(BLOCKED_HALO_ROTATION) }
 internal data class WakeAppIdentity(val packageName: String, val label: String = packageName, val icon: ApkIcon? = null)
 
 internal data class WakeDetailRow(
@@ -77,9 +80,13 @@ internal data class WakeDetailRow(
 
 internal data class WakeFact(val label: Int, val value: WakeText)
 internal data class WakeChainPeer(val app: WakeAppIdentity, val blocked: Boolean)
+
+// Keep three chain slots and give the last slot to the overflow count when needed.
+private const val CHAIN_PEER_SLOTS = 3
+
 internal data class WakeChainSide(val peers: List<WakeChainPeer>) {
     val cut get() = peers.isNotEmpty() && peers.all { it.blocked }
-    val visiblePeers get() = if (peers.size > 3) peers.take(2) else peers
+    val visiblePeers get() = if (peers.size > CHAIN_PEER_SLOTS) peers.take(CHAIN_PEER_SLOTS - 1) else peers
     val more get() = peers.size - visiblePeers.size
 }
 
