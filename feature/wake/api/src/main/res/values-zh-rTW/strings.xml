@@ -51,4 +51,82 @@
     <string name="feature_wake_api_looks_for_restart">關閉後重新啟動的應用</string>
     <string name="feature_wake_api_looks_for_each_other">互相喚醒的應用</string>
     <string name="feature_wake_api_looks_for_screen_off">螢幕關閉後持續執行的應用</string>
+    <string name="feature_wake_api_status_keep_alive">有保活行為</string>
+    <string name="feature_wake_api_status_attention">需要留意</string>
+    <string name="feature_wake_api_status_all_blocked">已封鎖所有保活方式</string>
+    <plurals name="feature_wake_api_background_starts">
+        <item quantity="other">近 7 天在背景啟動 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_apps">
+        <item quantity="other">%d 個應用程式</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_more">
+        <item quantity="other">另外 %d 個應用程式</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_inbound">
+        <item quantity="other">%1$d 個應用程式喚醒%2$s</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_outbound">
+        <item quantity="other">%2$s喚醒 %1$d 個應用程式</item>
+    </plurals>
+    <string name="feature_wake_api_list_pair">%1$s，%2$s</string>
+    <string name="feature_wake_api_view_app">檢視%s</string>
+    <string name="feature_wake_api_section_relations">喚醒關係</string>
+    <string name="feature_wake_api_section_methods">保活方式</string>
+    <string name="feature_wake_api_relation_mutual">與%s互相喚醒</string>
+    <string name="feature_wake_api_relation_inbound">由%s喚醒</string>
+    <string name="feature_wake_api_relation_outbound">喚醒%s</string>
+    <string name="feature_wake_api_method_restart">關閉後重新啟動</string>
+    <string name="feature_wake_api_method_self_start">自身程序互相啟動</string>
+    <string name="feature_wake_api_method_system_event">收到系統廣播後啟動</string>
+    <string name="feature_wake_api_method_timed">定時喚醒</string>
+    <string name="feature_wake_api_method_screen_off">螢幕關閉後持續執行</string>
+    <string name="feature_wake_api_method_known">已知保活方式</string>
+    <string name="feature_wake_api_path_meta">%1$s · 最近一次在 %2$s</string>
+    <string name="feature_wake_api_blocked">已封鎖</string>
+    <string name="feature_wake_api_blocked_not_seen">已封鎖，此後未再發生</string>
+    <string name="feature_wake_api_blocked_automatically">Blocker 已自動封鎖</string>
+    <string name="feature_wake_api_fact_component">元件</string>
+    <string name="feature_wake_api_fact_caller">呼叫端</string>
+    <string name="feature_wake_api_fact_action">動作</string>
+    <string name="feature_wake_api_fact_component_value">%1$s（%2$s）</string>
+    <string name="feature_wake_api_fact_component_of_app">%1$s（%2$s的%3$s）</string>
+    <string name="feature_wake_api_type_activity">活動</string>
+    <string name="feature_wake_api_type_service">服務</string>
+    <string name="feature_wake_api_type_receiver">廣播接收器</string>
+    <string name="feature_wake_api_type_provider">內容提供者</string>
+    <plurals name="feature_wake_api_normal_starts">
+        <item quantity="other">正常啟動 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_opened">
+        <item quantity="other">開啟應用程式 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_notification">
+        <item quantity="other">顯示通知 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_push">
+        <item quantity="other">收到推播訊息 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_granted">
+        <item quantity="other">使用您授予的權限 %d 次</item>
+    </plurals>
+    <string name="feature_wake_api_allow_background">允許背景活動</string>
+    <string name="feature_wake_api_block_all">全部封鎖</string>
+    <string name="feature_wake_api_view_components">檢視元件</string>
+    <string name="feature_wake_api_restore_all">還原所有變更</string>
+    <string name="feature_wake_api_allow_path">允許%s</string>
+    <string name="feature_wake_api_sheet_title">封鎖%s的保活方式</string>
+    <string name="feature_wake_api_sheet_background">同時關閉「允許背景活動」</string>
+    <string name="feature_wake_api_cancel">取消</string>
+    <string name="feature_wake_api_block">封鎖</string>
+    <plurals name="feature_wake_api_blocked_count">
+        <item quantity="other">已封鎖 %d 項</item>
+    </plurals>
+    <plurals name="feature_wake_api_not_blocked_count">
+        <item quantity="other">%d 項無法封鎖</item>
+    </plurals>
+    <string name="feature_wake_api_restored">已還原%s的所有變更</string>
+    <string name="feature_wake_api_undo">復原</string>
+    <string name="feature_wake_api_sender_unsupported">此系統不支援依來源封鎖</string>
+    <string name="feature_wake_api_background_not_changeable">系統不允許變更此應用程式的背景活動</string>
 </resources>

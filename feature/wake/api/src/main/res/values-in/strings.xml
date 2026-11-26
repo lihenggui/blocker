@@ -51,4 +51,82 @@
     <string name="feature_wake_api_looks_for_restart">Aplikasi yang dimulai ulang setelah ditutup</string>
     <string name="feature_wake_api_looks_for_each_other">Aplikasi yang saling memulai</string>
     <string name="feature_wake_api_looks_for_screen_off">Aplikasi yang tetap berjalan saat layar mati</string>
+    <string name="feature_wake_api_status_keep_alive">Menjaga dirinya tetap berjalan</string>
+    <string name="feature_wake_api_status_attention">Perlu perhatian</string>
+    <string name="feature_wake_api_status_all_blocked">Semua cara untuk tetap berjalan diblokir</string>
+    <plurals name="feature_wake_api_background_starts">
+        <item quantity="other">Dimulai %d kali di latar belakang dalam 7 hari terakhir</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_apps">
+        <item quantity="other">%d aplikasi</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_more">
+        <item quantity="other">%d aplikasi lainnya</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_inbound">
+        <item quantity="other">%1$d aplikasi memulai %2$s</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_outbound">
+        <item quantity="other">%2$s memulai %1$d aplikasi</item>
+    </plurals>
+    <string name="feature_wake_api_list_pair">%1$s, %2$s</string>
+    <string name="feature_wake_api_view_app">Lihat %s</string>
+    <string name="feature_wake_api_section_relations">Hubungan pemicu</string>
+    <string name="feature_wake_api_section_methods">Cara untuk tetap berjalan</string>
+    <string name="feature_wake_api_relation_mutual">Saling memulai dengan %s</string>
+    <string name="feature_wake_api_relation_inbound">Dimulai oleh %s</string>
+    <string name="feature_wake_api_relation_outbound">Memulai %s</string>
+    <string name="feature_wake_api_method_restart">Dimulai ulang setelah ditutup</string>
+    <string name="feature_wake_api_method_self_start">Prosesnya saling memulai</string>
+    <string name="feature_wake_api_method_system_event">Dimulai saat menerima siaran sistem</string>
+    <string name="feature_wake_api_method_timed">Aktif berdasarkan pewaktu</string>
+    <string name="feature_wake_api_method_screen_off">Tetap berjalan saat layar mati</string>
+    <string name="feature_wake_api_method_known">Cara yang diketahui untuk tetap berjalan</string>
+    <string name="feature_wake_api_path_meta">%1$s · terakhir %2$s</string>
+    <string name="feature_wake_api_blocked">Diblokir</string>
+    <string name="feature_wake_api_blocked_not_seen">Diblokir, belum terjadi lagi</string>
+    <string name="feature_wake_api_blocked_automatically">Diblokir secara otomatis oleh Blocker</string>
+    <string name="feature_wake_api_fact_component">Komponen</string>
+    <string name="feature_wake_api_fact_caller">Pemanggil</string>
+    <string name="feature_wake_api_fact_action">Tindakan</string>
+    <string name="feature_wake_api_fact_component_value">%1$s (%2$s)</string>
+    <string name="feature_wake_api_fact_component_of_app">%1$s (%3$s dari %2$s)</string>
+    <string name="feature_wake_api_type_activity">aktivitas</string>
+    <string name="feature_wake_api_type_service">layanan</string>
+    <string name="feature_wake_api_type_receiver">penerima siaran</string>
+    <string name="feature_wake_api_type_provider">penyedia konten</string>
+    <plurals name="feature_wake_api_normal_starts">
+        <item quantity="other">%d mulai normal</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_opened">
+        <item quantity="other">Dibuka %d kali</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_notification">
+        <item quantity="other">Menampilkan notifikasi %d kali</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_push">
+        <item quantity="other">Menerima pesan push %d kali</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_granted">
+        <item quantity="other">Menggunakan izin yang Anda berikan %d kali</item>
+    </plurals>
+    <string name="feature_wake_api_allow_background">Izinkan penggunaan di latar belakang</string>
+    <string name="feature_wake_api_block_all">Blokir semua</string>
+    <string name="feature_wake_api_view_components">Lihat komponen</string>
+    <string name="feature_wake_api_restore_all">Pulihkan semua perubahan</string>
+    <string name="feature_wake_api_allow_path">Izinkan %s</string>
+    <string name="feature_wake_api_sheet_title">Blokir cara %s untuk tetap berjalan</string>
+    <string name="feature_wake_api_sheet_background">Nonaktifkan juga “Izinkan penggunaan di latar belakang”</string>
+    <string name="feature_wake_api_cancel">Batal</string>
+    <string name="feature_wake_api_block">Blokir</string>
+    <plurals name="feature_wake_api_blocked_count">
+        <item quantity="other">%d item diblokir</item>
+    </plurals>
+    <plurals name="feature_wake_api_not_blocked_count">
+        <item quantity="other">%d item tidak dapat diblokir</item>
+    </plurals>
+    <string name="feature_wake_api_restored">Semua perubahan pada %s dipulihkan</string>
+    <string name="feature_wake_api_undo">Urungkan</string>
+    <string name="feature_wake_api_sender_unsupported">Sistem ini tidak dapat memblokir berdasarkan pengirim</string>
+    <string name="feature_wake_api_background_not_changeable">Android tidak mengizinkan perubahan penggunaan latar belakang untuk aplikasi ini</string>
 </resources>

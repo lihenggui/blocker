@@ -62,4 +62,94 @@
     <string name="feature_wake_api_looks_for_restart">Apps that restart after being closed</string>
     <string name="feature_wake_api_looks_for_each_other">Apps that start each other</string>
     <string name="feature_wake_api_looks_for_screen_off">Apps that keep running with the screen off</string>
+    <string name="feature_wake_api_status_keep_alive">Keeps itself running</string>
+    <string name="feature_wake_api_status_attention">Needs attention</string>
+    <string name="feature_wake_api_status_all_blocked">All keep-alive methods blocked</string>
+    <plurals name="feature_wake_api_background_starts">
+        <item quantity="one">Started %d time in the background in the last 7 days</item>
+        <item quantity="other">Started %d times in the background in the last 7 days</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_apps">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_more">
+        <item quantity="one">%d more app</item>
+        <item quantity="other">%d more apps</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_inbound">
+        <item quantity="one">%1$d app starts %2$s</item>
+        <item quantity="other">%1$d apps start %2$s</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_outbound">
+        <item quantity="one">%2$s starts %1$d app</item>
+        <item quantity="other">%2$s starts %1$d apps</item>
+    </plurals>
+    <string name="feature_wake_api_list_pair">%1$s, %2$s</string>
+    <string name="feature_wake_api_view_app">View %s</string>
+    <string name="feature_wake_api_section_relations">Wake relations</string>
+    <string name="feature_wake_api_section_methods">Keep-alive methods</string>
+    <string name="feature_wake_api_relation_mutual">Starts each other with %s</string>
+    <string name="feature_wake_api_relation_inbound">Started by %s</string>
+    <string name="feature_wake_api_relation_outbound">Starts %s</string>
+    <string name="feature_wake_api_method_restart">Restarts after being closed</string>
+    <string name="feature_wake_api_method_self_start">Its processes start each other</string>
+    <string name="feature_wake_api_method_system_event">Starts on system broadcasts</string>
+    <string name="feature_wake_api_method_timed">Wakes on a timer</string>
+    <string name="feature_wake_api_method_screen_off">Keeps running with the screen off</string>
+    <string name="feature_wake_api_method_known">Known keep-alive method</string>
+    <string name="feature_wake_api_path_meta">%1$s · last %2$s</string>
+    <string name="feature_wake_api_blocked">Blocked</string>
+    <string name="feature_wake_api_blocked_not_seen">Blocked, not seen since</string>
+    <string name="feature_wake_api_blocked_automatically">Blocked automatically by Blocker</string>
+    <string name="feature_wake_api_fact_component">Component</string>
+    <string name="feature_wake_api_fact_caller">Caller</string>
+    <string name="feature_wake_api_fact_action">Action</string>
+    <string name="feature_wake_api_fact_component_value">%1$s (%2$s)</string>
+    <string name="feature_wake_api_fact_component_of_app">%1$s (%3$s of %2$s)</string>
+    <string name="feature_wake_api_type_activity">activity</string>
+    <string name="feature_wake_api_type_service">service</string>
+    <string name="feature_wake_api_type_receiver">receiver</string>
+    <string name="feature_wake_api_type_provider">provider</string>
+    <plurals name="feature_wake_api_normal_starts">
+        <item quantity="one">%d normal start</item>
+        <item quantity="other">%d normal starts</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_opened">
+        <item quantity="one">Opened %d time</item>
+        <item quantity="other">Opened %d times</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_notification">
+        <item quantity="one">Showed a notification %d time</item>
+        <item quantity="other">Showed a notification %d times</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_push">
+        <item quantity="one">Received a push message %d time</item>
+        <item quantity="other">Received push messages %d times</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_granted">
+        <item quantity="one">Used a permission you granted %d time</item>
+        <item quantity="other">Used a permission you granted %d times</item>
+    </plurals>
+    <string name="feature_wake_api_allow_background">Allow background usage</string>
+    <string name="feature_wake_api_block_all">Block all</string>
+    <string name="feature_wake_api_view_components">View components</string>
+    <string name="feature_wake_api_restore_all">Restore all changes</string>
+    <string name="feature_wake_api_allow_path">Allow %s</string>
+    <string name="feature_wake_api_sheet_title">Block keep-alive methods of %s</string>
+    <string name="feature_wake_api_sheet_background">Also turn off “Allow background usage”</string>
+    <string name="feature_wake_api_cancel">Cancel</string>
+    <string name="feature_wake_api_block">Block</string>
+    <plurals name="feature_wake_api_blocked_count">
+        <item quantity="one">%d item blocked</item>
+        <item quantity="other">%d items blocked</item>
+    </plurals>
+    <plurals name="feature_wake_api_not_blocked_count">
+        <item quantity="one">%d item could not be blocked</item>
+        <item quantity="other">%d items could not be blocked</item>
+    </plurals>
+    <string name="feature_wake_api_restored">Restored all changes to %s</string>
+    <string name="feature_wake_api_undo">Undo</string>
+    <string name="feature_wake_api_sender_unsupported">This system cannot block a single sender</string>
+    <string name="feature_wake_api_background_not_changeable">Android does not allow changing background usage for this app</string>
 </resources>
