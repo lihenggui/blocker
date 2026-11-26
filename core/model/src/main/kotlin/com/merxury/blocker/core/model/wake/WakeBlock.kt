@@ -37,10 +37,8 @@ sealed interface WakeBlockFailure {
     data class SystemError(val message: String?) : WakeBlockFailure
 }
 
-/** What a block or unblock request changed: the paths done, and the first failure for the rest. */
+/** The paths completed by a block or unblock request, and the first failure for the rest. */
 data class WakeBlockOutcome(
     val done: Set<String>,
     val failure: WakeBlockFailure?,
-    /** Keys whose stored state changed, when the caller needs to undo an operation. */
-    val changed: Set<String> = done,
 )

@@ -3,7 +3,6 @@
 
 package com.merxury.blocker.core.data.wake
 
-import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
@@ -11,7 +10,9 @@ import com.merxury.blocker.core.model.wake.WakePath
 import kotlinx.coroutines.flow.Flow
 
 interface WakeBlockRepository {
-    data class AddedBlocks(val records: List<WakeBlock>, val componentsWritten: Set<ComponentId>)
+    interface Snapshot {
+        val hasChanges: Boolean
+    }
 
     /** Every block the user made on the wake screens. */
     val blocks: Flow<List<WakeBlock>>
@@ -19,11 +20,11 @@ interface WakeBlockRepository {
     /** Cuts each path with its requested method. Connects the privileged channel, which may prompt. */
     suspend fun block(requests: List<Pair<WakePath, WakeBlockMethod>>): WakeBlockOutcome
 
-    /** Cuts the paths and returns newly stored records, including records from partial writes. */
-    suspend fun blockRecordingChanges(requests: List<Pair<WakePath, WakeBlockMethod>>): Pair<WakeBlockOutcome, AddedBlocks>
+    /** Cuts the paths and captures the state changed by the batch, including partial writes. */
+    suspend fun blockRecordingChanges(requests: List<Pair<WakePath, WakeBlockMethod>>): Pair<WakeBlockOutcome, Snapshot>
 
-    /** Removes only records that still match those created by the operation being undone. */
-    suspend fun undoAddedBlocks(blocks: AddedBlocks): WakeBlockOutcome
+    /** Restores the captured state wherever the batch's writes are still current. */
+    suspend fun undoBlockChanges(snapshot: Snapshot): WakeBlockOutcome
 
     /** Removes the blocks of [pathKeys]. Connects the privileged channel, which may prompt. */
     suspend fun unblock(pathKeys: Collection<String>): WakeBlockOutcome

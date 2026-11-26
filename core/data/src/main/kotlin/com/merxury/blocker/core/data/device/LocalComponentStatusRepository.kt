@@ -25,6 +25,7 @@ import com.merxury.blocker.core.database.cache.AppEntity
 import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.ComponentRow
 import com.merxury.blocker.core.database.cache.asExternalModel
+import com.merxury.blocker.core.database.record.PmBlockRecordEntity
 import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.component.AppKey
@@ -355,17 +356,30 @@ internal class LocalComponentStatusRepository(
             return@flow
         }
         val packages = others.mapTo(mutableSetOf()) { it.id.packageName }
+        val claimObserver = writeObserver as? PmBlockClaimObserver
+        val newClaims = mutableListOf<PmBlockRecordEntity>()
+        suspend fun recordPmBlocks(keys: Collection<ComponentKey>) {
+            val added = pmBlocks.recordNew(keys)
+            if (claimObserver != null) newClaims += added
+        }
         val persistence = object : ComponentControlPersistence {
             override suspend fun beforePmBlock(app: AppKey, components: Collection<ComponentId>) {
-                pmBlocks.record(components.map { ComponentKey(it, app.userId) })
+                recordPmBlocks(components.map { ComponentKey(it, app.userId) })
             }
 
             override suspend fun afterPackage(event: ControlEvent.PackageDone, alreadyDisabled: Set<ComponentId>) {
                 controlActivity.recordWrites(AppKey(event.packageName, request.user), event.pmWrites)
                 try {
                     val wakeBlocks = claimedWakeBlocks(request.user, alreadyDisabled)
-                    pmBlocks.record(wakeBlocks.map { ComponentKey(it, request.user) })
-                    pmBlocks.afterControl(event, forgetRefusedPmBlocks)
+                    recordPmBlocks(wakeBlocks.map { ComponentKey(it, request.user) })
+                    // Snapshot undo removes its own claims by record identity.
+                    if (request.expectedPm == null) pmBlocks.afterControl(event, forgetRefusedPmBlocks)
+                    if (newClaims.isNotEmpty()) {
+                        val cleared = event.outcomes.filter { it.state.pm == PmSetting.DEFAULT || it.state.pm == PmSetting.ENABLED }
+                            .mapTo(mutableSetOf()) { it.key.id.className }
+                        claimObserver?.onPmClaimsAdded(newClaims.filterNot { it.className in cleared })
+                        newClaims.clear()
+                    }
                 } finally {
                     store(event, request.user, keepKnownState)
                 }

@@ -25,10 +25,10 @@ class SetWakePathsBlockedUseCase @Inject constructor(
     data class BatchResult(val outcome: WakeBlockOutcome, val undo: Undo)
 
     class Undo internal constructor(
-        internal val added: WakeBlockRepository.AddedBlocks?,
+        internal val snapshot: WakeBlockRepository.Snapshot?,
         internal val automaticIds: Set<String>,
     ) {
-        val hasChanges get() = added?.records?.isNotEmpty() == true || automaticIds.isNotEmpty()
+        val hasChanges get() = snapshot?.hasChanges == true || automaticIds.isNotEmpty()
     }
 
     /** Changes the user and automatic blocks that govern the selected paths. */
@@ -50,8 +50,8 @@ class SetWakePathsBlockedUseCase @Inject constructor(
     suspend fun undo(token: Undo): WakeBlockOutcome {
         currentCoroutineContext().ensureActive()
         return withContext(NonCancellable) {
-            val manual = token.added?.let { user.undoAddedBlocks(it) } ?: EmptyOutcome
-            manual + automatic.setBlocked(token.automaticIds, blocked = false)
+            val manual = token.snapshot?.let { user.undoBlockChanges(it) } ?: EmptyOutcome
+            manual + automatic.setBlocked(token.automaticIds, blocked = false).outcome
         }
     }
 
@@ -68,7 +68,7 @@ class SetWakePathsBlockedUseCase @Inject constructor(
         for (state in paths.distinctBy { it.path.pathKey }) {
             val path = state.path
             val ids = reviewed.matching(path).filter {
-                if (blocked) it.allowed || (recordUndo && it.active) else it.active
+                if (blocked) it.allowed else it.active
             }.map { it.pathId }
             val automaticOnly = if (blocked) ids.isNotEmpty() else state.block == WakePathBlock.AUTOMATIC
             if (!automaticOnly) userPaths[path.pathKey] = path
@@ -76,12 +76,12 @@ class SetWakePathsBlockedUseCase @Inject constructor(
         }
 
         val requests = userPaths.values.map { it to it.blockMethod }
-        val (manual, added) = when {
+        val (manual, snapshot) = when {
             recordUndo -> user.blockRecordingChanges(requests)
             blocked -> user.block(requests) to null
             else -> user.unblockPaths(userPaths.values.toList()) to null
         }
-        val reviewedOutcome = automatic.setBlocked(automaticIds.values.flatten().toSet() + unmatchedIds, blocked)
+        val (reviewedOutcome, changedIds) = automatic.setBlocked(automaticIds.values.flatten().toSet() + unmatchedIds, blocked)
         val reviewedDone = automaticIds.filterValues { ids -> ids.isNotEmpty() && ids.all { it in reviewedOutcome.done } }.keys
         val missing = (automaticIds.keys - reviewedDone) + (unmatchedIds - reviewedOutcome.done)
         val failure = when (val error = reviewedOutcome.failure) {
@@ -91,12 +91,12 @@ class SetWakePathsBlockedUseCase @Inject constructor(
         }
         val completed = (manual.done - automaticIds.keys) + reviewedDone.filter { it !in userPaths || it in manual.done } +
             unmatchedIds.intersect(reviewedOutcome.done)
-        return BatchResult(WakeBlockOutcome(completed, manual.failure ?: failure), Undo(added, reviewedOutcome.changed))
+        return BatchResult(WakeBlockOutcome(completed, manual.failure ?: failure), Undo(snapshot, changedIds))
     }
 
-    suspend operator fun invoke(blocks: Collection<AutomaticWakeBlock>, blocked: Boolean): WakeBlockOutcome = automatic.setBlocked(blocks.mapTo(mutableSetOf()) { it.pathId }, blocked)
+    suspend operator fun invoke(blocks: Collection<AutomaticWakeBlock>, blocked: Boolean): WakeBlockOutcome = automatic.setBlocked(blocks.mapTo(mutableSetOf()) { it.pathId }, blocked).outcome
 }
 
 private val EmptyOutcome = WakeBlockOutcome(emptySet(), null)
 
-internal operator fun WakeBlockOutcome.plus(other: WakeBlockOutcome) = WakeBlockOutcome(done + other.done, failure ?: other.failure, changed + other.changed)
+internal operator fun WakeBlockOutcome.plus(other: WakeBlockOutcome) = WakeBlockOutcome(done + other.done, failure ?: other.failure)

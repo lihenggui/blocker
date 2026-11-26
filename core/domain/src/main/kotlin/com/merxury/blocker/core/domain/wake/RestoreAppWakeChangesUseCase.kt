@@ -46,7 +46,12 @@ class RestoreAppWakeChangesUseCase @Inject constructor(
             val reviewed = automatic.allowForApp(packageName)
             val background = when (val setting = backgroundUsage.read(app)) {
                 is BackgroundUsageResult.Success -> if (setting.value.allowed) emptyOutcome else setBackgroundUsage(app, allowed = true)
-                is BackgroundUsageResult.Failure -> WakeBlockOutcome(emptySet(), setting.reason.asBlockFailure())
+
+                is BackgroundUsageResult.Failure -> if (setting.reason == BackgroundUsageFailure.UNSUPPORTED) {
+                    emptyOutcome
+                } else {
+                    WakeBlockOutcome(emptySet(), setting.reason.asBlockFailure())
+                }
             }
             val backgroundApp = app.takeIf { background.done.isNotEmpty() }
             val undo = if (blocks.isNotEmpty() || reviewed.done.isNotEmpty() || backgroundApp != null) {
@@ -63,7 +68,7 @@ class RestoreAppWakeChangesUseCase @Inject constructor(
         currentCoroutineContext().ensureActive()
         return withContext(NonCancellable) {
             val manual = user.restoreBlocks(changes.blocks)
-            val reviewed = automatic.setBlocked(changes.automaticIds, blocked = true)
+            val reviewed = automatic.setBlocked(changes.automaticIds, blocked = true).outcome
             val background = changes.backgroundApp?.let { setBackgroundUsage(it, allowed = false) } ?: emptyOutcome
             manual + reviewed + background
         }

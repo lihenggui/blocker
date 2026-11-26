@@ -31,12 +31,8 @@ class UserWakeFirewall @Inject constructor(
     ) {
         val replaced = removed.toSet() + added.map { it.pathKey }
         val desired = current.filterNot { it.pathKey in replaced } + added
-        val (services, obsolete) = desired.filter { it.isFirewallBlock }.partition {
-            it.componentType == ComponentType.SERVICE.name && it.component != null && it.sender != null
-        }
-        val rules = services.map { UserWakeRule(requireNotNull(it.sender), it.target, requireNotNull(it.component)) }
-        writer.write(WakeRuleFileKind.USER, renderUserWakeRules(rules))
-        dao.update(added, removed + obsolete.map { it.pathKey })
+        write(desired)
+        dao.update(added, removed)
     }
 
     internal suspend fun sync() {
@@ -51,10 +47,19 @@ class UserWakeFirewall @Inject constructor(
                 }
             }
         }.toSet()
-        update(current, added = emptyList(), removed = current.filter { it.target in absent }.map { it.pathKey })
+        val removed = current.filter { it.target in absent || (it.isFirewallBlock && !it.isServiceRule) }
+        update(current, added = emptyList(), removed = removed.map { it.pathKey })
+    }
+
+    private suspend fun write(rows: Collection<WakeBlockEntity>) {
+        val rules = rows.filter { it.isFirewallBlock && it.isServiceRule }
+            .map { UserWakeRule(requireNotNull(it.sender), it.target, requireNotNull(it.component)) }
+        writer.write(WakeRuleFileKind.USER, renderUserWakeRules(rules))
     }
 
     internal suspend fun forgetFirewallBlocks(packageName: String?) = dao.deleteFirewall(packageName)
 }
 
 internal val WakeBlockEntity.isFirewallBlock: Boolean get() = method == WakeBlockMethod.FIREWALL_RULE.name
+
+private val WakeBlockEntity.isServiceRule: Boolean get() = componentType == ComponentType.SERVICE.name && component != null && sender != null

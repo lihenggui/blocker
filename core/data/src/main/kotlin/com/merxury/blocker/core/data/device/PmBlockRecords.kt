@@ -24,6 +24,7 @@ import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import kotlinx.coroutines.flow.map
@@ -61,9 +62,20 @@ class PmBlockRecords @Inject constructor(
 
     /** Journals [keys] as Blocker claims the PM block; a recorded key keeps its time. */
     suspend fun record(keys: Collection<ComponentKey>) {
-        if (keys.isEmpty()) return
+        recordNew(keys)
+    }
+
+    internal suspend fun recordNew(keys: Collection<ComponentKey>): List<PmBlockRecordEntity> {
+        if (keys.isEmpty()) return emptyList()
         val now = System.currentTimeMillis()
-        dao.insertOrIgnore(keys.map { PmBlockRecordEntity(it.id.packageName, it.id.className, it.userId.value, now) })
+        val records = keys.map { PmBlockRecordEntity(it.id.packageName, it.id.className, it.userId.value, now) }
+        val inserted = dao.insertOrIgnore(records)
+        return records.filterIndexed { index, _ -> inserted[index] != -1L }
+    }
+
+    /** Drops only claims still matching those made by the operation being undone. */
+    internal suspend fun forgetIfUnchanged(records: Collection<PmBlockRecordEntity>) {
+        if (records.isNotEmpty()) dao.deleteMatching(records.toList())
     }
 
     /** Drops the records of [keys]; keys not recorded are ignored. */
@@ -115,6 +127,10 @@ class PmBlockRecords @Inject constructor(
         if (gone.isNotEmpty()) Timber.i("Forget ${gone.size} PM blocks of $app that are no longer disabled or declared")
         forget(gone)
     }
+}
+
+internal interface PmBlockClaimObserver : ComponentWriteObserver {
+    fun onPmClaimsAdded(records: List<PmBlockRecordEntity>)
 }
 
 private fun PmBlockRecordEntity.asKey() = ComponentKey(ComponentId(packageName, className), UserId(userId))
