@@ -314,12 +314,17 @@ class WakeDetectionTest {
     }
 
     @Test fun givenProcessStartTriggerTypes_whenDetecting_thenAlarmPushAndJobAreDirect() {
-        fun type(value: String) = revive(coldStart.copy(attributes = """{"trigger_type":"$value"}"""))
+        val action = "target.app.WAKE"
+        fun type(value: String, component: String? = coldStart.component) = revive(coldStart.copy(component = component, action = action, attributes = """{"trigger_type":"$value"}"""))
         assertThat(type("1").trigger).isEqualTo(ReviveTrigger.ALARM)
+        assertThat(type("1").detail).isEqualTo(action)
         assertThat(type("2").trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
+        assertThat(type("2").detail).isEqualTo(action)
         assertThat(type("3").trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
         assertThat(type("4").trigger).isEqualTo(ReviveTrigger.JOB)
         assertThat(type("4").confidence).isEqualTo(Confidence.DIRECT)
+        assertThat(type("4").detail).isEqualTo("$TARGET.Wake")
+        assertThat(type("4", component = null).detail).isEqualTo(action)
         val fcm = revive(coldStart.copy(action = "com.google.android.c2dm.intent.RECEIVE"))
         assertThat(fcm.trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
         assertThat(fcm.actor).isEqualTo("com.google.android.gms")
@@ -361,6 +366,47 @@ class WakeDetectionTest {
         assertThat(joined(request("ServiceRequestEventReported", 10050, "com.google.android.gms")).trigger).isEqualTo(ReviveTrigger.PEER_SERVICE)
     }
 
+    @Test fun givenOemTransportRequests_whenDetecting_thenDedicatedServicesAndKnownHmsActionsCountAsPush() {
+        val dedicated = listOf("com.huawei.android.pushagent", "com.hihonor.pushagent", "com.meizu.cloud", "com.coloros.mcs", "com.oplus.mcs", "com.sec.spp.push")
+        for (pkg in dedicated) {
+            val push = joined(request("ServiceRequestEventReported", 10050, pkg))
+            assertThat(push.trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
+            assertThat(push.actor).isEqualTo(pkg)
+        }
+        val actions = listOf("com.huawei.push.action.MESSAGING_EVENT", "com.huawei.intent.action.PUSH", "com.huawei.android.push.intent.RECEIVE")
+        for (action in actions) {
+            val push = joined(request("BroadcastDeliveryEventReported", 10050, "com.huawei.hwid", action))
+            assertThat(push.trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
+            assertThat(push.detail).isEqualTo(action)
+        }
+        val nonPush = joined(request("ServiceRequestEventReported", 10050, "com.huawei.hwid", "com.huawei.account.LOGIN"))
+        assertThat(nonPush.trigger).isEqualTo(ReviveTrigger.PEER_SERVICE)
+    }
+
+    @Test fun givenPushStartInfoWithAJoinedDelivery_whenDetecting_thenOnlyKnownTransportAddsAttribution() {
+        val info = wakeRecord("info", "ApplicationStartInfo", START, source = "START_INFO", startType = 3, process = TARGET, attributes = mapOf("reason" to "PUSH"))
+        val pushAction = "com.huawei.android.push.intent.RECEIVE"
+        val push = request("BroadcastDeliveryEventReported", 10050, "com.huawei.hwid", pushAction)
+        fun finding(request: WakeRecord, vararg extra: WakeRecord) = joined(request, info, *extra)
+
+        val silent = finding(push)
+        assertThat(silent.trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
+        assertThat(silent.actor).isEqualTo("com.huawei.hwid")
+        assertThat(silent.detail).isEqualTo(pushAction)
+        assertThat(silent.confidence).isEqualTo(Confidence.JOINED)
+        assertThat(silent.justification).isEqualTo(Justification.NONE)
+
+        val notification = wakeRecord("notification", "NotificationReported", START + 10 * SECOND, attributes = mapOf("event_id" to "162"))
+        assertThat(finding(push, notification).justification).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(finding(push, notification.copy(elapsedNanos = notification.elapsedNanos + 1)).justification).isEqualTo(Justification.NONE)
+
+        val nonPush = finding(push.copy(action = "com.huawei.account.LOGIN"))
+        assertThat(nonPush.trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
+        assertThat(nonPush.actor).isNull()
+        assertThat(nonPush.detail).isEqualTo("$TARGET.Wake")
+        assertThat(nonPush.confidence).isEqualTo(Confidence.DIRECT)
+    }
+
     @Test fun givenSystemCallers_whenDetecting_thenBroadcastBindJobSyncAndAlarmAreSeparated() {
         val system = request("ServiceRequestEventReported", 1000, "android")
         val broadcast = joined(request("BroadcastDeliveryEventReported", 1000, "android", "android.intent.action.PACKAGE_REPLACED"))
@@ -373,9 +419,10 @@ class WakeDetectionTest {
         assertThat(bind.justification).isEqualTo(Justification.USER_GRANTED_ROLE)
         val job = wakeRecord("job", "ScheduledJobStateChanged", START - SECOND, attributes = mapOf("attribution_node" to "$TARGET_UID", "state" to "1", "job_name" to "abc"))
         assertThat(joined(system, job).trigger).isEqualTo(ReviveTrigger.JOB)
-        assertThat(joined(system, job).detail).isEqualTo("abc")
+        assertThat(joined(system, job).detail).isEqualTo("$TARGET.Wake")
         val sync = wakeRecord("sync", "SyncStateChanged", START + SECOND, attributes = mapOf("attribution_node" to "$TARGET_UID", "state" to "1"))
         assertThat(joined(system, sync).trigger).isEqualTo(ReviveTrigger.SYNC)
+        assertThat(joined(system, sync).detail).isEqualTo("$TARGET.Wake")
         val alarm = wakeRecord("alarm", "WakeupAlarmOccurred", START - 2 * SECOND, attributes = mapOf("attribution_node" to "$TARGET_UID", "tag" to "0011aa"))
         assertThat(joined(system, alarm).trigger).isEqualTo(ReviveTrigger.ALARM)
         // A system binding of a component without special access is not a role binding.
@@ -385,6 +432,17 @@ class WakeDetectionTest {
         assertThat(unexplained.justification).isEqualTo(Justification.NONE)
         // A stale job outside the join window does not explain the start.
         assertThat(joined(system, job.copy(elapsedNanos = START - 6 * SECOND)).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+    }
+
+    @Test fun givenCorrelatedJob_whenDetecting_thenHostedServiceWinsAndJobNameIsTheFallback() {
+        val event = wakeRecord("event", "am_proc_start", START, source = SYSTEM_WAKE_EVENTS, component = "{$TARGET/.Worker}", process = TARGET)
+        val digest = "1234567890abcdef12345678"
+        val job = wakeRecord("job", "ScheduledJobStateChanged", START - SECOND, attributes = mapOf("attribution_node" to "$TARGET_UID", "state" to "1", "job_name" to digest))
+
+        assertThat(revive(event, job).detail).isEqualTo("$TARGET.Worker")
+        assertThat(revive(event.copy(component = null), job).detail).isEqualTo(digest)
+        val named = job.copy(attributes = """{"attribution_node":"$TARGET_UID","state":"1","job_name":"$TARGET/.ScheduledService"}""")
+        assertThat(revive(event.copy(component = null), named).pathKey).isEqualTo("JOB|android|$TARGET|$TARGET.ScheduledService")
     }
 
     @Test fun givenGrants_whenJudgingSystemBinds_thenRolesCoverPackagesAndBindingsCoverComponents() {
@@ -447,7 +505,6 @@ class WakeDetectionTest {
         }
         val died = wakeRecord("died", "AppProcessDied", START - 50 * SECOND, process = TARGET, attributes = mapOf("reason" to "3"))
         assertThat(revive(coldStart, died).afterKill).isEqualTo("REASON_LOW_MEMORY")
-        assertThat(revive(coldStart, died.copy(elapsedNanos = START - 61 * SECOND)).afterKill).isNull()
         fun diedOf(reason: Int, sub: Int) = revive(coldStart, died.copy(attributes = """{"reason":"$reason","sub_reason":"$sub"}""")).afterKill
         assertThat(diedOf(13, 3)).isEqualTo("REASON_OTHER:SUBREASON_TOO_MANY_EMPTY")
         assertThat(diedOf(10, 22)).isEqualTo("REASON_USER_REQUESTED:SUBREASON_REMOVE_TASK")
@@ -455,6 +512,19 @@ class WakeDetectionTest {
         assertThat(diedOf(10, 21)).isNull()
         assertThat(diedOf(13, 17)).isNull()
         assertThat(diedOf(11, 0)).isNull()
+    }
+
+    @Test fun givenKillsBeforeAColdStart_whenDetecting_thenBackoffUpToTenMinutesStillCounts() {
+        val startTime = 900 * SECOND
+        val start = wakeRecord("event", "am_proc_start", startTime, source = SYSTEM_WAKE_EVENTS, process = TARGET)
+        val kill = wakeRecord("kill", "am_kill", 0, source = SYSTEM_WAKE_EVENTS, process = TARGET, attributes = mapOf("user" to "0", "reason" to "empty #17"))
+        val died = wakeRecord("died", "AppProcessDied", 0, process = TARGET, attributes = mapOf("reason" to "3"))
+        for ((death, reason) in listOf(kill to "empty #17", died to "REASON_LOW_MEMORY")) {
+            assertThat(revive(start, death.copy(elapsedNanos = startTime - 5 * 60 * SECOND)).afterKill).isEqualTo(reason)
+            assertThat(revive(start, death.copy(elapsedNanos = startTime - 10 * 60 * SECOND)).afterKill).isEqualTo(reason)
+            assertThat(revive(start, death.copy(elapsedNanos = startTime - 10 * 60 * SECOND - 1)).afterKill).isNull()
+            assertThat(revive(start, death.copy(elapsedNanos = startTime)).afterKill).isNull()
+        }
     }
 
     @Test fun givenWhatFollowsTheStart_whenJudging_thenVisibleAndProductiveStartsAreJustified() {

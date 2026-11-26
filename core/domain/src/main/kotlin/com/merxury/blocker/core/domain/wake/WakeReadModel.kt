@@ -26,8 +26,7 @@ private val peerTriggers = setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.PEER_
 private val peerHolds = setOf(HoldCause.BOUND_BY_PEER, HoldCause.PROVIDER_CLIENT)
 private val timedTriggers = setOf(ReviveTrigger.ALARM, ReviveTrigger.JOB, ReviveTrigger.SYNC, ReviveTrigger.PENDING_INTENT)
 
-// Triggers and holds whose detail names a component. Alarm tags, job names and wakelock tags are
-// digested at capture, so they never name one even when they contain a dot.
+// Triggers and holds whose detail can name a component.
 private val componentTriggers = setOf(
     ReviveTrigger.PEER_SERVICE,
     ReviveTrigger.PEER_PROVIDER,
@@ -35,8 +34,20 @@ private val componentTriggers = setOf(
     ReviveTrigger.STICKY_RESTART,
     ReviveTrigger.SELF_PROCESS,
     ReviveTrigger.SYSTEM_BIND,
+    ReviveTrigger.JOB,
+    ReviveTrigger.SYNC,
 )
-private val componentHolds = setOf(HoldCause.FOREGROUND_SERVICE, HoldCause.BOUND_BY_PEER, HoldCause.BOUND_BY_SYSTEM, HoldCause.PROVIDER_CLIENT)
+private val componentHolds = setOf(
+    HoldCause.FOREGROUND_SERVICE,
+    HoldCause.BOUND_BY_PEER,
+    HoldCause.BOUND_BY_SYSTEM,
+    HoldCause.PROVIDER_CLIENT,
+    HoldCause.RUNNING_JOB,
+)
+
+// Bare dotted push details share one field with intent actions. Prefer a component only when
+// the spelling looks like a class, keeping action constants such as c2dm.intent.RECEIVE as actions.
+private val pushComponentClass = Regex("""(?:\.|(?:[A-Za-z_$][A-Za-z0-9_$]*\.)+)[A-Z][A-Za-z0-9_$]*""")
 
 internal fun buildAppWakeActivity(
     packageName: String,
@@ -63,7 +74,7 @@ internal fun buildAppWakeActivity(
 
 private fun countJustifiedStarts(revives: List<WakeFindingDay>): JustifiedStarts {
     val counts = revives.groupingBy { row ->
-        if (row.trigger == ReviveTrigger.PUSH_TRANSPORT.name) ReviveTrigger.PUSH_TRANSPORT.name else row.justification
+        if (row.trigger == ReviveTrigger.PUSH_TRANSPORT.name && !row.isUnjustified) ReviveTrigger.PUSH_TRANSPORT.name else row.justification
     }.fold(0L) { count, row -> count + row.count }
     return JustifiedStarts(
         userInitiated = counts[Justification.USER_INITIATED.name] ?: 0,
@@ -105,6 +116,8 @@ private fun buildOwnWakeMethods(paths: List<WakePath>): List<OwnWakeMethod> = pa
 private fun WakePath.ownMethodKey(): OwnMethodKey? = when {
     trigger in peerTriggers || trigger == ReviveTrigger.PEER_ACTIVITY -> null
 
+    trigger == ReviveTrigger.PUSH_TRANSPORT -> OwnMethodKey(OwnWakeKind.SYSTEM_EVENT, component, action)
+
     trigger == ReviveTrigger.STICKY_RESTART || (trigger != null && afterKill) ->
         OwnMethodKey(OwnWakeKind.RESTART_AFTER_CLOSE, component, action)
 
@@ -112,10 +125,10 @@ private fun WakePath.ownMethodKey(): OwnMethodKey? = when {
 
     trigger == ReviveTrigger.SYSTEM_BROADCAST -> OwnMethodKey(OwnWakeKind.SYSTEM_EVENT, action = action)
 
-    trigger in timedTriggers -> OwnMethodKey(OwnWakeKind.TIMED)
+    trigger in timedTriggers -> OwnMethodKey(OwnWakeKind.TIMED, component = component)
 
     screenOffNanos > 0 && (
-        hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.WAKELOCK || hold == HoldCause.RUNNING_JOB ||
+        hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.WAKELOCK || hold == HoldCause.RUNNING_JOB || hold == HoldCause.UNKNOWN ||
             (hold == HoldCause.BOUND_BY_PEER && actor == target)
         ) -> OwnMethodKey(OwnWakeKind.SCREEN_OFF_RUN, component, hold = hold)
 
@@ -172,10 +185,14 @@ private fun wakeHeadline(days: List<WakeVerdictDay>, targetPaths: List<WakePath>
     if (action != null) return WakeHeadline.StartsOnSystemEvent(action.key, action.value)
 
     val timed = targetPaths.filter { it.trigger in timedTriggers }.sumOf { it.count }
-    return if (timed > 0) WakeHeadline.TimedWakeups(timed) else WakeHeadline.BackgroundStarts(noneRevives)
+    if (timed > 0) return WakeHeadline.TimedWakeups(timed)
+    if (noneRevives > 0) return WakeHeadline.BackgroundStarts(noneRevives)
+
+    val silentPushes = targetPaths.filter { it.trigger == ReviveTrigger.PUSH_TRANSPORT }.sumOf { it.count }
+    return WakeHeadline.BackgroundStarts(silentPushes)
 }
 
-private val WakeFindingDay.isUnjustified get() = justification == Justification.NONE.name && trigger != ReviveTrigger.PUSH_TRANSPORT.name
+private val WakeFindingDay.isUnjustified get() = justification == Justification.NONE.name
 
 private fun String?.isAppPackage(): Boolean = this != null && isNotBlank() && this != "android" && !all(Char::isDigit) && toLongOrNull() == null
 
@@ -187,11 +204,28 @@ internal fun WakeFindingDay.toWakePath(): WakePath {
     val trigger = trigger?.let(ReviveTrigger::valueOf)
     val hold = hold?.let(HoldCause::valueOf)
     val broadcast = trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST
-    val namesComponent = trigger in componentTriggers || hold in componentHolds
-    val component = detail?.takeIf { if (broadcast) '/' in it else namesComponent }?.let { qualifiedWakeComponent(target, it) }
-    val action = detail?.takeIf { component == null && it.isNotBlank() && (broadcast || trigger == ReviveTrigger.SELF_PROCESS) }
+    val push = trigger == ReviveTrigger.PUSH_TRANSPORT
+    val scheduledService = isScheduledService(trigger, hold)
+    val component = detail?.takeIf {
+        when {
+            broadcast -> '/' in it
+
+            push -> '/' in it || (it.matches(pushComponentClass) && it.substringAfterLast('.').any(Char::isLowerCase))
+
+            // Older job details and opaque job tags are digests. A bare digest is no class name.
+            scheduledService -> '/' in it || '.' in it
+
+            else -> trigger in componentTriggers || hold in componentHolds
+        }
+    }?.let { qualifiedWakeComponent(target, it) }
+    val action = detail?.takeIf {
+        component == null && it.isNotBlank() &&
+            (broadcast || trigger == ReviveTrigger.SELF_PROCESS || (push && '/' !in it && it != "<redacted>"))
+    }
     val componentType = when {
-        broadcast || (trigger == ReviveTrigger.SELF_PROCESS && action != null) -> ComponentType.RECEIVER
+        broadcast || ((trigger == ReviveTrigger.SELF_PROCESS || push) && action != null) -> ComponentType.RECEIVER
+
+        scheduledService && component != null -> ComponentType.SERVICE
 
         trigger == ReviveTrigger.PEER_SERVICE || trigger == ReviveTrigger.STICKY_RESTART || trigger == ReviveTrigger.SYSTEM_BIND ||
             trigger == ReviveTrigger.SELF_PROCESS || hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.BOUND_BY_PEER ||
@@ -219,12 +253,14 @@ internal fun WakeFindingDay.toWakePath(): WakePath {
     )
 }
 
+private fun isScheduledService(trigger: ReviveTrigger?, hold: HoldCause?) = trigger == ReviveTrigger.JOB || trigger == ReviveTrigger.SYNC || hold == HoldCause.RUNNING_JOB
+
 private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?, component: String?, action: String?): WakeBlockMethod = when {
     trigger == ReviveTrigger.PEER_SERVICE && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
     hold == HoldCause.BOUND_BY_PEER && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
-    (trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST) &&
+    (trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST || trigger == ReviveTrigger.PUSH_TRANSPORT) &&
         (component != null || action != null) -> WakeBlockMethod.COMPONENT
 
     trigger == ReviveTrigger.SELF_PROCESS && component != null -> WakeBlockMethod.FIREWALL_RULE
@@ -235,8 +271,10 @@ private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?
 
     (trigger == ReviveTrigger.STICKY_RESTART || hold == HoldCause.FOREGROUND_SERVICE) && component != null -> WakeBlockMethod.COMPONENT
 
+    isScheduledService(trigger, hold) && component != null -> WakeBlockMethod.COMPONENT
+
     trigger in timedTriggers || hold == HoldCause.WAKELOCK || hold == HoldCause.RUNNING_JOB ||
-        hold == HoldCause.FOREGROUND_SERVICE -> WakeBlockMethod.BACKGROUND_RESTRICTION
+        hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.UNKNOWN -> WakeBlockMethod.BACKGROUND_RESTRICTION
 
     else -> WakeBlockMethod.NONE
 }

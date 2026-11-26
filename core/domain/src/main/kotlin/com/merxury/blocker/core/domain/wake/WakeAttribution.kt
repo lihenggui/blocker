@@ -9,6 +9,7 @@ import com.merxury.blocker.core.database.wake.WakeRelation
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import org.json.JSONObject
+import kotlin.math.abs
 
 internal object WakeAttribution {
     private const val WINDOW = 5_000_000_000L
@@ -48,8 +49,8 @@ internal object WakeAttribution {
                         "BroadcastDeliveryEventReported" -> hosting == 4 && request.action != null && request.action != "<redacted>" && request.action == start.action
                         else -> false
                     }
-                }
-                val request = matches.singleOrNull() ?: continue
+                }.toList()
+                val request = closestMatchingRequest(matches, elapsed) ?: continue
                 val evidence = when (request.kind) {
                     "BroadcastDeliveryEventReported" -> "MATCHING_ACTION"
                     "ProviderAcquisitionEventReported" -> "MATCHING_PROVIDER_START"
@@ -60,6 +61,23 @@ internal object WakeAttribution {
         }
         links += scheduledWork(records)
         return links.groupBy { it.requestId }.values.mapNotNull { it.singleOrNull() }
+    }
+
+    private fun closestMatchingRequest(matches: List<WakeRecord>, elapsed: Long): WakeRecord? {
+        val first = matches.firstOrNull() ?: return null
+        if (matches.size == 1) return first
+
+        // Repeated requests can identify the same cause even when the exact delivery is uncertain.
+        if (matches.any { it.kind != first.kind || it.callerUid != first.callerUid || it.callerPackage != first.callerPackage }) return null
+        when (first.kind) {
+            "ServiceRequestEventReported", "AppStartOccurred" -> {
+                val component = qualifiedWakeComponent(first.targetPackage, first.component)
+                if (matches.any { it.targetPackage != first.targetPackage || qualifiedWakeComponent(it.targetPackage, it.component) != component }) return null
+            }
+
+            "BroadcastDeliveryEventReported" -> if (matches.any { it.action != first.action }) return null
+        }
+        return matches.minWithOrNull(compareBy<WakeRecord> { abs(it.elapsedNanos - elapsed) }.thenBy { it.elapsedNanos }.thenBy { it.id })
     }
 
     private data class Launch(val request: WakeRecord, val start: WakeRecord, val time: Long)

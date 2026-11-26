@@ -23,6 +23,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 private const val BOOT = 7
 
@@ -31,7 +33,7 @@ private const val USAGE = "usage: adb shell cmd stats print-stats-log [tag_requi
 
 private val PROFILE_SOURCES = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILITY, WakeCommand.LISTENERS, WakeCommand.VPN)
 private val EVERY_RUN = listOf(
-    WakeCommand.INSTALL, WakeCommand.RENEW, WakeCommand.REPORT, WakeCommand.EVENTS, WakeCommand.EVENTS_HEAD,
+    WakeCommand.INSTALL, WakeCommand.RENEW, WakeCommand.REPORT, WakeCommand.RENEW, WakeCommand.EVENTS, WakeCommand.EVENTS_HEAD,
     WakeCommand.PROCSTATS, WakeCommand.USERS, WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES,
     WakeCommand.NOTIFICATIONS,
 )
@@ -95,6 +97,12 @@ class WakeCollectorTest {
         val expected = EVERY_RUN.map { it to 0 } + listOf(WakeCommand.PACKAGES to 0, WakeCommand.PACKAGES to 10) +
             PROFILE_SOURCES.flatMap { listOf(it to 0, it to 10) }
         assertThat(reads.map { it.command to it.user.value }).containsExactlyElementsIn(expected)
+        assertThat(reads.take(4).map { it.command }).containsExactly(
+            WakeCommand.INSTALL,
+            WakeCommand.RENEW,
+            WakeCommand.REPORT,
+            WakeCommand.RENEW,
+        ).inOrder()
         assertThat(reads.map { it.appUid }.toSet()).containsExactly(Process.myUid())
         assertThat(reads.map { it.boot }.toSet()).containsExactly(BOOT)
         assertThat(reads.single { it.command == WakeCommand.EVENTS }.argument).isGreaterThan(0L)
@@ -102,6 +110,22 @@ class WakeCollectorTest {
         assertThat(capture.packages.map { it.packageName }).containsExactly("example.app", "example.app")
         assertThat(capture.unreadable()).containsExactly("START_INFO", listOf("requires Android 15"))
         assertThat(capture.channelUnavailable).isFalse()
+    }
+
+    @Test
+    fun givenExpiredLease_whenCapturingAgain_thenReportPrecedesRenewalAndRecordsTheGap() = runTest {
+        collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(WakeStatsCodec.LEASE_SECONDS + 1))
+        executor.runs.clear()
+
+        val statsd = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT).batch("statsd")
+
+        assertThat(reads.take(2).map { it.command }).containsExactly(WakeCommand.REPORT, WakeCommand.RENEW).inOrder()
+        assertThat(statsd.gaps).contains("statsd: lease expired")
+        assertThat(statsd.subscriptions).isNotEmpty()
+        val metadata = context.getSharedPreferences("wake_stats_owner", Context.MODE_PRIVATE)
+        assertThat(metadata.getString("lastRenewedBoot/0", null)).isEqualTo(BOOT.toString())
+        assertThat(metadata.getLong("lastRenewedElapsedNanos/0", -1L)).isEqualTo(SystemClock.elapsedRealtimeNanos())
     }
 
     @Test

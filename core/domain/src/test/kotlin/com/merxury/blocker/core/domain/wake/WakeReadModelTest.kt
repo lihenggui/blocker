@@ -115,6 +115,7 @@ class WakeReadModelTest {
             HoldCause.WAKELOCK,
             HoldCause.RUNNING_JOB,
             HoldCause.BOUND_BY_PEER,
+            HoldCause.UNKNOWN,
         )
         assertThat(screenOff.first().paths).hasSize(2)
         assertThat(screenOff.filter { it.component == "$APP.Busy" }).hasSize(2)
@@ -198,19 +199,64 @@ class WakeReadModelTest {
         assertThat(provider.component).isEqualTo("external.pkg.Provider")
     }
 
-    @Test fun givenDigestedTagsWithDots_whenBuildingActivity_thenTheyNeverBecomeComponents() {
+    @Test fun givenOpaqueAlarmJobAndWakelockTags_whenBuildingActivity_thenTheyNeverBecomeComponents() {
+        val digest = "1234567890abcdef12345678"
         val rows = listOf(
             revive(ReviveTrigger.ALARM, detail = "com.example.sync.alarm"),
-            revive(ReviveTrigger.JOB, detail = "abc123def"),
+            revive(ReviveTrigger.JOB, detail = digest),
+            revive(ReviveTrigger.SYNC, detail = digest),
             hold(HoldCause.WAKELOCK, detail = "com.example:lock", screenOff = 3),
-            hold(HoldCause.RUNNING_JOB, detail = "job.name", screenOff = 4),
+            hold(HoldCause.RUNNING_JOB, detail = digest, screenOff = 4),
         )
 
         val paths = activity(rows).own.flatMap { it.paths }
 
-        assertThat(paths).hasSize(4)
-        assertThat(paths.map { it.component }).containsExactly(null, null, null, null)
-        assertThat(paths.map { it.componentType }).containsExactly(null, null, null, null)
+        assertThat(paths).hasSize(5)
+        assertThat(paths.map { it.component }.toSet()).containsExactly(null)
+        assertThat(paths.map { it.componentType }.toSet()).containsExactly(null)
+        assertThat(paths.map { it.blockMethod }.toSet()).containsExactly(WakeBlockMethod.BACKGROUND_RESTRICTION)
+    }
+
+    @Test fun givenNamedAndUnnamedScheduledServices_whenBuildingActivity_thenNamedServicesAreIndividuallyBlockable() {
+        val rows = listOf(
+            revive(ReviveTrigger.JOB, detail = "$APP/.FirstJob"),
+            revive(ReviveTrigger.JOB, detail = "$APP/$APP.FirstJob", day = 11),
+            revive(ReviveTrigger.JOB, detail = "$APP.SecondJob"),
+            revive(ReviveTrigger.SYNC, detail = ".SyncAdapter"),
+            revive(ReviveTrigger.JOB),
+            revive(ReviveTrigger.ALARM),
+            hold(HoldCause.RUNNING_JOB, detail = "$APP/.FirstJob", screenOff = 4),
+        )
+
+        val methods = activity(rows).own
+
+        val timed = methods.filter { it.kind == OwnWakeKind.TIMED }.associateBy { it.component }
+        assertThat(timed.keys).containsExactly("$APP.FirstJob", "$APP.SecondJob", "$APP.SyncAdapter", null)
+        assertThat(timed.getValue("$APP.FirstJob").paths.single().count).isEqualTo(2)
+        assertThat(timed.getValue(null).paths.map { it.trigger }).containsExactly(ReviveTrigger.JOB, ReviveTrigger.ALARM)
+        val running = methods.single { it.kind == OwnWakeKind.SCREEN_OFF_RUN }
+        assertThat(running.component).isEqualTo("$APP.FirstJob")
+        for (path in methods.filter { it.component != null }.flatMap { it.paths }) {
+            assertThat(path.componentType).isEqualTo(ComponentType.SERVICE)
+            assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+        }
+    }
+
+    @Test fun givenUnknownHoldWithScreenOffTime_whenBuildingActivity_thenItExplainsTheVerdictAndOffersBackgroundRestriction() {
+        val screenOff = WakeVerdictThresholds.KEEP_ALIVE_SCREEN_OFF_HOLD_NONE_NANOS
+        val held = hold(HoldCause.UNKNOWN, duration = screenOff, screenOff = screenOff)
+        val screenOn = held.copy(screenOffNanos = 0)
+        val day = verdict(APP, 10, WakeVerdict.KEEP_ALIVE, screenOff = screenOff)
+
+        val result = activity(listOf(held), listOf(day))
+
+        assertThat(result.verdict).isEqualTo(WakeVerdict.KEEP_ALIVE)
+        assertThat(result.own.single().kind).isEqualTo(OwnWakeKind.SCREEN_OFF_RUN)
+        val path = result.own.single().paths.single()
+        assertThat(path.hold).isEqualTo(HoldCause.UNKNOWN)
+        assertThat(path.screenOffNanos).isEqualTo(screenOff)
+        assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.BACKGROUND_RESTRICTION)
+        assertThat(activity(listOf(screenOn)).own).isEmpty()
     }
 
     @Test fun givenJustifiedStartsAndPush_whenBuildingActivity_thenOnlyRevivesOfThisAppCountAndPushTakesPrecedence() {
@@ -230,10 +276,39 @@ class WakeReadModelTest {
 
         // The two starts the user initiated are not background starts.
         assertThat(result.backgroundStarts).isEqualTo(18)
-        assertThat(result.justified).isEqualTo(JustifiedStarts(userInitiated = 2, notification = 3, push = 11, grantedRole = 4))
-        assertThat(result.own).isEmpty()
+        assertThat(result.justified).isEqualTo(JustifiedStarts(userInitiated = 2, notification = 3, push = 5, grantedRole = 4))
+        assertThat(result.own.single().paths.single().count).isEqualTo(6)
         assertThat(result.peers).isEmpty()
         assertThat(result.verdict).isEqualTo(WakeVerdict.NORMAL)
+    }
+
+    @Test fun givenSilentPushDetails_whenBuildingActivity_thenComponentsAndActionsAreBlockableSystemEvents() {
+        val action = "com.google.android.c2dm.intent.RECEIVE"
+        val rows = listOf(
+            revive(ReviveTrigger.PUSH_TRANSPORT, detail = action, afterKill = "empty"),
+            revive(ReviveTrigger.PUSH_TRANSPORT, detail = "$APP/.PushReceiver"),
+            revive(ReviveTrigger.PUSH_TRANSPORT, detail = "vendor.sdk.PushService"),
+            revive(ReviveTrigger.PUSH_TRANSPORT, detail = "<redacted>"),
+        )
+
+        val methods = activity(rows).own
+
+        assertThat(methods.map { it.kind }.toSet()).containsExactly(OwnWakeKind.SYSTEM_EVENT)
+        val paths = methods.flatMap { it.paths }.associateBy { it.pathKey }
+        val actionPath = paths.getValue(rows[0].pathKey)
+        assertThat(actionPath.action).isEqualTo(action)
+        assertThat(actionPath.component).isNull()
+        assertThat(actionPath.componentType).isEqualTo(ComponentType.RECEIVER)
+        assertThat(actionPath.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+        assertThat(actionPath.afterKill).isTrue()
+        for ((row, component) in listOf(rows[1] to "$APP.PushReceiver", rows[2] to "vendor.sdk.PushService")) {
+            val path = paths.getValue(row.pathKey)
+            assertThat(path.component).isEqualTo(component)
+            assertThat(path.componentType).isNull()
+            assertThat(path.action).isNull()
+            assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+        }
+        assertThat(paths.getValue(rows[3].pathKey).blockMethod).isEqualTo(WakeBlockMethod.NONE)
     }
 
     @Test fun givenRepeatedPathsAndVerdictsAcrossDays_whenBuildingActivity_thenOnlyWindowDaysAreSummed() {
@@ -297,6 +372,15 @@ class WakeReadModelTest {
         assertThat(headline(events + timed, withoutScreenOff)).isEqualTo(WakeHeadline.StartsOnSystemEvent("test.BOOT", 8))
         assertThat(headline(timed, withoutScreenOff)).isEqualTo(WakeHeadline.TimedWakeups(6))
         assertThat(headline(emptyList(), withoutScreenOff)).isEqualTo(WakeHeadline.BackgroundStarts(50))
+    }
+
+    @Test fun givenOnlySilentPushes_whenBuildingOverview_thenTheHeadlineCountsTheirBackgroundStarts() {
+        val pushes = revive(ReviveTrigger.PUSH_TRANSPORT, detail = "com.google.android.c2dm.intent.RECEIVE", count = 12, afterKill = "empty")
+
+        val result = overview(listOf(pushes), listOf(verdict(APP, 10))).single()
+
+        assertThat(result.verdict).isEqualTo(WakeVerdict.NORMAL)
+        assertThat(result.headline).isEqualTo(WakeHeadline.BackgroundStarts(12))
     }
 
     @Test fun givenMixedDailyVerdicts_whenBuildingOverview_thenOnlyAppsWithWindowVerdictsAppearInSeverityAndCountOrder() {

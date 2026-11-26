@@ -61,6 +61,23 @@ class WakeChainTest {
         assertThat(three.getValue("app2").chainDepth).isEqualTo(1)
     }
 
+    @Test fun givenPushReasonAndJoinedTransport_whenDetecting_thenTheRequestCanContinueAChain() {
+        val evidence = chain(2)
+        val records = evidence.records.map { record ->
+            if (record.id == "request2") record.copy(callerPackage = "com.coloros.mcs", action = "vendor.PUSH") else record
+        } + wakeRecord(
+            "push-info", "ApplicationStartInfo", 20 * second, source = "START_INFO", targetUid = uid(2), targetPackage = pkg(2),
+            startType = 3, process = pkg(2), attributes = mapOf("reason" to "PUSH"),
+        )
+
+        val revives = evidence.copy(records = records).revives()
+        val push = revives.getValue(pkg(2))
+        assertThat(push.trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT)
+        assertThat(push.actor).isEqualTo("com.coloros.mcs")
+        assertThat(push.detail).isEqualTo("app2/app2.Wake")
+        assertThat(push.chainRoot).isEqualTo(revives.getValue(pkg(1)).pathKey)
+    }
+
     @Test fun givenCyclicOrOverlongLinks_whenDetecting_thenTheWalkTerminates() {
         val cycle = chain(2) { listOf(WakeContinuation("request2", "request1"), WakeContinuation("request1", "request2")) }.revives()
         assertThat(cycle.values.map { it.chainRoot }).containsExactly(null, null)

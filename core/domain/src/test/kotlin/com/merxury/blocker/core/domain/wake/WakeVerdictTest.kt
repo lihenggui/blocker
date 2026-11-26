@@ -88,6 +88,26 @@ class WakeVerdictTest {
         assertThat(mixed.verdict).isEqualTo(WakeVerdict.SUSPICIOUS.name)
     }
 
+    @Test fun givenRepeatedSilentPushes_whenJudging_thenTheyStayInHistoryWithoutRaisingTheVerdict() {
+        val pushes = Array(12) { revive(trigger = ReviveTrigger.PUSH_TRANSPORT, afterKill = "empty") }
+
+        val day = verdict(*pushes)
+        assertThat(day.revives).isEqualTo(12)
+        assertThat(day.afterKillRevives).isEqualTo(12)
+        assertThat(day.noneRevives).isEqualTo(0)
+        assertThat(day.afterKillNoneRevives).isEqualTo(0)
+        assertThat(day.verdict).isEqualTo(WakeVerdict.NORMAL.name)
+        val row = WakeDetection.daily(pushes.toList(), utc).single()
+        assertThat(row.trigger).isEqualTo(ReviveTrigger.PUSH_TRANSPORT.name)
+        assertThat(row.justification).isEqualTo(Justification.NONE.name)
+        assertThat(row.count).isEqualTo(12)
+
+        val mixed = verdict(*pushes, revive(trigger = ReviveTrigger.JOB, afterKill = "empty"))
+        assertThat(mixed.noneRevives).isEqualTo(1)
+        assertThat(mixed.afterKillNoneRevives).isEqualTo(1)
+        assertThat(mixed.verdict).isEqualTo(WakeVerdict.SUSPICIOUS.name)
+    }
+
     @Test fun givenSystemBoundHolds_whenJudging_thenTheyNeverCountTowardScreenOffHold() {
         for (justification in listOf(Justification.NONE, Justification.USER_GRANTED_ROLE)) {
             val day = verdict(hold(5 * 60 * minute, justification, cause = HoldCause.BOUND_BY_SYSTEM))
