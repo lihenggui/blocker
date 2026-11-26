@@ -96,6 +96,7 @@
     <string name="feature_wake_api_method_restart">Restarts after being closed</string>
     <string name="feature_wake_api_method_self_start">Its processes start each other</string>
     <string name="feature_wake_api_method_system_event">Starts on system broadcasts</string>
+    <string name="feature_wake_api_method_silent_push">Woken by silent push</string>
     <string name="feature_wake_api_method_timed">Wakes on a timer</string>
     <string name="feature_wake_api_method_screen_off">Keeps running with the screen off</string>
     <string name="feature_wake_api_method_known">Known keep-alive method</string>
@@ -106,6 +107,8 @@
     <string name="feature_wake_api_fact_component">Component</string>
     <string name="feature_wake_api_fact_caller">Caller</string>
     <string name="feature_wake_api_fact_action">Action</string>
+    <string name="feature_wake_api_fact_method">Control</string>
+    <string name="feature_wake_api_fact_method_background">Turns off Allow background usage</string>
     <string name="feature_wake_api_fact_component_value">%1$s (%2$s)</string>
     <string name="feature_wake_api_fact_component_of_app">%1$s (%3$s of %2$s)</string>
     <string name="feature_wake_api_type_activity">activity</string>

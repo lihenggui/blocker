@@ -5,6 +5,7 @@ package com.merxury.blocker.feature.wake.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.device.BackgroundUsageFailure
 import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.BackgroundUsageResult
 import com.merxury.blocker.core.data.device.InstalledAppRepository
@@ -15,10 +16,8 @@ import com.merxury.blocker.core.domain.wake.ObserveWakeAvailabilityUseCase
 import com.merxury.blocker.core.domain.wake.RestoreAppWakeChangesUseCase
 import com.merxury.blocker.core.domain.wake.SetWakePathsBlockedUseCase
 import com.merxury.blocker.core.model.component.AppKey
-import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.WakeAvailability
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
-import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.feature.wake.api.R.string
@@ -31,9 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
@@ -58,8 +55,6 @@ internal class WakeAppViewModel @AssistedInject constructor(
     }
 
     private val appKey = AppKey(packageName, selectedUsers.ownUser)
-    private val background = MutableStateFlow<BackgroundUsage?>(null)
-    private var backgroundRead = false
     private val busy = MutableStateFlow(false)
     private val notices = MutableStateFlow<WakeNotice?>(null)
     private var nextNoticeId = 0L
@@ -82,29 +77,22 @@ internal class WakeAppViewModel @AssistedInject constructor(
         installedApps.apps(appKey.userId),
         detailed,
         ::buildWakeAppState,
-    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WakeAppUiState(WakeAppIdentity(packageName)))
+    )
 
     val uiState = combine(
         data,
-        flow {
-            emit(background.value)
-            if (!backgroundRead) {
-                refreshBackground()
-                backgroundRead = true
-            }
-            emitAll(background)
-        },
+        backgroundUsage.observe(appKey).onStart { emit(null) },
         busy,
         notices,
     ) { state, usage, busy, notice ->
         state.copy(background = usage, busy = busy, notice = notice)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), data.value)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WakeAppUiState(WakeAppIdentity(packageName)))
 
     fun toggle(key: String, allowed: Boolean) = act {
-        val row = data.value.rows.firstOrNull { it.key == key && it.canToggle } ?: return@act
+        val state = uiState.value
+        val row = state.rows.firstOrNull { it.key == key && it.canToggle(state.background) } ?: return@act
         val paths = row.paths.filter { (it.block != WakePathBlock.NONE) == allowed }
         val outcome = row.automatic?.let { setBlocked(listOf(it), blocked = !allowed) } ?: setBlocked(paths, blocked = !allowed)
-        refreshBackground()
         if (outcome.failure != null) {
             val component = paths.singleOrNull()?.path?.component.takeIf { !allowed }
             show(blockFailureText(outcome.failure, outcome.done.size, (paths.size - outcome.done.size).coerceAtLeast(1), component))
@@ -112,21 +100,19 @@ internal class WakeAppViewModel @AssistedInject constructor(
     }
 
     fun setBackgroundAllowed(allowed: Boolean) = act {
-        val usage = background.value ?: return@act
+        val usage = uiState.value.background ?: return@act
         if (!usage.changeable || usage.allowed == allowed) return@act
         val result = changeBackground(allowed)
         if (result.failure != null) show(blockFailureText(result.failure, 0, 1))
     }
 
     fun blockAll(selected: Set<String>) = act {
-        val state = data.value
-        val rows = state.rows.filter { it.key in selected && it.canToggle && !it.blocked }
-        val usage = background.value
+        val state = uiState.value
+        val usage = state.background
+        val rows = state.rows.filter { it.key in selected && it.canToggle(usage) && !it.blocked }
         val paths = rows.flatMap { it.paths }
         // A selected path for this app already owns the setting change and its undo.
-        val backgroundHandledByPaths = paths.any {
-            it.block == WakePathBlock.NONE && it.path.blockMethod == WakeBlockMethod.BACKGROUND_RESTRICTION && it.path.target == appKey.packageName
-        }
+        val backgroundHandledByPaths = paths.any { it.canRestrictBackground(appKey.packageName) }
         val turnOffBackground = BACKGROUND_CHOICE in selected && usage?.allowed == true && usage.changeable && !backgroundHandledByPaths
         if (rows.isEmpty() && !turnOffBackground) return@act
 
@@ -134,12 +120,7 @@ internal class WakeAppViewModel @AssistedInject constructor(
             row.paths.filter { it.block == WakePathBlock.NONE }.map { it.path.pathKey }.toSet() + listOfNotNull(row.automatic?.pathId)
         }
         val result = setBlocked.blockWithUndo(paths, rows.mapNotNull { it.automatic })
-        val backgroundResult = if (turnOffBackground) {
-            changeBackground(false)
-        } else {
-            refreshBackground()
-            null
-        }
+        val backgroundResult = if (turnOffBackground) changeBackground(false) else null
 
         val completed = rows.count { row -> allowed.getValue(row).all { it in result.outcome.done } }
         val backgroundChanged = backgroundResult?.done?.isNotEmpty() == true
@@ -156,10 +137,9 @@ internal class WakeAppViewModel @AssistedInject constructor(
 
     fun restoreAll() = act {
         val result = restore(appKey.packageName)
-        refreshBackground()
         val undo = result.undo?.let(WakeUndo::Restore)
         val text = result.outcome.failure?.let { blockFailureText(it, 0, 1) }
-            ?: WakeText.Resource(string.feature_wake_api_restored, data.value.app.label)
+            ?: WakeText.Resource(string.feature_wake_api_restored, uiState.value.app.label)
         show(text, undo)
     }
 
@@ -175,7 +155,6 @@ internal class WakeAppViewModel @AssistedInject constructor(
 
                 is WakeUndo.Restore -> restore.undo(token.token).failure
             }
-            if (token !is WakeUndo.Block || !token.background) refreshBackground()
             if (failure != null) show(WakeText.Resource(string.feature_wake_api_undo_failed))
         }
     }
@@ -203,24 +182,17 @@ internal class WakeAppViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun refreshBackground() {
-        background.value = (backgroundUsage.read(appKey) as? BackgroundUsageResult.Success)?.value
-    }
-
     private suspend fun changeBackground(allowed: Boolean): WakeBlockOutcome {
-        val result = backgroundUsage.setAllowed(appKey, allowed)
-        val readBack = backgroundUsage.read(appKey)
-        val confirmed = (readBack as? BackgroundUsageResult.Success)?.value
-        val returned = (result as? BackgroundUsageResult.Success)?.value
-        background.value = confirmed
-        val changed = if ((confirmed ?: returned)?.allowed == allowed) setOf(BACKGROUND_CHOICE) else emptySet()
-        val failure = when {
-            result is BackgroundUsageResult.Failure -> result.reason.wakeFailure()
-            changed.isNotEmpty() -> null
-            readBack is BackgroundUsageResult.Failure -> readBack.reason.wakeFailure()
-            else -> WakeBlockFailure.BackgroundNotChangeable
+        val failure = when (val result = backgroundUsage.setAllowed(appKey, allowed)) {
+            is BackgroundUsageResult.Success -> WakeBlockFailure.BackgroundNotChangeable.takeIf { result.value.allowed != allowed }
+
+            is BackgroundUsageResult.Failure -> {
+                // The repository keeps its last known state when Android refuses the change.
+                if (result.reason == BackgroundUsageFailure.NOT_CHANGEABLE) backgroundUsage.read(appKey)
+                result.reason.wakeFailure()
+            }
         }
-        return WakeBlockOutcome(changed, failure)
+        return WakeBlockOutcome(if (failure == null) setOf(BACKGROUND_CHOICE) else emptySet(), failure)
     }
 
     private fun show(text: WakeText, undo: WakeUndo? = null) {

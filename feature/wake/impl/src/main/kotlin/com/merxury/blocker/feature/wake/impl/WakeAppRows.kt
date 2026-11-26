@@ -56,6 +56,7 @@ internal fun LazyListScope.wakeDetailGroup(
     title: Int,
     rows: List<WakeDetailRow>,
     expanded: String?,
+    background: BackgroundUsage?,
     busy: Boolean,
     onExpand: (String) -> Unit,
     onToggle: (String, Boolean) -> Unit,
@@ -69,7 +70,7 @@ internal fun LazyListScope.wakeDetailGroup(
             index = index,
             count = rows.size,
             expanded = expanded == row.key,
-            busy = busy,
+            switchEnabled = !busy && row.canToggle(background),
             onExpand = { onExpand(row.key) },
             onToggle = { onToggle(row.key, it) },
             onPeerClick = onPeerClick,
@@ -85,7 +86,7 @@ private fun WakeDetailItem(
     index: Int,
     count: Int,
     expanded: Boolean,
-    busy: Boolean,
+    switchEnabled: Boolean,
     onExpand: () -> Unit,
     onToggle: (Boolean) -> Unit,
     onPeerClick: (String) -> Unit,
@@ -114,11 +115,11 @@ private fun WakeDetailItem(
             colors = defaultColors.copy(containerColor = container, supportingContentColor = metaColor),
             leadingContent = { WakeRowIcon(row) },
             supportingContent = row.meta?.let { meta -> { Text(meta.resolve()) } },
-            trailingContent = row.takeIf { it.canToggle }?.let {
+            trailingContent = row.takeIf { it.hasSwitch }?.let {
                 {
                     WakeAllowedSwitch(
                         allowed = !row.blocked,
-                        enabled = !busy,
+                        enabled = switchEnabled,
                         label = stringResource(string.feature_wake_api_allow_path, title),
                         onToggle = onToggle,
                     )
@@ -193,9 +194,16 @@ private fun WakeRowFacts(row: WakeDetailRow, onPeerClick: (String) -> Unit) {
 // A disclosure chevron flips by a half turn between collapsed and expanded.
 private const val EXPANDED_CHEVRON_ROTATION = 180f
 
+@SuppressLint("DesignSystem") // The wake action uses the primary content role.
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun NormalWakeStarts(normal: JustifiedStarts, expanded: Boolean, onExpand: () -> Unit, modifier: Modifier = Modifier) {
+internal fun NormalWakeStarts(
+    normal: JustifiedStarts,
+    expanded: Boolean,
+    onExpand: () -> Unit,
+    onComponents: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val parts = normal.parts()
     val total = parts.sumOf { it.amount }
     if (total == 0L) return
@@ -221,6 +229,9 @@ internal fun NormalWakeStarts(normal: JustifiedStarts, expanded: Boolean, onExpa
             Column {
                 val itemColors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 parts.forEach { ListItem(colors = itemColors) { Text(it.resolve()) } }
+                TextButton(onClick = onComponents, modifier = Modifier.padding(ListItemDefaults.ContentPadding)) {
+                    Text(stringResource(string.feature_wake_api_view_components))
+                }
             }
         }
     }

@@ -121,14 +121,15 @@ internal fun WakeAppScreen(
         ) {
             if (state.loaded) item(key = "hero") { WakeAppHero(state, onPeerClick) }
             val expand: (String) -> Unit = { expanded = it.takeUnless { key -> expanded == key } }
-            wakeDetailGroup(string.feature_wake_api_section_relations, state.relations, expanded, state.busy, expand, onToggle, onPeerClick)
-            wakeDetailGroup(string.feature_wake_api_section_methods, state.methods, expanded, state.busy, expand, onToggle, onPeerClick)
+            wakeDetailGroup(string.feature_wake_api_section_relations, state.relations, expanded, state.background, state.busy, expand, onToggle, onPeerClick)
+            wakeDetailGroup(string.feature_wake_api_section_methods, state.methods, expanded, state.background, state.busy, expand, onToggle, onPeerClick)
             if (state.normal.parts().isNotEmpty()) {
                 item(key = "normal") {
                     NormalWakeStarts(
                         normal = state.normal,
                         expanded = normalExpanded,
                         onExpand = { normalExpanded = !normalExpanded },
+                        onComponents = onComponents,
                         modifier = Modifier.padding(bottom = WakeContentSpacing),
                     )
                 }
